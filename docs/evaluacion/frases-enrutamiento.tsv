@@ -23,7 +23,7 @@
 23	Autorizá un paquete de trabajo para el equipo de infraestructura	pm-paquetes-trabajo
 24	Registrá un supuesto: el padrón de socios estará disponible en marzo	pm-registros
 25	Anotá que Ana debe enviar la minuta el viernes	pm-registros
-26	Escribí el acta de la reunión con estas notas	pm-reuniones
+26	Escribí el acta de la reunión con estas notas: Ana confirmó el proveedor; Luis entrega el plan de pruebas el viernes; riesgo de demora en la API de pagos	pm-reuniones
 27	Armá el project brief y el canvas de arranque	pm-mandato-y-brief
 28	Necesito el PID completo para que lo firme el ejecutivo	pm-acta-constitucion
 29	Definí el enfoque de gestión de riesgos y de cambios	pm-enfoques-gestion
@@ -41,14 +41,20 @@
 41	Build the risk register for the mobile app	pm-riesgos
 42	Create the work breakdown structure	pm-planificacion-por-productos
 43	Write this week's status report with burn-up	pm-progreso-reportes
-44	Turn this meeting transcript into minutes and action items	pm-reuniones
+44	Turn this meeting transcript into minutes and action items: [00:01] Ana: we go with vendor B. [00:03] Luis: I'll send the test plan by Friday	pm-reuniones
 45	Did the PRD change since the board approved it?	pm-bmad-puente
 46	Score our key results for Q4	pm-okr
 47	Prepare the end stage report	pm-plan-etapa-y-limites
-48	The forecast says we will exceed the cost tolerance	pm-progreso-reportes
-49	Fijá las tolerancias de la etapa en estado.json	pm-estado-proyecto
+48	The forecast says we will exceed the cost tolerance	pm-progreso-reportes	pm-issues-cambios
+49	Fijá las tolerancias de la etapa en estado.json	pm-estado-proyecto	pm-direccion-decisiones
 50	Hacé el diagrama de Gantt del cronograma	pm-cronograma-estimacion
 51	Mandale un correo a los stakeholders con el estado	pm-comunicacion-stakeholders
 52	¿Cuál es el clima del equipo según las últimas reuniones?	pm-reuniones
 53	Revisá la sanidad del proyecto antes de la junta	pm-sanidad
 54	Run a consistency check between the PRD and our plan	pm-sanidad
+55	¿Cómo venimos con el proyecto?	pm-orquestador
+56	How are we doing on the project?	pm-orquestador
+57	Set up the backlog and plan the next sprints from the BMAD stories	pm-agil-hibrido
+58	Revisá la calidad del entregable de integración antes de aceptarlo	pm-calidad
+59	Who approves the end stage report?	pm-knowledge
+60	Anotá este riesgo del proveedor: puede atrasar la entrega dos semanas	pm-riesgos

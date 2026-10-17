@@ -1,0 +1,10 @@
+flowchart LR
+    pide["Pedido de puerta<br/>(/pm-puerta o ¿qué sigue?)"] --> c1["1 · Salud<br/>sanidad.py --rapido<br/>sin ERROR"]
+    c1 --> c2["2 · Controles automáticos<br/>puertas.py verificar<br/>PRINCE2 + BMAD"]
+    c2 --> c3["3 · Lista de control<br/>puertas.py lista → la junta revisa<br/>puertas.py confirmar --por"]
+    c3 --> dec{"Decisión de la junta"}
+    dec -- "sin bloqueos" --> ap["aprobado"]
+    dec -- "con bloqueos" --> co["condicionado<br/>(bloqueos = condiciones)"]
+    dec -- "decisión expresa" --> fz["--forzar<br/>(queda anotado)"]
+    dec --> re["rechazado / pendiente"]
+    ap & co & fz & re --> reg["pm-director: estado.py puerta<br/>estado.json + decisiones.csv<br/>+ referencia a la lista"]

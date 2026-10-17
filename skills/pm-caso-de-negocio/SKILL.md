@@ -1,7 +1,7 @@
 ---
 name: pm-caso-de-negocio
 description: "Business case PRINCE2 y enfoques de beneficios y sostenibilidad. Usar: caso de negocio, business case, ROI, VAN/NPV, payback, beneficios. No: OKR→pm-okr; presupuesto→pm-costos-presupuesto."
-version: 2.0.0
+version: 2.1.0
 author: pm-method
 license: MIT
 metadata:
@@ -24,7 +24,7 @@ metadata:
 - EN: outline or full business case, benefits and sustainability approaches; continued justification at gates.
 
 ## Idioma
-Responder y generar en el idioma del usuario (`estado.json.idioma` por defecto). Etiquetas bilingües en plantillas; términos EN entre paréntesis la primera vez ("des-beneficio (dis-benefit)"). Fórmulas con variables en inglés técnico (`NPV`, `CF_t`, `r`).
+**Idioma · Language:** responder siempre en el idioma en que escribe el usuario (English request → English reply); los artefactos van en `estado.json.idioma` salvo que el usuario pida otro. Etiquetas bilingües en plantillas; términos EN entre paréntesis la primera vez ("des-beneficio (dis-benefit)"). Fórmulas con variables en inglés técnico (`NPV`, `CF_t`, `r`).
 
 ## Conocimiento
 - `pm-knowledge/references/prince2-practicas-bc-organizacion-planes-calidad.md` §2 (cadena de valor, tres atributos, técnica de cuatro pasos, multi-caso, sostenibilidad).
@@ -37,7 +37,7 @@ Responder y generar en el idioma del usuario (`estado.json.idioma` por defecto).
 - `estado.json` (fase y proceso definen el modo); si no existe, `pm-estado-proyecto`.
 - Esquemático: mandato, propuesta o brief, `lecciones.csv`. Completo: esquemático aprobado, `02-planificacion/plan-proyecto.md`, `riesgos.csv`, roles (usuario sénior = dueño de beneficios). Verificar/mantener: versión anterior, `03-control/reportes/`, reales.
 - Datos de la organización: tasa de descuento, horizonte, moneda, política de inversiones, compromisos ESG; si faltan, preguntar una vez y marcar `[por confirmar]`.
-- **Especificación (fuente única, SPEC §1.16)**: métricas `SM-n` solo vía `python3 <pm-estado-proyecto>/scripts/especificacion.py --proyecto <dir> resumen|consultar <id>|listar requisitos` (igual con o sin BMAD; nunca abrir BMAD ni `requisitos.md`). Escribe como dueña: beneficios `B-##` que citan ids, sin copiar texto. KR: `00-direccion/okr.csv` (`pm-okr`), si existe.
+- **Especificación (fuente única, SPEC §1.16)**: métricas `SM-n` solo vía `python3 ${CLAUDE_SKILL_DIR}/../pm-estado-proyecto/scripts/especificacion.py --proyecto <dir> resumen|consultar <id>|listar requisitos` (igual con o sin BMAD; nunca abrir BMAD ni `requisitos.md`). Escribe como dueña: beneficios `B-##` que citan ids, sin copiar texto. KR: `00-direccion/okr.csv` (`pm-okr`), si existe.
 
 ## Procedimiento
 1. **Leer el estado** y fijar el modo: `esquematico` (SU), `completo` (IP), `verificar` (puerta), `mantener` (fin de etapa), `confirmar` (cierre). Anunciar modo y versión (ver `references/guia.md` §1).
@@ -46,7 +46,7 @@ Responder y generar en el idioma del usuario (`estado.json.idioma` por defecto).
 4. **Vincular métricas sin duplicar** (si existen): cada beneficio `B-##` cita en la columna "Refs SM / KR" los `SM-n` del PRD y los KR de `okr.csv` que lo miden; meta, línea base, dueño y tolerancia siguen siendo del business case. Reglas y casos en `references/guia.md` §4.
 5. **Opciones de negocio**: "no hacer nada distinto" (base), "hacer lo mínimo", "hacer más"; tabla de ventajas, desventajas, costo y riesgo; recomendación razonada.
 6. **Evaluar la inversión** con la técnica que pide la pregunta (`references/guia.md` §2); supuestos y fórmulas en el documento; sensibilidad si un beneficio sostiene > 50 % del valor.
-7. **Tolerancias** de beneficios y sostenibilidad: proponerlas; tras confirmación de la capa de negocio, `python3 <pm-estado-proyecto>/scripts/estado.py --proyecto <dir> tolerancia --nivel proyecto beneficios="-10 %" sostenibilidad="..."`. Las de etapa las fija la junta vía `pm-director`.
+7. **Tolerancias** de beneficios y sostenibilidad: proponerlas; tras confirmación de la capa de negocio, `python3 ${CLAUDE_SKILL_DIR}/../pm-estado-proyecto/scripts/estado.py --proyecto <dir> tolerancia --nivel proyecto beneficios="-10 %" sostenibilidad="..."`. Las de etapa las fija la junta vía `pm-director`.
 8. **Redactar el business case** → `templates/business-case.md` en `00-direccion/business-case.md` (esquemático: secciones marcadas; resto `[en inicio]`). Perfil ágil mínimo: versión de una página (`references/guia.md` §3).
 9. **Enfoque de beneficios** (completo) → `templates/enfoque-beneficios.md` en `00-direccion/enfoque-beneficios.md`: dueño, medida, línea base, fecha, método, revisiones intermedias, financiación post-cierre, Refs SM / KR.
 10. **Enfoque de sostenibilidad** (completo; en mínima, sección del caso) → `templates/enfoque-sostenibilidad.md` en `00-direccion/enfoque-sostenibilidad.md`.
@@ -79,7 +79,7 @@ Más reglas: `references/guia.md` §5.
 | Business case | `templates/business-case.md` | `00-direccion/business-case.md` (+ `historial/`) | `business-case`, `business-case-esquematico` |
 | Enfoque de beneficios | `templates/enfoque-beneficios.md` | `00-direccion/enfoque-beneficios.md` | `enfoque-beneficios` |
 | Enfoque de sostenibilidad | `templates/enfoque-sostenibilidad.md` | `00-direccion/enfoque-sostenibilidad.md` | `enfoque-sostenibilidad` |
-| Tolerancias de beneficios y sostenibilidad | `estado.py tolerancia --nivel proyecto` | `estado.json.tolerancias.proyecto` | campo raíz |
+| Tolerancias de beneficios y sostenibilidad | propuestas en el caso; las registra pm-director (`estado.py tolerancia --nivel proyecto`) al aprobarse | `estado.json.tolerancias.proyecto` | campo raíz |
 | Veredicto de justificación continua | sección "Verificación" + fila en `decisiones.csv` | `00-direccion/business-case.md` | `business-case` (nueva versión) |
 
 ## Calidad

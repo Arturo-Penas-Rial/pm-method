@@ -96,7 +96,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--proyecto", required=True)
     sub = ap.add_subparsers(dest="cmd", required=True)
-    l = sub.add_parser("listar"); l.add_argument("registro"); l.add_argument("--estado"); l.add_argument("--abiertos", action="store_true"); l.add_argument("--json", action="store_true")
+    l = sub.add_parser("listar"); l.add_argument("registro"); l.add_argument("--estado"); l.add_argument("--abiertos", action="store_true"); l.add_argument("--json", action="store_true"); l.add_argument("--limite", type=int, default=60, help="máximo de filas en pantalla (0 = sin límite)")
     a = sub.add_parser("agregar"); a.add_argument("registro"); a.add_argument("--campo", action="append"); a.add_argument("--forzar", action="store_true")
     u = sub.add_parser("actualizar"); u.add_argument("registro"); u.add_argument("id"); u.add_argument("--campo", action="append"); u.add_argument("--forzar", action="store_true")
     r = sub.add_parser("resumen"); r.add_argument("--json", action="store_true"); r.add_argument("--corte", help="fecha de corte AAAA-MM-DD para vencidas (defecto: hoy); usar la misma que el informe o tablero")
@@ -127,7 +127,10 @@ def main():
                and (not args.abiertos or f.get("estado") in spec.get("abiertos", []))]
         if args.json: print(json.dumps(sel, ensure_ascii=False, indent=2))
         else:
-            for f in sel: print(" | ".join(f"{k}={v}" for k, v in f.items() if v))
+            for f in (sel[:args.limite] if args.limite else sel): print(" | ".join(f"{k}={v}" for k, v in f.items() if v))
+            if args.limite and len(sel) > args.limite:
+                print(f"… {len(sel) - args.limite} de {len(sel)} más sin mostrar: filtrar con --estado/--abiertos, usar 'resumen' o --limite 0 · "
+                      f"{len(sel) - args.limite} of {len(sel)} more not shown")
         return
     campos = parse_campos(args.campo)
     desconocidos = [k for k in campos if k not in cols]

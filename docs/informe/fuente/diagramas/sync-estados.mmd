@@ -1,0 +1,11 @@
+stateDiagram-v2
+  [*] --> Vigente: linea-base v1.0 (pm-director, tras la puerta)
+  Vigente --> Desvio: el PRD o las épicas cambian
+  Desvio --> NoControlado: ningún issue/cambio abierto lo cita (ESP-10 ERROR)
+  NoControlado --> EnTramite: issue solicitud-cambio que cita la clave o los ids
+  Desvio --> EnTramite
+  EnTramite --> Rechazado: la autoridad rechaza → el equipo BMAD revierte
+  Rechazado --> Vigente
+  EnTramite --> Traspasado: aprobado → handoff del cambio
+  Traspasado --> Aplicado: el equipo BMAD aplica y marca "aplicado"
+  Aplicado --> Vigente: verificar limpio → linea-base v1.1

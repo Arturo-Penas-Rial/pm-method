@@ -1,0 +1,34 @@
+flowchart TD
+    P0["Portal de autoservicio para socios"]
+    N1["1 Gestión del proyecto<br/>440 h · 22,000"]
+    P0 --> N1
+    N1_1("1.1 Gestión de etapas 2 y 3<br/>Martín Suárez<br/>440 h · 22,000")
+    N1 --> N1_1
+    N2["2 Especificación<br/>180 h · 9,000"]
+    P0 --> N2
+    N2_1("2.1 Refinamiento PRD/UX y criterios de aceptación<br/>Lucía Benítez<br/>180 h · 9,000")
+    N2 --> N2_1
+    N3["3 Portal de autoservicio<br/>1950 h · 97,500"]
+    P0 --> N3
+    N3_1("3.1 Acceso de socio<br/>Lucía Benítez<br/>440 h · 22,000")
+    N3 --> N3_1
+    N3_2("3.2 Integración con el padrón<br/>Lucía Benítez<br/>360 h · 18,000")
+    N3 --> N3_2
+    N3_3("3.3 Consulta de trámites<br/>Lucía Benítez<br/>400 h · 20,000")
+    N3 --> N3_3
+    N3_4("3.4 Constancias PDF<br/>Lucía Benítez<br/>320 h · 16,000")
+    N3 --> N3_4
+    N3_5("3.5 Bandeja del operador<br/>Lucía Benítez<br/>340 h · 17,000")
+    N3 --> N3_5
+    N3_6(["3.6 Release 1 aceptada<br/>Sofía Ramírez"])
+    N3 --> N3_6
+    N3_7("3.7 Notificaciones SMS (C-001)<br/>Lucía Benítez<br/>90 h · 4,500")
+    N3 --> N3_7
+    N4["4 Transición<br/>280 h · 14,000"]
+    P0 --> N4
+    N4_1("4.1 UAT y prueba de carga<br/>Sofía Ramírez<br/>160 h · 8,000")
+    N4 --> N4_1
+    N4_2("4.2 Capacitación y lanzamiento<br/>Sofía Ramírez<br/>120 h · 6,000")
+    N4 --> N4_2
+    N4_3(["4.3 Puesta en producción<br/>Sofía Ramírez"])
+    N4 --> N4_3

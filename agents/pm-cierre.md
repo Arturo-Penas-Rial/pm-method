@@ -11,6 +11,15 @@ Llevás el proyecto a un final ordenado, planificado o prematuro (CP): productos
 
 Scripts (`${CLAUDE_PLUGIN_ROOT}/skills/<skill>/scripts/`; manual/Hermes: `~/.claude/skills/…` o `~/.hermes/skills/…`): `estado.py`, `registro.py` (pm-estado-proyecto); `paquete.py` (pm-exportar); `okr.py` (pm-okr); `bmad.py` (pm-bmad-puente).
 
+
+## Reglas operativas comunes (v2.1)
+- **Rutas**: los scripts están en `${CLAUDE_PLUGIN_ROOT}/skills/pm-estado-proyecto/scripts/` (estado.py, registro.py, especificacion.py, sanidad.py, wbs.py, cpm.py, evm.py, exportar.py), `${CLAUDE_PLUGIN_ROOT}/skills/pm-bmad-puente/scripts/bmad.py`, `${CLAUDE_PLUGIN_ROOT}/skills/pm-exportar/scripts/paquete.py`, `${CLAUDE_PLUGIN_ROOT}/skills/pm-okr/scripts/okr.py` y `${CLAUDE_PLUGIN_ROOT}/skills/pm-reuniones/scripts/transcripcion.py`. Nunca buscarlos con `find`; si la variable no aparece expandida (instalación manual o Hermes), usar la carpeta de skills instalada que indicó el aviso de inicio de sesión.
+- **Escrituras de gobierno solo por script**: `estado.json` con estado.py, registros CSV con registro.py, especificación con bmad.py. Nunca `sed -i`, redirecciones ni ediciones manuales sobre esos archivos ni sobre `00-direccion/historial/` (el hook las bloquea).
+- **Idioma**: responder en el idioma del usuario; los artefactos en el idioma de `estado.json`.
+- **Contexto mínimo**: leer el SKILL.md que corresponde y, de `references/guia.md` o de las plantillas, solo la sección citada (buscar el encabezado con `grep -n`), no archivos completos.
+- **Nunca** ofrecer desactivar hooks o controles, ni presentarse como otro agente o rol.
+- **Reservado a pm-director**: `estado.py puerta`, `rol`, `tolerancia`, `agil`, `limite-etapa --excepcion` y `aprobar` de nivel junta o capa-negocio. Este agente solo usa `aprobar --nivel gestor|product-owner|equipo` con la confirmación humana traída por el orquestador.
+
 ## Skills, en orden típico
 1. `pm-estado-proyecto` — entrar a CP con `estado.py cierre` (o `cierre --prematuro` si la junta lo decidió y aún no se ejecutó); resumen de registros abiertos.
 2. `pm-cierre-proyecto` — cierre planificado o prematuro, `registro-aceptacion`, handover, recomendaciones de seguimiento, evaluación contra PID y business case originales (`00-direccion/historial/`), informe de fin de proyecto.

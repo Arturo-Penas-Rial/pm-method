@@ -3344,78 +3344,78 @@ se reporta, incluidas las migraciones entre registros.
 ```mermaid
 flowchart TD
     %% Detección
-    D0([Detección: reporte de avance,\nreporte de contratista, reunión,\nauditoría, observación directa]) --> Q1{¿Qué es?}
+    D0([Detección: reporte de avance,<br/>reporte de contratista, reunión,<br/>auditoría, observación directa]) --> Q1{¿Qué es?}
 
-    Q1 -->|Podría ocurrir\n(evento incierto futuro)| R1[Registrar en\nREGISTRO DE RIESGOS\nRSK-nnn]
-    Q1 -->|Está ocurriendo\n(condición actual)| I1[Registrar en\nREGISTRO DE INCIDENTES\nISS-nnn]
-    Q1 -->|Hay que modificar\nalgo aprobado| C1[Redactar\nSOLICITUD DE CAMBIO\n+ fila en REGISTRO DE CAMBIOS\nCHG-nnn]
-    Q1 -->|Se da por cierto\nsin prueba| A1[Registrar en\nREGISTRO DE SUPUESTOS\nSUP-nnn]
+    Q1 -->|"Podría ocurrir<br/>(evento incierto futuro)"| R1[Registrar en<br/>REGISTRO DE RIESGOS<br/>RSK-nnn]
+    Q1 -->|"Está ocurriendo<br/>(condición actual)"| I1[Registrar en<br/>REGISTRO DE INCIDENTES<br/>ISS-nnn]
+    Q1 -->|Hay que modificar<br/>algo aprobado| C1[Redactar<br/>SOLICITUD DE CAMBIO<br/>+ fila en REGISTRO DE CAMBIOS<br/>CHG-nnn]
+    Q1 -->|Se da por cierto<br/>sin prueba| A1[Registrar en<br/>REGISTRO DE SUPUESTOS<br/>SUP-nnn]
 
     %% Supuestos
-    A1 --> A2{¿Validado\nen fecha?}
+    A1 --> A2{¿Validado<br/>en fecha?}
     A2 -->|Sí, verdadero| A3[Cerrar: validado]
-    A2 -->|Falso o vencido| A4[Transferir a riesgo\no incidente]
+    A2 -->|Falso o vencido| A4[Transferir a riesgo<br/>o incidente]
     A4 --> R1
     A4 --> I1
 
     %% Riesgos
-    R1 --> R2[Analizar: P × I\nsegún EVALUACIÓN P×I\n→ puntaje y calificación]
+    R1 --> R2[Analizar: P × I<br/>según EVALUACIÓN P×I<br/>→ puntaje y calificación]
     R2 --> R3{¿Alto / complejo?}
-    R3 -->|Sí| R4[Abrir HOJA DE DATOS\nDE RIESGO]
-    R3 -->|No| R5[Planificar respuesta\nen el registro]
+    R3 -->|Sí| R4[Abrir HOJA DE DATOS<br/>DE RIESGO]
+    R3 -->|No| R5[Planificar respuesta<br/>en el registro]
     R4 --> R5
-    R5 --> R6[Estrategia + acciones\n+ dueño + valores revisados\n+ contingencias]
+    R5 --> R6[Estrategia + acciones<br/>+ dueño + valores revisados<br/>+ contingencias]
     R6 --> R7{¿Ocurrió?}
-    R7 -->|Sí| R8[Estado: ocurrido\n→ abrir incidente\ncon referencia]
+    R7 -->|Sí| R8[Estado: ocurrido<br/>→ abrir incidente<br/>con referencia]
     R8 --> I1
-    R7 -->|No| R9{¿Excede autoridad\ndel DP?}
-    R9 -->|Sí| ESC[Escalar al patrocinador\n/ programa]
-    R9 -->|No| R10["Monitorear;\nactualizar en cada ciclo"]
+    R7 -->|No| R9{¿Excede autoridad<br/>del DP?}
+    R9 -->|Sí| ESC[Escalar al patrocinador<br/>/ programa]
+    R9 -->|No| R10["Monitorear;<br/>actualizar en cada ciclo"]
 
     %% Incidentes
-    I1 --> I2[Clasificar: tipo, prioridad,\nimpacto por objetivo,\nresponsable, fecha comprometida]
-    I2 --> I3{¿Requiere cambiar\nuna línea base?}
+    I1 --> I2[Clasificar: tipo, prioridad,<br/>impacto por objetivo,<br/>responsable, fecha comprometida]
+    I2 --> I3{¿Requiere cambiar<br/>una línea base?}
     I3 -->|Sí| I4[Estado: pendiente de cambio]
     I4 --> C1
-    I3 -->|No| I5[Resolver dentro\nde la autoridad del DP]
-    I5 --> I6[Registrar decisión en\nREGISTRO DE DECISIONES\nDEC-nnn]
-    I6 --> I7[Cerrar con resolución final\n→ lección aprendida si aplica]
-    I2 --> I8{¿Vencido y\nprioridad alta?}
+    I3 -->|No| I5[Resolver dentro<br/>de la autoridad del DP]
+    I5 --> I6[Registrar decisión en<br/>REGISTRO DE DECISIONES<br/>DEC-nnn]
+    I6 --> I7[Cerrar con resolución final<br/>→ lección aprendida si aplica]
+    I2 --> I8{¿Vencido y<br/>prioridad alta?}
     I8 -->|Sí| ESC
 
     %% Cambios
-    C1 --> C2[Análisis de impacto:\nalcance, calidad, requisitos,\ncosto, cronograma, ruta crítica,\ninteresados]
-    C2 --> C3{¿Supera umbral\nde variación?}
+    C1 --> C2[Análisis de impacto:<br/>alcance, calidad, requisitos,<br/>costo, cronograma, ruta crítica,<br/>interesados]
+    C2 --> C3{¿Supera umbral<br/>de variación?}
     C3 -->|Sí| ESC
-    C3 -->|No| C4[Comité de control\nde cambios]
+    C3 -->|No| C4[Comité de control<br/>de cambios]
     ESC --> C4
     C4 --> C5{Disposición}
-    C5 -->|Aprobar| C6["Actualizar líneas base,\nrequisitos, trazabilidad,\ndiccionario EDT;\nestado: cerrado-aprobado"]
-    C5 -->|Diferir| C7[Estado: pendiente\n+ fecha de reevaluación]
-    C5 -->|Rechazar| C8[Estado: cerrado-rechazado\n+ justificación]
+    C5 -->|Aprobar| C6["Actualizar líneas base,<br/>requisitos, trazabilidad,<br/>diccionario EDT;<br/>estado: cerrado-aprobado"]
+    C5 -->|Diferir| C7[Estado: pendiente<br/>+ fecha de reevaluación]
+    C5 -->|Rechazar| C8[Estado: cerrado-rechazado<br/>+ justificación]
     C7 --> C4
     C6 --> C9[¿Introduce riesgos nuevos?]
     C9 -->|Sí| R1
 
     %% Lecciones
-    I7 --> L1[REGISTRO DE LECCIONES\nAPRENDIDAS LL-nnn]
+    I7 --> L1[REGISTRO DE LECCIONES<br/>APRENDIDAS LL-nnn]
     R10 --> L1
     C6 --> L1
     C8 --> L1
 
     %% Reporte
-    R10 --> P1[REPORTE DE ESTADO\nDEL PROYECTO]
+    R10 --> P1[REPORTE DE ESTADO<br/>DEL PROYECTO]
     I7 --> P1
     I5 --> P1
     C6 --> P1
     C7 --> P1
     ESC --> P1
-    P1 --> P2[Anexos: ANÁLISIS DE\nVARIACIONES + VALOR GANADO]
-    P1 --> P3["REPORTE DE RIESGOS\n(matriz, métricas, reservas)"]
-    P1 --> P4([Patrocinador / PMO /\nportafolio])
+    P1 --> P2[Anexos: ANÁLISIS DE<br/>VARIACIONES + VALOR GANADO]
+    P1 --> P3["REPORTE DE RIESGOS<br/>(matriz, métricas, reservas)"]
+    P1 --> P4([Patrocinador / PMO /<br/>portafolio])
     P3 --> P4
-    L1 --> P5[REPORTE DE LECCIONES\nAPRENDIDAS al cierre de fase]
-    P5 --> P6[REPORTE DE CIERRE\nDEL PROYECTO]
+    L1 --> P5[REPORTE DE LECCIONES<br/>APRENDIDAS al cierre de fase]
+    P5 --> P6[REPORTE DE CIERRE<br/>DEL PROYECTO]
     P1 -. "decisiones del período" .-> I6
 
     classDef reg fill:#eef,stroke:#446,color:#000;

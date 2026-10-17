@@ -1,7 +1,7 @@
 ---
 name: pm-costos-presupuesto
 description: "Costeo y presupuesto: reservas, BAC, línea base PV, curva S. Usar: costear, presupuesto, BAC, contingencia, reserva de gestión, budget, cost baseline. No: business case→pm-caso-de-negocio."
-version: 2.0.0
+version: 2.1.0
 author: pm-method
 license: MIT
 metadata:
@@ -25,7 +25,7 @@ metadata:
 - EN: planned value series for EVM, or budget export to .xlsx.
 
 ## Idioma
-Responder y generar en el idioma del usuario (o `estado.json.idioma`); plantillas bilingües. Equivalencias: hoja de costeo (cost estimating worksheet), línea base de costo (cost baseline), BAC (budget at completion), presupuesto autorizado (authorized budget), reserva de contingencia (contingency reserve), reserva de gestión (management reserve), presupuesto de cambio (change budget), valor planificado (planned value, PV). Columnas de `linea-base-costo.csv`: `references/guia.md` §6. Faltantes: `[por confirmar]` / `[to be confirmed]`.
+**Idioma · Language:** responder siempre en el idioma en que escribe el usuario (English request → English reply); los artefactos van en `estado.json.idioma` salvo que el usuario pida otro. plantillas bilingües. Equivalencias: hoja de costeo (cost estimating worksheet), línea base de costo (cost baseline), BAC (budget at completion), presupuesto autorizado (authorized budget), reserva de contingencia (contingency reserve), reserva de gestión (management reserve), presupuesto de cambio (change budget), valor planificado (planned value, PV). Columnas de `linea-base-costo.csv`: `references/guia.md` §6. Faltantes: `[por confirmar]` / `[to be confirmed]`.
 
 ## Conocimiento
 - `references/guia.md` (esta skill): §1 convenciones, §2 fórmulas, §3 reservas, §4 consolidación con `wbs.py`, §5 ágil y BMAD, §6 `evm.py` y CSV, §7 opciones si no entra, §8 mínima vs. completa, §9 reglas complementarias.
@@ -40,7 +40,7 @@ Responder y generar en el idioma del usuario (o `estado.json.idioma`); plantilla
 - `estado.json`: `enfoque_entrega`, `etapa_actual`, tolerancias de costo (proyecto y etapa), `integraciones.export`, `integraciones.especificacion`.
 - **Predictivo/híbrido**: `hoja-estimacion.md`, `wbs.csv` y `diccionario-wbs.md` (paquetes, responsables), `cronograma.md` (fechas). Si faltan → `pm-cronograma-estimacion` / `pm-planificacion-por-productos`.
 - **Ágil (perfil mínimo, SPEC §1.10.12)**: `backlog.csv` (puntos, MoSCoW, release), `release-plan.md` (cadencia, velocidad) y costo del equipo por iteración (§5).
-- **Especificación (fuente única, SPEC §1.16)**: épicas e historias por release solo vía `python3 <pm-estado-proyecto>/scripts/especificacion.py --proyecto <dir> resumen|consultar <id>|listar epicas|historias` (igual con o sin BMAD; nunca abrir BMAD ni `requisitos.md`). Escribe como dueña: hoja de costeo, presupuesto y `linea-base-costo.csv`, que citan ids sin copiar texto.
+- **Especificación (fuente única, SPEC §1.16)**: épicas e historias por release solo vía `python3 ${CLAUDE_SKILL_DIR}/../pm-estado-proyecto/scripts/especificacion.py --proyecto <dir> resumen|consultar <id>|listar epicas|historias` (igual con o sin BMAD; nunca abrir BMAD ni `requisitos.md`). Escribe como dueña: hoja de costeo, presupuesto y `linea-base-costo.csv`, que citan ids sin copiar texto.
 - Restricción de costo del mandato o techo del business case; tarifas por rol, cotizaciones con fecha y validez, política de indirectos (si faltan, preguntar).
 - `riesgos.csv` con `impacto_monetario` y `valor_esperado` (si faltan → `pm-riesgos`); límite de financiación por período si existe.
 
@@ -49,7 +49,7 @@ Responder y generar en el idioma del usuario (o `estado.json.idioma`); plantilla
 2. **Costear cada paquete (ascendente)** en `hoja-costeo.md`: `mano de obra = horas × tarifa` + directos con cotización + indirectos; **sin reserva dentro**. Método, base, supuestos, rango y confianza por fila; tipo de contrato de proveedores (`pm-adquisiciones`). La gestión es un paquete más (W-G).
 3. **Variante ágil**: costo por iteración × iteraciones de la etapa; PV por iteración (§5).
 4. **Bloques alternativos** sin detalle: paramétrico, análogo, tres puntos (§2). Ascendente vs. análoga > 25 % → revisar supuestos.
-5. **Agregar siguiendo la WBS**: cargar la estimación base por paquete en `costo` (y horas en `esfuerzo_h`) de `wbs.csv` y correr `python3 <pm-estado-proyecto>/scripts/wbs.py 02-planificacion/wbs.csv`; el total consolidado = Σ paquetes base. Reservas fuera de la WBS (§4).
+5. **Agregar siguiendo la WBS**: cargar la estimación base por paquete en `costo` (y horas en `esfuerzo_h`) de `wbs.csv` y correr `python3 ${CLAUDE_SKILL_DIR}/../pm-estado-proyecto/scripts/wbs.py 02-planificacion/wbs.csv`; el total consolidado = Σ paquetes base. Reservas fuera de la WBS (§4).
 6. **Reservas sin doble conteo (SPEC §1.10.6)**: contingencia una vez y en un nivel (EMV + respuestas); `BAC = Σ paquetes base + contingencia`; reserva de gestión fuera del BAC; `presupuesto autorizado = BAC + reserva de gestión`; presupuesto de cambio aparte (§3).
 7. **Distribuir en el tiempo** según la curva de consumo de cada paquete (lineal, hitos ponderados, 0/100, 50/50) → `linea-base-costo.csv` (`pv_periodo`, `pv_acumulado`; el último = BAC).
 8. **Presupuesto**: en `presupuesto.md`, tabla por etapa (base, contingencia, BAC de etapa, tolerancia), curva S Mermaid, flujo de caja y conciliación con el límite de financiación; un exceso se reprograma con `pm-cronograma-estimacion`, nunca se oculta.

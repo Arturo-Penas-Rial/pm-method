@@ -1,0 +1,16 @@
+sequenceDiagram
+  participant S as Skill pm-*
+  participant F as especificacion.py
+  participant C as spec-index.json
+  participant B as bmad.py
+  S->>F: consultar FR-5
+  F->>B: huella_actual() + sha(backlog.csv, wbs.csv)
+  F->>C: ¿_huella igual?
+  alt huella igual
+    C-->>F: índice vigente
+  else huella distinta
+    F->>B: construir_indice()
+    B-->>F: índice nuevo
+    F->>C: guardar con _huella
+  end
+  F-->>S: requisito, historias, paquetes, cobertura

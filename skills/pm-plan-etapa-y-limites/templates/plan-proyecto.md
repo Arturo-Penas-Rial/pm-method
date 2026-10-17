@@ -69,11 +69,12 @@ gantt
     dateFormat YYYY-MM-DD
     title {{proyecto}} · etapas
     section Etapas / Stages
-    Etapa 1 Iniciación :e1, {{inicio_1}}, {{fin_1}}
-    Etapa 2 {{nombre_2}} :e2, after e1, {{dur_2}}d
-    Etapa 3 {{nombre_3}} :e3, after e2, {{dur_3}}d
+    %% Reemplazar los valores de ejemplo: 2026-01-05/2026-02-13 = {{inicio_1}}/{{fin_1}} · 60d, 45d = {{dur_2}}d, {{dur_3}}d
+    Etapa 1 Iniciación :e1, 2026-01-05, 2026-02-13
+    Etapa 2 {{nombre_2}} :e2, after e1, 60d
+    Etapa 3 {{nombre_3}} :e3, after e2, 45d
     section Puertas / Gates
-    Autorizar proyecto y etapa 2 :milestone, g2, {{fin_1}}, 0d
+    Autorizar proyecto y etapa 2 :milestone, g2, after e1, 0d
     Autorizar etapa 3 :milestone, g3, after e2, 0d
 ```
 *Semanas o meses; detalle en cronograma.md. Con integración de diagramas, pm-visuales puede producir la hoja de ruta gráfica.*

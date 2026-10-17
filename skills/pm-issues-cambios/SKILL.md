@@ -1,7 +1,7 @@
 ---
 name: pm-issues-cambios
 description: "Issues, control de cambios e informe de excepción. Usar: issue, solicitud de cambio, change request, off-spec, concesión, desvío del PRD. No: pronóstico o semáforo→pm-progreso-reportes."
-version: 2.0.0
+version: 2.1.0
 author: pm-method
 license: MIT
 metadata:
@@ -25,7 +25,7 @@ metadata:
 - EN: capture, assess and route an issue or change request; write exception reports; handle BMAD drift.
 
 ## Idioma
-Responder en el idioma del usuario. Términos EN la primera vez: `references/guia.md` (inicio). Valores de `issues.csv` y `cambios.csv` en minúsculas sin acentos (`pm-registros/templates/guia-registros.md`).
+**Idioma · Language:** responder siempre en el idioma en que escribe el usuario (English request → English reply); los artefactos van en `estado.json.idioma` salvo que el usuario pida otro. Términos EN la primera vez: `references/guia.md` (inicio). Valores de `issues.csv` y `cambios.csv` en minúsculas sin acentos (`pm-registros/templates/guia-registros.md`).
 
 ## Conocimiento
 - `references/guia.md` (esta skill): cinco tipos §1, captura §2, impacto y opciones §3, tabla de autoridad §4, decisiones y sincronización §5, excepción §6, cambio ligero §7, BMAD §8, trackers §9, casos borde §10.
@@ -37,8 +37,8 @@ Responder en el idioma del usuario. Términos EN la primera vez: `references/gui
 - `estado.json`: `tolerancias`, `roles.autoridad_cambio`, `roles.ejecutivo`, `roles.product_owner`, `etapa_actual`, `artefactos` (líneas base con versión), `enfoque_entrega`, `integraciones`.
 - Enfoque de issues y cambios (`02-planificacion/enfoques/enfoque-issues-cambios.md`): línea base, escalas, delegación por umbral, presupuesto de cambio. Si no existe, valores de referencia declarados.
 - Plan de etapa y de proyecto; descripciones de producto afectadas.
-- `03-control/registros/issues.csv`, `cambios.csv`, `riesgos.csv`, `decisiones.csv`, `acciones.csv`, `calidad.csv`; esquemas con `<pm-estado-proyecto>/scripts/registro.py --proyecto <dir> esquema issues|cambios|decisiones`.
-- **Especificación (fuente única, SPEC §1.16)**: ids afectados e historias solo vía `python3 <pm-estado-proyecto>/scripts/especificacion.py --proyecto <dir> resumen|consultar <id>|listar …` (igual con o sin BMAD; nunca abrir BMAD ni `requisitos.md`); desvíos de `bmad.py verificar`. Escribe como dueña: `issues.csv`, `cambios.csv` (ids en `notas`) y el origen del traspaso. Tracker o chat: instantánea vía `pm-integraciones`.
+- `03-control/registros/issues.csv`, `cambios.csv`, `riesgos.csv`, `decisiones.csv`, `acciones.csv`, `calidad.csv`; esquemas con `${CLAUDE_SKILL_DIR}/../pm-estado-proyecto/scripts/registro.py --proyecto <dir> esquema issues|cambios|decisiones`.
+- **Especificación (fuente única, SPEC §1.16)**: ids afectados e historias solo vía `python3 ${CLAUDE_SKILL_DIR}/../pm-estado-proyecto/scripts/especificacion.py --proyecto <dir> resumen|consultar <id>|listar …` (igual con o sin BMAD; nunca abrir BMAD ni `requisitos.md`); desvíos de `bmad.py verificar`. Escribe como dueña: `issues.csv`, `cambios.csv` (ids en `notas`) y el origen del traspaso. Tracker o chat: instantánea vía `pm-integraciones`.
 
 ## Procedimiento
 1. **Situar.** Tolerancias, autoridad de cambio, umbral y presupuesto de cambio remanente.
@@ -49,7 +49,7 @@ Responder en el idioma del usuario. Términos EN la primera vez: `references/gui
 6. **Recomendar** al menos dos opciones (incluida no hacer nada), con financiación del cambio o concesión/corrección del fuera de especificación (guía §3).
 7. **PUERTA HUMANA — Autoridad.** Determinar quién decide con la tabla (guía §4). El agente nunca decide: pide la decisión al PO, gestor, autoridad de cambio o junta. Sin umbral o presupuesto suficiente, subir de nivel; si el pronóstico sale de tolerancia → paso 10.
 8. **Registrar la decisión** en `issues.csv`/`cambios.csv` (`decidido_por`) y `decisiones.csv` con nivel; si decidió la junta, la puerta la registra `pm-director` y aquí se copia el `D-###` (guía §5).
-9. **Implementar y sincronizar** en la misma operación: registro de cambios, nueva versión del artefacto (`estado.py artefacto` + `aprobar` tras el acto humano), descripción de producto, plan; riesgos nuevos a `pm-riesgos`; acción correctiva vía `pm-paquetes-trabajo`. **Si afecta la especificación**: con BMAD, traspaso inverso `python3 <pm-bmad-puente>/scripts/bmad.py --proyecto <dir> handoff --cambio C-###` (sin BMAD, `requisitos.md` lo actualiza `pm-planificacion-por-productos`); tras la confirmación del equipo BMAD, `bmad.py verificar` limpio y pedir a `pm-director` la nueva línea base (versión mayor; guía §8).
+9. **Implementar y sincronizar** en la misma operación: registro de cambios, nueva versión del artefacto (`estado.py artefacto` + `aprobar` tras el acto humano), descripción de producto, plan; riesgos nuevos a `pm-riesgos`; acción correctiva vía `pm-paquetes-trabajo`. **Si afecta la especificación**: con BMAD, traspaso inverso `python3 ${CLAUDE_SKILL_DIR}/../pm-bmad-puente/scripts/bmad.py --proyecto <dir> handoff --cambio C-###` (sin BMAD, `requisitos.md` lo actualiza `pm-planificacion-por-productos`); tras la confirmación del equipo BMAD, `bmad.py verificar` limpio y pedir a `pm-director` la nueva línea base (versión mayor; guía §8).
 10. **Excepción.** Pronóstico fuera de tolerancia sin corrección posible dentro de la autoridad del gestor: aviso temprano + `templates/informe-excepcion.md`, `en-revision`, issue `escalado`; entregar a `pm-director`. **Ninguna puerta se registra aquí** (guía §6).
 11. **Tras la decisión de la junta:** tolerancias reasignadas o plan de excepción vía `pm-director` y `pm-plan-etapa-y-limites` (guía §6).
 12. **Ágil/híbrido:** intercambios del PO como cambio ligero si cumplen las cuatro condiciones (guía §7); si no, solicitud formal.

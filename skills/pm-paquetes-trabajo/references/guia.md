@@ -18,7 +18,7 @@ Todo lo generado se marca como borrador.
 **Plan de equipo.** Cronograma, recursos, actividades de calidad y riesgos del paquete. En contexto comercial el gestor del proyecto puede recibir solo un extracto de hitos (el plan puede ser confidencial); en ágil es el backlog de la iteración.
 
 ## 2. Registro de los actos humanos (pasos 6 y 10)
-- Documento: `<pm-estado-proyecto>/scripts/estado.py --proyecto <dir> artefacto WP-nnn --ruta 03-control/paquetes-trabajo/WP-nnn-<nombre>.md --estado en-revision`.
+- Documento: `${CLAUDE_SKILL_DIR}/../pm-estado-proyecto/scripts/estado.py --proyecto <dir> artefacto WP-nnn --ruta 03-control/paquetes-trabajo/WP-nnn-<nombre>.md --estado en-revision`.
 - Tras la autorización humana: `estado.py --proyecto <dir> aprobar WP-nnn --por "Gestor del proyecto: <nombre>" --nivel gestor` (sincroniza frontmatter y `estado.json` y escribe la fila de `decisiones.csv`; no duplicarla a mano).
 - Aceptación del gestor de equipo: fila propia `registro.py --proyecto <dir> agregar decisiones --campo nivel=equipo ...`. Con proveedor, la aceptación sigue el contrato.
 - Recepción: `registro.py agregar decisiones --campo nivel=gestor --campo decision="recibido WP-nnn" ...`.
@@ -67,7 +67,7 @@ Cabecera técnica (ver `registro.py esquema calidad`): `id` (Q-nnn), `producto`,
 
 ## 8. Variante BMAD (`integraciones.especificacion = bmad`)
 - Cada sprint de BMAD es un paquete de trabajo; los productos son las historias (claves `N-M-slug`) y los requisitos que cubren se citan por id (FR-n), sin copiarlos.
-- El backlog del sprint se sincroniza con `<pm-bmad-puente>/scripts/bmad.py backlog`; el estado de las historias sale de `bmad.py avance` (no se edita `sprint-status.yaml`).
+- El backlog del sprint se sincroniza con `${CLAUDE_SKILL_DIR}/../pm-bmad-puente/scripts/bmad.py backlog`; el estado de las historias sale de `bmad.py avance` (no se edita `sprint-status.yaml`).
 - Métodos de calidad del paquete: DoD y code review de BMAD, registrados como filas Q-nnn.
 - Una historia retirada o una Sprint Change Proposal durante el sprint → `pm-issues-cambios` (`solicitud-cambio`).
 

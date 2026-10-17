@@ -51,9 +51,10 @@ quadrantChart
     quadrant-2 Mantener satisfecho / Keep satisfied
     quadrant-3 Monitorear / Monitor
     quadrant-4 Mantener informado / Keep informed
-    "{{s1_nombre_corto}}": [{{s1_x}}, {{s1_y}}]
-    "{{s2_nombre_corto}}": [{{s2_x}}, {{s2_y}}]
-    "{{s3_nombre_corto}}": [{{s3_x}}, {{s3_y}}]
+    %% Reemplazar los valores de ejemplo (0 a 1): [0.85, 0.90] = [{{s1_x}}, {{s1_y}}] · [0.30, 0.80] = [{{s2_x}}, {{s2_y}}] · [0.70, 0.25] = [{{s3_x}}, {{s3_y}}]
+    "{{s1_nombre_corto}}": [0.85, 0.90]
+    "{{s2_nombre_corto}}": [0.30, 0.80]
+    "{{s3_nombre_corto}}": [0.70, 0.25]
 ```
 *Coordenadas entre 0 y 1 (interés en x, poder en y). La actitud se indica en la tabla, no en la cuadrícula. Si `estado.json.integraciones.diagramas` es `diagram-design` o `archify`, `pm-visuales` puede producir una versión con actitud por color.*
 

@@ -1,7 +1,7 @@
 ---
 name: pm-riesgos
 description: "Registro y respuestas de riesgo PRINCE2. Usar: riesgo, risk register, matriz P×I, EMV, respuesta al riesgo, oportunidad, informe o auditoría de riesgos. No: issue ya ocurrido→pm-issues-cambios."
-version: 2.0.0
+version: 2.1.0
 author: pm-method
 license: MIT
 metadata:
@@ -26,7 +26,7 @@ metadata:
 - EN: plan, cost and assign responses (EMV, risk budget); risk report, data sheet or audit.
 
 ## Idioma
-Responder en el idioma del usuario. EN la primera vez: risk owner, risk actionee, risk appetite, risk tolerance, risk budget, expected monetary value (EMV), residual risk. Plantillas bilingües; valores de `riesgos.csv` en minúsculas sin acentos.
+**Idioma · Language:** responder siempre en el idioma en que escribe el usuario (English request → English reply); los artefactos van en `estado.json.idioma` salvo que el usuario pida otro. EN la primera vez: risk owner, risk actionee, risk appetite, risk tolerance, risk budget, expected monetary value (EMV), residual risk. Plantillas bilingües; valores de `riesgos.csv` en minúsculas sin acentos.
 
 ## Conocimiento
 - `references/guia.md` (esta skill): escala y enfoque §1, identificar §2, evaluar §3, respuestas y catálogo §4, monitoreo, presupuesto y escalado §5, comunicar y auditar §6, columnas §7, ágil/BMAD/trackers §8, sesgos §9.
@@ -39,12 +39,12 @@ Responder en el idioma del usuario. EN la primera vez: risk owner, risk actionee
 - Enfoque de riesgo aprobado (`02-planificacion/enfoques/enfoque-riesgo.md`); si no existe, proponer la evaluación P×I (paso 2).
 - `03-control/registros/riesgos.csv`, `supuestos.csv`, `issues.csv`, `acciones.csv`, `lecciones.csv`; business case para la tolerancia del proyecto.
 - Presupuesto de riesgo de la etapa (`[por confirmar]` si falta).
-- **Especificación (fuente única, SPEC §1.16)**: AD-n, NFR y preguntas abiertas solo vía `python3 <pm-estado-proyecto>/scripts/especificacion.py --proyecto <dir> resumen|consultar <id>|listar requisitos` (igual con o sin BMAD; nunca abrir BMAD ni `requisitos.md`). Escribe como dueña: `riesgos.csv`, que cita ids sin copiar texto. Tracker: instantánea vía `pm-integraciones`.
+- **Especificación (fuente única, SPEC §1.16)**: AD-n, NFR y preguntas abiertas solo vía `python3 ${CLAUDE_SKILL_DIR}/../pm-estado-proyecto/scripts/especificacion.py --proyecto <dir> resumen|consultar <id>|listar requisitos` (igual con o sin BMAD; nunca abrir BMAD ni `requisitos.md`). Escribe como dueña: `riesgos.csv`, que cita ids sin copiar texto. Tracker: instantánea vía `pm-integraciones`.
 
 ## Procedimiento
 1. **Objetivos.** Listar los siete objetivos en riesgo con unidades y tolerancias. Sin objetivos acordados no se registra ningún riesgo.
 2. **Escala. PUERTA HUMANA.** Sin enfoque aprobado, redactar `templates/evaluacion-probabilidad-impacto.md` (1–5; alto ≥ 15, medio 6–12, bajo ≤ 5; P → 10/30/50/70/90 %); el ejecutivo la aprueba y se registra con `estado.py aprobar` (`references/guia.md` §1). Hasta entonces, puntuaciones como propuesta.
-3. **Identificar** con la técnica adecuada; causa → evento → efecto; amenazas y oportunidades separadas; alta con `<pm-estado-proyecto>/scripts/registro.py --proyecto <dir> agregar riesgos ...` (guía §2). Revisar AD-n y NFR de la fachada citando ids (guía §8).
+3. **Identificar** con la técnica adecuada; causa → evento → efecto; amenazas y oportunidades separadas; alta con `${CLAUDE_SKILL_DIR}/../pm-estado-proyecto/scripts/registro.py --proyecto <dir> agregar riesgos ...` (guía §2). Revisar AD-n y NFR de la fachada citando ids (guía §8).
 4. **Evaluar** P, I (en unidades del objetivo), proximidad e impacto monetario con `registro.py actualizar riesgos` (recalcula puntuación y EMV; guía §3). Altos sin respuesta o propietario → lista de escalado.
 5. **Perfil agregado** con `registro.py resumen --json`; comparar exposición con `tolerancias.*.riesgo`. Si se supera → paso 10.
 6. **Planificar respuestas** del catálogo (guía §4), justificadas por EMV antes − EMV residual; residual, secundarios, disparador y contingencia; `templates/hoja-riesgo.md` para riesgos sobre la línea. **PUERTA HUMANA:** el propietario acepta la respuesta y el ejecutor sus acciones; si no, `[por confirmar]`.

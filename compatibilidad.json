@@ -1,6 +1,6 @@
 {
   "paquete": "pm-method",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "spec": "SPEC.md v2 (§0, §1.10–§1.17)",
   "esquemas": {
     "estado.json": "v2 (migración automática desde v1)",
@@ -11,9 +11,11 @@
     "probado": [
       "4.x (layout docs/ y .bmad-core)",
       "6.11",
-      "6.12"
+      "6.12 (fixture real 6.12.4: scripts/pruebas/fixtures/bmad-v6.12-real)"
     ],
-    "relevado": "bmad-method@6.12.4 (2026-10-14)",
+    "relevado": "bmad-method@6.12.4 instalado con npx y artefactos generados por sus skills (2026-10-17)",
+    "version_detectada_en": "_bmad/_config/manifest.yaml (installation.version); respaldo: '# Version:' en _bmad/<módulo>/config.yaml",
+    "no_trazado": "bmad-spec (specs/spec-<slug>/SPEC.md, CAP-n, stories.yaml)",
     "fuera_de_rango": "modo degradado con aviso; correr scripts/probar_paquete.py y revisar inventario antes de la siguiente puerta"
   },
   "python": ">=3.9",
@@ -45,12 +47,45 @@
       "Zoom",
       "minutes (minutes-mcp)",
       "Tability",
-      "drawio-mcp"
-    ]
+      "drawio-mcp oficial (jgraph/drawio-mcp, npm @drawio/mcp)"
+    ],
+    "skills_probadas_en_vivo": {
+      "fecha": "2026-10-17",
+      "claude_code": "2.1.302",
+      "archify": {
+        "repo": "https://github.com/tt-a1i/archify",
+        "commit": "88d1ae4",
+        "version": "3.1 (según su documentación)",
+        "instalar": "npx skills add tt-a1i/archify -a claude-code -s archify -y",
+        "requiere": "Node>=18 y Chrome/Chromium (ARCHIFY_CHROME)"
+      },
+      "diagram-design": {
+        "repo": "https://github.com/cathrynlavery/diagram-design",
+        "commit": "550fd66",
+        "version": "2.6.110",
+        "instalar": "claude plugin marketplace add cathrynlavery/diagram-design && claude plugin install diagram-design@diagram-design"
+      },
+      "visual-explainer": {
+        "repo": "https://github.com/nicobailon/visual-explainer",
+        "commit": "5a1b3c4",
+        "version": "0.12.0",
+        "instalar": "npx skills add nicobailon/visual-explainer -a claude-code -s visual-explainer -y"
+      },
+      "office (docx/xlsx/pptx)": {
+        "repo": "https://github.com/anthropics/skills",
+        "commit": "dbd4588",
+        "licencia": "propietaria (ver LICENSE.txt de cada skill)",
+        "instalar": "npx skills add anthropics/skills -a claude-code -s docx xlsx pptx -y"
+      }
+    }
   },
   "clientes": {
     "claude_code": "plugin o copia manual; hooks de protección y sanidad",
     "cowork": "plugin",
     "hermes": "skills (comandos /skill); agentes como personas; sin hooks: sanidad en pm-puerta y pm-orquestador"
+  },
+  "guardarrailes": {
+    "hooks": "guardian.py (PreToolUse: Write/Edit/MultiEdit/NotebookEdit y Bash) · inicio.py (SessionStart)",
+    "pruebas": "scripts/probar_paquete.py (casos A–E, incluye 20 decisiones del hook)"
   }
 }

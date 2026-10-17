@@ -4,7 +4,7 @@
 - Cada producto a controlar necesita descripción con especificaciones medibles (cuantitativas, o cualitativas con contexto), funcionales y no funcionales, de operación y mantenimiento y de sostenibilidad. Lo que no está escrito en un producto de gestión aprobado no es requisito; una expectativa no documentada se propone documentar y, si altera la línea base, es issue.
 - Por producto: qué se mide, umbral, rango aceptable (tolerancia) y prioridad (imprescindible / deseable). Advertir especificaciones desproporcionadamente estrictas para el valor del producto.
 - Productor, revisores independientes del productor y autoridad de aceptación por producto; consultar a aseguramiento; las delegaciones de aceptación se documentan en el enfoque.
-- Alta: `<pm-estado-proyecto>/scripts/registro.py --proyecto <dir> agregar calidad --campo producto=... --campo metodo_verificacion=... --campo criterios=... --campo responsable_productor=... --campo revisores=... --campo aprobador=... --campo fecha_prevista=...` (estado `planificada`). Un producto puede tener varias filas.
+- Alta: `${CLAUDE_SKILL_DIR}/../pm-estado-proyecto/scripts/registro.py --proyecto <dir> agregar calidad --campo producto=... --campo metodo_verificacion=... --campo criterios=... --campo responsable_productor=... --campo revisores=... --campo aprobador=... --campo fecha_prevista=...` (estado `planificada`). Un producto puede tener varias filas.
 - Aprobación: descripciones de productos especialistas → usuario sénior (el proveedor sénior acuerda técnicas); enfoque → ejecutivo. `estado.py --proyecto <dir> aprobar <clave> --por "Usuario sénior: <nombre>"` (escribe la fila en `decisiones.csv`). Si forma parte de una puerta de la junta (PID, plan de etapa), la registra `pm-director`.
 
 ## 2. Método de verificación según madurez
@@ -37,7 +37,7 @@ Estructura propuesta por el paquete (compatible con el método; la fuente no la 
 - Comercial: el contrato prevé acceso, inspección y pruebas independientes; los criterios contractuales no contradicen las descripciones; la aceptación contractual precede a la del proyecto y se registran por separado.
 
 ## 6. Aceptación por requisito con BMAD (`integraciones.especificacion = bmad`)
-- Fuente: `02-planificacion/especificacion/matriz-trazabilidad-bmad.csv`, generada por `python3 <pm-bmad-puente>/scripts/bmad.py --proyecto <dir> trazabilidad --wbs 02-planificacion/wbs.csv` (regenerar antes de usarla; no se edita a mano).
+- Fuente: `02-planificacion/especificacion/matriz-trazabilidad-bmad.csv`, generada por `python3 ${CLAUDE_SKILL_DIR}/../pm-bmad-puente/scripts/bmad.py --proyecto <dir> trazabilidad --wbs 02-planificacion/wbs.csv` (regenerar antes de usarla; no se edita a mano).
 - Un requisito FR/NFR se considera cumplido cuando su fila tiene `terminado=si` (todas sus historias en `done`); la aceptación del producto o release lista los ids con `terminado=si` y los pendientes, sin copiar el texto del PRD.
 - Métodos de calidad: la DoD del equipo y el code review de BMAD se registran como filas Q-nnn (`metodo_verificacion=revision` para code review, `prueba` para pruebas de la DoD), una por historia significativa o por incremento; los NFR se verifican con pruebas específicas (rendimiento, seguridad).
 - FR sin historia o historias sin requisito → hallazgo: criterio faltante (aquí) o hueco de alcance (`pm-issues-cambios`).

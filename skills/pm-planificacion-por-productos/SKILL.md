@@ -1,7 +1,7 @@
 ---
 name: pm-planificacion-por-productos
 description: "Alcance por productos: descripción del producto, PBS, WBS/EDT (wbs.py), requisitos y RTM. Usar: alcance, PBS, WBS, EDT, scope, product description. No: requisitos con BMAD→pm-bmad-puente."
-version: 2.0.0
+version: 2.1.0
 author: pm-method
 license: MIT
 metadata:
@@ -24,7 +24,7 @@ metadata:
 - EN: build and validate the WBS with `wbs.py`; requirements/RTM only without BMAD.
 
 ## Idioma
-Responder y generar en el idioma del usuario (o `estado.json.idioma`). Plantillas bilingües. La primera vez, dar el nombre EN de cada artefacto (ver `references/guia.md` §2). Columnas de `wbs.csv` con su nombre EN: `references/guia.md` §4.
+**Idioma · Language:** responder siempre en el idioma en que escribe el usuario (English request → English reply); los artefactos van en `estado.json.idioma` salvo que el usuario pida otro. Plantillas bilingües. La primera vez, dar el nombre EN de cada artefacto (ver `references/guia.md` §2). Columnas de `wbs.csv` con su nombre EN: `references/guia.md` §4.
 
 ## Conocimiento
 - `references/guia.md` (esta skill): §1 mínima vs. completa, §2 mapeo de nombres, §3 elicitación, §4 `wbs.py`, §5 detalle de pasos, §6 ágil/híbrido/BMAD, §7 reglas complementarias, §8 casos borde.
@@ -38,14 +38,14 @@ Responder y generar en el idioma del usuario (o `estado.json.idioma`). Plantilla
 - Project brief o acta en `01-inicio/` y business case (al menos esquemático) en `00-direccion/`. Sin business case, preguntar si es modo exploratorio (todo borrador).
 - `stakeholders.csv` (origen de requisitos); equipo y proveedores (responsables de paquetes).
 - Plan de etapa: plan de proyecto vigente y productos de la etapa.
-- **Especificación (fuente única, SPEC §1.16)**: requisitos y cobertura solo vía `python3 <pm-estado-proyecto>/scripts/especificacion.py --proyecto <dir> resumen|consultar <id>|listar requisitos` (igual con o sin BMAD; nunca abrir BMAD ni `requisitos.md` para extraer datos). Escribe como dueña: PBS, descripciones de producto, `wbs.csv` (`ref` = ids) y, solo sin BMAD, `requisitos.md`.
+- **Especificación (fuente única, SPEC §1.16)**: requisitos y cobertura solo vía `python3 ${CLAUDE_SKILL_DIR}/../pm-estado-proyecto/scripts/especificacion.py --proyecto <dir> resumen|consultar <id>|listar requisitos` (igual con o sin BMAD; nunca abrir BMAD ni `requisitos.md` para extraer datos). Escribe como dueña: PBS, descripciones de producto, `wbs.csv` (`ref` = ids) y, solo sin BMAD, `requisitos.md`.
 - Datos faltantes como `[por confirmar]` / `[to be confirmed]`, con las preguntas al final; no inventar criterios ni cifras.
 
 ## Procedimiento
 1. **Situar el plan**: leer `estado.json`; decidir proyecto (IP) o etapa (SB) y anotarlo en el frontmatter. Proponer versión mínima o completa (`references/guia.md` §1) y confirmar. Si `enfoque_entrega = agil`, aplicar el perfil mínimo (§6).
 2. **Descripción del producto del proyecto** (solo plan de proyecto): propósito, productos mayores, criterios priorizados (MoSCoW), métodos y responsables de aceptación, tolerancias (§5). **Puerta**: la aprueban usuario sénior y ejecutivo; hasta entonces `borrador`.
 3. **PBS** en `pbs-wbs.md`: productos hasta el nivel que se controla, con intermedios y externos; regla del 100 %.
-4. **WBS/EDT en `wbs.csv`** (plantilla `templates/wbs.csv`, en `02-planificacion/wbs.csv`): por cada producto de nivel inferior, agrupar el trabajo en paquetes (`tipo=paquete`) e hitos; cada paquete con un **responsable**; `esfuerzo_h` y `costo` solo en hojas (vacíos hasta estimar); `ref` con ids de requisitos (PRD con BMAD, `REQ-###` sin BMAD). Correr `python3 <pm-estado-proyecto>/scripts/wbs.py 02-planificacion/wbs.csv --mermaid 02-planificacion/visuales/wbs.md --diccionario 02-planificacion/diccionario-wbs-esqueleto.md`; corregir errores y resolver cada `AVISO`. Detalle en §4.
+4. **WBS/EDT en `wbs.csv`** (plantilla `templates/wbs.csv`, en `02-planificacion/wbs.csv`): por cada producto de nivel inferior, agrupar el trabajo en paquetes (`tipo=paquete`) e hitos; cada paquete con un **responsable**; `esfuerzo_h` y `costo` solo en hojas (vacíos hasta estimar); `ref` con ids de requisitos (PRD con BMAD, `REQ-###` sin BMAD). Correr `python3 ${CLAUDE_SKILL_DIR}/../pm-estado-proyecto/scripts/wbs.py 02-planificacion/wbs.csv --mermaid 02-planificacion/visuales/wbs.md --diccionario 02-planificacion/diccionario-wbs-esqueleto.md`; corregir errores y resolver cada `AVISO`. Detalle en §4.
 5. **Descripciones de producto** (`productos/<id>-<nombre>.md`): especificaciones medibles, tolerancia, método de verificación, productor, revisor independiente y autoridad de aceptación (§5). Con BMAD, los criterios citan FR/NFR del PRD sin copiarlos.
 6. **Flujo de productos** (`flujo-productos.md`): Inicio, Fin, dependencias y paralelismo; proponer cada dependencia externa como riesgo (`registro.py agregar riesgos`) con confirmación.
 7. **Enunciado del alcance** (QUÉ; el CÓMO es de `pm-enfoques-gestion`): entregables = productos de nivel superior, criterios, exclusiones, restricciones, supuestos `S-###`.

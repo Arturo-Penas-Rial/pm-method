@@ -1,4 +1,4 @@
-# Catálogo de pm-method 2.0.0 · Agents and skills catalog
+# Catálogo de pm-method 2.1.0 · Agents and skills catalog
 
 Referencia de los 6 agentes, las 37 skills (31 que el modelo puede activar solo y 6 comandos de uso humano) y los scripts del paquete. Todo lo que figura aquí sale de `SPEC.md`, de `agents/*.md` y del frontmatter y cuerpo de cada `skills/*/SKILL.md`. Si algo de este catálogo contradice esos archivos, mandan ellos.
 
@@ -441,9 +441,10 @@ Ver §2. Metadatos: pm-reporte (control; CS, MP; progress, issues; técnicas: an
 
 | Componente | Cuándo | Qué hace |
 |---|---|---|
-| `scripts/validar_paquete.py` | Tras cualquier cambio del paquete | Estructura, tamaños, formato y presupuesto de descripciones, referencias, agentes (herencia de herramientas, sin anidación), cobertura de orquestación y hooks. Última corrida: `Skills: 37 (31 invocables por el modelo, listado 6160 caracteres) · Agentes: 6 · OK`. |
-| `scripts/probar_paquete.py [--conservar]` | Tras cambios del paquete o de BMAD | Regresión de punta a punta con BMAD v6, BMAD v4 y sin BMAD, incluida la sanidad con defectos sembrados (35 pruebas OK). Requiere PyYAML. Fixtures en `scripts/pruebas/fixtures/`. |
-| `hooks/guardian.py` (PreToolUse sobre Write, Edit, MultiEdit, NotebookEdit y Bash) | Cada escritura | Niega editar a mano `estado.json`, los registros CSV, los derivados de `02-planificacion/especificacion/` y las copias congeladas de `00-direccion/historial/`; impide a los subagentes pm-* escribir en `_bmad/`, `_bmad-output/` o `.bmad-core/`. |
+| `scripts/validar_paquete.py` | Tras cualquier cambio del paquete | Estructura, tamaños, formato y presupuesto de descripciones, referencias, agentes (herencia de herramientas, sin anidación), cobertura de orquestación y hooks. Última corrida: `Skills: 37 (31 invocables por el modelo, listado 6289 caracteres) · Agentes: 6 · OK`. |
+| `scripts/probar_paquete.py [--conservar]` | Tras cambios del paquete o de BMAD | Regresión de punta a punta con BMAD v6, BMAD 6.12.4 real, v4 y sin BMAD, sanidad con defectos sembrados, 36 decisiones del hook guardian, ciclo de puertas y regresiones (80 pruebas OK). Requiere PyYAML. Fixtures en `scripts/pruebas/fixtures/`. |
+| `skills/pm-estado-proyecto/scripts/puertas.py` (`verificar`, `lista`, `confirmar`, `preparacion-bmad`) | Antes de cada puerta de la junta | Verificación en tres capas (salud, controles PRINCE2 y BMAD, lista de control de la junta); `estado.py puerta` la usa para bloquear `aprobado`. Ver `docs/PUERTAS.md`. |
+| `hooks/guardian.py` (PreToolUse sobre Write, Edit, MultiEdit, NotebookEdit y Bash) | Cada escritura y cada comando Bash | Niega modificar sin script (por Write/Edit o por Bash) `estado.json`, los registros CSV, los derivados de la especificación, las copias congeladas de `00-direccion/historial/` y las instantáneas existentes de `03-control/fuentes/`; impide a los subagentes pm-* escribir en `_bmad/`, `_bmad-output/` o `.bmad-core/` y ejecutar comandos reservados a pm-director. Se lanza con `hooks/py.sh`. |
 | `hooks/inicio.py` (SessionStart: startup, resume, clear, compact) | Al abrir, retomar, limpiar o compactar | Agrega al contexto la fase, las puertas y los ERROR de la sanidad rápida. |
 
 Los hooks solo corren en Claude Code con el plugin instalado; en Hermes no hay equivalente documentado.

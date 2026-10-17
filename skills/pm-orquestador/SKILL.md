@@ -1,7 +1,7 @@
 ---
 name: pm-orquestador
-description: "Orquestador en el hilo principal: lee el estado, pregunta, delega en agentes de fase y presenta puertas. Usar: gestionar proyecto, qué sigue, next step, PRINCE2. No: conceptos→pm-knowledge."
-version: 2.0.0
+description: "Orquestador en el hilo principal: lee el estado, pregunta, delega en agentes de fase y presenta puertas. Usar: qué sigue, cómo venimos, next step, how are we doing, gestionar el proyecto. No: producto concreto→su skill."
+version: 2.1.0
 author: pm-method
 license: MIT
 metadata:
@@ -39,7 +39,7 @@ Detectar el idioma del usuario; si `estado.json.idioma` difiere, preguntar una v
 - Integraciones: ninguna obligatoria; conectores vía `pm-integraciones`; BMAD, `pm-bmad-puente`.
 
 ## Procedimiento
-1. **Situar**: `python3 <pm-estado-proyecto>/scripts/estado.py --proyecto <dir> ver` y `siguiente`; resumir en 3 líneas: fase, proceso, etapa (0 SU, 1 iniciación, 2…n entrega), puertas pendientes y condiciones, excepción abierta, enfoque, integraciones activas.
+1. **Situar**: `python3 ${CLAUDE_SKILL_DIR}/../pm-estado-proyecto/scripts/estado.py --proyecto <dir> ver` y `siguiente`; resumir en 3 líneas: fase, proceso, etapa (0 SU, 1 iniciación, 2…n entrega), puertas pendientes y condiciones, excepción abierta, enfoque, integraciones activas.
 2. **Preguntar lo que falte antes de delegar**: el orquestador es el **único que conversa con el usuario**. Usar `AskUserQuestion` cuando esté disponible (opciones concretas, una pregunta por dato); si no, una pregunta breve en texto. Petición ambigua entre dos procesos → una sola pregunta de desambiguación.
 3. **Clasificar y planificar** con la tabla de enrutamiento. Si cruza procesos, mostrar la secuencia (subagentes, transiciones y puertas 🔒 con el rol que decide) y pedir conformidad antes de ejecutar.
 4. **Verificar precondiciones** del método (no hay plan de etapa sin business case; no hay paquete de trabajo sin etapa autorizada; no hay cierre sin aceptación). Si falta algo, decirlo y ofrecer producirlo.
@@ -80,7 +80,7 @@ Detectar el idioma del usuario; si `estado.json.idioma` difiere, preguntar una v
 Arranque, fin de etapa, excepción, cierre, BMAD y reunión de la junta: `references/guia.md` §4. En cada 🔒: retorno del subagente → el orquestador pregunta al humano → pm-director registra.
 
 ### Fuente única de la especificación (SPEC §1.16)
-Cada dato tiene un solo dueño que lo escribe: requisitos, épicas e historias → BMAD (sin BMAD, `requisitos.md`/`backlog.csv`); prioridad y release → `backlog.csv`; beneficios → business case. Toda skill lee la especificación solo con `<pm-estado-proyecto>/scripts/especificacion.py` (`resumen|consultar <id>|listar …`) y cita ids; nadie abre BMAD ni copia. Las decisiones vuelven a BMAD con `bmad.py handoff`; luego `verificar` y nueva línea base por pm-director. EN: one owner per datum, one read façade, decisions handed back.
+Cada dato tiene un solo dueño que lo escribe: requisitos, épicas e historias → BMAD (sin BMAD, `requisitos.md`/`backlog.csv`); prioridad y release → `backlog.csv`; beneficios → business case. Toda skill lee la especificación solo con `${CLAUDE_SKILL_DIR}/../pm-estado-proyecto/scripts/especificacion.py` (`resumen|consultar <id>|listar …`) y cita ids; nadie abre BMAD ni copia. Las decisiones vuelven a BMAD con `bmad.py handoff`; luego `verificar` y nueva línea base por pm-director. EN: one owner per datum, one read façade, decisions handed back.
 
 ## Reglas del método
 1. [PRINCE2] El ciclo de vida por etapas es el modo por defecto; ágil o híbrido se aplican dentro de las etapas, sin quitar puertas.

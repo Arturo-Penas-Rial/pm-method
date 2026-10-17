@@ -35,7 +35,7 @@ Cabecera: `id,nombre,duracion,predecesoras,recurso[,wbs]` = activity id, name, d
 - `wbs` (opcional): código de `02-planificacion/wbs.csv` (1.2.3). Ordena las tareas por código y genera tareas resumen en el MSPDI; con `--wbs wbs.csv` las tareas resumen toman el nombre del paquete o producto.
 - Toda actividad, salvo la primera y la última, tiene predecesora y sucesora; la red no admite ciclos.
 
-Comando: `python3 <pm-estado-proyecto>/scripts/cpm.py 02-planificacion/actividades.csv --inicio AAAA-MM-DD --mermaid 02-planificacion/gantt.md [--json] [--mspdi 02-planificacion/cronograma.xml --titulo "<Proyecto>" --wbs 02-planificacion/wbs.csv]`.
+Comando: `python3 ${CLAUDE_SKILL_DIR}/../pm-estado-proyecto/scripts/cpm.py 02-planificacion/actividades.csv --inicio AAAA-MM-DD --mermaid 02-planificacion/gantt.md [--json] [--mspdi 02-planificacion/cronograma.xml --titulo "<Proyecto>" --wbs 02-planificacion/wbs.csv]`.
 Salida: duración total y fin previsto, camino crítico, tabla ES/EF/LS/LF/HT/HL (`*` = crítica), carga por recurso en días; Gantt Mermaid con `crit` y `milestone`, `excludes weekends`.
 
 ## 4. Export a MS Project (MSPDI)
@@ -46,7 +46,7 @@ Salida: duración total y fin previsto, camino crítico, tabla ES/EF/LS/LF/HT/HL
 - Registro: `estado.py integracion cronograma=mspdi` cuando el equipo trabaja con el XML; la fuente de verdad sigue siendo `actividades.csv` (el XML se regenera, no se edita a mano en paralelo). Las copias para enviar van en `exportados/`.
 
 ## 5. Herramientas externas opcionales
-Usar utf8proj (u otro motor externo) en lugar de `cpm.py` cuando haga falta: relaciones SS/FF/SF, calendarios por recurso o feriados, nivelación automática, varios recursos por actividad con dedicación parcial. Registrar el comando y guardar el archivo en `02-planificacion/`. Ninguna herramienta externa es obligatoria.
+Exportar el MSPDI (`cpm.py --mspdi … --wbs …`) y completar la red en MS Project o ProjectLibre cuando haga falta: relaciones SS/FF/SF, calendarios por recurso o feriados, nivelación automática, varios recursos por actividad con dedicación parcial. Registrar el comando y guardar el archivo en `02-planificacion/`. Ninguna herramienta externa es obligatoria.
 
 ## 6. Compresión cuando el fin no entra
 Evaluar y cuantificar, en este orden, recalculando el camino crítico tras cada opción (puede cambiar):

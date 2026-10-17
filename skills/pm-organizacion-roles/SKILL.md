@@ -1,7 +1,7 @@
 ---
 name: pm-organizacion-roles
 description: "Estructura de gestión, roles, RACI, análisis (poder/interés) y compromiso de interesados. Usar: junta, roles, RACI, interesados, stakeholders, engagement plan, team charter. No: plan de comunicación→pm-comunicacion-stakeholders."
-version: 2.0.0
+version: 2.1.0
 author: pm-method
 license: MIT
 metadata:
@@ -24,7 +24,7 @@ metadata:
 - EN: design the board and team, role descriptions, RACI, stakeholder analysis; map agile/BMAD roles.
 
 ## Idioma
-Idioma del usuario; etiquetas bilingües; roles con nombre EN la primera vez. Columnas de `stakeholders.csv` en `snake_case` español (traducción en `references/guia.md` §7). Actitudes: circulación restringida.
+**Idioma · Language:** responder siempre en el idioma en que escribe el usuario (English request → English reply); los artefactos van en `estado.json.idioma` salvo que el usuario pida otro. etiquetas bilingües; roles con nombre EN la primera vez. Columnas de `stakeholders.csv` en `snake_case` español (traducción en `references/guia.md` §7). Actitudes: circulación restringida.
 
 ## Conocimiento
 - `pm-knowledge/references/prince2-practicas-bc-organizacion-planes-calidad.md` §3 (intereses, roles, diseño organizacional, RACI).

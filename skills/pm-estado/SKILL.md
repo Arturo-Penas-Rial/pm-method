@@ -3,7 +3,7 @@ name: pm-estado
 description: "Estado del proyecto: fase, etapa, tolerancias, puertas pendientes, registros abiertos, avance BMAD y siguiente paso. Uso manual: /pm-estado [carpeta]. Project status."
 disable-model-invocation: true
 argument-hint: "[carpeta del proyecto / project folder]"
-version: 2.0.0
+version: 2.1.0
 author: pm-method
 license: MIT
 metadata:
@@ -19,6 +19,8 @@ metadata:
 
 # Estado del proyecto · Project status
 
+**Idioma · Language:** responder siempre en el idioma en que escribe el usuario (English request → English reply); los artefactos van en `estado.json.idioma` salvo que el usuario pida otro.
+
 ## Cuándo usar / When to use
 - El usuario escribe `/pm-estado` para ver dónde está el proyecto y qué sigue. EN: user-invoked status check.
 
@@ -33,10 +35,10 @@ Carpeta con `estado.json` ("$ARGUMENTS" o el directorio actual; si no se encuent
 
 ## Procedimiento
 Scripts en `${CLAUDE_PLUGIN_ROOT}/skills/<skill>/scripts/` (manual/Hermes: `~/.claude/skills/<skill>/scripts/` o `~/.hermes/skills/<skill>/scripts/`).
-1. `python3 …/pm-estado-proyecto/scripts/estado.py --proyecto <dir> ver` y `… siguiente`.
-2. `python3 …/pm-estado-proyecto/scripts/registro.py --proyecto <dir> resumen`.
-2b. `python3 …/pm-estado-proyecto/scripts/sanidad.py --proyecto <dir> --rapido` (`pm-sanidad`): contar ERROR/AVISO y mostrar los ERROR.
-3. Si `integraciones.especificacion = bmad`: `python3 …/pm-bmad-puente/scripts/bmad.py --proyecto <dir> avance` (solo lectura del avance; agrega una fila a `avance-bmad.csv`).
+1. `python3 ${CLAUDE_SKILL_DIR}/../pm-estado-proyecto/scripts/estado.py --proyecto <dir> ver` y `… siguiente`.
+2. `python3 ${CLAUDE_SKILL_DIR}/../pm-estado-proyecto/scripts/registro.py --proyecto <dir> resumen`.
+2b. `python3 ${CLAUDE_SKILL_DIR}/../pm-estado-proyecto/scripts/sanidad.py --proyecto <dir> --rapido` (`pm-sanidad`): contar ERROR/AVISO y mostrar los ERROR.
+3. Si `integraciones.especificacion = bmad`: `python3 ${CLAUDE_SKILL_DIR}/../pm-bmad-puente/scripts/bmad.py --proyecto <dir> avance` (solo lectura del avance; agrega una fila a `avance-bmad.csv`).
 4. Responder: tres líneas (fase/proceso y etapa · tolerancias y excepción abierta · puertas pendientes y condiciones) + tabla corta (riesgos altos sin respuesta, issues abiertos, acciones vencidas por responsable, avance BMAD) + siguiente paso con agente/skill y rol que decide.
 
 ## Reglas del método

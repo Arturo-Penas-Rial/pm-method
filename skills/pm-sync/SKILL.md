@@ -3,7 +3,7 @@ name: pm-sync
 description: "Sincroniza fuentes externas con el proyecto: BMAD (backlog, avance, desvíos) e instantáneas de tracker y OKR. Escribe afuera solo con confirmación. Uso manual: /pm-sync [bmad|tracker|okr]."
 disable-model-invocation: true
 argument-hint: "[bmad|tracker|okr|todo] [carpeta]"
-version: 2.0.0
+version: 2.1.0
 author: pm-method
 license: MIT
 metadata:
@@ -19,6 +19,8 @@ metadata:
 
 # Sincronizar integraciones · Sync integrations
 
+**Idioma · Language:** responder siempre en el idioma en que escribe el usuario (English request → English reply); los artefactos van en `estado.json.idioma` salvo que el usuario pida otro.
+
 ## Cuándo usar / When to use
 - El usuario escribe `/pm-sync` para traer datos de BMAD, del tracker o de la herramienta OKR. EN: user-invoked sync.
 
@@ -31,7 +33,7 @@ Idioma de `estado.json` o del usuario.
 ## Entradas requeridas
 `estado.json.integraciones` (qué sistema cumple cada capacidad). Si una capacidad está en `ninguno`, ofrecer configurarla con `pm-integraciones`.
 
-**Fuente única (SPEC §1.16)**: los datos de especificación se leen solo con `python3 <pm-estado-proyecto>/scripts/especificacion.py --proyecto <dir> resumen|consultar <id>|listar …`, con o sin BMAD; nunca abrir archivos de BMAD ni `requisitos.md`. Esta skill solo refresca derivados y propone; no escribe especificación.
+**Fuente única (SPEC §1.16)**: los datos de especificación se leen solo con `python3 ${CLAUDE_SKILL_DIR}/../pm-estado-proyecto/scripts/especificacion.py --proyecto <dir> resumen|consultar <id>|listar …`, con o sin BMAD; nunca abrir archivos de BMAD ni `requisitos.md`. Esta skill solo refresca derivados y propone; no escribe especificación.
 
 ## Procedimiento
 Scripts en `${CLAUDE_PLUGIN_ROOT}/skills/<skill>/scripts/` (manual/Hermes: `~/.claude/skills/…` o `~/.hermes/skills/…`).

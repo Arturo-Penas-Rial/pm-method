@@ -1,20 +1,50 @@
 # Guía de visuales del método · Method visuals guide
 
 ## 1. Motores y contrato con skills externas
-| Valor de `integraciones.diagramas` | Cuándo conviene | Cómo invocarlo |
-|---|---|---|
-| `mermaid` (defecto) | Incrustar en Markdown, versionable, sin dependencias | Snippets de `templates/diagramas-mermaid.md`; guardar en `02-planificacion/visuales/<nombre>.md` |
-| `diagram-design` | Tipos editoriales: timeline/roadmap, swimlane del flujo de excepciones, organigrama, cuadrante poder/interés | Tipo (`timeline`, `swimlane`, `org chart`, `quadrant`), nodos/eventos con etiquetas bilingües, idioma y título; pedir SVG o PNG |
-| `archify` | Flujos y arquitecturas interactivas: flujo de productos navegable, modelo de procesos con disparadores | Nodos (id, etiqueta, tipo: producto, proceso, externo) y aristas (origen, destino, etiqueta); pedir HTML autocontenido |
-| `visual-explainer` | Páginas o decks explicativos para la junta o el cliente (canvas narrado, roadmap comentado) | Artefacto Markdown aprobado + audiencia; si la fuente es borrador, banda "BORRADOR" en cada pantalla |
-| `drawio` (opcional, fuera del esquema) | Versión editable por el equipo | `drawio-mcp` desde la tabla intermedia (nodo, padre, etiqueta); `.drawio` + PNG/SVG |
+`integraciones.diagramas` admite un valor o una lista por prioridad (`estado.py --proyecto <dir> integracion diagramas=archify,visual-explainer`). Para cada visual se usa el primer motor de la lista que cubra su tipo (tabla 1.2); si ninguno lo cubre, Mermaid, sin que cuente como falla.
 
-Las cuatro externas son **opcionales**: ninguna se exige. Contrato: (a) pm-visuales **prepara el insumo** (tabla intermedia con nodos, aristas, etiquetas bilingües, fuente y fecha de corte; tipo, idioma, marca BORRADOR); (b) invoca la skill; (c) guarda la salida en `02-planificacion/visuales/<nombre>.<ext>` (planificación) o `03-control/reportes/AAAA-MM-DD-<nombre>.<ext>` (control); (d) guarda junto a ella el `.md` con el Mermaid de respaldo y la tabla intermedia; (e) registra el artefacto. Si la salida pierde los ids de la fuente o agrega nodos inventados, se descarta y se usa Mermaid. Si la skill no está instalada o falla: Mermaid/HTML interno y nota en `diario.md`. Cambiar el motor: `<pm-estado-proyecto>/scripts/estado.py --proyecto <dir> integracion diagramas=<valor>`. Los nombres de skill son mapeo del paquete; ajustar al nombre real instalado.
+### 1.1 Nombres reales y cómo se reconocen (verificado en vivo, Claude Code 2.1, 2026-10-17)
+| Valor | Skill a invocar (herramienta Skill) | Distribución · licencia | Requisitos | Instalación (detalle en `docs/INSTALACION.md` §6.1) |
+|---|---|---|---|---|
+| `archify` | `archify` | carpeta de skill (no es plugin) · MIT | Node ≥ 18 para ejecutarla (`npx skills add` requiere Node ≥ 22.20); Chrome/Chromium para `browser-check` (`ARCHIFY_CHROME=<ejecutable>` si no lo encuentra) | `npx skills add tt-a1i/archify -a claude-code -s archify -y` |
+| `diagram-design` | `diagram-design` (copia) o `diagram-design:diagram-design` (plugin) | plugin con marketplace + carpeta `skills/diagram-design` · MIT | Python 3; Playwright + Chromium solo para PNG | `/plugin marketplace add cathrynlavery/diagram-design` + `/plugin install diagram-design@diagram-design`, o `npx skills add cathrynlavery/diagram-design -a claude-code -s diagram-design -y` |
+| `visual-explainer` | `visual-explainer` (copia) o `visual-explainer:visual-explainer` (plugin) | plugin con marketplace (SKILL.md en la raíz del plugin) · MIT | Node ≥ 18; `playwright-core` opcional para `kit/check.mjs` | `/plugin marketplace add nicobailon/visual-explainer` + `/plugin install visual-explainer@visual-explainer-marketplace`, o `npx skills add nicobailon/visual-explainer -a claude-code -s visual-explainer -y` |
+| `drawio` | herramientas `mcp__drawio…` | servidor MCP | el del servidor | `claude mcp add …` |
+
+Está instalada si figura en el listado de skills de la sesión con cualquiera de esos nombres, o si `sanidad.py --proyecto <dir>` informa INS-03 "invocar como …". No basta con que exista la carpeta: se invoca la skill.
+
+### 1.2 Tipo de cada visual por motor
+| Visual | `archify` (tipo JSON) | `diagram-design` (tipo) | `visual-explainer` (página) |
+|---|---|---|---|
+| Organigrama | `tree` | org chart | — |
+| PBS / WBS | `tree` | tree (importar el Mermaid de `wbs.py`) | — |
+| Mapa poder/interés | — | quadrant | — |
+| Flujo de productos | `workflow` | flowchart / dependency | — |
+| Roadmap por etapas | `timeline` | timeline | roadmap comentado |
+| Flujo de excepciones | `workflow` | swimlane | — |
+| One-pager (brief, canvas, resumen de etapa) | — | — | "One diagram" / explicador de una página |
+
+### 1.3 Contrato de delegación (obligatorio cuando el motor está configurado e instalado)
+1. **Respaldo primero**: tabla intermedia (id, etiqueta, padre/dependencia, atributos, fuente) y Mermaid en `<carpeta>/<nombre>.md` (WBS con `wbs.py --mermaid`). Para el one-pager, la tabla de campos del brief.
+2. **Invocar la skill** con la herramienta Skill por su nombre real (1.1) y seguir su procedimiento con estos parámetros fijados por pm-visuales: ruta de salida, idioma del proyecto, título bilingüe, ids de la fuente en cada nodo, "BORRADOR" si la fuente no está aprobada, fuente y fecha de corte en el pie. No improvisar el HTML a mano si la skill está disponible.
+3. **Ruta**: `02-planificacion/visuales/<nombre>.html` (planes, one-pager `one-pager-<fuente>.html`) o `03-control/reportes/AAAA-MM-DD-<nombre>.html`. Los subproductos del motor quedan junto a la salida con el mismo prefijo; nunca en `~/.agent/diagrams/`, `.archify/` del cwd ni carpetas de BMAD.
+4. **Sin preguntas bloqueantes**: si el motor pide confirmar estilo o plan y el usuario no está (subagente, `claude -p`), usar el estilo por defecto, seguir y anotar los supuestos en la respuesta.
+5. **Verificar**: el archivo existe, pasó la comprobación del motor (1.4) y contiene los ids de la fuente sin nodos inventados; si no, se descarta.
+6. **Registrar** `estado.py --proyecto <dir> artefacto <clave> --ruta <salida.html> --estado borrador` y cerrar con el motor usado, la salida y el respaldo `.md`.
+7. **Falla o ausencia** (no figura en el listado, error del motor tras dos reparaciones, salida sin ids): queda el Mermaid, nota en `diario.md` ("motor X no disponible/falló: <causa>; se entrega Mermaid") y aviso al usuario.
+
+### 1.4 Receta por motor
+- **archify**: escribir el candidato `<carpeta>/<nombre>.candidate.json` según el esquema del tipo (leer `schemas/<tipo>.schema.json` y el ejemplo que indica su SKILL.md), con `meta.output` = ruta de salida relativa al directorio de trabajo; luego, desde ese directorio, `node <archify>/bin/archify.mjs finalize <tipo> <nombre>.candidate.json <salida>.html --quality showcase --json` (rutas relativas al cwd). Éxito = `"ok": true` con `validate`, `deliver`, `check` y `browser-check` en `pass`. Si solo `browser-check` queda `skipped` por falta de Chrome, el HTML vale como "verificado sin navegador" (decirlo y anotarlo). Sin red: `ARCHIFY_UPDATE_CHECK_DISABLED=1`. El árbol `tree` es de un solo padre: aseguramiento y soporte se cuelgan de la junta o del gestor y se aclara en el pie.
+- **diagram-design**: la primera vez exige revisar `references/style-guide.md`; sin marcador `.diagram-design` en el proyecto, preguntar una vez al usuario (personalizar o estilo por defecto); sin usuario, estilo por defecto (opción e). Para la WBS u otro Mermaid de respaldo, usar la vía de importación: `python3 <diagram-design>/scripts/mermaid_extract.py <respaldo>.md` y redibujar con detalle `faithful` (conserva todos los nodos; zonas sobre 9, dividir sobre 24). Copiar `assets/template.html`, cargar la referencia del tipo y comprobar con `python3 <diagram-design>/scripts/self_check.py <salida>.html` (debe imprimir `OK`). PNG opcional con `scripts/export_png.py` (Playwright). Las tipografías se cargan de Google Fonts; sin conexión, pedir fuentes del sistema (style-guide § Font source).
+- **visual-explainer**: escribir la fuente `<carpeta>/<nombre>.src.html` (registro `data-register`, `<link rel="stylesheet" href="kit.css" data-ve-kit>`) y renderizar con `node <visual-explainer>/kit/render.mjs <nombre>.src.html` **sin `--open`** → `<nombre>.html` (debe imprimir `✓`). `kit/check.mjs` solo si `playwright-core` está instalado. Nunca escribir en `~/.agent/diagrams/`.
+- **drawio**: servidor MCP oficial de draw.io (`jgraph/drawio-mcp`, npm `@drawio/mcp`) desde la tabla intermedia (nodo, padre, etiqueta); `.drawio` + PNG/SVG junto al `.md`.
+
+`<archify>`, `<diagram-design>` y `<visual-explainer>` son la carpeta base que informa la herramienta Skill al invocarla (o la ruta de INS-03).
 
 ## 2. Contenido de cada visual
 - **Organigrama**: tres intereses (negocio, usuario, proveedor) en la junta, un ejecutivo, gestor, aseguramiento separado, soporte, gestores de equipo; líneas de reporte; autoridad de cambio si existe. Si la fuente viola la separación, se señala.
 - **Mapa poder/interés**: cuatro cuadrantes con criterios explícitos; actitud; estrategia por cuadrante; circulación restringida; nunca para evaluar personas del equipo.
-- **PBS/WBS**: producto del proyecto en la raíz; externos marcados; sin actividades en la PBS; la WBS deriva de la PBS. Desde `wbs.csv`: `python3 <pm-estado-proyecto>/scripts/wbs.py 02-planificacion/wbs.csv --titulo "<Proyecto>" --mermaid 02-planificacion/visuales/wbs.md [--profundidad 3] [--diccionario 02-planificacion/diccionario-wbs-esqueleto.md]` (valida la EDT, consolida esfuerzo y costo y escribe el árbol Mermaid `flowchart TD`). El contenido de la EDT es de `pm-planificacion-por-productos`; aquí solo se dibuja.
+- **PBS/WBS**: producto del proyecto en la raíz; externos marcados; sin actividades en la PBS; la WBS deriva de la PBS. Desde `wbs.csv`: `python3 ${CLAUDE_SKILL_DIR}/../pm-estado-proyecto/scripts/wbs.py 02-planificacion/wbs.csv --titulo "<Proyecto>" --mermaid 02-planificacion/visuales/wbs.md [--profundidad 3] [--diccionario 02-planificacion/diccionario-wbs-esqueleto.md]` (valida la EDT, consolida esfuerzo y costo y escribe el árbol Mermaid `flowchart TD`). El contenido de la EDT es de `pm-planificacion-por-productos`; aquí solo se dibuja.
 - **Flujo de productos**: dependencias entre productos de un plan; externos como entradas; aristas sin confirmar en línea punteada.
 - **Gantt y roadmap**: Gantt desde `cpm.py --mermaid` o el plan (camino crítico resaltado); roadmap por etapas de gestión con puertas como hitos.
 - **Flujo de excepciones**: paquete → gestor; etapa → junta; proyecto → capa de negocio, con tolerancias y quién decide.
@@ -87,6 +117,6 @@ Si hay un tracker conectado (Jira, Linear, GitHub, Azure DevOps), `pm-integracio
 - Versión mínima (canvas, roadmap, tablero de media página) en proyectos pequeños; completa cuando el riesgo o los stakeholders lo justifiquen.
 
 ## 8. Casos borde
-- Cronograma con dependencias SS/FF, calendarios o nivelación → `pm-cronograma-estimacion` (MSPDI/utf8proj); `cpm.py` solo cubre fin-a-comienzo.
+- Cronograma con dependencias SS/FF, calendarios o nivelación → `pm-cronograma-estimacion` (MSPDI con `cpm.py --mspdi`, completado en MS Project o ProjectLibre); `cpm.py` solo cubre fin-a-comienzo.
 - Objetivo en rojo sin issue ni excepción registrada → avisar a `pm-control` antes de publicar; nunca un verde cosmético.
 - Visual con datos de personas para circulación amplia → rechazar; ofrecer versión agregada o restringida.

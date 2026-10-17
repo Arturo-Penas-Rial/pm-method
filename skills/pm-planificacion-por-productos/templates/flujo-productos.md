@@ -25,7 +25,7 @@ flowchart LR
     PX[("P-X externo {{producto_externo}}")] --> P12
     P12 --> P1["P-1 {{producto_1}}"]
     P21 --> P1
-    P1 --> F((Fin / End: {{producto_proyecto}}))
+    P1 --> F(("Fin / End: {{producto_proyecto}}"))
     classDef etapa1 fill:#eef,stroke:#336;
     classDef etapa2 fill:#efe,stroke:#363;
     class P11,P21 etapa1;

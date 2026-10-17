@@ -11,7 +11,7 @@ Por cada paquete en curso: informe de avance de miembro (`templates/informe-avan
 
 ## 3. Medición predictiva o híbrida con EVM
 - `03-control/reportes/progreso.csv` (periodo, pv, ev, ac acumulados, notas): `pv` = `pv_acumulado` del período en la línea base; `ev` = Σ presupuesto de cada producto × % de avance según el método declarado; `ac` = costo real devengado acumulado.
-- `python3 <pm-estado-proyecto>/scripts/evm.py --csv <dir>/03-control/reportes/progreso.csv --bac <BAC> --tol-costo <%> --tol-plazo <%> --eac tendencia|atipico|compuesto --idioma <es|en> --json` (acepta también `pv_acumulado`, `ev_acumulado`, `ac_acumulado`; `--proyecto <dir>` toma datos de la carpeta).
+- `python3 ${CLAUDE_SKILL_DIR}/../pm-estado-proyecto/scripts/evm.py --csv <dir>/03-control/reportes/progreso.csv --bac <BAC> --tol-costo <%> --tol-plazo <%> --eac tendencia|atipico|compuesto --idioma <es|en> --json` (acepta también `pv_acumulado`, `ev_acumulado`, `ac_acumulado`; `--proyecto <dir>` toma datos de la carpeta).
 - Devuelve SV, CV, SPI, CPI, % completado/gastado, tres EAC, ETC, VAC, TCPI, `semaforo_costo`, `semaforo_cronograma`, `excepcion_prevista`, `base_semaforo`.
 - Correr una vez con tolerancias de etapa y otra con las de proyecto. Sin `--tol-*` usa índices de referencia (0,95/0,85) y lo declara en `base_semaforo`: decirlo en el informe.
 - Controles: EV ≤ PV total del componente; acumulados del período anterior = informe anterior; BAC con cambios aprobados; al menos dos EAC con la elegida justificada (atípica, tendencia típica, CPI×SPI); ETC, VAC y TCPI recalculados; índices con la tendencia de los últimos períodos; SPI tiende a 1 al final → complementar con camino crítico o cronograma ganado.
@@ -23,7 +23,7 @@ Por cada paquete en curso: informe de avance de miembro (`templates/informe-avan
 - **Bloque burn-up** (highlight y checkpoint, ágil o híbrido): iteración; alcance total y su variación desde la línea base del release plan; puntos terminados acumulados; velocidad de las últimas 3 iteraciones; iteraciones restantes; fecha pronosticada vs. fecha fija; Must en riesgo. Tabla y, con `pm-visuales`, gráfico en `tablero-avance.html` o Mermaid `xychart-beta`.
 
 ## 5. Variante BMAD (`integraciones.especificacion = bmad`)
-- Cada período: `python3 <pm-bmad-puente>/scripts/bmad.py --proyecto <dir> verificar` (desvíos del PRD o Sprint Change Proposals nuevas → `pm-issues-cambios`, tipo `solicitud-cambio`) y `bmad.py --proyecto <dir> avance` (agrega una fila a `03-control/reportes/avance-bmad.csv`).
+- Cada período: `python3 ${CLAUDE_SKILL_DIR}/../pm-bmad-puente/scripts/bmad.py --proyecto <dir> verificar` (desvíos del PRD o Sprint Change Proposals nuevas → `pm-issues-cambios`, tipo `solicitud-cambio`) y `bmad.py --proyecto <dir> avance` (agrega una fila a `03-control/reportes/avance-bmad.csv`).
 - Columnas de `avance-bmad.csv`: `fecha, historias, backlog, ready-for-dev, in-progress, review, done, epicas, epicas_terminadas, puntos_total, puntos_terminados, pct_terminado, base_pct` (`puntos` si `backlog.csv` trae `estimacion`, si no `historias`).
 - Uso: checkpoint del sprint-paquete = conteo por estado y historias bloqueadas; highlight = % terminado, épicas terminadas y serie para el burn-up (alcance total = `puntos_total`, terminado = `puntos_terminados`; un salto de `puntos_total` entre filas es cambio de alcance a explicar). Citar la fecha de la fila y el sha corto del artefacto BMAD.
 - Solo `done` cuenta como terminado; `review` no. El "sí" de correct-course en BMAD no aprueba nada en PRINCE2.
@@ -54,6 +54,8 @@ Riesgos: un riesgo alto sin respuesta o sin propietario rompe la línea de toler
 - Acciones correctivas: `registro.py agregar acciones --campo origen=highlight-<fecha> --campo responsable=... --campo fecha_compromiso=...` o enmienda del paquete; los compromisos viven en `acciones.csv`, no en `issues.csv`.
 - Audiencias (con `pm-comunicacion-stakeholders`): junta → decisiones, desvíos, finanzas, excepciones; equipo → bloqueos, prioridades, acciones; cliente/usuario sénior → hitos, productos entregados, riesgos que le afectan, cambios aprobados. Mismas cifras, distinta selección.
 
+
+**Puertas como insumo del informe.** `puertas.py estado --markdown` aporta: cada puerta con su decisión, quién decidió, condiciones (abiertas o cumplidas), observaciones de la verificación (p. ej. gate de BMAD en CONCERNS) y si fue forzada; y la preparación de la próxima puerta (bloqueos y condiciones). En el highlight va en §6; una condición abierta vencida o una puerta forzada se informa como riesgo o issue; en el tablero y en "¿cómo venimos?" se muestra la línea de `estado.py resumen` (última y próxima puerta).
 ## 10. Adaptación según enfoque de entrega
 | Aspecto | Predictivo | Ágil | Híbrido |
 |---|---|---|---|

@@ -1,4 +1,4 @@
-# Arquitectura · pm-method 2.0.0
+# Arquitectura · pm-method 2.1.0
 
 Este documento explica cómo está construido pm-method y por qué: las capas y su precedencia, el reparto entre agente
 orquestador y subagentes, las herramientas que usan las skills, los comandos, la carga progresiva del contexto y el
@@ -10,44 +10,51 @@ resume y se justifica.
 ## 1. Visión general
 
 pm-method es un paquete de **37 skills** (31 que el modelo activa por su descripción y 6 comandos de uso humano), **6
-agentes** (un orquestador para el hilo principal y 5 subagentes de fase) y **2 hooks** (protección de datos y sanidad
+agentes** (un orquestador para el hilo principal y 5 subagentes de fase) y **3 hooks** (protección de datos y sanidad
 al inicio de sesión). Su fuente de verdad es una carpeta de proyecto en Markdown, CSV y `estado.json`.
 
 ```mermaid
+---
+config:
+  flowchart:
+    subGraphTitleMargin:
+      top: 6
+      bottom: 18
+---
 flowchart TB
   U([Usuario / junta]) <--> O
 
   subgraph HP[Hilo principal]
-    O[pm-orquestador<br/>único que conversa y pregunta]
     C[/6 comandos: pm-ayuda · pm-nuevo · pm-estado<br/>pm-reporte · pm-puerta · pm-sync/]
+    O[pm-orquestador<br/>único que conversa y pregunta]
     C --> O
   end
 
   subgraph SA[Subagentes de fase · contexto aislado · sin preguntas · sin anidación]
+    direction TB
     DI[pm-director · DP]
     IN[pm-inicio · SU/IP]
     PL[pm-planificacion · Plans/IP/SB]
     CO[pm-control · CS/MP]
     CI[pm-cierre · CP]
   end
-  O -- encargo autocontenido --> DI & IN & PL & CO & CI
-  DI & IN & PL & CO & CI -- bloque de retorno --> O
+  O <-- "encargo autocontenido ↓ · bloque de retorno ↑" --> SA
 
   subgraph CAP[Capas]
     G[Gobierno · PRINCE2<br/>skills pm-*]
     T[Técnicas · PMBOK<br/>dentro de prácticas PRINCE2]
-    E[Especificación · BMAD opcional<br/>solo lectura]
-    I[Integración · MCP de la sesión<br/>opcional]
-    P[(Persistencia · carpeta del proyecto<br/>estado.json · Markdown · CSV)]
+    E[Especificación · BMAD opcional, solo lectura<br/>vía especificacion.py / bmad.py]
+    I[Integración · MCP de la sesión, opcional<br/>vía pm-integraciones]
+    P[(Persistencia · carpeta del proyecto<br/>estado.json · Markdown · CSV<br/>escrita solo por estado.py · registro.py)]
   end
   SA --> G
   G --> T
-  G -- especificacion.py / bmad.py --> E
-  G -- pm-integraciones --> I
-  G -- estado.py · registro.py --> P
+  G --> E
+  G --> I
+  G --> P
 
-  H{{Hooks: guardian.py · inicio.py}} -. protege .-> P
-  H -. contexto inicial .-> O
+  H{{Hooks: guardian.py · inicio.py · idioma.py}} -. protege .-> P
+  H -. contexto .-> O
 ```
 
 ---
@@ -224,7 +231,7 @@ La carpeta `commands/` de v1 desapareció: es un formato heredado y los comandos
 | 3 | `references/`, `templates/`, `scripts/` | solo cuando un paso lo pide | sin límite fijo; se consultan por sección |
 
 Cifras reales de v2 (medidas con `scripts/validar_paquete.py` y sobre los archivos):
-- Listado del nivel 1: **6.160 caracteres** para las 31 skills invocables por el modelo (las 6 skills-comando no
+- Listado del nivel 1: **6.289 caracteres** para las 31 skills invocables por el modelo (las 6 skills-comando no
   cuentan).
 - El presupuesto del listado de skills en Claude Code es **≈1 % de la ventana de contexto**; si se instalan BMAD u otros
   repos, puede ampliarse con `"skillListingBudgetFraction": 0.02` en `settings.json`. `skillOverrides` no aplica a skills
@@ -316,7 +323,7 @@ sequenceDiagram
   O->>U: decisión: pregunta · opciones · consecuencias · rol que decide
   U-->>O: decisión explícita con nombre y rol
   O->>D: registrar la decisión literal
-  D->>P: estado.py puerta / aprobar (+ decisiones.csv; línea base BMAD si aplica)
+  D->>P: estado.py puerta / aprobar (+ decisiones.csv, línea base BMAD si aplica)
   D-->>O: Retorno
   O->>U: siguiente paso según el método y próxima puerta
 ```

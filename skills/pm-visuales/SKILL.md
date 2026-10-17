@@ -1,7 +1,7 @@
 ---
 name: pm-visuales
-description: "Diagramas y tablero de avance HTML. Usar: organigrama, mapa de stakeholders, diagrama de la WBS, roadmap visual, tablero, dashboard, vista por actor. No: Gantt→pm-cronograma-estimacion; contenido del informe→pm-progreso-reportes."
-version: 2.0.0
+description: "Diagramas y tablero de avance HTML. Usar: organigrama, mapa de stakeholders, diagrama de la WBS, roadmap visual, one-pager, tablero, dashboard, vista por actor. No: Gantt→pm-cronograma-estimacion; contenido del informe→pm-progreso-reportes."
+version: 2.1.0
 author: pm-method
 license: MIT
 metadata:
@@ -17,19 +17,20 @@ metadata:
 
 # Visuales del método · Method visuals
 
+**Idioma · Language:** responder siempre en el idioma en que escribe el usuario (English request → English reply); los artefactos van en `estado.json.idioma` salvo que el usuario pida otro.
+
 ## Cuándo usar / When to use
-- Un artefacto se entiende mejor dibujado: organigrama, mapa poder/interés, PBS/WBS, flujo de productos, Gantt, roadmap por etapas, flujo de excepciones, canvas de arranque.
+- Un artefacto se entiende mejor dibujado: organigrama, mapa poder/interés, PBS/WBS, flujo de productos, Gantt, roadmap, flujo de excepciones, canvas o one-pager visual.
 - La junta, el patrocinador o el cliente piden "verlo en una página": tablero de avance con semáforo, hitos, riesgos, acciones y **vista por actor**.
 - Otra skill (`pm-organizacion-roles`, `pm-planificacion-por-productos`, `pm-cronograma-estimacion`, `pm-progreso-reportes`) necesita incrustar un diagrama.
-- EN: org chart, stakeholder map, WBS tree, product flow, Gantt, roadmap, kickoff canvas or a one-page progress dashboard.
-- EN: per-owner commitments view (`?actor=`); optional external diagram skills with Mermaid fallback.
+- EN: org chart, stakeholder map, WBS tree, roadmap, one-pager or progress dashboard; delegates to archify, diagram-design or visual-explainer when configured.
 
 ## Idioma
 Etiquetas en el idioma del proyecto (`estado.json.idioma`); los HTML con cabeceras bilingües (ES / EN). Términos EN la primera vez: product breakdown structure (PBS), product flow diagram, progress dashboard.
 
 ## Conocimiento
-- `references/guia.md` (esta skill): motores y contrato externo §1, contenido por visual y `wbs.py` §2, inyección del tablero §3, vista por actor §4, trackers §5, datos mínimos §6, elección y legibilidad §7, casos borde §8.
-- `pm-knowledge/references/prince2-practicas-bc-organizacion-planes-calidad.md` §3.1.5 y §3.5.2 (estructura del equipo), §3.3.3 (RACI), práctica de planes (PBS, flujo de productos).
+- `references/guia.md`: motores externos §1 (nombres, tipos, contrato, recetas), contenido y `wbs.py` §2, tablero §3, vista por actor §4, trackers §5, datos mínimos §6, elección §7, casos borde §8.
+- `pm-knowledge/references/prince2-practicas-bc-organizacion-planes-calidad.md` §3.1.5, §3.5.2 (equipo), §3.3.3 (RACI), planes (PBS, flujo).
 - `pm-knowledge/references/prince2-practicas-riesgo-issues-progreso-productos.md` §4.c.6 (highlight tipo tablero), §6 (flujo de excepciones), §4.a (tolerancias).
 - `pm-knowledge/references/pmbok8-artefactos-tecnicas-anexos.md` §2.4 (WBS, OBS), §2.6 (Gantt, roadmap), §3.3 (poder/interés), §5.2 regla 35 (visual según el dato).
 
@@ -37,22 +38,22 @@ Etiquetas en el idioma del proyecto (`estado.json.idioma`); los HTML con cabecer
 - `estado.json` (idioma, etapa, tolerancias, roles, `enfoque_entrega`, `integraciones.diagramas`, `integraciones.cronograma`).
 - Por visual: organigrama ← `roles` y `00-direccion/estructura-organizativa.md`; mapa ← `stakeholders.csv`; PBS/WBS ← `02-planificacion/pbs-wbs.md` o `wbs.csv`; flujo ← descripciones de producto; Gantt/roadmap ← `cpm.py --mermaid` o plan; canvas ← `01-inicio/canvas-arranque.md`.
 - Tablero ← highlight vigente, `evm.py --json`, `registro.py listar riesgos|issues --abiertos`, `listar acciones`, `resumen --corte`, burn-up (con BMAD, `avance-bmad.csv`) y, si hay tracker conectado, instantáneas de `pm-integraciones` en `03-control/fuentes/`.
-- **Especificación (fuente única, SPEC §1.16)**: resumen y estados de requisitos, épicas e historias solo vía `python3 <pm-estado-proyecto>/scripts/especificacion.py --proyecto <dir> resumen|consultar <id>|listar … --json` (igual con o sin BMAD; nunca abrir BMAD ni `requisitos.md`). Escribe como dueña: visuales y tablero, que citan ids.
+- **Especificación (fuente única, SPEC §1.16)**: requisitos, épicas e historias solo vía `python3 ${CLAUDE_SKILL_DIR}/../pm-estado-proyecto/scripts/especificacion.py --proyecto <dir> resumen|consultar <id>|listar … --json` (con o sin BMAD; nunca abrir BMAD ni `requisitos.md`). Escribe como dueña: visuales y tablero, que citan ids.
 - Si falta la fuente: esqueleto con `[por confirmar]` y lista de lo que falta; nunca inventar nodos.
 
 ## Procedimiento
 1. **Identificar el visual y su fuente**; leer `estado.json` y la fuente; listar faltantes antes de dibujar (datos mínimos en `references/guia.md` §6).
-2. **Elegir el motor** según `integraciones.diagramas`: `mermaid` por defecto (`templates/diagramas-mermaid.md`). `diagram-design`, `archify`, `visual-explainer` y `drawio` son **opcionales**: pm-visuales prepara el insumo, las invoca, guarda la salida y conserva el Mermaid de respaldo; si no están o fallan, Mermaid y nota en `diario.md` (guía §1).
+2. **Elegir el motor** según `integraciones.diagramas` (valor o lista por prioridad): `mermaid` por defecto (`templates/diagramas-mermaid.md`). Con `archify`, `diagram-design` o `visual-explainer` configurado e instalado (listado de skills, también con prefijo de plugin; INS-03) **delegar siempre**: Mermaid de respaldo, invocar la skill con la herramienta Skill y seguir guía §1.3–1.4 (ruta, ids, BORRADOR; sin preguntas bloqueantes). Ausente, sin el tipo o fallida: Mermaid y nota en `diario.md`.
 3. **Tabla intermedia** (nodo, etiqueta, padre/dependencia, atributos) mostrada al usuario si hay más de ~15 elementos; es lo que se traduce al motor.
 4. **Generar** con la plantilla o el script (contenido por visual en guía §2):
-   - WBS: `python3 <pm-estado-proyecto>/scripts/wbs.py 02-planificacion/wbs.csv --mermaid 02-planificacion/visuales/wbs.md` (árbol Mermaid validado; `--profundidad` para recortar).
+   - WBS: `python3 ${CLAUDE_SKILL_DIR}/../pm-estado-proyecto/scripts/wbs.py 02-planificacion/wbs.csv --mermaid 02-planificacion/visuales/wbs.md` (árbol Mermaid validado; `--profundidad` para recortar).
    - Gantt: `cpm.py --mermaid`; roadmap con puertas como hitos; canvas con `templates/canvas-arranque.html`.
    - Tablero: `templates/tablero-avance.html`, armando el bloque JSON `datos-tablero` (script y campos en guía §3): semáforo de siete objetivos (verde ≤ 50 % de la tolerancia, ámbar 50–100 %, rojo fuera), hitos, decisiones, mapa de calor P×I, riesgos e issues, sección ágil (velocidad y burn-up), acciones por actor y **Vista por actor**.
-5. **Vista por actor.** Selector que filtra acciones abiertas (`D.acciones`), riesgos de los que es propietario (`D.riesgos`) e issues de los que es responsable (`D.issues`); abre filtrada con `?actor=<Nombre>`; sin campos nuevos en el JSON (guía §4).
+5. **Vista por actor.** Selector sobre acciones abiertas (`D.acciones`), riesgos por propietario (`D.riesgos`) e issues por responsable (`D.issues`); abre filtrada con `?actor=<Nombre>` (guía §4).
 6. **Datos de trackers.** El tablero puede alimentarse con instantáneas fechadas de `pm-integraciones` (avance de ítems, bloqueos), citadas en `fuentes`; riesgos, issues y acciones siguen saliendo de los registros (guía §5).
-7. **Comprobar legibilidad**: título bilingüe, leyenda, fecha de corte, fuente; ≤ ~40 nodos (guía §7).
-8. **Guardar** en `02-planificacion/visuales/` (planes) o `03-control/reportes/` (tablero con fecha) y registrar con `<pm-estado-proyecto>/scripts/estado.py --proyecto <dir> artefacto <nombre> --ruta ... --estado borrador`.
-9. **PUERTA HUMANA.** El visual hereda el estado de su fuente (marca BORRADOR si no está aprobada); el gestor confirma antes de compartirlo con la junta o el cliente, el ejecutivo antes de usarlo en una puerta. Publicar o enviar solo vía `pm-integraciones` con confirmación.
+7. **Legibilidad**: título bilingüe, leyenda, fecha de corte, fuente; ≤ ~40 nodos (guía §7).
+8. **Guardar** en `02-planificacion/visuales/` (planes) o `03-control/reportes/` (tablero con fecha) y registrar con `${CLAUDE_SKILL_DIR}/../pm-estado-proyecto/scripts/estado.py --proyecto <dir> artefacto <nombre> --ruta ... --estado borrador`.
+9. **PUERTA HUMANA.** El visual hereda el estado de su fuente (BORRADOR si no está aprobada); el gestor confirma antes de compartirlo, el ejecutivo antes de usarlo en una puerta. Publicar solo vía `pm-integraciones` con confirmación.
 10. **Cerrar** con rutas, motor usado, fuentes y faltantes; si corre como subagente, bloque de retorno (SPEC §1.11).
 
 ## Reglas del método
@@ -66,7 +67,7 @@ Etiquetas en el idioma del proyecto (`estado.json.idioma`); los HTML con cabecer
 8. [PMBOK→Organizing/IP] El mapa poder/interés usa criterios explícitos y es de circulación restringida; la vista por actor muestra compromisos, no desempeño.
 9. [Plantillas] HTML autocontenidos (sin red ni librerías, SVG en la página); datos solo por el bloque JSON, nunca editando celdas.
 10. [Plantillas] Acciones por actor desde `acciones.csv` (A-###), no desde `issues.csv`.
-11. Integraciones visuales opcionales (SPEC §1.10.14): insumo preparado, salida guardada en `02-planificacion/visuales/` o `03-control/reportes/`, Mermaid siempre como respaldo.
+11. Integraciones visuales opcionales (SPEC §1.10.14): si el motor está instalado se delega (no se imita su salida a mano); salida en `02-planificacion/visuales/` o `03-control/reportes/`, nunca fuera del proyecto ni en BMAD; Mermaid siempre como respaldo.
 12. Datos externos solo como instantáneas fechadas de `pm-integraciones`; nunca reemplazan a los registros.
 13. Transparencia de IA: fuente y fecha de corte en cada visual; `[por confirmar]` si falta; borrador hasta confirmación. Idioma del usuario.
 14. Escrituras externas (portal, chat, correo, tracker) solo con confirmación explícita.
@@ -74,39 +75,39 @@ Etiquetas en el idioma del proyecto (`estado.json.idioma`); los HTML con cabecer
 ## Artefactos y plantillas
 | Artefacto | Plantilla / motor | Ruta de salida | estado.json |
 |---|---|---|---|
-| Organigrama | `templates/diagramas-mermaid.md` §1 · diagram-design · drawio | `02-planificacion/visuales/organigrama.md` | `organigrama` |
+| Organigrama | `templates/diagramas-mermaid.md` §1 · archify · diagram-design · drawio | `02-planificacion/visuales/organigrama.md` | `organigrama` |
 | Mapa poder/interés | §2 · diagram-design (quadrant) | `02-planificacion/visuales/mapa-stakeholders.md` (restringido) | `mapa-stakeholders` |
-| PBS / WBS | §3 · `wbs.py --mermaid` · drawio | `02-planificacion/visuales/wbs.md` | `pbs-wbs` (contenido: `pm-planificacion-por-productos`) |
+| PBS / WBS | §3 · `wbs.py --mermaid` · archify · diagram-design · drawio | `02-planificacion/visuales/wbs.md` | `pbs-wbs` (contenido: `pm-planificacion-por-productos`) |
 | Flujo de productos | §4 · archify | `02-planificacion/visuales/flujo-productos.md` | `flujo-productos` |
 | Gantt | §5 · `cpm.py --mermaid` | `02-planificacion/cronograma-gantt.md` | `cronograma` |
 | Roadmap por etapas | §6 · diagram-design · visual-explainer | `02-planificacion/visuales/roadmap.md` | `roadmap` |
 | Flujo de excepciones | §7 · diagram-design (swimlane) · archify | `02-planificacion/visuales/flujo-excepciones.md` | `flujo-excepciones` |
 | Canvas de arranque (HTML) | `templates/canvas-arranque.html` | `01-inicio/canvas-arranque.html` | `canvas-arranque-html` |
+| One-pager visual (brief, resumen) | visual-explainer; sin él, `templates/canvas-arranque.html` | `02-planificacion/visuales/one-pager-<fuente>.html` | `one-pager-<fuente>` |
 | Tablero de avance | `templates/tablero-avance.html` | `03-control/reportes/AAAA-MM-DD-tablero-avance.html` | `tablero-avance` |
 
 ## Calidad
-- [ ] Cada nodo o fila con origen identificable; título bilingüe, leyenda, fecha de corte, fuente, BORRADOR si corresponde.
+- [ ] Nodos con origen identificable; título bilingüe, leyenda, fecha de corte, fuente, BORRADOR si corresponde.
 - [ ] Organigrama con tres intereses; PBS sin actividades; roadmap con puertas; Gantt con camino crítico si viene de `cpm.py`.
-- [ ] Tablero: JSON válido; semáforo 50 %/100 %; umbrales de riesgo en el pie; acciones vencidas resaltadas; sección ágil en ágil/híbrido; vista por actor con todos los responsables; instantáneas citadas.
-- [ ] Salida externa guardada junto a su Mermaid y su tabla intermedia; HTML abre sin conexión y se imprime en A4.
+- [ ] Tablero: JSON válido; semáforo 50 %/100 %; umbrales en el pie; vencidas resaltadas; sección ágil si aplica; vista por actor completa; instantáneas citadas.
+- [ ] Salida externa verificada por su motor (guía §1.4), junto a su Mermaid; HTML interno sin conexión e imprimible en A4.
 - [ ] Visuales con datos de personas marcados como restringidos.
 
 ## Escalamiento y excepciones
 - Objetivo en rojo sin issue ni excepción → `pm-control` (`pm-progreso-reportes`, `pm-issues-cambios`) antes de publicar.
 - Estructura que viola la separación de roles → señalar y derivar a `pm-organizacion-roles`.
-- Cronograma con SS/FF, calendarios o nivelación → `pm-cronograma-estimacion`.
-- Motor externo ausente o fallido → Mermaid/HTML interno y nota en `diario.md`.
+- Cronograma con SS/FF, calendarios, nivelación → `pm-cronograma-estimacion`.
+- Motor externo ausente, sin el tipo o fallido (tras dos reparaciones) → Mermaid/HTML interno y nota en `diario.md` con la causa.
 - Visual nominativo para circulación amplia → rechazar; ofrecer versión agregada.
 - Como subagente: la confirmación para compartir o publicar se devuelve como "decisión humana requerida" (SPEC §1.11).
 
 ## Ejemplos de invocación
 - "Generá el tablero de avance de esta semana con mapa de calor, burn-up y la vista por actor para mandarle a cada uno su link."
 - "Dibujá la EDT desde wbs.csv hasta el nivel 3 en Mermaid."
-- EN: "Build a stage roadmap with the gates as milestones; use diagram-design if it is configured."
-- EN: "Feed the dashboard with yesterday's Jira snapshot and show the release burn-up."
+- EN: "Build a stage roadmap with the gates as milestones."
+- "Hacé un one-pager visual del brief." (con `visual-explainer` configurado)
 - No activa: "Redactá el highlight de la quincena con el EVM" → `pm-progreso-reportes`.
 
 ## EN summary
-Turns existing artifacts and registers into diagrams (org chart, stakeholder map, WBS tree via `wbs.py --mermaid`, product flow, Gantt, roadmap with gates, exception flow, kickoff canvas) and a self-contained HTML progress dashboard fed by one JSON block.
-The dashboard shows seven-objective RAG, milestones, a P×I heat map, agile burn-up, actions per owner and a "view by actor" selector (`?actor=`) built from D.acciones, D.riesgos and D.issues; tracker snapshots from pm-integraciones can feed it.
-Mermaid is the default and always-kept fallback; archify, visual-explainer, diagram-design and drawio are optional engines for which the skill prepares the input.
+Turns artifacts and registers into diagrams (org chart, stakeholder map, WBS via `wbs.py --mermaid`, product flow, Gantt, roadmap with gates, exception flow, canvas, one-pager) and a self-contained HTML dashboard fed by one JSON block (RAG, milestones, P×I heat map, burn-up, "view by actor" `?actor=`).
+Mermaid is the default and always-kept fallback; when archify, diagram-design or visual-explainer is configured and installed the skill must delegate to it (Skill tool, real skill name) and file the output in the project folder.

@@ -1,7 +1,7 @@
 ---
 name: pm-estado-proyecto
 description: "Carpeta del proyecto, estado.json y scripts compartidos (estado, registro, wbs, cpm, evm). Usar: crear proyecto, estado, etapa, tolerancias, project state. No: decidir puertas→pm-direccion-decisiones."
-version: 2.0.0
+version: 2.1.0
 author: pm-method
 license: MIT
 metadata:
@@ -16,6 +16,8 @@ metadata:
 ---
 
 # Estado del proyecto y scripts · Project state and scripts
+
+**Idioma · Language:** responder siempre en el idioma en que escribe el usuario (English request → English reply); los artefactos van en `estado.json.idioma` salvo que el usuario pida otro.
 
 ## Cuándo usar / When to use
 - Crear la carpeta de un proyecto nuevo o consultar fase, proceso y etapa, qué tolerancias rigen y qué puertas o condiciones siguen abiertas.
@@ -37,11 +39,11 @@ Carpetas y cabeceras CSV en español técnico (`snake_case`); los scripts respon
 ## Entradas requeridas
 - Ruta de la carpeta del proyecto. Si no existe: preguntar nombre, idioma (es/en), enfoque de entrega (predictivo/ágil/híbrido; las etapas PRINCE2 son siempre el marco) y, si se conocen, ejecutivo y gestor.
 - Python 3; para exportar, `python-docx` y `openpyxl`; opcional `mmdc`.
-- Rutas: `<pm-estado-proyecto>/scripts/` = carpeta instalada de esta skill (plugin, manual o Hermes: guía §5).
+- Rutas: `${CLAUDE_SKILL_DIR}/../pm-estado-proyecto/scripts/` = carpeta instalada de esta skill (plugin, manual o Hermes: guía §5).
 - Integraciones: ninguna obligatoria; `estado.json.integraciones` declara qué sistema cumple cada capacidad (guía §4).
 
 ## Procedimiento
-1. **Crear proyecto**: `python3 <pm-estado-proyecto>/scripts/nuevo_proyecto.py --ruta <dir> --nombre "<nombre>" --idioma es|en --enfoque predictivo|agil|hibrido [--ejecutivo .. --gestor ..]`. Crea las carpetas de SPEC §1.5 (incluidas `02-planificacion/especificacion/` derivada, `03-control/reuniones/` y `03-control/fuentes/`; guía §3), los nueve CSV, el diario y `estado.json` en `pre-proyecto`/SU/etapa 0. No sobrescribe un `estado.json` existente.
+1. **Crear proyecto**: `python3 ${CLAUDE_SKILL_DIR}/../pm-estado-proyecto/scripts/nuevo_proyecto.py --ruta <dir> --nombre "<nombre>" --idioma es|en --enfoque predictivo|agil|hibrido [--ejecutivo .. --gestor ..]`. Crea las carpetas de SPEC §1.5 (incluidas `02-planificacion/especificacion/` derivada, `03-control/reuniones/` y `03-control/fuentes/`; guía §3), los nueve CSV, el diario y `estado.json` en `pre-proyecto`/SU/etapa 0. No sobrescribe un `estado.json` existente.
 2. **Consultar**: `estado.py --proyecto <dir> ver` y `siguiente` (qué toca, puertas pendientes, condiciones abiertas, tolerancias faltantes). Un `estado.json` antiguo se migra al leerse (`ejecucion` → `entrega`; guía §2).
 3. **Artefactos**: `estado.py artefacto <clave> --ruta <ruta> --estado borrador|en-revision|aprobado|obsoleto --version x.y` con las claves canónicas de SPEC §1.10.3.
 4. **Aprobar un documento** (solo tras aprobación humana explícita): `estado.py aprobar <clave> --por "<rol: nombre>" [--version 1.0] [--nivel ..]`; sincroniza frontmatter y `estado.json` y agrega la fila en `decisiones.csv`.

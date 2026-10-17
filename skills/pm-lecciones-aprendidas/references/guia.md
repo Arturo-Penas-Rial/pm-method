@@ -1,7 +1,7 @@
 # Guía de lecciones aprendidas · Lessons learned guide
 
 Detalle de `pm-lecciones-aprendidas`. El SKILL.md cita cada sección por número. Script:
-`python3 <pm-estado-proyecto>/scripts/registro.py --proyecto <dir> …`.
+`python3 ${CLAUDE_SKILL_DIR}/../pm-estado-proyecto/scripts/registro.py --proyecto <dir> …`.
 
 ## 1. Buscar lecciones previas (SU, IP, inicio de etapa)
 1. Localizar lecciones de proyectos anteriores (repositorio, informes previos, PMO); filtrar por categoría (proceso, técnica, entorno, interesados, adquisiciones, calidad, riesgos, equipo).
@@ -54,7 +54,7 @@ flowchart LR
 Son los únicos estados que acepta `registro.py`. La verificación de la acción se anota en `notas` (`verificada AAAA-MM-DD`); `registrada` y `revisada` cuentan como abiertas.
 
 ## 8. Columnas de `lecciones.csv`
-`id` (L-nnn) · `fecha` · `etapa` (etapa o iteración) · `categoria` (libre; sugeridos: proceso, tecnica, entorno, stakeholders, adquisiciones, calidad, riesgos, equipo, otro) · `situacion` (disparador/contexto) · `efecto` · `recomendacion` · `prioridad` (alta/media/baja) · `responsable_seguimiento` · `estado` · `notas` (ids relacionados, alertas tempranas, era-riesgo, `impacto_organizacional=si|no`, próxima oportunidad). El esquema de referencia de la Parte V separa tipo, disparador, próxima oportunidad e impacto organizacional en columnas; el paquete los lleva en `notas`; el canónico es `<pm-estado-proyecto>/scripts/esquema.py`.
+`id` (L-nnn) · `fecha` · `etapa` (etapa o iteración) · `categoria` (libre; sugeridos: proceso, tecnica, entorno, stakeholders, adquisiciones, calidad, riesgos, equipo, otro) · `situacion` (disparador/contexto) · `efecto` · `recomendacion` · `prioridad` (alta/media/baja) · `responsable_seguimiento` · `estado` · `notas` (ids relacionados, alertas tempranas, era-riesgo, `impacto_organizacional=si|no`, próxima oportunidad). El esquema de referencia de la Parte V separa tipo, disparador, próxima oportunidad e impacto organizacional en columnas; el paquete los lleva en `notas`; el canónico es `${CLAUDE_SKILL_DIR}/../pm-estado-proyecto/scripts/esquema.py`.
 
 ## 9. Reglas extendidas
 1. [PRINCE2] Cada lección responde: efecto, causa o disparador, alertas tempranas, si era un riesgo identificado y recomendación; distingue lo que aplica al proyecto de lo transferible.

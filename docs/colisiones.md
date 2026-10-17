@@ -13,7 +13,7 @@ Claude Code decide qué skill activar leyendo solo el `name` y la `description` 
 - "No:" es la pista de alcance (scope clue): nombra la colisión más probable y a qué skill corresponde.
 - Los seis comandos (`pm-ayuda`, `pm-nuevo`, `pm-estado`, `pm-reporte`, `pm-puerta`, `pm-sync`) llevan `disable-model-invocation: true`: no compiten en el enrutamiento ni consumen presupuesto, y no tienen pista "No:".
 
-**Presupuesto medido.** Las 31 descripciones invocables suman 6.160 caracteres (`validar_paquete.py`; el límite del paquete es 7.500, SPEC §3). Si conviven muchos plugins y el listado se recorta, se puede subir la fracción con `"skillListingBudgetFraction": 0.02` en `settings.json`. `skillOverrides` (`on | name-only | user-invocable-only | off`) no se aplica a skills de plugins.
+**Presupuesto medido.** Las 31 descripciones invocables suman 6.289 caracteres (`validar_paquete.py`; el límite del paquete es 7.500, SPEC §3). Si conviven muchos plugins y el listado se recorta, se puede subir la fracción con `"skillListingBudgetFraction": 0.02` en `settings.json`. `skillOverrides` (`on | name-only | user-invocable-only | off`) no se aplica a skills de plugins.
 
 ## 2. Matriz de dueños
 
@@ -71,7 +71,7 @@ Basada en la matriz del refactor v2, con las filas de las skills nuevas (pm-bmad
 | pm-comunicacion-stakeholders | plan de comunicación, communication matrix, comunicado, status email, sprint review | actas→pm-reuniones; análisis o compromiso de interesados→pm-organizacion-roles | "Acá está la transcripción del comité de hoy; sacame el acta y las acciones" → pm-reuniones |
 | pm-costos-presupuesto | costear, presupuesto, BAC, contingencia, reserva de gestión, budget, cost baseline | business case→pm-caso-de-negocio | "Actualizá el ROI y el payback del caso de negocio" → pm-caso-de-negocio |
 | pm-cronograma-estimacion | estimar, cronograma, camino crítico, Gantt, schedule, critical path | presupuesto→pm-costos-presupuesto | "¿Cuánto cuesta la etapa 2 con reservas?" → pm-costos-presupuesto |
-| pm-direccion-decisiones | aprobar etapa, autorizar proyecto, junta, excepción, board decision, stage gate | anotar riesgos o issues→pm-registros | "Anotá este riesgo del proveedor" → pm-registros (o pm-riesgos para analizarlo) |
+| pm-direccion-decisiones | aprobar etapa, autorizar proyecto, junta, excepción, board decision, stage gate | riesgos→pm-riesgos; issues→pm-issues-cambios | "Anotá este riesgo del proveedor" → pm-riesgos (dueña del registro de riesgos; pm-registros solo para supuestos, decisiones, acciones y diario) |
 | pm-enfoques-gestion | enfoque de riesgos, control de cambios, enfoque de calidad, management approach, subsidiary plan | PID ensamblado→pm-acta-constitucion | "Ensamblá el PID y revisá la consistencia" → pm-acta-constitucion |
 | pm-estado-proyecto | crear proyecto, estado, etapa, tolerancias, project state | decidir puertas→pm-direccion-decisiones | "¿Apruebo la etapa 3 o pido más información?" → pm-direccion-decisiones |
 | pm-exportar | exportar a Word, Excel, PowerPoint, paquete de puerta, gate package | tablero→pm-visuales; informe→pm-progreso-reportes | "Armá el tablero de avance con semáforos" → pm-visuales |

@@ -1,7 +1,7 @@
 ---
 name: pm-comunicacion-stakeholders
 description: "Matriz de comunicaciones y mensajes por audiencia. Usar: plan de comunicación, communication matrix, comunicado, status email, sprint review. No: actas→pm-reuniones; análisis o compromiso de interesados→pm-organizacion-roles."
-version: 2.0.0
+version: 2.1.0
 author: pm-method
 license: MIT
 metadata:
@@ -26,7 +26,7 @@ metadata:
 - EN: follow up the stakeholder engagement plan; plan the sprint review as a communication event.
 
 ## Idioma
-Responder en el idioma del usuario; cada fila de la matriz fija el idioma de su audiencia (p. ej. junta en español, proveedor en inglés). Términos EN la primera vez: communication management approach, communications matrix, stakeholder register, engagement plan.
+**Idioma · Language:** responder siempre en el idioma en que escribe el usuario (English request → English reply); los artefactos van en `estado.json.idioma` salvo que el usuario pida otro. cada fila de la matriz fija el idioma de su audiencia (p. ej. junta en español, proveedor en inglés). Términos EN la primera vez: communication management approach, communications matrix, stakeholder register, engagement plan.
 
 ## Conocimiento
 - `references/guia.md` (esta skill): estereotipos §1, matriz §2, comunicado §3, plan de compromiso §4, sprint review §5, envíos §6, columnas §7, reglas y guardarraíles §8, traspaso a `pm-reuniones` §9.

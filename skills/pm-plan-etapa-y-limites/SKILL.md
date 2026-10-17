@@ -1,7 +1,7 @@
 ---
 name: pm-plan-etapa-y-limites
 description: "Planes de proyecto, etapa y excepción; fin de etapa. Usar: plan de etapa, fin de etapa, stage plan, end stage report. No: cronograma→pm-cronograma-estimacion; costos→pm-costos-presupuesto."
-version: 2.0.0
+version: 2.1.0
 author: pm-method
 license: MIT
 metadata:
@@ -25,7 +25,7 @@ metadata:
 - EN: initiation, project, stage and exception plans; end stage report and the matching board gate.
 
 ## Idioma
-Responder y generar en el idioma del usuario (o `estado.json.idioma`); plantillas bilingües; equivalencias ES/EN en `references/guia.md` (inicio).
+**Idioma · Language:** responder siempre en el idioma en que escribe el usuario (English request → English reply); los artefactos van en `estado.json.idioma` salvo que el usuario pida otro. plantillas bilingües; equivalencias ES/EN en `references/guia.md` (inicio).
 
 ## Conocimiento
 - `references/guia.md` (esta skill): §1 puertas y comandos, §2 SU, §3 composición del plan de proyecto, §4 criterios de etapas, §5 tolerancias, §6 composición del plan de etapa, §7 fin de etapa, §8 BMAD en SB, §9 plan de excepción, §10 mínima vs. completa, §11 reglas complementarias.
@@ -38,7 +38,7 @@ Responder y generar en el idioma del usuario (o `estado.json.idioma`); plantilla
 - `estado.json`: `fase`, `proceso_actual`, `etapa_actual` (0 = SU; 1 = iniciación; 2…n = entrega), tolerancias, `roles`, `puertas`, `enfoque_entrega`, `excepcion_abierta`, `integraciones.especificacion`.
 - SU: brief y business case esquemático. IP: descripción del producto del proyecto, `wbs.csv`/PBS, flujo, cronograma, presupuesto, riesgos, estrategia de adquisiciones y enfoques (en ágil, backlog y release plan, SPEC §1.10.12).
 - Fin de etapa: plan vigente, últimos informes, registros, registro de productos, business case y plan de proyecto.
-- **Especificación (fuente única, SPEC §1.16)**: historias y épicas de la etapa y cobertura solo vía `python3 <pm-estado-proyecto>/scripts/especificacion.py --proyecto <dir> resumen|consultar <id>|listar …` (igual con o sin BMAD; nunca abrir BMAD ni `requisitos.md`). Escribe como dueña: planes de proyecto, etapa y excepción e informe de fin de etapa, que citan ids.
+- **Especificación (fuente única, SPEC §1.16)**: historias y épicas de la etapa y cobertura solo vía `python3 ${CLAUDE_SKILL_DIR}/../pm-estado-proyecto/scripts/especificacion.py --proyecto <dir> resumen|consultar <id>|listar …` (igual con o sin BMAD; nunca abrir BMAD ni `requisitos.md`). Escribe como dueña: planes de proyecto, etapa y excepción e informe de fin de etapa, que citan ids.
 - Plan de excepción: informe `X-###` y decisión de la junta que lo pide; si falta alguno, no se produce.
 
 ## Procedimiento
@@ -61,7 +61,7 @@ Responder y generar en el idioma del usuario (o `estado.json.idioma`); plantilla
 10. **Reales y pronósticos** en el plan de etapa y el plan de proyecto, con diferencias marcadas (§7).
 11. **Business case** actualizado vía `pm-caso-de-negocio`; si deja de sostenerse, decirlo con claridad.
 12. **Lecciones** de la etapa registradas y marcadas para el plan siguiente (§7).
-13. **Especificación antes de la puerta** (§8): `especificacion.py resumen` (cobertura y estados); con BMAD, `python3 <pm-bmad-puente>/scripts/bmad.py --proyecto <dir> verificar` y traspasos pendientes (`estado.json.integraciones.bmad.handoffs` sin confirmar). Desvío no traspasado o Sprint Change Proposal nueva → `solicitud-cambio` (`pm-issues-cambios`). El gate de sprint planning (PASS/CONCERNS/FAIL) es insumo de `autorizar-etapa`.
+13. **Especificación antes de la puerta** (§8): `especificacion.py resumen` (cobertura y estados); con BMAD, `python3 ${CLAUDE_SKILL_DIR}/../pm-bmad-puente/scripts/bmad.py --proyecto <dir> verificar` y traspasos pendientes (`estado.json.integraciones.bmad.handoffs` sin confirmar). Desvío no traspasado o Sprint Change Proposal nueva → `solicitud-cambio` (`pm-issues-cambios`). El gate de sprint planning (PASS/CONCERNS/FAIL) es insumo de `autorizar-etapa`.
 14. **Informe de fin de etapa** (`templates/informe-fin-etapa.md` → `03-control/reportes/<fecha>-informe-fin-etapa-<n>.md`) con cifras citadas y pronóstico contra tolerancias; aseguramiento lo confirma.
 15. **Plan siguiente** con la parte C; revisar PID, equipo, roles y enfoques.
 16. **Solicitar** `autorizar-etapa` a `pm-director` (arma la solicitud con `pm-direccion-decisiones`) con todo en `en-revision`. Al aprobarse, `etapa_actual` = n+1, proceso CS, fase `entrega`, y `pm-director` registra las nuevas tolerancias. Última etapa → `pm-cierre-proyecto`.

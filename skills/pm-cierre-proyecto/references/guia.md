@@ -40,8 +40,8 @@ flowchart LR
 3. En cierre prematuro, la junta decide qué productos aprobados pero no entregados se transfieren.
 
 ### 4.1 Aceptación por requisito (con o sin BMAD; SPEC §1.16)
-- Fuente de los datos: `python3 <pm-estado-proyecto>/scripts/especificacion.py --proyecto <dir> listar requisitos --json` (campo `cobertura`: `terminado`, en curso/planificado o sin historia/cobertura) y `consultar <id>` para historias y paquetes. Nunca se abren archivos de BMAD ni `requisitos.md` para extraer datos.
-- Con BMAD, anexo opcional: la matriz `python3 <pm-bmad-puente>/scripts/bmad.py --proyecto <dir> trazabilidad --wbs 02-planificacion/wbs.csv` → `02-planificacion/especificacion/matriz-trazabilidad-bmad.csv` (columnas `requisito`, `titulo`, `historias`, `estados`, `paquetes_wbs`, `cubierto`, `terminado`).
+- Fuente de los datos: `python3 ${CLAUDE_SKILL_DIR}/../pm-estado-proyecto/scripts/especificacion.py --proyecto <dir> listar requisitos --json` (campo `cobertura`: `terminado`, en curso/planificado o sin historia/cobertura) y `consultar <id>` para historias y paquetes. Nunca se abren archivos de BMAD ni `requisitos.md` para extraer datos.
+- Con BMAD, anexo opcional: la matriz `python3 ${CLAUDE_SKILL_DIR}/../pm-bmad-puente/scripts/bmad.py --proyecto <dir> trazabilidad --wbs 02-planificacion/wbs.csv` → `02-planificacion/especificacion/matriz-trazabilidad-bmad.csv` (columnas `requisito`, `titulo`, `historias`, `estados`, `paquetes_wbs`, `cubierto`, `terminado`).
 - Con BMAD, correr `bmad.py verificar` contra la última línea base del PRD: si hay desvíos sin decisión, se tratan antes como `solicitud-cambio` (`pm-issues-cambios`); traspasos de `estado.json.integraciones.bmad.handoffs` sin confirmar impiden la aceptación de los ids afectados.
 - El registro de aceptación incluye una tabla por requisito FR/NFR: id, `terminado` (todas sus historias `done`), evidencia de calidad (Q-###, DoD, code review), decisión del usuario sénior (aceptado / no aceptado / concesión). Se citan ids y la ruta + sha corto de la matriz; **no se copian los textos de los requisitos**.
 - FR con `cubierto=no` o `terminado=no`: hueco declarado → concesión (fuera de especificación) o recomendación de seguimiento; nunca se marca aceptado.
@@ -57,7 +57,7 @@ Comparar `00-direccion/historial/pid-v1.0.md` y `business-case-v1.0.md` con la v
 - Desempeño contra tolerancias de proyecto (tiempo, costo, alcance, calidad, beneficios, riesgo, sostenibilidad), variaciones explicadas y referenciadas a cambios aprobados (`cambios.csv`).
 - Variación final de tiempo = (fecha real − fecha meta) / duración planificada.
 - Variación de costo = (costo real − BAC) / BAC, con BAC sin reserva de gestión; informar aparte la reserva de gestión liberada por la junta.
-- CPI final si hay EVM (`<pm-estado-proyecto>/scripts/evm.py`).
+- CPI final si hay EVM (`${CLAUDE_SKILL_DIR}/../pm-estado-proyecto/scripts/evm.py`).
 - Concesiones y fuera de especificación; desempeño del equipo (salud, bienestar, rotación) y del método (adaptaciones que funcionaron o no).
 - Entradas: `diario.md`, `lecciones.csv`, informes de fin de etapa, `avance-bmad.csv` si hay BMAD.
 

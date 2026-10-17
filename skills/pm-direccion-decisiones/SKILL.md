@@ -1,7 +1,7 @@
 ---
 name: pm-direccion-decisiones
 description: "Decisiones de la junta: puertas, tolerancias, excepciones. Usar: aprobar etapa, autorizar proyecto, junta, excepción, board decision, stage gate. No: anotar riesgos o issues→pm-registros."
-version: 2.0.0
+version: 2.1.0
 author: pm-method
 license: MIT
 metadata:
@@ -25,7 +25,7 @@ metadata:
 - EN: record a board decision once a named board member has decided.
 
 ## Idioma
-Idioma del usuario (`estado.json.idioma`); primera mención con el término EN: solicitud de decisión de puerta (gate decision request), plan de excepción (exception plan), autoridad de cambio (change authority). Plantillas bilingües.
+**Idioma · Language:** responder siempre en el idioma en que escribe el usuario (English request → English reply); los artefactos van en `estado.json.idioma` salvo que el usuario pida otro. primera mención con el término EN: solicitud de decisión de puerta (gate decision request), plan de excepción (exception plan), autoridad de cambio (change authority). Plantillas bilingües.
 
 ## Conocimiento
 - `references/guia.md`: §1 productos por puerta, §2 registro, §3 tolerancias, §4 excepciones, §5 ad hoc, §6 cierre, §7 mapa, §8 BMAD, §9 reglas, §10 columnas.
@@ -38,9 +38,9 @@ Idioma del usuario (`estado.json.idioma`); primera mención con el término EN: 
 - `estado.json` (fase, proceso, etapa, tolerancias, roles, puertas previas); si falta, `pm-estado-proyecto`.
 - Productos de la puerta (guía §1). Faltante o en `borrador` = bloqueante declarado; `en-revision` es aceptable para lo que la puerta decide.
 - Excepción: `03-control/reportes/<fecha>-informe-excepcion-X-###.md` de `pm-control` (si solo hay relato, registrar el issue y pedirlo).
-- Registros vía `<pm-estado-proyecto>/scripts/registro.py`; estado vía `estado.py` (SPEC §1.10.1), siempre con `--proyecto <dir>`.
+- Registros vía `${CLAUDE_SKILL_DIR}/../pm-estado-proyecto/scripts/registro.py`; estado vía `estado.py` (SPEC §1.10.1), siempre con `--proyecto <dir>`.
 - Ejecutivo nombrado en `estado.json.roles.ejecutivo`; si está vacío, preguntarlo (o devolverlo como dato faltante) antes de preparar nada.
-- Con `integraciones.especificacion = bmad`: `<pm-bmad-puente>/scripts/bmad.py`. Ningún conector es obligatorio.
+- Con `integraciones.especificacion = bmad`: `${CLAUDE_SKILL_DIR}/../pm-bmad-puente/scripts/bmad.py`. Ningún conector es obligatorio.
 
 ## Procedimiento
 1. **Situar la puerta**: `estado.py ver` y `siguiente`; tipo (`autorizar-inicio|proyecto|etapa|plan-excepcion|cierre`, `decision-ad-hoc`). Fase incoherente con los artefactos → regularizar primero.
@@ -94,6 +94,7 @@ Idioma del usuario (`estado.json.idioma`); primera mención con el término EN: 
 - Pronóstico fuera de tolerancia de **proyecto** → escalada a la capa de negocio; registrar con `nivel=capa-negocio`.
 - Junta sin posición unificada → decide el ejecutivo; discrepancia en `notas`.
 - Pedido de saltar una puerta → explicar el riesgo; si la persona con rol insiste, `--forzar` con motivo.
+- `estado.py puerta` rechaza `aprobado` si `puertas.py` encuentra bloqueos (salud, controles PRINCE2 y BMAD, lista de control de la junta sin confirmar): corregir o registrar `condicionado` (los bloqueos pasan a condiciones); `--forzar` queda anotado. Criterios por puerta: `docs/PUERTAS.md`.
 - Informe de excepción sin pasar por `pm-control` → completarlo con la plantilla de `pm-issues-cambios`.
 - Plan de excepción → `pm-plan-etapa-y-limites`; business case en duda → `pm-caso-de-negocio`.
 - Como subagente: las decisiones humanas se devuelven en el bloque de retorno (SPEC §1.11); nunca se preguntan desde el subagente ni se suponen.

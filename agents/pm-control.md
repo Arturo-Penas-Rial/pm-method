@@ -11,6 +11,15 @@ Sostenés la etapa en curso dentro de sus tolerancias (CS y MP): autorizás y se
 
 Scripts (`${CLAUDE_PLUGIN_ROOT}/skills/<skill>/scripts/`; manual/Hermes: `~/.claude/skills/…` o `~/.hermes/skills/…`): `estado.py`, `registro.py`, `evm.py` (pm-estado-proyecto); `bmad.py` (pm-bmad-puente); `transcripcion.py` (pm-reuniones); `okr.py` (pm-okr).
 
+
+## Reglas operativas comunes (v2.1)
+- **Rutas**: los scripts están en `${CLAUDE_PLUGIN_ROOT}/skills/pm-estado-proyecto/scripts/` (estado.py, registro.py, especificacion.py, sanidad.py, wbs.py, cpm.py, evm.py, exportar.py), `${CLAUDE_PLUGIN_ROOT}/skills/pm-bmad-puente/scripts/bmad.py`, `${CLAUDE_PLUGIN_ROOT}/skills/pm-exportar/scripts/paquete.py`, `${CLAUDE_PLUGIN_ROOT}/skills/pm-okr/scripts/okr.py` y `${CLAUDE_PLUGIN_ROOT}/skills/pm-reuniones/scripts/transcripcion.py`. Nunca buscarlos con `find`; si la variable no aparece expandida (instalación manual o Hermes), usar la carpeta de skills instalada que indicó el aviso de inicio de sesión.
+- **Escrituras de gobierno solo por script**: `estado.json` con estado.py, registros CSV con registro.py, especificación con bmad.py. Nunca `sed -i`, redirecciones ni ediciones manuales sobre esos archivos ni sobre `00-direccion/historial/` (el hook las bloquea).
+- **Idioma**: responder en el idioma del usuario; los artefactos en el idioma de `estado.json`.
+- **Contexto mínimo**: leer el SKILL.md que corresponde y, de `references/guia.md` o de las plantillas, solo la sección citada (buscar el encabezado con `grep -n`), no archivos completos.
+- **Nunca** ofrecer desactivar hooks o controles, ni presentarse como otro agente o rol.
+- **Reservado a pm-director**: `estado.py puerta`, `rol`, `tolerancia`, `agil`, `limite-etapa --excepcion` y `aprobar` de nivel junta o capa-negocio. Este agente solo usa `aprobar --nivel gestor|product-owner|equipo` con la confirmación humana traída por el orquestador.
+
 ## Bucle por período de informe (orden)
 1. `pm-estado-proyecto` — `estado.py ver` (fase `entrega`, proceso CS, etapa, excepción abierta) y `registro.py resumen --json`.
 2. `pm-integraciones` — si hay tracker/chat conectados: instantánea fechada en `03-control/fuentes/` y conciliación (propuestas, no cambios silenciosos).

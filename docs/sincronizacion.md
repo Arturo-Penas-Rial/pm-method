@@ -53,39 +53,32 @@ Hay tres riesgos:
 
 ```mermaid
 flowchart LR
-  subgraph BMAD["Capa de especificación (BMAD, solo lectura para pm-method)"]
-    PRD[PRD FR/NFR/UJ/SM]
-    ARQ[Arquitectura AD]
-    EP[epics.md]
-    SS[sprint-status.yaml]
-    SCP[Sprint Change Proposals]
-  end
-  subgraph PUENTE["pm-bmad-puente · bmad.py"]
-    IDX[construir_indice]
-    LB[linea-base]
-    VER[verificar]
-    HO[handoff]
-  end
-  subgraph PM["Carpeta del proyecto (gobierno)"]
-    FAC["especificacion.py<br/>(fachada única)"]
-    CACHE[("spec-index.json<br/>pm-spec-index/1 · caché")]
-    BL[backlog.csv<br/>columnas de gobierno]
-    WBS[wbs.csv · ref]
-    HIST[00-direccion/historial/<br/>copias congeladas]
-    REG[issues.csv / cambios.csv]
-    HDOC[handoff-bmad-*.md]
-    SK[~20 skills pm-*]
-  end
-  PRD & ARQ & EP & SS --> IDX --> CACHE
-  BL & WBS --> IDX
-  FAC --> CACHE
-  SK -->|resumen · consultar · listar| FAC
+  %% Colores: BMAD (solo lectura) · puente bmad.py · carpeta del proyecto
+  PRD["BMAD · PRD<br/>FR · NFR · UJ · SM"]:::bmad
+  DOC["BMAD · arquitectura AD<br/>epics.md<br/>sprint-status.yaml"]:::bmad
+  SCP["BMAD · Sprint Change<br/>Proposals"]:::bmad
+  IDX["bmad.py construir_indice<br/>(+ backlog.csv · wbs.csv)"]:::puente
+  LB["bmad.py linea-base"]:::puente
+  VER["bmad.py verificar"]:::puente
+  HO["bmad.py handoff"]:::puente
+  CACHE[("spec-index.json<br/>caché")]:::pm
+  FAC["especificacion.py<br/>fachada única"]:::pm
+  SK["~20 skills pm-*"]:::pm
+  HIST["historial/<br/>copias congeladas"]:::pm
+  REG["issues.csv<br/>cambios.csv"]:::pm
+  HDOC["handoff-bmad-*.md"]:::pm
+  PRD & DOC --> IDX --> CACHE
+  SK --> FAC --> CACHE
   PRD --> LB --> HIST
-  PRD & EP & SCP --> VER -->|desvío| REG
-  REG -->|cambio aprobado| HO --> HDOC
-  BL -->|prioridades cambiadas| HO
-  HDOC -.->|el equipo BMAD aplica con sus flujos| PRD
+  PRD & DOC & SCP --> VER -->|desvío| REG
+  REG -->|"cambio aprobado"| HO --> HDOC
+  HDOC -.->|"el equipo BMAD lo aplica"| SCP
+  classDef bmad fill:#e8f1fb,stroke:#3b6ea8,color:#111
+  classDef puente fill:#fff4d6,stroke:#b8860b,color:#111
+  classDef pm fill:#e9f6ec,stroke:#2e7d32,color:#111
 ```
+
+Colores: azul = BMAD (solo lectura) · amarillo = puente `bmad.py` · verde = carpeta del proyecto (gobierno).
 
 ---
 

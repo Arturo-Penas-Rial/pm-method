@@ -10,7 +10,8 @@ Principios / Principles
   - Lo que genera en la carpeta del proyecto es DERIVADO (se regenera): no editarlo a mano, salvo las
     columnas de gobierno de backlog.csv, que el puente nunca sobrescribe.
 
-Uso / Usage (todas aceptan --raiz <repo con BMAD>; por defecto se busca hacia arriba desde --proyecto):
+Uso / Usage (--raiz <repo con BMAD> va ANTES del subcomando: bmad.py --proyecto ./g --raiz .. detectar; por defecto se busca hacia
+  arriba desde --proyecto; en estado.json la raíz se guarda relativa a --proyecto):
   bmad.py --proyecto ./gestion detectar                 # layout, versión si es visible, rutas → estado.json.integraciones.bmad
   bmad.py --proyecto ./gestion inventario [--json]      # artefactos encontrados, estado (front matter), huella sha256
   bmad.py --proyecto ./gestion requisitos               # FR/NFR/UJ/SM/AD/UX-DR → 02-planificacion/especificacion/requisitos-bmad.csv
@@ -42,7 +43,13 @@ except ImportError:
     E = None
 
 VERSIONES_SOPORTADAS = "v4 · v6.11–v6.12"
-IDS = re.compile(r"\b(FR|NFR|UJ|SM|AD|UX-DR)-?(\d+)\b")
+IDS = re.compile(r"\b(FR|NFR|UJ|SM-C|SM|AD|UX-DR)-?(\d+)\b")   # SM-Cn: métricas de contrapeso de la plantilla de PRD 6.12
+# Estados de historia: vocabulario de sprint-status (6.12) + estados heredados de v6 y del front matter de specs de bmad-build
+ESTADOS_HIST = ["backlog", "ready-for-dev", "in-progress", "review", "done"]
+ESTADO_LEGADO_V6 = {"drafted": "ready-for-dev", "contexted": "in-progress", "in-review": "review"}
+CLAVE_HIST = re.compile(r"^(\d+)-(\d+[a-z]?)-.+")          # gramática de claves de sprint_plan.py (admite 2-6a-…)
+STORY_H = re.compile(r"^#{2,4}\s*Story\s+(\d+)\.(\d+[a-z]?)\s*[:.\-–—]?\s*(.*?)\s*#*\s*$", re.I)
+EPIC_H = re.compile(r"^#{1,3}\s*Epic\s+(\d+)\s*[:.\-–—]?\s*(.*?)\s*#*\s*$", re.I)
 ESTADO_V4 = {"draft": "backlog", "approved": "ready-for-dev", "inprogress": "in-progress", "in progress": "in-progress",
              "review": "review", "done": "done"}
 
@@ -71,7 +78,26 @@ def front_matter(p):
         except Exception: return {}
     return dict(re.findall(r"(?m)^(\w+):\s*(.+)$", partes[1]))
 
-def norm_id(tipo, num): return f"{tipo}-{int(num)}"
+def norm_id(tipo, num): return f"{tipo}{int(num)}" if tipo == "SM-C" else f"{tipo}-{int(num)}"
+
+def tipo_id(tipo): return "SM" if tipo == "SM-C" else tipo
+
+def slug_bmad(texto, maxlen=60):
+    """Misma derivación de claves que sprint_plan.py de BMAD 6.12 (conserva tildes y ñ; corta en 60)."""
+    s_ = re.sub(r"[^\w]+", "-", str(texto).lower(), flags=re.UNICODE).strip("-")
+    s_ = s_[:maxlen].strip("-")
+    return s_ or hashlib.sha256(str(texto).encode("utf-8")).hexdigest()[:8]
+
+def orden_num(numero):
+    out = []
+    for x in str(numero).split("."):
+        m = re.match(r"(\d+)([a-z]?)", x)
+        out.append((int(m.group(1)), m.group(2)) if m else (0, x))
+    return out
+
+def norm_estado(v):
+    v = str(v or "").strip().lower()
+    return ESTADO_LEGADO_V6.get(v, v)
 
 def cargar_estado(proyecto):
     f = os.path.join(proyecto, "estado.json")
@@ -131,14 +157,32 @@ def leer_config_v6(raiz):
     cfg["output_folder"] = salida_
     plan = res(cfg.get("planning_artifacts", os.path.join(salida_, "planning-artifacts")))
     impl = res(cfg.get("implementation_artifacts", os.path.join(salida_, "implementation-artifacts")))
-    version = ""
-    for p in glob.glob(os.path.join(raiz, "_bmad", "_config", "*")) + glob.glob(os.path.join(raiz, "_bmad", "*.yaml")):
-        try:
-            m = re.search(r"(?m)^\s*version:\s*['\"]?(\d+\.\d+[\w.\-]*)", open(p, encoding="utf-8").read())
-            if m: version = m.group(1); break
-        except (OSError, UnicodeDecodeError, IsADirectoryError): pass
+    version, fuente_v = leer_version_v6(raiz)
     return {"layout": "v6", "raiz": raiz, "salida": salida_, "planning": plan, "implementation": impl, "version": version,
+            "version_fuente": os.path.relpath(fuente_v, raiz) if fuente_v else "",
             "carpetas_protegidas": [os.path.join(raiz, "_bmad"), salida_]}
+
+def leer_version_v6(raiz):
+    """6.12 registra la versión en _bmad/_config/manifest.yaml (installation.version y una por módulo) y en la cabecera
+    '# Version: x.y.z' de cada _bmad/<módulo>/config.yaml. Se lee en ese orden; nunca se infiere."""
+    man = os.path.join(raiz, "_bmad", "_config", "manifest.yaml")
+    if os.path.exists(man):
+        try:
+            txt = open(man, encoding="utf-8").read()
+            if yaml:
+                d = yaml.safe_load(txt) or {}
+                v = (d.get("installation") or {}).get("version") or next((m.get("version") for m in d.get("modules") or []
+                                                                           if isinstance(m, dict) and m.get("name") in ("bmm", "core")), "")
+                if v: return str(v), man
+            m = re.search(r"(?m)^\s*version:\s*['\"]?(\d+\.\d+[\w.\-]*)", txt)
+            if m: return m.group(1), man
+        except (OSError, UnicodeDecodeError): pass
+    for p in sorted(glob.glob(os.path.join(raiz, "_bmad", "*", "config.yaml"))) + sorted(glob.glob(os.path.join(raiz, "_bmad", "_config", "*.yaml"))):
+        try:
+            m = re.search(r"(?mi)^\s*#?\s*version:\s*['\"]?v?(\d+\.\d+[\w.\-]*)", open(p, encoding="utf-8").read())
+            if m: return m.group(1), p
+        except (OSError, UnicodeDecodeError, IsADirectoryError): pass
+    return "", ""
 
 def leer_config_v4(raiz):
     cfg = {}
@@ -154,7 +198,17 @@ def leer_config_v4(raiz):
 
 def detectar_bmad(proyecto, raiz_arg=None, e=None):
     e = e or cargar_estado(proyecto)
-    raiz = raiz_arg or (e.get("integraciones", {}).get("bmad", {}) or {}).get("raiz") or buscar_raiz(proyecto)
+    guardada = (e.get("integraciones", {}).get("bmad", {}) or {}).get("raiz") if e else None
+    if guardada and not os.path.isabs(guardada): guardada = os.path.normpath(os.path.join(proyecto, guardada))  # relativa a --proyecto
+    elif guardada and not raiz_arg:
+        # raíz absoluta de una versión anterior: si no contiene al proyecto (repositorio copiado o movido), manda el BMAD propio
+        propia = buscar_raiz(proyecto)
+        if propia and os.path.abspath(propia) != os.path.abspath(guardada) and \
+                not (os.path.abspath(proyecto) + os.sep).startswith(os.path.abspath(guardada).rstrip(os.sep) + os.sep):
+            print(f"AVISO: estado.json apunta a BMAD en {guardada}, que no contiene al proyecto; se usa el del repositorio ({propia}). "
+                  "Correr 'bmad.py detectar' para guardar la raíz relativa.", file=sys.stderr)
+            guardada = propia
+    raiz = raiz_arg or guardada or buscar_raiz(proyecto)
     if not raiz or not os.path.isdir(raiz): sys.exit("No se encontró BMAD (_bmad/ o .bmad-core/). Indicar --raiz <carpeta del repositorio>.")
     raiz = os.path.abspath(raiz)
     if os.path.isdir(os.path.join(raiz, "_bmad")): b = leer_config_v6(raiz)
@@ -223,8 +277,9 @@ def extraer_ids(rutas, fuente):
                 # definición = la primera aparición en una línea que empieza por viñeta/encabezado/negrita con el id
                 if i in vistos: continue
                 if not re.match(r"^\s*([-*]|#+|\*\*|\|)?\s*\**\s*" + re.escape(m.group(0)), linea): continue
-                titulo = re.sub(r"^\s*([-*]|#+|\|)?\s*\**\s*" + re.escape(m.group(0)) + r"\**\s*[:.\-–]?\s*\**", "", linea).strip(" *|\n")
-                vistos.add(i); filas.append({"id": i, "tipo": m.group(1), "titulo": titulo[:200], "fuente": os.path.relpath(r), "linea": n})
+                titulo = re.sub(r"^\s*([-*]|#+|\|)?\s*\**\s*" + re.escape(m.group(0)) + r"\**\s*[:.\-–—]?\s*\**", "", linea)
+                titulo = re.sub(r"\s+", " ", titulo.replace("**", "")).strip(" *|:—–-\n")
+                vistos.add(i); filas.append({"id": i, "tipo": tipo_id(m.group(1)), "titulo": titulo[:200], "fuente": os.path.relpath(r), "linea": n})
     return filas
 
 def requisitos(b, arts):
@@ -243,43 +298,100 @@ def slug(t):
     t = unicodedata.normalize("NFKD", t).encode("ascii", "ignore").decode().lower()
     return re.sub(r"[^a-z0-9]+", "-", t).strip("-")
 
+def refs_epicas(arts):
+    """Cobertura declarada a nivel de épica en epics.md (6.12: 'FR1: Epic 1 - …' en el FR Coverage Map y
+    '**FRs covered:** FR1, FR2' bajo cada épica). Devuelve {numero_epica: set(ids)}."""
+    out = {}
+    for r in arts.get("epicas", {}).get("rutas", []):
+        seccion, epica, en_codigo = "", None, False
+        for linea in open(r, encoding="utf-8", errors="replace"):
+            if re.match(r"^\s{0,3}(```|~~~)", linea): en_codigo = not en_codigo; continue
+            if en_codigo: continue
+            m = EPIC_H.match(linea)
+            if m: epica = m.group(1); seccion = "epica"; continue
+            if re.match(r"^#{1,4}\s", linea):
+                if re.search(r"coverage|cobertura", linea, re.I): seccion, epica = "cobertura", None
+                elif not (epica and STORY_H.match(linea)): seccion, epica = "otra", None   # las historias no cierran su épica
+                continue
+            if seccion == "cobertura":
+                m = re.match(r"^\s*[-*]?\s*\**\s*(FR-?\d+|NFR-?\d+|UX-DR-?\d+)\s*\**\s*:\s*(.*)$", linea)
+                if m and not re.search(r"Story\s+\d+\.\d+", m.group(2), re.I):
+                    mm = IDS.match(m.group(1))
+                    for ep in re.findall(r"\bEpic\s+(\d+)", m.group(2), re.I): out.setdefault(ep, set()).add(norm_id(mm.group(1), mm.group(2)))
+            elif epica and re.search(r"(FRs?|NFRs?|requisitos?|requirements?)\s*(covered|cubiertos?)", linea, re.I):
+                for mm in IDS.finditer(linea): out.setdefault(epica, set()).add(norm_id(mm.group(1), mm.group(2)))
+    return out
+
+def archivos_historia_v6(arts):
+    """Archivos de historia de 6.12: specs de bmad-build (spec-N-M-slug.md, status draft|ready-for-dev|in-progress|in-review|done)
+    y archivos N-M-slug.md (create-story heredado / shims). Devuelve {numero: (ruta, estado_normalizado)}."""
+    out = {}
+    for r in arts.get("historias", {}).get("rutas", []):
+        base = os.path.basename(r)
+        m = re.match(r"^(?:spec-)?(\d+)-(\d+[a-z]?)-", base)
+        if not m: continue
+        fm = front_matter(r)
+        est = norm_estado(fm.get("status") if fm else "")
+        if not est:
+            mm = re.search(r"(?mi)^\s*(?:#+\s*)?Status\s*:?\s*\n*\s*([A-Za-z\-]+)", open(r, encoding="utf-8", errors="replace").read())
+            est = norm_estado(mm.group(1)) if mm else ""
+        out[f"{m.group(1)}.{m.group(2)}"] = (r, est)
+    return out
+
 def historias(b, arts):
-    """Devuelve {clave: {epica, numero, titulo, refs, estado}} combinando épicas y estado de sprint/historias."""
+    """Devuelve {clave: {epica, numero, titulo, refs, refs_epica, estado}} combinando épicas y estado de sprint/historias.
+    v6: la clave es la de sprint-status.yaml cuando existe (BMAD conserva tildes y corta en 60 caracteres); si no, se deriva
+    con la misma regla que sprint_plan.py."""
     hs = {}
     for r in arts.get("epicas", {}).get("rutas", []):
-        actual = None; epica = None
+        actual = None; en_codigo = False
         for linea in open(r, encoding="utf-8", errors="replace"):
-            m = re.match(r"^#{1,3}\s*Epic\s+(\d+)\s*[:.\-–]?\s*(.*)$", linea, re.I)
-            if m: epica = m.group(1); continue
-            m = re.match(r"^#{2,4}\s*Story\s+(\d+)\.(\d+)\s*[:.\-–]?\s*(.*)$", linea, re.I)
+            if re.match(r"^\s{0,3}(```|~~~)", linea): en_codigo = not en_codigo
+            m = None if en_codigo else EPIC_H.match(linea)
+            if m: actual = None; continue
+            m = None if en_codigo else STORY_H.match(linea)
             if m:
                 e_, s_, t_ = m.groups()
-                clave = f"{e_}-{s_}-{slug(t_)}"
+                clave = f"{e_}-{s_}-{slug_bmad(t_) if b['layout'] == 'v6' else slug(t_)}"
                 actual = clave; hs[clave] = {"epica": e_, "numero": f"{e_}.{s_}", "titulo": t_.strip(), "refs": set(), "estado": "", "texto": ""}
                 continue
+            if actual and not en_codigo and re.match(r"^#{1,2}\s", linea): actual = None; continue
             if actual:
                 hs[actual]["texto"] += linea
                 for mm in IDS.finditer(linea): hs[actual]["refs"].add(norm_id(mm.group(1), mm.group(2)))
-    # mapa de cobertura (FR1: Epic 1 (Story 1.1))
+    # mapa de cobertura con historia explícita (FR1: Epic 1 (Story 1.1))
     for r in arts.get("epicas", {}).get("rutas", []):
         for linea in open(r, encoding="utf-8", errors="replace"):
-            m = re.match(r"^\s*[-*]?\s*(FR-?\d+)\s*:\s*(.*)$", linea)
+            m = re.match(r"^\s*[-*]?\s*\**\s*(FR-?\d+)\s*\**\s*:\s*(.*)$", linea)
             if m:
                 fr = norm_id("FR", re.sub(r"\D", "", m.group(1)))
-                for s in re.findall(r"Story\s+(\d+\.\d+)", m.group(2)):
+                for s in re.findall(r"Story\s+(\d+\.\d+[a-z]?)", m.group(2)):
                     for k, h in hs.items():
                         if h["numero"] == s: h["refs"].add(fr)
-    # estado: v6 sprint-status.yaml; v4 archivos de historia
-    if b["layout"] == "v6" and "estado-sprint" in arts and yaml:
-        ds = (yaml.safe_load(open(arts["estado-sprint"]["rutas"][0], encoding="utf-8")) or {}).get("development_status", {}) or {}
+    rep = refs_epicas(arts) if b["layout"] == "v6" else {}
+    # estado: v6 sprint-status.yaml (+ piso por archivo de historia); v4 archivos de historia
+    if b["layout"] == "v6":
+        if "estado-sprint" in arts and yaml:
+            try: ds = (yaml.safe_load(open(arts["estado-sprint"]["rutas"][0], encoding="utf-8")) or {}).get("development_status", {}) or {}
+            except Exception: ds = {}
+            por_num = {h["numero"]: k for k, h in hs.items()}
+            for k, v in ds.items():
+                k = str(k); m = CLAVE_HIST.match(k)
+                if not m: continue
+                num = f"{m.group(1)}.{m.group(2)}"
+                if k in hs: hs[k]["estado"] = norm_estado(v)
+                elif num in por_num:   # misma historia con otra derivación de slug: manda la clave de sprint-status
+                    h = hs.pop(por_num[num]); h["estado"] = norm_estado(v); hs[k] = h; por_num[num] = k
+                else:
+                    hs[k] = {"epica": m.group(1), "numero": num, "titulo": k.split("-", 2)[2].replace("-", " "), "refs": set(), "estado": norm_estado(v), "texto": ""}
+                    por_num[num] = k
         por_num = {h["numero"]: k for k, h in hs.items()}
-        for k, v in ds.items():
-            m = re.match(r"^(\d+)-(\d+)-", str(k))
-            if not m: continue
-            num = f"{m.group(1)}.{m.group(2)}"
-            if k in hs: hs[k]["estado"] = str(v)
-            elif num in por_num: hs[por_num[num]]["estado"] = str(v)
-            else: hs[k] = {"epica": m.group(1), "numero": num, "titulo": k.split("-", 2)[2].replace("-", " "), "refs": set(), "estado": str(v), "texto": ""}
+        for num, (ruta, est) in archivos_historia_v6(arts).items():
+            k = por_num.get(num)
+            if not k: continue
+            hs[k]["archivo"] = os.path.relpath(ruta, b["raiz"]); hs[k]["estado_archivo"] = est
+            # piso como sprint_plan.py: un archivo de historia aprobado implica al menos ready-for-dev; sprint-status manda hacia arriba
+            if est and est != "draft" and hs[k]["estado"] in ("", "backlog"): hs[k]["estado"] = "ready-for-dev"
     elif b["layout"] == "v4":
         for r in arts.get("historias", {}).get("rutas", []):
             txt = open(r, encoding="utf-8", errors="replace").read()
@@ -293,8 +405,18 @@ def historias(b, arts):
                 hs[k] = {"epica": num.split(".")[0], "numero": num, "titulo": t.group(1).strip() if t else num, "refs": set(), "estado": "", "texto": txt}
             hs[k]["estado"] = est
             for mm in IDS.finditer(txt): hs[k]["refs"].add(norm_id(mm.group(1), mm.group(2)))
-    for h in hs.values(): h["estado"] = h["estado"] or "backlog"
+    for h in hs.values():
+        h["estado"] = h["estado"] or "backlog"
+        h["refs_epica"] = set(rep.get(h["epica"], set()))
     return hs
+
+def historias_de(q_id, hs):
+    """Historias que cubren un id: primero por referencia directa; si no hay, por la cobertura declarada de su épica.
+    Devuelve (claves, nivel) con nivel 'historia' | 'epica' | ''."""
+    directas = sorted(k for k, h in hs.items() if q_id in h["refs"])
+    if directas: return directas, "historia"
+    por_epica = sorted((k for k, h in hs.items() if q_id in h.get("refs_epica", ())), key=lambda k: orden_num(hs[k]["numero"]))
+    return (por_epica, "epica") if por_epica else ([], "")
 
 # ------------------------------------------------------------------ comandos
 def cmd_detectar(a, e):
@@ -305,7 +427,7 @@ def cmd_detectar(a, e):
     e["integraciones"]["bmad"] = {k: (os.path.relpath(v, a.proyecto) if isinstance(v, str) and os.path.isabs(v) else v)
                                   for k, v in b.items() if k != "carpetas_protegidas"}
     e["integraciones"]["bmad"].update(conservar)
-    e["integraciones"]["bmad"]["raiz"] = b["raiz"]
+    e["integraciones"]["bmad"]["raiz"] = os.path.relpath(b["raiz"], a.proyecto)   # relativa: el repositorio se puede mover o clonar
     guardar_estado(a.proyecto, e)
     print(json.dumps({k: v for k, v in b.items() if k != "carpetas_protegidas"}, ensure_ascii=False, indent=2))
     if b["soporte"] not in ("soportada", "v4"):
@@ -350,9 +472,9 @@ def cmd_trazabilidad(a, e):
     filas = []
     for q in reqs:
         if q["tipo"] not in ("FR", "NFR", "UX-DR"): continue
-        hh = sorted([k for k, h in hs.items() if q["id"] in h["refs"]])
+        hh, nivel = historias_de(q["id"], hs)
         estados = [hs[k]["estado"] for k in hh]
-        filas.append({"requisito": q["id"], "titulo": q["titulo"], "historias": ";".join(hh), "estados": ";".join(estados),
+        filas.append({"requisito": q["id"], "titulo": q["titulo"], "historias": ";".join(hh), "nivel_traza": nivel, "estados": ";".join(estados),
                       "paquetes_wbs": ";".join(wbs_refs.get(q["id"], [])),
                       "cubierto": "si" if hh else ("na" if q["tipo"] == "NFR" else "no"),
                       "terminado": "si" if hh and all(s == "done" for s in estados) else "no"})
@@ -361,11 +483,13 @@ def cmd_trazabilidad(a, e):
         w = csv.DictWriter(f, fieldnames=list(filas[0].keys()) if filas else ["requisito"]); w.writeheader(); w.writerows(filas)
     ids_validos = {q["id"] for q in reqs}
     sin_hist = [f["requisito"] for f in filas if f["cubierto"] == "no"]
-    hist_sin_req = [k for k, h in hs.items() if not (h["refs"] & ids_validos)]
+    hist_sin_req = [k for k, h in hs.items() if not ((h["refs"] | h.get("refs_epica", set())) & ids_validos)]
+    por_epica = [f["requisito"] for f in filas if f["nivel_traza"] == "epica"]
     refs_rotas = sorted(set(wbs_refs) - ids_validos)
     print(f"{len(filas)} requisitos trazados → {os.path.relpath(out)}")
     print(f"  Requisitos funcionales sin historia: {', '.join(sin_hist) or 'ninguno'}")
     print(f"  Historias sin requisito: {', '.join(hist_sin_req) or 'ninguna'}")
+    if por_epica: print(f"  Trazados solo a nivel de épica (epics.md no cita el id en la historia): {', '.join(por_epica)}")
     if os.path.exists(wbs): print(f"  Referencias de la WBS a ids inexistentes: {', '.join(refs_rotas) or 'ninguna'}")
 
 COL_BACKLOG = ["id", "tipo", "titulo", "descripcion", "prioridad", "moscow", "estimacion", "estado", "iteracion", "release",
@@ -382,14 +506,22 @@ def cmd_backlog(a, e):
         cols += [c for c in COL_BACKLOG if c not in cols]
     por_id = {f.get("id"): f for f in filas}
     nuevos = actualizados = 0
-    for k, h in sorted(hs.items(), key=lambda kv: [int(x) for x in kv[1]["numero"].split(".")]):
+    for k, h in sorted(hs.items(), key=lambda kv: orden_num(kv[1]["numero"])):
         fila = por_id.get(k)
         if not fila:
             fila = {c: "" for c in cols}; fila["id"] = k; filas.append(fila); por_id[k] = fila; nuevos += 1
         else: actualizados += 1
-        primera = next((l.strip() for l in h["texto"].splitlines() if l.strip()), "")
+        parrafo = []                                    # primer párrafo (la historia "As a…, I want…, so that…" suele ocupar varias líneas)
+        for l in h["texto"].splitlines():
+            l = l.strip()
+            if not l:
+                if parrafo: break
+                continue
+            if l.startswith("#") or (parrafo and re.match(r"^(\*\*|[-*] |\d+\.)", l)): break
+            parrafo.append(re.sub(r"^\*\*|\*\*$", "", l).strip())
+        primera = re.sub(r"\*\*", "", " ".join(parrafo))
         fila.update({"tipo": "historia", "titulo": h["titulo"], "descripcion": primera[:240], "estado": h["estado"], "origen": "bmad",
-                     "refs": ";".join(sorted(h["refs"])), "criterios_aceptacion": f"ver épicas BMAD, historia {h['numero']}"})
+                     "refs": ";".join(sorted(h["refs"] or h.get("refs_epica", set()))), "criterios_aceptacion": f"ver épicas BMAD, historia {h['numero']}"})
     retiradas = [f["id"] for f in filas if f.get("origen") == "bmad" and f["id"] not in hs]
     for f in filas:
         if f["id"] in retiradas: f["estado"] = "retirada-en-bmad"
@@ -504,30 +636,34 @@ def construir_indice(proyecto, e=None, raiz=None):
         for f in csv.DictReader(open(pb, encoding="utf-8")): gob[f.get("id")] = {k: f.get(k, "") for k in GOBIERNO}
     wref = leer_wbs_refs(proyecto)
     hist = []
-    for k, h in sorted(hs.items(), key=lambda kv: [int(x) for x in kv[1]["numero"].split(".")]):
+    for k, h in sorted(hs.items(), key=lambda kv: orden_num(kv[1]["numero"])):
         hist.append({"id": k, "numero": h["numero"], "epica": f"E-{h['epica']}", "titulo": h["titulo"], "estado": h["estado"],
-                     "refs": sorted(h["refs"]), "paquetes_wbs": wref.get(k, []), "gobierno": gob.get(k, {})})
+                     "refs": sorted(h["refs"]), "refs_epica": sorted(h.get("refs_epica", set())), "archivo": h.get("archivo", ""),
+                     "estado_archivo": h.get("estado_archivo", ""), "paquetes_wbs": wref.get(k, []), "gobierno": gob.get(k, {})})
     epicas = {}
     for h in hist:
         ep = epicas.setdefault(h["epica"], {"id": h["epica"], "historias": [], "estados": []}); ep["historias"].append(h["id"]); ep["estados"].append(h["estado"])
     if "epicas" in arts:
         for r in arts["epicas"]["rutas"]:
             for linea in open(r, encoding="utf-8", errors="replace"):
-                m = re.match(r"^#{1,3}\s*Epic\s+(\d+)\s*[:.\-–]?\s*(.*)$", linea, re.I)
+                m = EPIC_H.match(linea)
                 if m: epicas.setdefault(f"E-{m.group(1)}", {"id": f"E-{m.group(1)}", "historias": [], "estados": []})["titulo"] = m.group(2).strip()
+    rep_ = refs_epicas(arts) if b["layout"] == "v6" else {}
     for ep in epicas.values():
-        st = ep.pop("estados"); ep["estado"] = "done" if st and all(x == "done" for x in st) else ("in-progress" if any(x != "backlog" for x in st) else "backlog")
+        st = ep.pop("estados"); ep["estado"] = "done" if st and all(x == "done" for x in st) else ("in-progress" if any(x in ("in-progress", "review", "done") for x in st) else "backlog")
+        ep["refs"] = sorted(rep_.get(ep["id"][2:], set()))
     reqs_out = []
     for q in reqs:
-        hh = [h["id"] for h in hist if q["id"] in h["refs"]]
-        est = [h["estado"] for h in hist if h["id"] in hh]
+        hh, nivel = historias_de(q["id"], hs)
+        est = [hs[k]["estado"] for k in hh]
         cob = cobertura(q["tipo"], est)
         if cob == "sin-cobertura" and wref.get(q["id"]): cob = "planificado"   # cubierto por un paquete de la WBS aunque aún no haya historia
-        reqs_out.append({**q, "historias": hh, "paquetes_wbs": wref.get(q["id"], []), "cobertura": cob})
+        reqs_out.append({**q, "historias": hh, "nivel_traza": nivel, "epicas": sorted({f"E-{hs[k]['epica']}" for k in hh}, key=lambda x: int(x[2:])),
+                         "paquetes_wbs": wref.get(q["id"], []), "cobertura": cob})
     lb = {k: {"version": v.get("version"), "sha256": v.get("sha256")} for k, v in e.get("artefactos", {}).items() if v.get("externo") == "bmad"}
     huella = hashlib.sha256(json.dumps({k: v["sha256"] for k, v in arts.items()}, sort_keys=True).encode()).hexdigest()
     return {"esquema": "pm-spec-index/1", "generado": datetime.datetime.now().isoformat(timespec="seconds"), "proveedor": "bmad",
-            "fuente": {"layout": b["layout"], "version": b.get("version", ""), "soporte": b["soporte"], "raiz": b["raiz"]},
+            "fuente": {"layout": b["layout"], "version": b.get("version", ""), "version_fuente": b.get("version_fuente", ""), "soporte": b["soporte"], "raiz": b["raiz"]},
             "huella_fuentes": huella,
             "artefactos": {k: {"rutas": [os.path.relpath(r, b["raiz"]) for r in v["rutas"]], "sha256": v["sha256"], "estado": v["estado_bmad"]} for k, v in arts.items()},
             "lineas_base": lb,
@@ -577,8 +713,10 @@ def cmd_handoff(a, e):
          "# Traspaso de decisiones de gobierno al equipo BMAD · Governance handoff to BMAD", "",
          "> Lo aplica el equipo de especificación con los flujos de BMAD (actualización del PRD, corrección de rumbo, planificación del sprint).",
          "> pm-method no edita archivos de BMAD. Después: `bmad.py verificar` y, si corresponde, nueva línea base por pm-director.", ""]
+    sec = 0
     if cambio:
-        L += [f"## 1. Cambio aprobado {cambio['id']} · {cambio.get('titulo','')}", "",
+        sec += 1
+        L += [f"## {sec}. Cambio aprobado {cambio['id']} · {cambio.get('titulo','')}", "",
               f"- **Decidido por / Decided by:** {cambio.get('decidido_por','')} · {cambio.get('fecha_decision','')}",
               f"- **Descripción / Description:** {cambio.get('descripcion','')}",
               f"- **Impacto en alcance / Scope impact:** {cambio.get('impacto_alcance','')}",
@@ -588,13 +726,15 @@ def cmd_handoff(a, e):
               "- [ ] Si afecta épicas/historias en curso: flujo de corrección de rumbo de BMAD y ajuste de la planificación del sprint.",
               "- [ ] Avisar al gestor para `bmad.py verificar` y línea base nueva (versión mayor).", ""]
     if cambios_prio:
-        L += ["## 2. Prioridades de gobierno vigentes (MoSCoW, release, iteración) · Governance priorities", "",
+        sec += 1
+        L += [f"## {sec}. Prioridades de gobierno vigentes (MoSCoW, release, iteración) · Governance priorities", "",
               "Insumo para la planificación del sprint de BMAD; el orden dentro de cada grupo lo decide el product owner.", "",
               "| Historia | MoSCoW | Release | Iteración | Cambió |", "|---|---|---|---|---|"]
         for h in prios:
             L.append(f"| {h['id']} | {h.get('moscow','')} | {h.get('release','')} | {h.get('iteracion','')} | {'sí' if h['id'] in cambios_prio else ''} |")
         L.append("")
-    L += ["## 3. Confirmación del equipo BMAD · Confirmation", "", "- Aplicado por / Applied by: {{nombre}} · fecha: {{fecha}}", "- Artefactos BMAD actualizados / Updated artifacts: {{rutas}}", ""]
+    sec += 1
+    L += [f"## {sec}. Confirmación del equipo BMAD · Confirmation", "", "- Aplicado por / Applied by: {{nombre}} · fecha: {{fecha}}", "- Artefactos BMAD actualizados / Updated artifacts: {{rutas}}", ""]
     open(out, "w", encoding="utf-8").write("\n".join(L))
     e.setdefault("integraciones", {}).setdefault("bmad", {})["ultimo_handoff_prioridades"] = actual
     e["integraciones"]["bmad"].setdefault("handoffs", []).append({"fecha": fecha, "archivo": os.path.relpath(out, a.proyecto), "cambio": a.cambio or ""})

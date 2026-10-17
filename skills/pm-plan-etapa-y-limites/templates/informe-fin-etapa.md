@@ -93,6 +93,11 @@ idioma: "{{idioma}}"
 *Si algún pronóstico está fuera de tolerancia, esto es una excepción y se dice expresamente.*
 
 ## 6. Solicitud a la junta / Request to the board
+
+*Verificación de la próxima puerta (`autorizar-etapa` o `autorizar-cierre`): `puertas.py --proyecto <dir> verificar <puerta>` y estado de puertas anteriores y sus condiciones (`puertas.py estado --markdown`).*
+
+{{bloque_puertas}}
+
 - Aprobar el informe de fin de etapa / Approve this report.
 - Aprobar el plan de la etapa {{n+1}} (o el plan de excepción) / Approve the next stage or exception plan: `{{ruta_plan}}`.
 - Aprobar business case y plan de proyecto actualizados / Approve the updated business case and project plan.

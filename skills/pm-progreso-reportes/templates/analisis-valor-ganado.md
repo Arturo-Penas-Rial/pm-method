@@ -25,7 +25,7 @@ idioma: "{{idioma}}"
 **Fuente de AC / Source of AC:** {{fuente_ac}}
 *Costos devengados (compromisos incurridos), no solo facturas pagadas.*
 
-**Comando ejecutado / Command run:** `python3 <pm-estado-proyecto>/scripts/evm.py --csv 03-control/reportes/progreso.csv --bac {{bac}} --tol-costo {{tol_costo_pct}} --tol-plazo {{tol_plazo_pct}} --eac {{eac_variante}} [--modo agil] --json` (o `--pv {{pv}} --ev {{ev}} --ac {{ac}} --bac {{bac}}`)
+**Comando ejecutado / Command run:** `python3 ${CLAUDE_SKILL_DIR}/../pm-estado-proyecto/scripts/evm.py --csv 03-control/reportes/progreso.csv --bac {{bac}} --tol-costo {{tol_costo_pct}} --tol-plazo {{tol_plazo_pct}} --eac {{eac_variante}} [--modo agil] --json` (o `--pv {{pv}} --ev {{ev}} --ac {{ac}} --bac {{bac}}`)
 *Correr con tolerancias de etapa y luego de proyecto; copiar `semaforo_costo`, `semaforo_cronograma`, `base_semaforo` y `excepcion_prevista`.*
 *Mostrar el cálculo; redondear solo en la presentación.*
 
@@ -87,7 +87,7 @@ idioma: "{{idioma}}"
 |---|---|---|
 | Por SPI (aproximación) / By SPI | duración planificada / SPI | {{dur_spi}} |
 | Cronograma ganado / Earned schedule | ES = t tal que PV(t) = EV; SPI(t) = ES / AT; duración / SPI(t) | {{dur_es}} |
-| Camino crítico / Critical path | fecha de fin según red actualizada (`cpm.py` o utf8proj) | {{fecha_cpm}} |
+| Camino crítico / Critical path | fecha de fin según red actualizada (`cpm.py`, o MS Project/ProjectLibre sobre el MSPDI) | {{fecha_cpm}} |
 
 **Fecha de fin pronosticada / Forecast finish:** {{fecha_fin_pron}} vs. base {{fecha_fin_base}} → variación {{var_fecha}} días
 *Elegir el método y decirlo; el camino crítico prevalece cuando existe.*

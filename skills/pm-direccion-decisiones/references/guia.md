@@ -1,8 +1,8 @@
 # Guía de dirección y decisiones · Directing guide
 
 Detalle de `pm-direccion-decisiones` (agente `pm-director`). El SKILL.md cita cada sección por número.
-Scripts: `<pm-estado-proyecto>/scripts/estado.py` y `registro.py`, `<pm-exportar>/scripts/paquete.py`,
-`<pm-bmad-puente>/scripts/bmad.py`, siempre con `--proyecto <dir>`.
+Scripts: `${CLAUDE_SKILL_DIR}/../pm-estado-proyecto/scripts/estado.py` y `registro.py`, `${CLAUDE_SKILL_DIR}/../pm-exportar/scripts/paquete.py`,
+`${CLAUDE_SKILL_DIR}/../pm-bmad-puente/scripts/bmad.py`, siempre con `--proyecto <dir>`.
 
 ## 1. Productos requeridos por puerta
 | Puerta | Productos que deben existir y estar aprobados o listos para aprobación |
@@ -22,7 +22,7 @@ Solo pm-director y solo después de una respuesta explícita de una persona iden
 a. `estado.py puerta <tipo> --decision aprobado|condicionado|rechazado|pendiente --por "<rol: nombre>" [--condiciones ".."] [--fecha ..] [--etapa-nombre ".."] [--fin AAAA-MM-DD]`. El script escribe la fila en `decisiones.csv` (nivel `junta`, `notas=puerta: <tipo>`) y guarda su id en `puertas[].decision_id`; no agregar otra a mano. Para detallar opciones: `registro.py actualizar decisiones D-### --campo opciones_consideradas=".." --campo revisar_en=".."`.
 b. Por cada documento aprobado: `estado.py aprobar <clave> --por "<rol: nombre>" --version 1.0`.
 c. En `autorizar-proyecto` aprobado: copiar PID y business case a `00-direccion/historial/pid-v1.0.md` y `business-case-v1.0.md` (línea base congelada, `aprobado`, no se edita; el cierre compara contra ellas).
-d. **Con BMAD activo** (`estado.json.integraciones.especificacion = bmad`): fijar la línea base de cada especificación aprobada en la puerta con `python3 <pm-bmad-puente>/scripts/bmad.py --proyecto <dir> linea-base prd --version 1.0 --por "<rol: nombre>"` (y `arquitectura`, `epicas`, `brief`, `ux` según lo aprobado). Guarda sha256, ids y copia congelada en `00-direccion/historial/bmad-<art>-v<ver>/`. Tras un cambio aprobado, nueva línea base con versión mayor.
+d. **Con BMAD activo** (`estado.json.integraciones.especificacion = bmad`): fijar la línea base de cada especificación aprobada en la puerta con `python3 ${CLAUDE_SKILL_DIR}/../pm-bmad-puente/scripts/bmad.py --proyecto <dir> linea-base prd --version 1.0 --por "<rol: nombre>"` (y `arquitectura`, `epicas`, `brief`, `ux` según lo aprobado). Guarda sha256, ids y copia congelada en `00-direccion/historial/bmad-<art>-v<ver>/`. Tras un cambio aprobado, nueva línea base con versión mayor.
 e. En `autorizar-etapa`: fijar las tolerancias de la nueva etapa con `estado.py tolerancia --nivel etapa ...` (la puerta vacía las anteriores).
 f. Redactar `templates/acta-decision-junta.md` en `00-direccion/decisiones/AAAA-MM-DD-acta-junta-<puerta>.md` (clave `acta-junta-<fecha>`).
 g. Si es `condicionado`: una acción por condición (`registro.py agregar acciones --campo origen=acta-junta-<fecha> --campo responsable=.. --campo fecha_compromiso=..`); cuando todas se cumplen, `estado.py cumplir-condiciones <tipo>`.

@@ -59,7 +59,7 @@ REGISTROS = {
         "prefijo": "D", "estado_inicial": None,
         "columnas": ["id", "fecha", "decision", "contexto", "opciones_consideradas", "decidido_por", "nivel",
                      "artefactos_afectados", "revisar_en", "notas"],
-        "valores": {"nivel": ["equipo", "product-owner", "gestor", "autoridad-cambio", "junta", "capa-negocio"]},
+        "valores": {"nivel": ["equipo", "product-owner", "gestor", "autoridad-cambio", "ejecutivo", "junta", "capa-negocio"]},
     },
     "supuestos": {
         "prefijo": "S", "estado_inicial": "abierto",
@@ -120,7 +120,7 @@ ALIAS_EN = {
     "request-for-change": ["solicitud-cambio"], "change-request": ["solicitud-cambio"], "off-specification": ["fuera-especificacion"],
     "problem-concern": ["problema-preocupacion"], "problem": ["problema-preocupacion"], "external-event": ["evento-externo"],
     "business-opportunity": ["oportunidad-negocio"], "approved": ["aprobado"], "rejected": ["rechazado"], "deferred": ["diferido"],
-    "team": ["equipo"], "manager": ["gestor"], "change-authority": ["autoridad-cambio"], "board": ["junta"], "business-layer": ["capa-negocio"],
+    "team": ["equipo"], "manager": ["gestor"], "change-authority": ["autoridad-cambio"], "board": ["junta"], "executive": ["ejecutivo"], "business-layer": ["capa-negocio"],
     "assumption": ["supuesto"], "constraint": ["restriccion"], "yes": ["si"], "no": ["no"],
     "leading": ["lider"], "supportive": ["partidario"], "neutral": ["neutral"], "resistant": ["resistente"], "unaware": ["desconocedor"],
     "review": ["revision"], "test": ["prueba"], "inspection": ["inspeccion"], "demonstration": ["demostracion"], "audit": ["auditoria"],
@@ -133,7 +133,7 @@ UMBRAL_RIESGO_ALTO = 15   # 15–25 alto
 UMBRAL_RIESGO_MEDIO = 6   # 6–12 medio; 1–5 bajo
 
 # ---------------------------------------------------------------- estado.json
-VERSION_PAQUETE = "2.0.0"          # debe coincidir con .claude-plugin/plugin.json y compatibilidad.json
+VERSION_PAQUETE = "2.1.0"          # debe coincidir con .claude-plugin/plugin.json y compatibilidad.json
 FASES = ["pre-proyecto", "inicio", "entrega", "cierre", "cerrado"]
 PROCESOS = ["SU", "IP", "CS", "SB", "CP"]          # DP y MP son continuos (junta y equipos), no "estado actual"
 DIMENSIONES_TOLERANCIA = ["tiempo", "costo", "alcance", "calidad", "beneficios", "riesgo", "sostenibilidad"]
@@ -164,6 +164,13 @@ def estado_inicial(nombre, idioma="es", enfoque="predictivo", ejecutivo="", gest
         "creado": hoy, "actualizado": hoy, "version_estado": 1,
     }
 
+
+# valores conocidos de estado.json.integraciones (los usan estado.py integracion y sanidad INT-01)
+VALORES_INTEGRACION = {"tracker": {"ninguno", "jira", "linear", "github", "azure-devops"}, "chat": {"ninguno", "slack", "teams"},
+    "docs": {"ninguno", "confluence", "notion", "sharepoint"}, "reuniones": {"manual", "archivo", "granola", "fireflies", "zoom", "minutes", "teams"},
+    "okr": {"archivo", "tability"}, "especificacion": {"ninguna", "bmad"},
+    "diagramas": {"mermaid", "diagram-design", "archify", "visual-explainer", "drawio"}, "cronograma": {"cpm", "mspdi"},
+    "export": {"scripts", "skills-office"}}
 
 def migrar(e):
     """Actualiza estado.json de versiones anteriores del paquete sin perder datos."""

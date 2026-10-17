@@ -1,4 +1,4 @@
-# Casos de uso de pm-method 2.0.0 · Worked examples
+# Casos de uso de pm-method 2.1.0 · Worked examples
 
 Un ejemplo trabajado por cada una de las 37 skills, incluidos los seis comandos, sobre un mismo proyecto de muestra para que los casos se encadenen de principio a fin. Al final hay tres variantes cortas: predictivo sin BMAD, ágil en inglés y un proyecto con Jira y Teams conectados.
 

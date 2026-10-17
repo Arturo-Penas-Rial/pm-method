@@ -65,19 +65,20 @@ gantt
     dateFormat YYYY-MM-DD
     axisFormat %b %Y
     section Etapas / Stages
-    Puesta en marcha / Starting up :e0, {{e0_inicio}}, {{e0_fin}}
-    Etapa 1 Iniciación / Initiation :e1, after e0, {{e1_duracion}}
-    {{e2_nombre}}                  :e2, after e1, {{e2_duracion}}
-    {{en_nombre}}                  :en, after e2, {{en_duracion}}
+    %% Reemplazar los valores de ejemplo: 2026-01-05/2026-01-30 = {{e0_inicio}}/{{e0_fin}} · 40d, 90d, 60d = {{e1_duracion}}, {{e2_duracion}}, {{en_duracion}} · fechas de puertas = {{e0_fin}}, {{e1_fin}}, {{e2_fin}}, {{en_fin}} · release = {{release_1_fecha}}
+    Puesta en marcha / Starting up :e0, 2026-01-05, 2026-01-30
+    Etapa 1 Iniciación / Initiation :e1, after e0, 40d
+    {{e2_nombre}}                  :e2, after e1, 90d
+    {{en_nombre}}                  :en, after e2, 60d
     section Puertas / Gates
-    Autorizar inicio               :milestone, g0, {{e0_fin}}, 0d
-    Autorizar proyecto y etapa 2   :milestone, g1, {{e1_fin}}, 0d
-    Fin etapa 2                    :milestone, g2, {{e2_fin}}, 0d
-    Autorizar cierre               :milestone, g3, {{en_fin}}, 0d
+    Autorizar inicio               :milestone, g0, 2026-01-30, 0d
+    Autorizar proyecto y etapa 2   :milestone, g1, after e1, 0d
+    Fin etapa 2                    :milestone, g2, after e2, 0d
+    Autorizar cierre               :milestone, g3, after en, 0d
     section Releases / Releases
-    {{release_1}}                  :milestone, r1, {{release_1_fecha}}, 0d
+    {{release_1}}                  :milestone, r1, 2026-06-15, 0d
 ```
-*Duraciones en formato Mermaid (`30d`, `6w`). Si `estado.json.integraciones.diagramas` es `diagram-design` o `archify`, o `cronograma` es `utf8proj`, `pm-visuales` o `pm-cronograma-estimacion` pueden generar la versión avanzada; esta vista sigue siendo la referencia de contenido.*
+*Duraciones en formato Mermaid (`30d`, `6w`). Si `estado.json.integraciones.diagramas` es `diagram-design` o `archify`, o `cronograma` es `mspdi`, `pm-visuales` o `pm-cronograma-estimacion` pueden generar la versión avanzada; esta vista sigue siendo la referencia de contenido.*
 
 ## 6. Supuestos de la hoja de ruta / Roadmap assumptions
 

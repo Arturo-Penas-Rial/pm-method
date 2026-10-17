@@ -1,7 +1,7 @@
 ---
 name: pm-enfoques-gestion
 description: "Enfoques de gestión del PID y planes subsidiarios. Usar: enfoque de riesgos, control de cambios, enfoque de calidad, management approach, subsidiary plan. No: PID ensamblado→pm-acta-constitucion."
-version: 2.0.0
+version: 2.1.0
 author: pm-method
 license: MIT
 metadata:
@@ -24,7 +24,7 @@ metadata:
 - EN: PID management approaches and subsidiary plans; scales, thresholds, change authority, BMAD change rules, connected MCP capabilities.
 
 ## Idioma
-Idioma del usuario; etiquetas bilingües; doble nombre la primera vez ("enfoque de gestión de riesgos (risk management approach ≈ risk management plan)"). Escalas con valores numéricos.
+**Idioma · Language:** responder siempre en el idioma en que escribe el usuario (English request → English reply); los artefactos van en `estado.json.idioma` salvo que el usuario pida otro. etiquetas bilingües; doble nombre la primera vez ("enfoque de gestión de riesgos (risk management approach ≈ risk management plan)"). Escalas con valores numéricos.
 
 ## Conocimiento
 - `pm-knowledge/references/prince2-practicas-riesgo-issues-progreso-productos.md` §2.d, §3.b–3.d, §5.3–5.4, §7.2.
@@ -53,7 +53,7 @@ Todos los enfoques salen de `templates/<clave>.md` hacia `02-planificacion/enfoq
 8. **Sostenibilidad** (`templates/enfoque-sostenibilidad-gestion.md`): controles para las metas de `00-direccion/enfoque-sostenibilidad.md`.
 9. **Planes subsidiarios** (predictivo/híbrido; mínimos en ágil): `templates/plan-gestion-alcance-requisitos.md` (CÓMO; el QUÉ es de `pm-planificacion-por-productos`; con BMAD se citan ids del PRD), `templates/plan-gestion-cronograma-costos.md`, `templates/plan-gestion-recursos-adquisiciones.md` (§1.5).
 10. **Comunicación, último** (`templates/enfoque-comunicacion.md`): lo que exigen los demás enfoques, políticas por audiencia, referencia (no copia) a `02-planificacion/matriz-comunicaciones.md` de `pm-comunicacion-stakeholders`, regla extraordinaria; canales solo si están conectados.
-11. **Consolidar controles**: tolerancia de proyecto con `python3 <pm-estado-proyecto>/scripts/estado.py --proyecto <dir> tolerancia --nivel proyecto tiempo=... costo=...`; etapa la fija la junta vía `pm-director`; paquete en `WP-###`. Umbrales, unidades, reservas y vía por entregable iguales entre documentos; reportar discrepancias.
+11. **Consolidar controles**: tolerancia de proyecto con `python3 ${CLAUDE_SKILL_DIR}/../pm-estado-proyecto/scripts/estado.py --proyecto <dir> tolerancia --nivel proyecto tiempo=... costo=...`; etapa la fija la junta vía `pm-director`; paquete en `WP-###`. Umbrales, unidades, reservas y vía por entregable iguales entre documentos; reportar discrepancias.
 12. **Registrar** (`estado.py artefacto <clave> --estado borrador`) con `[por confirmar]` y `[pendiente de PBS]`.
 13. 🔒 **Puerta humana 2 (fuera de esta skill)**: el ejecutivo aprueba, usuario y proveedor sénior acuerdan; normalmente con el PID en `autorizar-proyecto`, registrada por `pm-director` (`estado.py aprobar enfoque-<tema> ...`); nunca sin acto humano.
 14. **Revisar** (SB): escalas, umbrales, autoridades, cadencias e integraciones; versión 1.x.

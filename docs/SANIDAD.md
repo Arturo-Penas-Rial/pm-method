@@ -11,7 +11,7 @@ La referencia normativa es `SPEC.md` §1.17. Las salidas citadas son reales y sa
 | Control | Cuándo actúa | Qué asegura | Cliente |
 |---|---|---|---|
 | `sanidad.py` (skill `pm-sanidad`) | al abrir sesión (modo rápido), antes de cada puerta, después de sincronizar, al actualizar pm-method o BMAD | coherencia de estado y puertas, roles, artefactos, registros, ids entre capas, cobertura, líneas base frente a la especificación, traspasos pendientes, integraciones, instalación | todos |
-| Hook `PreToolUse` (`hooks/guardian.py`) | en cada Write/Edit/MultiEdit/NotebookEdit y Bash | `estado.json` solo por script; registros solo por `registro.py`; derivados y copias congeladas no editables; subagentes pm-* sin escritura en BMAD | Claude Code (plugin) |
+| Hook `PreToolUse` (`hooks/guardian.py`) | en cada Write/Edit/MultiEdit/NotebookEdit y Bash | `estado.json` solo por script; registros solo por `registro.py`; derivados, copias congeladas e instantáneas no editables; subagentes pm-* sin escritura en BMAD ni comandos reservados a pm-director | Claude Code (plugin) |
 | Hook `SessionStart` (`hooks/inicio.py`) | al abrir, retomar, limpiar o compactar la sesión | agrega al contexto la fase, la etapa y los ERROR de sanidad | Claude Code (plugin) |
 | Regla de puerta (`pm-puerta`, `pm-director`) | antes de presentar una puerta | ninguna puerta con ERROR abierto, salvo que la junta lo acepte como condición registrada | todos |
 | Esquemas versionados | al leer | `estado.json` y registros migran solos; contrato `pm-spec-index/1`; `compatibilidad.json` | todos |
@@ -68,7 +68,7 @@ python3 <pm-estado-proyecto>/scripts/sanidad.py --proyecto <dir> --json
 | **INS · instalación** | | | |
 | INS-01 | AVISO | módulos Python `yaml`, `docx`, `openpyxl` | usuario: `pip install …` |
 | INS-02 | AVISO | versión de pm-method con que se creó el proyecto frente a la instalada | leer notas de versión; `estado.json` migra solo |
-| INS-03 | AVISO / INFO | skill externa declarada en `integraciones.diagramas` (archify, diagram-design, visual-explainer) instalada | instalarla o volver a `mermaid` |
+| INS-03 | AVISO / INFO | skill externa declarada en `integraciones.diagramas` (archify, diagram-design, visual-explainer) o `export=skills-office` (docx, xlsx, pptx) instalada como skill del proyecto, del usuario, sincronizada o plugin; informa el nombre con que invocarla y avisa si falta Node (o Chrome para archify). Un plugin cargado con `--plugin-dir` no es detectable | instalarla (INSTALACION §6.1), ignorar el aviso si usa `--plugin-dir`, o volver a `mermaid` / `export=scripts` |
 | INS-04 | AVISO | una skill pm-* instalada más de una vez (plugin + copia manual) | dejar una sola |
 | INS-05 | AVISO | las descripciones de todas las skills visibles (incluidas BMAD y otros repositorios) superan ≈8.000 caracteres | `"skillListingBudgetFraction": 0.02` en `settings.json`, o `skillOverrides` (no aplica a skills de plugins) |
 | INS-06 | AVISO | colisión de activación: una skill externa comparte ≥3 disparadores con una pm-* | ajustar descripciones u ocultar la externa |
@@ -167,24 +167,27 @@ ERROR ESP-10 Cambio no controlado: bmad-epicas difiere de la línea base v1.1 (i
 
 ## 3. Hooks (Claude Code)
 
-`hooks/hooks.json` declara los dos hooks del plugin con `${CLAUDE_PLUGIN_ROOT}`. Los hooks de plugin también se ejecutan cuando trabaja un subagente; la entrada trae `agent_type`, y así el guardián distingue a un subagente pm-* del hilo principal.
+`hooks/hooks.json` declara los tres hooks del plugin (PreToolUse, SessionStart y UserPromptSubmit) con `${CLAUDE_PLUGIN_ROOT}`. Los hooks de plugin también se ejecutan cuando trabaja un subagente; la entrada trae `agent_type`, y así el guardián distingue a un subagente pm-* del hilo principal.
 
 ### 3.1 `guardian.py` (PreToolUse)
 
 | Regla | Herramientas | Sobre qué | Motivo |
 |---|---|---|---|
-| `estado.json` no se edita | Write/Edit/MultiEdit/NotebookEdit | `<proyecto>/estado.json` | solo `estado.py`, `nuevo_proyecto.py` o `bmad.py`; mantiene puertas, migración y decisiones |
-| Registros solo por script | Write/Edit/MultiEdit | los 9 CSV de `03-control/registros/` | `registro.py` valida ids, valores y referencias |
-| Derivados no editables | Write/Edit… | `spec-index.json`, `requisitos-bmad.csv`, `matriz-trazabilidad-bmad.csv`, `inventario-bmad.json`, `avance-bmad.csv` | se regeneran |
-| Copias congeladas | Write/Edit… | `00-direccion/historial/` | se crea una versión nueva |
-| Subagentes pm-* sin escritura en BMAD | Write/Edit… y Bash (redirección, `tee`, `sed -i`, `rm`, `mv`, `cp`) | `_bmad/`, `_bmad-output/`, `.bmad-core/` | BMAD es solo lectura; se usa `bmad.py handoff` |
+| `estado.json` no se edita | Write/Edit/MultiEdit/NotebookEdit y Bash (`sed -i`, `>`/`>>`, `tee`, `cp`/`mv`/`rm`, `open(...,'w')`, `json.dump`) | `<proyecto>/estado.json` | solo `estado.py`, `nuevo_proyecto.py` o `bmad.py`; mantiene puertas, migración y decisiones |
+| Registros solo por script | ídem | los 9 CSV de `03-control/registros/` | `registro.py` valida ids, valores y referencias |
+| Derivados no editables | ídem | `spec-index.json`, `requisitos-bmad.csv`, `matriz-trazabilidad-bmad.csv`, `inventario-bmad.json`, `avance-bmad.csv` | se regeneran |
+| Copias congeladas | ídem | `00-direccion/historial/` | se crea una versión nueva |
+| Instantáneas inmutables | ídem (solo si el archivo ya existe) | `03-control/fuentes/` | se crea una instantánea nueva con fecha |
+| Subagentes pm-* sin escritura en BMAD | ídem | `_bmad/`, `_bmad-output/`, `.bmad-core/` | BMAD es solo lectura; se usa `bmad.py handoff` |
+| Comandos reservados a pm-director | Bash desde el hilo principal o cualquier subagente salvo pm-director | `estado.py puerta\|rol\|tolerancia\|agil\|umbrales-riesgo\|cumplir-condiciones`, `limite-etapa --excepcion`, `set --forzar`, `aprobar` sin `--nivel gestor\|product-owner\|equipo` | la junta decide y pm-director registra |
 
-El hilo principal **sí** puede escribir en BMAD, porque así trabajan los flujos del propio BMAD. El guardián nunca bloquea por un error propio: ante una entrada que no entiende, no decide.
+Los comandos que invocan los scripts del paquete (`estado.py`, `registro.py`, `bmad.py`, …) quedan permitidos aunque
+redirijan su salida. El hilo principal **sí** puede escribir en BMAD, porque así trabajan los flujos del propio BMAD. El guardián nunca bloquea por un error propio: ante una entrada que no entiende, no decide.
 
 Prueba manual (como en `probar_paquete.py`):
 
 ```bash
-echo '{"tool_name":"Edit","tool_input":{"file_path":"<repo>/gestion/estado.json"}}' | python3 <pm-method>/hooks/guardian.py
+echo '{"tool_name":"Edit","tool_input":{"file_path":"<repo>/gestion/estado.json"}}' | sh <pm-method>/hooks/py.sh <pm-method>/hooks/guardian.py
 ```
 
 ```json
@@ -240,7 +243,7 @@ En el caso maestro, todas las puertas se presentaron con 0 ERROR. El cambio no c
 - **`estado.json` v2:** los proyectos creados con versiones anteriores se migran solos al leerse (`esquema.cargar_estado`). `version_paquete` queda registrada y `INS-02` avisa si difiere de la instalada.
 - **Registros (`esquema.py` v2):** columnas, prefijos y valores permitidos en un solo lugar, documentados igual en `pm-registros/templates/guia-registros.md`. Cualquier `registro.py` o `sanidad.py --reparar` agrega las columnas faltantes.
 - **Contrato `pm-spec-index/1`:** lo producen el proveedor BMAD y el nativo; si cambia el esquema, la fachada reconstruye el índice (ver [sincronizacion.md](sincronizacion.md) §4.2).
-- **`compatibilidad.json`:** versión del paquete (2.0.0, alineada con `.claude-plugin/plugin.json` y `esquema.py`; `validar_paquete.py` lo comprueba), esquemas, **versiones de BMAD probadas** (4.x con `docs/` y `.bmad-core`, 6.11, 6.12; relevado bmad-method 6.12.4 del 2026-10-14), conducta fuera de rango (modo degradado con aviso: correr `probar_paquete.py` y revisar el inventario antes de la siguiente puerta), Python ≥ 3.9, dependencias recomendadas y opcionales, y la conducta por cliente (Claude Code con hooks; Cowork como plugin; Hermes sin hooks).
+- **`compatibilidad.json`:** versión del paquete (2.1.0, alineada con `.claude-plugin/plugin.json` y `esquema.py`; `validar_paquete.py` lo comprueba), esquemas, **versiones de BMAD probadas** (4.x con `docs/` y `.bmad-core`, 6.11, 6.12; relevado bmad-method 6.12.4 del 2026-10-14), conducta fuera de rango (modo degradado con aviso: correr `probar_paquete.py` y revisar el inventario antes de la siguiente puerta), Python ≥ 3.9, dependencias recomendadas y opcionales, y la conducta por cliente (Claude Code con hooks; Cowork como plugin; Hermes sin hooks).
 
 ---
 
@@ -263,7 +266,7 @@ Comprueba:
 Con `--estricto`, los avisos también hacen fallar la validación. Salida actual:
 
 ```text
-Skills: 37 (31 invocables por el modelo, listado 6160 caracteres) · Agentes: 6
+Skills: 37 (31 invocables por el modelo, listado 6289 caracteres) · Agentes: 6
 OK
 ```
 
@@ -284,7 +287,7 @@ Crea proyectos temporales y recorre tres casos con los scripts reales:
 - **Caso B, BMAD v4:** detección del layout `docs/` y `.bmad-core`, fachada (3 ids, 2 historias) y avance.
 - **Caso C, sin BMAD:** fachada nativa (REQ-002 sin cobertura), sanidad con REQ-099 inexistente (ESP-04), EVM en modo ágil sin falsa excepción.
 
-Resultado actual: **35 OK · 0 FALLO**.
+Resultado actual: **80 OK · 0 FALLO**.
 
 Para adoptar una versión nueva de BMAD, se agrega un fixture con artefactos reales de esa versión en `scripts/pruebas/fixtures/`, se ajusta el caso correspondiente y, si pasa, se actualiza `compatibilidad.json.bmad.probado`.
 
@@ -303,7 +306,7 @@ Hermes no tiene un equivalente documentado de PreToolUse ni de SessionStart, as�
 
 ## 9. Rutina de mantenimiento
 
-### 9.1 Después de actualizar BMAD (`npx bmad-method install` u otra versión)
+### 9.1 Después de actualizar BMAD (`npx bmad-method@<versión> install`; probado con 6.12.4)
 
 1. Leer las notas de versión de BMAD: cambios de carpetas, nombres de archivo, formato de ids o de `sprint-status.yaml`.
 2. En cada proyecto, **antes** de volver a detectar, anotar los traspasos pendientes (`estado.json.integraciones.bmad.handoffs` sin `aplicado`). `bmad.py detectar` reemplaza ese bloque y los pierde (defecto conocido, `bmad.py` línea 303).

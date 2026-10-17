@@ -11,7 +11,7 @@ idioma: "{{idioma}}"
 
 # Cronograma · Schedule
 
-> Borrador generado con asistencia de IA. Cálculo CPM: {{herramienta}} (cpm.py, cpm.py --mspdi o utf8proj). Export MS Project / MS Project export: {{ruta_mspdi}}. / AI-assisted draft; CPM computed with the tool named here.
+> Borrador generado con asistencia de IA. Cálculo CPM: {{herramienta}} (cpm.py o cpm.py --mspdi). Export MS Project / MS Project export: {{ruta_mspdi}}. / AI-assisted draft; CPM computed with the tool named here.
 
 **Nivel de plan / Plan level:** {{nivel_plan}}
 *Proyecto, etapa N (1 = iniciación; 2…n entrega), excepción o equipo; los hitos de etapa coinciden con el plan de proyecto. En ágil, iteraciones y releases en lugar de actividades de la WBS.*
@@ -32,12 +32,13 @@ gantt
     title {{titulo_gantt}}
     excludes weekends
     section {{paquete_1}}
-    {{actividad_1}} :crit, {{id_1}}, {{inicio_1}}, {{fin_1}}
-    {{actividad_2}} :{{id_2}}, after {{id_1}}, {{duracion_2}}d
+    %% Reemplazar los valores de ejemplo: ids a1, a2, h1, r1 = {{id_1}}, {{id_2}}, {{id_hito}}, {{id_reserva}} · fechas 2026-01-05/2026-01-16 = {{inicio_1}}/{{fin_1}} · 5d = {{duracion_2}}d · 2026-01-23 = {{fecha_hito}} · 2026-01-26 y 3d = {{inicio_reserva}} y {{dias_reserva}}d
+    {{actividad_1}} :crit, a1, 2026-01-05, 2026-01-16
+    {{actividad_2}} :a2, after a1, 5d
     section Hitos / Milestones
-    {{hito_1}} :milestone, {{id_hito}}, {{fecha_hito}}, 0d
+    {{hito_1}} :milestone, h1, 2026-01-23, 0d
     section Reserva / Reserve
-    Reserva de contingencia :{{id_reserva}}, {{inicio_reserva}}, {{dias_reserva}}d
+    Reserva de contingencia :r1, 2026-01-26, 3d
 ```
 *Generado por cpm.py --mermaid o escrito a mano con el mismo formato; las actividades críticas llevan "crit"; los hitos duración 0; la reserva visible al final del camino. Con diagram-design/archify configurado, pm-visuales puede producir la versión gráfica.*
 
@@ -54,7 +55,7 @@ gantt
 | De / From | A / To | Relación / Relationship | Adelanto o retraso / Lead or lag | Tipo / Type | Justificación / Rationale |
 |---|---|---|---|---|---|
 | {{a}} | {{b}} | FS · SS · FF · SF | {{lag}} | obligatoria · discrecional · externa · interna | {{justificacion}} |
-*El CSV de cpm.py solo admite FS con lag (`WP-1.1+2`) o adelanto (`WP-1.1-1`); SS/FF/SF, calendarios y nivelación requieren utf8proj. Las discrecionales se documentan; las externas generan riesgo.*
+*El CSV de cpm.py solo admite FS con lag (`WP-1.1+2`) o adelanto (`WP-1.1-1`); SS/FF/SF, calendarios y nivelación requieren completar el MSPDI en MS Project o ProjectLibre. Las discrecionales se documentan; las externas generan riesgo.*
 
 ## 4. Carga por recurso / Resource load
 | Recurso / Resource | Días asignados / Assigned days | Capacidad / Capacity | Sobreasignación / Over-allocation | Acción / Action |

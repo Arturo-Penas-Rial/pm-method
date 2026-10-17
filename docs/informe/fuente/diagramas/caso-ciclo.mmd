@@ -1,0 +1,22 @@
+flowchart LR
+  subgraph SU["Puesta en marcha (SU) · etapa 0"]
+    su1[mandato y brief] --> su2[roles, tolerancias, riesgos] --> su3[business case esquemático]
+  end
+  subgraph IP["Iniciación (IP) · etapa 1"]
+    ip1[WBS + PERT + CPM] --> ip2[presupuesto BAC] --> ip3[business case VAN] --> ip4[PID]
+  end
+  subgraph E2["Etapa 2 · Release 1 (CS/MP)"]
+    e1[sprints = paquetes] --> e2[EVM + highlight] --> e3[cambio no controlado → C-001 → handoff]
+  end
+  subgraph E3["Etapa 3 · Release 2 y transición"]
+    f1[sprints] --> f2[elaboración progresiva]
+  end
+  subgraph CP["Cierre (CP)"]
+    c1[aceptación] --> c2[plan de revisión de beneficios]
+  end
+  SU -->|"DP: autorizar-inicio"| IP
+  IP -->|"DP: autorizar-proyecto + línea base PRD v1.0 + autorizar-etapa"| E2
+  E2 -->|"SB + DP: autorizar-etapa"| E3
+  E3 -->|"DP: autorizar-cierre"| CP
+  E2 -.->|"escenario: excepción X-001"| X[plan de excepción]
+  X -.->|"DP: autorizar-plan-excepcion"| E2

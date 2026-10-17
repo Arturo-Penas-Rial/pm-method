@@ -12,7 +12,7 @@ Uso / Usage:
   especificacion.py --proyecto ./p fuente                          # proveedor, dueños de cada dato, frescura
   especificacion.py --proyecto ./p resumen [--json]
   especificacion.py --proyecto ./p consultar FR-3 | REQ-004 | 1-2-login | E-2   [--json]
-  especificacion.py --proyecto ./p listar requisitos|historias|epicas [--estado done] [--epica E-1] [--cobertura sin-cobertura|planificado|en-curso|terminado] [--json]
+  especificacion.py --proyecto ./p listar requisitos|historias|epicas [--estado done] [--epica E-1] [--cobertura sin-cobertura|planificado|en-curso|terminado] [--limite 60] [--json]
   especificacion.py --proyecto ./p indice                          # fuerza la reconstrucción
 """
 import argparse, csv, datetime, hashlib, json, os, re, sys
@@ -117,7 +117,7 @@ def main():
     sub.add_parser("fuente"); sub.add_parser("indice")
     r = sub.add_parser("resumen"); r.add_argument("--json", action="store_true")
     c = sub.add_parser("consultar"); c.add_argument("id"); c.add_argument("--json", action="store_true")
-    l = sub.add_parser("listar"); l.add_argument("tipo", choices=["requisitos", "historias", "epicas"]); l.add_argument("--estado"); l.add_argument("--epica")
+    l = sub.add_parser("listar"); l.add_argument("tipo", choices=["requisitos", "historias", "epicas"]); l.add_argument("--estado"); l.add_argument("--epica"); l.add_argument("--limite", type=int, default=60, help="máximo de filas (0 = sin límite); protege el contexto en proyectos grandes")
     l.add_argument("--cobertura"); l.add_argument("--json", action="store_true")
     a = ap.parse_args()
     idx, nuevo = obtener(a.proyecto, forzar=(a.cmd == "indice"))
@@ -135,12 +135,21 @@ def main():
         for col in ("requisitos", "historias", "epicas"):
             for x in idx.get(col, []):
                 if x["id"] == q or x.get("numero") == q: mostrar({"tipo_entidad": col[:-1] if col != "epicas" else "epica", **x}, a.json); return
+        if re.match(r"^\d+[-.]\d+[a-z]?$", q):   # historia por número: 1-2 o 1.2 (clave BMAD 1-2-slug)
+            for x in idx.get("historias", []):
+                if x.get("numero") == q.replace("-", ".") or x["id"].startswith(q.replace(".", "-") + "-"): mostrar({"tipo_entidad": "historia", **x}, a.json); return
         sys.exit(f"No se encontró {a.id} en la especificación ({idx['proveedor']}).")
     if a.cmd == "listar":
         xs = idx.get(a.tipo, [])
         if a.estado: xs = [x for x in xs if x.get("estado") == a.estado]
         if a.epica: xs = [x for x in xs if x.get("epica") == a.epica or x.get("id") == a.epica]
         if a.cobertura: xs = [x for x in xs if x.get("cobertura") == a.cobertura]
+        total = len(xs)
+        if a.limite and total > a.limite and not a.json:
+            mostrar(xs[:a.limite], a.json)
+            print(f"… {total - a.limite} de {total} más sin mostrar: filtrar con --estado/--epica/--cobertura o usar --limite 0 · "
+                  f"{total - a.limite} of {total} more not shown: filter or use --limite 0")
+            return
         mostrar(xs, a.json)
 
 if __name__ == "__main__":

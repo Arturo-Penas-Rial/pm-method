@@ -10,7 +10,7 @@ CSV de entrada (cabecera): id,nombre,duracion,predecesoras,recurso[,wbs]
 Uso / Usage:
   python3 cpm.py actividades.csv [--inicio 2026-11-03] [--mermaid salida.md] [--json] [--mspdi cronograma.xml --titulo "Nombre"]
 Salida: ES, EF, LS, LF, holgura total y libre, camino crítico, carga por recurso (días asignados), Gantt Mermaid.
-Limitación: sin nivelación de recursos; para FS/SS/FF/SF, calendarios y nivelación usar utf8proj (ver pm-cronograma-estimacion).
+Limitación: sin nivelación de recursos; para FS/SS/FF/SF, calendarios y nivelación exportar MSPDI (--mspdi) y completar en MS Project o ProjectLibre (ver pm-cronograma-estimacion).
 """
 import argparse, csv, json, sys, datetime, re, math
 
@@ -99,7 +99,7 @@ def exportar_mspdi(acts, orden, inicio, salida, titulo="Proyecto", nombres_wbs=N
             if c in vistos: continue
             vistos.add(c); uid += 1; r = resumen[c]
             filas.append({"uid": uid, "nombre": (nombres_wbs or {}).get(c, c), "wbs": c, "nivel": i, "resumen": True, "hito": False,
-                          "start": ini(r["ES"]), "finish": dias_laborables(inicio, r["EF"] - 1).isoformat() + "T17:00:00",
+                          "start": ini(r["ES"]), "finish": dias_laborables(inicio, max(r["EF"] - 1, r["ES"])).isoformat() + "T17:00:00",  # resumen solo de hitos: fin = inicio
                           "dur": r["EF"] - r["ES"], "preds": [], "recurso": ""})
         uid += 1; uid_de[a["id"]] = uid
         filas.append({"uid": uid, "nombre": a["nombre"] or a["id"], "wbs": a["wbs"] or a["id"], "nivel": max(len(partes), 1),
@@ -176,7 +176,7 @@ def main():
             x = acts[i]; print(f"{i:{w}} {x['dur']:4} {x['ES']:4} {x['EF']:4} {x['LS']:4} {x['LF']:4} {x['holgura']:4} {x['holgura_libre']:4}  {x['nombre']}{' [hito]' if x['hito'] else ''}{'  *' if x['critica'] else ''}")
         print("Carga por recurso (días):", carga)
     if a.mermaid:
-        lines = ["```mermaid", "gantt", "    dateFormat YYYY-MM-DD", "    title Cronograma (CPM)", "    excludes weekends"]
+        lines = ["```mermaid", "gantt", "    dateFormat YYYY-MM-DD", f"    title {a.titulo if a.titulo != 'Proyecto' else 'Cronograma (CPM)'}", "    excludes weekends"]
         for i in orden:
             x = acts[i]; s = dias_laborables(inicio, x["ES"])
             nombre = re.sub(r"[:;#]", " ", x["nombre"] or i).strip()

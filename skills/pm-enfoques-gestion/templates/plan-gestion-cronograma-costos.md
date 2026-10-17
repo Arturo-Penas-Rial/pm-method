@@ -20,7 +20,7 @@ idioma: "{{idioma}}"
 ## 1. Metodología y herramienta / Methodology and tool
 
 {{metodologia}}
-*Método de programación (camino crítico, cadena crítica, cadencia ágil por iteraciones, flujo kanban) y herramienta (`cpm.py`, utf8proj, MS Project, tracker). Ver `pm-cronograma-estimacion`.*
+*Método de programación (camino crítico, cadena crítica, cadencia ágil por iteraciones, flujo kanban) y herramienta (`cpm.py`, MSPDI hacia MS Project o ProjectLibre, tracker). Ver `pm-cronograma-estimacion`.*
 
 ## 2. Unidades y precisión / Units and precision
 

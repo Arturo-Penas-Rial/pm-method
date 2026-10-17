@@ -1,2 +1,6 @@
 # Auto detect text files and perform LF normalization
 * text=auto
+# Scripts y hooks siempre con LF (en Windows, CRLF rompe sh y python en Git Bash)
+*.sh text eol=lf
+*.py text eol=lf
+*.json text eol=lf

@@ -1,0 +1,1259 @@
+{
+ "meta": {
+  "titulo": "Ecosistema de agentes y skills de gestión de proyectos: pm-method v2.1.0",
+  "corto": "Informe 2 · Ecosistema pm-method v2.1.0",
+  "subtitulo": "Qué es, qué valor aporta, cómo está construido, cómo se instala y se prueba un paquete bilingüe de 6 agentes, 37 skills y 3 hooks que aplica PRINCE2 7 como método, el PMBOK 8 como técnicas y BMAD como capa de especificación, con guardarraíles y controles permanentes de sanidad",
+  "autor": "Arturo",
+  "fecha": "17 de octubre de 2026",
+  "version": "v2.1",
+  "tag": "Informe 2 · Documentación del ecosistema",
+  "alcance": "Todo lo que afirma este informe sale de los archivos del paquete pm-method 2.1.0 (README, CHANGELOG, SPEC, CLAUDE.md, compatibilidad.json, docs/ —incluidos RESUMEN-EJECUTIVO, INDICE, DEPENDENCIAS, INSTALACION, PRUEBAS, PILOTO y CASOS-DE-USO-INTEGRACIONES—, docs/diagramas/, docs/evaluacion/resultados/ y agents/) y del registro de hechos verificados del 17/10/2026. Las cifras del caso maestro y de los casos de uso provienen de corridas reales de los scripts; las personas, la cooperativa y las decisiones humanas son simuladas. Lo que la documentación del paquete marca como [verificar] o \"URL a confirmar por el usuario\" se conserva tal cual: depende de la versión vigente de cada cliente o proveedor y no se probó en el entorno."
+ },
+ "kpis": [
+  {
+   "v": "6 · 37 · 3",
+   "t": "agentes · skills · hooks",
+   "d": "1 orquestador + 5 subagentes; 31 skills invocables + 6 comandos; PreToolUse, SessionStart y UserPromptSubmit"
+  },
+  {
+   "v": "80 OK",
+   "t": "pruebas de regresión",
+   "d": "0 FALLO · casos A–G; el hook guardian acierta 36/36 decisiones; bloqueos de puerta"
+  },
+  {
+   "v": "60/60",
+   "t": "enrutamiento en vivo",
+   "d": "Claude Code real, v2.1 (v2.0: 82 % en 75 frases); Sonnet 59/60, Haiku 56/60"
+  },
+  {
+   "v": "4/4",
+   "t": "guardarraíles en vivo",
+   "d": "Edit, Bash y subagente en BMAD: el hook negó y el estado quedó intacto"
+  },
+  {
+   "v": "6/6 · 7/7 · 5/5",
+   "t": "robustez en vivo",
+   "d": "inyección de instrucciones · transcripción desordenada · escala (350 requisitos)"
+  },
+  {
+   "v": "6.289",
+   "t": "caracteres de listado",
+   "d": "31 descripciones invocables; límite del paquete 7.500"
+  }
+ ],
+ "resumen": [
+  "**Qué es.** pm-method 2.0.0 es un paquete bilingüe (español e inglés) de 6 agentes, 37 skills y 3 hooks que aplica un método de gestión de proyectos consolidado, de la idea al cierre. Se instala como plugin de Claude Code (desde GitHub o desde una carpeta local), como plugin de Cowork, por copia manual o como skills de Hermes Agent.",
+  "**Cómo decide.** PRINCE2 7 es el método y el ciclo de vida y manda siempre (etapas de gestión, gestión por excepción, junta, procesos SU, DP, IP, CS, MP, SB y CP). El PMBOK 8 aporta solo el cómo (EVM, CPM, PERT, P×I, EMV, VAN…) dentro de una práctica o proceso PRINCE2. El libro de plantillas aporta los artefactos; BMAD (opcional) es la capa de especificación del producto, de solo lectura; los MCP que conecte el usuario son fuentes y canales opcionales.",
+  "**Dónde viven los datos.** La fuente de verdad es una carpeta de proyecto en Markdown, CSV y `estado.json`. Los `.docx`, `.xlsx` y `.zip` se generan bajo demanda en `exportados/` y nunca son fuente de verdad.",
+  "**Una sola voz ante las personas.** El orquestador corre en el hilo principal y es el único que pregunta y presenta las puertas. Cinco subagentes de fase producen en contexto aislado y devuelven un bloque de retorno fijo. Solo `pm-director` registra puertas y aprobaciones, y siempre después de una decisión humana explícita con nombre y rol: ningún agente es Accountable.",
+  "**Coherencia entre gobierno y especificación.** Cada dato tiene un solo dueño. Las skills leen la especificación por una fachada única (`especificacion.py`, contrato `pm-spec-index/1`) y las decisiones de gobierno vuelven a BMAD con un traspaso (`bmad.py handoff`). Un cambio en el PRD sin control se detecta como `ESP-10` ERROR.",
+  "**Controles permanentes.** `sanidad.py` (familias INS, EST, ART, REG, ESP e INT), los hooks de protección e inicio de sesión, la regla de puerta (ninguna puerta con ERROR sin condición registrada), el validador del paquete y 35 pruebas de regresión de punta a punta, todas en verde.",
+  "**Precisión y costo de contexto.** Las 31 descripciones invocables suman 6.160 caracteres (el paquete se impone ≤ 7.500). En la evaluación ciega de 52 frases, la ronda 1 dio 49/52 con Haiku y con Sonnet; tras ajustar descripciones, Haiku dio 51/52.",
+  "**Probado de punta a punta.** El caso maestro (portal de autoservicio de una cooperativa, 7 meses, USD 180.000, híbrido con BMAD) recorrió 6 puertas en la línea principal, un escenario de excepción y un cambio no controlado resuelto por el ciclo completo de fuente única; cerró con CPI 0,991, SPI 1,000 y 47 decisiones registradas.",
+  "**Riesgos conocidos.** La documentación declara seis limitaciones menores de scripts (con mitigación) y algunos puntos [verificar] que dependen de la versión de cada cliente. Ninguno impide el uso; todos tienen rutina de mantenimiento asociada (sección 13)."
+ ],
+ "audiencias": [
+  {
+   "rol": "Patrocinador / ejecutivo",
+   "valor": "Decisiones siempre humanas y trazables (`decisiones.csv`, `estado.json.puertas`); gestión por excepción con semáforo contra las tolerancias que fija la junta; cada puerta se verifica en tres capas y ninguna se presenta con un ERROR abierto salvo que la junta lo acepte como condición. Evidencia de pruebas en vivo y de regresión. Plan de piloto con criterios de adopción.",
+   "leer": "1, 2, 4, 8, 13, 16, 17 y 18"
+  },
+  {
+   "rol": "PMO",
+   "valor": "Un método estandarizado (PRINCE2 + PMBOK + plantillas) con dueños únicos por tema, matriz RACI que incluye a los agentes, controles permanentes de consistencia, verificación de cada puerta, dependencias con origen y licencia, y un manifiesto de compatibilidad para actualizar sin sorpresas.",
+   "leer": "3, 6, 7, 8, 10, 13, 17, 18 y 20"
+  },
+  {
+   "rol": "PM no programador",
+   "valor": "Trabaja en lenguaje natural con el orquestador y seis comandos; no necesita editar JSON ni CSV (los hooks lo impiden y los scripts lo hacen por él). Guía de instalación paso a paso, un caso de uso por skill y por integración, y una lista de aceptación.",
+   "leer": "11, 14, 15, 16, 17 y 18"
+  },
+  {
+   "rol": "Mantenedor técnico",
+   "valor": "Arquitectura de capas, dependencias con URL y versión probada, contratos de integración, scripts deterministas, validador, regresión, suite en vivo, rutina para actualizar BMAD y cómo seguir desarrollando el paquete con Claude Code.",
+   "leer": "5, 8, 9, 10, 17, 19, 20 y 21"
+  }
+ ],
+ "marco": [
+  {
+   "t": "PRINCE2 7 · método y ciclo de vida",
+   "d": "Manda siempre. Define qué se hace, cuándo y quién decide: etapas de gestión, gestión por excepción, roles de la junta, procesos SU/DP/IP/CS/MP/SB/CP, prácticas y productos de gestión."
+  },
+  {
+   "t": "PMBOK 8 · solo el cómo",
+   "d": "Técnicas y herramientas (EVM, CPM, PERT, estimación, análisis de interesados, adquisiciones…) y relleno de vacíos. Nunca aporta ciclo de vida, fases ni grupos de procesos; cada regla se etiqueta [PMBOK→práctica/proceso]."
+  },
+  {
+   "t": "Libro de plantillas · artefactos",
+   "d": "Biblioteca de artefactos concretos: campos y listas de verificación, con etiquetas bilingües. Versión mínima para proyectos pequeños; completa cuando el riesgo, el costo o los interesados lo justifican."
+  },
+  {
+   "t": "BMAD (opcional) · especificación",
+   "d": "Brief de producto, PRD (FR/NFR/UJ/SM), arquitectura (AD), UX, épicas, historias y estado del sprint. Son productos especialistas creados en paquetes de trabajo y aprobados en las puertas PRINCE2; pm-method los lee y nunca los escribe."
+  },
+  {
+   "t": "MCP del usuario (opcional) · fuentes y canales",
+   "d": "Jira, Confluence, Slack, Teams, correo, calendario, transcripciones, OKR. El paquete no predefine conectores ni trae credenciales: describe capacidades y las resuelve con lo que haya en la sesión."
+  }
+ ],
+ "problemas": [
+  {
+   "p": "Formatos de BMAD que cambian en casi cada versión menor 6.x; ~30 skills acopladas a ellos",
+   "r": "Un único lector (`bmad.py`) y una fachada (`especificacion.py`, contrato `pm-spec-index/1`): las skills no dependen del formato de BMAD."
+  },
+  {
+   "p": "Requisitos copiados a documentos de gestión que se desactualizan sin que nadie lo note",
+   "r": "Un dueño por dato; las capas se citan por id estable (FR-3, B-1, SM-1, WBS 1.2.3, WP-…) y los textos nunca se copian."
+  },
+  {
+   "p": "El PRD cambia después de que la junta lo aprobó",
+   "r": "Líneas base con huella sha256 y copia congelada; `bmad.py verificar` y sanidad `ESP-10` (ERROR si ningún issue lo cita); issue `solicitud-cambio` → decisión → traspaso → nueva línea base."
+  },
+  {
+   "p": "Aprobaciones implícitas o desviaciones \"absorbidas\" por la IA",
+   "r": "Ningún agente es Accountable. Solo `pm-director` registra, tras una respuesta humana explícita con nombre y rol. Toda desviación prevista fuera de tolerancia se escala como excepción."
+  },
+  {
+   "p": "Conversación saturada por el trabajo de fase y decisiones enterradas en niveles que no conversan",
+   "r": "Orquestador en el hilo principal + subagentes en contexto aislado, sin anidación (`disallowedTools: Agent`) y con protocolo de retorno obligatorio."
+  },
+  {
+   "p": "Ediciones manuales que rompen el estado, los registros o los derivados",
+   "r": "Escritura solo por scripts que validan (`estado.py`, `registro.py`); el hook `guardian.py` niega la edición directa; la sanidad detecta lo que se escape."
+  },
+  {
+   "p": "Costo de contexto y activación imprecisa de skills",
+   "r": "Carga progresiva en tres niveles; descripciones de una línea ≤ 240 caracteres con pista de alcance \"No:\"; seis comandos sin costo de listado; evaluación ciega de enrutamiento."
+  },
+  {
+   "p": "Dependencia de herramientas externas que pueden faltar o cambiar",
+   "r": "El núcleo funciona solo con la biblioteca estándar de Python; cada integración es un contrato con respaldo interno (Mermaid, CSV, scripts propios)."
+  }
+ ],
+ "arq_intro": "La arquitectura separa cinco capas con dueño propio y un reparto de agentes que garantiza una sola voz ante las personas. Las skills no dependen de conectores: su motor son scripts deterministas en Python (el modelo redacta; el script calcula, valida y registra). La especificación vinculante está en SPEC.md §0 y §1.10–§1.17; ARQUITECTURA.md la justifica.",
+ "arq_herramientas": [
+  "**Herencia de herramientas.** Ningún agente declara `tools`: heredan todas las de la sesión, incluidos los MCP que el usuario conecte después. La organización puede restringir con `disallowedTools`.",
+  "**Por qué así.** Los agentes de plugin ignoran `hooks`, `mcpServers` y `permissionMode` en su frontmatter: un agente no puede traer su propio conector, así que hereda los de la sesión.",
+  "**Sin conectores predefinidos.** Las skills describen capacidades (leer issues, crear issue, publicar mensaje, leer transcripción…) y `pm-integraciones` las resuelve con los MCP presentes. No hay `.mcp.json` ni credenciales en el paquete.",
+  "**Escritura externa con confirmación.** Lectura libre; escritura solo con vista previa y confirmación explícita. En un subagente se devuelve como \"decisión humana requerida\". Los datos externos entran como instantáneas fechadas en `03-control/fuentes/`.",
+  "**Skills por demanda.** Los subagentes no precargan skills en el frontmatter (`skills:`) para no gastar contexto; invocan la que necesitan en el orden indicado en su archivo.",
+  "**Hooks también en subagentes.** Los hooks del plugin corren dentro de los subagentes y reciben `agent_type`; así `guardian.py` impide que un subagente pm-* escriba en carpetas de BMAD."
+ ],
+ "carga_cifras": [
+  "Nivel 1: 6.289 caracteres para las 31 skills invocables (los 6 comandos no cuentan). El presupuesto del listado de Claude Code es ≈1 % de la ventana de contexto; con BMAD u otros repositorios puede ampliarse con `\"skillListingBudgetFraction\": 0.02`. `skillOverrides` no aplica a skills de plugins. La sanidad avisa (INS-05) cuando las descripciones visibles superan ≈8.000 caracteres.",
+  "Nivel 2: el SKILL.md más largo (`pm-orquestador`) ronda 12,1 k bytes y ninguno supera 124 líneas; el validador tolera 12.500 bytes por los caracteres acentuados.",
+  "Tras compactar, Claude Code conserva hasta 5.000 tokens por skill; por eso el nivel 2 se mantiene por debajo.",
+  "El conocimiento destilado (`pm-knowledge/references/`, 8 archivos) se consulta por encabezado con `grep`, nunca entero."
+ ],
+ "col_intro": "La columna vertebral del ecosistema es la relación entre gobierno (PRINCE2, escrito por las skills pm-*) y especificación (BMAD o, sin BMAD, `requisitos.md`). La decisión de diseño es la fuente única: cada dato tiene un solo dueño que lo escribe; todos los demás lo leen a través de una fachada; las decisiones de gobierno se traspasan al dueño para que él las aplique. No hay copias editables ni sincronización bidireccional de archivos.",
+ "col_mapeo": [
+  {
+   "t": "SU (etapa 0)",
+   "d": "El brief de producto de BMAD es insumo del project brief, que lo cita por ruta y sha corto."
+  },
+  {
+   "t": "IP (etapa 1 = iniciación)",
+   "d": "PRD en estado final + arquitectura suficiente para estimar + épicas iniciales. En `autorizar-proyecto`, pm-director fija las líneas base del PRD, la arquitectura y las épicas."
+  },
+  {
+   "t": "Etapas de entrega (2…n)",
+   "d": "Releases por épica; cada sprint es un paquete de trabajo con alcance expresado en ids de historias."
+  },
+  {
+   "t": "Antes de cada puerta",
+   "d": "`bmad.py verificar`; el gate de preparación de BMAD (sprint planning PASS/CONCERNS/FAIL) es insumo de `autorizar-etapa`."
+  }
+ ],
+ "col_ciclo": "detectar → issue `solicitud-cambio` → decisión de la autoridad de cambio o de la junta → `bmad.py handoff --cambio C-###` → el equipo BMAD aplica con sus flujos y marca `estado: aplicado` → `bmad.py verificar` limpio → `bmad.py linea-base … --version` mayor (pm-director).",
+ "fachada_cmds": "python3 <pm-estado-proyecto>/scripts/especificacion.py --proyecto <dir> fuente\npython3 <pm-estado-proyecto>/scripts/especificacion.py --proyecto <dir> resumen [--json]\npython3 <pm-estado-proyecto>/scripts/especificacion.py --proyecto <dir> consultar FR-3 | REQ-004 | 1-2-login | E-2 [--json]\npython3 <pm-estado-proyecto>/scripts/especificacion.py --proyecto <dir> listar requisitos|historias|epicas [--estado done] [--epica E-1] [--cobertura …] [--json]\npython3 <pm-estado-proyecto>/scripts/especificacion.py --proyecto <dir> indice     # fuerza la reconstrucción",
+ "san_intro": "pm-method reparte datos entre `estado.json`, nueve registros CSV, documentos Markdown, derivados de la especificación, copias congeladas y, opcionalmente, las carpetas de BMAD. Los controles permanentes evitan que esos datos se contradigan y, cuando igual pasa, lo detectan antes de que llegue a una decisión de la junta. Funcionan en cuatro tiempos: prevenir, detectar, decidir y mantener.",
+ "san_cmds": "python3 <pm-estado-proyecto>/scripts/sanidad.py --proyecto <dir>              # completo\npython3 <pm-estado-proyecto>/scripts/sanidad.py --proyecto <dir> --rapido     # subconjunto (hook de inicio)\npython3 <pm-estado-proyecto>/scripts/sanidad.py --proyecto <dir> --informe    # escribe 03-control/reportes/<fecha>-sanidad.md\npython3 <pm-estado-proyecto>/scripts/sanidad.py --proyecto <dir> --reparar    # arreglos seguros\npython3 <pm-estado-proyecto>/scripts/sanidad.py --proyecto <dir> --json",
+ "san_puntos": [
+  "Salida: una línea de resumen y hallazgos ERROR, AVISO o INFO, cada uno con código, mensaje y cómo corregirlo. Código de salida 1 si hay algún ERROR (sirve para scripts y para la regla de puerta).",
+  "`--rapido` omite el inventario de skills instaladas (INS-03…06) y las integraciones (INT); es lo que usa el hook de inicio.",
+  "`--reparar` solo completa columnas de los registros según el esquema v2 y reconstruye el índice de especificación. Nunca copia datos de negocio: señala al dueño.",
+  "Dueños de la corrección: INS → usuario o mantenedor; EST y ART → pm-director; REG → pm-registros, pm-riesgos, pm-issues-cambios; ESP → pm-bmad-puente, pm-planificacion-por-productos, pm-issues-cambios; INT → pm-integraciones."
+ ],
+ "componentes": [
+  {
+   "t": ".claude-plugin/",
+   "d": "`plugin.json` (pm-method 2.1.0, licencia MIT) y `marketplace.json` (marketplace `pm-method`): la raíz del repositorio es a la vez plugin y marketplace."
+  },
+  {
+   "t": "agents/",
+   "d": "6 agentes: `pm-orquestador` (hilo principal) y los subagentes `pm-director`, `pm-inicio`, `pm-planificacion`, `pm-control`, `pm-cierre`. En Hermes se usan como personas."
+  },
+  {
+   "t": "skills/",
+   "d": "37 skills (SKILL.md + references/ + templates/ + scripts/). `pm-knowledge/references/` guarda el conocimiento destilado en 8 archivos."
+  },
+  {
+   "t": "hooks/",
+   "d": "`hooks.json`, `py.sh` (lanzador portable: `python3`, `python` o `py -3`), `guardian.py` (PreToolUse sobre Write, Edit, MultiEdit, NotebookEdit y Bash), `inicio.py` (SessionStart: startup, resume, clear, compact) e `idioma.py` (UserPromptSubmit: idioma de la respuesta)."
+  },
+  {
+   "t": "scripts/",
+   "d": "`validar_paquete.py`, `probar_paquete.py` (80 pruebas), `pruebas/fixtures/` (BMAD v6 sintético, BMAD 6.12.4 real, BMAD v4), `pruebas/generar_bmad_grande.py` y `pruebas_vivo/` (`vivo.py`, `suite.py`, `escenarios.py`) para pruebas con Claude Code real."
+  },
+  {
+   "t": "docs/",
+   "d": "Resumen ejecutivo, índice, dependencias, instalación, arquitectura, integraciones, sincronización, sanidad, RACI, catálogo, casos de uso (por skill y por integración), caso maestro, pruebas, plan de piloto, verificación de puertas, colisiones, `diagramas/`, `ejemplos/` y `evaluacion/` (frases y resultados)."
+  },
+  {
+   "t": "compatibilidad.json, SPEC.md, CLAUDE.md",
+   "d": "Versiones probadas, dependencias, skills externas probadas en vivo y conducta por cliente; especificación y convenciones canónicas; contexto para seguir desarrollando el paquete con agentes de código (`CLAUDE.md`, `AGENTS.md`)."
+  }
+ ],
+ "inst_intro": "Hay cinco vías de instalación. La recomendada es instalar el plugin desde el repositorio público de GitHub (https://github.com/Arturo-Penas-Rial/pm-method, licencia MIT): la raíz del repositorio es a la vez el plugin y su marketplace, y cada integrante recibe las actualizaciones con dos comandos. La instalación como plugin es la única que activa los hooks de protección y de sanidad. Después vienen las dependencias: Python y sus paquetes, BMAD en el repositorio del producto, las skills externas de diagramas y Office y los conectores MCP de la organización.",
+ "inst_vias": [
+  {
+   "t": "GitHub (recomendada)",
+   "d": "Repositorio público `Arturo-Penas-Rial/pm-method`: `claude plugin marketplace add Arturo-Penas-Rial/pm-method` y `claude plugin install pm-method@pm-method`; actualizar con `marketplace update` + `update`. En Hermes, `hermes skills tap add` o clon + `external_dirs`.",
+   "hooks": "Sí (Claude Code)"
+  },
+  {
+   "t": "Plugin desde carpeta local",
+   "d": "`claude plugin marketplace add /ruta/a/pm-method` + `claude plugin install pm-method@pm-method`; para probar sin instalar, `claude --plugin-dir /ruta/a/pm-method`. Actualización 1.0.0 → 2.0.0 probada en el entorno.",
+   "hooks": "Sí"
+  },
+  {
+   "t": "Copia manual",
+   "d": "Copiar `skills/*` y `agents/*.md` a `~/.claude/` o al `.claude/` de un repositorio. Skills sin prefijo (`/pm-ayuda`).",
+   "hooks": "No: la sanidad sigue a demanda y en pm-puerta"
+  },
+  {
+   "t": "Cowork",
+   "d": "Instalar `pm-method` desde la gestión de plugins de la aplicación, apuntando al mismo paquete. Recorrido de pantallas [verificar]. Las skills personales de `~/.claude/skills/` no son vía de instalación para Cowork.",
+   "hooks": "No documentado (compatibilidad.json: \"plugin\")"
+  },
+  {
+   "t": "Hermes Agent",
+   "d": "Skills en `~/.hermes/skills/` o `skills.external_dirs`; agentes como personas (`SOUL.md`, perfiles, personalidades). No hay comando documentado para instalar desde carpeta local.",
+   "hooks": "No hay equivalente documentado: sanidad en pm-orquestador y pm-puerta"
+  }
+ ],
+ "inst_inicio": "/pm-method:pm-ayuda                      # qué escribir en cada situación\n/pm-method:pm-nuevo \"Proyecto Faro\"      # crea la carpeta del proyecto y detecta BMAD\n/pm-method:pm-orquestador                # o, en lenguaje natural: \"¿qué sigue?\"\n\nclaude --agent pm-method:pm-orquestador  # el orquestador como agente de toda la sesión",
+ "casos_resumen": {
+  "1": [
+   "orquestador",
+   "Ayuda filtrada por tema (\"puertas\"): ciclo SU → … → autorizar-cierre; sin proyecto aún"
+  ],
+  "2": [
+   "orquestador",
+   "Carpeta del proyecto, 9 registros, BMAD detectado (layout v6, version-no-visible)"
+  ],
+  "3": [
+   "orquestador",
+   "Resumen en 3 líneas, secuencia SU hasta autorizar-inicio y una sola pregunta"
+  ],
+  "4": [
+   "pm-inicio",
+   "Mandato y project brief que cita el brief BMAD por sha; L-001, D-001 y D-002"
+  ],
+  "5": [
+   "pm-inicio",
+   "Junta, roles, PO y cadencia de 14 días; 6 interesados (1 confidencial)"
+  ],
+  "6": [
+   "pm-inicio",
+   "Tolerancias de proyecto ±3 semanas, ±8 % de costo, −10 % de beneficios"
+  ],
+  "7": [
+   "pm-inicio",
+   "Business case esquemático: OBJ-1, B-01, B-02, DB-01; payback ≈ 1,9 años"
+  ],
+  "8": [
+   "pm-inicio",
+   "okr.csv: O-1 y tres KR vinculados a B-01, B-02 y SM-1"
+  ],
+  "9": [
+   "pm-inicio",
+   "R-001…R-005; R-001 = 16 (alto), EMV 21.000; escala P×I propuesta"
+  ],
+  "10": [
+   "pm-control",
+   "Supuesto S-002 \"padrón depurado en marzo\" con responsable"
+  ],
+  "11": [
+   "pm-director",
+   "Solicitud de puerta; sanidad sin ERROR; aprobada por la ejecutiva → IP, etapa 1"
+  ],
+  "12": [
+   "pm-inicio",
+   "Enfoques en una página; §5.1 separa elaboración progresiva de cambio"
+  ],
+  "13": [
+   "pm-planificacion",
+   "WBS de 15 elementos y 11 hojas: 2.760 h y USD 138.000"
+  ],
+  "14": [
+   "pm-planificacion",
+   "9 ids del PRD trazados; FR-4 sin historia; 0 referencias rotas"
+  ],
+  "15": [
+   "pm-planificacion",
+   "PERT + CPM: 120 días laborables, fin 2027-04-26, MSPDI para MS Project"
+  ],
+  "16": [
+   "pm-planificacion",
+   "BAC 165.000 (138.000 + 27.000) + reserva 15.000 = 180.000"
+  ],
+  "17": [
+   "pm-inicio",
+   "Estrategia: precio fijo por release, retención 10 %, enunciado con FR"
+  ],
+  "18": [
+   "pm-planificacion",
+   "Backlog MoSCoW con columnas de gobierno, release plan y traspaso de prioridades"
+  ],
+  "19": [
+   "pm-inicio",
+   "Matriz de comunicaciones con sprint review como evento recurrente"
+  ],
+  "20": [
+   "pm-inicio",
+   "PID por referencia (cita PRD y arquitectura por sha); sin bloqueantes"
+  ],
+  "21": [
+   "pm-director",
+   "autorizar-proyecto + autorizar-etapa; líneas base PRD, arquitectura y épicas v1.0"
+  ],
+  "22": [
+   "pm-control",
+   "Integraciones en \"ninguno\"/\"archivo\" con alternativas locales"
+  ],
+  "23": [
+   "pm-control",
+   "WP-003 = sprint 3; alcance por ids; autorización y aceptación"
+  ],
+  "24": [
+   "pm-control",
+   "Acta desde VTT (9 intervenciones); D-026, A-001, A-002, R-006, I-002"
+  ],
+  "25": [
+   "pm-control",
+   "Aceptación del login por requisito; done en BMAD no alcanza"
+  ],
+  "26": [
+   "pm-control",
+   "Highlight: SPI 0,90, CPI 0,94, EAC 101.064, ámbar; avance BMAD 61,9 %"
+  ],
+  "27": [
+   "pm-control",
+   "EAC 175.532 (−6,4 %, ámbar); sensibilidad muestra excepción prevista"
+  ],
+  "28": [
+   "pm-control",
+   "Tablero HTML con vista por actor (?actor=…)"
+  ],
+  "29": [
+   "orquestador",
+   "Estado en 3 líneas y una fila en avance-bmad.csv"
+  ],
+  "30": [
+   "pm-control",
+   "verificar: desvío bmad-prd v1.0 (FR-5 agregado); propone issue"
+  ],
+  "31": [
+   "orquestador",
+   "Sanidad: ESP-10 cambio no controlado (ERROR) y acción con responsable"
+  ],
+  "32": [
+   "pm-control → pm-director",
+   "I-003 → C-001 (+USD 4.500) → junta → handoff → línea base PRD v1.1"
+  ],
+  "33": [
+   "orquestador",
+   "Respuesta citada: la reserva de gestión solo la libera la junta"
+  ],
+  "34": [
+   "pm-control",
+   "Taller de etapa 2: L-002 y su informe de lecciones"
+  ],
+  "35": [
+   "pm-control + pm-planificacion",
+   "Fin de etapa 2 (76,2 % de puntos) y plan de etapa 3 (BAC 74.500)"
+  ],
+  "36": [
+   "pm-director",
+   "ZIP de puerta con MANIFIESTO.md y Excel con una hoja por registro"
+  ],
+  "37": [
+   "pm-cierre",
+   "Aceptación FR-1…FR-5, handover, beneficios; CPI 0,991; fase cerrado"
+  ]
+ },
+ "caso_cifras": [
+  {
+   "k": "Mandato",
+   "v": "7 meses (oct-2026 → may-2027), USD 180.000, desarrollo tercerizado, híbrido con sprints de 14 días"
+  },
+  {
+   "k": "Especificación",
+   "v": "BMAD v6: 9 ids iniciales (FR 4, NFR 1, UJ 1, SM 1, AD 2); al cierre 10 requisitos y 6 historias done"
+  },
+  {
+   "k": "WBS y costo base",
+   "v": "15 elementos, 11 hojas, 2.760 h, USD 138.000 → tras C-001: 16 elementos, 2.850 h, USD 142.500"
+  },
+  {
+   "k": "Cronograma",
+   "v": "PERT + CPM: 120 días laborables, fin 2027-04-26; σ del camino crítico ≈ 5,1 días"
+  },
+  {
+   "k": "Presupuesto",
+   "v": "BAC 165.000 (138.000 + contingencia 27.000) + reserva de gestión 15.000 = 180.000; BAC 169.500 tras C-001"
+  },
+  {
+   "k": "Business case",
+   "v": "VAN (12 %, 5 años) USD 79.944 · TIR ≈ 26,8 % · payback ≈ 2,7 años"
+  },
+  {
+   "k": "Desempeño",
+   "v": "Dic-2026: SPI 0,904, CPI 0,940 (ámbar). Escenario AC 53.000: VAC −12,8 % → excepción X-001. Cierre: CPI 0,991, SPI 1,000, VAC −1.500"
+  },
+  {
+   "k": "Gobierno",
+   "v": "6 puertas en la línea principal; 47 decisiones; ZIP de cierre de 22 archivos; Excel de 9 hojas"
+  }
+ ],
+ "pasos_clave": [
+  {
+   "n": "2–3",
+   "m": "SU · planes",
+   "t": "Inventario BMAD y fachada",
+   "r": "Layout v6, 9 ids; `sin_cobertura: ['FR-4']`; 2.ª consulta: índice vigente"
+  },
+  {
+   "n": "5",
+   "m": "SU · organización",
+   "t": "Roles y tolerancias de proyecto",
+   "r": "±3 semanas · ±8 % · −10 % beneficios; cadencia 14 días"
+  },
+  {
+   "n": "7",
+   "m": "SU · riesgo · P×I y EMV",
+   "t": "Riesgos iniciales",
+   "r": "R-001 = 16 (alto), EMV 21.000; 0 sin respuesta"
+  },
+  {
+   "n": "9",
+   "m": "DP · puerta",
+   "t": "autorizar-inicio",
+   "r": "Sanidad 0 ERROR · 3 AVISO; puerta fuera de orden rechazada"
+  },
+  {
+   "n": "10–12",
+   "m": "IP · planes · WBS, PERT, CPM",
+   "t": "WBS, estimación y camino crítico",
+   "r": "2.760 h, USD 138.000; 120 días; fin 2027-04-26; MSPDI 14 tareas"
+  },
+  {
+   "n": "13–14",
+   "m": "IP · business case · VAN/TIR",
+   "t": "Presupuesto y business case",
+   "r": "BAC 165.000 + 15.000; VAN 79.944, TIR ≈ 26,8 %"
+  },
+  {
+   "n": "16",
+   "m": "IP → DP · sanidad",
+   "t": "Aviso real antes de la puerta",
+   "r": "ART-03 por dos claves en un archivo; corregido → 0 ERROR"
+  },
+  {
+   "n": "17–18",
+   "m": "DP · línea base",
+   "t": "autorizar-proyecto y etapa 2",
+   "r": "PRD sha ea90ca87952b; CS, etapa 2 hasta 2027-02-15"
+  },
+  {
+   "n": "24",
+   "m": "CS · progreso · EVM",
+   "t": "Valor ganado contra tolerancias",
+   "r": "SPI 0,904 · CPI 0,940 · EAC 101.064 · ámbar, sin excepción"
+  },
+  {
+   "n": "26",
+   "m": "CS → DP → SB · excepción",
+   "t": "Escenario de excepción",
+   "r": "CPI 0,887 · VAC −12,8 % → rojo → plan de excepción autorizado"
+  },
+  {
+   "n": "27",
+   "m": "CS · cambios · DP",
+   "t": "Cambio no controlado FR-5",
+   "r": "2 ERROR → I-002 → C-001 (+4.500) → handoff → PRD v1.1 → 0 ERROR"
+  },
+  {
+   "n": "29–30",
+   "m": "SB · DP",
+   "t": "Fin de etapa 2 y autorizar etapa 3",
+   "r": "16/26 puntos; CPI 0,958; VAC −4,4 %; etapa 3 hasta 2027-04-26"
+  },
+  {
+   "n": "31",
+   "m": "CS · issues · adaptar",
+   "t": "Elaboración progresiva",
+   "r": "FR-4 en épicas: I-003 → D-039 (autoridad de cambio) → épicas v1.2"
+  },
+  {
+   "n": "32–35",
+   "m": "MP → CP → DP",
+   "t": "Entrega, aceptación y cierre",
+   "r": "6/6 historias; CPI 0,991; 0 abiertos; fase cerrado; 47 decisiones"
+  }
+ ],
+ "mant_rutinas": [
+  {
+   "t": "Semanal, en cada proyecto activo",
+   "d": "Sanidad con informe, `verificar`, `backlog` y `avance`, resumen de registros, traspasos pendientes, instantáneas del tracker de menos de 14 días; cada ERROR que requiere trabajo se convierte en una acción con responsable."
+  },
+  {
+   "t": "Después de actualizar BMAD",
+   "d": "Leer notas de versión; anotar traspasos pendientes antes de volver a detectar (defecto conocido de `bmad.py:303`); `detectar`, `inventario`, `verificar`; sanidad sin ESP-01, ESP-06 ni ESP-09; fixture nuevo, `probar_paquete.py` en verde y `compatibilidad.json` actualizado."
+  },
+  {
+   "t": "Después de cambiar el paquete",
+   "d": "`validar_paquete.py --estricto` → OK; `probar_paquete.py` → 0 FALLO; `claude plugin validate .`; si cambia `esquema.py`, actualizar `guia-registros.md` y comprobar `--reparar`; alinear versiones de `plugin.json`, `compatibilidad.json` y `esquema.py`; actualizar `CHANGELOG.md` y la documentación que lista `docs/INDICE.md`."
+  },
+  {
+   "t": "Cuando cambia una descripción, un agente o un hook",
+   "d": "Correr la suite en vivo de enrutamiento sobre las frases afectadas (`suite.py enrutamiento --ids …`, consume tokens) y, antes de una versión, `suite.py todo` y `suite.py robustez`; actualizar la matriz de colisiones y el TSV de frases (60 frases con skill esperada y aceptables)."
+  },
+  {
+   "t": "Al publicar una versión nueva",
+   "d": "En GitHub: commit y push; cada integrante ejecuta `claude plugin marketplace update pm-method` y `claude plugin update pm-method@pm-method` (requiere reiniciar Claude Code); en Hermes, `git pull` con `external_dirs` y `/reload-skills`."
+  }
+ ],
+ "evolucion": [
+  "Corregir las seis limitaciones documentadas de los scripts (SANIDAD §10), en particular `bmad.py:303`, que pierde los traspasos al volver a detectar, y `bmad.py:568`, que pisa traspasos del mismo día.",
+  "Mejoras candidatas registradas en el índice: Monte Carlo de contingencia (P50/P80), calendarios y feriados en `cpm.py` y trazado de `bmad-spec` (`SPEC.md`, ids `CAP-n`).",
+  "Ejecutar el piloto real de `docs/PILOTO.md` (Windows real, conectores reales, usuarios no técnicos, revisión experta, varias semanas) y probar en vivo los conectores MCP de terceros, hoy documentados sin prueba en vivo.",
+  "Resolver los ítems `[verificar]` y \"URL a confirmar por el usuario\" de INSTALACION y DEPENDENCIAS (sitios no alcanzables desde el entorno de prueba, pasos de Cowork y Hermes).",
+  "Agregar un fixture de cada nueva versión de BMAD antes de declararla probada en `compatibilidad.json`; la vista previa de BMAD v7 no está probada."
+ ],
+ "glosario": [
+  {
+   "t": "${CLAUDE_PLUGIN_ROOT} / ${CLAUDE_SKILL_DIR}",
+   "d": "Variables que Claude Code expande con la raíz del plugin y la carpeta de cada skill; ubican los scripts sin rutas fijas."
+  },
+  {
+   "t": "--limite",
+   "d": "Opción de `especificacion.py listar` y `registro.py listar` que acota la salida (60 filas por defecto) para no saturar el contexto en proyectos grandes."
+  },
+  {
+   "t": "[verificar] / URL a confirmar",
+   "d": "Marcas de la documentación del paquete para datos que no se pudieron comprobar en el entorno de prueba; el informe las conserva tal cual."
+  },
+  {
+   "t": "AC (costo real)",
+   "d": "Costo incurrido por el trabajo realizado a una fecha de corte; insumo de EVM."
+  },
+  {
+   "t": "AD-n",
+   "d": "Identificador de una decisión de arquitectura en BMAD; riesgos y calidad la citan por id."
+  },
+  {
+   "t": "Agent Skills / SKILL.md",
+   "d": "Formato abierto de skills en carpetas con un archivo `SKILL.md` (frontmatter + cuerpo) que siguen Claude Code, Cowork, Hermes y Codex."
+  },
+  {
+   "t": "Agente de hilo principal",
+   "d": "Agente que define el comportamiento de toda la sesión (`claude --agent pm-method:pm-orquestador` o clave `agent` en settings.json); a diferencia de un subagente, conversa con el usuario."
+  },
+  {
+   "t": "Alcance de instalación (--scope)",
+   "d": "Dónde queda registrado un plugin, marketplace o servidor MCP: `user` (la persona), `project` (el repositorio, compartido) o `local`."
+  },
+  {
+   "t": "ANTHROPIC_API_KEY",
+   "d": "Variable de entorno con una clave de la Claude Console; Claude Code la usa (con cargo a la API) tras aprobarla una vez. Alternativa recomendada: iniciar sesión con la suscripción (`/login`)."
+  },
+  {
+   "t": "API-KEY (clave de API)",
+   "d": "Credencial estática para llamar a un modelo o servicio por API. pm-method no usa claves propias: las usan el cliente (Claude Code, Hermes) y los servidores MCP (INSTALACION §0.7)."
+  },
+  {
+   "t": "apiKeyHelper",
+   "d": "Ajuste de Claude Code que ejecuta un script que devuelve la clave de API; sirve para claves rotativas o de un gestor de secretos."
+  },
+  {
+   "t": "Aseguramiento del proyecto",
+   "d": "Rol de la junta que verifica, con independencia del gestor, que el proyecto se gestiona bien."
+  },
+  {
+   "t": "AskUserQuestion",
+   "d": "Herramienta de Claude Code para preguntar al usuario; los subagentes no pueden usarla, por eso devuelven sus preguntas en el bloque de retorno."
+  },
+  {
+   "t": "Autoridad de cambio",
+   "d": "Persona o grupo con delegación de la junta para decidir cambios dentro de un umbral y un presupuesto de cambios; por encima, o si se usa reserva de gestión, decide la junta."
+  },
+  {
+   "t": "BAC",
+   "d": "Presupuesto a la conclusión (línea base de medición del desempeño): Σ paquetes de trabajo + contingencia de riesgos identificados; la reserva de gestión queda fuera."
+  },
+  {
+   "t": "base_semaforo",
+   "d": "Campo de `evm.py` que declara contra qué se calculó cada semáforo: la tolerancia registrada o los umbrales de índice (0,95/0,85)."
+  },
+  {
+   "t": "Bloqueos de puerta",
+   "d": "Condiciones que `estado.py puerta` verifica antes de registrar `aprobado` en las puertas principales: tolerancias, PID o business case, plan de la etapa, línea base del PRD con BMAD y sanidad sin ERROR. Con `condicionado` pasan a ser condiciones; con `--forzar` quedan anotadas."
+  },
+  {
+   "t": "BMAD Method",
+   "d": "Proyecto MIT de terceros para especificar y construir productos con agentes (brief, PRD, arquitectura, épicas, historias). Versión estable relevada: 6.12.4 (14-oct-2026). Se instala con `npx bmad-method install`."
+  },
+  {
+   "t": "Burn-up / burn-down",
+   "d": "Gráficos de trabajo completado o restante a lo largo del tiempo; viven en los informes de avance."
+  },
+  {
+   "t": "Business case",
+   "d": "Producto PRINCE2 que justifica el proyecto (beneficios, costos, riesgos, opciones); se revisa en cada límite de etapa (justificación continua)."
+  },
+  {
+   "t": "Cambio no controlado",
+   "d": "Diferencia entre la especificación vigente y su línea base sin un issue o cambio abierto que la cite; la sanidad lo informa como `ESP-10` ERROR."
+  },
+  {
+   "t": "Capa de negocio",
+   "d": "Nivel por encima de la junta (corporativo o patrocinador) que fija las tolerancias de proyecto."
+  },
+  {
+   "t": "Checkpoint report",
+   "d": "Informe periódico del jefe de equipo al gestor sobre un paquete de trabajo."
+  },
+  {
+   "t": "Claude Code",
+   "d": "Agente de programación de Anthropic para terminal e IDE; aloja plugins, skills, subagentes y hooks."
+  },
+  {
+   "t": "CLAUDE.md / AGENTS.md",
+   "d": "Archivos de contexto en la raíz del repositorio para agentes de código: reglas del autor, mapa del repositorio, convenciones y flujo de trabajo para cada cambio."
+  },
+  {
+   "t": "Comandos reservados a pm-director",
+   "d": "Subcomandos de `estado.py` que registran decisiones de gobierno (`puerta`, `rol`, `tolerancia`, `agil`, `umbrales-riesgo`, `cumplir-condiciones`, `limite-etapa --excepcion`, `set --forzar` y `aprobar` de nivel autoridad-cambio, ejecutivo, junta o capa-negocio); el hook se los niega al hilo principal y a los demás subagentes (los comandos que la persona escribe en su propia terminal no pasan por el hook)."
+  },
+  {
+   "t": "Concesión / off-spec",
+   "d": "Producto fuera de especificación (off-spec) que se acepta igual por decisión de la autoridad (concesión); es un tipo de issue."
+  },
+  {
+   "t": "Contingencia (reserva de)",
+   "d": "Reserva ligada a riesgos identificados (suma de EMV) que forma parte del BAC."
+  },
+  {
+   "t": "correct-course / Sprint Change Proposal",
+   "d": "Flujo de BMAD para corregir el rumbo y su documento de propuesta; para pm-method es un insumo que se convierte en issue: el \"sí\" dentro de BMAD no sustituye la decisión PRINCE2."
+  },
+  {
+   "t": "Cowork",
+   "d": "Aplicación de escritorio de Anthropic para trabajo de conocimiento con agentes; instala pm-method como plugin."
+  },
+  {
+   "t": "CPI / SPI",
+   "d": "Índices de desempeño de costo (EV/AC) y de cronograma (EV/PV); valores menores que 1 indican sobrecosto o atraso."
+  },
+  {
+   "t": "CPM (método de la ruta crítica)",
+   "d": "Técnica que calcula la secuencia de actividades sin holgura que determina la duración total; `cpm.py`."
+  },
+  {
+   "t": "delegate_task",
+   "d": "Mecanismo genérico de delegación de Hermes Agent; no usa archivos de agente con nombre."
+  },
+  {
+   "t": "disable-model-invocation",
+   "d": "Opción del frontmatter de una skill que impide que el modelo la active solo; las seis skills-comando la usan y no consumen presupuesto del listado."
+  },
+  {
+   "t": "disallowedTools",
+   "d": "Campo del frontmatter de un agente que le quita herramientas; los subagentes de pm-method llevan `disallowedTools: Agent` para no delegar."
+  },
+  {
+   "t": "DoD / DoR",
+   "d": "Definición de hecho y de listo: criterios para dar por terminado un ítem o para empezarlo."
+  },
+  {
+   "t": "EAC / VAC / TCPI",
+   "d": "Estimación a la conclusión, variación a la conclusión (BAC − EAC) e índice de desempeño requerido para terminar dentro de un objetivo."
+  },
+  {
+   "t": "Elaboración progresiva",
+   "d": "Detallar un requisito existente sin cambiar su alcance ni sus ids; si el enfoque de cambios lo declara, la resuelve la autoridad de cambio con una línea base de versión mayor."
+  },
+  {
+   "t": "EMV (valor monetario esperado)",
+   "d": "Impacto monetario × probabilidad; en el paquete, P 1–5 equivale a 10/30/50/70/90 % (configurable)."
+  },
+  {
+   "t": "Enrutamiento",
+   "d": "Elección de la skill que atiende un pedido en lenguaje natural según las descripciones; se mide comparando la primera skill elegida con la esperada."
+  },
+  {
+   "t": "Escenarios de robustez",
+   "d": "Pruebas en vivo pensadas para romper el sistema: instrucciones incrustadas (inyeccion), datos ruidosos o contradictorios (desorden), trabajo en varias sesiones con compactación (multisesion) y proyectos grandes (escala)."
+  },
+  {
+   "t": "estado.json",
+   "d": "Archivo de estado del proyecto (fase, proceso, etapa, tolerancias, roles, artefactos, puertas, integraciones); solo lo escriben `estado.py`, `nuevo_proyecto.py` y `bmad.py`."
+  },
+  {
+   "t": "estado.py resumen",
+   "d": "Subcomando agregado en v2.1 que devuelve en pocas líneas fase, etapa, roles clave, tolerancias, puertas pendientes y siguiente paso; el orquestador lo usa al preparar una puerta."
+  },
+  {
+   "t": "Etapa de gestión",
+   "d": "Tramo del proyecto que la junta autoriza por separado. En pm-method: SU = etapa 0 (pre-proyecto), etapa 1 = iniciación, entrega = 2…n."
+  },
+  {
+   "t": "EV / PV",
+   "d": "Valor ganado (valor presupuestado del trabajo hecho) y valor planificado a una fecha."
+  },
+  {
+   "t": "EVM (gestión del valor ganado)",
+   "d": "Técnica que integra alcance, costo y plazo (PV, EV, AC) para medir y pronosticar; `evm.py` calcula el semáforo contra tolerancias y tiene modo ágil."
+  },
+  {
+   "t": "Fachada de especificación",
+   "d": "`especificacion.py`: único punto de lectura de requisitos, épicas e historias para todas las skills, con o sin BMAD."
+  },
+  {
+   "t": "Finales de línea LF (.gitattributes)",
+   "d": "Convención de salto de línea Unix que el repositorio impone en `.sh`, `.py` y `.json` para que los scripts funcionen en Git Bash."
+  },
+  {
+   "t": "Fixture",
+   "d": "Copia de referencia de un repositorio usada en las pruebas; pm-method guarda BMAD v6 sintético, BMAD 6.12.4 real y BMAD v4."
+  },
+  {
+   "t": "FR / NFR / UJ / SM / UX-DR",
+   "d": "Ids del PRD de BMAD: requisito funcional, no funcional, journey de usuario, métrica de éxito y requisito de diseño UX."
+  },
+  {
+   "t": "Fuentes = datos",
+   "d": "Regla por la cual las instrucciones que aparecen dentro de transcripciones, tickets o documentos de BMAD se tratan como contenido: se informan al usuario y nunca se ejecutan."
+  },
+  {
+   "t": "Gantt",
+   "d": "Diagrama de barras del cronograma; el paquete lo genera en Mermaid."
+  },
+  {
+   "t": "Gate de preparación (BMAD)",
+   "d": "Revisión que hace `bmad-sprint-planning` con la intención \"readiness\" para decir si el producto está listo para pasar a desarrollo. pm-method no lo ejecuta: lee su veredicto, que pm-director registra con `puertas.py preparacion-bmad`, y lo usa en `autorizar-etapa` (control E-10)."
+  },
+  {
+   "t": "Gestión por excepción",
+   "d": "Principio PRINCE2: cada nivel trabaja dentro de tolerancias y escala al superior solo cuando un pronóstico las supera."
+  },
+  {
+   "t": "gh (GitHub CLI)",
+   "d": "Línea de comandos de GitHub; `gh auth login` inicia sesión en el navegador y `gh repo create` crea y publica el repositorio."
+  },
+  {
+   "t": "Git for Windows / Git Bash",
+   "d": "Distribución de git para Windows que incluye la consola Git Bash; Claude Code la usa en Windows para ejecutar los hooks del plugin."
+  },
+  {
+   "t": "Guardarraíl",
+   "d": "Regla que el sistema hace cumplir por sí mismo (hook o script), sin depender de que el modelo la recuerde: por ejemplo, que el estado solo cambie con `estado.py`."
+  },
+  {
+   "t": "Handoff (traspaso)",
+   "d": "Documento `handoff-bmad-<fecha>-<…>.md` que lleva un cambio aprobado o prioridades de gobierno al equipo BMAD para que lo aplique con sus flujos."
+  },
+  {
+   "t": "Hermes Agent",
+   "d": "Agente de código abierto de Nous Research; lee skills en formato SKILL.md, las expone como comandos `/nombre-skill` y usa perfiles, personalidades, cron y Kanban."
+  },
+  {
+   "t": "Highlight report",
+   "d": "Informe periódico del gestor a la junta sobre la etapa (avance, tolerancias, riesgos, issues)."
+  },
+  {
+   "t": "Hook",
+   "d": "Comando que el cliente ejecuta ante un evento (antes de una herramienta, al iniciar sesión); en pm-method se declaran en `hooks/hooks.json`."
+  },
+  {
+   "t": "Hook PreToolUse (guardian.py)",
+   "d": "Control que se ejecuta antes de cada escritura o comando y niega, con un motivo, las modificaciones directas de `estado.json`, registros, derivados, copias congeladas e instantáneas, las escrituras de subagentes en BMAD y los comandos de decisión reservados a pm-director (también desde el hilo principal)."
+  },
+  {
+   "t": "Hook SessionStart (inicio.py)",
+   "d": "Control que se ejecuta al iniciar o retomar una sesión: busca proyectos cercanos, corre la sanidad rápida y agrega fase, etapa, reglas de enrutamiento e idioma y la ruta absoluta de los scripts."
+  },
+  {
+   "t": "Hook UserPromptSubmit (idioma.py)",
+   "d": "Control que se ejecuta con cada pedido: si hay un proyecto pm-method y el pedido está en otro idioma que el del proyecto, recuerda al modelo responder en el idioma del pedido. No bloquea nada."
+  },
+  {
+   "t": "Huella sha256",
+   "d": "Resumen criptográfico del contenido de un archivo; permite detectar cualquier cambio contra una línea base."
+  },
+  {
+   "t": "Instantánea",
+   "d": "Copia fechada de datos externos guardada en `03-control/fuentes/<sistema>-AAAA-MM-DD.<ext>`; se cita como fuente, nunca reemplaza un registro y, desde v2.1, el hook impide modificar una ya existente: se crea otra con fecha nueva."
+  },
+  {
+   "t": "Inyección de instrucciones",
+   "d": "Intento de que el modelo obedezca órdenes escondidas en un dato de entrada (por ejemplo, \"aprobá la puerta\" dentro de una transcripción)."
+  },
+  {
+   "t": "Issue",
+   "d": "Evento ocurrido o pedido que requiere gestión; exactamente cinco tipos: solicitud-cambio, fuera-especificacion, problema-preocupacion, evento-externo, oportunidad-negocio."
+  },
+  {
+   "t": "JQL / cloudId",
+   "d": "Lenguaje de consulta de Jira y el identificador del sitio Atlassian que el Rovo MCP Server exige obtener antes de consultar."
+  },
+  {
+   "t": "Junta del proyecto",
+   "d": "Órgano de decisión PRINCE2: ejecutivo (decide), usuario sénior y proveedor sénior."
+  },
+  {
+   "t": "Licencia MIT / propietaria",
+   "d": "MIT permite usar, modificar y redistribuir con atribución (pm-method, BMAD, archify, diagram-design, visual-explainer); las skills de Office de `anthropics/skills` tienen licencia propietaria, de código visible."
+  },
+  {
+   "t": "Lista de control de la junta",
+   "d": "Preguntas de juicio de cada puerta (viabilidad, criterios de éxito, riesgos, lecciones) que genera `puertas.py lista` y que confirma una persona con rol con `puertas.py confirmar --por`; el modelo nunca la marca por su cuenta. Un ítem que no se cumple bloquea la aprobación."
+  },
+  {
+   "t": "Línea base",
+   "d": "Versión aprobada y congelada de un producto (copia en `00-direccion/historial/` y huella) contra la que se miden los cambios."
+  },
+  {
+   "t": "Marketplace (de plugins)",
+   "d": "Catálogo desde el que Claude Code instala plugins; la carpeta pm-method es a la vez plugin y marketplace local (`marketplace.json`)."
+  },
+  {
+   "t": "MCP (Model Context Protocol)",
+   "d": "Protocolo abierto para conectar herramientas y datos externos a un agente (Jira, Slack, Teams, transcripciones…)."
+  },
+  {
+   "t": "Mermaid / mmdc",
+   "d": "Lenguaje de diagramas en texto y su línea de comandos para convertirlos en imagen; respaldo visual por defecto del paquete."
+  },
+  {
+   "t": "Modo degradado",
+   "d": "Funcionamiento del puente con una versión de BMAD fuera del rango probado: sigue trabajando, avisa (ESP-07) y recomienda correr la regresión antes de la siguiente puerta."
+  },
+  {
+   "t": "MoSCoW",
+   "d": "Priorización Must, Should, Could, Won't; la tolerancia de alcance se expresa en ella."
+  },
+  {
+   "t": "MPXJ",
+   "d": "Biblioteca (PyPI `mpxj` 16.10.0, LGPL, requiere Java) que lee formatos de cronograma; se usó para validar el MSPDI propio."
+  },
+  {
+   "t": "MSPDI",
+   "d": "Formato XML abierto de intercambio de Microsoft Project. `cpm.py --mspdi` lo genera sin dependencias; MS Project o ProjectLibre completan sobre él relaciones SS/FF/SF, calendarios y nivelación."
+  },
+  {
+   "t": "Nivel de decisión",
+   "d": "Atributo de cada decisión registrada que indica quién la tomó: `equipo`, `product-owner`, `gestor`, `autoridad-cambio`, `ejecutivo`, `junta` o `capa-negocio` (SPEC §1.10); de él depende qué agente puede registrarla."
+  },
+  {
+   "t": "Nivel ejecutivo",
+   "d": "Nivel de decisión agregado en v2.1 para lo que decide el Ejecutivo fuera de una puerta de la junta; antes se anotaba como `junta`."
+  },
+  {
+   "t": "npx skills add",
+   "d": "CLI de instalación de skills de terceros (paquete npm `skills`); copia la skill en `.claude/skills/` del proyecto o del usuario (`-g`). La versión 1.7.0 exige Node ≥ 22.20."
+  },
+  {
+   "t": "OAuth (claude mcp login)",
+   "d": "Autenticación delegada en el proveedor que evita escribir tokens; la guía la prefiere a encabezados con credenciales."
+  },
+  {
+   "t": "OKR (O-n, KR-n.m)",
+   "d": "Objetivos y resultados clave; en pm-method los KR citan beneficios (B-nn) o métricas de éxito (SM-n) del business case, que manda."
+  },
+  {
+   "t": "Orca",
+   "d": "Aplicación de escritorio de código abierto (stablyai/orca, MIT) para correr varios agentes CLI en paralelo, cada uno en su worktree; sugerida como opcional (INSTALACION §0.8)."
+  },
+  {
+   "t": "Paquete de trabajo (WP)",
+   "d": "Acuerdo entre gestor y jefe de equipo sobre productos, tolerancias y controles; en enfoque híbrido, cada sprint es un paquete."
+  },
+  {
+   "t": "PBS / WBS (EDT)",
+   "d": "Estructura de desglose del producto y del trabajo; `wbs.py` valida la regla del 100 % y consolida horas y costo."
+  },
+  {
+   "t": "Persona / SOUL.md",
+   "d": "En Hermes, texto que define la personalidad del agente (global o por perfil); los agentes de pm-method se usan así."
+  },
+  {
+   "t": "PERT",
+   "d": "Estimación de tres puntos: tE = (O + 4M + P)/6, σ = (P − O)/6."
+  },
+  {
+   "t": "PID",
+   "d": "Documentación de iniciación del proyecto: documento de autorización PRINCE2 que reúne business case, enfoques, planes y organización."
+  },
+  {
+   "t": "Piloto en paralelo (shadow)",
+   "d": "Modalidad de prueba en un proyecto real en la que el proyecto se sigue gestionando como siempre y pm-method produce lo mismo aparte, para comparar sin riesgo."
+  },
+  {
+   "t": "Plugin",
+   "d": "Paquete instalable de Claude Code o Cowork que agrupa skills, agentes y hooks (`.claude-plugin/plugin.json`)."
+  },
+  {
+   "t": "PMBOK 8",
+   "d": "Guía del PMI; en pm-method aporta solo técnicas aplicadas dentro de una práctica, proceso o producto PRINCE2."
+  },
+  {
+   "t": "PRD",
+   "d": "Documento de requisitos del producto de BMAD, con ids FR, NFR, UJ y SM."
+  },
+  {
+   "t": "PreToolUse / SessionStart / UserPromptSubmit",
+   "d": "Eventos de hook de Claude Code. PreToolUse corre antes de cada herramienta y puede negar la acción (`guardian.py`, que vigila Write/Edit y los comandos Bash); SessionStart corre al abrir, reanudar, limpiar o compactar una sesión (`inicio.py`); UserPromptSubmit corre con cada pedido del usuario (`idioma.py`)."
+  },
+  {
+   "t": "PRINCE2 7",
+   "d": "Método de gestión de proyectos por etapas con principios, prácticas y siete procesos; en pm-method es el método y el ciclo de vida."
+  },
+  {
+   "t": "Procesos SU, DP, IP, CS, MP, SB, CP",
+   "d": "Puesta en marcha, dirección, iniciación, control de etapa, entrega de productos, límite de etapa y cierre."
+  },
+  {
+   "t": "Product owner (PO)",
+   "d": "En ágil e híbrido, el usuario sénior o su delegado con autoridad escrita; intercambia ítems dentro de la tolerancia de alcance."
+  },
+  {
+   "t": "Protocolo de retorno",
+   "d": "Bloque fijo con que termina todo subagente: Hecho · Decisiones humanas requeridas · Datos faltantes · Siguiente paso sugerido."
+  },
+  {
+   "t": "Prueba de aceptación",
+   "d": "Lista de 12 comprobaciones que el usuario marca en una carpeta de prueba antes de usar pm-method en un proyecto real."
+  },
+  {
+   "t": "Puerta (gate)",
+   "d": "Decisión de la junta que habilita una transición: autorizar-inicio, -proyecto, -etapa, -plan-excepcion, -cierre o decision-ad-hoc."
+  },
+  {
+   "t": "py.sh",
+   "d": "Lanzador portable de los hooks (v2.1): usa el primer Python 3.9+ disponible (`python3`, `python` o `py -3`) del shell de los hooks; en Windows corre en Git Bash y, si no hay Python, avisa sin bloquear."
+  },
+  {
+   "t": "P×I",
+   "d": "Puntuación de riesgo probabilidad × impacto en escala 1–5: alto ≥ 15, medio 6–12, bajo ≤ 5 (configurable)."
+  },
+  {
+   "t": "RACI",
+   "d": "Matriz de responsabilidades: Responsible, Accountable (una sola por fila), Consulted, Informed."
+  },
+  {
+   "t": "Rama y pull request (PR)",
+   "d": "Forma de proponer un cambio grande en GitHub: se trabaja en una rama separada y se pide su incorporación con revisión antes de publicar."
+  },
+  {
+   "t": "Registros",
+   "d": "Nueve CSV con prefijo: riesgos (R), issues (I), cambios (C), decisiones (D), supuestos (S), lecciones (L), interesados (ST), calidad (Q) y acciones (A)."
+  },
+  {
+   "t": "Regresión determinista (probar_paquete.py)",
+   "d": "Batería de pruebas automáticas sin modelo (casos A–G) que recorre los scripts reales sobre proyectos temporales; en v2.1, 68 OK y 0 FALLO."
+  },
+  {
+   "t": "Reserva de gestión",
+   "d": "Reserva para imprevistos no identificados; queda fuera del BAC y solo la libera la junta. Presupuesto autorizado = BAC + reserva de gestión."
+  },
+  {
+   "t": "RTM",
+   "d": "Matriz de trazabilidad de requisitos; con BMAD es un derivado (`matriz-trazabilidad-bmad.csv`)."
+  },
+  {
+   "t": "Rúbrica de revisión experta",
+   "d": "Escala de 1 (inaceptable) a 4 (listo para la junta) con la que practicantes PMP/PRINCE2 puntúan los artefactos del piloto en seis criterios; un 1 en exactitud u honestidad es bloqueante."
+  },
+  {
+   "t": "Sanidad",
+   "d": "Comprobación de consistencia del proyecto y de la instalación (`sanidad.py`, skill pm-sanidad) en seis familias: INS, EST, ART, REG, ESP, INT."
+  },
+  {
+   "t": "Semáforo",
+   "d": "Lectura del pronóstico contra la tolerancia: verde ≤ 50 %, ámbar 50–100 %, rojo fuera de tolerancia (excepción)."
+  },
+  {
+   "t": "Severidad (bloqueo / condición / aviso)",
+   "d": "Peso de un control de puerta: un bloqueo impide registrar `aprobado`; una condición queda como observación de la puerta; un aviso solo informa. Con bloqueos, la junta corrige, registra `condicionado` o fuerza con constancia."
+  },
+  {
+   "t": "Skill",
+   "d": "Carpeta con instrucciones (SKILL.md), plantillas, referencias y scripts que el agente carga cuando la necesita."
+  },
+  {
+   "t": "Skill externa",
+   "d": "Skill de un tercero que pm-method puede delegar (archify, diagram-design, visual-explainer, docx/xlsx/pptx); se instala aparte, se declara en `estado.json.integraciones` y siempre tiene respaldo interno."
+  },
+  {
+   "t": "skillListingBudgetFraction / skillOverrides",
+   "d": "Ajustes de settings.json de Claude Code: fracción del contexto para el listado de skills (≈1 % por defecto) y visibilidad por skill (no aplica a skills de plugins)."
+  },
+  {
+   "t": "SM-C (métrica de contrapeso)",
+   "d": "Identificador de BMAD 6.12 para métricas que equilibran a las de éxito; desde v2.1 `okr.py` acepta vincular KR a `SM-C<n>`."
+  },
+  {
+   "t": "Subagente",
+   "d": "Agente que trabaja en un contexto aislado por encargo del hilo principal y devuelve un resultado; no puede preguntar al usuario."
+  },
+  {
+   "t": "Suite en vivo (suite.py / vivo.py)",
+   "d": "Pruebas con Claude Code real: `vivo.py` ejecuta un turno y registra skills, agentes, comandos y negaciones; `suite.py` corre enrutamiento, guardarraíles e idioma sobre un proyecto de prueba y deja un informe. Consume tokens. Con `escenarios.py` agrega pruebas de robustez y con `--modelo` repite todo con otro modelo."
+  },
+  {
+   "t": "SUS (System Usability Scale)",
+   "d": "Cuestionario estándar de 10 preguntas que da una puntuación de usabilidad de 0 a 100; el piloto pide 68 o más para adoptar."
+  },
+  {
+   "t": "Tap (Hermes)",
+   "d": "Repositorio registrado como fuente de skills con `hermes skills tap add owner/repo`."
+  },
+  {
+   "t": "Tolerancia",
+   "d": "Margen permitido por dimensión (tiempo, costo, alcance, calidad, beneficios, riesgo, sostenibilidad) antes de escalar; de proyecto (capa de negocio) y de etapa (junta)."
+  },
+  {
+   "t": "Transcripción VTT/SRT",
+   "d": "Formatos de subtítulos con marcas de tiempo; `transcripcion.py` los normaliza (también TXT y DOCX)."
+  },
+  {
+   "t": "TUI",
+   "d": "Interfaz de usuario en modo texto dentro de la terminal (p. ej., la de Claude Code o Hermes). Orca no es una TUI: es gráfica y contiene terminales."
+  },
+  {
+   "t": "VAC_pct / sobrecosto_pct",
+   "d": "Salidas de `evm.py`: desde v2.1 `VAC_pct` conserva el signo de VAC (negativo = sobrecosto) y `sobrecosto_pct` expresa en positivo el desvío previsto contra el BAC."
+  },
+  {
+   "t": "Validador del paquete (validar_paquete.py)",
+   "d": "Comprobación estructural del paquete: frontmatter, tamaños, descripciones, referencias, agentes, hooks, versiones alineadas y presupuesto del listado."
+  },
+  {
+   "t": "validar_mermaid.py",
+   "d": "Script de mantenimiento que revisa los bloques Mermaid (errores que GitHub no renderiza) y los renderiza con mmdc para comprobarlos."
+  },
+  {
+   "t": "VAN / TIR / payback",
+   "d": "Valor actual neto, tasa interna de retorno y periodo de recuperación: técnicas del business case."
+  },
+  {
+   "t": "Variación de modelo",
+   "d": "Repetición de las pruebas en vivo con otro modelo (`--modelo sonnet` o `haiku`) para ver cuánto depende el comportamiento del modelo elegido."
+  },
+  {
+   "t": "Veredicto PASS / CONCERNS / FAIL",
+   "d": "Resultado del gate de preparación de BMAD: PASS (listo), CONCERNS (listo con reparos) o FAIL (no listo). En la puerta de etapa, FAIL bloquea, CONCERNS queda como condición y la falta de veredicto es un aviso."
+  },
+  {
+   "t": "Verificación de puerta",
+   "d": "Comprobación previa a una decisión de la junta, en tres capas: salud del proyecto (`sanidad.py --rapido`), controles automáticos de PRINCE2 y de BMAD (`puertas.py verificar`) y lista de control confirmada por una persona con rol. Lo que falla se clasifica como bloqueo, condición o aviso."
+  },
+  {
+   "t": "Versión mínima efectiva de Node.js",
+   "d": "Mayor de los mínimos que declaran los componentes opcionales (`engines`): para cubrir todos, Node.js ≥ 22.20."
+  },
+  {
+   "t": "Work IQ",
+   "d": "Servidor que Microsoft recomienda en lugar del \"Teams (preview)\" MCP, marcado como legado (relevado al 17/10/2026)."
+  },
+  {
+   "t": "worktree (git)",
+   "d": "Copia de trabajo adicional de un mismo repositorio git en otra carpeta y rama; permite que varios agentes trabajen en paralelo sin pisarse."
+  },
+  {
+   "t": "Épica / historia",
+   "d": "Unidades de alcance del backlog: una épica agrupa historias; en BMAD las historias tienen clave `épica-historia-slug`."
+  }
+ ],
+ "fuentes_internas": [
+  [
+   "README.md",
+   "presentación, resumen ejecutivo, diagramas, componentes, dependencias, calidad verificada, estructura"
+  ],
+  [
+   "CHANGELOG.md",
+   "novedades de la versión 2.1.0, incluidos los ajustes tras las pruebas de robustez"
+  ],
+  [
+   "CLAUDE.md · AGENTS.md",
+   "reglas del autor y flujo de trabajo para seguir desarrollando el paquete"
+  ],
+  [
+   "SPEC.md",
+   "§0 capas, §1.10 convenciones, §1.11 agentes, §1.12 MCP, §1.13 BMAD, §1.14 colisiones, §1.15 comandos, §1.16 sincronización, §1.17 sanidad"
+  ],
+  [
+   "compatibilidad.json",
+   "versiones probadas de BMAD, dependencias, clientes"
+  ],
+  [
+   "docs/INSTALACION.md",
+   "GitHub, requisitos por sistema operativo, plugin, copia manual, Cowork, Hermes, BMAD, Python, MCP, skills externas, configuración, verificación de 12 pasos, hooks, actualización, problemas"
+  ],
+  [
+   "docs/RESUMEN-EJECUTIVO.md",
+   "propuesta, problema, capacidades, valor diferencial, audiencias, evidencia y límites"
+  ],
+  [
+   "docs/INDICE.md",
+   "rutas de lectura por perfil, documentos, diagramas, pruebas y evidencia, pendientes"
+  ],
+  [
+   "docs/DEPENDENCIAS.md",
+   "dependencias con nivel, versión probada, licencia, URL de origen e instalación; verificación"
+  ],
+  [
+   "docs/ARQUITECTURA.md",
+   "capas, precedencia, agentes vs subagentes, scripts, comandos, carga progresiva, evaluación"
+  ],
+  [
+   "docs/sincronizacion.md",
+   "fuente única, fachada, traspaso, líneas base, matriz lee/escribe, modos de falla"
+  ],
+  [
+   "docs/SANIDAD.md",
+   "controles, códigos, hooks, regla de puerta, validador, pruebas, mantenimiento, limitaciones"
+  ],
+  [
+   "docs/INTEGRACIONES.md",
+   "dependencias, decisiones por candidato, contratos, cómo agregar una integración"
+  ],
+  [
+   "docs/RACI.md",
+   "matriz principal, decisiones sensibles, verificación"
+  ],
+  [
+   "docs/CATALOGO.md",
+   "comandos, agentes, fichas de las 37 skills, scripts"
+  ],
+  [
+   "docs/CASOS-DE-USO.md",
+   "un caso por skill y tres variantes"
+  ],
+  [
+   "docs/CASOS-DE-USO-INTEGRACIONES.md",
+   "un caso por repositorio integrado y matriz de cierre"
+  ],
+  [
+   "docs/CASO-MAESTRO.md",
+   "caso de punta a punta con cifras reales"
+  ],
+  [
+   "docs/PRUEBAS.md",
+   "niveles de prueba, regresión A–F, suite en vivo y escenarios de robustez, variación de modelo, resultados y aceptación"
+  ],
+  [
+   "docs/PILOTO.md",
+   "plan de piloto: preguntas, fases, métricas, rúbrica experta, usabilidad (SUS), riesgos y criterios de decisión"
+  ],
+  [
+   "docs/PUERTAS.md",
+   "ciclo de vida integrado PRINCE2 + BMAD, verificación de puertas en tres capas, controles por puerta y de BMAD, registro de la decisión, comandos"
+  ],
+  [
+   "docs/colisiones.md",
+   "dueños únicos, pistas de alcance, evaluación de enrutamiento"
+  ],
+  [
+   "docs/ejemplos/",
+   "traspaso C-001, informe de sanidad, WBS en Mermaid y salidas reales de integraciones"
+  ],
+  [
+   "docs/diagramas/",
+   "cinco diagramas Mermaid oficiales (.mmd y .svg)"
+  ],
+  [
+   "docs/evaluacion/",
+   "60 frases de enrutamiento e informes de pruebas en vivo v2.0 y v2.1"
+  ],
+  [
+   "agents/*.md",
+   "definición de los 6 agentes"
+  ],
+  [
+   "Registro de hechos v2 (17/10/2026)",
+   "cifras del paquete, hechos verificados en documentación oficial, decisiones de integración, defectos corregidos en E2E"
+  ]
+ ],
+ "fuentes_externas": [
+  {
+   "g": "Claude Code y Cowork",
+   "u": [
+    "https://code.claude.com/docs/en/skills.md",
+    "https://code.claude.com/docs/en/settings.md",
+    "https://code.claude.com/docs/en/server-managed-settings.md",
+    "https://code.claude.com/docs/en/plugins/org.md",
+    "https://support.claude.com/en/articles/12512198-use-custom-skills",
+    "https://support.claude.com/en/articles/13345190-get-started-with-claude-cowork",
+    "https://claude.com/blog/cowork-plugins-across-enterprise"
+   ]
+  },
+  {
+   "g": "Hermes Agent",
+   "u": [
+    "https://github.com/NousResearch/hermes-agent",
+    "https://hermes-agent.nousresearch.com/docs/user-guide/features/skills",
+    "https://hermes-agent.nousresearch.com/docs/developer-guide/creating-skills",
+    "https://hermes-agent.nousresearch.com/docs/user-guide/configuration",
+    "https://hermes-agent.nousresearch.com/docs/user-guide/profiles",
+    "https://hermes-agent.nousresearch.com/docs/user-guide/features/context-files",
+    "https://hermes-agent.nousresearch.com/docs/user-guide/features/cron",
+    "https://hermes-agent.nousresearch.com/docs/user-guide/features/kanban"
+   ]
+  },
+  {
+   "g": "BMAD",
+   "u": [
+    "https://github.com/bmad-code-org/BMAD-METHOD",
+    "https://mintlify.wiki/bmad-code-org/BMAD-METHOD/installation"
+   ]
+  },
+  {
+   "g": "Cronograma (MSPDI, MPXJ, utf8proj)",
+   "u": [
+    "https://pypi.org/project/mpxj/",
+    "https://github.com/joniles/mpxj",
+    "https://github.com/alanbld/utf8proj"
+   ]
+  },
+  {
+   "g": "MCP de trackers, chat, reuniones y OKR",
+   "u": [
+    "https://support.atlassian.com/rovo/docs/getting-started-with-the-atlassian-remote-mcp-server/",
+    "https://github.com/atlassian/atlassian-mcp-server",
+    "https://mcp.slack.com/mcp",
+    "https://github.com/silverstein/minutes",
+    "https://guides.tability.io/docs/become-a-tability-power-user/integrations/tability-mcp-server",
+    "https://github.com/operately/operately",
+    "https://github.com/phuryn/pm-skills"
+   ]
+  },
+  {
+   "g": "Skills y herramientas visuales evaluadas",
+   "u": [
+    "https://github.com/tt-a1i/archify",
+    "https://github.com/cathrynlavery/diagram-design",
+    "https://github.com/nicobailon/visual-explainer",
+    "https://github.com/jgraph/drawio-mcp",
+    "https://github.com/anthropics/skills",
+    "https://github.com/anthropics/knowledge-work-plugins",
+    "https://alirezarezvani.github.io/claude-skills/skills/project-management/meeting-analyzer/",
+    "https://github.com/MichaelFowler1/cost-risk-toolkit"
+   ]
+  }
+ ],
+ "fuentes_nota": "Las URL externas provienen del registro de fuentes del informe 1 (relevadas entre el 13 y el 17/10/2026) y del propio paquete. Los hechos sobre subagentes, hooks, plugins y marketplaces de Claude Code, sobre Microsoft Teams/Work IQ, Granola, Fireflies y Zoom MCP se verificaron en documentación oficial el 17/10/2026 según el registro de hechos v2, que no conserva la URL exacta de cada página; no se agregan URL no registradas."
+}

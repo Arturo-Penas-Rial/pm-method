@@ -42,9 +42,10 @@ gantt
     title Paquete W-{{codigo}}
     excludes weekends
     section {{persona_1}}
-    {{tarea_1}} :{{id_1}}, {{inicio_1}}, {{fin_1}}
+    %% Reemplazar los valores de ejemplo: ids t1, t2 = {{id_1}}, {{id_2}} · 2026-01-05/2026-01-09 = {{inicio_1}}/{{fin_1}} · 3d = {{duracion_2}}d
+    {{tarea_1}} :t1, 2026-01-05, 2026-01-09
     section {{persona_2}}
-    {{tarea_2}} :{{id_2}}, after {{id_1}}, {{duracion_2}}d
+    {{tarea_2}} :t2, after t1, 3d
 ```
 *Una sección por persona ayuda a ver sobreasignaciones; opcional si se usa Kanban.*
 

@@ -1,7 +1,7 @@
 ---
 name: pm-cronograma-estimacion
 description: "Estimación y cronograma: PERT, puntos, CPM, Gantt, hitos, MS Project (MSPDI). Usar: estimar, cronograma, camino crítico, Gantt, schedule, critical path. No: presupuesto→pm-costos-presupuesto."
-version: 2.0.0
+version: 2.1.0
 author: pm-method
 license: MIT
 metadata:
@@ -25,7 +25,7 @@ metadata:
 - EN: export the schedule as MS Project XML (MSPDI) or plan sprints from velocity.
 
 ## Idioma
-Responder y generar en el idioma del usuario (o `estado.json.idioma`); plantillas bilingües. Equivalencias: esfuerzo (effort), camino crítico (critical path), holgura (float), hito (milestone), intensificación (crashing), ejecución rápida (fast tracking). Columnas de `actividades.csv`: ver `references/guia.md` §3.
+**Idioma · Language:** responder siempre en el idioma en que escribe el usuario (English request → English reply); los artefactos van en `estado.json.idioma` salvo que el usuario pida otro. plantillas bilingües. Equivalencias: esfuerzo (effort), camino crítico (critical path), holgura (float), hito (milestone), intensificación (crashing), ejecución rápida (fast tracking). Columnas de `actividades.csv`: ver `references/guia.md` §3.
 
 ## Conocimiento
 - `references/guia.md` (esta skill): §1 técnica de estimación, §2 fórmulas, §3 `cpm.py` y CSV, §4 export MSPDI, §5 herramientas externas, §6 compresión, §7 reservas, hitos y plan de equipo, §8 mínima vs. completa, §9 reglas complementarias.
@@ -37,9 +37,9 @@ Responder y generar en el idioma del usuario (o `estado.json.idioma`); plantilla
 - `estado.json`: `enfoque_entrega`, `etapa_actual`, tolerancias de tiempo (proyecto y etapa), `agil.cadencia_iteracion_dias`, `agil.velocidad_referencia`, `integraciones.cronograma` (`cpm` por defecto o `mspdi`).
 - **Predictivo/híbrido**: `02-planificacion/wbs.csv` (o `pbs-wbs.md`) y `diccionario-wbs.md` con paquetes y responsables; `flujo-productos.md` con dependencias. Si faltan → `pm-planificacion-por-productos`.
 - **Ágil (perfil mínimo, SPEC §1.10.12)**: `02-planificacion/backlog.csv` (puntos, MoSCoW, release) y cadencia.
-- **Especificación (fuente única, SPEC §1.16)**: épicas, historias, estados y estimación de gobierno solo vía `python3 <pm-estado-proyecto>/scripts/especificacion.py --proyecto <dir> resumen|consultar <id>|listar historias|epicas` (igual con o sin BMAD; nunca abrir BMAD ni `requisitos.md`). Escribe como dueña: `actividades.csv` y cronograma, que citan ids.
+- **Especificación (fuente única, SPEC §1.16)**: épicas, historias, estados y estimación de gobierno solo vía `python3 ${CLAUDE_SKILL_DIR}/../pm-estado-proyecto/scripts/especificacion.py --proyecto <dir> resumen|consultar <id>|listar historias|epicas` (igual con o sin BMAD; nunca abrir BMAD ni `requisitos.md`). Escribe como dueña: `actividades.csv` y cronograma, que citan ids.
 - Restricción de fecha del mandato; calendario y disponibilidad (si faltan, supuestos de §9 `[por confirmar]`); históricos, lecciones y riesgos.
-- Python 3 para `cpm.py`. MS Project, ProjectLibre, utf8proj o MPXJ son opcionales y externos.
+- Python 3 para `cpm.py`. MS Project, ProjectLibre o MPXJ son opcionales y externos (utf8proj se evaluó y no se incorpora: inmaduro).
 
 ## Procedimiento
 1. **Situar y elegir nivel**: plan de proyecto (semanas, recursos por habilidad), etapa (días, personas) o equipo (tareas). Proponer versión mínima o completa (`references/guia.md` §8) y confirmar.
@@ -47,7 +47,7 @@ Responder y generar en el idioma del usuario (o `estado.json.idioma`); plantilla
 3. **Estimar** eligiendo y declarando la técnica por actividad (§1); en `hoja-estimacion.md` cálculo, supuestos, confianza y estimador; PERT siempre en lo crítico. Quien hará el trabajo valida.
 4. **Esfuerzo → duración**: `duración = esfuerzo / (recursos × % disponible × factor de desempeño)` (§2); la reserva nunca dentro del estimado base.
 5. **Secuenciar**: predecesoras (FS; lags `id+N`/`id-N`), dependencias clasificadas, volcado a `actividades.csv` (`id,nombre,duracion,predecesoras,recurso,wbs`); reglas del CSV en §3.
-6. **Camino crítico**: `python3 <pm-estado-proyecto>/scripts/cpm.py 02-planificacion/actividades.csv --inicio AAAA-MM-DD --mermaid 02-planificacion/gantt.md`; llevar a `cronograma.md` ES/EF/LS/LF, HT, HL, camino crítico y carga por recurso. Con SS/FF/SF, feriados o nivelación automática, usar una herramienta externa (§5) y declararlo.
+6. **Camino crítico**: `python3 ${CLAUDE_SKILL_DIR}/../pm-estado-proyecto/scripts/cpm.py 02-planificacion/actividades.csv --inicio AAAA-MM-DD --mermaid 02-planificacion/gantt.md`; llevar a `cronograma.md` ES/EF/LS/LF, HT, HL, camino crítico y carga por recurso. Con SS/FF/SF, feriados o nivelación automática, usar una herramienta externa (§5) y declararlo.
 7. **Nivelar o alisar** sobreasignaciones (alisar no mueve el fin; nivelar puede moverlo) y documentar.
 8. **Si el fin supera la restricción o la tolerancia de tiempo**: evaluar ejecución rápida, intensificación, MoSCoW y recursos, recalculando cada vez (§6). Si nada entra, el plan **no** se presenta como aprobable: decisión de la junta vía `pm-director`.
 9. **Reservas**: σ del camino con PERT, 1σ o 2σ según apetito de riesgo, visible y ligada a riesgos (§7).

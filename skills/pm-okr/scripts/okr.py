@@ -44,7 +44,7 @@ def main():
         elif meta == base: avisos.append(f"{f['id']}: meta igual a la línea base"); score = None
         else: score = None if act is None else max(0.0, min(1.0, (act - base) / (meta - base)))
         # sin medición todavía: dejar 'actual' vacío (sin-dato), no copiar la línea base (daría rojo)
-        if not re.search(r"\b(B|SM|OBJ)-?\d+", f.get("vinculo") or ""): avisos.append(f"{f['id']}: sin vínculo a beneficio (B-n), métrica de éxito (SM-n) u objetivo de negocio (OBJ-n)")
+        if not re.search(r"\b(B|SM|SM-C|OBJ)-?\d+", f.get("vinculo") or ""): avisos.append(f"{f['id']}: sin vínculo a beneficio (B-n), métrica de éxito (SM-n) u objetivo de negocio (OBJ-n)")
         if not f.get("responsable"): avisos.append(f"{f['id']}: sin responsable")
         if f.get("fecha_meta") and f["fecha_meta"] < a.corte and (score is None or score < 1): avisos.append(f"{f['id']}: fecha meta vencida sin cumplir")
         o["krs"].append({**f, "puntuacion": score})

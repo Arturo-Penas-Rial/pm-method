@@ -41,7 +41,8 @@ def calcular(pv, ev, ac, bac, metodo="tendencia", tol_costo=None, tol_plazo=None
     eac = r.get(f"EAC_{metodo}") or r["EAC_atipico"]
     r["EAC_usado"] = metodo; r["EAC"] = eac
     r["ETC"] = eac - ac; r["VAC"] = bac - eac
-    r["VAC_pct"] = (eac - bac) / bac * 100 if bac else None
+    r["VAC_pct"] = (bac - eac) / bac * 100 if bac else None          # mismo signo que VAC (negativo = sobrecosto)
+    r["sobrecosto_pct"] = (eac - bac) / bac * 100 if bac else None   # desvío previsto contra BAC (positivo = sobrecosto)
     r["TCPI_bac"] = (bac - ev) / (bac - ac) if bac != ac else None
     r["TCPI_eac"] = (bac - ev) / (eac - ac) if eac != ac else None
     r["SV_pct_del_PV"] = (pv - ev) / pv * 100 if pv else None
@@ -53,9 +54,9 @@ def calcular(pv, ev, ac, bac, metodo="tendencia", tol_costo=None, tol_plazo=None
         if desvio_pct is None: return "sin-dato"
         if desvio_pct <= 0.5 * tol: return "verde"
         return "ambar" if desvio_pct <= tol else "rojo"
-    r["semaforo_costo"] = por_tolerancia(max(r["VAC_pct"] or 0, 0), tol_costo) if tol_costo is not None else por_indice(r["CPI"])
+    r["semaforo_costo"] = por_tolerancia(max(r["sobrecosto_pct"] or 0, 0), tol_costo) if tol_costo is not None else por_indice(r["CPI"])
     r["semaforo_cronograma"] = por_tolerancia(max(r["SV_pct_del_PV"] or 0, 0), tol_plazo) if tol_plazo is not None else por_indice(r["SPI"])
-    r["base_semaforo"] = ("tolerancias" if tol_costo is not None or tol_plazo is not None else "indices-0.95-0.85")
+    r["base_semaforo"] = f"costo:{'tolerancia' if tol_costo is not None else 'indice-0.95-0.85'};cronograma:{'tolerancia' if tol_plazo is not None else 'indice-0.95-0.85'}"
     r["excepcion_prevista"] = "rojo" in (r["semaforo_costo"], r["semaforo_cronograma"])
     return r
 
@@ -97,6 +98,9 @@ def main():
             m = re.search(r"(\d+(?:[.,]\d+)?)\s*%", str(v or "")); return float(m.group(1).replace(",", ".")) if m else None
         if a.tol_costo is None: a.tol_costo = pct(tol.get("costo"))
         if a.tol_plazo is None: a.tol_plazo = pct(tol.get("tiempo"))
+        for k, v in (("costo", a.tol_costo), ("tiempo", a.tol_plazo)):
+            if v is None and tol.get(k):
+                print(f"AVISO: la tolerancia de {k} '{tol.get(k)}' no está en %; convertirla y pasarla con --tol-{'costo' if k == 'costo' else 'plazo'} (se usan índices).", file=sys.stderr)
     a.idioma = a.idioma or "es"
     filas = []
     if a.csv:
@@ -121,7 +125,7 @@ def main():
     for r in filas:
         if r.get("periodo"): print(f"== {r['periodo']} ==")
         for k in ["PV", "EV", "AC", "BAC", "SV", "CV", "SPI", "CPI", "pct_completado", "pct_gastado", "EAC_tendencia", "EAC_atipico",
-                  "EAC_compuesto", "EAC_usado", "ETC", "VAC", "VAC_pct", "TCPI_bac", "TCPI_eac", "semaforo_cronograma", "semaforo_costo",
+                  "EAC_compuesto", "EAC_usado", "ETC", "VAC", "VAC_pct", "sobrecosto_pct", "TCPI_bac", "TCPI_eac", "semaforo_cronograma", "semaforo_costo",
                   "base_semaforo", "alcance_no_entregable_pct", "semaforo_alcance", "excepcion_prevista"]:
             if k not in r: continue
             v = r[k]; print(f"{k:22s} {v:,.3f}" if isinstance(v, float) else f"{k:22s} {v}")

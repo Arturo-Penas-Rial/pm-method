@@ -1,7 +1,7 @@
 ---
 name: pm-registros
 description: "Registros genéricos (supuestos, decisiones, acciones, diario) y clasificación. Usar: registrar, anotar, acción, supuesto, RAID, action log. No: riesgos→pm-riesgos; issues/cambios→pm-issues-cambios."
-version: 2.0.0
+version: 2.1.0
 author: pm-method
 license: MIT
 metadata:
@@ -25,16 +25,16 @@ metadata:
 - EN: run the periodic register review or build the register summary for a report.
 
 ## Idioma
-Idioma del usuario. Archivos y cabeceras en español técnico (`snake_case`); enumeraciones en minúsculas sin acentos (se aceptan alias en inglés). Primera mención con el EN: riesgos (risk register), issues (issue register), cambios (change log), decisiones (decision log), supuestos (assumption log), lecciones (lessons log), stakeholders (stakeholder register), calidad (quality register), acciones (action log), diario (daily log). Traducción por columna: `templates/guia-registros.md`.
+**Idioma · Language:** responder siempre en el idioma en que escribe el usuario (English request → English reply); los artefactos van en `estado.json.idioma` salvo que el usuario pida otro. Archivos y cabeceras en español técnico (`snake_case`); enumeraciones en minúsculas sin acentos (se aceptan alias en inglés). Primera mención con el EN: riesgos (risk register), issues (issue register), cambios (change log), decisiones (decision log), supuestos (assumption log), lecciones (lessons log), stakeholders (stakeholder register), calidad (quality register), acciones (action log), diario (daily log). Traducción por columna: `templates/guia-registros.md`.
 
 ## Conocimiento
 - `references/guia.md` (este skill): §1 clasificación, §2 redacción, §3 escritura, §4 cierre, §5 migraciones, §6 revisión periódica, §7 resumen, §8 reglas extendidas.
-- `templates/guia-registros.md`: columnas, valores permitidos, estados iniciales y transiciones (= `<pm-estado-proyecto>/scripts/esquema.py`).
+- `templates/guia-registros.md`: columnas, valores permitidos, estados iniciales y transiciones (= `${CLAUDE_SKILL_DIR}/../pm-estado-proyecto/scripts/esquema.py`).
 - `pm-knowledge/references/prince2-practicas-riesgo-issues-progreso-productos.md` — `### 3.a` (tipos de issue y frontera con riesgo), `### 3.d` (registro de issues), `### 7.1` y `### 7.4` (clasificación y qué registrar).
 - `pm-knowledge/references/plantillas-documentos-registros-reportes.md` — `# PARTE II` (fichas 19–26), `## 46.` (transiciones entre estados), `## 47.`–`## 52.` (reglas operativas).
 
 ## Entradas requeridas
-- Carpeta con `estado.json` y `03-control/registros/*.csv` (creados por `<pm-estado-proyecto>/scripts/nuevo_proyecto.py`); si no existen, `pm-estado-proyecto` primero.
+- Carpeta con `estado.json` y `03-control/registros/*.csv` (creados por `${CLAUDE_SKILL_DIR}/../pm-estado-proyecto/scripts/nuevo_proyecto.py`); si no existen, `pm-estado-proyecto` primero.
 - `estado.json`: enfoque, tolerancias, `roles.autoridad_cambio`, `etapa_actual` (para saber si algo excede la autoridad del gestor).
 - Preguntar lo mínimo para clasificar: ¿ya ocurrió o podría ocurrir? ¿pide cambiar algo aprobado? ¿quién lo detectó y quién decide? Sin propietario, preguntarlo; no inventarlo.
 - Integraciones opcionales: si hay un tracker conectado, se sincroniza vía `pm-integraciones` solo con confirmación; los CSV siguen siendo la fuente de verdad. Acciones de reuniones llegan de `pm-reuniones`.
@@ -44,7 +44,7 @@ Idioma del usuario. Archivos y cabeceras en español técnico (`snake_case`); en
 2. **Clasificar antes de registrar** con la tabla de la guía §1: un único registro destino; nunca el mismo hecho en dos registros sin referencia cruzada. Riesgos y issues/cambios se registran aquí solo como fila; su análisis y decisión son de `pm-riesgos` y `pm-issues-cambios`.
 3. **Formal vs. informal**: ¿impacto material? ¿modifica una línea base? ¿decide alguien distinto de quien lo detectó? Un "sí" → registro formal; tres "no" → `diario.md`. Solicitud de cambio y fuera de especificación, siempre formales.
 4. **Redactar la fila** con los campos de calidad de cada registro (guía §2).
-5. **Escribir** con `python3 <pm-estado-proyecto>/scripts/registro.py --proyecto <dir> agregar <registro> --campo k=v …`; ante dudas, `registro.py esquema <registro>`. Corregir valores rechazados en lugar de `--forzar` (guía §3). Mostrar el id y marcar `[por confirmar]` lo no aportado.
+5. **Escribir** con `python3 ${CLAUDE_SKILL_DIR}/../pm-estado-proyecto/scripts/registro.py --proyecto <dir> agregar <registro> --campo k=v …`; ante dudas, `registro.py esquema <registro>`. Corregir valores rechazados en lugar de `--forzar` (guía §3). Mostrar el id y marcar `[por confirmar]` lo no aportado.
 6. **Actualizar, nunca borrar**: `registro.py actualizar <registro> <id> --campo estado=.. --campo notas=..`; cerrar solo con decisión, decisor y fecha (guía §4).
 7. **Migrar** con referencia cruzada en ambos extremos y estado de origen actualizado (guía §5). Con BMAD, un desvío del PRD es `solicitud-cambio` citando ids, sin duplicar requisitos.
 8. **🔒 Puerta humana** para cierres y decisiones relevantes: el agente propone; el gestor, la autoridad de cambio o la junta confirman antes de escribir `estado=cerrado`, `decision=..` o filas de `decisiones.csv` de nivel `junta` o `autoridad-cambio`. Si excede la autoridad del gestor, dejar `escalado` o `pendiente-decision` y derivar. Las decisiones de puerta y aprobaciones las escribe `estado.py puerta|aprobar` (solo pm-director); no duplicarlas.

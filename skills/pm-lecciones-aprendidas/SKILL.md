@@ -1,7 +1,7 @@
 ---
 name: pm-lecciones-aprendidas
 description: "Lecciones aprendidas: lecciones.csv, taller de etapa, informe de lecciones. Usar: lección aprendida, lessons learned, lessons report, retro de etapa. No: retro de sprint→pm-agil-hibrido."
-version: 2.0.0
+version: 2.1.0
 author: pm-method
 license: MIT
 metadata:
@@ -25,7 +25,7 @@ metadata:
 - EN: consolidate stage or project lessons reports and raise improvement proposals to the PMO.
 
 ## Idioma
-Idioma del usuario (o `estado.json.idioma`). Primera mención con el término EN: registro de lecciones (lessons log), informe de lecciones (lessons report), reseña posterior a la acción (after-action review). Plantillas bilingües.
+**Idioma · Language:** responder siempre en el idioma en que escribe el usuario (English request → English reply); los artefactos van en `estado.json.idioma` salvo que el usuario pida otro. Primera mención con el término EN: registro de lecciones (lessons log), informe de lecciones (lessons report), reseña posterior a la acción (after-action review). Plantillas bilingües.
 
 ## Conocimiento
 - `references/guia.md` (este skill): §1 lecciones previas, §2 captura, §3 taller de etapa, §4 informe, §5 propuesta organizacional, §6 ciclo, §7 estados, §8 columnas, §9 reglas extendidas.
@@ -36,7 +36,7 @@ Idioma del usuario (o `estado.json.idioma`). Primera mención con el término EN
 - `pm-registros/templates/guia-registros.md` (columnas y estados válidos de `lecciones.csv`).
 
 ## Entradas requeridas
-- `estado.json` (fase, etapa, enfoque, roles) y `03-control/registros/lecciones.csv`; se opera con `python3 <pm-estado-proyecto>/scripts/registro.py --proyecto <dir> …`.
+- `estado.json` (fase, etapa, enfoque, roles) y `03-control/registros/lecciones.csv`; se opera con `python3 ${CLAUDE_SKILL_DIR}/../pm-estado-proyecto/scripts/registro.py --proyecto <dir> …`.
 - Para capturar: qué pasó (etapa o paquete), efecto, causa si se conoce, ids relacionados (R-, I-, C-, Q-).
 - Para el taller: etapa, participantes, facilitador, datos del período, acciones del taller anterior, retrospectivas de iteración y, si existen, actas o transcripciones normalizadas en `03-control/reuniones/` (`pm-reuniones`).
 - Para el informe: `lecciones.csv`, retrospectivas, registros, auditorías y cierres de contrato.

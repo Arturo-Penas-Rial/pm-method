@@ -49,9 +49,10 @@ idioma: "{{idioma}}"
 ```mermaid
 xychart-beta
     title "Curva S · PV acumulado ({{moneda}})"
-    x-axis [{{periodos}}]
-    y-axis "PV acumulado" 0 --> {{bac}}
-    line [{{pv_acumulados}}]
+    %% Reemplazar los valores de ejemplo: períodos = {{periodos}} · máximo del eje = {{bac}} · serie PV acumulada = {{pv_acumulados}}
+    x-axis ["P1", "P2", "P3", "P4"]
+    y-axis "PV acumulado" 0 --> 100
+    line [10, 35, 70, 100]
 ```
 *Lista de períodos entre corchetes y valores acumulados en el mismo orden. Con integración de gráficos configurada, pm-visuales puede producir la versión gráfica.*
 

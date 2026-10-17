@@ -1,7 +1,7 @@
 ---
 name: pm-adquisiciones
 description: "Adquisiciones y contratos: make-or-buy, estrategia, selección, contratistas, cierre. Usar: proveedor, licitación, RFP, contrato, procurement, vendor. No: costo del plan→pm-costos-presupuesto."
-version: 2.0.0
+version: 2.1.0
 author: pm-method
 license: MIT
 metadata:
@@ -24,7 +24,7 @@ metadata:
 - EN: contractor status reports, claims, procurement audit and contract closeout.
 
 ## Idioma
-Responder y generar en el idioma del usuario (o `estado.json.idioma`); plantillas bilingües. Nombrar la primera vez: estrategia de adquisiciones (procurement strategy), hacer o comprar (make-or-buy), informe de estado del contratista (contractor status report), reclamaciones (claims), cierre de contrato (contract closeout).
+**Idioma · Language:** responder siempre en el idioma en que escribe el usuario (English request → English reply); los artefactos van en `estado.json.idioma` salvo que el usuario pida otro. plantillas bilingües. Nombrar la primera vez: estrategia de adquisiciones (procurement strategy), hacer o comprar (make-or-buy), informe de estado del contratista (contractor status report), reclamaciones (claims), cierre de contrato (contract closeout).
 
 ## Conocimiento
 - `references/guia.md` (esta skill): §1 flujo, §2 hacer o comprar, §3 estrategia, §4 tipos de contrato, §5 selección y ética, §6 control del contrato, §7 cierre, §8 mínima vs. completa, §9 reglas complementarias.

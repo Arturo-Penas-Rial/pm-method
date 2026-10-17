@@ -57,9 +57,10 @@ quadrantChart
   quadrant-2 Mantener satisfecho / Keep satisfied
   quadrant-3 Monitorear / Monitor
   quadrant-4 Mantener informado / Keep informed
-  "{{st_1}}": [{{interes_1}}, {{poder_1}}]
-  "{{st_2}}": [{{interes_2}}, {{poder_2}}]
-  "{{st_3}}": [{{interes_3}}, {{poder_3}}]
+  %% Reemplazar los valores de ejemplo (0 a 1): [0.85, 0.90] = [{{interes_1}}, {{poder_1}}] · [0.30, 0.80] = [{{interes_2}}, {{poder_2}}] · [0.70, 0.25] = [{{interes_3}}, {{poder_3}}]
+  "{{st_1}}": [0.85, 0.90]
+  "{{st_2}}": [0.30, 0.80]
+  "{{st_3}}": [0.70, 0.25]
 ```
 *Estrategia por cuadrante en la matriz de comunicaciones. La actitud (a favor / neutral / en contra) se indica en una tabla aparte, no en el gráfico compartido.*
 
@@ -109,13 +110,14 @@ gantt
   dateFormat YYYY-MM-DD
   axisFormat %d-%m
   section {{seccion_1}}
-    {{actividad_1}} :crit, a1, {{inicio_1}}, {{duracion_1}}d
-    {{actividad_2}} :a2, after a1, {{duracion_2}}d
+    %% Reemplazar los valores de ejemplo: 2026-01-05 y 10d = {{inicio_1}} y {{duracion_1}}d · 5d, 8d = {{duracion_2}}d, {{duracion_3}}d · 2026-01-23 = {{fecha_hito_1}}
+    {{actividad_1}} :crit, a1, 2026-01-05, 10d
+    {{actividad_2}} :a2, after a1, 5d
   section {{seccion_2}}
-    {{actividad_3}} :crit, a3, after a1, {{duracion_3}}d
-    Hito / Milestone {{hito_1}} :milestone, m1, {{fecha_hito_1}}, 0d
+    {{actividad_3}} :crit, a3, after a1, 8d
+    Hito / Milestone {{hito_1}} :milestone, m1, 2026-01-23, 0d
 ```
-*Supuestos: días laborables, sin nivelación de recursos (cpm.py). Para SS/FF/SF o calendarios, utf8proj desde pm-cronograma-estimacion.*
+*Supuestos: días laborables, sin nivelación de recursos (cpm.py). Para SS/FF/SF o calendarios, MSPDI (`cpm.py --mspdi`) completado en MS Project o ProjectLibre, desde pm-cronograma-estimacion.*
 
 ## 6. Roadmap por etapas con puertas / Stage roadmap with gates
 *Fuente: plan de proyecto (etapas) y estado.json.puertas. Las puertas aparecen siempre entre etapas.*
@@ -141,15 +143,15 @@ timeline
 
 ```mermaid
 flowchart TD
-  D([Pronóstico de desviación / Forecast deviation]) --> Q1{¿Dentro de tolerancia del paquete?<br/>Within work package tolerance?<br/>{{tol_wp}}}
+  D([Pronóstico de desviación / Forecast deviation]) --> Q1{"¿Dentro de tolerancia del paquete?<br/>Within work package tolerance?<br/>{{tol_wp}}"}
   Q1 -- Sí / Yes --> T1[Gestor de equipo corrige<br/>Team manager corrects<br/>→ checkpoint]
   Q1 -- No --> I1[Issue al gestor del proyecto<br/>Issue to project manager]
-  I1 --> Q2{¿Dentro de tolerancia de etapa?<br/>Within stage tolerance?<br/>{{tol_etapa}}}
+  I1 --> Q2{"¿Dentro de tolerancia de etapa?<br/>Within stage tolerance?<br/>{{tol_etapa}}"}
   Q2 -- Sí / Yes --> T2[Gestor corrige<br/>PM corrects<br/>→ highlight report]
   Q2 -- No --> E1[Informe de excepción a la junta<br/>Exception report to board]
-  E1 --> Q3{¿Dentro de tolerancia de proyecto?<br/>Within project tolerance?<br/>{{tol_proyecto}}}
-  Q3 -- Sí / Yes --> J[Junta decide / Board decides:<br/>reasignar tolerancias · repriorizar · plan de excepción · esperar · cierre prematuro<br/>{{ejecutivo}}]
-  Q3 -- No --> N[Capa de negocio decide<br/>Business layer decides<br/>{{negocio}}]
+  E1 --> Q3{"¿Dentro de tolerancia de proyecto?<br/>Within project tolerance?<br/>{{tol_proyecto}}"}
+  Q3 -- Sí / Yes --> J["Junta decide / Board decides:<br/>reasignar tolerancias · repriorizar · plan de excepción · esperar · cierre prematuro<br/>{{ejecutivo}}"]
+  Q3 -- No --> N["Capa de negocio decide<br/>Business layer decides<br/>{{negocio}}"]
   N --> J
   J -->|plan de excepción / exception plan| SB[Límite de etapa · plan de excepción<br/>Stage boundary · exception plan] --> P([Puerta autorizar-plan-excepcion])
   T1 --> R([Registrar / Record])

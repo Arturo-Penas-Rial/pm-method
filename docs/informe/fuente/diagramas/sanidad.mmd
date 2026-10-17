@@ -1,0 +1,24 @@
+flowchart TB
+  subgraph Prevenir
+    G[guardian.py<br/>niega la escritura indebida]
+    S[estado.py / registro.py<br/>validan valores y transiciones]
+  end
+  subgraph Detectar
+    SA[sanidad.py<br/>INS · EST · ART · REG · ESP · INT]
+    V[bmad.py verificar]
+    I[inicio.py<br/>resumen al abrir sesión]
+  end
+  subgraph Decidir
+    P[pm-puerta / pm-director<br/>ERROR → corregir o condición]
+  end
+  subgraph Mantener
+    VP[validar_paquete.py]
+    PP[probar_paquete.py]
+    C[compatibilidad.json]
+  end
+  G --> SA
+  S --> SA
+  V --> SA
+  SA --> I
+  SA --> P
+  VP --> PP --> C

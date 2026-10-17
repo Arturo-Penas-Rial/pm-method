@@ -1,7 +1,7 @@
 # Guía de estado del proyecto y scripts · Project state and scripts guide
 
 Detalle de `pm-estado-proyecto`. El SKILL.md cita cada sección por número. Todos los scripts viven en
-`<pm-estado-proyecto>/scripts/` (SPEC §1.10.1) y se ejecutan desde cualquier carpeta con `--proyecto <dir>`
+`${CLAUDE_SKILL_DIR}/../pm-estado-proyecto/scripts/` (SPEC §1.10.1) y se ejecutan desde cualquier carpeta con `--proyecto <dir>`
 (salvo `cpm.py`, `wbs.py` y `evm.py` sin proyecto, que reciben archivos o cifras).
 
 ## 1. Modelo de puertas y transiciones · Gate and transition model
@@ -60,7 +60,7 @@ Se escriben con `estado.py integracion clave=valor …`. Ninguna integración es
 Markdown, Mermaid y scripts.
 
 ## 5. Opciones de los scripts
-Ruta `<pm-estado-proyecto>/scripts/` según instalación: plugin `${CLAUDE_PLUGIN_ROOT}/skills/pm-estado-proyecto/`, manual `~/.claude/skills/pm-estado-proyecto/`, Hermes `~/.hermes/skills/pm-estado-proyecto/`.
+Ruta `${CLAUDE_SKILL_DIR}/../pm-estado-proyecto/scripts/` según instalación: plugin `${CLAUDE_PLUGIN_ROOT}/skills/pm-estado-proyecto/`, manual `~/.claude/skills/pm-estado-proyecto/`, Hermes `~/.hermes/skills/pm-estado-proyecto/`.
 ### 5.1 `registro.py`
 `agregar <registro> --campo k=v …` (id, fecha y estado inicial automáticos; riesgos: puntuación P×I y EMV) ·
 `actualizar <registro> <id> --campo …` · `listar <registro> [--abiertos | --estado x] [--json]` ·

@@ -59,8 +59,9 @@ confidencial: si
 
 ```mermaid
 flowchart LR
-    {{s1_id}}["{{s1_nombre_corto}}"] -->|{{rel_1}}| {{s2_id}}["{{s2_nombre_corto}}"]
-    {{s2_id}} -->|{{rel_2}}| {{s3_id}}["{{s3_nombre_corto}}"]
+    %% ids S1, S2, S3 = {{s1_id}}, {{s2_id}}, {{s3_id}} (usar los ids ST-### sin guion: ST001)
+    S1["{{s1_nombre_corto}}"] -->|"{{rel_1}}"| S2["{{s2_nombre_corto}}"]
+    S2 -->|"{{rel_2}}"| S3["{{s3_nombre_corto}}"]
 ```
 *Grafo de influencia; solo cuando hay relaciones múltiples. `pm-visuales` puede mejorarlo si las integraciones lo permiten.*
 

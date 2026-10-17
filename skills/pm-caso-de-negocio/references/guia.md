@@ -45,7 +45,7 @@ Cuando `enfoque_entrega=agil` y el proyecto no supera el umbral de inversión. S
 
 Coherencia con `okr.csv`: cada KR ya declara en su columna `vinculo` el `B-n` o `SM-n` al que contribuye (lo valida `okr.py`). La columna "Refs SM / KR" del caso es la vista inversa: si un KR apunta a `B-01`, `B-01` debe citar ese KR; una diferencia es un hallazgo, no se corrige en silencio.
 
-Obtención de ids: `python3 <pm-bmad-puente>/scripts/bmad.py --proyecto <dir> requisitos` (filas tipo `SM` en `02-planificacion/especificacion/requisitos-bmad.csv`); KR desde `00-direccion/okr.csv` (o `okr.py` de `pm-okr`). Nunca copiar texto de definición; solo id y, si ayuda, un rótulo de cinco palabras.
+Obtención de ids: `python3 ${CLAUDE_SKILL_DIR}/../pm-bmad-puente/scripts/bmad.py --proyecto <dir> requisitos` (filas tipo `SM` en `02-planificacion/especificacion/requisitos-bmad.csv`); KR desde `00-direccion/okr.csv` (o `okr.py` de `pm-okr`). Nunca copiar texto de definición; solo id y, si ayuda, un rótulo de cinco palabras.
 
 En verificación de puerta y en confirmación de cierre, la última medición de la `SM-n` (informe de avance o fuente conectada vía `pm-integraciones`) o del KR se cita como evidencia del beneficio, con fecha y fuente.
 

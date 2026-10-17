@@ -17,7 +17,7 @@
 - Prioridad por poder × interés: `alto/alto` gestionar de cerca; `alto/bajo|medio` mantener satisfecho; `bajo|medio/alto` mantener informado; resto monitorear.
 - Cada interesado del registro en al menos una fila; la cadencia coincide con la del enfoque de comunicación (aquí no se redefinen políticas; ante conflicto prevalece el enfoque aprobado).
 - En ágil o híbrido, la revisión de iteración figura como evento recurrente (cadencia `agil.cadencia_iteracion_dias`).
-- Registro: `<pm-estado-proyecto>/scripts/estado.py --proyecto <dir> artefacto matriz-comunicaciones --ruta 02-planificacion/matriz-comunicaciones.md --estado en-revision`; tras el acto del ejecutivo, `estado.py aprobar matriz-comunicaciones --por "Ejecutivo: <nombre>"`. Dentro del PID, lo registra `pm-director` con la puerta.
+- Registro: `${CLAUDE_SKILL_DIR}/../pm-estado-proyecto/scripts/estado.py --proyecto <dir> artefacto matriz-comunicaciones --ruta 02-planificacion/matriz-comunicaciones.md --estado en-revision`; tras el acto del ejecutivo, `estado.py aprobar matriz-comunicaciones --por "Ejecutivo: <nombre>"`. Dentro del PID, lo registra `pm-director` con la puerta.
 - Al aprobarse: `registro.py actualizar stakeholders ST-### --campo canal=... --campo frecuencia=...`.
 - La matriz se revisa en cada límite de etapa y cuando cambian los influenciadores clave.
 
@@ -63,4 +63,4 @@
 - Versión mínima: matriz de cinco columnas y cuatro a seis filas; completa cuando el riesgo, el costo o la cantidad de stakeholders lo justifican.
 
 ## 9. Traspaso a pm-reuniones (v2)
-Hasta v1 esta skill producía actas, decisiones y acciones desde reuniones o transcripciones, con su guardarraíl de análisis de reuniones. Desde v2 esa responsabilidad, la plantilla `acta-reunion.md` y el análisis agregado de clima son de `pm-reuniones` (`<pm-reuniones>/templates/acta-reunion.md`, `<pm-reuniones>/scripts/transcripcion.py`). Pedidos de acta, minuta o transcripción se derivan allí; esta skill toma el acta confirmada como fuente de comunicados y correos de seguimiento.
+Hasta v1 esta skill producía actas, decisiones y acciones desde reuniones o transcripciones, con su guardarraíl de análisis de reuniones. Desde v2 esa responsabilidad, la plantilla `acta-reunion.md` y el análisis agregado de clima son de `pm-reuniones` (`<pm-reuniones>/templates/acta-reunion.md`, `${CLAUDE_SKILL_DIR}/../pm-reuniones/scripts/transcripcion.py`). Pedidos de acta, minuta o transcripción se derivan allí; esta skill toma el acta confirmada como fuente de comunicados y correos de seguimiento.

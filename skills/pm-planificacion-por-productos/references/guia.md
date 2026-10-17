@@ -30,7 +30,7 @@
 - ¿Qué requisitos regulatorios, de transición u operación hay que incluir como productos?
 
 ## 4. EDT/WBS con `wbs.py`
-Script: `python3 <pm-estado-proyecto>/scripts/wbs.py 02-planificacion/wbs.csv --titulo "<Proyecto>" --mermaid 02-planificacion/visuales/wbs.md --diccionario 02-planificacion/diccionario-wbs-esqueleto.md` (opciones `--json` para consumo por otra herramienta y `--profundidad N` para recortar el diagrama).
+Script: `python3 ${CLAUDE_SKILL_DIR}/../pm-estado-proyecto/scripts/wbs.py 02-planificacion/wbs.csv --titulo "<Proyecto>" --mermaid 02-planificacion/visuales/wbs.md --diccionario 02-planificacion/diccionario-wbs-esqueleto.md` (opciones `--json` para consumo por otra herramienta y `--profundidad N` para recortar el diagrama).
 
 Columnas de `wbs.csv` (plantilla `templates/wbs.csv`). EN: `codigo`=code, `nombre`=name, `tipo`=type (producto|paquete|hito = product|work package|milestone), `responsable`=owner, `esfuerzo_h`=effort hours, `costo`=cost, `ref`=requirement/story ids (siempre ids leídos de la fachada `especificacion.py`, nunca texto copiado).
 | Columna | Contenido | Regla |

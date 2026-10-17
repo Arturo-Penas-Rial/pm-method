@@ -1,7 +1,7 @@
 ---
 name: pm-okr
 description: "OKR del proyecto ligados a beneficios (B-n) y métricas de éxito (SM-n). Usar: OKR, objetivos y resultados clave, key results, puntuar OKR, Tability. No: beneficios o business case→pm-caso-de-negocio."
-version: 2.0.0
+version: 2.1.0
 author: pm-method
 license: MIT
 metadata:
@@ -25,7 +25,7 @@ metadata:
 - EN: prepare the OKR view for a stage boundary or a post-project benefits review.
 
 ## Idioma
-Responder y generar en el idioma del usuario (o `estado.json.idioma`). La plantilla usa etiquetas bilingües y `idioma: "{{idioma}}"`. Cabecera de `okr.csv` en snake_case: `id` (id), `tipo` (type: objetivo|kr), `objetivo_id` (parent objective), `enunciado` (statement), `metrica` (metric), `linea_base` (baseline), `meta` (target), `actual` (current), `unidad` (unit), `responsable` (owner), `fecha_meta` (due date), `vinculo` (link: B-n, SM-n, OBJ-n), `confianza` (confidence 1–10), `notas` (notes).
+**Idioma · Language:** responder siempre en el idioma en que escribe el usuario (English request → English reply); los artefactos van en `estado.json.idioma` salvo que el usuario pida otro. La plantilla usa etiquetas bilingües y `idioma: "{{idioma}}"`. Cabecera de `okr.csv` en snake_case: `id` (id), `tipo` (type: objetivo|kr), `objetivo_id` (parent objective), `enunciado` (statement), `metrica` (metric), `linea_base` (baseline), `meta` (target), `actual` (current), `unidad` (unit), `responsable` (owner), `fecha_meta` (due date), `vinculo` (link: B-n, SM-n, OBJ-n), `confianza` (confidence 1–10), `notas` (notes).
 
 ## Conocimiento
 - `references/guia.md` (este skill): §1 ubicación en PRINCE2, §2 redacción, §3 vínculos sin duplicar, §4 puntuación, §5 cadencia de revisión, §6 Tability, §7 BMAD, §8 casos borde.
@@ -36,12 +36,12 @@ Responder y generar en el idioma del usuario (o `estado.json.idioma`). La planti
 ## Entradas requeridas
 - `estado.json` y el business case (`business-case`) con objetivos de negocio numerados `OBJ-n` y beneficios `B-nn`. Si los objetivos no están numerados, proponer la numeración en el business case vía `pm-caso-de-negocio` (no en el OKR).
 - Enfoque de gestión de beneficios (`enfoque-beneficios`) si existe: de ahí salen dueños, medidas y fechas de medición.
-- **Especificación (fuente única, SPEC §1.16)**: métricas `SM-n` solo vía `python3 <pm-estado-proyecto>/scripts/especificacion.py --proyecto <dir> resumen|consultar <id>|listar requisitos` (igual con o sin BMAD; nunca abrir BMAD, `requisitos-bmad.csv` ni `requisitos.md`). Escribe como dueña: `00-direccion/okr.csv` y `okr.md`; los KR citan `B-nn`/`SM-n` por id, sin copiar texto.
+- **Especificación (fuente única, SPEC §1.16)**: métricas `SM-n` solo vía `python3 ${CLAUDE_SKILL_DIR}/../pm-estado-proyecto/scripts/especificacion.py --proyecto <dir> resumen|consultar <id>|listar requisitos` (igual con o sin BMAD; nunca abrir BMAD, `requisitos-bmad.csv` ni `requisitos.md`). Escribe como dueña: `00-direccion/okr.csv` y `okr.md`; los KR citan `B-nn`/`SM-n` por id, sin copiar texto.
 - Opcional: herramienta OKR conectada (`integraciones.okr = tability`) vía `pm-integraciones`.
 - Si falta el responsable del objetivo, preguntar al orquestador quién es el ejecutivo o el usuario sénior que lo asume.
 
 ## Procedimiento
-Script: `python3 <pm-okr>/scripts/okr.py <dir>/00-direccion/okr.csv ...` (en el plugin `${CLAUDE_PLUGIN_ROOT}/skills/pm-okr/scripts/okr.py`; en manual/Hermes, la carpeta instalada del skill).
+Script: `python3 ${CLAUDE_SKILL_DIR}/../pm-okr/scripts/okr.py <dir>/00-direccion/okr.csv ...` (en el plugin `${CLAUDE_PLUGIN_ROOT}/skills/pm-okr/scripts/okr.py`; en manual/Hermes, la carpeta instalada del skill).
 1. **Encuadrar**: confirmar que se trata de un instrumento de la capa de negocio y no de un producto de gestión PRINCE2 (ver `references/guia.md` §1). Leer business case, enfoque de beneficios y los SM-n (fachada `especificacion.py`).
 2. **Crear el registro**: si no existe, `okr.py --plantilla <dir>/00-direccion/okr.csv` (o copiar `templates/okr.csv`).
 3. **Redactar objetivos** (O-n): cualitativos, uno a tres, cada uno con `vinculo=OBJ-n` y responsable = ejecutivo o usuario sénior. Criterios en `references/guia.md` §2.

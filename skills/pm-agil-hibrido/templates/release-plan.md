@@ -53,12 +53,13 @@ gantt
     dateFormat YYYY-MM-DD
     title Releases e iteraciones · etapa {{numero_etapa}}
     section {{equipo_1}}
-    S1 {{objetivo_s1}} :s1, {{inicio_s1}}, {{dur}}d
-    S2 {{objetivo_s2}} :s2, after s1, {{dur}}d
+    %% Reemplazar los valores de ejemplo: inicio de S1 (2026-01-05) = {{inicio_s1}} · duración de iteración (14d) = {{dur}}d · fin de etapa (2026-03-02) = {{fin_etapa}}
+    S1 {{objetivo_s1}} :s1, 2026-01-05, 14d
+    S2 {{objetivo_s2}} :s2, after s1, 14d
     section Releases
     R1 {{objetivo_r1}} :milestone, r1, after s2, 0d
     section Puertas / Gates
-    Fin de etapa (SB) :milestone, sb, {{fin_etapa}}, 0d
+    Fin de etapa (SB) :milestone, sb, 2026-03-02, 0d
 ```
 *Una sección por equipo o flujo (carriles); releases y fin de etapa como hitos; en híbrido estos hitos se copian al cronograma maestro (cronograma.md).*
 

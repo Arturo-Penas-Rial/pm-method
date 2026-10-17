@@ -14,7 +14,7 @@ Equivalencias: límite de etapa (stage boundary, SB), informe de fin de etapa (e
 Transiciones sin puerta (las ejecuta `pm-control` o `pm-director`): `estado.py limite-etapa [--excepcion X-###]` (CS → SB) y `estado.py cierre [--prematuro]` (→ CP).
 
 Comandos de referencia (puerta y tolerancia: solo `pm-director`, tras la decisión humana):
-- `python3 <pm-estado-proyecto>/scripts/estado.py --proyecto <dir> puerta autorizar-etapa --decision aprobado|condicionado|rechazado --por "<rol: nombre>" [--etapa-nombre "..."] [--fin AAAA-MM-DD] [--condiciones "..."]` — avanza `etapa_actual` y escribe `decisiones.csv`.
+- `python3 ${CLAUDE_SKILL_DIR}/../pm-estado-proyecto/scripts/estado.py --proyecto <dir> puerta autorizar-etapa --decision aprobado|condicionado|rechazado --por "<rol: nombre>" [--etapa-nombre "..."] [--fin AAAA-MM-DD] [--condiciones "..."]` — avanza `etapa_actual` y escribe `decisiones.csv`.
 - `... tolerancia --nivel etapa tiempo="±10 días" costo="±8 %"`; `... tolerancia --nivel proyecto ...` (capa de negocio).
 - `... limite-etapa [--excepcion X-###]`; `... aprobar plan-proyecto --por "<rol: nombre>"`.
 - `estado.py etapa` queda solo para correcciones manuales: la puerta aprobada ya avanza la etapa.
@@ -48,8 +48,8 @@ Alcance de la etapa, dependencias, supuestos, lecciones incorporadas (de `leccio
 
 ## 8. BMAD en el límite de etapa
 Si `estado.json.integraciones.especificacion = bmad`, antes de pedir la puerta:
-1. `python3 <pm-bmad-puente>/scripts/bmad.py --proyecto <dir> verificar`: desvíos del PRD, arquitectura o épicas respecto de la línea base (ids agregados o retirados, contenido distinto) y Sprint Change Proposals nuevas. Cada desvío no tratado → issue `solicitud-cambio` en `pm-issues-cambios`; si hay solicitudes abiertas que afectan la etapa siguiente, se informan en el informe de fin de etapa y la junta decide (puede aprobar condicionado).
-2. Reales y cobertura por la fachada (SPEC §1.16): `python3 <pm-estado-proyecto>/scripts/especificacion.py --proyecto <dir> resumen` y `listar requisitos --json` (FR de la etapa siguiente con historia y paquete). Ningún dato se extrae abriendo archivos de BMAD.
+1. `python3 ${CLAUDE_SKILL_DIR}/../pm-bmad-puente/scripts/bmad.py --proyecto <dir> verificar`: desvíos del PRD, arquitectura o épicas respecto de la línea base (ids agregados o retirados, contenido distinto) y Sprint Change Proposals nuevas. Cada desvío no tratado → issue `solicitud-cambio` en `pm-issues-cambios`; si hay solicitudes abiertas que afectan la etapa siguiente, se informan en el informe de fin de etapa y la junta decide (puede aprobar condicionado).
+2. Reales y cobertura por la fachada (SPEC §1.16): `python3 ${CLAUDE_SKILL_DIR}/../pm-estado-proyecto/scripts/especificacion.py --proyecto <dir> resumen` y `listar requisitos --json` (FR de la etapa siguiente con historia y paquete). Ningún dato se extrae abriendo archivos de BMAD.
 2b. Traspasos pendientes: cada entrada de `estado.json.integraciones.bmad.handoffs` sin confirmación del equipo BMAD se informa en el informe de fin de etapa; un traspaso aplicado exige `verificar` limpio antes de la nueva línea base.
 3. Resultado del gate de preparación del sprint planning de BMAD (PASS/CONCERNS/FAIL): insumo de `autorizar-etapa`; CONCERNS o FAIL se presentan como riesgo o condición.
 4. La nueva línea base del PRD (si cambió con aprobación) la fija `pm-director` tras la puerta (`bmad.py linea-base`).

@@ -36,14 +36,14 @@ Columnas opcionales al final (esquema Parte V): `rol_usuario`, `categoria`, `id_
 
 ## 3. BMAD como fuente del backlog
 Si `estado.json.integraciones.especificacion = bmad`:
-- Las filas del backlog **las crea y actualiza** `python3 <pm-bmad-puente>/scripts/bmad.py --proyecto <dir> backlog` desde `epics.md` y `sprint-status.yaml`. Columnas derivadas (tipo, titulo, descripcion, estado, origen, refs, criterios_aceptacion) se sobrescriben en cada sincronización; columnas de gobierno (prioridad, moscow, estimacion, iteracion, release, producto_pbs) son de esta skill y del PO, y el puente nunca las toca. No se escriben historias a mano para ítems de BMAD ni se copian requisitos.
+- Las filas del backlog **las crea y actualiza** `python3 ${CLAUDE_SKILL_DIR}/../pm-bmad-puente/scripts/bmad.py --proyecto <dir> backlog` desde `epics.md` y `sprint-status.yaml`. Columnas derivadas (tipo, titulo, descripcion, estado, origen, refs, criterios_aceptacion) se sobrescriben en cada sincronización; columnas de gobierno (prioridad, moscow, estimacion, iteracion, release, producto_pbs) son de esta skill y del PO, y el puente nunca las toca. No se escriben historias a mano para ítems de BMAD ni se copian requisitos.
 - Historias nuevas en BMAD entran sin MoSCoW ni release: el PO las clasifica (decisión `nivel=product-owner` si caben en la tolerancia; si desplazan un Must, solicitud de cambio).
 - Historias `retirada-en-bmad`: el PO decide quitarlas o reponerlas vía cambio.
 - **Avance**: `bmad.py avance` agrega una fila a `03-control/reportes/avance-bmad.csv` (conteo por estado, épicas terminadas, % por puntos si hay `estimacion`). Velocidad, burn-up y EV salen de ahí (`done` = terminado; la DoD de BMAD incluye code review).
 - **Sprint = paquete de trabajo**: cada sprint de BMAD se autoriza como paquete (MP) con `pm-paquetes-trabajo`: alcance = historias del sprint, tolerancias, DoD.
 - **Gate de preparación del sprint planning de BMAD** (PASS/CONCERNS/FAIL): su resultado es insumo de `autorizar-etapa`; CONCERNS/FAIL se presentan como riesgo o condición al plan de etapa (`pm-plan-etapa-y-limites`).
 - Desvíos del PRD o Sprint Change Proposals → `bmad.py verificar` → `pm-issues-cambios`.
-- **Traspaso de prioridades** (SPEC §1.16): tras cambiar MoSCoW, release o iteración en `backlog.csv`, `python3 <pm-bmad-puente>/scripts/bmad.py --proyecto <dir> handoff` (sin `--cambio`) emite `handoff-bmad-<fecha>-prioridades.md` solo con las filas que cambiaron desde el último traspaso; es insumo del sprint planning de BMAD. Nunca se editan `epics.md` ni `sprint-status.yaml`.
+- **Traspaso de prioridades** (SPEC §1.16): tras cambiar MoSCoW, release o iteración en `backlog.csv`, `python3 ${CLAUDE_SKILL_DIR}/../pm-bmad-puente/scripts/bmad.py --proyecto <dir> handoff` (sin `--cambio`) emite `handoff-bmad-<fecha>-prioridades.md` solo con las filas que cambiaron desde el último traspaso; es insumo del sprint planning de BMAD. Nunca se editan `epics.md` ni `sprint-status.yaml`.
 
 ## 4. Mapa de ceremonias a controles
 | Ceremonia | Control PRINCE2 | Registro |
@@ -66,7 +66,7 @@ Si `estado.json.integraciones.especificacion = bmad`:
 ## 6. Fórmulas y EVM ágil
 - Velocidad = puntos terminados según DoD (promedio de las últimas 3). `iteraciones restantes ≈ puntos restantes / velocidad`.
 - Capacidad del release: `Σ puntos Must+Should ≤ velocidad × iteraciones`; si no, repriorizar, no estirar la iteración. Regla práctica: Must ≤ ~60 % de la capacidad (configurable).
-- EVM ágil (SPEC §1.10.7): PV = proporción de puntos planificados a la fecha × BAC; EV = proporción de puntos terminados × BAC; AC = costo real del equipo. `python3 <pm-estado-proyecto>/scripts/evm.py --pv .. --ev .. --ac .. --bac .. --modo agil --pct-no-must <% del alcance que es Should/Could> --proyecto <dir>`. EAC > BAC = alcance pronosticado que no entra; excepción solo si supera la porción Should/Could (los Must peligran).
+- EVM ágil (SPEC §1.10.7): PV = proporción de puntos planificados a la fecha × BAC; EV = proporción de puntos terminados × BAC; AC = costo real del equipo. `python3 ${CLAUDE_SKILL_DIR}/../pm-estado-proyecto/scripts/evm.py --pv .. --ev .. --ac .. --bac .. --modo agil --pct-no-must <% del alcance que es Should/Could> --proyecto <dir>`. EAC > BAC = alcance pronosticado que no entra; excepción solo si supera la porción Should/Could (los Must peligran).
 
 ## 7. Comandos de registro (los de `estado.json` los ejecuta `pm-director` tras confirmación)
 - `estado.py --proyecto <dir> agil cadencia_iteracion_dias=14 velocidad_referencia=30`; `estado.py rol product_owner="<nombre>"`.

@@ -1,6 +1,6 @@
 # Caso maestro · PRINCE2 como método, PMBOK como "cómo"
 
-Este documento recorre un proyecto completo con pm-method 2.0.0, desde el mandato hasta la revisión de beneficios. Cada paso muestra **qué momento de PRINCE2 se está viviendo**, **qué técnica del PMBOK se usa para resolverlo**, quién decide, el comando real que se ejecutó y lo que devolvió.
+Este documento recorre un proyecto completo con pm-method 2.1.0, desde el mandato hasta la revisión de beneficios. Cada paso muestra **qué momento de PRINCE2 se está viviendo**, **qué técnica del PMBOK se usa para resolverlo**, quién decide, el comando real que se ejecutó y lo que devolvió.
 
 La regla de fondo es la de `SPEC.md` §0: **PRINCE2 define qué se hace, cuándo y quién decide** (procesos, etapas, puertas, tolerancias). **El PMBOK solo aporta técnicas** (EVM, CPM, PERT, P×I, EMV, VAN…), que siempre se aplican dentro de un proceso, una práctica o un producto de PRINCE2. **BMAD**, cuando existe, es la capa que especifica el producto (PRD, arquitectura, épicas e historias) y pm-method la lee sin escribirla.
 
@@ -91,7 +91,7 @@ flowchart LR
 | Agente / skill | mantenedor |
 | Rol humano y decisión | ninguna |
 | Artefacto | `repo/` = copia de `scripts/pruebas/fixtures/bmad-v6` |
-| Resultado | `Skills: 37 (31 invocables por el modelo, listado 6160 caracteres) · Agentes: 6` → `OK` |
+| Resultado | `Skills: 37 (31 invocables por el modelo, listado 6289 caracteres) · Agentes: 6` → `OK` |
 
 ```bash
 python3 <pm-method>/scripts/validar_paquete.py
@@ -811,7 +811,7 @@ Proyecto cerrado. Pendiente fuera del proyecto: revisiones de beneficios según 
 ### Integridad al final
 
 - **BMAD:** al comparar las huellas sha256 del principio y del final, solo cambiaron los tres archivos que editó el "equipo BMAD": `prd.md`, `epics.md` y `sprint-status.yaml`. Ningún script de pm-method escribió en `_bmad*`.
-- **Regresión:** `scripts/probar_paquete.py` → **35 OK · 0 FALLO** (BMAD v6, BMAD v4 y sin BMAD).
+- **Regresión:** `scripts/probar_paquete.py` → **80 OK · 0 FALLO** (BMAD v6, v6.12.4 real, v4, sin BMAD, hook guardian, ciclo de puertas y regresiones).
 
 ---
 

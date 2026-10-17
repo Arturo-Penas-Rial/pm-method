@@ -1,7 +1,7 @@
 ---
 name: pm-calidad
-description: "Calidad y aceptación de productos. Usar: registro de calidad, revisión de calidad, criterios de aceptación, aceptar producto, quality audit, DoD. No: off-spec o concesión→pm-issues-cambios."
-version: 2.0.0
+description: "Calidad y aceptación de productos. Usar: registro de calidad, revisar o auditar la calidad de un entregable, criterios de aceptación, aceptar producto, quality review, DoD. No: off-spec→pm-issues-cambios; consistencia→pm-sanidad."
+version: 2.1.0
 author: pm-method
 license: MIT
 metadata:
@@ -25,7 +25,7 @@ metadata:
 - EN: run a quality review, record product acceptance, audit quality, define the definition of done.
 
 ## Idioma
-Responder y generar en el idioma del usuario. Términos EN la primera vez: quality register, quality review, acceptance criteria, quality tolerance, quality audit, cost of quality, definition of done. Plantillas bilingües.
+**Idioma · Language:** responder siempre en el idioma en que escribe el usuario (English request → English reply); los artefactos van en `estado.json.idioma` salvo que el usuario pida otro. Términos EN la primera vez: quality register, quality review, acceptance criteria, quality tolerance, quality audit, cost of quality, definition of done. Plantillas bilingües.
 
 ## Conocimiento
 - `references/guia.md` (esta skill): planificación §1, métodos por madurez §2, costo de la calidad §3, revisión §4, aceptación §5, BMAD §6, auditoría §7, ágil §8, columnas §9, flujo y reglas extendidas §10.
@@ -37,9 +37,9 @@ Responder y generar en el idioma del usuario. Términos EN la primera vez: quali
 - `estado.json`: fase, `enfoque_entrega`, tolerancia de calidad (si vacía, proponer `[por confirmar]`), roles (usuario sénior, aseguramiento), `integraciones`.
 - Descripción del producto del proyecto (`02-planificacion/productos/descripcion-producto-proyecto.md`); si falta, `pm-planificacion-por-productos`.
 - Enfoque de calidad (`02-planificacion/enfoques/enfoque-calidad.md`); si falta, versión mínima con `pm-enfoques-gestion`.
-- Descripciones de producto (`02-planificacion/productos/<producto>.md`) y `03-control/registros/calidad.csv` (`<pm-estado-proyecto>/scripts/registro.py --proyecto <dir> esquema calidad`).
+- Descripciones de producto (`02-planificacion/productos/<producto>.md`) y `03-control/registros/calidad.csv` (`${CLAUDE_SKILL_DIR}/../pm-estado-proyecto/scripts/registro.py --proyecto <dir> esquema calidad`).
 - Revisión: producto, descripción y revisores. Auditoría: alcance y auditor independiente. Aceptación: evidencia de control y autoridad.
-- **Especificación (fuente única, SPEC §1.16)**: criterios por historia, NFR y cobertura solo vía `python3 <pm-estado-proyecto>/scripts/especificacion.py --proyecto <dir> resumen|consultar <id>|listar requisitos|historias` (igual con o sin BMAD; nunca abrir BMAD ni `requisitos.md`). Escribe como dueña: `calidad.csv`, revisiones y registros de aceptación, que citan ids.
+- **Especificación (fuente única, SPEC §1.16)**: criterios por historia, NFR y cobertura solo vía `python3 ${CLAUDE_SKILL_DIR}/../pm-estado-proyecto/scripts/especificacion.py --proyecto <dir> resumen|consultar <id>|listar requisitos|historias` (igual con o sin BMAD; nunca abrir BMAD ni `requisitos.md`). Escribe como dueña: `calidad.csv`, revisiones y registros de aceptación, que citan ids.
 
 ## Procedimiento
 ### A. Planificar

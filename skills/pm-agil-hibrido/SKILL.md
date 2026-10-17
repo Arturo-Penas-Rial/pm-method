@@ -1,7 +1,7 @@
 ---
 name: pm-agil-hibrido
 description: "Ágil/híbrido en etapas: backlog MoSCoW, historias, release plan, velocidad, retro de iteración. Usar: backlog, sprint, user story, release plan, DoD, velocity. No: sync con BMAD→pm-bmad-puente."
-version: 2.0.0
+version: 2.1.0
 author: pm-method
 license: MIT
 metadata:
@@ -24,7 +24,7 @@ metadata:
 - EN: PO swaps within scope tolerance, agile EVM, iteration retrospective.
 
 ## Idioma
-Responder y generar en el idioma del usuario (o `estado.json.idioma`); plantillas bilingües. Equivalencias ES/EN y columnas de `backlog.csv`: `references/guia.md` §2.
+**Idioma · Language:** responder siempre en el idioma en que escribe el usuario (English request → English reply); los artefactos van en `estado.json.idioma` salvo que el usuario pida otro. plantillas bilingües. Equivalencias ES/EN y columnas de `backlog.csv`: `references/guia.md` §2.
 
 ## Conocimiento
 - `references/guia.md` (esta skill): §1 perfil mínimo, §2 columnas del backlog, §3 BMAD, §4 ceremonias↔controles, §5 retro vs. lecciones, §6 fórmulas y EVM ágil, §7 comandos, §8 reglas complementarias, §9 casos borde.
@@ -40,7 +40,7 @@ Responder y generar en el idioma del usuario (o `estado.json.idioma`); plantilla
 - **Perfil ágil mínimo (SPEC §1.10.12)**: el backlog priorizado sustituye a PBS/WBS, diccionario y flujo; basta la descripción del producto del proyecto o la visión con MVP. No pedir `pbs-wbs.md` para avanzar.
 - Plan de etapa vigente o en preparación (`plan-etapa-<n>.md`); si no existe → `pm-plan-etapa-y-limites`.
 - Equipo, capacidad y velocidad histórica (o calibración en las primeras 2–3 iteraciones).
-- **Especificación (fuente única, SPEC §1.16)**: épicas, historias y estados solo vía `python3 <pm-estado-proyecto>/scripts/especificacion.py --proyecto <dir> resumen|consultar <id>|listar historias|epicas` (igual con o sin BMAD; nunca abrir BMAD ni `requisitos.md`). Escribe como dueña: columnas de gobierno de `backlog.csv` y `release-plan.md`.
+- **Especificación (fuente única, SPEC §1.16)**: épicas, historias y estados solo vía `python3 ${CLAUDE_SKILL_DIR}/../pm-estado-proyecto/scripts/especificacion.py --proyecto <dir> resumen|consultar <id>|listar historias|epicas` (igual con o sin BMAD; nunca abrir BMAD ni `requisitos.md`). Escribe como dueña: columnas de gobierno de `backlog.csv` y `release-plan.md`.
 
 ## Procedimiento
 1. **Cadencia**: confirmar duración de iteración, iteraciones por etapa, capacidad y, en híbrido, qué paquetes iteran. Proponer a `pm-director` registrar cadencia y PO (`references/guia.md` §7).
@@ -48,7 +48,7 @@ Responder y generar en el idioma del usuario (o `estado.json.idioma`); plantilla
 3. **DoD y DoR** en `release-plan.md`, referenciadas desde el enfoque de calidad. **Puerta humana**: las acuerdan equipo y usuario sénior; decisión registrada.
 4. **Backlog** (`02-planificacion/backlog.csv`, plantilla `templates/backlog.csv`):
    - *Sin BMAD*: épicas desde productos mayores o visión, historias desde requisitos; orden total, `moscow`, puntos, estado, `iteracion`, `release`, `producto_pbs`, criterios. Refinar solo lo próximo; incluir deuda técnica y acciones de retro.
-   - *Con BMAD*: filas y columnas **derivadas** las refresca `python3 <pm-bmad-puente>/scripts/bmad.py --proyecto <dir> backlog`; el PO completa solo las de **gobierno** (prioridad, moscow, estimacion, iteracion, release, producto_pbs). Nada de historias ni requisitos a mano (§3).
+   - *Con BMAD*: filas y columnas **derivadas** las refresca `python3 ${CLAUDE_SKILL_DIR}/../pm-bmad-puente/scripts/bmad.py --proyecto <dir> backlog`; el PO completa solo las de **gobierno** (prioridad, moscow, estimacion, iteracion, release, producto_pbs). Nada de historias ni requisitos a mano (§3).
 5. **Historias** (sin BMAD) con `historia-usuario.md`: como/quiero/para, dado-cuando-entonces, INVEST.
 6. **Tolerancia de alcance**: Must = compromiso mínimo; Should/Could = tolerancia; Won't fuera. Must ≤ ~60 % de la capacidad (§6). Proponerla en el plan de etapa; la registra `pm-director` tras `autorizar-etapa`.
 7. **Release plan**: objetivo por capacidad, iteraciones, historias, dependencias; en híbrido, releases = hitos del cronograma maestro. `Σ puntos Must+Should ≤ velocidad × iteraciones` o repriorizar. Solo **línea base**.

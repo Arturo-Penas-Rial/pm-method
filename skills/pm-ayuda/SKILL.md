@@ -3,7 +3,7 @@ name: pm-ayuda
 description: "Ayuda de pm-method: qué escribir en cada situación, lista de skills y comandos, ciclo de vida y carpetas. Uso manual: /pm-ayuda [tema]. Help: commands, skills, life cycle."
 disable-model-invocation: true
 argument-hint: "[tema / topic]"
-version: 2.0.0
+version: 2.1.0
 author: pm-method
 license: MIT
 metadata:
@@ -23,7 +23,7 @@ metadata:
 - El usuario escribe `/pm-ayuda` (con o sin tema) para saber qué pedir y dónde queda cada cosa. EN: user-invoked help.
 
 ## Idioma
-Responder en el idioma del usuario; si el argumento "$ARGUMENTS" nombra un tema, mostrar solo esa parte.
+**Idioma · Language:** responder siempre en el idioma en que escribe el usuario (English request → English reply); los artefactos van en `estado.json.idioma` salvo que el usuario pida otro. si el argumento "$ARGUMENTS" nombra un tema, mostrar solo esa parte.
 
 ## Conocimiento
 `SPEC.md` §1.5 (carpetas), §1.10 (convenciones), §1.15 (comandos), §1.16 (fuente única); `pm-orquestador` (enrutamiento).

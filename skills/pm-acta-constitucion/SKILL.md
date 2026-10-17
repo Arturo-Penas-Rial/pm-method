@@ -1,7 +1,7 @@
 ---
 name: pm-acta-constitucion
 description: "Acta de constitución y PID ensamblado (controles, adaptación, consistencia). Usar: acta de constitución, PID, project charter, autorizar proyecto. No: enfoques de gestión→pm-enfoques-gestion."
-version: 2.0.0
+version: 2.1.0
 author: pm-method
 license: MIT
 metadata:
@@ -25,7 +25,7 @@ metadata:
 - EN: draft the charter, assemble the PID, check consistency before `autorizar-proyecto`, re-baseline at stage boundaries.
 
 ## Idioma
-Idioma del usuario (`estado.json.idioma`); etiquetas bilingües. "Acta de constitución" = charter; "PID" = paquete PRINCE2; si se mezclan, aclarar el mapeo una vez.
+**Idioma · Language:** responder siempre en el idioma en que escribe el usuario (English request → English reply); los artefactos van en `estado.json.idioma` salvo que el usuario pida otro. etiquetas bilingües. "Acta de constitución" = charter; "PID" = paquete PRINCE2; si se mezclan, aclarar el mapeo una vez.
 
 ## Conocimiento
 - `pm-knowledge/references/prince2-practicas-bc-organizacion-planes-calidad.md` §1.4.1 (PID) y §1.5 (adaptación).
@@ -50,7 +50,7 @@ Idioma del usuario (`estado.json.idioma`); etiquetas bilingües. "Acta de consti
 6. **Ensamblar el PID** → `templates/pid.md` en `00-direccion/pid.md`: completo = índice con ruta, versión, estado, creador, revisor y aprobador por componente; mínimo = texto resumido; compacto = perfil ágil (`references/guia.md` §2). Con BMAD, la sección de enfoque y la de plan citan brief de producto, PRD y arquitectura por ruta y sha (`references/guia.md` §6).
 7. **Checklist de consistencia** (`references/guia.md` §5): presupuesto, hitos, tolerancias, roles, escalas, descripciones de producto, adaptación. Reportar discrepancias con ambas rutas; no corregir en silencio.
 8. **Precondiciones de `autorizar-proyecto`**: business case completo coherente con plan y riesgo; plan con PBS (o PRD citado), descripciones y etapas; enfoques; enfoque de beneficios; lecciones; riesgos con respuesta; plan de la etapa 2 (`pm-plan-etapa-y-limites`). Con BMAD: PRD `final` y `bmad.py verificar` sin desvíos. Lo que falte es bloqueante.
-9. **Registrar**: `python3 <pm-estado-proyecto>/scripts/estado.py --proyecto <dir> artefacto acta-constitucion --ruta 01-inicio/acta-constitucion.md --estado en-revision` y `... artefacto pid --ruta 00-direccion/pid.md --estado en-revision --version 0.9`; copia en `00-direccion/historial/pid-v0.9.md`. El paquete de la puerta lo arma `pm-direccion-decisiones`.
+9. **Registrar**: `python3 ${CLAUDE_SKILL_DIR}/../pm-estado-proyecto/scripts/estado.py --proyecto <dir> artefacto acta-constitucion --ruta 01-inicio/acta-constitucion.md --estado en-revision` y `... artefacto pid --ruta 00-direccion/pid.md --estado en-revision --version 0.9`; copia en `00-direccion/historial/pid-v0.9.md`. El paquete de la puerta lo arma `pm-direccion-decisiones`.
 10. 🔒 **Puerta humana 2 (fuera de esta skill)**: la junta decide `autorizar-proyecto` (normalmente con `autorizar-etapa` de la etapa 2); solo `pm-director` registra (`estado.py puerta autorizar-proyecto ...`), aprueba (`estado.py aprobar pid --por "Junta: <ejecutivo>" --version 1.0`) y, con BMAD, fija `bmad.py linea-base prd --version 1.0`. Luego se congela `00-direccion/historial/pid-v1.0.md`; si fue `condicionado`, listar condiciones hasta `estado.py cumplir-condiciones autorizar-proyecto`.
 11. **Relínea base** (fin de etapa o excepción): incorporar solo cambios aprobados, nueva versión 1.x, nunca sobrescribir la 1.0; diferencias en "Historial de versiones".
 12. **Cerrar** con estado del PID, discrepancias, bloqueantes, rol que decide y siguiente paso; como subagente, bloque de retorno (SPEC §1.11).
@@ -78,7 +78,7 @@ Más reglas: `references/guia.md` §7.
 | Acta de constitución (project charter) | `templates/acta-constitucion.md` | `01-inicio/acta-constitucion.md` | `acta-constitucion` |
 | PID | `templates/pid.md` | `00-direccion/pid.md` (+ `historial/pid-vX.Y.md`) | `pid` |
 | Adaptación de PRINCE2 | sección del PID | `00-direccion/pid.md` §8 | `pid` |
-| Controles del proyecto | sección del PID + `estado.py tolerancia --nivel proyecto` | `00-direccion/pid.md` §7 y `estado.json.tolerancias` | `pid` |
+| Controles del proyecto | sección del PID (tolerancias propuestas; las registra pm-director con `estado.py tolerancia` al aprobarse) | `00-direccion/pid.md` §7 y `estado.json.tolerancias` | `pid` |
 | Consistencia entre componentes | sección "Consistencia" | `00-direccion/pid.md` §9 | `pid` |
 
 Componentes y skill dueña: definición y enfoque (`pm-mandato-y-brief`), business case y enfoques de beneficios y sostenibilidad (`pm-caso-de-negocio`), estructura y roles (`pm-organizacion-roles`), enfoques de gestión (`pm-enfoques-gestion`), plan de proyecto (`pm-planificacion-por-productos`, `pm-cronograma-estimacion`, `pm-costos-presupuesto`), plan de etapa (`pm-plan-etapa-y-limites`), especificación BMAD (`pm-bmad-puente`).

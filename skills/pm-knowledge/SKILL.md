@@ -1,7 +1,7 @@
 ---
 name: pm-knowledge
-description: "Conocimiento del método: PRINCE2 (método), PMBOK (técnicas), plantillas (campos). Usar: qué es, quién aprueba, qué campos, fórmula, glosario, what is. No: producir artefactos→pm-orquestador."
-version: 2.0.0
+description: "Método con las convenciones de pm-method: PRINCE2 (método), PMBOK (técnicas), plantillas (campos), etapas, quién aprueba. Usar: qué es, quién aprueba, qué campos, fórmula, glosario, what is, explain. No: producir artefactos→skill dueña."
+version: 2.1.0
 author: pm-method
 license: MIT
 metadata:
@@ -25,7 +25,7 @@ metadata:
 - EN: answer "what is…", "who approves…", "which fields…" questions.
 
 ## Idioma
-Responder en el idioma del usuario. Las referencias están en español con el término inglés entre paréntesis; traducir al vuelo si el usuario escribe en inglés y mantener el EN entre paréntesis la primera vez.
+**Idioma · Language:** responder siempre en el idioma en que escribe el usuario (English request → English reply); los artefactos van en `estado.json.idioma` salvo que el usuario pida otro. Las referencias están en español con el término inglés entre paréntesis; traducir al vuelo si el usuario escribe en inglés y mantener el EN entre paréntesis la primera vez.
 
 ## Conocimiento
 Ocho archivos en `references/` (150–240 KB cada uno). **Nunca leer uno entero**: localizar el encabezado con `grep` y leer solo esa sección (carga progresiva, SPEC §1.4).
@@ -34,7 +34,7 @@ Ocho archivos en `references/` (150–240 KB cada uno). **Nunca leer uno entero*
 1. **PRINCE2 7 = el método**: ciclo de vida por etapas de gestión, procesos SU/DP/IP/CS/MP/SB/CP, roles, tolerancias, puertas, decisiones y productos de gestión. Define QUÉ se hace, CUÁNDO y QUIÉN decide. Manda siempre.
 2. **PMBOK 8 = solo el CÓMO o un vacío**: técnicas (EVM, CPM, PERT, estimación, análisis de interesados, adquisiciones…) y relleno de lo que PRINCE2 no detalla. Toda respuesta que use PMBOK la **mapea a una práctica, proceso o producto PRINCE2** (`[PMBOK→Plans/SB] PERT para el plan de etapa`). Nunca se usan sus fases, grupos de procesos ni dominios como ciclo de vida del proyecto.
 3. **Plantillas = campos y formato** del artefacto (qué casillas lleva, checklist); no deciden proceso ni roles.
-4. **Convenciones del paquete** (SPEC §1.10: esquema de registros de `<pm-estado-proyecto>/scripts/esquema.py`, numeración de etapas, fase `entrega`, umbrales de riesgo, BAC sin reserva de gestión, cinco tipos de issue) prevalecen sobre los esquemas y valores de ejemplo de las referencias, que son trasfondo.
+4. **Convenciones del paquete** (SPEC §1.10: esquema de registros de `${CLAUDE_SKILL_DIR}/../pm-estado-proyecto/scripts/esquema.py`, numeración de etapas, fase `entrega`, umbrales de riesgo, BAC sin reserva de gestión, cinco tipos de issue) prevalecen sobre los esquemas y valores de ejemplo de las referencias, que son trasfondo.
 5. Ante conflicto, se aplica el orden anterior y se deja constancia en la respuesta ("PRINCE2 manda; PMBOK aporta la técnica").
 
 ### Índice para carga progresiva · Section index

@@ -31,8 +31,15 @@ def leer_fm(p):
 def dirs_skills(proyecto):
     home = os.path.expanduser("~")
     cands = [os.path.join(proyecto, "..", ".claude", "skills"), os.path.join(os.getcwd(), ".claude", "skills"),
-             os.path.join(home, ".claude", "skills"), os.path.join(home, ".claude", "plugins"), os.path.join(home, ".hermes", "skills"),
+             os.path.join(home, ".claude", "skills"), os.path.join(home, ".hermes", "skills"),
              os.path.normpath(os.path.join(AQUI, "..", ".."))]
+    # plugins: solo la ruta activa de cada plugin instalado (installed_plugins.json); no los clones de marketplaces/ ni
+    # versiones viejas del caché, que Claude Code no carga (evita falsos INS-04 "instalada 2 veces")
+    try: ip = json.load(open(os.path.join(home, ".claude", "plugins", "installed_plugins.json"), encoding="utf-8")).get("plugins", {})
+    except (OSError, ValueError): ip = {}
+    for entradas in ip.values():
+        for ent in entradas if isinstance(entradas, list) else [entradas]:
+            if ent.get("installPath"): cands.append(os.path.join(ent["installPath"], "skills"))
     out = []
     for c in cands:
         c = os.path.abspath(c)
@@ -48,20 +55,105 @@ def inventario_skills(proyecto):
             vistos.setdefault(n, []).append({"ruta": p, "description": fm.get("description", ""), "modelo": fm.get("disable-model-invocation", "") != "true"})
     return vistos
 
+def _ancestros(p):
+    p, out = os.path.abspath(p), []
+    while True:
+        out.append(p)
+        q = os.path.dirname(p)
+        if q == p: return out
+        p = q
+
+def _skills_en(base):
+    """SKILL.md de una carpeta de skills (<base>/<skill>/SKILL.md, también en subcarpetas como synced/<id>/)."""
+    return glob.glob(os.path.join(base, "*", "SKILL.md")) + glob.glob(os.path.join(base, "*", "*", "*", "SKILL.md"))
+
+def skills_externas(proyecto):
+    """Skills invocables en Claude Code / Hermes por nombre real: {nombre_corto: [{"invocar", "origen", "ruta"}]}.
+    Fuentes: .claude/skills del proyecto (y carpetas superiores, de la carpeta del proyecto y del cwd), ~/.claude/skills
+    (incluye las sincronizadas de claude.ai, que se ven como anthropic-skills:<n>), plugins instalados según
+    ~/.claude/plugins/installed_plugins.json (se ven como <plugin>:<skill>) y ~/.hermes/skills. Un plugin cargado solo
+    con --plugin-dir no deja rastro en disco."""
+    home, inv = os.path.expanduser("~"), {}
+    def alta(p, invocar_fmt, origen):
+        fm = leer_fm(p) or {}
+        n = fm.get("name") or os.path.basename(os.path.dirname(p))
+        inv.setdefault(n, []).append({"invocar": invocar_fmt.format(n=n), "origen": origen, "ruta": p})
+    vistos = set()
+    for d in _ancestros(proyecto) + _ancestros(os.getcwd()):
+        c = os.path.join(d, ".claude", "skills")
+        if c in vistos or not os.path.isdir(c) or d == home: continue
+        vistos.add(c)
+        for p in _skills_en(c): alta(p, "{n}", f"proyecto ({c})")
+    u = os.path.join(home, ".claude", "skills")
+    for p in glob.glob(os.path.join(u, "*", "SKILL.md")): alta(p, "{n}", "usuario (~/.claude/skills)")
+    for p in glob.glob(os.path.join(u, "synced", "*", "*", "SKILL.md")): alta(p, "anthropic-skills:{n}", "claude.ai (skills sincronizadas)")
+    for p in glob.glob(os.path.join(home, ".hermes", "skills", "**", "SKILL.md"), recursive=True): alta(p, "{n}", "Hermes (~/.hermes/skills)")
+    try: ip = json.load(open(os.path.join(home, ".claude", "plugins", "installed_plugins.json"), encoding="utf-8")).get("plugins", {})
+    except (OSError, ValueError): ip = {}
+    raices = {os.path.realpath(x) for x in _ancestros(proyecto) + _ancestros(os.getcwd())}
+    for clave, entradas in ip.items():
+        plugin, _, mkt = clave.partition("@")
+        for ent in entradas if isinstance(entradas, list) else [entradas]:
+            if ent.get("scope") in ("project", "local") and os.path.realpath(ent.get("projectPath", "")) not in raices: continue
+            ruta = ent.get("installPath", "")
+            if not os.path.isdir(ruta): continue
+            permitidas = None  # plugins de marketplace con lista explícita de skills (p. ej. document-skills)
+            try:
+                mk = json.load(open(os.path.join(home, ".claude", "plugins", "marketplaces", mkt, ".claude-plugin", "marketplace.json"), encoding="utf-8"))
+                for pl in mk.get("plugins", []):
+                    if pl.get("name") == plugin and pl.get("skills"): permitidas = {os.path.basename(s.rstrip("/")) for s in pl["skills"]}
+            except (OSError, ValueError): pass
+            cands = glob.glob(os.path.join(ruta, "skills", "*", "SKILL.md")) + glob.glob(os.path.join(ruta, "SKILL.md"))
+            for p in cands:
+                if permitidas is not None and os.path.basename(os.path.dirname(p)) not in permitidas: continue
+                alta(p, plugin + ":{n}", f"plugin {clave} ({ent.get('scope', 'user')})")
+    return inv
+
+EXTERNAS = {  # integración → skills requeridas (nombre real del frontmatter) y requisitos de ejecución
+    "archify": {"skills": ["archify"], "node": True, "chrome": True},
+    "diagram-design": {"skills": ["diagram-design"], "node": False, "chrome": False},
+    "visual-explainer": {"skills": ["visual-explainer"], "node": True, "chrome": False},
+    "skills-office": {"skills": ["docx", "xlsx", "pptx"], "node": True, "chrome": False},
+}
+
+def chk_externas(proyecto, e):
+    import shutil
+    integ = e.get("integraciones", {})
+    pedidas = [v.strip() for v in str(integ.get("diagramas", "")).split(",") if v.strip() in EXTERNAS]
+    if integ.get("export") == "skills-office": pedidas.append("skills-office")
+    if not pedidas: return
+    ext = skills_externas(proyecto)
+    for valor in pedidas:
+        req = EXTERNAS[valor]
+        for n in req["skills"]:
+            if n in ext:
+                x, nombres = ext[n][0], " o ".join(dict.fromkeys(f"'{y['invocar']}'" for y in ext[n]))
+                add("INFO", "INS-03", f"Skill externa '{n}' ({valor}) instalada: invocar como {nombres} · {x['origen']} · {x['ruta']}")
+            elif valor == "skills-office" and n == "pptx":
+                add("INFO", "INS-03", "export = skills-office sin la skill 'pptx': el deck de puerta sale como guion Markdown.", "Instalarla: ver docs/INSTALACION.md §6.1.")
+            else:
+                clave = "export" if valor == "skills-office" else "diagramas"
+                add("AVISO", "INS-03", f"integraciones.{clave} = {valor}, pero no se encontró la skill '{n}' (ni '<plugin>:{n}') en .claude/skills del proyecto, ~/.claude/skills ni en los plugins instalados.",
+                    f"Instalarla (docs/INSTALACION.md §6.1) o volver al respaldo (estado.py integracion {clave}={'scripts' if clave == 'export' else 'mermaid'}). Si se carga con --plugin-dir, ignorar este aviso.")
+        instalada = all(n in ext for n in req["skills"])
+        if req["node"] and not shutil.which("node"):
+            add("AVISO", "INS-03", f"{valor} necesita Node.js y no está en el PATH (archify ≥ 18; `npx skills add` ≥ 22.20).", "Instalar Node.js o volver al respaldo interno.")
+        win = [os.path.join(os.environ.get(v, ""), "Google", "Chrome", "Application", "chrome.exe") for v in ("PROGRAMFILES", "PROGRAMFILES(X86)", "LOCALAPPDATA") if os.environ.get(v)]
+        if req["chrome"] and instalada and not (os.environ.get("ARCHIFY_CHROME") or any(shutil.which(b) for b in ("google-chrome", "google-chrome-stable", "chromium", "chromium-browser", "chrome"))) \
+                and not any(os.path.exists(p) for p in ["/Applications/Google Chrome.app", "/Applications/Chromium.app"] + win):
+            add("INFO", "INS-03", "archify: no se encontró Chrome/Chromium; su verificación en navegador (browser-check) quedará omitida.", "Instalar Chrome o definir ARCHIFY_CHROME=<ejecutable>.")
+
 def chk_instalacion(proyecto, e, rapido):
     for mod, uso in (("yaml", "leer BMAD y sprint-status"), ("docx", "exportar .docx / actas .docx"), ("openpyxl", "exportar .xlsx")):
         try: __import__(mod)
         except ImportError: add("AVISO", "INS-01", f"Falta el módulo Python '{mod}' ({uso}).", f"pip install {'pyyaml' if mod == 'yaml' else ('python-docx' if mod == 'docx' else mod)}")
     vp = e.get("version_paquete")
     if vp and vp != E.VERSION_PAQUETE:
-        add("AVISO", "INS-02", f"El proyecto fue creado con pm-method {vp} y el instalado es {E.VERSION_PAQUETE}.", "Revisar notas de versión; estado.json se migra solo al leerse.")
+        add("AVISO", "INS-02", f"El proyecto fue creado con pm-method {vp} y el instalado es {E.VERSION_PAQUETE}.", "Revisar notas de versión; estado.json se migra al leerse y la versión se actualiza en la próxima escritura con estado.py.")
     if rapido: return
     inv = inventario_skills(proyecto)
-    # skills externas declaradas en integraciones
-    for clave, valor in e.get("integraciones", {}).items():
-        if clave == "diagramas" and valor in ("archify", "diagram-design", "visual-explainer"):
-            if valor not in inv: add("AVISO", "INS-03", f"integraciones.diagramas = {valor}, pero no se encontró una skill '{valor}' instalada.", "Instalarla o volver a 'mermaid' (estado.py integracion diagramas=mermaid); pm-visuales usa Mermaid como respaldo.")
-            else: add("INFO", "INS-03", f"Skill externa '{valor}' encontrada: {inv[valor][0]['ruta']}")
+    # skills externas declaradas en integraciones (diagramas, export=skills-office), por nombre real y plugins instalados
+    chk_externas(proyecto, e)
     # duplicados de nombre (p. ej. plugin + copia manual)
     for n, lst in inv.items():
         rutas = {os.path.realpath(x["ruta"]) for x in lst}
@@ -262,13 +354,10 @@ def chk_especificacion(proyecto, e, filas_por, reparar, rapido):
 
 # ------------------------------------------------------------------ INT: integraciones MCP (instantáneas)
 def chk_integraciones(proyecto, e):
-    conocidos = {"tracker": {"ninguno", "jira", "linear", "github", "azure-devops"}, "chat": {"ninguno", "slack", "teams"},
-                 "docs": {"ninguno", "confluence", "notion", "sharepoint"}, "reuniones": {"manual", "archivo", "granola", "fireflies", "zoom", "minutes", "teams"},
-                 "okr": {"archivo", "tability"}, "especificacion": {"ninguna", "bmad"},
-                 "diagramas": {"mermaid", "diagram-design", "archify", "visual-explainer", "drawio"}, "cronograma": {"cpm", "mspdi"},
-                 "export": {"scripts", "skills-office"}}
+    conocidos = E.VALORES_INTEGRACION
     for k, vals in conocidos.items():
         v = e.get("integraciones", {}).get(k)
+        if k == "diagramas" and isinstance(v, str) and "," in v and all(x.strip() in vals for x in v.split(",")): continue
         if v and v not in vals: add("AVISO", "INT-01", f"integraciones.{k} = '{v}' no es un valor conocido ({', '.join(sorted(vals))}).", "Usarlo solo si pm-integraciones sabe mapearlo; si no, corregir.")
     trk = e.get("integraciones", {}).get("tracker", "ninguno")
     if trk not in ("ninguno", None) and e.get("fase") == "entrega":
@@ -297,7 +386,12 @@ def main():
     if a.json: print(json.dumps({"proyecto": e.get("proyecto"), "fecha": datetime.date.today().isoformat(), "cuenta": cuenta, "hallazgos": H}, ensure_ascii=False, indent=2))
     else:
         print(f"Sanidad de '{e.get('proyecto')}' ({e.get('fase')}/{e.get('proceso_actual')}): {cuenta['ERROR']} ERROR · {cuenta['AVISO']} AVISO · {cuenta['INFO']} INFO")
-        for h in H: print(f"  {h['severidad']:5s} {h['codigo']} {h['mensaje']}" + (f"\n        → {h['arreglo']}" if h["arreglo"] else ""))
+        por_cod = {}
+        for h in H: por_cod.setdefault((h["severidad"], h["codigo"]), []).append(h)
+        for (sev, cod), hs in por_cod.items():   # en pantalla, más de 5 hallazgos del mismo código se agrupan (el --informe y --json los listan todos)
+            mostrar = hs if len(hs) <= 5 else hs[:5]
+            for h in mostrar: print(f"  {sev:5s} {cod} {h['mensaje']}" + (f"\n        → {h['arreglo']}" if h["arreglo"] and h is mostrar[-1] else ""))
+            if len(hs) > 5: print(f"  {sev:5s} {cod} … y {len(hs) - 5} hallazgos más con el mismo código {cod} y la misma corrección (lista completa: sanidad.py --json o --informe)")
     if a.informe:
         p = os.path.join(a.proyecto, "03-control", "reportes", f"{datetime.date.today().isoformat()}-sanidad.md")
         L = ["---", "tipo: informe-sanidad", f"fecha: {datetime.date.today().isoformat()}", "estado: borrador", "---", "",

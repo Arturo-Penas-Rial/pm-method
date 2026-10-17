@@ -1,0 +1,41 @@
+---
+config:
+  flowchart:
+    subGraphTitleMargin:
+      top: 6
+      bottom: 18
+---
+flowchart TB
+  U([Usuario / junta]) <--> O
+
+  subgraph HP[Hilo principal]
+    C[/6 comandos: pm-ayuda · pm-nuevo · pm-estado<br/>pm-reporte · pm-puerta · pm-sync/]
+    O[pm-orquestador<br/>único que conversa y pregunta]
+    C --> O
+  end
+
+  subgraph SA[Subagentes de fase · contexto aislado · sin preguntas · sin anidación]
+    direction TB
+    DI[pm-director · DP]
+    IN[pm-inicio · SU/IP]
+    PL[pm-planificacion · Plans/IP/SB]
+    CO[pm-control · CS/MP]
+    CI[pm-cierre · CP]
+  end
+  O <-- "encargo autocontenido ↓ · bloque de retorno ↑" --> SA
+
+  subgraph CAP[Capas]
+    G[Gobierno · PRINCE2<br/>skills pm-*]
+    T[Técnicas · PMBOK<br/>dentro de prácticas PRINCE2]
+    E[Especificación · BMAD opcional, solo lectura<br/>vía especificacion.py / bmad.py]
+    I[Integración · MCP de la sesión, opcional<br/>vía pm-integraciones]
+    P[(Persistencia · carpeta del proyecto<br/>estado.json · Markdown · CSV<br/>escrita solo por estado.py · registro.py)]
+  end
+  SA --> G
+  G --> T
+  G --> E
+  G --> I
+  G --> P
+
+  H{{Hooks: guardian.py · inicio.py · idioma.py}} -. protege .-> P
+  H -. contexto .-> O

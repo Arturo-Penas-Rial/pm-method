@@ -1,7 +1,7 @@
 ---
 name: pm-mandato-y-brief
 description: "Mandato, propuesta, project brief, canvas, visión y roadmap; enfoque de entrega. Usar: mandato, brief, arrancar, kick-off, canvas, visión, mandate, start up. No: business case→pm-caso-de-negocio."
-version: 2.0.0
+version: 2.1.0
 author: pm-method
 license: MIT
 metadata:
@@ -26,7 +26,7 @@ metadata:
 - EN: choose and record the delivery approach (and BMAD planning path); search previous lessons first.
 
 ## Idioma
-Idioma del usuario (o `estado.json.idioma`). Plantillas con etiquetas bilingües; artefactos con su nombre EN entre paréntesis la primera vez.
+**Idioma · Language:** responder siempre en el idioma en que escribe el usuario (English request → English reply); los artefactos van en `estado.json.idioma` salvo que el usuario pida otro. Plantillas con etiquetas bilingües; artefactos con su nombre EN entre paréntesis la primera vez.
 
 ## Conocimiento
 - `pm-knowledge/references/prince2-principios-personas-procesos.md` §5.1 (SU) y §5.2 act. 1.
@@ -40,11 +40,11 @@ Idioma del usuario (o `estado.json.idioma`). Plantillas con etiquetas bilingües
 - `estado.json` en `pre-proyecto` (SU, etapa 0) o `inicio`; si no existe, `pm-estado-proyecto` (`nuevo_proyecto.py --ruta <dir> --nombre ... --idioma ... --enfoque ...`).
 - El disparador; si no hay texto, preguntar: problema, patrocinador, quién paga, restricciones, interesados evidentes.
 - Lecciones previas (proyectos anteriores, auditorías, personas con experiencia).
-- **Especificación (fuente única, SPEC §1.16)**: proveedor, brief de producto y visión se leen solo con `python3 <pm-estado-proyecto>/scripts/especificacion.py --proyecto <dir> fuente|resumen|consultar <id>|listar …`, igual con o sin BMAD; nunca abrir archivos BMAD ni `requisitos.md` para extraer datos (ruta + sha del brief: `bmad.py inventario`). Escribe como dueña: mandato, propuesta, project brief (cita el brief de producto por ruta + sha, sin copiar texto), visión, roadmap.
+- **Especificación (fuente única, SPEC §1.16)**: proveedor, brief de producto y visión se leen solo con `python3 ${CLAUDE_SKILL_DIR}/../pm-estado-proyecto/scripts/especificacion.py --proyecto <dir> fuente|resumen|consultar <id>|listar …`, igual con o sin BMAD; nunca abrir archivos BMAD ni `requisitos.md` para extraer datos (ruta + sha del brief: `bmad.py inventario`). Escribe como dueña: mandato, propuesta, project brief (cita el brief de producto por ruta + sha, sin copiar texto), visión, roadmap.
 - Si hay documentos o correo conectados, leer el disparador vía `pm-integraciones` (ningún conector es obligatorio).
 
 ## Procedimiento
-1. **Leer el estado** (`python3 <pm-estado-proyecto>/scripts/estado.py --proyecto <dir> ver`). Fase `entrega` o posterior → el brief ya está en el PID; solo actualizar roadmap o visión.
+1. **Leer el estado** (`python3 ${CLAUDE_SKILL_DIR}/../pm-estado-proyecto/scripts/estado.py --proyecto <dir> ver`). Fase `entrega` o posterior → el brief ya está en el PID; solo actualizar roadmap o visión.
 2. **Mandato** → `templates/mandato.md` en `00-direccion/mandato.md`: pedido en palabras propias, autoridad emisora, ejecutivo prospectivo; faltantes `[por confirmar]`.
 3. **Lecciones previas**: 3–10 aplicables en `lecciones.csv` (`registro.py agregar lecciones`) con recomendación; si no hay, el brief lo declara.
 4. **Nivel de formalidad** con la tabla de `references/guia.md` §1. 🔒 **Puerta humana 1**: el usuario confirma nivel y artefactos (`decisiones.csv`, nivel `gestor`); en perfiles mínimos se combina con la 2.
@@ -69,7 +69,7 @@ Idioma del usuario (o `estado.json.idioma`). Plantillas con etiquetas bilingües
 9. [PRINCE2] El mandato se conserva como llegó; sin ejecutivo prospectivo no hay proyecto (bloqueante).
 10. [PRINCE2] El enfoque del proyecto responde: interno o contratado, construir o adaptar, estándar o a medida, método de entrega, sostenibilidad; con BMAD, la ruta de planificación elegida.
 11. [PRINCE2] El brief alcanza para decidir la iniciación, no más; las lecciones se buscan antes.
-12. [PRINCE2] Tolerancias de proyecto conocidas en el brief y en `estado.json` (`estado.py tolerancia --nivel proyecto`); tiempo y costo, obligatorias.
+12. [PRINCE2] Tolerancias de proyecto conocidas en el brief (tiempo y costo, obligatorias); a `estado.json` las lleva pm-director con `estado.py tolerancia --nivel proyecto` cuando el ejecutivo las fija.
 13. [Plantillas] Todo artefacto de alcance tiene una exclusión; una discrepancia de datos de fuente única es un hallazgo.
 14. BMAD (SPEC §1.13): el brief de producto es dueño de problema, usuarios y visión; el project brief lo referencia, nunca lo duplica ni escribe en carpetas BMAD.
 Más reglas: `references/guia.md` §5.

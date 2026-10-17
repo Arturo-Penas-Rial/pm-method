@@ -83,6 +83,8 @@ def csv_a_xlsx(entradas, salida):
         from openpyxl.utils import get_column_letter
     except ImportError:
         sys.exit("Falta openpyxl: pip install openpyxl")
+    no_csv = [e for e in entradas if not e.lower().endswith(".csv")]
+    if no_csv: sys.exit(f"xlsx solo convierte CSV; no se exporta {', '.join(no_csv)} (para .md usar 'docx').")
     wb = Workbook(); wb.remove(wb.active)
     for e in entradas:
         ws = wb.create_sheet(os.path.splitext(os.path.basename(e))[0][:31])

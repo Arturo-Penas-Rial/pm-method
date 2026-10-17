@@ -73,6 +73,11 @@ idioma: "{{idioma}}"
 
 ## 6. Decisiones que necesita la junta / Decisions required from the board [mín]
 
+*Insumo: `puertas.py --proyecto <dir> estado --markdown` (puertas registradas, condiciones abiertas, observaciones de la verificación y bloqueos de la próxima puerta).*
+
+{{bloque_puertas}}
+
+
 | Decisión / Decision | Contexto / Context | Opciones / Options | Recomendación / Recommendation | Fecha límite / Needed by |
 |---|---|---|---|---|
 | {{dec_1}} | {{ctx_1}} | {{opc_1}} | {{rec_1}} | {{fecha_1}} |

@@ -29,7 +29,7 @@ EMV con la convención del paquete: P 1–5 → 10/30/50/70/90 % (configurable).
 - Nunca se quita contingencia sin cambiar la respuesta al riesgo que la sustenta.
 
 ## 4. Consolidación con `wbs.py`
-Cuando la hoja de costeo está lista, cargar la estimación base de cada paquete en la columna `costo` (y las horas en `esfuerzo_h`) de `02-planificacion/wbs.csv` y correr `python3 <pm-estado-proyecto>/scripts/wbs.py 02-planificacion/wbs.csv --mermaid 02-planificacion/visuales/wbs.md`. El total consolidado debe ser igual a Σ paquetes base de `hoja-costeo.md`; la contingencia y la reserva de gestión **no** se cargan en la WBS (viven en el presupuesto). Diferencias típicas: paquetes sin costo, costos cargados en un nodo padre (el script los ignora), paquete de gestión ausente de la WBS. El diagrama resultante (paquete, responsable, horas y costo) sirve como anexo del presupuesto.
+Cuando la hoja de costeo está lista, cargar la estimación base de cada paquete en la columna `costo` (y las horas en `esfuerzo_h`) de `02-planificacion/wbs.csv` y correr `python3 ${CLAUDE_SKILL_DIR}/../pm-estado-proyecto/scripts/wbs.py 02-planificacion/wbs.csv --mermaid 02-planificacion/visuales/wbs.md`. El total consolidado debe ser igual a Σ paquetes base de `hoja-costeo.md`; la contingencia y la reserva de gestión **no** se cargan en la WBS (viven en el presupuesto). Diferencias típicas: paquetes sin costo, costos cargados en un nodo padre (el script los ignora), paquete de gestión ausente de la WBS. El diagrama resultante (paquete, responsable, horas y costo) sirve como anexo del presupuesto.
 
 ## 5. Variante ágil y BMAD
 - `iteraciones necesarias ≈ puntos Must+Should del release / velocidad`; `presupuesto de etapa = costo por iteración × iteraciones de la etapa`; PV por iteración (S1, S2…) o como proporción de puntos planificados × BAC.
@@ -69,4 +69,4 @@ Si el BAC sigue fuera de la restricción del mandato o de la tolerancia de proye
 4. [PMBOK→Business case] Costo del ciclo de vida: recortes que encarecen la operación se señalan al business case.
 5. [Plantillas] Cotizaciones con fecha y validez; horas iguales a la hoja de estimación.
 6. Curva S en Mermaid (`xychart-beta`) por defecto; con integración de diagramas, versión elevada vía `pm-visuales` sin reemplazar el CSV.
-7. Exportación local: `python3 <pm-estado-proyecto>/scripts/exportar.py xlsx --entrada 02-planificacion/linea-base-costo.csv --salida exportados/linea-base-costo.xlsx`, o la skill oficial xlsx si `integraciones.export` lo indica.
+7. Exportación local: `python3 ${CLAUDE_SKILL_DIR}/../pm-estado-proyecto/scripts/exportar.py xlsx --entrada 02-planificacion/linea-base-costo.csv --salida exportados/linea-base-costo.xlsx`, o la skill oficial xlsx si `integraciones.export` lo indica.

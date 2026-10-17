@@ -5,7 +5,7 @@
 |---|---|---|---|---|
 | INS-01 | AVISO | módulos Python (pyyaml, python-docx, openpyxl) | instalación nueva | `pip install …` |
 | INS-02 | AVISO | versión de pm-method del proyecto vs instalada | actualización del paquete | leer notas; estado.json migra solo |
-| INS-03 | AVISO/INFO | skill externa declarada (archify, diagram-design, visual-explainer) instalada | integración declarada sin instalar | instalarla o volver a `mermaid` |
+| INS-03 | AVISO/INFO | skill externa declarada (archify, diagram-design, visual-explainer; docx/xlsx/pptx con `export=skills-office`) instalada; da el nombre de invocación | integración declarada sin instalar, falta Node/Chrome, o plugin cargado con `--plugin-dir` (no detectable) | instalarla (INSTALACION §6.1) o volver a `mermaid` / `export=scripts` |
 | INS-04 | AVISO | skill pm-* instalada más de una vez | plugin + copia manual | dejar una sola |
 | INS-05 | AVISO | presupuesto del listado de skills (incluye BMAD y otros repos) | muchas skills instaladas | `skillListingBudgetFraction`, `skillOverrides` |
 | INS-06 | AVISO | posible colisión de activación con skills de otros repos | disparadores compartidos | ajustar descripciones u ocultar la externa |

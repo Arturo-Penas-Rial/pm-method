@@ -38,7 +38,7 @@ Cuando `enfoque_entrega` es `agil` y el proyecto es chico o mediano:
 | Requisitos FR/NFR, métricas SM | PRD BMAD (aún no existe en SU) | no se anticipan; se espera el PRD en la etapa 1 |
 
 ### 4.2 Cómo referenciar el brief de producto
-1. `python3 <pm-bmad-puente>/scripts/bmad.py --proyecto <dir> inventario` → ruta, `status` y sha del brief de producto.
+1. `python3 ${CLAUDE_SKILL_DIR}/../pm-bmad-puente/scripts/bmad.py --proyecto <dir> inventario` → ruta, `status` y sha del brief de producto.
 2. En el project brief, campo **Brief de producto BMAD / BMAD product brief** (sección 8 Referencias y en Antecedentes): `ruta · sha corto · status · fecha`.
 3. No copiar párrafos. Si la junta necesita leer el problema, se adjunta el brief de producto al paquete de la puerta (`pm-direccion-decisiones`).
 4. Si el brief de producto no existe todavía: el project brief se redacta igual y declara "brief de producto BMAD pendiente (rol Analyst)"; pm-method no lo escribe.

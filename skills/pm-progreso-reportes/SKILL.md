@@ -1,7 +1,7 @@
 ---
 name: pm-progreso-reportes
 description: "Informes de avance PRINCE2 con EVM y semáforos. Usar: checkpoint, highlight report, status report, valor ganado, EVM, burn-up, pronóstico. No: tablero o gráficos→pm-visuales."
-version: 2.0.0
+version: 2.1.0
 author: pm-method
 license: MIT
 metadata:
@@ -25,7 +25,7 @@ metadata:
 - EN: forecast completion and decide whether a deviation is a corrective action or an exception.
 
 ## Idioma
-Responder en el idioma del usuario. Términos EN la primera vez: checkpoint report, highlight report, variance analysis, earned value (EV/PV/AC/EAC), burn-up chart. Siglas EVM en inglés en ambos idiomas; plantillas bilingües; `progreso.csv` con cabecera técnica.
+**Idioma · Language:** responder siempre en el idioma en que escribe el usuario (English request → English reply); los artefactos van en `estado.json.idioma` salvo que el usuario pida otro. Términos EN la primera vez: checkpoint report, highlight report, variance analysis, earned value (EV/PV/AC/EAC), burn-up chart. Siglas EVM en inglés en ambos idiomas; plantillas bilingües; `progreso.csv` con cabecera técnica.
 
 ## Conocimiento
 - `references/guia.md` (esta skill): entradas §1, avance de equipo §2, EVM §3, ágil y burn-up §4, BMAD §5, trackers §6, variaciones y pronóstico §7, semáforos §8, highlight §9, adaptación por enfoque §10, reglas extendidas §11, fin de etapa §12.
@@ -37,21 +37,21 @@ Responder en el idioma del usuario. Términos EN la primera vez: checkpoint repo
 - `estado.json`: `enfoque_entrega`, `tolerancias` (etapa y proyecto), `etapa_actual`, `roles`, `artefactos`, `integraciones`.
 - Plan de etapa vigente (`02-planificacion/plan-etapa-<n>.md`) y paquetes con su frecuencia de checkpoint (`03-control/paquetes-trabajo/`).
 - EVM: `linea-base-costo.csv`, presupuesto por producto, método de medición del EV, costos reales, BAC sin reserva de gestión (`references/guia.md` §1). Ágil: backlog con puntos, MoSCoW, velocidad, línea base del release plan.
-- Checkpoints del período, `<pm-estado-proyecto>/scripts/registro.py --proyecto <dir> resumen --json`, highlight anterior, `progreso.csv`.
-- **Especificación (fuente única, SPEC §1.16)**: estados de historias y épicas solo vía `python3 <pm-estado-proyecto>/scripts/especificacion.py --proyecto <dir> resumen|consultar <id>|listar …` (igual con o sin BMAD; nunca abrir BMAD ni `requisitos.md`); serie histórica en `avance-bmad.csv`. Escribe como dueña: informes, que citan ids. Tracker: instantánea en `03-control/fuentes/` (`pm-integraciones`).
+- Checkpoints del período, `${CLAUDE_SKILL_DIR}/../pm-estado-proyecto/scripts/registro.py --proyecto <dir> resumen --json`, highlight anterior, `progreso.csv`.
+- **Especificación (fuente única, SPEC §1.16)**: estados de historias y épicas solo vía `python3 ${CLAUDE_SKILL_DIR}/../pm-estado-proyecto/scripts/especificacion.py --proyecto <dir> resumen|consultar <id>|listar …` (igual con o sin BMAD; nunca abrir BMAD ni `requisitos.md`); serie histórica en `avance-bmad.csv`. Escribe como dueña: informes, que citan ids. Tracker: instantánea en `03-control/fuentes/` (`pm-integraciones`).
 
 ## Procedimiento
 1. **Situar.** `estado.json`, plan de etapa y highlight anterior (lo prometido, seguimientos, semáforos previos).
 2. **Recoger avance por paquete** (`templates/informe-avance-equipo.md`, `templates/checkpoint-report.md`; en ágil, tablero en modo pull). Controles en `references/guia.md` §2. Actualizar el plan de etapa: completado solo si está aprobado en `calidad.csv`.
-3. **Especificación y fuentes externas.** Estados por la fachada (`resumen`, `listar historias --estado …`). Con BMAD, cada período: `python3 <pm-bmad-puente>/scripts/bmad.py --proyecto <dir> verificar` (desvío no traspasado o Sprint Change Proposal → `pm-issues-cambios`) y `bmad.py avance` (fila en `avance-bmad.csv`, burn-up; guía §5). Tracker: solo instantáneas (guía §6).
+3. **Especificación y fuentes externas.** Estados por la fachada (`resumen`, `listar historias --estado …`). Con BMAD, cada período: `python3 ${CLAUDE_SKILL_DIR}/../pm-bmad-puente/scripts/bmad.py --proyecto <dir> verificar` (desvío no traspasado o Sprint Change Proposal → `pm-issues-cambios`) y `bmad.py avance` (fila en `avance-bmad.csv`, burn-up; guía §5). Tracker: solo instantáneas (guía §6).
 4. **Medir desempeño.** Predictivo o híbrido con línea base: actualizar `progreso.csv` y correr `evm.py --tol-costo --tol-plazo` con tolerancias de etapa y de proyecto (comando y controles en guía §3). Ágil: velocidad, burn-down, burn-up y, opcional, `evm.py --modo agil --pct-no-must` (guía §4).
 5. **Analizar variaciones** de tiempo, costo y desempeño técnico con causa raíz, respuesta, responsable y fecha; `templates/analisis-variaciones.md` si se supera el umbral de atención (guía §7).
 6. **Pronosticar contra los siete objetivos** y comparar el pronóstico (no el acumulado) con las tolerancias de etapa y proyecto; semáforo por regla (guía §8).
 7. **PUERTA HUMANA — Acción correctiva o excepción.** Dentro de tolerancia → acciones correctivas que el gestor confirma, en `acciones.csv` o enmienda del paquete. Problema de fondo que es un issue → `pm-issues-cambios`. Pronóstico fuera de tolerancia (`excepcion_prevista` o rojo en otra dimensión) → aviso temprano e **informe de excepción** con `pm-issues-cambios/templates/informe-excepcion.md` en `03-control/reportes/`, `en-revision`; pm-control lo entrega a `pm-director`, único que registra la decisión.
-8. **Reunir registros.** `registro.py resumen --json [--corte <fecha>]` con sus campos tal cual (guía §9); riesgo alto sin respuesta o sin propietario → semáforo de riesgo rojo.
+8. **Reunir registros y puertas.** `registro.py resumen --json [--corte <fecha>]` y `puertas.py --proyecto <dir> estado --markdown` (decisiones, condiciones abiertas, observaciones, próxima puerta) tal cual (guía §9); riesgo alto sin respuesta o sin propietario → semáforo de riesgo rojo.
 9. **Redactar el highlight** con `templates/highlight-report.md` → `03-control/reportes/<fecha>-highlight-report.md`, variante mínima o completa (guía §9). Cada cifra con fuente; cada semáforo con cifra y umbral. En ágil o híbrido, bloque burn-up (guía §4).
 10. **Adaptar por audiencia** con `pm-comunicacion-stakeholders`: mismas cifras, distinta selección.
-11. **Registrar.** `<pm-estado-proyecto>/scripts/estado.py --proyecto <dir> artefacto highlight-<fecha> --ruta ... --estado en-revision`; tras la revisión humana, `estado.py aprobar highlight-<fecha> --por "<rol: nombre>"`.
+11. **Registrar.** `${CLAUDE_SKILL_DIR}/../pm-estado-proyecto/scripts/estado.py --proyecto <dir> artefacto highlight-<fecha> --ruta ... --estado en-revision`; tras la revisión humana, `estado.py aprobar highlight-<fecha> --por "<rol: nombre>"`.
 12. **Fin de etapa próximo** → proponer `estado.py limite-etapa` y derivar a `pm-plan-etapa-y-limites` (guía §12). Como subagente, bloque de retorno (SPEC §1.11).
 
 ## Reglas del método

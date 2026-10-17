@@ -1,7 +1,7 @@
 ---
 name: pm-cierre-proyecto
 description: "Cierre planificado o prematuro: aceptación, handover, informe final. Usar: cerrar proyecto, cierre prematuro, closeout, end project report. No: lecciones→pm-lecciones-aprendidas."
-version: 2.0.0
+version: 2.1.0
 author: pm-method
 license: MIT
 metadata:
@@ -23,7 +23,7 @@ metadata:
 - EN: planned or premature closure: acceptance, handover, follow-on actions, end project report.
 
 ## Idioma
-Idioma del usuario (o `estado.json.idioma`); primera mención con el término EN: informe de fin de proyecto (end project report), recomendaciones de seguimiento (follow-on action recommendations), plan de revisión de beneficios (benefits review plan). Faltante: `[por confirmar]`.
+**Idioma · Language:** responder siempre en el idioma en que escribe el usuario (English request → English reply); los artefactos van en `estado.json.idioma` salvo que el usuario pida otro. primera mención con el término EN: informe de fin de proyecto (end project report), recomendaciones de seguimiento (follow-on action recommendations), plan de revisión de beneficios (benefits review plan). Faltante: `[por confirmar]`.
 
 ## Conocimiento
 - `references/guia.md` (este skill): §1 flujo, §2 preparación, §3 inventario prematuro, §4 aceptación (§4.1 con BMAD), §5 handover y beneficios, §6 fórmulas, §7 informe, §8 cierre de registros, §9 reglas extendidas.
@@ -35,12 +35,12 @@ Idioma del usuario (o `estado.json.idioma`); primera mención con el término EN
 ## Entradas requeridas
 - `estado.json` con `fase = entrega` (CS o SB de la etapa final) o `fase = cierre` (CP), roles y tolerancias de proyecto. Cierre prematuro: decisión de la junta ya registrada por `pm-director`; si no existe, derivar antes de actuar.
 - PID y business case v1.0 (`00-direccion/historial/`) y vigentes; plan con reales; enfoques de beneficios y comunicación.
-- Registros (`<pm-estado-proyecto>/scripts/registro.py`), product status account, aceptaciones (`pm-calidad`), informes de fin de etapa, cierres de contrato.
-- **Especificación (fuente única, SPEC §1.16)**: cobertura `terminado` por requisito solo vía `python3 <pm-estado-proyecto>/scripts/especificacion.py --proyecto <dir> resumen|consultar <id>|listar requisitos` (igual con o sin BMAD; nunca abrir BMAD ni `requisitos.md`). Escribe como dueña: aceptación e informe final, que citan ids.
+- Registros (`${CLAUDE_SKILL_DIR}/../pm-estado-proyecto/scripts/registro.py`), product status account, aceptaciones (`pm-calidad`), informes de fin de etapa, cierres de contrato.
+- **Especificación (fuente única, SPEC §1.16)**: cobertura `terminado` por requisito solo vía `python3 ${CLAUDE_SKILL_DIR}/../pm-estado-proyecto/scripts/especificacion.py --proyecto <dir> resumen|consultar <id>|listar requisitos` (igual con o sin BMAD; nunca abrir BMAD ni `requisitos.md`). Escribe como dueña: aceptación e informe final, que citan ids.
 - Si falta algo, declararlo; no inventar aceptaciones ni cifras.
 
 ## Procedimiento
-1. **Situar y elegir ruta**: fin de la etapa final (planificado) o decisión de la junta (prematuro). Entrar a CP con `python3 <pm-estado-proyecto>/scripts/estado.py --proyecto <dir> cierre` o `cierre --prematuro` (si pm-director no lo ejecutó); si `fase` ya es `cierre`, no repetir. Resumir con `registro.py resumen` y `listar <registro> --abiertos`.
+1. **Situar y elegir ruta**: fin de la etapa final (planificado) o decisión de la junta (prematuro). Entrar a CP con `python3 ${CLAUDE_SKILL_DIR}/../pm-estado-proyecto/scripts/estado.py --proyecto <dir> cierre` o `cierre --prematuro` (si pm-director no lo ejecutó); si `fase` ya es `cierre`, no repetir. Resumir con `registro.py resumen` y `listar <registro> --abiertos`.
 2. **Preparar** el cierre planificado o el prematuro (inventario por estado y rescate; guía §2–§3).
 3. **Confirmar la aceptación**: cruzar product status account, `calidad.csv` y registros de aceptación (guía §4). Aceptación **por requisito** con la cobertura de la fachada (`listar requisitos`); con BMAD, además `bmad.py verificar` limpio y sin traspasos pendientes: cada FR/NFR aceptado, no aceptado o con concesión, citando ids (guía §4.1).
 4. **🔒 Puerta humana — aceptación**: el usuario sénior acepta contra los criterios de la descripción del producto del proyecto (dos evidencias); el ejecutivo confirma. `04-cierre/registro-aceptacion.md` `en-revision` y, con ambas confirmaciones escritas, `estado.py aprobar registro-aceptacion --por "Usuario sénior: ..; Ejecutivo: .."`. Como subagente, la confirmación se pide en el bloque de retorno.
@@ -49,7 +49,7 @@ Idioma del usuario (o `estado.json.idioma`); primera mención con el término EN
 7. **Contratos y lecciones**: cada contrato con sus tres condiciones de cierre o en seguimiento (`pm-adquisiciones`); retrospectiva final e informe de lecciones (`pm-lecciones-aprendidas`).
 8. **Informe de fin de proyecto** con `templates/informe-fin-proyecto.md`, cada cifra con fuente, terminando en la recomendación de cierre (guía §7).
 9. **Cerrar registros** con `registro.py actualizar` y estados finales válidos, sin borrar filas (guía §8).
-10. **Dejar `en-revision`** (`estado.py artefacto <clave> … --estado en-revision`): `registro-aceptacion`, `handover`, `recomendaciones-seguimiento`, `informe-lecciones`, `plan-revision-beneficios`, `informe-fin-proyecto`, `notificacion-cierre` (borrador). Faltantes: `python3 <pm-exportar>/scripts/paquete.py --proyecto <dir> listar cierre`.
+10. **Dejar `en-revision`** (`estado.py artefacto <clave> … --estado en-revision`): `registro-aceptacion`, `handover`, `recomendaciones-seguimiento`, `informe-lecciones`, `plan-revision-beneficios`, `informe-fin-proyecto`, `notificacion-cierre` (borrador). Faltantes: `python3 ${CLAUDE_SKILL_DIR}/../pm-exportar/scripts/paquete.py --proyecto <dir> listar cierre`.
 11. **🔒 Puerta humana — autorizar el cierre (la registra `pm-director`)**: derivar a `pm-direccion-decisiones`, que presenta la solicitud y, tras la decisión, registra `puerta autorizar-cierre` (→ `cerrado`). Esta skill no la registra. `condicionado` → completar condiciones; `rechazado` → volver al paso indicado. El ejecutivo notifica (`pm-comunicacion-stakeholders`, con confirmación).
 12. **Cerrar la respuesta** con artefactos y estado, huecos declarados, puerta pendiente y rol que decide (o el bloque de retorno, SPEC §1.11); ZIP de cierre con `pm-exportar` si se pide.
 

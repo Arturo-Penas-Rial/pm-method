@@ -1,0 +1,24 @@
+flowchart LR
+  %% Colores: BMAD (solo lectura) · puente bmad.py · carpeta del proyecto
+  PRD["BMAD · PRD<br/>FR · NFR · UJ · SM"]:::bmad
+  DOC["BMAD · arquitectura AD<br/>epics.md<br/>sprint-status.yaml"]:::bmad
+  SCP["BMAD · Sprint Change<br/>Proposals"]:::bmad
+  IDX["bmad.py construir_indice<br/>(+ backlog.csv · wbs.csv)"]:::puente
+  LB["bmad.py linea-base"]:::puente
+  VER["bmad.py verificar"]:::puente
+  HO["bmad.py handoff"]:::puente
+  CACHE[("spec-index.json<br/>caché")]:::pm
+  FAC["especificacion.py<br/>fachada única"]:::pm
+  SK["~20 skills pm-*"]:::pm
+  HIST["historial/<br/>copias congeladas"]:::pm
+  REG["issues.csv<br/>cambios.csv"]:::pm
+  HDOC["handoff-bmad-*.md"]:::pm
+  PRD & DOC --> IDX --> CACHE
+  SK --> FAC --> CACHE
+  PRD --> LB --> HIST
+  PRD & DOC & SCP --> VER -->|desvío| REG
+  REG -->|"cambio aprobado"| HO --> HDOC
+  HDOC -.->|"el equipo BMAD lo aplica"| SCP
+  classDef bmad fill:#e8f1fb,stroke:#3b6ea8,color:#111
+  classDef puente fill:#fff4d6,stroke:#b8860b,color:#111
+  classDef pm fill:#e9f6ec,stroke:#2e7d32,color:#111

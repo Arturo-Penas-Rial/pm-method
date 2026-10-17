@@ -1,0 +1,31 @@
+flowchart LR
+    subgraph F0["Pre-proyecto · SU"]
+        direction TB
+        bb["BMAD<br/>bmad-product-brief"] -- "insumo" --> su["PRINCE2 · pm-method<br/>mandato · project brief<br/>caso de negocio esquemático"]
+    end
+    g1{{"Puerta: autorizar-inicio"}}
+    subgraph F1["Iniciación · IP (etapa 1)"]
+        direction TB
+        bp["BMAD<br/>bmad-prd → PRD final<br/>bmad-architecture · bmad-ux"] -- "FR/NFR · SM-n<br/>(especificacion.py)" --> ip["PRINCE2 · pm-method<br/>business case · PID · enfoques<br/>plan de proyecto · plan etapa 2"]
+    end
+    g2{{"Puerta: autorizar-proyecto<br/>exige PRD final (P-07) y línea base"}}
+    subgraph F2["Preparación de cada etapa de entrega · SB"]
+        direction TB
+        be["BMAD<br/>bmad-create-epics-and-stories<br/>bmad-sprint-planning:<br/>PASS · CONCERNS · FAIL"] -- "épicas, historias,<br/>veredicto" --> sb["PRINCE2 · pm-method<br/>plan de etapa · release plan<br/>informe de fin de etapa"]
+    end
+    g3{{"Puerta: autorizar-etapa<br/>PRD y arquitectura final · gate BMAD<br/>FAIL bloquea · CONCERNS condición"}}
+    subgraph F3["Etapa de entrega · CS / MP"]
+        direction TB
+        bd["BMAD<br/>bmad-build · bmad-code-review<br/>sprint-status · bmad-retrospective<br/>bmad-correct-course"] -- "avance · lecciones<br/>cambios → issue → C-###" --> cs["PRINCE2 · pm-method<br/>paquetes · highlight · EVM<br/>riesgos · issues · calidad"]
+        cs -- "bmad.py handoff" --> bd
+    end
+    g4{{"Puerta: autorizar-plan-excepcion"}}
+    subgraph F4["Cierre · CP"]
+        direction TB
+        cp["PRINCE2 · pm-method<br/>aceptación · lecciones<br/>revisión de beneficios"]
+    end
+    g5{{"Puerta: autorizar-cierre"}}
+    F0 --> g1 --> F1 --> g2 --> F2 --> g3 --> F3
+    F3 -- "fin de etapa" --> F2
+    F3 -. "pronóstico fuera de tolerancia" .-> g4 -.-> F3
+    F3 -- "última etapa" --> F4 --> g5

@@ -1,0 +1,53 @@
+{
+  "schemaVersion": 1,
+  "ok": false,
+  "command": "finalize",
+  "status": "skipped",
+  "type": "tree",
+  "quality": "showcase",
+  "specification": {
+    "path": "<repo>/gestion/02-planificacion/visuales/wbs.candidate.json",
+    "sha256": "19ac4bc1eaf5482afffc4812474707abdafdc6022e69244dd001a7b53f2a6729",
+    "bytes": 2111
+  },
+  "artifact": {
+    "path": "<repo>/gestion/02-planificacion/visuales/wbs.html",
+    "sha256": "040a8f732d4af2332772cab0ee6276fc0b3c3a80265e8778e452342d8b3e480c",
+    "bytes": 830803
+  },
+  "gates": {
+    "validate": "pass",
+    "deliver": "pass",
+    "check": "pass",
+    "browser-check": "skipped"
+  },
+  "failedStage": "browser-check",
+  "diagnostics": [
+    {
+      "code": "viewer/chrome-unavailable",
+      "severity": "warning",
+      "message": "Chrome or Chromium is unavailable. Set ARCHIFY_CHROME to its executable path.",
+      "subject": {
+        "artifact": "<repo>/gestion/02-planificacion/visuales/wbs.html"
+      },
+      "evidence": {
+        "executable": null
+      },
+      "supportedFixes": [
+        "set ARCHIFY_CHROME to a Chrome or Chromium executable and rerun browser-check"
+      ]
+    }
+  ],
+  "diagnosticSummary": {
+    "total": 1,
+    "shown": 1,
+    "truncated": false
+  },
+  "evidence": {
+    "receipt": "<repo>/gestion/02-planificacion/visuales/wbs.finalize.json",
+    "summaryReceipt": "<repo>/gestion/02-planificacion/visuales/wbs.finalize-summary.json",
+    "browserCheckReceipt": "<repo>/gestion/02-planificacion/visuales/wbs.browser-check.json"
+  },
+  "visualReview": "not-requested",
+  "durationMs": 939
+}

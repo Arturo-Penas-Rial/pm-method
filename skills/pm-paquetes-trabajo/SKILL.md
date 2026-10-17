@@ -1,7 +1,7 @@
 ---
 name: pm-paquetes-trabajo
 description: "Paquetes de trabajo (WP) y product status account. Usar: autorizar paquete, work package, plan de equipo, recibir paquete, sprint como paquete, team plan. No: plan de etapa→pm-plan-etapa-y-limites."
-version: 2.0.0
+version: 2.1.0
 author: pm-method
 license: MIT
 metadata:
@@ -25,7 +25,7 @@ metadata:
 - EN: produce a product status account; run a sprint as a work package inside a stage.
 
 ## Idioma
-Responder y generar en el idioma del usuario (o `estado.json.idioma`); plantillas con etiquetas bilingües. La primera vez, nombrar el equivalente EN (work package description, team plan, checkpoint report, product status account).
+**Idioma · Language:** responder siempre en el idioma en que escribe el usuario (English request → English reply); los artefactos van en `estado.json.idioma` salvo que el usuario pida otro. plantillas con etiquetas bilingües. La primera vez, nombrar el equivalente EN (work package description, team plan, checkpoint report, product status account).
 
 ## Conocimiento
 - `references/guia.md` (esta skill): contenido del WP §1, registro de actos §2, flujo §3, completitud §4, product status account §5, `calidad.csv` §6, ágil §7, BMAD §8, proveedores y casos borde §9.
@@ -39,7 +39,7 @@ Responder y generar en el idioma del usuario (o `estado.json.idioma`); plantilla
 - Plan de etapa aprobado con productos y descripciones de producto (propósito, especificaciones de calidad, productor, revisor, autoridad de aceptación); si faltan, `pm-planificacion-por-productos` o `pm-calidad`.
 - Tolerancias de etapa en `estado.json.tolerancias`; gestor de equipo; si es proveedor, contrato (`pm-adquisiciones`).
 - `enfoque_entrega` para elegir variante predictiva o iterativa.
-- **Especificación (fuente única, SPEC §1.16)**: historias del sprint o épica del paquete y sus estados solo vía `python3 <pm-estado-proyecto>/scripts/especificacion.py --proyecto <dir> resumen|consultar <id>|listar historias --epica <E>` (igual con o sin BMAD; nunca abrir BMAD ni `requisitos.md`). Escribe como dueña: el paquete de trabajo (alcance = ids de historias, sin copiar texto).
+- **Especificación (fuente única, SPEC §1.16)**: historias del sprint o épica del paquete y sus estados solo vía `python3 ${CLAUDE_SKILL_DIR}/../pm-estado-proyecto/scripts/especificacion.py --proyecto <dir> resumen|consultar <id>|listar historias --epica <E>` (igual con o sin BMAD; nunca abrir BMAD ni `requisitos.md`). Escribe como dueña: el paquete de trabajo (alcance = ids de historias, sin copiar texto).
 - Opcional: tracker vía `pm-integraciones` (instantánea en `03-control/fuentes/`; escribir solo con confirmación).
 
 ## Procedimiento
@@ -47,7 +47,7 @@ Responder y generar en el idioma del usuario (o `estado.json.idioma`); plantilla
 2. **Co-crear la descripción** con el gestor de equipo en `templates/paquete-trabajo.md` (campos en guía §1). Criterios de aceptación citados de la descripción de producto o por id de historia. Marcar borrador.
 3. **Derivar tolerancias** del paquete dentro de las de la etapa y declarar el reparto; si no caben, ajustar el plan de etapa o escalar (guía §1).
 4. **Revisar el plan de equipo** (o extracto de hitos; en ágil, backlog de la iteración). Si los productos no caben en las restricciones, renegociar alcance o escalar.
-5. **Revisores de calidad.** Con aseguramiento, confirmar revisores independientes del productor y dar de alta las actividades en `calidad.csv` (`pm-calidad` o `<pm-estado-proyecto>/scripts/registro.py --proyecto <dir> agregar calidad`; columnas en guía §6).
+5. **Revisores de calidad.** Con aseguramiento, confirmar revisores independientes del productor y dar de alta las actividades en `calidad.csv` (`pm-calidad` o `${CLAUDE_SKILL_DIR}/../pm-estado-proyecto/scripts/registro.py --proyecto <dir> agregar calidad`; columnas en guía §6).
 6. **PUERTA HUMANA — Autorizar y aceptar.** El gestor del proyecto autoriza y el gestor de equipo acepta explícitamente. Registrar en el bloque **Acuerdo / Agreement** del WP, `estado.py artefacto/aprobar` y la fila de aceptación `nivel=equipo` (guía §2). `estado_paquete: autorizado`. Sin este acto el trabajo no comienza.
 7. **Ejecutar y seguir.** El equipo produce según las descripciones, ejecuta las actividades de calidad y actualiza `calidad.csv`. Checkpoints a la frecuencia pactada vía `pm-progreso-reportes` (en ágil, tablero por "pull").
 8. **Tratar desviaciones.** Dentro de tolerancia del paquete → acción correctiva anotada en el checkpoint. Fuera → issue al gestor del proyecto (`pm-issues-cambios`), que decide dentro de la tolerancia de etapa o escala como excepción. Producto que no alcanzará su especificación → off-specification: completar o concesión.

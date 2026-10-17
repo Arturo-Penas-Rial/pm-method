@@ -6,17 +6,36 @@ está en `references/formatos.md`; esta guía reúne las vías, la convención d
 ## 1. Vías por formato
 | Formato | Vía por defecto (`integraciones.export = scripts`) | Vía con skills oficiales (`skills-office`) | Qué no cubre el script |
 |---|---|---|---|
-| `.docx` | `<pm-estado-proyecto>/scripts/exportar.py docx` | skill `docx` (plantilla `.dotx`, portada, índice, marca de agua en todas las páginas, imágenes, control de cambios) | cursiva, enlaces, imágenes `![]()`, metadatos en portada (Mermaid solo con `mmdc`) |
+| `.docx` | `${CLAUDE_SKILL_DIR}/../pm-estado-proyecto/scripts/exportar.py docx` | skill `docx` (plantilla `.dotx`, portada, índice, marca de agua en todas las páginas, imágenes, control de cambios) | cursiva, enlaces, imágenes `![]()`, metadatos en portada (Mermaid solo con `mmdc`) |
 | `.xlsx` | `exportar.py xlsx` | skill `xlsx` (fórmulas, formato condicional, filtros, validación, gráficos, hoja Resumen/Notas) | fórmulas vivas y semáforos |
 | `.pptx` | no disponible: guion Markdown del deck (`formatos.md` §3) | skill `pptx` con el esquema de `formatos.md` §3 | todo |
-| `.zip` (paquetes) | `<pm-exportar>/scripts/paquete.py` | n/a | conversión de formatos (se hace antes) |
+| `.zip` (paquetes) | `${CLAUDE_SKILL_DIR}/../pm-exportar/scripts/paquete.py` | n/a | conversión de formatos (se hace antes) |
 | `.pdf` | no cubierto | skill `pdf`, a partir del `.docx` | todo |
 | `.xml` MS Project | lo genera `cpm.py --mspdi` (`pm-cronograma-estimacion`); aquí solo se incluye en paquetes con `--extra` | — | — |
 
-Detalle de comandos:
+Detalle de comandos (vía `scripts`):
 - `.docx`: `exportar.py docx --entrada <ruta.md> --salida exportados/<nombre>.docx` (encabezados, listas, tablas, negritas, banda de borrador; Mermaid como imagen con `mmdc`, si no como código con aviso; `formatos.md` §1).
-- `.xlsx`: `exportar.py xlsx --proyecto <dir> --salida exportados/AAAA-MM-DD-registros-v<n>.xlsx` (todas las hojas, incluida `stakeholders`: quitarla o exportar aparte si la audiencia es externa) o `--entrada <csv> --salida <xlsx>` (`formatos.md` §2).
+- `.xlsx`: `exportar.py xlsx --proyecto <dir> --salida exportados/AAAA-MM-DD-registros-v<n>.xlsx` (todas las hojas, incluida `stakeholders`: quitarla o exportar aparte si la audiencia es externa) o `--entrada <csv> --salida <xlsx>` (`formatos.md` §2). **Solo lee CSV**: un artefacto Markdown con tablas (presupuesto, hoja de costeo) se exporta desde su CSV hermano (`02-planificacion/linea-base-costo.csv`, `wbs.csv`); si no existe, avisar y ofrecer el `.docx` del Markdown o la skill `xlsx`. No improvisar planillas a mano.
 - `.pptx`: con la skill `pptx` siguiendo el esquema de deck de puerta (título, estado contra tolerancias, productos, riesgos, decisiones requeridas); sin ella, `exportados/<nombre>-deck.md` y avisar que falta la skill.
+
+### 1.1 Skills oficiales de Office (`integraciones.export = skills-office`) — verificado en vivo, Claude Code 2.1, 2026-10-17
+Origen: `anthropics/skills` (carpetas `skills/docx`, `skills/xlsx`, `skills/pptx`; licencia **propietaria** de Anthropic, "source-available", no MIT). Se ven con nombres distintos según cómo se instalaron, y **cualquiera vale**:
+
+| Instalación | Nombre en el listado | Comando |
+|---|---|---|
+| Plugin del marketplace oficial | `document-skills:docx`, `:xlsx`, `:pptx` (y `:pdf`) | `/plugin marketplace add anthropics/skills` + `/plugin install document-skills@anthropic-agent-skills` |
+| Copia como skills del proyecto o del usuario | `docx`, `xlsx`, `pptx` | `npx skills add anthropics/skills -a claude-code -s docx xlsx pptx -y` (agregar `-g` para el usuario) |
+| Skills de claude.ai / Cowork sincronizadas | `anthropic-skills:docx`, `:xlsx`, `:pptx` | habilitarlas en claude.ai (Capacidades) |
+
+`sanidad.py` (INS-03) informa cuál está y con qué nombre invocarla. Requisitos: Node.js con el paquete npm `docx` (Word) o `pptxgenjs` (PowerPoint) resoluble por `require` (si falla: `npm install docx` / `npm install pptxgenjs` en una carpeta de trabajo fuera del proyecto); Python con `openpyxl` (Excel); LibreOffice para recalcular fórmulas (`scripts/recalc.py`) y para la vista previa en PDF; `pandoc` para leer `.docx`.
+
+**Contrato de delegación** (obligatorio con `skills-office` y la skill presente):
+1. pm-exportar resuelve qué exportar, el estado de la fuente y el **nombre final** (§2) antes de invocar.
+2. Invocar la skill con la herramienta Skill por su nombre real y entregarle: el contenido limpio (Markdown sin frontmatter, o filas CSV / tablas Markdown), el bloque de metadatos de portada (`formatos.md` §1.3), la ruta exacta `exportados/AAAA-MM-DD-<tipo>-v<n>[-BORRADOR].<ext>`, la marca "BORRADOR / DRAFT" si la fuente no está aprobada (banda en portada y encabezado o marca de agua en todas las páginas), la declaración de asistencia de IA y la fecha de corte.
+3. Excel: una hoja por tabla o registro, totales como **fórmulas** (`=SUM(...)`), hoja "Notas" con fuente de cada cifra; recalcular con `python <xlsx>/scripts/recalc.py <archivo>` y no entregar con `errors_found`. Word: respetar el orden de secciones de la fuente. Deck: esquema de `formatos.md` §3.
+4. Los scripts temporales de la skill (`.js`, `.py`) van a una carpeta de trabajo fuera de la carpeta del proyecto; en `exportados/` solo queda el archivo final.
+5. Verificar: el archivo abre (`python-docx` / `openpyxl` / `python-pptx`), contiene la marca BORRADOR cuando corresponde y las tablas completas; anotar en `diario.md` la vía usada.
+6. Si la skill no está en el listado o falla dos veces: `exportar.py` (docx/xlsx) o guion Markdown (pptx), con nota inmediata en `diario.md` ("skill X no disponible/falló: <causa>; se usó exportar.py"), sin esperar la confirmación de envío.
 
 ## 2. Convención de nombres y versionado
 - `exportados/AAAA-MM-DD-<tipo>-v<version>[-BORRADOR].<ext>`; `<tipo>` = `tipo` del frontmatter (`plan-etapa-2`, `informe-fin-etapa-2`, `registros`, `deck-autorizar-cierre`) o `paquete-<puerta>` para los ZIP.

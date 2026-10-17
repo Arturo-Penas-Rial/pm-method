@@ -1,7 +1,7 @@
 # Guía operativa de registros · Registers operating guide
 
 Detalle de `pm-registros`. El SKILL.md cita cada sección por número. Columnas, valores y traducción ES/EN:
-`templates/guia-registros.md` (idéntica al esquema de `<pm-estado-proyecto>/scripts/esquema.py`).
+`templates/guia-registros.md` (idéntica al esquema de `${CLAUDE_SKILL_DIR}/../pm-estado-proyecto/scripts/esquema.py`).
 
 ## 1. Tabla de clasificación (en orden de preguntas)
 | Pregunta | Si la respuesta es… | Registro destino |
@@ -33,7 +33,7 @@ Change Proposal, es `solicitud-cambio`; en `notas` se citan los ids (FR-n, AD-n)
 - **Acción**: qué, quién, para cuándo y de dónde sale (`origen`: acta, riesgo, issue, reunión).
 
 ## 3. Escritura con `registro.py`
-`python3 <pm-estado-proyecto>/scripts/registro.py --proyecto <dir> agregar <registro> --campo clave=valor …`. Asigna `id`,
+`python3 ${CLAUDE_SKILL_DIR}/../pm-estado-proyecto/scripts/registro.py --proyecto <dir> agregar <registro> --campo clave=valor …`. Asigna `id`,
 fecha y estado inicial (`abierto` en riesgos, issues, cambios y supuestos; `registrada` en lecciones; `planificada` en
 calidad; `abierta` en acciones); en riesgos calcula `puntuacion = probabilidad × impacto` y, con `impacto_monetario`,
 `valor_esperado` (EMV, 1–5 → 10/30/50/70/90 %). Ante dudas: `registro.py esquema <registro>`. Valida columnas, valores y

@@ -5,7 +5,7 @@ Referencia propia de `pm-exportar`. Describe cómo se traduce cada artefacto del
 ## 1. Markdown → .docx
 
 ### 1.1 Qué hace `exportar.py docx`
-Script `<pm-estado-proyecto>/scripts/exportar.py` (python-docx). Si el frontmatter no dice `estado: aprobado`, la primera línea del documento es una banda en negrita "BORRADOR / DRAFT — estado: <estado> · generado con asistencia de IA, requiere revisión humana". Luego procesa el archivo línea a línea:
+Script `${CLAUDE_SKILL_DIR}/../pm-estado-proyecto/scripts/exportar.py` (python-docx). Si el frontmatter no dice `estado: aprobado`, la primera línea del documento es una banda en negrita "BORRADOR / DRAFT — estado: <estado> · generado con asistencia de IA, requiere revisión humana". Luego procesa el archivo línea a línea:
 
 | Elemento Markdown | Resultado en Word | Notas |
 |---|---|---|
@@ -52,7 +52,7 @@ Primera página del `.docx`, en una tabla de dos columnas:
 - Cabecera en negrita con fondo, ancho de columna fijo (18), primera fila inmovilizada. Sin fórmulas ni formato condicional.
 
 ### 2.2 Mapeo de registros → hojas
-Columnas exactamente como `<pm-estado-proyecto>/scripts/esquema.py` (fuente única; detalle y valores en `pm-registros/templates/guia-registros.md`).
+Columnas exactamente como `${CLAUDE_SKILL_DIR}/../pm-estado-proyecto/scripts/esquema.py` (fuente única; detalle y valores en `pm-registros/templates/guia-registros.md`).
 
 | Registro CSV | Hoja | Columnas (cabecera snake_case del paquete) | Traducción EN de las columnas clave |
 |---|---|---|---|
@@ -105,7 +105,7 @@ Notas del orador: cada diapositiva lleva en notas la fuente exacta (ruta, versi�
 
 ## 4. Paquetes ZIP · ZIP packages
 
-`python3 <pm-exportar>/scripts/paquete.py --proyecto <dir> puerta <tipo> | cierre | listar puerta <tipo> | listar cierre`. Busca cada producto primero por su clave canónica en `estado.json.artefactos` (SPEC §1.10.3; si hay varias numeradas, la más alta) y, si no está registrada, por patrones de ruta. `{n}` = `etapa_actual.numero`, `{n+1}` = la siguiente (en iniciación, n = 1 → `plan-etapa-2`).
+`python3 ${CLAUDE_SKILL_DIR}/../pm-exportar/scripts/paquete.py --proyecto <dir> puerta <tipo> | cierre | listar puerta <tipo> | listar cierre`. Busca cada producto primero por su clave canónica en `estado.json.artefactos` (SPEC §1.10.3; si hay varias numeradas, la más alta) y, si no está registrada, por patrones de ruta. `{n}` = `etapa_actual.numero`, `{n+1}` = la siguiente (en iniciación, n = 1 → `plan-etapa-2`).
 
 **Solicitud vs. ZIP.** El documento de solicitud de decisión que redacta `pm-direccion-decisiones` es `00-direccion/decisiones/AAAA-MM-DD-solicitud-<puerta>.md` (clave `solicitud-<puerta>`; el script también reconoce nombres antiguos `*paquete-<puerta>*.md`). El ZIP que arma este script es otra cosa: si se registra, va como `exportado-paquete-<puerta>` y el script nunca lo reincluye en otro paquete.
 

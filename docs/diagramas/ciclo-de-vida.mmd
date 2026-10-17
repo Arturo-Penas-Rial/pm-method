@@ -1,0 +1,9 @@
+flowchart LR
+    A(( )) -->|"nuevo proyecto<br/>(etapa 0)"| SU
+    SU -->|autorizar-inicio| IP
+    IP -->|"autorizar-proyecto<br/>+ autorizar-etapa"| CS
+    CS -->|"limite-etapa<br/>(o --excepcion)"| SB
+    SB -->|"autorizar-etapa (n+1)<br/>o autorizar-plan-excepcion"| CS
+    SB -->|cierre| CP
+    CS -->|"cierre --prematuro"| CP
+    CP -->|autorizar-cierre| Z(((" ")))

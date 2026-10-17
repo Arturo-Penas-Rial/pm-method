@@ -3,7 +3,7 @@ name: pm-reporte
 description: "Genera el informe de avance pedido: highlight, checkpoint o excepción, vía pm-progreso-reportes. Uso manual: /pm-reporte highlight|checkpoint|excepcion [carpeta]. Progress report."
 disable-model-invocation: true
 argument-hint: "highlight|checkpoint|excepcion [carpeta]"
-version: 2.0.0
+version: 2.1.0
 author: pm-method
 license: MIT
 metadata:
@@ -18,6 +18,8 @@ metadata:
 ---
 
 # Informe de avance · Progress report
+
+**Idioma · Language:** responder siempre en el idioma en que escribe el usuario (English request → English reply); los artefactos van en `estado.json.idioma` salvo que el usuario pida otro.
 
 ## Cuándo usar / When to use
 - El usuario escribe `/pm-reporte <tipo>`. EN: user-invoked highlight, checkpoint or exception report.
