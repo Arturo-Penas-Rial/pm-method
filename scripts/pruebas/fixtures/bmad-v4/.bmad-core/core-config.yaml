@@ -1,0 +1,8 @@
+prd:
+  prdFile: docs/prd.md
+  prdSharded: true
+  prdShardedLocation: docs/prd
+  epicFilePattern: epic-{n}*.md
+architecture:
+  architectureFile: docs/architecture.md
+devStoryLocation: docs/stories

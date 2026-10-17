@@ -1,0 +1,310 @@
+#!/usr/bin/env python3
+"""Sanidad del ecosistema pm-method: consistencia del proyecto, de la columna vertebral BMAD ↔ PRINCE2 y de las
+integraciones. Health check of the project folder, the BMAD↔PRINCE2 backbone and installed integrations.
+
+Uso / Usage:
+  sanidad.py --proyecto ./gestion                 # todas las comprobaciones
+  sanidad.py --proyecto ./gestion --rapido        # subconjunto rápido (lo usa el hook de inicio de sesión)
+  sanidad.py --proyecto ./gestion --informe       # además escribe 03-control/reportes/<fecha>-sanidad.md
+  sanidad.py --proyecto ./gestion --reparar       # arreglos seguros: columnas de registros, índice de especificación
+  sanidad.py --proyecto ./gestion --json
+Salida: hallazgos ERROR / AVISO / INFO con código, mensaje y cómo corregir. Código de salida 1 si hay ERROR.
+Familias: INS instalación · EST estado y puertas · ART artefactos · REG registros · ESP especificación/BMAD · INT integraciones.
+"""
+import argparse, csv, datetime, glob, json, os, re, sys
+AQUI = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, AQUI)
+import esquema as E
+
+H = []
+def add(sev, cod, msg, arreglo=""): H.append({"severidad": sev, "codigo": cod, "mensaje": msg, "arreglo": arreglo})
+
+def leer_fm(p):
+    try: t = open(p, encoding="utf-8").read()
+    except (OSError, UnicodeDecodeError): return None
+    if not t.startswith("---"): return {}
+    partes = t.split("---", 2)
+    if len(partes) < 3: return {}
+    return {k: v.strip().strip('"') for k, v in re.findall(r"(?m)^(\w+):\s*(.*)$", partes[1])}
+
+# ------------------------------------------------------------------ INS: instalación e integraciones externas
+def dirs_skills(proyecto):
+    home = os.path.expanduser("~")
+    cands = [os.path.join(proyecto, "..", ".claude", "skills"), os.path.join(os.getcwd(), ".claude", "skills"),
+             os.path.join(home, ".claude", "skills"), os.path.join(home, ".claude", "plugins"), os.path.join(home, ".hermes", "skills"),
+             os.path.normpath(os.path.join(AQUI, "..", ".."))]
+    out = []
+    for c in cands:
+        c = os.path.abspath(c)
+        if os.path.isdir(c) and c not in out: out.append(c)
+    return out
+
+def inventario_skills(proyecto):
+    vistos = {}
+    for d in dirs_skills(proyecto):
+        for p in glob.glob(os.path.join(d, "**", "SKILL.md"), recursive=True)[:3000]:
+            fm = leer_fm(p) or {}
+            n = fm.get("name") or os.path.basename(os.path.dirname(p))
+            vistos.setdefault(n, []).append({"ruta": p, "description": fm.get("description", ""), "modelo": fm.get("disable-model-invocation", "") != "true"})
+    return vistos
+
+def chk_instalacion(proyecto, e, rapido):
+    for mod, uso in (("yaml", "leer BMAD y sprint-status"), ("docx", "exportar .docx / actas .docx"), ("openpyxl", "exportar .xlsx")):
+        try: __import__(mod)
+        except ImportError: add("AVISO", "INS-01", f"Falta el módulo Python '{mod}' ({uso}).", f"pip install {'pyyaml' if mod == 'yaml' else ('python-docx' if mod == 'docx' else mod)}")
+    vp = e.get("version_paquete")
+    if vp and vp != E.VERSION_PAQUETE:
+        add("AVISO", "INS-02", f"El proyecto fue creado con pm-method {vp} y el instalado es {E.VERSION_PAQUETE}.", "Revisar notas de versión; estado.json se migra solo al leerse.")
+    if rapido: return
+    inv = inventario_skills(proyecto)
+    # skills externas declaradas en integraciones
+    for clave, valor in e.get("integraciones", {}).items():
+        if clave == "diagramas" and valor in ("archify", "diagram-design", "visual-explainer"):
+            if valor not in inv: add("AVISO", "INS-03", f"integraciones.diagramas = {valor}, pero no se encontró una skill '{valor}' instalada.", "Instalarla o volver a 'mermaid' (estado.py integracion diagramas=mermaid); pm-visuales usa Mermaid como respaldo.")
+            else: add("INFO", "INS-03", f"Skill externa '{valor}' encontrada: {inv[valor][0]['ruta']}")
+    # duplicados de nombre (p. ej. plugin + copia manual)
+    for n, lst in inv.items():
+        rutas = {os.path.realpath(x["ruta"]) for x in lst}
+        if n.startswith("pm-") and len(rutas) > 1:
+            add("AVISO", "INS-04", f"La skill {n} está instalada {len(rutas)} veces ({', '.join(sorted(rutas))[:300]}).", "Dejar una sola instalación (plugin o copia) para evitar versiones mezcladas.")
+    # presupuesto del listado y colisiones de activación con skills de otros repos
+    total = sum(len(x[0]["description"]) for x in inv.values() if x[0]["modelo"])
+    bm = [n for n in inv if n.startswith("bmad-")]
+    if total > 8000:
+        add("AVISO", "INS-05", f"Las descripciones de las {sum(1 for x in inv.values() if x[0]['modelo'])} skills visibles suman ≈{total} caracteres{' (incluye ' + str(len(bm)) + ' de BMAD)' if bm else ''}; el listado de Claude Code usa ≈1 % del contexto y puede recortarlas.",
+            'En settings.json: "skillListingBudgetFraction": 0.02, o marcar skills poco usadas como "name-only" en skillOverrides (no aplica a skills de plugins).')
+    pm = {n: x[0]["description"] for n, x in inv.items() if n.startswith("pm-")}
+    def claves(d):
+        m = re.search(r"Usar:(.*?)(No:|$)", d)
+        return {w.strip().lower() for w in (m.group(1) if m else "").split(",") if len(w.strip()) > 3}
+    for n, lst in inv.items():
+        if n.startswith("pm-") or not lst[0]["modelo"]: continue
+        dl = lst[0]["description"].lower()
+        for pn, pd in pm.items():
+            comunes = [k for k in claves(pd) if k.strip(". ") in dl]
+            if len(comunes) >= 3:
+                add("AVISO", "INS-06", f"Posible colisión de activación entre '{n}' (externa) y '{pn}': comparten {', '.join(sorted(comunes))[:120]}.",
+                    "Confirmar cuál debe responder; ajustar la descripción local o usar skillOverrides para la externa.")
+
+# ------------------------------------------------------------------ EST: estado y puertas
+def chk_estado(proyecto, e):
+    fase, proc = e.get("fase"), e.get("proceso_actual")
+    validos = {("pre-proyecto", "SU"), ("inicio", "IP"), ("entrega", "CS"), ("entrega", "SB"), ("cierre", "CP"), ("cerrado", "CP")}
+    if (fase, proc) not in validos: add("ERROR", "EST-01", f"Combinación fase/proceso inválida: {fase}/{proc}.", "estado.py set fase=… proceso_actual=… o rehacer la última transición.")
+    ok = lambda t: [p for p in e.get("puertas", []) if p.get("tipo") == t and p.get("decision") in ("aprobado", "condicionado")]
+    if fase in ("inicio", "entrega", "cierre", "cerrado") and not ok("autorizar-inicio"):
+        add("ERROR", "EST-02", f"Fase {fase} sin puerta autorizar-inicio registrada.", "Registrar la decisión con pm-director (estado.py puerta autorizar-inicio …).")
+    if fase in ("entrega", "cierre", "cerrado") and not (ok("autorizar-proyecto") and ok("autorizar-etapa")):
+        add("ERROR", "EST-03", f"Fase {fase} sin autorizar-proyecto y autorizar-etapa.", "Revisar las decisiones de la junta.")
+    if fase == "cerrado" and not ok("autorizar-cierre"): add("ERROR", "EST-04", "Proyecto cerrado sin autorizar-cierre.", "")
+    n_etapa = e.get("etapa_actual", {}).get("numero", 0)
+    esperado = (1 if ok("autorizar-inicio") else 0) + len(ok("autorizar-etapa"))
+    if fase in ("inicio", "entrega") and n_etapa != esperado:
+        add("AVISO", "EST-05", f"etapa_actual = {n_etapa}, pero las puertas registradas implican la etapa {esperado}.", "Corregir con estado.py etapa --numero … si fue un ajuste manual.")
+    tol = e.get("tolerancias", {}).get("proyecto", {})
+    faltan = [d for d in ("tiempo", "costo") if not tol.get(d)]
+    if faltan and (e.get("proyecto_autorizado") or fase in ("entrega",)):
+        add("ERROR", "EST-06", f"Proyecto autorizado sin tolerancias de proyecto: {', '.join(faltan)}.", "estado.py tolerancia --nivel proyecto tiempo=… costo=…")
+    if fase == "entrega" and not any(e.get("tolerancias", {}).get("etapa", {}).values()):
+        add("AVISO", "EST-07", "Etapa de entrega sin tolerancias de etapa.", "estado.py tolerancia --nivel etapa …")
+    r = e.get("roles", {})
+    if fase != "pre-proyecto" and not r.get("ejecutivo"): add("ERROR", "EST-08", "Sin ejecutivo designado (no hay proyecto sin ejecutivo).", "estado.py rol ejecutivo=…")
+    if r.get("ejecutivo") and r.get("ejecutivo") == r.get("gestor_proyecto"): add("ERROR", "EST-09", "El ejecutivo y el gestor son la misma persona.", "Separar los roles.")
+    if r.get("gestor_proyecto") and r.get("gestor_proyecto") in (r.get("aseguramiento") or []): add("ERROR", "EST-10", "El gestor figura en aseguramiento.", "El aseguramiento es independiente del gestor.")
+    for p in e.get("puertas", []):
+        if p.get("decision") == "pendiente" and not p.get("resuelta"): add("AVISO", "EST-11", f"Puerta pendiente: {p['tipo']} ({p.get('fecha')}).", "Llevarla a la junta (pm-puerta).")
+        if p.get("decision") == "condicionado" and p.get("condiciones") and not p.get("condiciones_cumplidas"):
+            add("AVISO", "EST-12", f"Condiciones abiertas de {p['tipo']}: {p['condiciones']}.", "estado.py cumplir-condiciones <tipo> cuando se cumplan.")
+        if p.get("forzada"): add("AVISO", "EST-13", f"La puerta {p['tipo']} se registró con --forzar.", "Justificar en decisiones.csv.")
+    if e.get("excepcion_abierta"): add("AVISO", "EST-14", f"Excepción abierta {e['excepcion_abierta']} esperando plan de excepción.", "")
+
+# ------------------------------------------------------------------ ART: artefactos
+def chk_artefactos(proyecto, e):
+    for k, a in e.get("artefactos", {}).items():
+        ruta = os.path.join(proyecto, a.get("ruta", ""))
+        if not os.path.exists(ruta):
+            add("ERROR", "ART-01", f"Artefacto {k} registrado pero no existe: {a.get('ruta')}.", "Restaurarlo o corregir la ruta con estado.py artefacto.")
+            continue
+        if a.get("externo"):
+            if not a.get("sha256"): add("AVISO", "ART-04", f"Especificación externa {k} sin huella.", "Registrar con bmad.py linea-base.")
+            continue
+        if a.get("estado") == "aprobado" and not a.get("aprobado_por"): add("AVISO", "ART-02", f"{k} aprobado sin aprobado_por.", "estado.py aprobar … --por …")
+        if ruta.endswith(".md"):
+            fm = leer_fm(ruta) or {}
+            if fm.get("estado") and fm["estado"] != a.get("estado"):
+                add("AVISO", "ART-03", f"{k}: estado.json dice '{a.get('estado')}' y el documento '{fm['estado']}'.", "estado.py artefacto/aprobar sincroniza ambos.")
+    for p in glob.glob(os.path.join(proyecto, "00-direccion", "historial", "*")):
+        pass  # las copias congeladas no se validan contra su contenido; el hook impide editarlas
+
+# ------------------------------------------------------------------ REG: registros
+def chk_registros(proyecto, e, reparar):
+    hoy = datetime.date.today().isoformat(); ids_todos = set()
+    filas_por = {}
+    for reg, spec in E.REGISTROS.items():
+        p = E.ruta_registro(proyecto, reg)
+        if not os.path.exists(p): add("ERROR", "REG-01", f"Falta el registro {reg}.csv.", "sanidad.py --reparar lo crea vacío.");
+        if reparar or not os.path.exists(p): E.asegurar_registro(proyecto, reg)
+        cols, filas = E.leer_csv(p)
+        faltan = [c for c in spec["columnas"] if c not in cols]
+        if faltan: add("AVISO", "REG-02", f"{reg}.csv sin columnas del esquema v2: {', '.join(faltan)}.", "sanidad.py --reparar (o cualquier registro.py) las agrega.")
+        vistos = set()
+        for f in filas:
+            i = f.get("id", "")
+            if not re.match(rf"^{spec['prefijo']}-\d{{3,}}$", i): add("ERROR", "REG-03", f"{reg}: id inválido '{i}'.", f"Formato {spec['prefijo']}-###.")
+            if i in vistos: add("ERROR", "REG-04", f"{reg}: id duplicado {i}.", "Renumerar el duplicado.")
+            vistos.add(i); ids_todos.add(i)
+            for col, perm in spec.get("valores", {}).items():
+                v = f.get(col, "")
+                if v and v not in perm: add("ERROR", "REG-05", f"{reg} {i}: {col}='{v}' fuera del esquema.", f"Valores: {', '.join(x for x in perm if x)}")
+            for col in spec.get("enteros_1_5", []):
+                v = f.get(col, "")
+                if v and not (v.isdigit() and 1 <= int(v) <= 5): add("ERROR", "REG-05", f"{reg} {i}: {col}='{v}' no es 1–5.", "")
+        filas_por[reg] = filas
+    for f in filas_por.get("riesgos", []):
+        if f.get("estado") in E.REGISTROS["riesgos"]["abiertos"]:
+            try: pts = float(f.get("puntuacion") or 0)
+            except ValueError: pts = 0
+            umbral = float((e.get("umbrales_riesgo") or {}).get("alto", E.UMBRAL_RIESGO_ALTO))
+            if pts >= umbral and not (f.get("respuesta") and f.get("propietario")):
+                add("AVISO", "REG-06", f"Riesgo alto {f['id']} sin respuesta o propietario.", "pm-riesgos.")
+    for f in filas_por.get("acciones", []):
+        if f.get("estado") in ("abierta", "en-curso") and f.get("fecha_compromiso") and f["fecha_compromiso"] < hoy:
+            add("AVISO", "REG-07", f"Acción vencida {f['id']} ({f.get('responsable','sin responsable')}, {f['fecha_compromiso']}).", "Recordatorio o replanificación.")
+    # referencias cruzadas entre registros (R-, I-, C-, D-, S-, L-, ST-, Q-, A-)
+    for reg, filas in filas_por.items():
+        for f in filas:
+            texto = " ".join(str(v) for k, v in f.items() if k != "id")
+            for ref in set(re.findall(r"\b(?:R|I|C|D|S|L|ST|Q|A)-\d{3}\b", texto)):
+                if ref not in ids_todos: add("AVISO", "REG-08", f"{reg} {f.get('id')} cita {ref}, que no existe.", "Corregir la referencia.")
+    return filas_por
+
+# ------------------------------------------------------------------ ESP: especificación y columna vertebral BMAD
+def chk_especificacion(proyecto, e, filas_por, reparar, rapido):
+    import especificacion as SP
+    bm = e.get("integraciones", {}).get("especificacion") == "bmad"
+    try:
+        h = SP.huella(proyecto, e)
+    except SystemExit as x:
+        add("ERROR", "ESP-01", f"No se pudo leer la especificación: {x}", "Revisar integraciones.bmad.raiz o correr bmad.py detectar."); return
+    ri = SP.ruta_indice(proyecto)
+    vigente = os.path.exists(ri) and json.load(open(ri, encoding="utf-8")).get("_huella") == h
+    if not vigente:
+        if reparar: SP.obtener(proyecto, forzar=True); add("INFO", "ESP-02", "Índice de especificación reconstruido.")
+        else: add("INFO", "ESP-02", "El índice de especificación está desactualizado (se reconstruye solo al consultarlo).", "especificacion.py indice o sanidad.py --reparar.")
+    if rapido and not bm: return
+    idx, _ = SP.obtener(proyecto)
+    ids = {x["id"] for x in idx.get("requisitos", [])} | {x["id"] for x in idx.get("historias", [])} | {x["id"] for x in idx.get("epicas", [])}
+    sinc = [q["id"] for q in idx.get("requisitos", []) if q.get("cobertura") == "sin-cobertura"]
+    if sinc: add("AVISO" if e.get("fase") in ("pre-proyecto", "inicio") else "ERROR", "ESP-03", f"Requisitos sin cobertura (ni historia ni paquete de la WBS): {', '.join(sinc)}.", "Planificarlos (pm-planificacion-por-productos / pm-agil-hibrido) o retirarlos mediante control de cambios.")
+    patron = re.compile(r"\b(?:REQ-\d{3}|FR-\d+|NFR-\d+|UJ-\d+|SM-\d+|AD-\d+|UX-DR-\d+)\b")
+    def revisar(nombre, texto):
+        for r in set(patron.findall(texto)):
+            if r not in ids: add("ERROR", "ESP-04", f"{nombre} cita {r}, que no existe en la especificación vigente ({idx['proveedor']}).", "Corregir el id o tramitar el cambio de alcance.")
+    pw = os.path.join(proyecto, "02-planificacion", "wbs.csv")
+    if os.path.exists(pw):
+        for r in csv.DictReader(open(pw, encoding="utf-8")): revisar(f"wbs.csv {r.get('codigo')}", r.get("ref", ""))
+    for reg in ("riesgos", "issues", "calidad", "supuestos"):
+        for f in filas_por.get(reg, []): revisar(f"{reg} {f.get('id')}", " ".join(str(v) for v in f.values()))
+    po = os.path.join(proyecto, "00-direccion", "okr.csv")
+    if os.path.exists(po):
+        bc = ""
+        for c in glob.glob(os.path.join(proyecto, "00-direccion", "*business-case*.md")): bc += open(c, encoding="utf-8").read()
+        for r in csv.DictReader(open(po, encoding="utf-8")):
+            if r.get("tipo") != "kr": continue
+            v = r.get("vinculo", "")
+            revisar(f"okr {r.get('id')}", v)
+            for b in re.findall(r"\bB-?\d+\b", v):
+                if bc and not re.search(rf"\b{re.escape(b)}\b|\bB-0*{re.sub(r'\D', '', b)}\b", bc): add("AVISO", "ESP-05", f"okr {r.get('id')} cita el beneficio {b}, que no aparece en el business case.", "Alinear con pm-caso-de-negocio.")
+    if not bm: return
+    sys.path.insert(0, os.path.normpath(os.path.join(AQUI, "..", "..", "pm-bmad-puente", "scripts")))
+    import bmad as B
+    try: b = B.detectar_bmad(proyecto, None, e)
+    except SystemExit as x: add("ERROR", "ESP-06", f"BMAD declarado pero no detectado: {x}", "bmad.py detectar --raiz …"); return
+    if b["soporte"] not in ("soportada", "v4"): add("AVISO", "ESP-07", f"Versión de BMAD {b['soporte']} (probadas: {B.VERSIONES_SOPORTADAS}).", "Correr scripts/probar_paquete.py del paquete y revisar el inventario.")
+    pa = os.path.abspath(proyecto)
+    for d in b.get("carpetas_protegidas", []):
+        if pa.startswith(os.path.abspath(d) + os.sep): add("ERROR", "ESP-08", "La carpeta del proyecto está dentro de una carpeta de BMAD.", "Moverla fuera (p. ej. <repo>/gestion).")
+    arts = B.inventario(b)
+    # desvíos contra líneas base: cada uno debe tener un issue/cambio abierto que lo cite
+    texto_cambios = " ".join(" ".join(str(v) for v in f.values()) for reg in ("issues", "cambios") for f in filas_por.get(reg, [])
+                             if f.get("estado") not in ("cerrado", "resuelto", "rechazado"))
+    for art_k, clave in B.CLAVES_LB.items():
+        lb = e.get("artefactos", {}).get(clave)
+        if not lb or "sha256" not in lb: continue
+        if art_k not in arts: add("ERROR", "ESP-09", f"El artefacto con línea base {clave} ya no se encuentra en BMAD.", "Investigar y tramitar como cambio."); continue
+        if arts[art_k]["sha256"] != lb["sha256"]:
+            nuevos = set(B.ids_de(arts, art_k)) ^ set(lb.get("ids", []))
+            citado = clave in texto_cambios or any(i in texto_cambios for i in nuevos) or art_k in texto_cambios
+            if citado: add("AVISO", "ESP-10", f"{clave} difiere de su línea base v{lb.get('version')} y hay un issue/cambio abierto que lo trata.", "Al aprobarse: bmad.py linea-base con versión mayor.")
+            else: add("ERROR", "ESP-10", f"Cambio no controlado: {clave} difiere de la línea base v{lb.get('version')}{' (ids ' + ', '.join(sorted(nuevos)) + ')' if nuevos else ''} y ningún issue/cambio abierto lo cita.", "pm-issues-cambios: registrar solicitud-cambio (o declarar elaboración progresiva y fijar nueva línea base).")
+    if e.get("fase") in ("entrega", "cierre", "cerrado") and "bmad-prd" not in e.get("artefactos", {}):
+        add("ERROR", "ESP-11", "Etapas de entrega sin línea base del PRD.", "pm-director: bmad.py linea-base prd --version 1.0 --por …")
+    vistas = set(e.get("integraciones", {}).get("bmad", {}).get("propuestas_vistas", []))
+    for r in arts.get("propuestas-cambio", {}).get("rutas", []):
+        rel = os.path.relpath(r, b["raiz"])
+        if rel not in vistas and os.path.basename(r) not in texto_cambios: add("AVISO", "ESP-12", f"Sprint Change Proposal sin tratar: {rel}.", "bmad.py verificar y registrar issue solicitud-cambio.")
+    for hdf in e.get("integraciones", {}).get("bmad", {}).get("handoffs", []):
+        fm = leer_fm(os.path.join(proyecto, hdf["archivo"])) or {}
+        if fm.get("estado") != "aplicado":
+            add("AVISO", "ESP-13", f"Traspaso a BMAD sin confirmar: {hdf['archivo']}.", "Cuando el equipo BMAD lo aplique: marcar estado: aplicado en el documento, bmad.py verificar y nueva línea base.")
+    # derivados editados a mano
+    pr = os.path.join(proyecto, "02-planificacion", "especificacion", "requisitos-bmad.csv")
+    if os.path.exists(pr):
+        actual = [r["id"] for r in csv.DictReader(open(pr, encoding="utf-8"))]
+        if actual != [q["id"] for q in B.requisitos(b, arts)]: add("AVISO", "ESP-14", "requisitos-bmad.csv no coincide con el PRD vigente (desactualizado o editado).", "bmad.py requisitos (es derivado: no se edita).")
+    pb = os.path.join(proyecto, "02-planificacion", "backlog.csv")
+    if os.path.exists(pb):
+        hs = B.historias(b, arts)
+        for f in csv.DictReader(open(pb, encoding="utf-8")):
+            if f.get("origen") != "bmad": continue
+            h = hs.get(f["id"])
+            if h and f.get("estado") != h["estado"]: add("AVISO", "ESP-15", f"backlog.csv {f['id']}: estado '{f.get('estado')}' ≠ BMAD '{h['estado']}'.", "bmad.py backlog (sincroniza las columnas derivadas)."); break
+
+# ------------------------------------------------------------------ INT: integraciones MCP (instantáneas)
+def chk_integraciones(proyecto, e):
+    conocidos = {"tracker": {"ninguno", "jira", "linear", "github", "azure-devops"}, "chat": {"ninguno", "slack", "teams"},
+                 "docs": {"ninguno", "confluence", "notion", "sharepoint"}, "reuniones": {"manual", "archivo", "granola", "fireflies", "zoom", "minutes", "teams"},
+                 "okr": {"archivo", "tability"}, "especificacion": {"ninguna", "bmad"},
+                 "diagramas": {"mermaid", "diagram-design", "archify", "visual-explainer", "drawio"}, "cronograma": {"cpm", "mspdi"},
+                 "export": {"scripts", "skills-office"}}
+    for k, vals in conocidos.items():
+        v = e.get("integraciones", {}).get(k)
+        if v and v not in vals: add("AVISO", "INT-01", f"integraciones.{k} = '{v}' no es un valor conocido ({', '.join(sorted(vals))}).", "Usarlo solo si pm-integraciones sabe mapearlo; si no, corregir.")
+    trk = e.get("integraciones", {}).get("tracker", "ninguno")
+    if trk not in ("ninguno", None) and e.get("fase") == "entrega":
+        snaps = sorted(glob.glob(os.path.join(proyecto, "03-control", "fuentes", f"{trk}-*")))
+        if not snaps: add("AVISO", "INT-02", f"Tracker {trk} declarado sin instantáneas en 03-control/fuentes/.", "pm-integraciones: leer y guardar instantánea fechada.")
+        else:
+            m = re.search(r"(\d{4}-\d{2}-\d{2})", os.path.basename(snaps[-1]))
+            if m and (datetime.date.today() - datetime.date.fromisoformat(m.group(1))).days > 14:
+                add("AVISO", "INT-03", f"La última instantánea de {trk} tiene más de 14 días ({m.group(1)}).", "Actualizarla antes del próximo informe.")
+    for f in glob.glob(os.path.join(proyecto, "03-control", "fuentes", "*")):
+        if not re.search(r"-\d{4}-\d{2}-\d{2}\.\w+$", f): add("AVISO", "INT-04", f"Instantánea sin fecha en el nombre: {os.path.basename(f)}.", "<sistema>-AAAA-MM-DD.<ext>")
+
+def main():
+    ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap.add_argument("--proyecto", required=True); ap.add_argument("--rapido", action="store_true"); ap.add_argument("--informe", action="store_true")
+    ap.add_argument("--reparar", action="store_true"); ap.add_argument("--json", action="store_true")
+    a = ap.parse_args()
+    e = E.cargar_estado(a.proyecto)
+    chk_instalacion(a.proyecto, e, a.rapido); chk_estado(a.proyecto, e); chk_artefactos(a.proyecto, e)
+    filas = chk_registros(a.proyecto, e, a.reparar)
+    chk_especificacion(a.proyecto, e, filas, a.reparar, a.rapido)
+    if not a.rapido: chk_integraciones(a.proyecto, e)
+    orden = {"ERROR": 0, "AVISO": 1, "INFO": 2}
+    H.sort(key=lambda h: (orden[h["severidad"]], h["codigo"]))
+    cuenta = {s: sum(1 for h in H if h["severidad"] == s) for s in orden}
+    if a.json: print(json.dumps({"proyecto": e.get("proyecto"), "fecha": datetime.date.today().isoformat(), "cuenta": cuenta, "hallazgos": H}, ensure_ascii=False, indent=2))
+    else:
+        print(f"Sanidad de '{e.get('proyecto')}' ({e.get('fase')}/{e.get('proceso_actual')}): {cuenta['ERROR']} ERROR · {cuenta['AVISO']} AVISO · {cuenta['INFO']} INFO")
+        for h in H: print(f"  {h['severidad']:5s} {h['codigo']} {h['mensaje']}" + (f"\n        → {h['arreglo']}" if h["arreglo"] else ""))
+    if a.informe:
+        p = os.path.join(a.proyecto, "03-control", "reportes", f"{datetime.date.today().isoformat()}-sanidad.md")
+        L = ["---", "tipo: informe-sanidad", f"fecha: {datetime.date.today().isoformat()}", "estado: borrador", "---", "",
+             f"# Sanidad del proyecto · Health check — {e.get('proyecto')}", "", f"{cuenta['ERROR']} ERROR · {cuenta['AVISO']} AVISO · {cuenta['INFO']} INFO", "",
+             "| Severidad | Código | Hallazgo | Cómo corregir |", "|---|---|---|---|"] + [f"| {h['severidad']} | {h['codigo']} | {h['mensaje']} | {h['arreglo']} |" for h in H]
+        open(p, "w", encoding="utf-8").write("\n".join(L) + "\n"); print(f"Informe: {p}")
+    sys.exit(1 if cuenta["ERROR"] else 0)
+
+if __name__ == "__main__":
+    main()

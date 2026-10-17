@@ -1,0 +1,505 @@
+<!doctype html>
+<!--
+tipo: tablero-avance
+proyecto: "{{proyecto}}"
+version: "0.1"
+fecha: "{{fecha_corte}}"
+autor: "{{autor}}"
+estado: borrador
+aprobado_por: ""
+idioma: "{{idioma}}"
+fuentes: "{{fuentes}}"
+
+Plantilla autocontenida: sin red, sin librerías externas; los gráficos son SVG generados por el script de esta página.
+Self-contained template: no network, no external libraries; charts are SVG drawn by the script in this page.
+
+CÓMO SE INYECTAN LOS DATOS / HOW DATA ARE INJECTED
+  Todo el contenido variable vive en UN bloque JSON: el elemento script con id="datos-tablero" (type application/json), al final de la página.
+  pm-visuales lo arma (ver references/guia.md §3 "Tablero de avance: inyección de datos") a partir de:
+    - estado.json ............................ proyecto, etapa, enfoque_entrega, idioma, tolerancias
+    - highlight report vigente ............... objetivos (pronóstico, tolerancias, rag), hitos, decisiones, comentario
+    - evm.py --tol-costo --tol-plazo --json .. rag de tiempo y costo (semaforo_cronograma, semaforo_costo)
+    - registro.py listar riesgos --abiertos --json ... riesgos (mapa de calor y tabla)
+    - registro.py listar issues --abiertos --json .... issues
+    - registro.py listar acciones --json ............. acciones (tabla por actor)
+    - registro.py resumen --json ..................... resumen_registros (altos_abiertos, sin_respuesta, vencidas…)
+    - backlog / informe con bloque burn-up ........... agil.iteraciones (solo enfoque agil o hibrido)
+    - avance-bmad.csv (bmad.py avance) o instantánea de tracker en 03-control/fuentes/ (vía pm-integraciones) ... agil.iteraciones, citados en "fuentes"
+  La "Vista por actor" (sección 5b, selector o ?actor=Nombre en la URL) usa D.acciones, D.riesgos y D.issues; no requiere campos extra.
+  y reemplaza el contenido del bloque JSON. No editar el HTML a mano; los valores que falten van como "[por confirmar]".
+  Valores de rag: verde | ambar | rojo | na. Umbrales de riesgo por defecto: alto >= 15, medio 6–12, bajo <= 5.
+-->
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tablero de avance</title>
+<style>
+  :root {
+    --bg: #f6f7f9; --panel: #ffffff; --ink: #1d2430; --muted: #5d6675; --line: #d9dee6;
+    --accent: #1f4e79; --green: #2e8b57; --amber: #d08c00; --red: #c0392b; --grey: #8a93a2;
+    --heat-green: #cfe9da; --heat-amber: #f6e0a8; --heat-red: #f3c1bb;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #11161d; --panel: #1a212b; --ink: #e8ecf1; --muted: #a2abb8; --line: #2d3642; --accent: #8fb8e8;
+      --heat-green: #1f4a35; --heat-amber: #5a4512; --heat-red: #5c2621;
+    }
+  }
+  :root[data-theme="dark"] { --bg: #11161d; --panel: #1a212b; --ink: #e8ecf1; --muted: #a2abb8; --line: #2d3642; --accent: #8fb8e8;
+    --heat-green: #1f4a35; --heat-amber: #5a4512; --heat-red: #5c2621; }
+  * { box-sizing: border-box; }
+  body { margin: 0; padding: 16px; background: var(--bg); color: var(--ink); font: 14px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  main { max-width: 1100px; margin: 0 auto; }
+  header { display: flex; flex-wrap: wrap; gap: 8px 24px; align-items: baseline; border-bottom: 2px solid var(--accent); padding-bottom: 8px; margin-bottom: 16px; }
+  h1 { font-size: 20px; margin: 0; }
+  h2 { font-size: 16px; margin: 22px 0 8px; color: var(--accent); }
+  h3 { font-size: 13px; margin: 12px 0 6px; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
+  .meta { color: var(--muted); font-size: 13px; }
+  .borrador { display: inline-block; padding: 2px 8px; border: 1px solid var(--red); color: var(--red); border-radius: 4px; font-weight: 600; font-size: 12px; letter-spacing: .04em; }
+  .nota { color: var(--muted); font-size: 12px; margin: 2px 0 8px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+  .kpi { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; }
+  .kpi .lbl { font-size: 12px; color: var(--muted); }
+  .kpi .val { font-size: 18px; font-weight: 600; margin-top: 2px; overflow-wrap: anywhere; }
+  .kpi .tol { font-size: 12px; color: var(--muted); }
+  .rag { display: inline-block; width: 12px; height: 12px; border-radius: 50%; vertical-align: middle; margin-right: 6px; background: var(--grey); }
+  .rag.verde { background: var(--green); } .rag.ambar { background: var(--amber); } .rag.rojo { background: var(--red); }
+  table { width: 100%; border-collapse: collapse; background: var(--panel); border: 1px solid var(--line); }
+  th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { font-size: 12px; color: var(--muted); background: color-mix(in srgb, var(--accent) 8%, var(--panel)); }
+  td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+  tr.vencida td { color: var(--red); }
+  .wrap { overflow-x: auto; }
+  .decision { background: color-mix(in srgb, var(--amber) 12%, var(--panel)); border-left: 4px solid var(--amber); padding: 8px 12px; border-radius: 4px; }
+  .dos { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 14px; align-items: start; }
+  .heat { border-collapse: separate; border-spacing: 3px; background: transparent; border: 0; width: auto; }
+  .heat td, .heat th { border: 0; text-align: center; padding: 0; }
+  .heat td.celda { width: 64px; height: 46px; border-radius: 4px; font-size: 12px; line-height: 1.2; }
+  .heat td.alto { background: var(--heat-red); } .heat td.medio { background: var(--heat-amber); } .heat td.bajo { background: var(--heat-green); }
+  .heat .pts { display: block; font-size: 10px; color: var(--muted); }
+  .heat .ids { display: block; font-weight: 600; }
+  .heat th { font-size: 11px; color: var(--muted); background: transparent; padding: 2px 4px; }
+  .leyenda span { display: inline-block; margin-right: 12px; font-size: 12px; color: var(--muted); }
+  .leyenda i { display: inline-block; width: 12px; height: 12px; border-radius: 2px; vertical-align: middle; margin-right: 4px; }
+  svg { max-width: 100%; height: auto; display: block; background: var(--panel); border: 1px solid var(--line); border-radius: 6px; }
+  svg text { fill: var(--muted); font-size: 11px; }
+  .vacio { color: var(--muted); font-style: italic; padding: 8px; background: var(--panel); border: 1px dashed var(--line); border-radius: 6px; }
+  footer { margin-top: 24px; padding-top: 8px; border-top: 1px solid var(--line); color: var(--muted); font-size: 12px; }
+  footer p { margin: 2px 0; }
+  @media print { body { background: #fff; color: #000; padding: 0; } .kpi, table, svg { break-inside: avoid; } }
+</style>
+</head>
+<body>
+<main>
+
+<header>
+  <h1>Tablero de avance · Progress dashboard — <span id="h-proyecto"></span></h1>
+  <span class="borrador" id="h-borrador">BORRADOR / DRAFT</span>
+  <span class="meta" id="h-meta"></span>
+</header>
+<noscript><p class="vacio">Este tablero dibuja sus tablas y gráficos con el script incluido; habilitar JavaScript. / This dashboard draws its tables and charts with the embedded script; enable JavaScript.</p></noscript>
+
+<section class="decision" id="s-decisiones">
+  <strong>Decisiones pendientes de la junta / Decisions pending from the board:</strong> <span id="decisiones"></span>
+</section>
+
+<h2>1. Estado por objetivo / Status by objective</h2>
+<p class="nota">Semáforo contra tolerancias (pronóstico, no acumulado): verde ≤ 50 % de la tolerancia · ámbar 50–100 % · rojo fuera de tolerancia → excepción. / RAG against tolerances (forecast, not actuals): green ≤ 50 % of tolerance · amber 50–100 % · red outside → exception.</p>
+<div class="grid" id="objetivos"></div>
+
+<h2>2. Hitos / Milestones</h2>
+<div class="wrap"><table>
+  <thead><tr><th>Hito / Milestone</th><th>Base / Baseline</th><th>Actual / Current</th><th class="num">Var. (d)</th><th>Estado / Status</th><th>Comentario / Comment</th></tr></thead>
+  <tbody id="hitos"></tbody>
+</table></div>
+
+<h2>3. Riesgos / Risks</h2>
+<div class="dos">
+  <div>
+    <h3>Mapa de calor P × I / P × I heat map</h3>
+    <div id="mapa-calor"></div>
+    <p class="leyenda" id="leyenda-riesgo"></p>
+  </div>
+  <div>
+    <h3>Resumen de registros / Register summary</h3>
+    <div class="grid" id="resumen-riesgos"></div>
+  </div>
+</div>
+<h3>Riesgos e issues abiertos que requieren atención / Open risks and issues needing attention</h3>
+<div class="wrap"><table>
+  <thead><tr><th>Id</th><th>Tipo / Type</th><th>Descripción / Description</th><th class="num">P×I</th><th>Nivel · prioridad / Level · priority</th><th>Respuesta / Response</th><th>Propietario / Owner</th></tr></thead>
+  <tbody id="riesgos-issues"></tbody>
+</table></div>
+
+<section id="s-agil">
+<h2>4. Avance ágil / Agile progress</h2>
+<p class="nota">Solo ítems terminados según la definición de terminado. Con costo y fecha fijos, un pronóstico más allá de la fecha es alcance que no entra (tolerancia de alcance MoSCoW); excepción solo si algún Must no entra. / Done items only. With fixed cost and date, a forecast past the date means scope that will not fit; exception only if a Must item does not fit.</p>
+<div class="grid" id="kpi-agil"></div>
+<div class="dos">
+  <div><h3>Velocidad por iteración / Velocity per iteration</h3><div id="graf-velocidad"></div></div>
+  <div><h3>Burn-up del release / Release burn-up</h3><div id="graf-burnup"></div></div>
+</div>
+</section>
+
+<h2 id="t-acciones">5. Acciones por actor / Actions by actor</h2>
+<p class="nota">Desde acciones.csv (A-###). Abiertas = abierta + en-curso; vencidas = abiertas con fecha de compromiso anterior al corte; próximas = vencen antes del fin del próximo período. / From acciones.csv. Open = open + in progress; overdue = open and due before cut-off; next = due before the end of the next period.</p>
+<div class="wrap"><table>
+  <thead><tr><th>Actor / Owner</th><th class="num">Abiertas / Open</th><th class="num">Vencidas / Overdue</th><th class="num">Próximas / Next</th><th class="num">Completadas en el período / Done this period</th></tr></thead>
+  <tbody id="acciones-actor"></tbody>
+</table></div>
+<h3>Acciones abiertas por fecha / Open actions by due date</h3>
+<div class="wrap"><table>
+  <thead><tr><th>Id</th><th>Actor / Owner</th><th>Acción / Action</th><th>Compromiso / Due</th><th>Prioridad / Priority</th><th>Estado / Status</th><th>Origen / Source</th></tr></thead>
+  <tbody id="acciones-detalle"></tbody>
+</table></div>
+<h3 id="t-vista-actor">Vista por actor / View by actor</h3>
+<p class="nota">Elegí una persona o rol para ver solo sus compromisos: acciones abiertas, riesgos de los que es propietario e issues de los que es responsable. También con <code>?actor=Nombre</code> en la URL. / Pick a person or role to see only their commitments; also via <code>?actor=Name</code>.</p>
+<p><label for="sel-actor">Actor: </label><select id="sel-actor"><option value="">— todos / all —</option></select></p>
+<div class="wrap"><table>
+  <thead><tr><th>Registro / Register</th><th>Id</th><th>Compromiso / Commitment</th><th>Fecha / Date</th><th>Estado / Status</th></tr></thead>
+  <tbody id="vista-actor"></tbody>
+</table></div>
+
+<h2 id="t-comentario">6. Comentario del gestor / Project manager's comment</h2>
+<p id="comentario"></p>
+
+<footer>
+  <p>Fuentes / Sources: <span id="f-fuentes"></span></p>
+  <p>Umbrales de riesgo / Risk thresholds: <span id="f-umbrales"></span> · Semáforo / RAG: verde ≤ 50 %, ámbar 50–100 %, rojo &gt; 100 % de la tolerancia / green ≤ 50 %, amber 50–100 %, red &gt; 100 % of tolerance.</p>
+  <p>Generado con asistencia de IA el / AI-assisted, generated on <span id="f-generado"></span> · Datos faltantes como [por confirmar] / missing data as [to be confirmed] · Confirmado por / Confirmed by: <span id="f-confirmado"></span></p>
+</footer>
+
+</main>
+
+<script type="application/json" id="datos-tablero">
+{
+  "proyecto": "[por confirmar]",
+  "etapa": "[por confirmar]",
+  "enfoque_entrega": "predictivo",
+  "estado": "borrador",
+  "fecha_corte": "",
+  "periodo_desde": "",
+  "periodo_hasta": "",
+  "proximo_hasta": "",
+  "decisiones_pendientes": [],
+  "objetivos": [
+    {"clave": "tiempo", "pronostico": "[por confirmar]", "tol_etapa": "", "tol_proyecto": "", "rag": "na"},
+    {"clave": "costo", "pronostico": "[por confirmar]", "tol_etapa": "", "tol_proyecto": "", "rag": "na"},
+    {"clave": "alcance", "pronostico": "[por confirmar]", "tol_etapa": "", "tol_proyecto": "", "rag": "na"},
+    {"clave": "calidad", "pronostico": "[por confirmar]", "tol_etapa": "", "tol_proyecto": "", "rag": "na"},
+    {"clave": "beneficios", "pronostico": "[por confirmar]", "tol_etapa": "", "tol_proyecto": "", "rag": "na"},
+    {"clave": "riesgo", "pronostico": "[por confirmar]", "tol_etapa": "", "tol_proyecto": "", "rag": "na"},
+    {"clave": "sostenibilidad", "pronostico": "[por confirmar]", "tol_etapa": "", "tol_proyecto": "", "rag": "na"}
+  ],
+  "hitos": [],
+  "umbrales_riesgo": {"alto": 15, "medio": 6},
+  "riesgos": [],
+  "issues": [],
+  "resumen_registros": {},
+  "acciones": [],
+  "agil": {"iteraciones": [], "ventana_velocidad": 3, "fecha_fija": "", "fecha_pronostico": "", "must_en_riesgo": []},
+  "comentario_gestor": "[por confirmar]",
+  "fuentes": "[por confirmar]",
+  "fecha_generacion": "",
+  "confirmado_por": ""
+}
+</script>
+
+<script>
+(function () {
+  "use strict";
+  var D;
+  try { D = JSON.parse(document.getElementById("datos-tablero").textContent); }
+  catch (err) { D = {}; document.getElementById("h-meta").textContent = "Error en el bloque de datos / data block error: " + err.message; }
+
+  var POR_CONFIRMAR = "[por confirmar]";
+  var SVGNS = "http://www.w3.org/2000/svg";
+  var NOMBRES = { tiempo: "Tiempo / Time", costo: "Costo / Cost", alcance: "Alcance / Scope", calidad: "Calidad / Quality",
+    beneficios: "Beneficios / Benefits", riesgo: "Riesgo / Risk", sostenibilidad: "Sostenibilidad / Sustainability" };
+  var RAGS = { verde: 1, ambar: 1, rojo: 1, na: 1 };
+
+  function txt(v) { return (v === undefined || v === null || v === "") ? POR_CONFIRMAR : String(v); }
+  function num(v) { var n = parseFloat(v); return isNaN(n) ? null : n; }
+  function el(tag, attrs, contenido) {
+    var e = document.createElement(tag);
+    if (attrs) { for (var k in attrs) { if (k === "class") e.className = attrs[k]; else e.setAttribute(k, attrs[k]); } }
+    if (contenido !== undefined && contenido !== null) {
+      (Array.isArray(contenido) ? contenido : [contenido]).forEach(function (c) {
+        e.appendChild(typeof c === "object" ? c : document.createTextNode(String(c)));
+      });
+    }
+    return e;
+  }
+  function s(tag, attrs, texto) {
+    var e = document.createElementNS(SVGNS, tag);
+    for (var k in attrs) e.setAttribute(k, attrs[k]);
+    if (texto !== undefined) e.textContent = texto;
+    return e;
+  }
+  function rag(valor) { var v = RAGS[valor] ? valor : "na"; return el("span", { "class": "rag " + v, "title": v }); }
+  function fila(tbody, celdas, clase) {
+    var tr = el("tr", clase ? { "class": clase } : null);
+    celdas.forEach(function (c) { tr.appendChild(c.nodeType ? c : el("td", null, c)); });
+    tbody.appendChild(tr);
+  }
+  function vacio(tbody, columnas, mensaje) {
+    var td = el("td", { colspan: String(columnas), "class": "vacio" }, mensaje || "Sin datos / No data — " + POR_CONFIRMAR);
+    tbody.appendChild(el("tr", null, td));
+  }
+  function set(id, valor) { var n = document.getElementById(id); if (n) n.textContent = txt(valor); }
+
+  // ---------------------------------------------------------------- cabecera / header
+  document.documentElement.lang = D.idioma === "en" ? "en" : "es";
+  document.title = "Tablero de avance · Progress dashboard — " + txt(D.proyecto);
+  set("h-proyecto", D.proyecto);
+  document.getElementById("h-meta").textContent = "Etapa / Stage: " + txt(D.etapa) + " · Enfoque / Approach: " + txt(D.enfoque_entrega) +
+    " · Corte / Cut-off: " + txt(D.fecha_corte) + " · Período / Period: " + txt(D.periodo_desde) + " → " + txt(D.periodo_hasta);
+  if (D.estado === "aprobado") document.getElementById("h-borrador").style.display = "none";
+
+  var dec = document.getElementById("decisiones");
+  var decs = D.decisiones_pendientes || [];
+  if (!decs.length) dec.textContent = "Ninguna / None";
+  else decs.forEach(function (d, i) {
+    dec.appendChild(document.createTextNode((i ? " · " : "") + txt(d.id) + ": " + txt(d.texto) + " (" + txt(d.fecha_limite) + ")"));
+  });
+
+  // ---------------------------------------------------------------- 1. objetivos
+  var gObj = document.getElementById("objetivos");
+  (D.objetivos || []).forEach(function (o) {
+    var tol = "Tol. etapa / stage " + txt(o.tol_etapa) + " · proyecto / project " + txt(o.tol_proyecto);
+    gObj.appendChild(el("div", { "class": "kpi" }, [
+      el("div", { "class": "lbl" }, [rag(o.rag), NOMBRES[o.clave] || txt(o.clave)]),
+      el("div", { "class": "val" }, txt(o.pronostico)),
+      el("div", { "class": "tol" }, tol)
+    ]));
+  });
+
+  // ---------------------------------------------------------------- 2. hitos
+  var tH = document.getElementById("hitos");
+  if (!(D.hitos || []).length) vacio(tH, 6);
+  (D.hitos || []).forEach(function (h) {
+    fila(tH, [txt(h.hito), txt(h.base), txt(h.actual), el("td", { "class": "num" }, txt(h.var_dias)),
+      el("td", null, [rag(h.rag), txt(h.estado || h.rag)]), h.comentario || ""]);
+  });
+
+  // ---------------------------------------------------------------- 3. riesgos: mapa de calor y resumen
+  var U = D.umbrales_riesgo || {}; var ALTO = num(U.alto) || 15, MEDIO = num(U.medio) || 6;
+  function nivel(p) { return p >= ALTO ? "alto" : (p >= MEDIO ? "medio" : "bajo"); }
+  // mayor puntuación P×I posible por debajo del umbral alto (con 15 → 12: en escala 1–5 no existen 13 ni 14)
+  var TOPE_MEDIO = MEDIO;
+  for (var a1 = 1; a1 <= 5; a1++) for (var b1 = 1; b1 <= 5; b1++) if (a1 * b1 < ALTO && a1 * b1 > TOPE_MEDIO) TOPE_MEDIO = a1 * b1;
+  var NIVEL_TXT = { alto: "alto / high", medio: "medio / medium", bajo: "bajo / low" };
+  var riesgos = (D.riesgos || []).filter(function (r) { return ["abierto", "en-seguimiento", "escalado", ""].indexOf(r.estado || "") >= 0; });
+  var celdas = {};
+  riesgos.forEach(function (r) {
+    var p = num(r.probabilidad), i = num(r.impacto);
+    if (p && i) { var k = p + "-" + i; (celdas[k] = celdas[k] || []).push(r.id); }
+  });
+  var heat = el("table", { "class": "heat" });
+  var thead = el("tr", null, el("th", null, "P \\ I"));
+  for (var ci = 1; ci <= 5; ci++) thead.appendChild(el("th", null, String(ci)));
+  heat.appendChild(thead);
+  for (var p = 5; p >= 1; p--) {
+    var tr = el("tr", null, el("th", null, String(p)));
+    for (var i = 1; i <= 5; i++) {
+      var ids = celdas[p + "-" + i] || [];
+      var td = el("td", { "class": "celda " + nivel(p * i), "title": "P" + p + " × I" + i + " = " + (p * i) + " (" + NIVEL_TXT[nivel(p * i)] + ")" }, [
+        el("span", { "class": "ids" }, ids.length ? (ids.length > 2 ? ids.length + " riesgos / risks" : ids.join(" ")) : ""),
+        el("span", { "class": "pts" }, String(p * i))
+      ]);
+      tr.appendChild(td);
+    }
+    heat.appendChild(tr);
+  }
+  document.getElementById("mapa-calor").appendChild(heat);
+  var umbralesTxt = "alto / high ≥ " + ALTO + " · medio / medium " + MEDIO + "–" + TOPE_MEDIO + " · bajo / low ≤ " + (MEDIO - 1);
+  var ley = document.getElementById("leyenda-riesgo");
+  [["alto", "var(--heat-red)", "Alto / High ≥ " + ALTO], ["medio", "var(--heat-amber)", "Medio / Medium " + MEDIO + "–" + TOPE_MEDIO],
+   ["bajo", "var(--heat-green)", "Bajo / Low ≤ " + (MEDIO - 1)]].forEach(function (x) {
+    var sw = el("i"); sw.style.background = x[1]; ley.appendChild(el("span", null, [sw, x[2]]));
+  });
+  document.getElementById("f-umbrales").textContent = umbralesTxt;
+
+  var R = (D.resumen_registros || {});
+  var rr = R.riesgos || {}, ri = R.issues || {}, ra = R.acciones || {};
+  function lista(v) { return Array.isArray(v) ? (v.length ? v.length + " (" + v.join(", ") + ")" : "0") : txt(v); }
+  var gRes = document.getElementById("resumen-riesgos");
+  [["Riesgos abiertos / Open risks", txt(rr.abiertos)],
+   ["Altos abiertos / Open high", txt(rr.altos_abiertos)],
+   ["Sin respuesta / No response", lista(rr.sin_respuesta)],
+   ["Sin propietario / No owner", lista(rr.sin_propietario)],
+   ["Issues abiertos / Open issues", txt(ri.abiertos)],
+   ["Acciones vencidas / Overdue actions", lista(ra.vencidas)]].forEach(function (k) {
+    gRes.appendChild(el("div", { "class": "kpi" }, [el("div", { "class": "lbl" }, k[0]), el("div", { "class": "val" }, k[1])]));
+  });
+
+  var tRI = document.getElementById("riesgos-issues");
+  var ordenados = riesgos.slice().sort(function (a, b) { return (num(b.puntuacion) || 0) - (num(a.puntuacion) || 0); });
+  ordenados.forEach(function (r) {
+    var pts = num(r.puntuacion) || ((num(r.probabilidad) || 0) * (num(r.impacto) || 0));
+    fila(tRI, [txt(r.id), txt(r.tipo || "riesgo"), txt(r.evento), el("td", { "class": "num" }, pts ? String(pts) : POR_CONFIRMAR),
+      NIVEL_TXT[nivel(pts)], r.respuesta ? r.respuesta : "sin respuesta / none", r.propietario ? r.propietario : "sin propietario / none"]);
+  });
+  (D.issues || []).forEach(function (x) {
+    fila(tRI, [txt(x.id), "issue · " + txt(x.tipo), txt(x.titulo), el("td", { "class": "num" }, "—"),
+      txt(x.prioridad) + " · " + txt(x.severidad), txt(x.decision || x.estado), txt(x.responsable)]);
+  });
+  if (!ordenados.length && !(D.issues || []).length) vacio(tRI, 7);
+
+  // ---------------------------------------------------------------- 4. ágil: velocidad y burn-up
+  var A = D.agil || {}; var its = A.iteraciones || [];
+  var esAgil = D.enfoque_entrega === "agil" || D.enfoque_entrega === "hibrido" || its.length > 0;
+  var secAgil = document.getElementById("s-agil");
+  if (!esAgil) {
+    secAgil.style.display = "none";
+    document.getElementById("t-acciones").textContent = "4. Acciones por actor / Actions by actor";
+    document.getElementById("t-comentario").textContent = "5. Comentario del gestor / Project manager's comment";
+  } else {
+    var ventana = num(A.ventana_velocidad) || 3;
+    var ult = its.slice(-ventana).map(function (x) { return num(x.terminado) || 0; });
+    var velMedia = ult.length ? ult.reduce(function (a, b) { return a + b; }, 0) / ult.length : null;
+    var ultima = its.length ? its[its.length - 1] : {};
+    var restante = (num(ultima.alcance_total) !== null && num(ultima.terminado_acumulado) !== null) ? num(ultima.alcance_total) - num(ultima.terminado_acumulado) : null;
+    var itRest = (velMedia && restante !== null) ? Math.ceil(restante / velMedia) : null;
+    var gA = document.getElementById("kpi-agil");
+    [["Velocidad media / Avg velocity (" + ventana + ")", velMedia !== null ? velMedia.toFixed(1) + " pts" : POR_CONFIRMAR],
+     ["Puntos restantes / Remaining points", restante !== null ? String(restante) : POR_CONFIRMAR],
+     ["Iteraciones restantes / Remaining iterations", itRest !== null ? String(itRest) : POR_CONFIRMAR],
+     ["Fecha pronosticada vs. fija / Forecast vs. fixed", txt(A.fecha_pronostico) + " / " + txt(A.fecha_fija)],
+     ["Must en riesgo / Must at risk", (A.must_en_riesgo || []).length ? A.must_en_riesgo.join(", ") : "Ninguno / None"]].forEach(function (k) {
+      gA.appendChild(el("div", { "class": "kpi" }, [el("div", { "class": "lbl" }, k[0]), el("div", { "class": "val" }, k[1])]));
+    });
+
+    var W = 560, H = 230, M = { l: 40, r: 12, t: 12, b: 34 };
+    function ejes(svg, maxY, etiquetas, ancho) {
+      for (var g = 0; g <= 4; g++) {
+        var y = M.t + (H - M.t - M.b) * (1 - g / 4);
+        svg.appendChild(s("line", { x1: M.l, x2: W - M.r, y1: y, y2: y, stroke: "var(--line)" }));
+        svg.appendChild(s("text", { x: M.l - 6, y: y + 4, "text-anchor": "end" }, String(Math.round(maxY * g / 4))));
+      }
+      etiquetas.forEach(function (t, k) {
+        svg.appendChild(s("text", { x: M.l + ancho * (k + 0.5), y: H - M.b + 16, "text-anchor": "middle" }, t));
+      });
+    }
+    if (!its.length) {
+      document.getElementById("graf-velocidad").appendChild(el("p", { "class": "vacio" }, "Sin iteraciones registradas / No iterations recorded"));
+      document.getElementById("graf-burnup").appendChild(el("p", { "class": "vacio" }, "Sin iteraciones registradas / No iterations recorded"));
+    } else {
+      // velocidad: barra = terminado, contorno = planificado, línea = media
+      var sv = s("svg", { viewBox: "0 0 " + W + " " + H, role: "img", "aria-label": "Velocidad por iteración / Velocity per iteration" });
+      var maxV = Math.max.apply(null, its.map(function (x) { return Math.max(num(x.planificado) || 0, num(x.terminado) || 0); }).concat([1])) * 1.15;
+      var bw = (W - M.l - M.r) / its.length; var esc = (H - M.t - M.b) / maxV;
+      ejes(sv, maxV, its.map(function (x) { return txt(x.nombre); }), bw);
+      its.forEach(function (x, k) {
+        var x0 = M.l + bw * k + bw * 0.2, w = bw * 0.6;
+        var pl = num(x.planificado) || 0, te = num(x.terminado) || 0;
+        sv.appendChild(s("rect", { x: x0, y: H - M.b - pl * esc, width: w, height: pl * esc, fill: "none", stroke: "var(--muted)", "stroke-dasharray": "3 2" }));
+        sv.appendChild(s("rect", { x: x0 + 2, y: H - M.b - te * esc, width: w - 4, height: te * esc, fill: "var(--accent)" }));
+        sv.appendChild(s("text", { x: x0 + w / 2, y: H - M.b - te * esc - 4, "text-anchor": "middle" }, String(te)));
+      });
+      if (velMedia !== null) {
+        var ym = H - M.b - velMedia * esc;
+        sv.appendChild(s("line", { x1: M.l, x2: W - M.r, y1: ym, y2: ym, stroke: "var(--amber)", "stroke-dasharray": "6 3" }));
+        sv.appendChild(s("text", { x: M.l + 4, y: ym - 4, "text-anchor": "start" }, "media / avg " + velMedia.toFixed(1)));
+      }
+      document.getElementById("graf-velocidad").appendChild(sv);
+      document.getElementById("graf-velocidad").appendChild(el("p", { "class": "leyenda" }, [
+        el("span", null, "▮ terminado / done"), el("span", null, "▯ planificado / planned"), el("span", null, "– – media / average")]));
+
+      // burn-up: alcance total, terminado acumulado y pronóstico a velocidad media
+      var sb = s("svg", { viewBox: "0 0 " + W + " " + H, role: "img", "aria-label": "Burn-up" });
+      var extra = (itRest && itRest > 0) ? Math.min(itRest, 12) : 0;
+      var n = its.length + extra;
+      var maxB = Math.max.apply(null, its.map(function (x) { return Math.max(num(x.alcance_total) || 0, num(x.terminado_acumulado) || 0); }).concat([1])) * 1.1;
+      var paso = (W - M.l - M.r) / n; var eb = (H - M.t - M.b) / maxB;
+      var etq = its.map(function (x) { return txt(x.nombre); });
+      for (var e2 = 1; e2 <= extra; e2++) etq.push("+" + e2);
+      ejes(sb, maxB, etq, paso);
+      function px(k) { return M.l + paso * (k + 0.5); }
+      function py(v) { return H - M.b - v * eb; }
+      function poli(puntos, attrs) { attrs.points = puntos.map(function (q) { return q[0].toFixed(1) + "," + q[1].toFixed(1); }).join(" "); attrs.fill = "none"; sb.appendChild(s("polyline", attrs)); }
+      poli(its.map(function (x, k) { return [px(k), py(num(x.alcance_total) || 0)]; }), { stroke: "var(--red)", "stroke-width": 2 });
+      poli(its.map(function (x, k) { return [px(k), py(num(x.terminado_acumulado) || 0)]; }), { stroke: "var(--accent)", "stroke-width": 2.5 });
+      if (extra && velMedia) {
+        var base = num(ultima.terminado_acumulado) || 0, tope = num(ultima.alcance_total) || 0, pron = [[px(its.length - 1), py(base)]];
+        for (var f = 1; f <= extra; f++) pron.push([px(its.length - 1 + f), py(Math.min(tope, base + velMedia * f))]);
+        poli(pron, { stroke: "var(--accent)", "stroke-dasharray": "5 4", "stroke-width": 1.5 });
+        poli([[px(its.length - 1), py(tope)], [px(n - 1), py(tope)]], { stroke: "var(--red)", "stroke-dasharray": "2 3" });
+      }
+      document.getElementById("graf-burnup").appendChild(sb);
+      document.getElementById("graf-burnup").appendChild(el("p", { "class": "leyenda" }, [
+        el("span", null, "— alcance total / total scope (rojo / red)"), el("span", null, "— terminado acumulado / done to date"),
+        el("span", null, "- - pronóstico a velocidad media / forecast at avg velocity")]));
+    }
+  }
+
+  // ---------------------------------------------------------------- 5. acciones por actor
+  var corte = D.fecha_corte || new Date().toISOString().slice(0, 10);
+  var abiertas = ["abierta", "en-curso"];
+  var porActor = {};
+  (D.acciones || []).forEach(function (a) {
+    var actor = a.responsable || "sin-responsable / unassigned";
+    var c = porActor[actor] = porActor[actor] || { abiertas: 0, vencidas: 0, proximas: 0, completadas: 0 };
+    var fc = a.fecha_compromiso || "";
+    if (abiertas.indexOf(a.estado) >= 0) {
+      c.abiertas++;
+      if (fc && fc < corte) c.vencidas++;
+      else if (fc && D.proximo_hasta && fc <= D.proximo_hasta) c.proximas++;
+    } else if (a.estado === "completada" && a.fecha_cierre && (!D.periodo_desde || a.fecha_cierre >= D.periodo_desde) && (!D.periodo_hasta || a.fecha_cierre <= D.periodo_hasta)) {
+      c.completadas++;
+    }
+  });
+  var tAct = document.getElementById("acciones-actor");
+  var actores = Object.keys(porActor).sort(function (a, b) { return porActor[b].vencidas - porActor[a].vencidas || porActor[b].abiertas - porActor[a].abiertas; });
+  if (!actores.length) vacio(tAct, 5);
+  actores.forEach(function (k) {
+    var c = porActor[k];
+    fila(tAct, [k, el("td", { "class": "num" }, String(c.abiertas)), el("td", { "class": "num" }, String(c.vencidas)),
+      el("td", { "class": "num" }, String(c.proximas)), el("td", { "class": "num" }, String(c.completadas))], c.vencidas ? "vencida" : null);
+  });
+  var tDet = document.getElementById("acciones-detalle");
+  var abiertasLista = (D.acciones || []).filter(function (a) { return abiertas.indexOf(a.estado) >= 0; })
+    .sort(function (a, b) { return (a.fecha_compromiso || "9999").localeCompare(b.fecha_compromiso || "9999"); });
+  if (!abiertasLista.length) vacio(tDet, 7, "Sin acciones abiertas / No open actions");
+  abiertasLista.forEach(function (a) {
+    var venc = a.fecha_compromiso && a.fecha_compromiso < corte;
+    fila(tDet, [txt(a.id), txt(a.responsable), txt(a.descripcion), txt(a.fecha_compromiso) + (venc ? " ⚠" : ""),
+      txt(a.prioridad), txt(a.estado), txt(a.origen)], venc ? "vencida" : null);
+  });
+
+  // ---------------------------------------------------------------- 5b. vista por actor
+  (function () {
+    var sel = document.getElementById("sel-actor"), tb = document.getElementById("vista-actor");
+    var abR = ["abierto", "en-seguimiento", "escalado"], abI = ["abierto", "en-evaluacion", "en-accion", "escalado", "pendiente-cambio"];
+    var items = [];
+    (D.acciones || []).forEach(function (a) { if (abiertas.indexOf(a.estado) >= 0) items.push({ actor: a.responsable, reg: "acción / action", id: a.id, txt: a.descripcion, fecha: a.fecha_compromiso, estado: a.estado }); });
+    (D.riesgos || []).forEach(function (r) { if (abR.indexOf(r.estado) >= 0) items.push({ actor: r.propietario, reg: "riesgo / risk", id: r.id, txt: r.evento || r.descripcion, fecha: r.fecha_revision, estado: r.estado }); });
+    (D.issues || []).forEach(function (i) { if (abI.indexOf(i.estado) >= 0) items.push({ actor: i.responsable, reg: "issue", id: i.id, txt: i.titulo || i.descripcion, fecha: i.fecha, estado: i.estado }); });
+    var nombres = {};
+    items.forEach(function (x) { nombres[x.actor || "sin-responsable / unassigned"] = 1; });
+    Object.keys(nombres).sort().forEach(function (n) { sel.appendChild(el("option", { value: n }, n)); });
+    function pintar() {
+      while (tb.firstChild) tb.removeChild(tb.firstChild);
+      var v = sel.value;
+      var lista = items.filter(function (x) { return !v || (x.actor || "sin-responsable / unassigned") === v; })
+        .sort(function (a, b) { return (a.fecha || "9999").localeCompare(b.fecha || "9999"); });
+      if (!lista.length) { vacio(tb, 5, "Sin compromisos abiertos / No open commitments"); return; }
+      lista.forEach(function (x) {
+        var venc = x.reg.indexOf("acción") === 0 && x.fecha && x.fecha < corte;
+        fila(tb, [txt(x.reg) + (v ? "" : " · " + txt(x.actor)), txt(x.id), txt(x.txt), txt(x.fecha) + (venc ? " ⚠" : ""), txt(x.estado)], venc ? "vencida" : null);
+      });
+    }
+    try { var q = new URLSearchParams(location.search).get("actor"); if (q && nombres[q]) sel.value = q; } catch (e) {}
+    sel.addEventListener("change", pintar); pintar();
+  })();
+
+  // ---------------------------------------------------------------- 6. comentario y pie
+  set("comentario", D.comentario_gestor);
+  set("f-fuentes", D.fuentes);
+  set("f-generado", D.fecha_generacion);
+  set("f-confirmado", D.confirmado_por);
+})();
+</script>
+</body>
+</html>

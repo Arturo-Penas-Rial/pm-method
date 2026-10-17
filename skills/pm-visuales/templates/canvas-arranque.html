@@ -1,0 +1,144 @@
+<!doctype html>
+<!--
+tipo: canvas-arranque
+proyecto: "{{proyecto}}"
+version: "0.1"
+fecha: "{{fecha}}"
+autor: "{{autor}}"
+estado: borrador
+aprobado_por: ""
+idioma: "{{idioma}}"
+fuente: "{{fuente}}"
+Canvas de arranque en una página (Starting up a project). Autocontenido; reemplazar {{placeholders}};
+las líneas en cursiva (<i class="ayuda">) son ayudas y se eliminan al completar.
+-->
+<html lang="{{idioma}}">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Canvas de arranque · {{proyecto}}</title>
+<style>
+  :root { --bg: #f6f7f9; --panel: #ffffff; --ink: #1d2430; --muted: #5d6675; --line: #d9dee6; --accent: #1f4e79; --red: #c0392b; }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --bg: #11161d; --panel: #1a212b; --ink: #e8ecf1; --muted: #a2abb8; --line: #2d3642; --accent: #8fb8e8; } }
+  :root[data-theme="dark"] { --bg: #11161d; --panel: #1a212b; --ink: #e8ecf1; --muted: #a2abb8; --line: #2d3642; --accent: #8fb8e8; }
+  * { box-sizing: border-box; }
+  body { margin: 0; padding: 16px; background: var(--bg); color: var(--ink); font: 14px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  header { display: flex; flex-wrap: wrap; gap: 8px 24px; align-items: baseline; border-bottom: 2px solid var(--accent); padding-bottom: 8px; margin-bottom: 14px; }
+  h1 { font-size: 20px; margin: 0; }
+  .meta { color: var(--muted); font-size: 13px; }
+  .borrador { display: inline-block; padding: 2px 8px; border: 1px solid var(--red); color: var(--red); border-radius: 4px; font-weight: 600; font-size: 12px; }
+  .ayuda { display: block; color: var(--muted); font-size: 12px; margin-top: 4px; }
+  .canvas { display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+  .bloque { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; min-height: 120px; }
+  .bloque h2 { font-size: 13px; margin: 0 0 6px; color: var(--accent); text-transform: uppercase; letter-spacing: .04em; }
+  .bloque p, .bloque ul { margin: 0; padding-left: 0; list-style: none; }
+  .bloque li { margin: 2px 0; }
+  .ancho { grid-column: 1 / -1; }
+  footer { margin-top: 18px; padding-top: 8px; border-top: 1px solid var(--line); color: var(--muted); font-size: 12px; }
+  @media print { body { background: #fff; padding: 0; } .ayuda { display: none; } .bloque { break-inside: avoid; } }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Canvas de arranque · Kickoff canvas — {{proyecto}}</h1>
+  <span class="borrador">BORRADOR / DRAFT</span>
+  <span class="meta">Fecha / Date: {{fecha}} · Fuente / Source: {{fuente}} · Ejecutivo / Executive: {{ejecutivo}}</span>
+</header>
+<i class="ayuda">Resumen visual del brief (project brief) para la puerta autorizar-inicio. No sustituye al brief ni al business case esquemático; los enlaza. Se aprueba junto con el brief.</i>
+
+<div class="canvas">
+
+  <div class="bloque">
+    <h2>Mandato y problema / Mandate and problem</h2>
+    <p>{{mandato}}</p>
+    <i class="ayuda">De dónde viene el encargo (quién, cuándo, documento) y qué problema u oportunidad atiende.</i>
+  </div>
+
+  <div class="bloque">
+    <h2>Objetivos / Objectives</h2>
+    <ul><li>{{objetivo_1}}</li><li>{{objetivo_2}}</li><li>{{objetivo_3}}</li></ul>
+    <i class="ayuda">Medibles, con fecha; tres como máximo en el canvas.</i>
+  </div>
+
+  <div class="bloque">
+    <h2>Beneficios esperados / Expected benefits</h2>
+    <ul><li>{{beneficio_1}}</li><li>{{beneficio_2}}</li></ul>
+    <i class="ayuda">Valor para el negocio, con unidad y cuándo se materializa; quien los especifica es el usuario sénior.</i>
+  </div>
+
+  <div class="bloque">
+    <h2>Producto del proyecto / Project product</h2>
+    <p>{{producto_proyecto}}</p>
+    <i class="ayuda">Qué se entrega al final, en una frase, y criterios de aceptación principales.</i>
+  </div>
+
+  <div class="bloque">
+    <h2>Alcance: dentro y fuera / Scope: in and out</h2>
+    <ul><li><strong>Dentro / In:</strong> {{alcance_dentro}}</li><li><strong>Fuera / Out:</strong> {{alcance_fuera}}</li></ul>
+    <i class="ayuda">Productos principales incluidos y exclusiones explícitas.</i>
+  </div>
+
+  <div class="bloque">
+    <h2>Enfoque y etapas / Approach and stages</h2>
+    <p>{{enfoque}}</p>
+    <ul><li>{{etapa_1}}</li><li>{{etapa_2}}</li><li>{{etapa_3}}</li></ul>
+    <i class="ayuda">Predictivo, ágil o híbrido dentro de etapas de gestión; etapas propuestas con sus puertas.</i>
+  </div>
+
+  <div class="bloque">
+    <h2>Junta y roles / Board and roles</h2>
+    <ul>
+      <li><strong>Ejecutivo / Executive:</strong> {{ejecutivo}}</li>
+      <li><strong>Usuario sénior / Senior user:</strong> {{usuario_senior}}</li>
+      <li><strong>Proveedor sénior / Senior supplier:</strong> {{proveedor_senior}}</li>
+      <li><strong>Gestor / Project manager:</strong> {{gestor}}</li>
+      <li><strong>Aseguramiento / Assurance:</strong> {{aseguramiento}}</li>
+    </ul>
+    <i class="ayuda">Un solo ejecutivo; aseguramiento distinto del gestor.</i>
+  </div>
+
+  <div class="bloque">
+    <h2>Interesados clave / Key stakeholders</h2>
+    <ul><li>{{stakeholder_1}}</li><li>{{stakeholder_2}}</li><li>{{stakeholder_3}}</li></ul>
+    <i class="ayuda">Nombre o grupo y por qué importa; sin valoraciones personales. Detalle en stakeholders.csv.</i>
+  </div>
+
+  <div class="bloque">
+    <h2>Riesgos principales / Main risks</h2>
+    <ul><li>{{riesgo_1}}</li><li>{{riesgo_2}}</li><li>{{riesgo_3}}</li></ul>
+    <i class="ayuda">Causa → evento → efecto; los de alto nivel que la junta considera antes de autorizar el inicio.</i>
+  </div>
+
+  <div class="bloque">
+    <h2>Supuestos y restricciones / Assumptions and constraints</h2>
+    <ul><li>{{supuesto_1}}</li><li>{{restriccion_1}}</li></ul>
+    <i class="ayuda">Lo que se da por cierto sin verificar y los límites impuestos (fecha, presupuesto, normativa).</i>
+  </div>
+
+  <div class="bloque">
+    <h2>Costo y plazo estimados / Estimated cost and time</h2>
+    <p><strong>Costo / Cost:</strong> {{costo_estimado}} · <strong>Plazo / Time:</strong> {{plazo_estimado}}</p>
+    <i class="ayuda">Rango con nivel de confianza y base de la estimación; nunca un número aislado.</i>
+  </div>
+
+  <div class="bloque">
+    <h2>Tolerancias de la etapa de inicio / Initiation stage tolerances</h2>
+    <p>{{tolerancias_inicio}}</p>
+    <i class="ayuda">Tiempo y costo de la etapa de inicio, fijados por la junta al autorizar el inicio.</i>
+  </div>
+
+  <div class="bloque ancho">
+    <h2>Decisión que se pide / Decision requested</h2>
+    <p><strong>{{decision_solicitada}}</strong> — decide: {{quien_decide}} · fecha límite: {{fecha_limite}}</p>
+    <i class="ayuda">Autorizar el inicio (fin de SU). El agente prepara; una persona con rol decide y se registra con estado.py puerta autorizar-inicio.</i>
+  </div>
+
+</div>
+
+<footer>
+  Enlaces / Links: brief {{ruta_brief}} · business case esquemático {{ruta_bc}} · roles {{ruta_roles}} · Generado con asistencia de IA el {{fecha_generacion}} · Nivel de intervención: asistencia · Confirmado por / Confirmed by: {{confirmado_por}}
+</footer>
+
+</body>
+</html>

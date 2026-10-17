@@ -1,0 +1,2 @@
+id,nombre,duracion,predecesoras,recurso,wbs
+{{id}},{{nombre}},{{duracion_dias}},{{predecesoras}},{{recurso}},{{codigo_wbs}}

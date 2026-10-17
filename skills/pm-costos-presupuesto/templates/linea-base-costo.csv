@@ -1,0 +1,2 @@
+periodo,etapa,pv_periodo,pv_acumulado,ev_acumulado,ac_acumulado,notas
+{{periodo}},{{etapa}},{{pv_periodo}},{{pv_acumulado}},,,{{notas}}

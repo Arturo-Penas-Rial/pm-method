@@ -1,0 +1,2 @@
+id,tipo,titulo,descripcion,prioridad,moscow,estimacion,estado,iteracion,release,producto_pbs,criterios_aceptacion,origen,refs
+{{id}},{{tipo}},{{titulo}},{{descripcion}},{{prioridad}},{{moscow}},{{estimacion}},{{estado}},{{iteracion}},{{release}},{{producto_pbs}},{{criterios_aceptacion}},{{origen}},{{refs}}

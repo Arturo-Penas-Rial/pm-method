@@ -1,0 +1,54 @@
+1	Armemos el análisis de interesados con poder e interés	pm-organizacion-roles
+2	Quiero un plan de comunicación para la junta y los usuarios	pm-comunicacion-stakeholders
+3	Identificá los riesgos del proyecto y su matriz probabilidad impacto	pm-riesgos
+4	Hacé la EDT del proyecto con responsables y costos	pm-planificacion-por-productos
+5	Calculá el camino crítico y exportalo a MS Project	pm-cronograma-estimacion
+6	Necesito el presupuesto con reserva de contingencia y de gestión	pm-costos-presupuesto
+7	Prepará el highlight report de esta semana con valor ganado	pm-progreso-reportes
+8	Mostrame un tablero con las acciones de cada persona	pm-visuales
+9	El proveedor entregó un módulo que no cumple la especificación	pm-issues-cambios
+10	El cliente pide agregar pagos en línea, ¿cómo lo tramito?	pm-issues-cambios
+11	Escribí el business case con VAN y payback	pm-caso-de-negocio
+12	Definamos los OKR del proyecto para el próximo semestre	pm-okr
+13	Procesá la transcripción del comité de ayer y sacá las acciones	pm-reuniones
+14	Sincronizá el backlog con las historias de BMAD	pm-bmad-puente
+15	¿Qué requisitos del PRD no tienen historias?	pm-bmad-puente
+16	Traé los tickets abiertos de Jira del sprint actual	pm-integraciones
+17	Publicá el resumen semanal en el canal de Teams	pm-integraciones
+18	¿Qué sigue en mi proyecto?	pm-orquestador
+19	¿Qué es la gestión por excepción?	pm-knowledge
+20	Creá la carpeta para un proyecto nuevo	pm-estado-proyecto
+21	La junta tiene que aprobar el fin de etapa, prepará la decisión	pm-direccion-decisiones
+22	Hagamos el plan de la próxima etapa	pm-plan-etapa-y-limites
+23	Autorizá un paquete de trabajo para el equipo de infraestructura	pm-paquetes-trabajo
+24	Registrá un supuesto: el padrón de socios estará disponible en marzo	pm-registros
+25	Anotá que Ana debe enviar la minuta el viernes	pm-registros
+26	Escribí el acta de la reunión con estas notas	pm-reuniones
+27	Armá el project brief y el canvas de arranque	pm-mandato-y-brief
+28	Necesito el PID completo para que lo firme el ejecutivo	pm-acta-constitucion
+29	Definí el enfoque de gestión de riesgos y de cambios	pm-enfoques-gestion
+30	Priorizá el backlog con MoSCoW y armá el release plan	pm-agil-hibrido
+31	Hagamos la retrospectiva del sprint 3	pm-agil-hibrido
+32	Recopilá las lecciones aprendidas de la etapa	pm-lecciones-aprendidas
+33	Vamos a cerrar el proyecto	pm-cierre-proyecto
+34	Exportá los registros a Excel y armá el ZIP para la junta	pm-exportar
+35	Definí los criterios de aceptación y el registro de calidad	pm-calidad
+36	Necesitamos licitar el desarrollo con tres proveedores	pm-adquisiciones
+37	Estimá el esfuerzo con PERT de los paquetes	pm-cronograma-estimacion
+38	Dibujá el organigrama del proyecto	pm-visuales
+39	Who approves a stage plan in PRINCE2?	pm-knowledge
+40	Draft the stakeholder engagement plan	pm-organizacion-roles
+41	Build the risk register for the mobile app	pm-riesgos
+42	Create the work breakdown structure	pm-planificacion-por-productos
+43	Write this week's status report with burn-up	pm-progreso-reportes
+44	Turn this meeting transcript into minutes and action items	pm-reuniones
+45	Did the PRD change since the board approved it?	pm-bmad-puente
+46	Score our key results for Q4	pm-okr
+47	Prepare the end stage report	pm-plan-etapa-y-limites
+48	The forecast says we will exceed the cost tolerance	pm-progreso-reportes
+49	Fijá las tolerancias de la etapa en estado.json	pm-estado-proyecto
+50	Hacé el diagrama de Gantt del cronograma	pm-cronograma-estimacion
+51	Mandale un correo a los stakeholders con el estado	pm-comunicacion-stakeholders
+52	¿Cuál es el clima del equipo según las últimas reuniones?	pm-reuniones
+53	Revisá la sanidad del proyecto antes de la junta	pm-sanidad
+54	Run a consistency check between the PRD and our plan	pm-sanidad

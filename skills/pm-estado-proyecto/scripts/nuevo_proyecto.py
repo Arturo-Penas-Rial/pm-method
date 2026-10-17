@@ -1,0 +1,45 @@
+#!/usr/bin/env python3
+"""Crea la carpeta de un proyecto, sus registros CSV y su estado.json inicial.
+Create a project folder, its CSV registers and its initial estado.json.
+
+Uso / Usage:
+  python3 nuevo_proyecto.py --ruta ./mi-proyecto --nombre "Proyecto Faro" --idioma es \
+      --enfoque hibrido --ejecutivo "Nombre" --gestor "Nombre"
+"""
+import argparse, json, os, sys
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import esquema as E
+
+DIARIO = {
+    "es": "# Diario del proyecto · Daily log\n\n| fecha | entrada | responsable | seguimiento |\n|---|---|---|---|\n",
+    "en": "# Daily log · Diario del proyecto\n\n| date | entry | owner | follow-up |\n|---|---|---|---|\n",
+}
+
+def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--ruta", required=True)
+    ap.add_argument("--nombre", required=True)
+    ap.add_argument("--idioma", default="es", choices=["es", "en"])
+    ap.add_argument("--enfoque", default="predictivo", choices=["predictivo", "agil", "hibrido"])
+    ap.add_argument("--ejecutivo", default="")
+    ap.add_argument("--gestor", default="")
+    a = ap.parse_args()
+    t = lambda es, en: E.t(a.idioma, es, en)
+
+    if os.path.exists(os.path.join(a.ruta, "estado.json")):
+        sys.exit(t("Ya existe estado.json en esa ruta; no se sobrescribe.", "estado.json already exists there; not overwritten."))
+    for c in E.CARPETAS:
+        os.makedirs(os.path.join(a.ruta, c), exist_ok=True)
+    for reg in E.REGISTROS:
+        E.asegurar_registro(a.ruta, reg)
+    diario = os.path.join(a.ruta, "03-control", "registros", "diario.md")
+    if not os.path.exists(diario):
+        open(diario, "w", encoding="utf-8").write(DIARIO[a.idioma])
+
+    estado = E.estado_inicial(a.nombre, a.idioma, a.enfoque, a.ejecutivo, a.gestor)
+    json.dump(estado, open(os.path.join(a.ruta, "estado.json"), "w", encoding="utf-8"), ensure_ascii=False, indent=2)
+    print(t(f"Proyecto creado en {a.ruta} · enfoque de entrega: {a.enfoque} · siguiente: estado.py siguiente",
+            f"Project created in {a.ruta} · delivery approach: {a.enfoque} · next: estado.py siguiente"))
+
+if __name__ == "__main__":
+    main()

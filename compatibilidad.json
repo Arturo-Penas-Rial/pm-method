@@ -1,0 +1,56 @@
+{
+  "paquete": "pm-method",
+  "version": "2.0.0",
+  "spec": "SPEC.md v2 (§0, §1.10–§1.17)",
+  "esquemas": {
+    "estado.json": "v2 (migración automática desde v1)",
+    "registros": "esquema.py v2 (9 registros)",
+    "indice_especificacion": "pm-spec-index/1"
+  },
+  "bmad": {
+    "probado": [
+      "4.x (layout docs/ y .bmad-core)",
+      "6.11",
+      "6.12"
+    ],
+    "relevado": "bmad-method@6.12.4 (2026-10-14)",
+    "fuera_de_rango": "modo degradado con aviso; correr scripts/probar_paquete.py y revisar inventario antes de la siguiente puerta"
+  },
+  "python": ">=3.9",
+  "dependencias": {
+    "obligatorias": [],
+    "recomendadas": [
+      "pyyaml (BMAD y sprint-status)",
+      "python-docx (exportar .docx, actas .docx)",
+      "openpyxl (exportar .xlsx)"
+    ],
+    "opcionales": [
+      "@mermaid-js/mermaid-cli (mmdc, Mermaid en Word)",
+      "Java + mpxj (solo para validar o convertir MSPDI/.mpp)"
+    ]
+  },
+  "integraciones_externas_opcionales": {
+    "skills": [
+      "archify",
+      "diagram-design",
+      "visual-explainer",
+      "skills oficiales docx/xlsx/pptx"
+    ],
+    "mcp": [
+      "Atlassian Rovo (Jira/Confluence)",
+      "Slack",
+      "Teams/Work IQ",
+      "Granola",
+      "Fireflies",
+      "Zoom",
+      "minutes (minutes-mcp)",
+      "Tability",
+      "drawio-mcp"
+    ]
+  },
+  "clientes": {
+    "claude_code": "plugin o copia manual; hooks de protección y sanidad",
+    "cowork": "plugin",
+    "hermes": "skills (comandos /skill); agentes como personas; sin hooks: sanidad en pm-puerta y pm-orquestador"
+  }
+}

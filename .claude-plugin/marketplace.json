@@ -1,0 +1,14 @@
+{
+  "name": "pm-method",
+  "description": "Marketplace local con el plugin pm-method (gestión de proyectos ES/EN).",
+  "owner": {
+    "name": "pm-method"
+  },
+  "plugins": [
+    {
+      "name": "pm-method",
+      "source": "./",
+      "description": "Agentes y skills de gestión de proyectos (PRINCE2 7 + PMBOK 8 + plantillas), ES/EN."
+    }
+  ]
+}

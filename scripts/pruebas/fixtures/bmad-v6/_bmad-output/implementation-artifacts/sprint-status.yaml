@@ -1,0 +1,16 @@
+generated: 10-05-2026 10:00
+last_updated: 10-15-2026 18:30
+project: portal
+project_key: POR
+tracking_system: file-system
+story_location: "{implementation_artifacts}"
+development_status:
+  epic-1: in-progress
+  1-1-login-de-socio: done
+  1-2-recuperar-contrasena: review
+  epic-1-retrospective: optional
+  epic-2: backlog
+  2-1-consultar-tramites: ready-for-dev
+  2-2-descargar-constancias: backlog
+  epic-2-retrospective: optional
+action_items: []
