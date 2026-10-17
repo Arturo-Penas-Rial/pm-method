@@ -7,7 +7,7 @@ Mapa de todo lo que hay en el repositorio para entenderlo rápido. EN: *document
 | Perfil | Leer en este orden | Tiempo aproximado |
 |---|---|---|
 | Decisor / patrocinador | [RESUMEN-EJECUTIVO](RESUMEN-EJECUTIVO.md) → diagramas del [README](../README.md) → [PRUEBAS §3.1](PRUEBAS.md) → [PILOTO](PILOTO.md) | 20 min |
-| Gestor de proyectos (usuario) | [INSTALACION](INSTALACION.md) → [PRUEBAS §6](PRUEBAS.md) (aceptación) → [CASOS-DE-USO](CASOS-DE-USO.md) → [CASO-MAESTRO](CASO-MAESTRO.md) | 1–2 h |
+| Gestor de proyectos (usuario) | [INSTALACION](INSTALACION.md) → [guías E2E](guias/README.md) (probar como usuario, por prompts) → [PRUEBAS §6](PRUEBAS.md) (aceptación) → [CASOS-DE-USO](CASOS-DE-USO.md) → [CASO-MAESTRO](CASO-MAESTRO.md) | 2–4 h |
 | Equipo de producto con BMAD | [PUERTAS](PUERTAS.md) → [sincronizacion](sincronizacion.md) → [CASOS-DE-USO-INTEGRACIONES §7](CASOS-DE-USO-INTEGRACIONES.md) → [SANIDAD](SANIDAD.md) (familia ESP) | 45 min |
 | Quien integra herramientas | [DEPENDENCIAS](DEPENDENCIAS.md) → [INTEGRACIONES](INTEGRACIONES.md) → [CASOS-DE-USO-INTEGRACIONES](CASOS-DE-USO-INTEGRACIONES.md) → [INSTALACION §6](INSTALACION.md) | 1 h |
 | Quien mantiene el paquete | [CLAUDE.md](../CLAUDE.md) → [ARQUITECTURA](ARQUITECTURA.md) → [SPEC.md](../SPEC.md) → [colisiones](colisiones.md) → [PRUEBAS](PRUEBAS.md) | 2 h |
@@ -29,14 +29,15 @@ Mapa de todo lo que hay en el repositorio para entenderlo rápido. EN: *document
 | [colisiones](colisiones.md) | dueños únicos de cada artefacto y pistas de alcance entre skills |
 | [CASOS-DE-USO](CASOS-DE-USO.md) | un caso por skill a lo largo del ciclo de vida |
 | [CASOS-DE-USO-INTEGRACIONES](CASOS-DE-USO-INTEGRACIONES.md) | un caso por repositorio integrado: diseño visual, reportes, planificación, OKR, reuniones, trackers, BMAD |
-| [CASO-MAESTRO](CASO-MAESTRO.md) | proyecto completo con BMAD, con comandos y salidas reales |
+| [CASO-MAESTRO](CASO-MAESTRO.md) | proyecto completo con BMAD, con prompts del usuario, comandos y salidas reales |
+| [guias/](guias/README.md) | cuatro guías de punta a punta por prompts, con reporte y gráficos: [riesgos](guias/E2E-1-riesgos.md), [alcance, cambio, esfuerzo, priorización y roadmap](guias/E2E-2-alcance-roadmap.md), [interesados, comunicaciones, OKR y avance](guias/E2E-3-interesados-okr-avance.md), [producto de la idea al producto con BMAD](guias/E2E-4-producto-bmad.md); evidencia reproducible en `guias/evidencia/` |
 | [PRUEBAS](PRUEBAS.md) | niveles de prueba, qué cubre cada una, resultados registrados y lista de aceptación |
 | [PUERTAS](PUERTAS.md) | qué se verifica en cada puerta (salud, controles PRINCE2 y BMAD, lista de control de la junta) y cómo se registra la decisión; diagrama del ciclo de vida PRINCE2 + BMAD |
 | [PILOTO](PILOTO.md) | plan de piloto en paralelo: fases, métricas, rúbrica de revisión experta, prueba de usabilidad, criterios de decisión |
 | [CHANGELOG](../CHANGELOG.md) | cambios por versión |
 | [SPEC.md](../SPEC.md) | especificación de construcción y convenciones canónicas |
 | [CLAUDE.md](../CLAUDE.md) · [AGENTS.md](../AGENTS.md) | cómo seguir desarrollando el paquete con agentes de código |
-| [informe/](informe/README.md) | Informe 2 (HTML + PPTX, 158 diapositivas) y su generador |
+| [informe/](informe/README.md) | Informe 2 (HTML + PPTX) y su generador |
 
 ## 3. Diagramas
 
@@ -57,6 +58,7 @@ Fuentes Mermaid y SVG en [`docs/diagramas/`](diagramas/) (los mismos del README)
 | Recurso | Qué es |
 |---|---|
 | `scripts/validar_paquete.py` | validación estructural del paquete |
+| `scripts/pruebas/guias_e2e/correr.py` | corre los cuatro recorridos E2E de `docs/guias/` con los scripts reales (≈ 1 min, sin tokens) y guarda la evidencia y las capturas del tablero |
 | `scripts/validar_mermaid.py` | lint de los bloques Mermaid (errores que GitHub no renderiza) y render con mmdc; `--png` para inspección visual |
 | `scripts/probar_paquete.py` | 80 pruebas de regresión (casos A–F) |
 | `scripts/pruebas/generar_bmad_grande.py` | genera un BMAD sintético grande para pruebas de escala |

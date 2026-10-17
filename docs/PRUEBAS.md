@@ -12,6 +12,7 @@ proyecto real. EN: *test strategy, automated suites, live tests with real Claude
 | 0 · Estructura | `python3 scripts/validar_paquete.py` | gratis, segundos | tras cualquier cambio |
 | 0b · Diagramas | `python3 scripts/validar_mermaid.py --render` | gratis, ~2 min con mmdc | tras tocar un diagrama Mermaid |
 | 1 · Regresión determinista | `python3 scripts/probar_paquete.py [--conservar]` | gratis, ~1 min | tras cambios de scripts, hooks o BMAD |
+| 1b · Recorridos E2E | `python3 scripts/pruebas/guias_e2e/correr.py --salida DIR` | gratis, ~1 min | tras cambios de scripts; compara con `docs/guias/evidencia/` |
 | 2 · Plugin | `claude plugin validate .` (aviso esperado sobre `CLAUDE.md`, que es contexto de desarrollo) | gratis | antes de publicar |
 | 3 · En vivo (modelo real) | `python3 scripts/pruebas_vivo/suite.py …` | consume tokens | antes de una versión y tras cambiar descripciones o agentes |
 | 4 · Aceptación del usuario | lista de §5 | tiempo del usuario | antes del primer proyecto real |

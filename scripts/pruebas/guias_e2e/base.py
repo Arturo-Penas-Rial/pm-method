@@ -1,0 +1,26 @@
+"""Utilidades de los recorridos E2E de docs/guias/: corren los mismos scripts que usan las skills sobre una copia del fixture BMAD 6.12.4."""
+import os, sys, shutil, subprocess, tempfile, json, csv
+RAIZ = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", ".."))
+EST = f"{RAIZ}/skills/pm-estado-proyecto/scripts"
+BMAD = f"{RAIZ}/skills/pm-bmad-puente/scripts/bmad.py"
+OKR = f"{RAIZ}/skills/pm-okr/scripts/okr.py"
+PAQ = f"{RAIZ}/skills/pm-exportar/scripts/paquete.py"
+LOG = []
+def run(cmd, cwd, mostrar=True, corte=110, ok=(0,)):
+    r = subprocess.run(cmd, shell=True, cwd=cwd, capture_output=True, text=True)
+    out = (r.stdout + ("\n" + r.stderr if r.stderr.strip() else "")).rstrip()
+    if r.returncode not in ok:
+        print("FALLO", cmd, "\n", out); sys.exit(1)
+    out = out.replace(cwd, "<repo>")
+    lineas = out.split("\n")
+    rec = "\n".join(lineas[:corte]) + (f"\n… ({len(lineas)-corte} líneas más)" if len(lineas) > corte else "")
+    vis = cmd.replace(EST, "$EST").replace(BMAD, "$BMAD").replace(OKR, "$OKR").replace(PAQ, "$PAQ").replace(RAIZ, "$PLUGIN")
+    LOG.append((vis, rec))
+    if mostrar: print("$", vis); print(rec); print()
+    return out
+def proyecto(nombre_dir):
+    base = tempfile.mkdtemp(prefix="e2e-")
+    repo = os.path.join(base, nombre_dir)
+    shutil.copytree(f"{RAIZ}/scripts/pruebas/fixtures/bmad-v6.12-real", repo)
+    return repo
+def E(sub): return f'python3 {EST}/{sub}'

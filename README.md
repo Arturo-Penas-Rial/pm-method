@@ -46,7 +46,8 @@ junta, y un ecosistema probado con **80 pruebas de regresión** y pruebas en viv
 | Pruebas de regresión (`probar_paquete.py`) | 80 OK · 0 FALLO, incluida una instalación real de BMAD 6.12.4 |
 | Enrutamiento en vivo con Claude Code real | 60/60 frases a la skill o agente correcto |
 | Guardarraíles, idioma y robustez en vivo | 4/4 · 5/5 · inyección, datos desordenados, escala y varias sesiones: todos OK |
-| Diagramas Mermaid (`validar_mermaid.py --render`) | 106 bloques, 0 errores |
+| Diagramas Mermaid (`validar_mermaid.py --render`) | 122 bloques, 0 errores |
+| Recorridos E2E de las guías (`guias_e2e/correr.py`) | 4/4 OK con los scripts reales |
 
 Límites conocidos y detalle para presentar el proyecto: **[docs/RESUMEN-EJECUTIVO.md](docs/RESUMEN-EJECUTIVO.md)**.
 
@@ -151,16 +152,20 @@ flowchart TB
 ### Verificación de cada puerta
 
 ```mermaid
-flowchart LR
-    pide["Pedido de puerta<br/>(/pm-puerta o ¿qué sigue?)"] --> c1["1 · Salud<br/>sanidad.py --rapido<br/>sin ERROR"]
-    c1 --> c2["2 · Controles automáticos<br/>puertas.py verificar<br/>PRINCE2 + BMAD"]
-    c2 --> c3["3 · Lista de control<br/>puertas.py lista → la junta revisa<br/>puertas.py confirmar --por"]
-    c3 --> dec{"Decisión de la junta"}
-    dec -- "sin bloqueos" --> ap["aprobado"]
-    dec -- "con bloqueos" --> co["condicionado<br/>(bloqueos = condiciones)"]
-    dec -- "decisión expresa" --> fz["--forzar<br/>(queda anotado)"]
-    dec --> re["rechazado / pendiente"]
-    ap & co & fz & re --> reg["pm-director: estado.py puerta<br/>estado.json + decisiones.csv<br/>+ referencia a la lista"]
+flowchart TB
+    pide["Pedido de puerta<br/>/pm-puerta<br/>o «¿qué sigue?»"]
+    c1["1 · Salud<br/>sanidad.py --rapido<br/>sin ERROR"]
+    c2["2 · Controles automáticos<br/>puertas.py verificar<br/>PRINCE2 + BMAD"]
+    c3["3 · Lista de control<br/>puertas.py lista<br/>la junta la confirma"]
+    dec{"Decisión<br/>de la junta"}
+    ap["aprobado<br/>(sin bloqueos)"]
+    co["condicionado<br/>(bloqueos =<br/>condiciones)"]
+    fz["forzado<br/>(queda<br/>anotado)"]
+    re["rechazado<br/>o pendiente"]
+    reg["pm-director registra<br/>estado.json<br/>decisiones.csv<br/>+ referencia a la lista"]
+    pide --> c1 --> c2 --> c3 --> dec
+    dec --> ap & co & fz & re
+    ap & co & fz & re --> reg
 ```
 
 Cada puerta se verifica en tres capas (salud, controles automáticos PRINCE2 y BMAD, lista de control confirmada por la
@@ -169,25 +174,31 @@ junta) y la decisión queda registrada: **[docs/PUERTAS.md](docs/PUERTAS.md)**.
 ## Orquestación de una puerta
 
 ```mermaid
+---
+config:
+  sequence:
+    actorMargin: 24
+    width: 120
+---
 sequenceDiagram
+    autonumber
     actor U as Usuario
-    participant O as pm-orquestador (hilo principal)
-    participant SN as pm-sanidad
-    participant F as Subagente de fase
+    participant O as Orquestador
+    participant F as Subagente<br/>de fase
     participant D as pm-director
-    participant FS as Carpeta del proyecto
-    U->>O: "¿qué sigue?" / "prepará la puerta"
-    O->>FS: estado.py resumen · siguiente
-    O->>SN: sanidad.py --informe
-    SN-->>O: 0 ERROR (o bloquea la puerta)
-    O->>F: delega productos (PID, plan de etapa, informes)
-    F->>FS: artefactos .md + registros vía scripts
-    F-->>O: bloque "Retorno al orquestador" (decisiones humanas requeridas)
-    O->>U: presenta la decisión con opciones
+    participant C as Carpeta del<br/>proyecto
+    U->>O: «¿qué sigue?» o<br/>«prepará la puerta»
+    O->>C: lee el estado<br/>(estado.py)
+    O->>C: verifica la puerta<br/>(sanidad + puertas.py)
+    O->>F: delega los productos<br/>(PID, plan, informes)
+    F->>C: escribe artefactos<br/>y registros
+    F-->>O: retorno: decisiones<br/>que faltan
+    O->>U: presenta la decisión<br/>con opciones
     U-->>O: decisión de la junta
     O->>D: registrar la decisión
-    D->>FS: estado.py puerta … (fila en decisiones.csv, líneas base)
-    D-->>O: nueva fase/etapa y siguiente paso
+    D->>C: estado.py puerta<br/>+ decisiones.csv
+    D-->>O: nueva fase o etapa
+    O->>U: siguiente paso
 ```
 
 ## Agentes y skills
@@ -210,22 +221,17 @@ Relación completa agente ↔ skill ↔ humano: [docs/RACI.md](docs/RACI.md) · 
 ## Sincronización con BMAD (fuente única)
 
 ```mermaid
-flowchart LR
-    subgraph BMAD["Repositorio BMAD (lo escribe el equipo de producto)"]
-        direction TB
-        PRD["PRD · arquitectura · épicas<br/>sprint-status.yaml"]
-    end
-    subgraph PM["pm-method (gobierno)"]
-        IDX["especificacion.py<br/>índice pm-spec-index/1"]
-        LB["linea-base<br/>sha256 + copia congelada"]
-        VER["verificar<br/>ESP-10"]
-        ISS["issue → solicitud<br/>de cambio C-###"]
-        HO["bmad.py handoff"]
-    end
-    PRD -->|lectura| IDX
-    IDX --> LB --> VER
-    VER -->|desvío| ISS --> HO
-    HO -.->|documento de traspaso| PRD
+flowchart TB
+    PRD["BMAD · equipo de producto<br/>PRD · arquitectura · épicas<br/>sprint-status.yaml"]:::bmad
+    IDX["especificacion.py<br/>índice pm-spec-index/1"]:::pm
+    LB["linea-base<br/>sha256 + copia congelada"]:::pm
+    VER["verificar<br/>desvío → ESP-10"]:::pm
+    ISS["issue → solicitud<br/>de cambio C-###"]:::pm
+    HO["bmad.py handoff<br/>documento de traspaso"]:::pm
+    PRD -->|lectura| IDX --> LB --> VER -->|desvío| ISS --> HO
+    HO -.->|"el equipo BMAD<br/>lo aplica"| PRD
+    classDef bmad fill:#e8f1fb,stroke:#3b6ea8,color:#111
+    classDef pm fill:#e9f6ec,stroke:#2e7d32,color:#111
 ```
 
 ---
@@ -283,6 +289,10 @@ por sistema operativo y notas para WSL: **[INSTALACION §0.8](docs/INSTALACION.m
 ¿qué sigue?                              # el orquestador lee el estado y propone el siguiente paso
 /pm-method:pm-sanidad                    # chequeo de consistencia (también antes de cada puerta)
 ```
+
+**Probar las capacidades paso a paso:** [docs/guias/](docs/guias/README.md) tiene cuatro recorridos de punta a punta por
+prompts, con reporte y gráficos: gestión de riesgos; alcance, cambio, esfuerzo, priorización y mapa de ruta; interesados,
+comunicaciones, OKR y avance; y el producto de la idea al producto con BMAD.
 
 Para que el orquestador sea el agente de toda la sesión: `claude --agent pm-method:pm-orquestador`.
 Si el pedido nombra un producto concreto ("armá el business case", "highlight de esta semana", "acta de la reunión"),

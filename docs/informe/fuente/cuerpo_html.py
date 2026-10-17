@@ -1,3 +1,8 @@
+import base64 as _b64
+
+def img64(rel):
+    return "data:image/png;base64," + _b64.b64encode(open(rel, "rb").read()).decode()
+
 # Cuerpo del Informe 2 v2.1 (lo ejecuta build_html.py con exec, comparte sus funciones y variables).
 # Las subsecciones se escriben como <h3>¶Título</h3>: sec() les antepone "<n>.<k> · ".
 
@@ -278,9 +283,10 @@ resumen_casos = tabla_html(["#", "Skill", "Agente", "Resultado"], [[str(c["n"]),
 
 def caso_html(c):
     cmds = pre(c["comandos"]) if c["comandos"] else f"<p>{inl(c['comandos_txt'])}</p>"
+    resp = f"<dt>Respuestas del usuario</dt><dd>{md(c['respuestas'])}</dd>" if c.get("respuestas") else ""
     return f"""<article class="card caso" id="caso-{c['n']}"><h4><span class="num">{c['n']}</span> <code>{e(c['comando'])}</code> — {e(c['titulo'])}</h4>
-<dl><dt>Petición</dt><dd>{inl(c['peticion'])}</dd><dt>Quién</dt><dd>{inl(c['quien'])}</dd><dt>Qué pregunta o verifica</dt><dd>{inl(c['verifica'])}</dd>
-<dt>Comandos</dt><dd>{cmds}</dd><dt>Artefacto</dt><dd>{inl(c['artefacto'])}</dd><dt>Decisión humana</dt><dd>{inl(c['decision'])}</dd></dl></article>"""
+<dl><dt>Prompt del usuario</dt><dd>{md(c['peticion'])}</dd>{resp}<dt>Quién</dt><dd>{inl(c['quien'])}</dd><dt>Qué pregunta o verifica</dt><dd>{inl(c['verifica'])}</dd>
+<dt>Comandos (los ejecuta el sistema)</dt><dd>{cmds}</dd><dt>Entradas (qué aporta el usuario y cómo)</dt><dd>{md(c['entradas'])}</dd><dt>Salidas (qué queda y dónde verificarlo)</dt><dd>{md(c['artefacto'])}</dd><dt>Decisión humana</dt><dd>{inl(c['decision'])}</dd></dl></article>"""
 
 
 detalle, parte = "", None
@@ -294,8 +300,8 @@ s13 = sec("casos", "14", "Casos de uso: un ejemplo por skill",
           + "<h3>¶Proyecto de muestra</h3>" + T(X["muestra"], "", ["28%", ""])
           + "<h3>¶Resumen de los 37 casos</h3>" + resumen_casos
           + "<h3>¶Detalle de cada caso</h3>" + detalle
-          + "<h3>¶Variantes</h3><h4>Variante A · Predictivo sin BMAD</h4><p>" + inl(X["variante_a"]["intro"]) + "</p>" + T(X["variante_a"]["tabla"], "", ["10%", "28%", "18%", ""])
-          + "<h4>Variante B · Proyecto ágil en inglés</h4><p>" + inl(X["variante_b"]["intro"]) + "</p>" + T(X["variante_b"]["tabla"], "", ["10%", "28%", "18%", ""])
+          + "<h3>¶Variantes</h3><h4>Variante A · Predictivo sin BMAD</h4><p>" + inl(X["variante_a"]["intro"]) + "</p>" + T(X["variante_a"]["tabla"], "", ["9%", "26%", "15%", "", "22%"])
+          + "<h4>Variante B · Proyecto ágil en inglés</h4><p>" + inl(X["variante_b"]["intro"]) + "</p>" + T(X["variante_b"]["tabla"], "", ["9%", "26%", "15%", "", "22%"])
           + "<h4>Variante C · Jira y Teams conectados vía pm-integraciones</h4>" + md(X["variante_c_md"]),
           "PM no programador")
 
@@ -343,6 +349,10 @@ s15 = sec("caso-maestro", "16", "Caso maestro: PRINCE2 como método, PMBOK como 
           + diag("caso-ciclo")
           + "<h3>¶Pasos clave</h3>" + pasos_clave
           + "<h3>¶Paso a paso completo</h3>" + pasos_html + diag("caso-wbs")
+          + "<h3>¶Guías de recorrido de punta a punta para el usuario</h3><p>Cuatro guías en <code>docs/guias/</code> escritas como prompts del usuario: qué escribir, qué responder cuando el sistema pregunta, qué deberías ver (con cifras de una corrida de referencia reproducible con <code>scripts/pruebas/guias_e2e/correr.py</code>) y dónde verificar cada registro. Cada una termina con un reporte de ejemplo y representaciones gráficas.</p>"
+          + T(X["guias"], "", ["20%", "", "", "", "9%"]) + "<h4>Cómo leer cada paso</h4>" + T(X["guias_leer"], "", ["22%", ""])
+          + "<div class='two'><figure><img src='" + img64("../../guias/img/g1-mapa-calor.png") + "' style='width:100%' alt='Mapa de calor de riesgos'><figcaption>E2E-1 · mapa de calor P×I y resumen de registros (tablero al 2026-12-15)</figcaption></figure>"
+          + "<figure><img src='" + img64("../../guias/img/g3-avance-agil.png") + "' style='width:100%' alt='Avance ágil'><figcaption>E2E-3 · velocidad y burn-up desde avance-bmad.csv (tablero al 2027-01-08)</figcaption></figure></div>"
           + "<h3>¶Dónde apareció cada principio de PRINCE2</h3>" + T(X["principios"], "", ["20%", "", "28%"])
           + "<h3>¶Lecciones del caso</h3>" + md(X["lecciones_caso_md"])
           + "<h3>¶Integridad al final</h3>" + md(X["integridad_md"]),

@@ -26,7 +26,7 @@ Bilingüe ES/EN: responder en el idioma del usuario; artefactos en `estado.json.
 - `skills/pm-estado-proyecto/scripts/` núcleo: `esquema.py` (esquemas, valores, migración), `estado.py`,
   `registro.py`, `especificacion.py`, `sanidad.py`, `puertas.py` (verificación de puertas), `wbs.py`, `cpm.py`, `evm.py`, `exportar.py`, `nuevo_proyecto.py`.
 - `skills/pm-bmad-puente/scripts/bmad.py` puente BMAD. `hooks/` guardian.py, inicio.py, idioma.py, py.sh, hooks.json.
-- `scripts/validar_paquete.py`, `scripts/probar_paquete.py`, `scripts/validar_mermaid.py`, `scripts/pruebas/fixtures/`, `scripts/pruebas_vivo/`.
+- `scripts/validar_paquete.py`, `scripts/probar_paquete.py`, `scripts/validar_mermaid.py`, `scripts/pruebas/fixtures/`, `scripts/pruebas/guias_e2e/` (recorridos de `docs/guias/`), `scripts/pruebas_vivo/`.
 - `SPEC.md` convenciones canónicas (claves de artefactos, registros, niveles de decisión, presupuestos).
 
 ## Convenciones de código

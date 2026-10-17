@@ -79,6 +79,7 @@ pathlib.Path(f"{P}/03-control/reportes/AAAA-MM-DD-tablero-avance.html").write_te
 Campos:
 - `objetivos[]` = `{clave: tiempo|costo|alcance|calidad|beneficios|riesgo|sostenibilidad, pronostico, tol_etapa, tol_proyecto, rag: verde|ambar|rojo|na}`. Tiempo y costo copian `semaforo_cronograma` y `semaforo_costo` de `evm.py`; con `--modo agil` salen `n/a-agil` → `rag: na` y `semaforo_alcance` en alcance.
 - `hitos[]` = `{hito, base, actual, var_dias, rag, comentario}`.
+- `decisiones_pendientes[]` = `{id, texto, fecha_limite}` (id del registro que origina la decisión, p. ej. R-001 o C-002).
 - `agil.iteraciones[]` = `{nombre, planificado, terminado, alcance_total, terminado_acumulado}`; con BMAD, una iteración por fila de `03-control/reportes/avance-bmad.csv` (`alcance_total` = `puntos_total`, `terminado_acumulado` = `puntos_terminados`). La sección ágil se muestra con `enfoque_entrega` `agil`/`hibrido` o si hay iteraciones.
 - `riesgos`, `issues`, `acciones`: filas de los CSV tal cual (las usan el mapa de calor, las tablas y la vista por actor).
 - Acciones vencidas con la misma fecha de corte del tablero (`registro.py resumen --corte <fecha>`).

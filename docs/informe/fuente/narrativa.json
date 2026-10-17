@@ -678,6 +678,10 @@
    "d": "Definición de hecho y de listo: criterios para dar por terminado un ítem o para empezarlo."
   },
   {
+   "t": "E2E (de punta a punta)",
+   "d": "Recorrido completo de un proceso, del inicio al resultado final. Las guías de docs/guias/ recorren cuatro ciclos E2E escribiendo prompts como usuario."
+  },
+  {
    "t": "EAC / VAC / TCPI",
    "d": "Estimación a la conclusión, variación a la conclusión (BAC − EAC) e índice de desempeño requerido para terminar dentro de un objetivo."
   },
@@ -828,6 +832,10 @@
   {
    "t": "Marketplace (de plugins)",
    "d": "Catálogo desde el que Claude Code instala plugins; la carpeta pm-method es a la vez plugin y marketplace local (`marketplace.json`)."
+  },
+  {
+   "t": "Matriz de evaluación del compromiso",
+   "d": "Tabla que compara, por interesado, el nivel de compromiso actual y el deseado (desconocedor, resistente, neutral, partidario, líder) para planificar acciones."
   },
   {
    "t": "MCP (Model Context Protocol)",
@@ -1044,6 +1052,10 @@
   {
    "t": "validar_mermaid.py",
    "d": "Script de mantenimiento que revisa los bloques Mermaid (errores que GitHub no renderiza) y los renderiza con mmdc para comprobarlos."
+  },
+  {
+   "t": "Valor/esfuerzo",
+   "d": "Criterio de priorización que ordena, dentro de cada grupo MoSCoW, por el cociente entre el valor que asigna el PO y los puntos estimados."
   },
   {
    "t": "VAN / TIR / payback",

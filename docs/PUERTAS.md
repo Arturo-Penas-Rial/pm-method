@@ -51,16 +51,20 @@ flowchart TB
 ## 2. Cómo se verifica una puerta
 
 ```mermaid
-flowchart LR
-    pide["Pedido de puerta<br/>(/pm-puerta o ¿qué sigue?)"] --> c1["1 · Salud<br/>sanidad.py --rapido<br/>sin ERROR"]
-    c1 --> c2["2 · Controles automáticos<br/>puertas.py verificar<br/>PRINCE2 + BMAD"]
-    c2 --> c3["3 · Lista de control<br/>puertas.py lista → la junta revisa<br/>puertas.py confirmar --por"]
-    c3 --> dec{"Decisión de la junta"}
-    dec -- "sin bloqueos" --> ap["aprobado"]
-    dec -- "con bloqueos" --> co["condicionado<br/>(bloqueos = condiciones)"]
-    dec -- "decisión expresa" --> fz["--forzar<br/>(queda anotado)"]
-    dec --> re["rechazado / pendiente"]
-    ap & co & fz & re --> reg["pm-director: estado.py puerta<br/>estado.json + decisiones.csv<br/>+ referencia a la lista"]
+flowchart TB
+    pide["Pedido de puerta<br/>/pm-puerta<br/>o «¿qué sigue?»"]
+    c1["1 · Salud<br/>sanidad.py --rapido<br/>sin ERROR"]
+    c2["2 · Controles automáticos<br/>puertas.py verificar<br/>PRINCE2 + BMAD"]
+    c3["3 · Lista de control<br/>puertas.py lista<br/>la junta la confirma"]
+    dec{"Decisión<br/>de la junta"}
+    ap["aprobado<br/>(sin bloqueos)"]
+    co["condicionado<br/>(bloqueos =<br/>condiciones)"]
+    fz["forzado<br/>(queda<br/>anotado)"]
+    re["rechazado<br/>o pendiente"]
+    reg["pm-director registra<br/>estado.json<br/>decisiones.csv<br/>+ referencia a la lista"]
+    pide --> c1 --> c2 --> c3 --> dec
+    dec --> ap & co & fz & re
+    ap & co & fz & re --> reg
 ```
 
 Tres capas, para toda puerta de la junta salvo `decision-ad-hoc`:

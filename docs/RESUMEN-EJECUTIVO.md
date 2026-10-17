@@ -92,3 +92,5 @@ claude plugin install pm-method@pm-method
 ```
 
 Luego, en una sesión: `/pm-method:pm-nuevo "Mi proyecto"` y "¿qué sigue?". Guía completa: [INSTALACION](INSTALACION.md).
+
+Para probar las capacidades paso a paso, como usuario y con prompts: [guías de recorrido E2E](guias/README.md) (riesgos; alcance, cambio y mapa de ruta; interesados, OKR y avance; producto de la idea al producto con BMAD).

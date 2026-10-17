@@ -5,17 +5,30 @@
 Versión surgida de pruebas en vivo con Claude Code real (enrutamiento de 75 frases y siete escenarios de orquestación)
 y de una revisión de cada script contra una instalación real de BMAD 6.12.4.
 
+### Guías de prueba para el usuario
+- `docs/guias/`: cuatro recorridos de punta a punta escritos como prompts del usuario, con respuestas a las preguntas
+  del sistema, resultado esperado, dónde verificar, reporte de ejemplo y gráficos (Mermaid y capturas del tablero):
+  E2E-1 riesgos, E2E-2 alcance/cambio/esfuerzo/priorización/roadmap, E2E-3 interesados/comunicaciones/OKR/avance,
+  E2E-4 producto de la idea al producto con BMAD.
+- `scripts/pruebas/guias_e2e/`: los recorridos con los scripts reales sobre el fixture BMAD 6.12.4 (≈ 1 min, sin
+  tokens); evidencia en `docs/guias/evidencia/`.
+- `CASOS-DE-USO`, `CASO-MAESTRO` y `CASOS-DE-USO-INTEGRACIONES`: cada caso con el prompt del usuario, sus respuestas,
+  entradas (qué aporta el usuario y cómo) y salidas (qué queda y dónde verificarlo); los comandos quedan como
+  referencia de lo que ejecuta el sistema.
+- `pm-visuales` guía §3: documentado el formato de `decisiones_pendientes` del tablero (`{id, texto, fecha_limite}`).
+
 ### Diagramas
 - Corregidos los bloques Mermaid que GitHub no renderizaba (`;` en mensajes de secuencia, paréntesis en etiquetas de
   arista sin comillas, marcadores `{{…}}` en fechas de gantt, números de xychart/quadrant e ids de nodo: ahora valores
   de ejemplo con un comentario `%%` que indica qué marcador reemplazan).
-- Legibilidad: diagramas de arquitectura (README, ARQUITECTURA) y de sincronización rediseñados sin etiquetas
-  superpuestas ni líneas sobre los títulos.
+- Legibilidad: diagramas de arquitectura (README, ARQUITECTURA), sincronización, verificación y orquestación de puertas,
+  flujo de orquestación y mapa del caso maestro rediseñados verticales (≤ 900 px de ancho natural: letra más grande en
+  GitHub) y sin etiquetas superpuestas ni texto cortado.
 - README reorganizado: justificación, beneficios por perfil con evidencia, y arquitectura, ciclo de vida, ciclo
   integrado PRINCE2 + BMAD y verificación de puertas como diagramas al comienzo.
 - `INSTALACION.md` §0.7 nueva: dónde y cómo configurar las credenciales (suscripción o `ANTHROPIC_API_KEY` en Claude
   Code, `~/.hermes/.env` en Hermes, tokens de MCP), precedencia y reglas de seguridad. §0.8 nueva: Orca (opcional).
-- Nuevo `scripts/validar_mermaid.py`: lint estático de esos errores + render real con mmdc (106 bloques, 0 errores).
+- Nuevo `scripts/validar_mermaid.py`: lint estático de esos errores + render real con mmdc (122 bloques, 0 errores).
 
 ### Guardarraíles y roles
 - `hooks/guardian.py` reescrito: además de Write/Edit, bloquea escrituras directas por **Bash** (`sed -i`, `>`/`>>`,

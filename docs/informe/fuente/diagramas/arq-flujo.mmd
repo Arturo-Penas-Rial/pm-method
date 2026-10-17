@@ -1,23 +1,27 @@
+---
+config:
+  sequence:
+    actorMargin: 24
+    width: 120
+---
 sequenceDiagram
-  autonumber
-  actor U as Usuario / rol de la junta
-  participant H as Hook SessionStart
-  participant O as pm-orquestador (hilo principal)
-  participant F as Subagente de fase
-  participant D as pm-director
-  participant P as Carpeta del proyecto
-
-  H->>O: contexto: fase, etapa, sanidad rápida
-  U->>O: petición ("¿qué sigue?", "cerrá la etapa")
-  O->>P: estado.py ver / siguiente
-  O->>U: resumen en 3 líneas + preguntas pendientes
-  U-->>O: datos y conformidad con la secuencia
-  O->>F: encargo autocontenido (carpeta, objetivo, skills, datos, restricciones)
-  F->>P: skills y scripts: artefactos en-revision, registro.py
-  F-->>O: Retorno: Hecho · Decisiones humanas · Datos faltantes · Siguiente paso
-  O->>U: decisión: pregunta · opciones · consecuencias · rol que decide
-  U-->>O: decisión explícita con nombre y rol
-  O->>D: registrar la decisión literal
-  D->>P: estado.py puerta / aprobar (+ decisiones.csv, línea base BMAD si aplica)
-  D-->>O: Retorno
-  O->>U: siguiente paso según el método y próxima puerta
+    autonumber
+    actor U as Usuario
+    participant O as Orquestador
+    participant F as Subagente<br/>de fase
+    participant D as pm-director
+    participant P as Carpeta del<br/>proyecto
+    Note over O: hook SessionStart:<br/>fase, etapa y<br/>sanidad rápida
+    U->>O: petición («¿qué sigue?»,<br/>«cerrá la etapa»)
+    O->>P: estado.py<br/>ver / siguiente
+    O->>U: resumen en 3 líneas<br/>+ preguntas pendientes
+    U-->>O: datos y conformidad
+    O->>F: encargo autocontenido<br/>(objetivo, datos, límites)
+    F->>P: artefactos en revisión<br/>+ registro.py
+    F-->>O: retorno: hecho, decisiones,<br/>datos faltantes
+    O->>U: decisión: opciones,<br/>consecuencias, quién decide
+    U-->>O: decisión explícita<br/>con nombre y rol
+    O->>D: registrar la decisión
+    D->>P: estado.py puerta o aprobar<br/>+ decisiones.csv
+    D-->>O: retorno
+    O->>U: siguiente paso<br/>y próxima puerta

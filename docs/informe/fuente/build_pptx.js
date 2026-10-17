@@ -816,7 +816,7 @@ mark("14 · Casos de uso: un ejemplo por skill");
   const CR = D.casos_resumen;
   const filas = X.casos.map(c => [String(c.n), "`" + c.comando + "`", CR[c.n][0], CR[c.n][1]]);
   tablaSlides(S13, "14 · 37 casos encadenados sobre un proyecto de muestra", ["#", "Skill o comando", "Agente", "Resultado (cifras de la prueba)"], filas, [0.5, 3.2, 2.3, 6.33], { size: 10, margin: 0.04, top: 1.85, introRepeat: true,
-    intro: "Portal de autoservicio de una cooperativa · 7 meses · USD 180.000 · híbrido con BMAD v6. Personas ficticias; respuestas humanas simuladas. Detalle de cada caso (petición, verificación, comandos, artefacto, decisión): HTML §14.",
+    intro: "Portal de autoservicio de una cooperativa · 7 meses · USD 180.000 · híbrido con BMAD v6. Personas ficticias; respuestas humanas simuladas. Detalle de cada caso (prompt del usuario, sus respuestas, entradas y cómo las aporta, salidas y dónde verificarlas, comandos que ejecuta el sistema, decisión): HTML §14.",
     introSize: 11, align: ["center"] });
 }
 {
@@ -888,6 +888,14 @@ const S15 = "16 · Caso maestro"; pres.addSection({ title: S15 });
 }
 tablaSlides(S15, "16 · Paso a paso: momentos PRINCE2 con técnicas PMBOK", ["Paso", "Momento PRINCE2 · técnica", "Qué se hizo", "Resultado (cifras reales)"], D.pasos_clave.map(p => [p.n, p.m, p.t, p.r]), [0.75, 2.9, 3.0, 5.68], { size: 10.5,
   estilos: [{ bold: true, color: NAVY }, { color: BLUE }, { bold: true }], align: ["center"], nota: "Los pasos completos, con comandos y salidas: HTML §16.4 y docs/CASO-MAESTRO.md." });
+tablaSlides(S15, "16 · Guías de recorrido E2E para el usuario (docs/guias)", ["Guía", "Ciclo que recorre", "Gráficos que obtenés", "Duración"],
+  T(X.guias).map(f => [f[0].replace(/\[(.*?)\]\(.*?\)/, "$1"), f[1], f[3], f[4]]), [2.4, 5.4, 3.33, 1.2], { size: 10,
+  estilos: [{ bold: true, color: NAVY }], nota: "Cada paso: prompt a escribir, respuestas a las preguntas del sistema, qué deberías ver (cifras de una corrida reproducible con scripts/pruebas/guias_e2e/correr.py) y dónde verificar." });
+{
+  const s = slide(S15); s.addText("16 · Guías E2E: gráficos que produce el ecosistema", { placeholder: "title" });
+  imagen(s, "../../guias/img/g1-mapa-calor.png", 0.5, 1.35, 12.33, 2.6, "E2E-1 · mapa de calor P×I y resumen de registros (tablero de pm-visuales al 2026-12-15)");
+  imagen(s, "../../guias/img/g3-avance-agil.png", 0.5, 4.15, 12.33, 2.75, "E2E-3 · velocidad y burn-up desde avance-bmad.csv (tablero al 2027-01-08)");
+}
 tablaSlides(S15, "16 · Dónde apareció cada principio de PRINCE2", X.principios.cab, T(X.principios), [2.7, 6.0, 3.63], { size: 10.5, estilos: [{ bold: true, color: NAVY }] });
 
 // ====================== 16 Pruebas y calidad ======================

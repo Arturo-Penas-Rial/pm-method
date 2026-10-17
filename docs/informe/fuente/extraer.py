@@ -202,6 +202,10 @@ for k, pat in [("gh_publicar", r"^0\.2 Publicar"), ("gh_claude", r"^0\.3 Claude 
 
 # Instalación v2.1: tablas nuevas
 X["inst_recorrido"] = tabla(INST, r"^Recorrido de punta a punta")
+GUI = leer("docs/guias/README.md")
+X["guias"] = tablas(GUI)[0]
+X["guias"]["filas"] = [[re.sub(r"\[(.*?)\]\(.*?\)", r"\1", c) for c in f] for f in X["guias"]["filas"]]
+X["guias_leer"] = tabla(GUI, r"^Cómo usar las guías")
 X["credenciales"] = tabla(INST, r"^0\.7 Claves")
 X["orca_inst"] = tabla(INST, r"^0\.8 Orca")
 X["credenciales_md"] = seccion(INST, r"^0\.7 Claves").split("\n", 1)[1].strip()
@@ -413,10 +417,12 @@ for l_m in re.finditer(r"^(## Parte .*|### (\d+)\. `([^`]+)` — (.*))$", CU, re
     com = campos.get("Comandos", "")
     m = re.search(r"```bash\n(.*?)```", com, re.S)
     casos.append({"n": n, "skill": skill.lstrip("/").split(" ")[0], "comando": skill, "titulo": titulo, "parte": parte,
-                  "peticion": campos.get("Petición", ""), "quien": campos.get("Quién", ""),
+                  "peticion": campos.get("Prompt del usuario", campos.get("Petición", "")), "quien": campos.get("Quién", ""),
+                  "respuestas": campos.get("Respuestas del usuario", ""),
+                  "entradas": campos.get("Entradas (qué aporta el usuario y cómo)", ""),
                   "verifica": campos.get("Qué pregunta o verifica", ""),
                   "comandos": m.group(1).rstrip() if m else "", "comandos_txt": "" if m else com,
-                  "artefacto": campos.get("Artefacto", ""), "decision": campos.get("Decisión humana", "")})
+                  "artefacto": campos.get("Salidas (qué queda y dónde verificarlo)", campos.get("Artefacto", "")), "decision": campos.get("Decisión humana", "")})
 X["casos"] = casos
 X["muestra"] = tabla(CU, r"^Proyecto de muestra")
 X["variante_a"] = {"intro": seccion(CU, r"^Variante A").split("\n\n")[0].strip() if False else seccion(CU, r"^Variante A").strip().split("\n")[0],

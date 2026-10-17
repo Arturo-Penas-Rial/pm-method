@@ -1,0 +1,14 @@
+codigo,nombre,tipo,responsable,esfuerzo_h,costo,ref
+1,Gestión del proyecto,producto,Martín Suárez,,,
+1.1,Gestión de etapas,paquete,Martín Suárez,400,20000,
+2,Especificación del producto,producto,Sofía Ramírez,,,
+2.1,Brief PRD UX y arquitectura (BMAD),paquete,Sofía Ramírez,240,12000,UJ-1; UJ-2; UJ-3
+3,Portal del socio,producto,Lucía Benítez,,,
+3.1,Acceso seguro,paquete,Lucía Benítez,420,21000,FR-1; FR-2; FR-11; 1-1-alta-y-acceso-del-socio-con-segundo-factor; 1-2-recuperación-de-acceso
+3.2,Consulta y constancias,paquete,Lucía Benítez,380,19000,FR-3; FR-4; FR-5; 1-3-consulta-de-saldos-de-ahorro-y-préstamos; 1-4-descarga-de-constancias-en-pdf
+3.3,Solicitudes del socio,paquete,Lucía Benítez,440,22000,FR-6; FR-7; FR-8; FR-12; 2-1-solicitud-guiada-de-préstamo-simple; 2-2-seguimiento-de-solicitudes-y-respuesta-a-pedidos-de-informac; 2-3-actualización-de-datos-de-contacto-con-verificación
+4,Consola de operador,producto,Lucía Benítez,,,
+4.1,Bandeja y resolución,paquete,Lucía Benítez,400,20000,FR-9; FR-10; 3-1-acceso-y-roles-de-la-consola-de-operador; 3-2-bandeja-única-de-solicitudes; 3-3-resolución-de-solicitudes
+5,Transición,producto,Sofía Ramírez,,,
+5.1,UAT prueba de carga y capacitación,paquete,Sofía Ramírez,200,10000,NFR-2; NFR-3
+5.2,Puesta en producción,hito,Sofía Ramírez,,,

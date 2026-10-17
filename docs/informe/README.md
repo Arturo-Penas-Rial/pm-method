@@ -1,6 +1,6 @@
 # Informe 2 · Documentación del ecosistema pm-method (v2.1)
 
-- `informe-2-ecosistema-pm-method-v2.1.html` y `.pptx`: el informe (mismo contenido, 173 diapositivas), generado desde
+- `informe-2-ecosistema-pm-method-v2.1.html` y `.pptx`: el informe (mismo contenido, 179 diapositivas), generado desde
   la documentación de este repositorio. Incluye resumen ejecutivo, diagramas, arquitectura, columna vertebral BMAD ↔
   PRINCE2, sanidad, puertas de la junta (verificación y registro), dependencias con URL de origen, instalación y configuración, catálogo, RACI, casos de uso por skill
   y por repositorio integrado, caso maestro, pruebas, índice y glosario.

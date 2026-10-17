@@ -1,19 +1,25 @@
+---
+config:
+  sequence:
+    actorMargin: 24
+    width: 120
+---
 sequenceDiagram
+    autonumber
     actor U as Usuario
-    participant O as pm-orquestador (hilo principal)
-    participant SN as pm-sanidad
-    participant F as Subagente de fase
+    participant O as Orquestador
+    participant F as Subagente<br/>de fase
     participant D as pm-director
-    participant FS as Carpeta del proyecto
-    U->>O: "¿qué sigue?" / "prepará la puerta"
-    O->>FS: estado.py resumen · siguiente
-    O->>SN: sanidad.py --informe
-    SN-->>O: 0 ERROR (o bloquea la puerta)
-    O->>F: delega productos (PID, plan de etapa, informes)
-    F->>FS: artefactos .md + registros vía scripts
-    F-->>O: bloque "Retorno al orquestador" (decisiones humanas requeridas)
-    O->>U: presenta la decisión con opciones
+    participant C as Carpeta del<br/>proyecto
+    U->>O: «¿qué sigue?» o<br/>«prepará la puerta»
+    O->>C: lee el estado<br/>(estado.py)
+    O->>C: verifica la puerta<br/>(sanidad + puertas.py)
+    O->>F: delega los productos<br/>(PID, plan, informes)
+    F->>C: escribe artefactos<br/>y registros
+    F-->>O: retorno: decisiones<br/>que faltan
+    O->>U: presenta la decisión<br/>con opciones
     U-->>O: decisión de la junta
     O->>D: registrar la decisión
-    D->>FS: estado.py puerta … (fila en decisiones.csv, líneas base)
-    D-->>O: nueva fase/etapa y siguiente paso
+    D->>C: estado.py puerta<br/>+ decisiones.csv
+    D-->>O: nueva fase o etapa
+    O->>U: siguiente paso

@@ -1,16 +1,11 @@
-flowchart LR
-    subgraph BMAD["Repositorio BMAD (lo escribe el equipo de producto)"]
-        direction TB
-        PRD["PRD · arquitectura · épicas<br/>sprint-status.yaml"]
-    end
-    subgraph PM["pm-method (gobierno)"]
-        IDX["especificacion.py<br/>índice pm-spec-index/1"]
-        LB["linea-base<br/>sha256 + copia congelada"]
-        VER["verificar<br/>ESP-10"]
-        ISS["issue → solicitud<br/>de cambio C-###"]
-        HO["bmad.py handoff"]
-    end
-    PRD -->|lectura| IDX
-    IDX --> LB --> VER
-    VER -->|desvío| ISS --> HO
-    HO -.->|documento de traspaso| PRD
+flowchart TB
+    PRD["BMAD · equipo de producto<br/>PRD · arquitectura · épicas<br/>sprint-status.yaml"]:::bmad
+    IDX["especificacion.py<br/>índice pm-spec-index/1"]:::pm
+    LB["linea-base<br/>sha256 + copia congelada"]:::pm
+    VER["verificar<br/>desvío → ESP-10"]:::pm
+    ISS["issue → solicitud<br/>de cambio C-###"]:::pm
+    HO["bmad.py handoff<br/>documento de traspaso"]:::pm
+    PRD -->|lectura| IDX --> LB --> VER -->|desvío| ISS --> HO
+    HO -.->|"el equipo BMAD<br/>lo aplica"| PRD
+    classDef bmad fill:#e8f1fb,stroke:#3b6ea8,color:#111
+    classDef pm fill:#e9f6ec,stroke:#2e7d32,color:#111

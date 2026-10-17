@@ -52,7 +52,7 @@ Hay tres riesgos:
 ## 3. Vista general
 
 ```mermaid
-flowchart LR
+flowchart TB
   %% Colores: BMAD (solo lectura) · puente bmad.py · carpeta del proyecto
   PRD["BMAD · PRD<br/>FR · NFR · UJ · SM"]:::bmad
   DOC["BMAD · arquitectura AD<br/>epics.md<br/>sprint-status.yaml"]:::bmad

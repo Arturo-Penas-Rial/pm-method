@@ -20,6 +20,19 @@ Estados de verificación usados en todo el documento:
   una sesión de Claude Code que decida la delegación.
 - **documentado sin prueba en vivo**: el contrato está escrito en el paquete, pero no hubo herramienta conectada.
 
+Cómo recorrer cada caso como usuario: cada caso (o subcaso) empieza por **Prompt del usuario**, el o los mensajes en
+lenguaje natural que escribís en Claude Code, con el atajo `/pm-method:…` cuando existe; lo único que se teclea fuera
+de la conversación va marcado "en tu terminal:" (instalaciones y `claude mcp add`). Sigue **Respuestas del usuario**
+(qué contestar cuando el sistema pregunta o necesita una decisión humana) y **Entradas (qué aporta el usuario y
+cómo)**: dato escrito en el prompt, respuesta a una pregunta del orquestador, archivo que dejás en una ruta concreta o
+adjuntás en la sesión, dato traído por un conector MCP (queda como instantánea fechada en
+`gestion/03-control/fuentes/<sistema>-AAAA-MM-DD.(csv|md|json)`, SPEC §1.12) o dato leído de BMAD por la fachada, en
+solo lectura. Los bloques de comandos de "Pasos" los ejecuta el sistema; el usuario no los escribe. **Salidas (qué
+queda y dónde verificarlo)** da la ruta (las rutas sin prefijo son relativas a la carpeta del proyecto `gestion/`), la
+clave en `gestion/estado.json` y cómo comprobarlo: abrir el archivo, abrir el CSV de `gestion/03-control/registros/` en
+un editor o Excel, buscar la fila en `decisiones.csv` o la nota en `diario.md` (misma carpeta), o pedir
+`/pm-method:pm-estado`.
+
 ## Índice
 
 1. [Diseño visual](#caso-1--diseño-visual-pm-visuales): archify, diagram-design, visual-explainer, tablero HTML, drawio-mcp, Mermaid
@@ -100,7 +113,9 @@ bilingüe, ids de la fuente, BORRADOR si la fuente no está aprobada, fuente y f
 subproductos del motor al lado. Si el motor falta, no cubre el tipo o falla dos veces: queda el Mermaid y una nota en
 `diario.md`. Un visual nunca cambia el estado de nada: hereda el de su fuente y lo comparte el gestor tras confirmarlo.
 
-Declarar el motor (uno o una lista por prioridad) y comprobar la instalación:
+Declarar el motor (uno o una lista por prioridad) y comprobar la instalación. Los ejecuta el sistema cuando lo pedís por
+prompt ("Usá archify y visual-explainer como motores de diagramas y revisá que estén instalados"); el usuario no los
+escribe:
 
 ```bash
 python3 $E/estado.py --proyecto gestion integracion diagramas=archify,visual-explainer export=skills-office
@@ -121,13 +136,18 @@ INFO  INS-03 Skill externa 'visual-explainer' (visual-explainer) instalada: invo
 
 ### 1.1 archify: organigrama y WBS como diagrama de árbol
 
+- **Prompt del usuario:**
+  1. En tu terminal (una sola vez): `npx skills add tt-a1i/archify -a claude-code -s archify -y` (ver Externa).
+  2. "Usá archify como motor de diagramas del proyecto y revisá que esté instalada." (el sistema registra `integraciones.diagramas=archify` y corre la sanidad INS-03; atajo para el chequeo: `/pm-method:pm-sanidad`).
+  3. "Hacé el organigrama del proyecto y el diagrama de la WBS."
+- **Entradas (qué aporta el usuario y cómo):** el motor elegido, escrito en el prompt 2; los roles ya cargados en `gestion/estado.json` → `roles` (Laura Méndez, Martín Suárez, Sofía Ramírez, Diego Ferreira, Andrea Costa; un rol vacío sale `[por confirmar]`, guía de pm-visuales §6); la WBS de `gestion/02-planificacion/wbs.csv` (caso 3.1). No hace falta adjuntar nada. Si Chrome no está en la ruta habitual, el usuario define `ARCHIFY_CHROME=<ejecutable>` en su terminal antes de abrir Claude Code.
 - **Objetivo:** organigrama y WBS en HTML interactivo validado por el propio motor, con los ids de la WBS en cada nodo.
 - **Momento PRINCE2:** organigrama en SU (pm-organizacion-roles lo pide para `autorizar-inicio`); WBS en IP, como parte del plan que la junta aprueba en `autorizar-proyecto`. Decide la ejecutiva; el visual no se aprueba por separado.
 - **Dueña y agente:** `pm-visuales`; la invoca el orquestador directamente o `pm-inicio` / `pm-planificacion` (paso 10 de su bucle). El contenido de la WBS es de `pm-planificacion-por-productos`.
 - **Externa:** archify 3.1 (`tt-a1i/archify`, MIT). Tipos útiles: `tree` (organigrama, WBS), `workflow`, `timeline`. Instalación (INSTALACION §6.1): `npx skills add tt-a1i/archify -a claude-code -s archify -y`. Requiere Node ≥ 18 y Chrome/Chromium (o `ARCHIFY_CHROME=<ejecutable>`).
 - **Respaldo:** `wbs.py --mermaid` para la WBS y `templates/diagramas-mermaid.md` §1 para el organigrama.
 - **Frase:** "Hacé el organigrama del proyecto y el diagrama de la WBS" (la usada en la sesión en vivo). EN: "Draw the project org chart and the WBS diagram."
-- **Pasos:**
+- **Pasos:** los ejecuta el sistema; el usuario no los escribe.
   ```bash
   cd gestion
   python3 $E/wbs.py 02-planificacion/wbs.csv --titulo "Portal de autoservicio para socios" \
@@ -143,19 +163,25 @@ INFO  INS-03 Skill externa 'visual-explainer' (visual-explainer) instalada: invo
   "ok":false,"status":"skipped","type":"tree", … "gates":{"validate":"pass","deliver":"pass","check":"pass","browser-check":"skipped"},
   "failedStage":"browser-check","diagnostics":[{"code":"viewer/chrome-unavailable","severity":"warning", …
   ```
-- **Resultado:** `02-planificacion/visuales/wbs.html` (830.803 bytes, 16 nodos), `wbs.md` (Mermaid de respaldo) y, al lado, `wbs.candidate.json`, `wbs.finalize.json`, `wbs.finalize-summary.json`, `wbs.delivery.json`, `wbs.browser-check.json`. En la sesión en vivo (A1) los cuatro gates quedaron en `pass` y se generaron `organigrama.html` y `wbs.html` con sus `.md`.
+- **Salidas (qué queda y dónde verificarlo):** `02-planificacion/visuales/wbs.html` (830.803 bytes, 16 nodos), `wbs.md` (Mermaid de respaldo) y, al lado, `wbs.candidate.json`, `wbs.finalize.json`, `wbs.finalize-summary.json`, `wbs.delivery.json`, `wbs.browser-check.json`. En la sesión en vivo (A1) los cuatro gates quedaron en `pass` y se generaron `organigrama.html` y `wbs.html` con sus `.md`. Dónde verificarlo: abrí `gestion/02-planificacion/visuales/wbs.html` y `organigrama.html` en el navegador (cada nodo de la WBS lleva su código de `wbs.csv`); en `gestion/estado.json` → `artefactos`, las claves `pbs-wbs` y `organigrama` con estado `borrador`; si archify faltó o falló, la nota queda en `gestion/03-control/registros/diario.md` y se entrega el `.md`.
 - **Controles:** INS-03 (instalada / Chrome); guía §1.4: éxito = `"ok": true` con los cuatro gates en `pass`; con solo `browser-check` en `skipped` por falta de Chrome, vale como "verificado sin navegador" y se dice. `estado.py artefacto` registra el visual como borrador.
 - **Límites:** el árbol `tree` es de un solo padre: aseguramiento y soporte se cuelgan de la junta o del gestor y se aclara en el pie (lo señaló la sesión A1). archify no cubre mapa poder/interés ni one-pager. Antes de los ajustes del contrato (sesión A0) se usó el binario de archify sin invocar la skill: la regla actual es invocarla siempre.
 
 ### 1.2 diagram-design: organigrama, flujo de excepciones y roadmap editoriales
 
+- **Prompt del usuario:**
+  1. En tu terminal (una sola vez): `claude plugin marketplace add cathrynlavery/diagram-design` y `claude plugin install diagram-design@diagram-design` (o la copia con `npx skills add …`, ver Externa).
+  2. "Usá diagram-design como motor de diagramas." (registra `integraciones.diagramas=diagram-design`).
+  3. "Hacé el organigrama del proyecto." Variantes: "Armá el roadmap por etapas con las puertas como hitos." · "Dibujá el flujo de excepciones del PID."
+- **Respuestas del usuario:** la primera vez diagram-design pregunta si personalizar el estilo o usar el estilo por defecto: "Usá el estilo por defecto." Sin conexión a internet: "Usá fuentes del sistema, no Google Fonts."
+- **Entradas (qué aporta el usuario y cómo):** el motor y el tipo de diagrama, en el prompt; roles de `gestion/estado.json` → `roles` (organigrama); etapas y puertas del plan de proyecto y de `estado.json` → `puertas` (roadmap); tolerancias y roles de `estado.json` (flujo de excepciones), según la guía de pm-visuales §6; para redibujar la WBS, el Mermaid `gestion/02-planificacion/visuales/wbs.md`. Nada se adjunta.
 - **Objetivo:** diagramas editoriales HTML/SVG (organigrama, mapa poder/interés tipo `quadrant`, flujo de excepciones tipo `swimlane`, roadmap por etapas tipo `timeline`) para la junta o el cliente.
 - **Momento PRINCE2:** organigrama en SU; flujo de excepciones en IP (enfoque de control del PID); roadmap en SU/IP con las puertas como hitos y actualizado en cada SB. Decide quien aprueba la fuente (ejecutiva en las puertas).
 - **Dueña y agente:** `pm-visuales`; desde `pm-inicio` o `pm-planificacion`.
 - **Externa:** diagram-design 2.6 (`cathrynlavery/diagram-design`, MIT). Como plugin: `claude plugin marketplace add cathrynlavery/diagram-design` y `claude plugin install diagram-design@diagram-design` (con `--scope project` queda para todo el equipo); como skill copiada: `npx skills add cathrynlavery/diagram-design -a claude-code -s diagram-design -y`. Se invoca como `diagram-design:diagram-design` (plugin) o `diagram-design`.
 - **Respaldo:** Mermaid de `templates/diagramas-mermaid.md` (§1 organigrama, §6 roadmap, §7 flujo de excepciones).
 - **Frase:** "Hacé el organigrama del proyecto" (sesión en vivo B2). EN: "Build a stage roadmap with the gates as milestones." (ejemplo de la propia skill).
-- **Pasos:** respaldo Mermaid; para la WBS u otro Mermaid, la vía de importación del motor y luego su chequeo:
+- **Pasos:** los ejecuta el sistema; el usuario no los escribe. Respaldo Mermaid; para la WBS u otro Mermaid, la vía de importación del motor y luego su chequeo:
   ```bash
   python3 <diagram-design>/scripts/mermaid_extract.py 02-planificacion/visuales/wbs.md
   python3 <diagram-design>/scripts/self_check.py 02-planificacion/visuales/<nombre>.html     # debe imprimir OK
@@ -166,19 +192,24 @@ INFO  INS-03 Skill externa 'visual-explainer' (visual-explainer) instalada: invo
   - budget: nodes OVER (max 9), edges OVER (max 12)
   - type candidates: architecture
   ```
-- **Resultado:** `02-planificacion/visuales/organigrama.html` (o `roadmap.html`, `flujo-excepciones.html`) junto a su `.md`. En vivo: B1 (`--plugin-dir` con el clon) generó `organigrama.html` y `wbs.html`, con `self_check.py` → `OK …/organigrama.html` y `OK …/wbs.html`; B2 (plugin instalado) generó el organigrama con `OK organigrama.html` y nota en `diario.md`.
+- **Salidas (qué queda y dónde verificarlo):** `02-planificacion/visuales/organigrama.html` (o `roadmap.html`, `flujo-excepciones.html`) junto a su `.md`. En vivo: B1 (`--plugin-dir` con el clon) generó `organigrama.html` y `wbs.html`, con `self_check.py` → `OK …/organigrama.html` y `OK …/wbs.html`; B2 (plugin instalado) generó el organigrama con `OK organigrama.html` y nota en `diario.md`. Dónde verificarlo: abrí `gestion/02-planificacion/visuales/organigrama.html` en el navegador (los roles vacíos se ven `[por confirmar]`); el sistema informa el `OK …` de `self_check.py`; por contrato (guía de pm-visuales §1.3, paso 6) queda en `gestion/estado.json` → `artefactos` (`organigrama`, `roadmap` o `flujo-excepciones`) como `borrador`; la nota de la sesión, en `gestion/03-control/registros/diario.md`.
 - **Controles:** INS-03 (no ve un plugin cargado solo con `--plugin-dir`: ahí emite AVISO y hay que ignorarlo); `self_check.py` = OK; regla de método: tres intereses en la junta y aseguramiento separado (la sesión B2 lo verificó y marcó `[por confirmar]` los roles vacíos).
 - **Límites:** la primera vez pide elegir estilo; sin usuario (subagente o `claude -p`) usa el estilo por defecto y lo anota. Su tope sugerido es de 9 nodos: con la regla `faithful` se conservan todos (la WBS de 11 nodos de B1 se mantuvo completa). Carga tipografías de Google Fonts; sin red, pedir fuentes del sistema. El roadmap y el flujo de excepciones con este motor **[sin verificar en vivo]**: solo se probaron organigrama y WBS. Un flujo de control de cambios distinto del de excepciones no figura como visual del catálogo; se dibujaría como `flowchart` **[sin verificar en vivo]**.
 
 ### 1.3 visual-explainer: one-pager del brief (o de los OKR)
 
+- **Prompt del usuario:**
+  1. En tu terminal (una sola vez): `claude plugin marketplace add nicobailon/visual-explainer` y `claude plugin install visual-explainer@visual-explainer-marketplace` (o la copia con `npx skills add …`, ver Externa).
+  2. "Usá visual-explainer para los one-pagers." (registra `integraciones.diagramas=visual-explainer` o la lista `archify,visual-explainer`).
+  3. "Con pm-visuales, hacé un one-pager visual del brief." Variante: "Hacé un one-pager de los OKR para la junta." (nombrar pm-visuales evita que otra skill de diseño del entorno tome el pedido; ver Límites).
+- **Entradas (qué aporta el usuario y cómo):** el pedido y la audiencia, en el prompt; el brief ya registrado (`gestion/01-inicio/project-brief.md`, clave `project-brief`) o los OKR de `gestion/00-direccion/okr.csv` (caso 4). Nada se adjunta.
 - **Objetivo:** una página HTML que explica el brief, un resumen de etapa o los OKR a la junta o al patrocinador.
 - **Momento PRINCE2:** SU (one-pager del project brief antes de `autorizar-inicio`) o SB (resumen para la puerta de etapa). Decide la ejecutiva sobre la fuente; el one-pager es solo lectura.
 - **Dueña y agente:** `pm-visuales`; desde `pm-inicio` (brief) o el orquestador.
 - **Externa:** visual-explainer 0.12 (`nicobailon/visual-explainer`, MIT). Plugin: `claude plugin marketplace add nicobailon/visual-explainer` y `claude plugin install visual-explainer@visual-explainer-marketplace`; skill copiada: `npx skills add nicobailon/visual-explainer -a claude-code -s visual-explainer -y`. Node ≥ 18; `playwright-core` opcional.
 - **Respaldo:** `templates/canvas-arranque.html`.
 - **Frase:** "Hacé un one-pager visual del brief" (sesiones C2 y C3). EN: "Make a one-page visual summary of the project brief."
-- **Pasos:** pm-visuales escribe la fuente `<nombre>.src.html` (con `data-register` y `<link rel="stylesheet" href="kit.css" data-ve-kit>`) y la renderiza **sin `--open`**. Prueba real con un one-pager de los OKR del caso 4:
+- **Pasos:** los ejecuta el sistema; el usuario no los escribe. pm-visuales escribe la fuente `<nombre>.src.html` (con `data-register` y `<link rel="stylesheet" href="kit.css" data-ve-kit>`) y la renderiza **sin `--open`**. Prueba real con un one-pager de los OKR del caso 4:
   ```bash
   cd gestion/02-planificacion/visuales
   node ../../../.claude/skills/visual-explainer/kit/render.mjs one-pager-okr.src.html
@@ -187,42 +218,52 @@ INFO  INS-03 Skill externa 'visual-explainer' (visual-explainer) instalada: invo
   ✓ <repo>/gestion/02-planificacion/visuales/one-pager-okr.html  kit inlined
     Page: 0 figures · 40 prose words outside figures
   ```
-- **Resultado:** `02-planificacion/visuales/one-pager-<fuente>.html` + `.src.html`; registro `estado.py artefacto one-pager-<fuente> … --estado borrador`. En vivo, C2 y C3 dejaron `one-pager-project-brief.src.html` y `.html` en esa carpeta y nada en `~/.agent/diagrams/` (la ruta por defecto del motor, que el contrato prohíbe).
+- **Salidas (qué queda y dónde verificarlo):** `02-planificacion/visuales/one-pager-<fuente>.html` + `.src.html`; registro `estado.py artefacto one-pager-<fuente> … --estado borrador`. En vivo, C2 y C3 dejaron `one-pager-project-brief.src.html` y `.html` en esa carpeta y nada en `~/.agent/diagrams/` (la ruta por defecto del motor, que el contrato prohíbe). Dónde verificarlo: abrí `gestion/02-planificacion/visuales/one-pager-project-brief.html` (u `one-pager-okr.html`) en el navegador; lleva BORRADOR si la fuente no está aprobada; la clave `one-pager-<fuente>` figura en `gestion/estado.json` → `artefactos` como `borrador`; no debe haber nada nuevo en `~/.agent/diagrams/`.
 - **Controles:** INS-03; el render debe imprimir `✓`; `kit/check.mjs` solo con `playwright-core` (C3 no pudo correrlo y lo dijo). Las sesiones detectaron y reportaron incoherencias de la fuente (versión del brief en `estado.json` distinta de la del archivo) sin corregirlas.
 - **Límites:** en una corrida (C1) la petición la tomó otra skill del entorno (`artifact-design`) y el archivo quedó fuera del proyecto; si el entorno tiene skills de diseño propias, pedirlo nombrando pm-visuales o pasar por el orquestador. visual-explainer no hace árboles ni organigramas (guía §1.2).
 
 ### 1.4 Tablero de avance con vista por actor (interno)
 
+- **Prompt del usuario:** "Mostrame un tablero con las acciones de cada persona, con corte al 18/12/2026." Para cada persona: "Pasame el enlace del tablero filtrado para Lucía Benítez."
+- **Respuestas del usuario:** antes de compartirlo, el gestor lo confirma: "Revisado, se puede compartir." Si hay un objetivo en rojo sin issue ni excepción, el sistema no lo publica y lo dice: "Registrá primero el issue y después armamos el tablero." Para publicarlo en un canal, confirmar destino y contenido en la vista previa (caso 6).
+- **Entradas (qué aporta el usuario y cómo):** la fecha de corte, en el prompt; los registros ya cargados por el sistema con `registro.py` (`gestion/03-control/registros/riesgos.csv`, `acciones.csv`, `issues.csv`); la serie EVM de `gestion/03-control/reportes/progreso.csv` (caso 2.1); `avance-bmad.csv` (caso 7) y, si hay tracker, la instantánea de `gestion/03-control/fuentes/` traída por el conector (caso 6). El usuario no adjunta archivos.
 - **Objetivo:** HTML autocontenido con semáforo contra tolerancias, riesgos (mapa de calor P×I), acciones por actor y sección ágil; cada persona recibe su enlace filtrado `?actor=<Nombre>`.
 - **Momento PRINCE2:** CS, en cada período de informe, junto al highlight. Lo confirma el gestor antes de compartirlo.
 - **Dueña y agente:** `pm-visuales`, invocada por `pm-control` (paso 10 de su bucle).
 - **Externa:** ninguna; puede tomar instantáneas de tracker de `03-control/fuentes/` (caso 6).
 - **Frase:** "Mostrame un tablero con las acciones de cada persona" (frase #8 del conjunto de enrutamiento). EN: "Build this week's progress dashboard with a view per person."
-- **Pasos:** se arma el bloque JSON `datos-tablero` con el script de la guía §3 (registros con `registro.py … --json`, `evm.py --json`, `avance-bmad.csv`) y se reemplaza en `templates/tablero-avance.html`. En la prueba: `riesgos` R-001 (16, alto) y R-002 (6, medio), acciones A-001 (vencida al corte) y A-002, issue I-001, objetivos tiempo y costo en `rojo` desde `evm.py --proyecto`.
+- **Pasos:** los ejecuta el sistema; el usuario no los escribe. Se arma el bloque JSON `datos-tablero` con el script de la guía §3 (registros con `registro.py … --json`, `evm.py --json`, `avance-bmad.csv`) y se reemplaza en `templates/tablero-avance.html`. En la prueba: `riesgos` R-001 (16, alto) y R-002 (6, medio), acciones A-001 (vencida al corte) y A-002, issue I-001, objetivos tiempo y costo en `rojo` desde `evm.py --proyecto`.
   ```bash
   python3 $E/estado.py --proyecto gestion artefacto tablero-avance --ruta 03-control/reportes/2026-12-18-tablero-avance.html --estado borrador
   ```
-- **Resultado:** `03-control/reportes/2026-12-18-tablero-avance.html` (35 KB, sin red). `paquete.py listar puerta autorizar-etapa` lo incluye como opcional.
+- **Salidas (qué queda y dónde verificarlo):** `03-control/reportes/2026-12-18-tablero-avance.html` (35 KB, sin red). `paquete.py listar puerta autorizar-etapa` lo incluye como opcional. Dónde verificarlo: abrí `gestion/03-control/reportes/2026-12-18-tablero-avance.html` en el navegador y compará las acciones con `gestion/03-control/registros/acciones.csv` abierto en Excel; la vista filtrada se abre agregando `?actor=Lucía Benítez` a la dirección **[sin verificar en vivo]**; la clave `tablero-avance` figura en `gestion/estado.json` → `artefactos` como `borrador`. Prompt de verificación: "Mostrame el tablero de avance".
 - **Controles:** rojo sin issue o excepción → no se publica (regla 2 de pm-visuales); acciones desde `acciones.csv`, nunca desde `issues.csv`; publicación solo vía pm-integraciones con confirmación.
 - **Límites:** la inyección del JSON se verificó; la vista por actor en navegador **[sin verificar en vivo]** (no había navegador en el entorno). El valor de `?actor=` debe coincidir exactamente con el del registro.
 
 ### 1.5 drawio-mcp: diagramas editables
 
+- **Prompt del usuario:**
+  1. En tu terminal: conectar el servidor drawio-mcp oficial con `claude mcp add …` (los argumentos los da el propio servidor **[verificar]**).
+  2. "Usá draw.io como motor de diagramas." (registra `integraciones.diagramas=drawio`).
+  3. "Pasame el organigrama a draw.io para editarlo."
+- **Entradas (qué aporta el usuario y cómo):** la conexión MCP, hecha por el usuario en su cliente (credenciales fuera del proyecto); los roles de `gestion/estado.json` → `roles` o la WBS de `gestion/02-planificacion/wbs.csv`; la tabla intermedia (nodo, padre, etiqueta) la arma el sistema.
 - **Objetivo:** que el usuario pueda editar el organigrama o la WBS en draw.io.
 - **Momento, dueña, agente:** igual que 1.1; capacidad `diagramas=drawio`, dueña `pm-visuales` (conexión vía `pm-integraciones`).
 - **Externa:** drawio-mcp oficial, conectado con la gestión de conectores del cliente (`claude mcp add …`); herramientas con prefijo `mcp__drawio…` (guía §1.1). El paquete no trae `.mcp.json` ni credenciales.
 - **Respaldo:** Mermaid.
 - **Frase:** "Pasame el organigrama a draw.io para editarlo." EN: "Give me the org chart as an editable draw.io file."
 - **Pasos:** tabla intermedia (nodo, padre, etiqueta) → herramienta del servidor → `.drawio` + PNG/SVG junto al `.md` (guía §1.4).
-- **Resultado esperado:** `02-planificacion/visuales/organigrama.drawio` y su imagen **[sin verificar en vivo]**.
+- **Salidas (qué queda y dónde verificarlo):** `02-planificacion/visuales/organigrama.drawio` y su imagen **[sin verificar en vivo]**. Es la salida esperada. Dónde verificarlo: abrí `gestion/02-planificacion/visuales/organigrama.drawio` en draw.io; si el servidor no estaba, queda `organigrama.md` (Mermaid) y la nota en `gestion/03-control/registros/diario.md`.
 - **Controles:** INT-01 acepta `drawio` como valor conocido de `diagramas`; INS-03 **no** comprueba drawio (solo skills externas), así que si el servidor no está la sesión debe caer al Mermaid y anotarlo.
 - **Límites:** documentado sin prueba en vivo; no se conocen ni se citan nombres de herramientas concretos del servidor.
 
 ### 1.6 Respaldo Mermaid (sin ninguna skill externa)
 
+- **Prompt del usuario:** "Hacé el organigrama y la WBS solo con Mermaid, sin skills externas." Si había un motor declarado: "Volvé al respaldo Mermaid para los diagramas." (el sistema corre `estado.py integracion diagramas=mermaid`, la salida que sugiere INS-03).
+- **Entradas (qué aporta el usuario y cómo):** las mismas que 1.1 (roles en `gestion/estado.json`, WBS en `gestion/02-planificacion/wbs.csv`, actividades en `gestion/02-planificacion/actividades.csv` para el Gantt); nada que instalar ni adjuntar (`mmdc` es opcional).
 - **Objetivo:** que el flujo funcione igual sin nada instalado.
-- **Pasos:** `wbs.py --mermaid` (WBS), `cpm.py --mermaid` (Gantt), plantillas Mermaid para organigrama, roadmap y flujos; `templates/canvas-arranque.html` para el one-pager.
-- **Resultado:** `02-planificacion/visuales/wbs.md`, `organigrama.md`, `02-planificacion/gantt.md` (ejemplo real en `docs/ejemplos/integraciones/gantt-cpm.md`).
+- **Pasos:** los ejecuta el sistema; el usuario no los escribe. `wbs.py --mermaid` (WBS), `cpm.py --mermaid` (Gantt), plantillas Mermaid para organigrama, roadmap y flujos; `templates/canvas-arranque.html` para el one-pager.
+- **Salidas (qué queda y dónde verificarlo):** `02-planificacion/visuales/wbs.md`, `organigrama.md`, `02-planificacion/gantt.md` (ejemplo real en `docs/ejemplos/integraciones/gantt-cpm.md`). Dónde verificarlo: abrí `gestion/02-planificacion/visuales/wbs.md`, `organigrama.md` y `gestion/02-planificacion/gantt.md` en un editor con vista previa de Mermaid; si un motor declarado no estaba, la nota está en `gestion/03-control/registros/diario.md`.
 - **Evidencia en vivo:** con `HOME` aislado y `diagramas=archify` declarado pero no instalado (E1), pm-visuales entregó `organigrama.md` y `wbs.md` y anotó en `diario.md` que archify no estaba; con `visual-explainer` no instalado (G1), usó la plantilla interna y lo anotó.
 - **Límites:** con `mmdc` instalado, `exportar.py docx` inserta el Mermaid como imagen; sin él queda como código con aviso.
 
@@ -236,11 +277,17 @@ script redacta el informe: los scripts dan las cifras y la skill completa la pla
 
 ### 2.1 Checkpoint y highlight con EVM
 
+- **Prompt del usuario:**
+  1. "Armá el highlight de la quincena con el EVM, corte 18/12/2026: valor ganado acumulado 39.000 y costo real 43.500." Atajo: `/pm-method:pm-reporte highlight`.
+  2. "Compará también el costo contra la tolerancia del proyecto (±10 %)."
+  3. Para el informe del equipo al gestor: `/pm-method:pm-reporte checkpoint`.
+- **Respuestas del usuario:** si el sistema avisa que la tolerancia de plazo del proyecto ("±2 semanas") no se puede leer como porcentaje, contestá con el porcentaje que decida el gestor (p. ej. "Tomá ±10 % de plazo para el proyecto"). Con `excepcion_prevista True` propone el informe de excepción: "Sí, preparalo" (caso 2.2). Para cerrar: "Revisé el highlight, lo confirmo para la junta" (pm-director registra la aprobación).
+- **Entradas (qué aporta el usuario y cómo):** EV y AC acumulados, escritos en el prompt (el sistema los pasa a `gestion/03-control/reportes/progreso.csv`, columnas `periodo,pv,ev,ac,notas`; el PV sale de `gestion/02-planificacion/linea-base-costo.csv`); los checkpoints del período; los registros de `gestion/03-control/registros/`; el avance de BMAD, leído en solo lectura por `bmad.py avance` (caso 7).
 - **Objetivo:** informe quincenal a la junta con semáforo contra tolerancias de etapa y proyecto.
 - **Momento PRINCE2:** CS (checkpoint del equipo al gestor en MP; highlight del gestor a la junta). Aseguramiento revisa; la aprobación del highlight la registra `pm-director` con la confirmación del gestor.
 - **Dueña y agente:** `pm-progreso-reportes`, desde `pm-control`; comando `/pm-method:pm-reporte highlight|checkpoint|excepcion`.
 - **Frase:** "Armá el highlight de la quincena con el EVM." EN: "Write this fortnight's highlight report with earned value."
-- **Pasos reales** (corte 2026-12-18, BAC de la etapa 68.000 = Σ PV de `linea-base-costo.csv`):
+- **Pasos reales** (corte 2026-12-18, BAC de la etapa 68.000 = Σ PV de `linea-base-costo.csv`): los ejecuta el sistema; el usuario no los escribe.
   ```bash
   python3 $E/registro.py --proyecto gestion resumen --corte 2026-12-18
   python3 $E/evm.py --csv gestion/03-control/reportes/progreso.csv --bac 68000 --proyecto gestion
@@ -266,17 +313,23 @@ script redacta el informe: los scripts dan las cifras y la skill completa la pla
   `--proyecto` toma las tolerancias **de etapa** en % de `estado.json` (±10 % tiempo, ±5 % costo). Contra el proyecto
   (BAC 132.400, ver 3.3) se pasa la tolerancia explícita: `evm.py --pv 45000 --ev 39000 --ac 43500 --bac 132400 --tol-costo 10`
   → EAC 147.677, `semaforo_costo rojo`, `semaforo_cronograma ambar`.
-- **Resultado:** `03-control/reportes/2026-12-18-highlight-report.md` desde `templates/highlight-report.md`, registrado con `estado.py artefacto highlight-2026-12-18 --estado borrador`; checkpoint en `templates/checkpoint-report.md`.
+- **Salidas (qué queda y dónde verificarlo):** `03-control/reportes/2026-12-18-highlight-report.md` desde `templates/highlight-report.md`, registrado con `estado.py artefacto highlight-2026-12-18 --estado borrador`; checkpoint en `templates/checkpoint-report.md`. Dónde verificarlo: abrí `gestion/03-control/reportes/2026-12-18-highlight-report.md`; la clave `highlight-2026-12-18` figura en `gestion/estado.json` → `artefactos` (`borrador` hasta la confirmación; al aprobarse, una fila `aprobado highlight-2026-12-18 …` en `gestion/03-control/registros/decisiones.csv`); los conteos deben coincidir con `/pm-method:pm-estado` y la serie con `progreso.csv` abierto en Excel.
 - **Controles:** conteos idénticos a `registro.py resumen`; ningún verde con un pronóstico en rojo; sanidad EST-06/07 exige tolerancias de tiempo y costo.
 - **Límites:** desde v2.1 `VAC_pct` tiene el signo de VAC y el desvío previsto contra BAC va en `sobrecosto_pct`; `base_semaforo` declara la base de cada semáforo (`costo:tolerancia;cronograma:indice-0.95-0.85` si solo se pasa `--tol-costo`). Una tolerancia en semanas ("±2 semanas") no la lee `--proyecto`: el script avisa y hay que convertirla y pasarla con `--tol-plazo`. (Salida del bloque re-ejecutada con v2.1.)
 
 ### 2.2 Informe de excepción
 
+- **Prompt del usuario:**
+  1. "Con estos números nos vamos de la tolerancia de costo: prepará el informe de excepción." Atajo: `/pm-method:pm-reporte excepcion`.
+  2. Después de la reunión de junta: "La junta decidió pedir un plan de excepción; lo decidió Laura Méndez, ejecutiva. Registralo."
+  3. Con el plan de excepción listo: `/pm-method:pm-puerta autorizar-plan-excepcion`.
+- **Respuestas del usuario:** el sistema pregunta qué decidió la junta y quién: una de las opciones del informe (pedir plan de excepción, aceptar el desvío o cerrar), con nombre y rol ("Ejecutivo: Laura Méndez").
+- **Entradas (qué aporta el usuario y cómo):** las cifras del caso 2.1 (ya en `gestion/03-control/reportes/progreso.csv`); el issue I-001 de `gestion/03-control/registros/issues.csv`; la decisión de la junta, escrita en el prompt 2. Nada se adjunta.
 - **Objetivo:** escalar a la junta un pronóstico fuera de tolerancia de etapa, con opciones.
 - **Momento PRINCE2:** CS → DP. El gestor lo emite; la junta decide (pedir plan de excepción, aceptar, cerrar). `estado.py limite-etapa --excepcion` y la puerta `autorizar-plan-excepcion` son exclusivos de `pm-director`.
 - **Dueña y agente:** `pm-issues-cambios` (plantilla única `templates/informe-excepcion.md`, también la usa pm-progreso-reportes cuando `evm.py` marca `excepcion_prevista`); `pm-control` la prepara y `pm-director` registra.
 - **Frase:** "Con estos números nos vamos de la tolerancia de costo: prepará el informe de excepción." EN: "Prepare the exception report for the cost overrun."
-- **Pasos reales** (en una copia del proyecto, como lo haría pm-director tras la decisión de la junta):
+- **Pasos reales** (en una copia del proyecto, como lo haría pm-director tras la decisión de la junta): los ejecuta el sistema; el usuario no los escribe.
   ```bash
   python3 $E/estado.py --proyecto gestion limite-etapa --excepcion I-001
   python3 $E/sanidad.py --proyecto gestion --rapido
@@ -286,16 +339,22 @@ script redacta el informe: los scripts dan las cifras y la skill completa la pla
   Límite de etapa por excepción I-001: plan de excepción (reemplaza el plan vigente), actualizar plan de proyecto, business case y riesgos. Puerta: autorizar-plan-excepcion (pm-director).
   AVISO EST-14 Excepción abierta I-001 esperando plan de excepción.
   ```
-- **Resultado:** informe con clave `informe-excepcion-X-###` en `estado.json`, referenciado desde `issues.csv.notas` y `decisiones.csv`.
+- **Salidas (qué queda y dónde verificarlo):** informe con clave `informe-excepcion-X-###` en `estado.json`, referenciado desde `issues.csv.notas` y `decisiones.csv`. Dónde verificarlo: el informe está en `gestion/03-control/reportes/<fecha>-informe-excepcion-X-###.md` (tabla de pm-issues-cambios) con estado `en-revision`; en `gestion/estado.json`, `excepcion_abierta` = `I-001` y `proceso_actual` = `SB`; la decisión de la junta es una fila en `gestion/03-control/registros/decisiones.csv`; `/pm-method:pm-estado` muestra la excepción abierta.
 - **Controles:** hook: un subagente pm-* que intente `estado.py puerta …` recibe "ese comando de estado.py está reservado a pm-director"; sanidad EST-14 hasta que se apruebe el plan de excepción.
 - **Límites:** el informe lo redacta la skill sobre la plantilla; el script no lo genera.
 
 ### 2.3 Informe de fin de etapa
 
+- **Prompt del usuario:**
+  1. "Cerremos la etapa 2: informe de fin de etapa y plan de la 3."
+  2. "Prepará la puerta de la etapa 3 para la junta." Atajo: `/pm-method:pm-puerta autorizar-etapa`.
+  3. Después de la junta: "La junta aprobó la etapa 3; decidió Laura Méndez, ejecutiva. Registralo."
+- **Respuestas del usuario:** las lecciones de la etapa, si el sistema las pide; la confirmación de la lista de control de la junta; la decisión (aprobado, condicionado con sus condiciones, o rechazado) con nombre y rol de quien decidió.
+- **Entradas (qué aporta el usuario y cómo):** lecciones y productos entregados, escritos en el prompt o ya en `gestion/03-control/registros/lecciones.csv`; cifras de `gestion/03-control/reportes/progreso.csv` y `gestion/02-planificacion/presupuesto.md` (casos 2.1 y 3.3); el avance de BMAD, por la fachada (caso 7); la decisión de la junta, en el prompt 3.
 - **Objetivo:** cierre de la etapa con EVM, productos, lecciones y pronóstico, para la puerta `autorizar-etapa` siguiente.
 - **Momento PRINCE2:** SB; decide la junta. Dueña `pm-plan-etapa-y-limites` (plantilla `informe-fin-etapa.md`, que pide costo desde `presupuesto.md · evm.py`), desde `pm-planificacion` + `pm-control`.
 - **Frase:** "Cerremos la etapa 2: informe de fin de etapa y plan de la 3." EN: "Prepare the end stage report and the next stage plan."
-- **Pasos reales:**
+- **Pasos reales:** los ejecuta el sistema; el usuario no los escribe.
   ```bash
   python3 $E/estado.py --proyecto gestion limite-etapa
   python3 $X --proyecto gestion listar puerta autorizar-etapa
@@ -304,11 +363,17 @@ script redacta el informe: los scripts dan las cifras y la skill completa la pla
   Límite de etapa (SB): informe de fin de etapa, plan de la siguiente etapa, actualizar plan de proyecto, business case, riesgos y lecciones. …
   **ESTADO DEL PAQUETE / PACKAGE STATUS:** BORRADOR / DRAFT — faltan: informe-fin-etapa-2, plan-etapa-3, business-case, plan-proyecto
   ```
-- **Resultado:** `informe-fin-etapa-2` y `plan-etapa-3` registrados en `estado.json`; con ellos, el paquete deja de salir BORRADOR.
+- **Salidas (qué queda y dónde verificarlo):** `informe-fin-etapa-2` y `plan-etapa-3` registrados en `estado.json`; con ellos, el paquete deja de salir BORRADOR. Dónde verificarlo: abrí `gestion/03-control/reportes/<fecha>-informe-fin-etapa-2.md` y `gestion/02-planificacion/plan-etapa-3.md` (rutas de pm-plan-etapa-y-limites); las claves figuran en `gestion/estado.json` → `artefactos`; al registrarse la puerta, `gestion/estado.json` → `puertas` y una fila `autorizar-etapa: aprobado` en `gestion/03-control/registros/decisiones.csv`; repetir `/pm-method:pm-puerta autorizar-etapa` muestra qué falta todavía.
 - **Controles:** faltante o borrador obligatorio → ZIP `-BORRADOR`; `pm-director` corre `bmad.py verificar` antes de la puerta (caso 7).
 
 ### 2.4 Exportación con las skills oficiales de Office (y respaldo `exportar.py`)
 
+- **Prompt del usuario:**
+  1. En tu terminal (una sola vez): `claude plugin marketplace add anthropics/skills` y `claude plugin install document-skills@anthropic-agent-skills` (o la copia con `npx skills add …`, ver Externa).
+  2. "Usá las skills de Office para exportar." (registra `integraciones.export=skills-office`).
+  3. "Exportá el presupuesto a Excel y el highlight a Word." · "Exportá el highlight a PowerPoint." · Sin las skills: "Exportá los registros a Excel."
+- **Respuestas del usuario:** antes de enviar, confirmar destinatarios y versión ("Sí, mandáselo a la junta"; el envío lo hace pm-comunicacion-stakeholders). Si el libro de registros va a una audiencia externa, pedí que se quite la hoja `stakeholders` (ver Límites; cómo la quita el sistema **[verificar]**).
+- **Entradas (qué aporta el usuario y cómo):** formato y audiencia, en el prompt; los archivos fuente ya están en `gestion/` (`03-control/reportes/2026-12-18-highlight-report.md`, `02-planificacion/linea-base-costo.csv`, los CSV de `03-control/registros/`). Nada se adjunta.
 - **Objetivo:** entregar a la junta Word, Excel o PowerPoint con marca BORRADOR cuando la fuente no está aprobada.
 - **Momento PRINCE2:** DP/SB (paquete de puerta) o CS (highlight). El usuario confirma antes de enviar; el envío es de `pm-comunicacion-stakeholders`.
 - **Dueña y agente:** `pm-exportar`, desde el orquestador o `pm-director` (preparación de puerta).
@@ -316,7 +381,7 @@ script redacta el informe: los scripts dan las cifras y la skill completa la pla
 - **Respaldo:** `export=scripts`: `exportar.py` (docx desde Markdown; xlsx solo desde CSV), `paquete.py` (ZIP); sin `pptx`, guion `exportados/<nombre>-deck.md`.
 - **Frases:** "Exportá el presupuesto a Excel y el highlight a Word"; "Exportá el highlight a PowerPoint" (sesiones D1, D2). EN: "Export the highlight report to Word and the budget to Excel."
 - **Evidencia en vivo:** D1 invocó `xlsx` y `docx`: Excel con hojas Resumen, Por etapa, Línea base PV y Notas, fórmulas recalculadas sin errores; Word con encabezado BORRADOR. D2 siguió la skill `pptx` leyendo su `SKILL.md` (pptxgenjs, 5 diapositivas con BORRADOR). Todo en `exportados/`.
-- **Pasos reales del respaldo:**
+- **Pasos reales del respaldo:** los ejecuta el sistema; el usuario no los escribe.
   ```bash
   cd gestion
   python3 $E/exportar.py docx --entrada 03-control/reportes/2026-12-18-highlight-report.md \
@@ -329,7 +394,7 @@ script redacta el informe: los scripts dan las cifras y la skill completa la pla
   con asistencia de IA, requiere revisión humana" y conserva la tabla; el `.xlsx` de línea base tiene una hoja
   (`linea-base-costo`, 5 filas × 7 columnas); el de registros, nueve hojas (acciones, calidad, cambios, decisiones,
   issues, lecciones, riesgos, stakeholders, supuestos).
-- **Resultado:** `exportados/AAAA-MM-DD-<tipo>-v<n>[-BORRADOR].<ext>`; nunca fuente de verdad.
+- **Salidas (qué queda y dónde verificarlo):** `exportados/AAAA-MM-DD-<tipo>-v<n>[-BORRADOR].<ext>`; nunca fuente de verdad. Dónde verificarlo: abrí los archivos de `gestion/exportados/` en Word, Excel o PowerPoint (el encabezado "BORRADOR / DRAFT" aparece si la fuente no está aprobada); el exportado queda anotado en `gestion/03-control/registros/diario.md` y, si se registra, como `exportado-<tipo>` en `gestion/estado.json` (tabla de pm-exportar).
 - **Controles:** INS-03 informa con qué nombre invocar cada skill (en este entorno: `anthropic-skills:docx`, `:xlsx`, `:pptx`, sincronizadas de claude.ai); INS-01 si faltan `python-docx` u `openpyxl`; nota en `diario.md` cuando se usa el respaldo (F2 la dejó; F1 no, y lo ofreció como pendiente).
 - **Límites:** `exportar.py xlsx` solo convierte CSV; el presupuesto en Markdown se exporta desde `linea-base-costo.csv`, sin las tablas de `presupuesto.md` (lo informaron F1 y F2). Si se le pasa un `.md`, desde v2.1 el script lo rechaza con un mensaje (antes creaba una hoja con el texto crudo). La hoja `stakeholders` va siempre en el libro de registros: quitarla si la audiencia es externa.
 
@@ -342,9 +407,12 @@ Todo en IP (plan de proyecto y plan de la primera etapa de entrega) y en cada SB
 
 ### 3.1 WBS con `wbs.py`
 
+- **Prompt del usuario:** "Armá la WBS con responsables y citá los FR del PRD." Con datos: "La 2.1 Alta y acceso con segundo factor la lleva Lucía Benítez, 400 horas; la puesta en producción es un hito de Martín Suárez."
+- **Respuestas del usuario:** si falta un responsable, un esfuerzo o un costo, el sistema lo deja `[por confirmar]` y lo pide; contestá con el dato o con "dejalo por confirmar".
+- **Entradas (qué aporta el usuario y cómo):** productos, paquetes, responsables, horas y costos, escritos en el prompt o en un CSV que dejás en `gestion/02-planificacion/wbs.csv` con las columnas de la plantilla (`codigo,nombre,tipo,responsable,esfuerzo_h,costo,ref`); los ids FR del PRD, leídos de BMAD por la fachada `especificacion.py` en solo lectura.
 - **Dueña:** `pm-planificacion-por-productos` (contenido); `pm-visuales` solo dibuja (caso 1.1).
 - **Frase:** "Armá la WBS con responsables y citá los FR del PRD." EN: "Build the WBS with owners and cite the PRD requirement ids."
-- **Pasos reales** (`wbs.csv` con 6 productos, 8 paquetes y 1 hito; `ref` con FR del PRD real):
+- **Pasos reales** (`wbs.csv` con 6 productos, 8 paquetes y 1 hito; `ref` con FR del PRD real): los ejecuta el sistema; el usuario no los escribe.
   ```text
   $ python3 $E/wbs.py 02-planificacion/wbs.csv --titulo "Portal de autoservicio para socios" --mermaid 02-planificacion/visuales/wbs.md --diccionario 02-planificacion/diccionario-wbs-esqueleto.md
   Portal de autoservicio para socios: 15 elementos, 9 hojas · esfuerzo 2480 h · costo 124,000
@@ -355,14 +423,17 @@ Todo en IP (plan de proyecto y plan de la primera etapa de entrega) y en cada SB
   6 Transición [producto] 0 h · 0
     6.1 Puesta en producción [hito] 0 h · 0 · Martín Suárez
   ```
+- **Salidas (qué queda y dónde verificarlo):** `gestion/02-planificacion/wbs.csv`, `gestion/02-planificacion/visuales/wbs.md` (Mermaid) y `gestion/02-planificacion/diccionario-wbs-esqueleto.md`; la WBS se registra dentro de la clave `pbs-wbs` de `gestion/estado.json` (tabla de pm-planificacion-por-productos). Dónde verificarlo: abrí `wbs.csv` en Excel (15 elementos, 2480 h, 124.000) y `wbs.md` con vista previa de Mermaid; `/pm-method:pm-sanidad` no debe mostrar ESP-04.
 - **Controles:** sanidad ESP-04 si un `ref` de la WBS no existe en la especificación; `bmad.py trazabilidad --wbs` informó "Referencias de la WBS a ids inexistentes: ninguna".
 
 ### 3.2 Camino crítico y exportación a MS Project (MSPDI)
 
+- **Prompt del usuario:** "Calculá el camino crítico desde el 9/11/2026 y exportalo para abrirlo en MS Project." Para dejarlo como formato del proyecto: "Registrá MSPDI como formato de cronograma." (registra `integraciones.cronograma=mspdi`).
+- **Entradas (qué aporta el usuario y cómo):** la fecha de inicio, en el prompt; las actividades con duración, predecesoras, recurso y código WBS, dictadas en el prompt o en un CSV que dejás en `gestion/02-planificacion/actividades.csv` (columnas `id,nombre,duracion,predecesoras,recurso,wbs`); la WBS de `gestion/02-planificacion/wbs.csv` (caso 3.1).
 - **Dueña:** `pm-cronograma-estimacion`; capacidad `cronograma=cpm|mspdi`.
 - **Externa:** ninguna obligatoria. MSPDI es XML abierto generado por `cpm.py`; MPXJ (PyPI `mpxj`, LGPL, Java) es opcional para validar o convertir a `.mpp`. utf8proj fue **descartado** (INTEGRACIONES §2).
 - **Frase:** "Calculá el camino crítico y exportalo para abrirlo en MS Project." EN: "Compute the critical path and export it for MS Project."
-- **Pasos reales:**
+- **Pasos reales:** los ejecuta el sistema; el usuario no los escribe.
   ```text
   $ python3 $E/cpm.py 02-planificacion/actividades.csv --inicio 2026-11-09 --mermaid 02-planificacion/gantt.md \
         --mspdi 02-planificacion/cronograma.xml --titulo "Portal de autoservicio para socios" --wbs 02-planificacion/wbs.csv
@@ -375,22 +446,32 @@ Todo en IP (plan de proyecto y plan de la primera etapa de entrega) y en cada SB
   ```
   Validación leyendo el XML con MPXJ 16.10 (`UniversalProjectReader`): `tareas: 13 formato: MSPDI`, tareas resumen por
   código WBS (2, 3, 4, 5, 6), críticas marcadas, vínculo A07→A08 con `LinkLag` 9600 (lag `+2` días).
-- **Resultado:** `02-planificacion/cronograma.xml` (copia en `exportados/` cuando se entrega), `gantt.md`; ejemplos reales en `docs/ejemplos/integraciones/`.
+- **Salidas (qué queda y dónde verificarlo):** `02-planificacion/cronograma.xml` (copia en `exportados/` cuando se entrega), `gantt.md`; ejemplos reales en `docs/ejemplos/integraciones/`. Dónde verificarlo: abrí `gestion/02-planificacion/cronograma.xml` en MS Project o ProjectLibre (13 tareas, críticas marcadas; en la prueba se leyó con MPXJ, la apertura en MS Project **[verificar]**) y `gestion/02-planificacion/gantt.md` con vista previa de Mermaid; la ruta queda en la clave `cronograma` de `gestion/estado.json`.
 - **Límites:** solo fin-a-comienzo, calendario L–V 8 h sin feriados (el 25/12 y el 1/1 cuentan como laborables) y sin nivelación. El paquete 1.1 de la WBS no tiene actividad, así que no aparece en el MSPDI. Observado en la prueba con v2.0 y corregido en v2.1: una tarea resumen que solo contiene un hito salía con `Finish` anterior a `Start` (ahora `Finish` = `Start`; prueba de regresión en `probar_paquete.py`, caso F). El título del Gantt Mermaid toma `--titulo`.
 
 ### 3.3 Presupuesto y costeo
 
+- **Prompt del usuario:** "Costeá los paquetes y calculá la contingencia desde los riesgos, sin duplicarla." Con datos: "La etapa 2 tiene un PV de 68.000."
+- **Respuestas del usuario:** la reserva de gestión va fuera del BAC y la aprueba la junta; si el sistema pregunta su monto, contestá con la cifra o "dejala por confirmar hasta la junta".
+- **Entradas (qué aporta el usuario y cómo):** costos de cada paquete en la columna `costo` de `gestion/02-planificacion/wbs.csv` (caso 3.1); riesgos con impacto económico ya cargados por el sistema en `gestion/03-control/registros/riesgos.csv` (R-001, impacto 12.000); la distribución del PV por período, escrita en el prompt.
 - **Dueña:** `pm-costos-presupuesto` (plantillas `presupuesto.md`, `hoja-costeo.md`, `linea-base-costo.csv`).
 - **Frase:** "Costeá los paquetes y calculá la contingencia desde los riesgos, sin duplicarla." EN: "Cost the work packages and derive contingency from the risk register."
-- **Pasos reales:** `wbs.py … --json` → `total_costo: 124000.0`; `registro.py listar riesgos --abiertos --json` → R-001 `valor_esperado` 8400 (impacto 12.000), R-002 sin monto. Base 124.000 + contingencia 8.400 = BAC 132.400 (cálculo de la skill, no de un script); la reserva de gestión va fuera del BAC y la aprueba la junta. PV por período en `linea-base-costo.csv` (etapa 2: 68.000).
+- **Pasos reales:** los ejecuta el sistema; el usuario no los escribe. `wbs.py … --json` → `total_costo: 124000.0`; `registro.py listar riesgos --abiertos --json` → R-001 `valor_esperado` 8400 (impacto 12.000), R-002 sin monto. Base 124.000 + contingencia 8.400 = BAC 132.400 (cálculo de la skill, no de un script); la reserva de gestión va fuera del BAC y la aprueba la junta. PV por período en `linea-base-costo.csv` (etapa 2: 68.000).
+- **Salidas (qué queda y dónde verificarlo):** `gestion/02-planificacion/presupuesto.md`, `gestion/02-planificacion/hoja-costeo.md` y `gestion/02-planificacion/linea-base-costo.csv`, con claves `presupuesto`, `hoja-costeo` y `linea-base-costo` en `gestion/estado.json` (tabla de pm-costos-presupuesto). Dónde verificarlo: abrí `linea-base-costo.csv` en Excel y comprobá Σ PV = BAC 132.400; en `presupuesto.md`, la contingencia de 8.400 aparece una sola vez.
 - **Controles:** total de `wbs.py` = hoja de costeo; Σ PV = BAC; contingencia una sola vez.
 - **Límites:** no hay script de presupuesto: la consolidación es de `wbs.py` y el EMV de `registro.py`. Excel con fórmulas solo con la skill `xlsx` (caso 2.4).
 
 ### 3.4 Release plan ágil dentro de la etapa
 
+- **Prompt del usuario:**
+  1. "Armá el release plan del R1 con MoSCoW y DoD."
+  2. Con las prioridades de la PO (ejemplo ilustrativo; la prueba sumó Must 19 y Should 5 puntos): "Sofía Ramírez, como PO, prioriza el R1: Must 1.1 alta y acceso con segundo factor, 1.3 consulta de saldos y 1.4 constancias en PDF; Should 1.2 recuperación de acceso. Cargalo en el backlog."
+  3. "Avisale al equipo BMAD las prioridades nuevas." Atajo para revisar traspasos pendientes: `/pm-method:pm-sync bmad`.
+- **Respuestas del usuario:** la PO confirma estimaciones e iteraciones si el sistema las pide; el sistema propone el traspaso a BMAD y se confirma: "Sí, emití el traspaso."
+- **Entradas (qué aporta el usuario y cómo):** MoSCoW, estimación, iteración y release, dictados en el prompt (el sistema completa esas columnas de gobierno en `gestion/02-planificacion/backlog.csv`) o cargados por la PO en ese CSV; las historias, leídas de BMAD en solo lectura por `bmad.py backlog`; cadencia (14 días) y velocidad (30) de `gestion/estado.json` → `agil`.
 - **Dueña:** `pm-agil-hibrido` (plantilla `release-plan.md`); con BMAD, el backlog lo sincroniza `pm-bmad-puente` (caso 7).
 - **Frase:** "Armá el release plan del R1 con MoSCoW y DoD." EN: "Draft the release 1 plan with MoSCoW and definition of done."
-- **Pasos reales:** `bmad.py backlog` (10 historias) → la PO completa las columnas de gobierno (Must 8 + 3 + 8 = 19 puntos, Should 5) → `bmad.py backlog` las conserva → `bmad.py handoff` (4 prioridades para el equipo BMAD). Capacidad: Must + Should = 24 ≤ velocidad 30 × 2 iteraciones. EVM en modo ágil:
+- **Pasos reales:** los ejecuta el sistema; el usuario no los escribe. `bmad.py backlog` (10 historias) → la PO completa las columnas de gobierno (Must 8 + 3 + 8 = 19 puntos, Should 5) → `bmad.py backlog` las conserva → `bmad.py handoff` (4 prioridades para el equipo BMAD). Capacidad: Must + Should = 24 ≤ velocidad 30 × 2 iteraciones. EVM en modo ágil:
   ```text
   $ python3 $E/evm.py --pv 45000 --ev 39000 --ac 43500 --bac 68000 --modo agil --pct-no-must 30 --proyecto gestion
   semaforo_cronograma    n/a-agil
@@ -399,19 +480,26 @@ Todo en IP (plan de proyecto y plan de la primera etapa de entrega) y en cada SB
   semaforo_alcance       verde
   excepcion_prevista     False
   ```
+- **Salidas (qué queda y dónde verificarlo):** `gestion/02-planificacion/release-plan.md` (clave `release-plan`), las columnas de gobierno de `gestion/02-planificacion/backlog.csv` y el traspaso `gestion/02-planificacion/especificacion/handoff-bmad-<fecha>-prioridades.md`, anotado en `gestion/estado.json` → `integraciones.bmad.handoffs`. Dónde verificarlo: abrí `backlog.csv` en Excel (columnas `moscow`, `release`, `iteracion`, `estimacion`); `/pm-method:pm-sync bmad` lista los traspasos pendientes; los intercambios de la PO quedan como filas `nivel=product-owner` en `gestion/03-control/registros/decisiones.csv` (SPEC §1.10, regla 12).
 - **Límites:** en modo ágil, EAC > BAC se lee como alcance que no entra; hay excepción solo si peligran los Must.
 
 ---
 
 ## Caso 4 · OKR ligados a beneficios, con Tability opcional
 
+- **Prompt del usuario:**
+  1. "Definamos los OKR del proyecto para el próximo semestre: que los socios resuelvan sus gestiones sin ir a la sucursal, medido con las métricas SM-1, SM-2 y SM-5 del PRD."
+  2. "Al 18/12 tenemos 12 % de socios activos registrados y 9.200 consultas por canales tradicionales; la satisfacción todavía no se midió. Puntuá los OKR."
+  3. Con Tability (opcional): en tu terminal, conectar el servidor con `claude mcp add …` **[verificar]**; luego "Usá Tability para los OKR." (registra `integraciones.okr=tability`) y "Traé el avance de Tability y actualizá la tabla de OKR para la junta." Atajo: `/pm-method:pm-sync okr`.
+- **Respuestas del usuario:** la aceptación: "Laura Méndez, ejecutiva, aprueba los OKR." (pm-director corre `estado.py aprobar okr --por "Ejecutivo: Laura Méndez"`). Si el sistema propone escribir en Tability, revisar la vista previa y contestar "Confirmo" o "No escribas en Tability".
+- **Entradas (qué aporta el usuario y cómo):** objetivos, KR, metas y responsables, escritos en el prompt; las métricas SM-n, leídas del PRD de BMAD por la fachada (`especificacion.py consultar`, solo lectura) y los beneficios B-nn del business case; los valores `actual`, dictados en el prompt 2 o traídos por el conector MCP como instantánea `gestion/03-control/fuentes/tability-AAAA-MM-DD.csv`.
 - **Objetivo:** OKR de la capa de negocio vinculados a objetivos (OBJ-n), beneficios del business case (B-nn) o métricas de éxito del PRD (SM-n), sin duplicar sus datos.
 - **Momento PRINCE2:** SU/IP (redacción), SB (revisión en cada límite de etapa), CP y revisiones de beneficios posteriores. Acepta la ejecutiva (o el usuario sénior dueño del beneficio); `pm-director` ejecuta `estado.py aprobar okr --por "<rol: nombre>"`.
 - **Dueña y agente:** `pm-okr` (metadato `agente: pm-director`); la usan `pm-inicio` (redacción), `pm-director` y `pm-cierre` (puntuación), `pm-planificacion` (solo lectura en SB).
 - **Externa:** Tability MCP, opcional (`integracion okr=tability`): lectura a instantánea; escritura solo con vista previa y confirmación. Operately y okr-writer no se incorporaron.
 - **Respaldo:** `okr=archivo`: `00-direccion/okr.csv` mantenido con `okr.py`.
 - **Frases:** "Definamos los OKR del proyecto para el próximo semestre" (#12) y "Score our key results for Q4" (#46). Tability: "Pull progress from Tability and update the OKR table for the board."
-- **Pasos reales:**
+- **Pasos reales:** los ejecuta el sistema; el usuario no los escribe.
   ```bash
   python3 $E/especificacion.py --proyecto gestion consultar SM-1     # Adopción: 30 % de socios activos registrados a los 6 meses …
   python3 $O gestion/00-direccion/okr.csv --plantilla
@@ -428,7 +516,7 @@ Todo en IP (plan de proyecto y plan de la primera etapa de entrega) y en cada SB
   `clave,tipo,titulo,actual,meta,actualizado,url` y pm-okr actualiza la columna `actual` (conciliando por título o por
   `notas=tability:<clave>`); `/pm-method:pm-sync okr` repite la lectura. **[sin verificar en vivo]**: no hubo servidor
   Tability; en la prueba solo se creó la instantánea a mano para verificar su nombre.
-- **Resultado:** `00-direccion/okr.csv`, `00-direccion/okr.md` (narrativa), `03-control/reportes/<fecha>-okr.md` (ejemplo en `docs/ejemplos/integraciones/okr-puntuado.md`); visual opcional con visual-explainer (caso 1.3).
+- **Salidas (qué queda y dónde verificarlo):** `00-direccion/okr.csv`, `00-direccion/okr.md` (narrativa), `03-control/reportes/<fecha>-okr.md` (ejemplo en `docs/ejemplos/integraciones/okr-puntuado.md`); visual opcional con visual-explainer (caso 1.3). Dónde verificarlo: abrí `gestion/00-direccion/okr.csv` en Excel (columna `vinculo` con OBJ-1, SM-1, SM-2, SM-5) y `gestion/03-control/reportes/2026-12-18-okr.md`; tras la aceptación, `okr` figura `aprobado` en `gestion/estado.json` → `artefactos` y hay una fila `aprobado okr …` en `gestion/03-control/registros/decisiones.csv`; `/pm-method:pm-sanidad` no debe mostrar ESP-04 ni ESP-05.
 - **Controles:** la sanidad valida la existencia del vínculo: con un KR que cita `SM-99` salió `ERROR ESP-04 okr KR-1.4 cita SM-99, que no existe en la especificación vigente (bmad)`; un `B-n` ausente del business case da `AVISO ESP-05`. Un KR rojo que amenaza un beneficio pasa a riesgo o issue y, fuera de la tolerancia de beneficios, a excepción.
 - **Límites:** los umbrales 0,7/0,4 son convención OKR, no PRINCE2 ni PMBOK; se declaran en el informe. `okr.py` solo comprueba el formato del vínculo, no su existencia (eso lo hace `sanidad.py`); desde v2.1 acepta `SM-C1` (métricas de contrapeso del PRD 6.12.4). Escritura en Tability nunca sin confirmación.
 
@@ -436,13 +524,19 @@ Todo en IP (plan de proyecto y plan de la primera etapa de entrega) y en cada SB
 
 ## Caso 5 · Transcripciones y actas de reunión
 
+- **Prompt del usuario:**
+  1. Con archivo: "Procesá la transcripción del checkpoint del 3/12 y sacá las acciones; la dejé en `gestion/03-control/reuniones/2026-12-03-checkpoint-s1-original.vtt`."
+  2. Con texto pegado: "Hacé el acta de esta reunión: <pegás la transcripción>."
+  3. Con herramienta de reuniones (opcional): en tu terminal, conectar Granola, Fireflies, Zoom o minutes con `claude mcp add …` **[verificar]**; luego "Usá Fireflies como fuente de reuniones." (registra `integraciones.reuniones=fireflies`) y "Traé la transcripción del checkpoint del 3/12 y armá el acta."
+- **Respuestas del usuario:** con herramienta conectada, el sistema lista las reuniones del rango: "La del checkpoint S1 del 3/12." Quien presidió confirma el acta antes de cargar nada: "Martín Suárez confirma el acta; cargá las acciones." Para el clima de equipo: "Hay consentimiento; anonimizalo" o "No analices el clima".
+- **Entradas (qué aporta el usuario y cómo):** el archivo `.vtt`, `.srt`, `.txt` o `.docx`, que dejás en `gestion/03-control/reuniones/` o adjuntás en la sesión; el texto pegado, que el sistema guarda primero como `<fecha>-<reunion>-original.txt`; o la transcripción traída por el conector MCP (instantánea `gestion/03-control/fuentes/<sistema>-AAAA-MM-DD.md`); fecha, nombre de la reunión y quién presidió, en el prompt.
 - **Objetivo:** acta con decisiones, acciones A-###, riesgos e issues propuestos a partir de una transcripción.
 - **Momento PRINCE2:** CS/MP (checkpoints, dailies, reuniones con el cliente), DP (actas de junta, que firma pm-director), SB y CP (talleres). Quien presidió confirma el acta; nada entra a los registros antes.
 - **Dueña y agente:** `pm-reuniones`, desde `pm-control` (o `pm-cierre` en CP).
 - **Externa:** fuentes vía `pm-integraciones`, capacidad `reuniones` (indicios `granola`, `fireflies`, `zoom`, `minutes`, `teams`): listar reuniones de un rango, confirmar cuál y traer la transcripción completa, no solo el resumen automático. La obtención de transcripciones por Zoom MCP **no está confirmada**. minutes es MIT (`minutes-mcp`). meeting-analyzer no se incorporó.
 - **Respaldo:** archivo `.vtt`, `.srt`, `.txt` ("Nombre: texto" o con marcas `[hh:mm:ss]`), `.docx` (requiere `python-docx`) o texto pegado, guardado primero como `<fecha>-<reunion>-original.txt`.
 - **Frases:** "Procesá la transcripción del comité de ayer y sacá las acciones" (#13); "Turn this meeting transcript into minutes and action items: …" (#44).
-- **Pasos reales:**
+- **Pasos reales:** los ejecuta el sistema; el usuario no los escribe.
   ```text
   $ python3 $T gestion/03-control/reuniones/2026-12-03-checkpoint-s1-original.vtt \
         --salida gestion/03-control/reuniones/2026-12-03-checkpoint-s1-transcripcion.md
@@ -459,7 +553,7 @@ Todo en IP (plan de proyecto y plan de la primera etapa de entrega) y en cada SB
       --campo fecha_compromiso=2026-12-11 --campo prioridad=alta          # → A-001
   python3 $E/estado.py --proyecto gestion artefacto acta-reunion-2026-12-03 --ruta 03-control/reuniones/2026-12-03-acta-checkpoint-s1.md --estado en-revision
   ```
-- **Resultado:** `03-control/reuniones/<fecha>-<reunion>-transcripcion.md` (ejemplo en `docs/ejemplos/integraciones/transcripcion-checkpoint.md`), `<fecha>-acta-<reunion>.md`; con herramienta conectada, instantánea `03-control/fuentes/<sistema>-AAAA-MM-DD.md` con front matter `fuente`, `fecha`, `consulta`.
+- **Salidas (qué queda y dónde verificarlo):** `03-control/reuniones/<fecha>-<reunion>-transcripcion.md` (ejemplo en `docs/ejemplos/integraciones/transcripcion-checkpoint.md`), `<fecha>-acta-<reunion>.md`; con herramienta conectada, instantánea `03-control/fuentes/<sistema>-AAAA-MM-DD.md` con front matter `fuente`, `fecha`, `consulta`. Dónde verificarlo: abrí `gestion/03-control/reuniones/2026-12-03-acta-checkpoint-s1.md`; la acción A-001 es una fila de `gestion/03-control/registros/acciones.csv` (abrilo en Excel; `origen` = `acta-reunion-2026-12-03`); la clave `acta-reunion-2026-12-03` figura en `gestion/estado.json` → `artefactos` como `en-revision`; `/pm-method:pm-estado` muestra las acciones vencidas por responsable.
 - **Controles:** hook: `riesgos.csv` o `acciones.csv` editados a mano se bloquean ("se modifica con registro.py"); INT-01 valida el valor de `reuniones`. Registrar el acta solo después de escribirla: en la prueba se registró antes y la sanidad respondió `ERROR ART-01 Artefacto acta-reunion-2026-12-03 registrado pero no existe`.
 - **Límites:** el script cuenta, no interpreta: no infiere emociones. El clima de equipo solo con consentimiento, `--anonimizar` y agregado. Una línea sin "Nombre:" que sigue a otra con hablante se agrega al turno anterior (no queda como `?`): revisar continuaciones mal atribuidas. Granola, Fireflies, Zoom y minutes: **documentado sin prueba en vivo**.
 
@@ -467,13 +561,20 @@ Todo en IP (plan de proyecto y plan de la primera etapa de entrega) y en cada SB
 
 ## Caso 6 · Trackers, documentación y canales (Jira, Confluence, Slack, Teams)
 
+- **Prompt del usuario:**
+  1. En tu terminal: conectar Atlassian Rovo (Jira, Confluence), Slack o Teams/Work IQ con `claude mcp add …` (URL y autenticación según cada proveedor; ver Externa) **[verificar]**.
+  2. "Registrá Jira como tracker, Confluence para documentación y Teams para el chat."
+  3. "Traé los tickets abiertos de Jira del sprint actual." Atajo: `/pm-method:pm-sync tracker`.
+  4. "Publicá el resumen semanal en el canal de Teams del proyecto."
+- **Respuestas del usuario:** el sistema propone las diferencias entre la instantánea y los registros: "Aceptá la acción nueva de jira:ABC-12" o "Esa no". Si aparece alcance nuevo, "Abrí la solicitud de cambio" (pm-issues-cambios). Para publicar o crear tickets, revisar la vista previa (destino exacto, contenido) y contestar "Confirmo" o corregir el destino.
+- **Entradas (qué aporta el usuario y cómo):** la conexión MCP, hecha por el usuario en su cliente (sin credenciales en el proyecto); el mapa de integraciones, en el prompt 2; los tickets, traídos por el conector y guardados como instantánea `gestion/03-control/fuentes/jira-AAAA-MM-DD.csv`; el canal de destino, confirmado por el usuario; el contenido a publicar, del highlight (caso 2.1).
 - **Objetivo:** leer el estado real del equipo en su tracker y publicar comunicaciones en sus canales, sin que el tracker reemplace a los registros de gobierno.
 - **Momento PRINCE2:** CS/MP en cada período (`/pm-method:pm-sync tracker`); IP para registrar capacidades (`pm-inicio`, paso 15). El gestor confirma cada lote de escrituras externas.
 - **Dueña y agente:** `pm-integraciones`, desde `pm-control` (paso 2 del bucle) o `pm-inicio`.
 - **Externa:** capacidades genéricas, **sin conector predefinido** ni `.mcp.json` en el paquete. Notas relevadas al 2026-10-17 (INTEGRACIONES §2): Atlassian Rovo MCP Server requiere obtener el `cloudId` con `getAccessibleAtlassianResources` antes de herramientas como `searchJiraIssuesUsingJql` o `createJiraIssue`; el Slack MCP oficial (`https://mcp.slack.com/mcp`) está restringido a apps publicadas o internas; el servidor "Teams (preview)" de Microsoft figura como legado (se recomienda Work IQ). La skill siempre lee la descripción real de las herramientas presentes en la sesión.
 - **Respaldo:** registros CSV (`backlog.csv`, `acciones.csv`), Markdown local y borradores de mensaje para copiar.
 - **Frases:** "Traé los tickets abiertos de Jira del sprint actual" (#16); "Publicá el resumen semanal en el canal de Teams" (#17). EN: "Sync Jira and post the highlight to the project Slack channel."
-- **Pasos:**
+- **Pasos:** los ejecuta el sistema; el usuario no los escribe.
   ```bash
   python3 $E/estado.py --proyecto gestion integracion tracker=jira docs=confluence chat=teams
   # lectura (sin confirmación) → instantánea inmutable 03-control/fuentes/jira-AAAA-MM-DD.csv
@@ -487,7 +588,7 @@ Todo en IP (plan de proyecto y plan de la primera etapa de entrega) y en cada SB
   AVISO INT-04 Instantánea sin fecha en el nombre: jira-ultimo.csv.
   AVISO INT-01 integraciones.tracker = 'trello' no es un valor conocido (azure-devops, github, jira, linear, ninguno).
   ```
-- **Resultado:** `03-control/fuentes/jira-2026-12-18.csv`, propuestas de cambio a registros y anotaciones de publicación en `diario.md`. El tablero (caso 1.4) cita la instantánea como fuente y usa su fecha de corte.
+- **Salidas (qué queda y dónde verificarlo):** `03-control/fuentes/jira-2026-12-18.csv`, propuestas de cambio a registros y anotaciones de publicación en `diario.md`. El tablero (caso 1.4) cita la instantánea como fuente y usa su fecha de corte. Dónde verificarlo: abrí `gestion/03-control/fuentes/jira-2026-12-18.csv` en Excel (columnas `clave,tipo,titulo,estado,asignado,sprint,puntos,actualizado,url`); en `gestion/estado.json` → `integraciones`: `tracker` = `jira`, `docs` = `confluence`, `chat` = `teams`; las propuestas aceptadas aparecen en `gestion/03-control/registros/acciones.csv` o `issues.csv` con `jira:<clave>` en `notas`; el id de cada publicación, en `gestion/03-control/registros/diario.md`; `/pm-method:pm-sanidad` sin INT-02.
 - **Controles:** INT-01…04; columnas de gobierno (`moscow`, `release`, `producto_pbs`, `prioridad`) solo de pm-method; en un subagente, toda escritura vuelve como "decisión humana requerida"; si una herramienta falla dos veces, alternativa local.
 - **Límites:** **documentado sin prueba en vivo** (no hubo servidores conectados); la instantánea de la prueba se escribió a mano para verificar los controles. `estado.py integracion` guarda un valor desconocido pero avisa en el momento (y la sanidad lo marca, INT-01). Desde v2.1 el hook impide modificar una instantánea existente de `03-control/fuentes/` (se crea una nueva con fecha). INT-03 (más de 14 días) no avisa si la fecha del nombre es futura.
 
@@ -495,13 +596,21 @@ Todo en IP (plan de proyecto y plan de la primera etapa de entrega) y en cada SB
 
 ## Caso 7 · BMAD como capa de especificación (pm-bmad-puente)
 
+- **Prompt del usuario:**
+  1. Requisito previo, del equipo y en su terminal: BMAD instalado (`npx bmad-method@6.12.4 install …`, INSTALACION §4).
+  2. "Usá BMAD como especificación del proyecto." (detecta la versión y registra `integraciones.especificacion=bmad`; `/pm-method:pm-nuevo` también lo detecta al crear el proyecto).
+  3. "Sincronizá el backlog con las historias de BMAD." Atajo: `/pm-method:pm-sync bmad`.
+  4. "¿Qué requisitos del PRD no tienen historias?" · "¿Cambió el PRD desde que lo aprobó la junta?"
+  5. Tras `autorizar-proyecto`: "La junta aprobó el proyecto: registrá la línea base del PRD v1.0, aprobada por Laura Méndez, ejecutiva."
+- **Respuestas del usuario:** ante un desvío del PRD sin solicitud de cambio, "Abrí la solicitud de cambio"; ante prioridades nuevas, "Sí, emití el traspaso"; cuando el equipo BMAD aplica el traspaso, marca `estado: aplicado` en el documento de traspaso y se lo decís al sistema ("El equipo BMAD aplicó el traspaso de prioridades").
+- **Entradas (qué aporta el usuario y cómo):** los artefactos de BMAD (`_bmad-output/…`: brief, PRD, épicas, `sprint-status.yaml`), leídos por `bmad.py` y la fachada `especificacion.py` en solo lectura: el usuario no copia nada; las prioridades de gobierno de la PO (caso 3.4) y la aprobación de la junta con nombre y rol, en el prompt.
 - **Objetivo:** usar el PRD, la arquitectura, las épicas y el `sprint-status.yaml` de BMAD como especificación, sin escribir nunca en BMAD, y devolverle las decisiones de gobierno por traspaso.
 - **Momento PRINCE2:** SU/IP (`detectar`, `inventario`, `requisitos`, `trazabilidad`, `backlog`), DP (`linea-base` tras `autorizar-proyecto`, por pm-director), CS (`backlog`, `avance`, `verificar` en cada período), SB (`verificar` antes de la puerta), cambios aprobados → `handoff`.
 - **Dueña y agente:** `pm-bmad-puente` (metadato `agente: pm-planificacion`); también `pm-inicio`, `pm-control`, `pm-director` y `pm-cierre` en sus bucles. El resto de las skills lee solo por la fachada `especificacion.py` (contrato `pm-spec-index/1`).
 - **Externa:** BMAD Method instalado por el equipo (`npx bmad-method@6.12.4 install …`, INSTALACION §4); versiones probadas 4.x, 6.11 y 6.12 (`compatibilidad.json`). Fixture real 6.12.4.
 - **Respaldo:** `especificacion=ninguna`: `requisitos.md`, `backlog.csv` y `wbs.csv` con el mismo contrato.
 - **Frases:** "Sincronizá el backlog con las historias de BMAD" (#14); "¿Qué requisitos del PRD no tienen historias?" (#15); "Did the PRD change since the board approved it?" (#45).
-- **Pasos reales sobre el fixture:**
+- **Pasos reales sobre el fixture:** los ejecuta el sistema; el usuario no los escribe.
   ```text
   $ python3 $B --proyecto gestion inventario
   BMAD v6 (soportada) en <repo>
@@ -527,7 +636,7 @@ Todo en IP (plan de proyecto y plan de la primera etapa de entrega) y en cada SB
   Sin desvíos: la especificación coincide con las líneas base registradas.
   ```
   Tras cargar las estimaciones de gobierno, `avance --json` pasó a `"puntos_total": 24.0`, `"base_pct": "puntos"` (una fila por fecha).
-- **Resultado:** derivados en `02-planificacion/especificacion/` (`inventario-bmad.json`, `requisitos-bmad.csv`, `matriz-trazabilidad-bmad.csv`, `spec-index.json`, `handoff-bmad-<fecha>-<…>.md`), columnas derivadas de `backlog.csv`, `03-control/reportes/avance-bmad.csv`, línea base en `00-direccion/historial/bmad-prd-v1.0/`.
+- **Salidas (qué queda y dónde verificarlo):** derivados en `02-planificacion/especificacion/` (`inventario-bmad.json`, `requisitos-bmad.csv`, `matriz-trazabilidad-bmad.csv`, `spec-index.json`, `handoff-bmad-<fecha>-<…>.md`), columnas derivadas de `backlog.csv`, `03-control/reportes/avance-bmad.csv`, línea base en `00-direccion/historial/bmad-prd-v1.0/`. Dónde verificarlo: abrí `gestion/02-planificacion/especificacion/matriz-trazabilidad-bmad.csv` y `gestion/02-planificacion/backlog.csv` en Excel (10 historias); la línea base es la clave `bmad-prd` de `gestion/estado.json` → `artefactos`, la carpeta `gestion/00-direccion/historial/bmad-prd-v1.0/` y una fila `línea base bmad-prd v1.0 …` en `gestion/03-control/registros/decisiones.csv`; `/pm-method:pm-estado` muestra el avance BMAD y `/pm-method:pm-sync bmad` corre `verificar` ("Sin desvíos…"); `_bmad-output/` no cambia.
 - **Controles:** hook: los derivados (`requisitos-bmad.csv`, `avance-bmad.csv`, …) no se editan ("es un derivado regenerable") y un subagente pm-* que escriba en `_bmad-output/` recibe "los agentes de gestión no escriben en carpetas de BMAD. Usar bmad.py handoff …"; el hilo principal sí puede (los flujos de BMAD escriben ahí). Sanidad ESP-01…15: `AVISO ESP-13 Traspaso a BMAD sin confirmar` hasta que el equipo BMAD marque `estado: aplicado`; ESP-10 si el PRD cambia sin solicitud de cambio (lo cubre `probar_paquete.py`, 80 OK en la corrida final).
 - **Límites:** en el formato 6.12.4 las historias no citan el FR, así que la traza es por épica y la columna `refs` de cada historia trae todos los FR de su épica. Desde v2.1 la `descripcion` derivada del backlog es el primer párrafo completo de la historia ("As a socio, I want…, So that…"). `bmad-spec` (`specs/spec-<slug>/SPEC.md`) no se traza. Fuera del rango probado, modo degradado con aviso.
 
