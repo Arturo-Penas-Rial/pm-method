@@ -4,7 +4,9 @@
 Uso:  python3 scripts/pruebas/guias_e2e/correr.py [--guias 1,2,3,4] [--salida DIR]
 Cada guía crea su propio proyecto temporal (copia de scripts/pruebas/fixtures/bmad-v6.12-real), ejecuta los comandos
 que las skills usan por detrás y escribe en DIR:  salida-g<N>.md (comandos y salidas) y, si playwright está instalado,
-las capturas del tablero (g1-tablero.png, g3-tablero.png, g3-tablero-actor.png, g4-tablero.png).
+las capturas del tablero (g1-tablero.png, g3-tablero.png, g3-tablero-actor.png, g4-tablero.png) y del reporte de
+interesados (g3-interesados.png). La guía 3 levanta un servidor SMTP y un receptor de webhooks de prueba en 127.0.0.1
+para mostrar el envío real por la capa de canales sin salir a la red.
 Las decisiones humanas están simuladas con los nombres del escenario; el contenido redactado por el modelo (texto de
 informes, planes) se reemplaza por archivos mínimos: lo que se verifica es el gobierno, los registros y los cálculos.
 """

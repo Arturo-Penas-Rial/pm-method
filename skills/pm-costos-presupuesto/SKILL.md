@@ -1,7 +1,7 @@
 ---
 name: pm-costos-presupuesto
 description: "Costeo y presupuesto: reservas, BAC, línea base PV, curva S. Usar: costear, presupuesto, BAC, contingencia, reserva de gestión, budget, cost baseline. No: business case→pm-caso-de-negocio."
-version: 2.1.0
+version: 2.2.0
 author: pm-method
 license: MIT
 metadata:
@@ -50,7 +50,7 @@ metadata:
 3. **Variante ágil**: costo por iteración × iteraciones de la etapa; PV por iteración (§5).
 4. **Bloques alternativos** sin detalle: paramétrico, análogo, tres puntos (§2). Ascendente vs. análoga > 25 % → revisar supuestos.
 5. **Agregar siguiendo la WBS**: cargar la estimación base por paquete en `costo` (y horas en `esfuerzo_h`) de `wbs.csv` y correr `python3 ${CLAUDE_SKILL_DIR}/../pm-estado-proyecto/scripts/wbs.py 02-planificacion/wbs.csv`; el total consolidado = Σ paquetes base. Reservas fuera de la WBS (§4).
-6. **Reservas sin doble conteo (SPEC §1.10.6)**: contingencia una vez y en un nivel (EMV + respuestas); `BAC = Σ paquetes base + contingencia`; reserva de gestión fuera del BAC; `presupuesto autorizado = BAC + reserva de gestión`; presupuesto de cambio aparte (§3).
+6. **Reservas sin doble conteo (SPEC §1.10.6)**: contingencia una vez y en un nivel (EMV + respuestas); `BAC = Σ paquetes base + contingencia`; reserva de gestión fuera del BAC; `presupuesto autorizado = BAC + reserva de gestión`; presupuesto de cambio aparte; los montos aprobados van a `estado.json` → `presupuestos` vía pm-director (§3).
 7. **Distribuir en el tiempo** según la curva de consumo de cada paquete (lineal, hitos ponderados, 0/100, 50/50) → `linea-base-costo.csv` (`pv_periodo`, `pv_acumulado`; el último = BAC).
 8. **Presupuesto**: en `presupuesto.md`, tabla por etapa (base, contingencia, BAC de etapa, tolerancia), curva S Mermaid, flujo de caja y conciliación con el límite de financiación; un exceso se reprograma con `pm-cronograma-estimacion`, nunca se oculta.
 9. **Comparar** el BAC con la restricción del mandato ± `tolerancias.proyecto.costo`, y el BAC de etapa con la tolerancia propuesta.

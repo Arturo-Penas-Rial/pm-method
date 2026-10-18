@@ -1,7 +1,7 @@
 ---
 name: pm-registros
 description: "Registros genéricos (supuestos, decisiones, acciones, diario) y clasificación. Usar: registrar, anotar, acción, supuesto, RAID, action log. No: riesgos→pm-riesgos; issues/cambios→pm-issues-cambios."
-version: 2.1.0
+version: 2.2.0
 author: pm-method
 license: MIT
 metadata:
@@ -12,6 +12,7 @@ metadata:
     practicas_prince2: [risk, issues, progress, quality, organizing]
     tecnicas_pmbok: [análisis de supuestos, cinco porqués, registros y bitácoras, puntuación P×I]
     artefactos: [riesgos.csv, issues.csv, cambios.csv, decisiones.csv, supuestos.csv, lecciones.csv, stakeholders.csv, calidad.csv, acciones.csv, diario.md, guia-registros]
+    # v2.2: estereotipos.csv, preferencias.csv y raci.csv (pm-interesados) y envios.csv (pm-integraciones) usan el mismo registro.py
     idiomas: [es, en]
 ---
 

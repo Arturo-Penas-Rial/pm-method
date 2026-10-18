@@ -1,18 +1,23 @@
-# Casos de uso de integraciones · pm-method 2.1.0
+# Casos de uso de integraciones · pm-method 2.2.0
 
 Casos trabajados para cada repositorio o integración externa que pm-method incorpora, con más detalle en diseño visual,
-informes, planificación y OKR. Cada caso dice en qué momento del ciclo PRINCE2 se usa, qué skill y qué agente son
-dueños, qué herramienta externa interviene, cuál es el respaldo interno cuando no está instalada, qué comandos se
-ejecutan, qué queda en la carpeta del proyecto, qué controles aplican y qué límites tiene.
+informes, planificación, OKR y canales de envío a interesados (correo, Teams, Slack, `.eml`). Cada caso dice en qué
+momento del ciclo PRINCE2 se usa, qué skill y qué agente son dueños, qué herramienta externa interviene, cuál es el
+respaldo interno cuando no está instalada, qué comandos se ejecutan, qué queda en la carpeta del proyecto, qué controles
+aplican y qué límites tiene.
 
 EN: worked examples for every external repository and integration (visual design, reports, planning, OKR, meetings,
-trackers and BMAD), with the PRINCE2 moment, owner skill and agent, fallback, real commands, outputs, controls and limits.
+trackers, BMAD and the delivery channels layer), with the PRINCE2 moment, owner skill and agent, fallback, real commands,
+outputs, controls and limits.
 
 Regla de evidencia de este documento. Las salidas de scripts que se muestran son reales y están recortadas: se
 obtuvieron el 2026-10-17 corriendo los scripts del paquete sobre un proyecto temporal (ver "Proyecto de prueba"). Lo
 que se dice de las skills externas en sesiones de Claude Code sale de `docs/INTEGRACIONES.md` §3.1 y de los registros
-de esas sesiones (A0–G1). Lo que no se pudo verificar se marca **[sin verificar en vivo]**. Los nombres de personas y
-la cooperativa son ficticios, igual que en `CASOS-DE-USO.md`.
+de esas sesiones (A0–G1). Los casos 8 y 9 (v2.2) usan la corrida de referencia de la guía E2E-3
+(`docs/guias/evidencia/salida-g3.md`) y una corrida complementaria del mismo día sobre esa carpeta; el correo y los
+webhooks se probaron contra servidores de prueba en 127.0.0.1, no contra servicios reales. Lo que no se pudo verificar
+se marca **[sin verificar en vivo]** o **[verificar]**. Los nombres de personas y la cooperativa son ficticios, igual
+que en `CASOS-DE-USO.md`.
 
 Estados de verificación usados en todo el documento:
 - **verificado en vivo**: una sesión real de Claude Code con el plugin invocó la integración y produjo la salida.
@@ -42,7 +47,9 @@ un editor o Excel, buscar la fila en `decisiones.csv` o la nota en `diario.md` (
 5. [Transcripciones y reuniones](#caso-5--transcripciones-y-actas-de-reunión): `transcripcion.py`, Granola, Fireflies, Zoom, minutes
 6. [Trackers y canales](#caso-6--trackers-documentación-y-canales-jira-confluence-slack-teams): Jira, Confluence, Slack, Teams
 7. [BMAD](#caso-7--bmad-como-capa-de-especificación-pm-bmad-puente): `bmad.py` sobre el fixture real 6.12.4
-8. [Matriz de cierre](#matriz-de-cierre)
+8. [Capa de canales](#caso-8--capa-de-canales-correo-smtp-conector-de-correo-teams-slack-y-eml): `envios.py` con correo SMTP propio, conector Gmail u Outlook, webhook de Teams (Workflows), webhook de Slack y `.eml` sin configuración
+9. [OKR con Tability o Perdoo](#caso-9--okr-con-tability-o-perdoo-servidores-mcp-oficiales): `okr.py --propuesta-sync` y `--marcar-publicado`
+10. [Matriz de cierre](#matriz-de-cierre)
 
 ### Qué repo cubre cada caso
 
@@ -56,10 +63,17 @@ un editor o Excel, buscar la fila en `decisiones.csv` o la nota en `diario.md` (
 | 1.6 | Mermaid (respaldo; `mmdc` opcional) | — | pm-visuales |
 | 2.x | `anthropics/skills` (`docx`, `xlsx`, `pptx`) | propietaria, source-available · plugin `document-skills` | pm-exportar (contenido: pm-progreso-reportes) |
 | 3.2 | MSPDI propio, validado con MPXJ (PyPI `mpxj`, LGPL, Java) | formato abierto | pm-cronograma-estimacion |
-| 4 | Tability MCP | MCP | pm-okr (vía pm-integraciones) |
+| 4 | Tability MCP (servidor oficial) | MCP | pm-okr (vía pm-integraciones) |
 | 5 | Granola, Fireflies, Zoom, minutes (`minutes-mcp`) | MCP | pm-reuniones (vía pm-integraciones) |
 | 6 | Atlassian Rovo MCP (Jira, Confluence), Slack MCP, Teams/Work IQ | MCP | pm-integraciones |
 | 7 | BMAD Method (`bmad-method` 6.12.4 y v4) | marco, solo lectura | pm-bmad-puente |
+| 8.1 | servidor SMTP de la organización | protocolo estándar (`smtplib`) | pm-integraciones (`envios.py`; contenido: pm-comunicacion-stakeholders) |
+| 8.2 | conector de correo Gmail u Outlook | MCP o conector de la aplicación | pm-integraciones |
+| 8.3 | Teams Workflows ("When a Teams webhook request is received") | webhook HTTP | pm-integraciones |
+| 8.4 | webhook entrante de Slack | webhook HTTP | pm-integraciones |
+| 8.5 | ninguno (archivo `.eml`) | — | pm-integraciones |
+| 9.1 | Tability MCP (`https://mcp.tability.app/mcp`) | MCP oficial | pm-okr (vía pm-integraciones) |
+| 9.2 | Perdoo MCP (`https://mcp.perdoo.com`) | MCP oficial | pm-okr (vía pm-integraciones) |
 
 ---
 
@@ -372,7 +386,7 @@ script redacta el informe: los scripts dan las cifras y la skill completa la pla
   1. En tu terminal (una sola vez): `claude plugin marketplace add anthropics/skills` y `claude plugin install document-skills@anthropic-agent-skills` (o la copia con `npx skills add …`, ver Externa).
   2. "Usá las skills de Office para exportar." (registra `integraciones.export=skills-office`).
   3. "Exportá el presupuesto a Excel y el highlight a Word." · "Exportá el highlight a PowerPoint." · Sin las skills: "Exportá los registros a Excel."
-- **Respuestas del usuario:** antes de enviar, confirmar destinatarios y versión ("Sí, mandáselo a la junta"; el envío lo hace pm-comunicacion-stakeholders). Si el libro de registros va a una audiencia externa, pedí que se quite la hoja `stakeholders` (ver Límites; cómo la quita el sistema **[verificar]**).
+- **Respuestas del usuario:** antes de enviar, confirmar destinatarios y versión ("Sí, mandáselo a la junta"; el envío lo hace pm-comunicacion-stakeholders, con un conector o por la capa de canales del caso 8). Si el libro de registros va a una audiencia externa, pedí que se quite la hoja `stakeholders` (ver Límites; cómo la quita el sistema **[verificar]**).
 - **Entradas (qué aporta el usuario y cómo):** formato y audiencia, en el prompt; los archivos fuente ya están en `gestion/` (`03-control/reportes/2026-12-18-highlight-report.md`, `02-planificacion/linea-base-costo.csv`, los CSV de `03-control/registros/`). Nada se adjunta.
 - **Objetivo:** entregar a la junta Word, Excel o PowerPoint con marca BORRADOR cuando la fuente no está aprobada.
 - **Momento PRINCE2:** DP/SB (paquete de puerta) o CS (highlight). El usuario confirma antes de enviar; el envío es de `pm-comunicacion-stakeholders`.
@@ -490,13 +504,13 @@ Todo en IP (plan de proyecto y plan de la primera etapa de entrega) y en cada SB
 - **Prompt del usuario:**
   1. "Definamos los OKR del proyecto para el próximo semestre: que los socios resuelvan sus gestiones sin ir a la sucursal, medido con las métricas SM-1, SM-2 y SM-5 del PRD."
   2. "Al 18/12 tenemos 12 % de socios activos registrados y 9.200 consultas por canales tradicionales; la satisfacción todavía no se midió. Puntuá los OKR."
-  3. Con Tability (opcional): en tu terminal, conectar el servidor con `claude mcp add …` **[verificar]**; luego "Usá Tability para los OKR." (registra `integraciones.okr=tability`) y "Traé el avance de Tability y actualizá la tabla de OKR para la junta." Atajo: `/pm-method:pm-sync okr`.
+  3. Con Tability (opcional): en tu terminal, conectar el servidor MCP oficial con `claude mcp add --transport http tability https://mcp.tability.app/mcp` y autenticar con `/mcp` en una sesión (detalle en el caso 9.1); luego "Usá Tability para los OKR." (registra `integraciones.okr=tability`) y "Traé el avance de Tability y actualizá la tabla de OKR para la junta." Atajo: `/pm-method:pm-sync okr`.
 - **Respuestas del usuario:** la aceptación: "Laura Méndez, ejecutiva, aprueba los OKR." (pm-director corre `estado.py aprobar okr --por "Ejecutivo: Laura Méndez"`). Si el sistema propone escribir en Tability, revisar la vista previa y contestar "Confirmo" o "No escribas en Tability".
 - **Entradas (qué aporta el usuario y cómo):** objetivos, KR, metas y responsables, escritos en el prompt; las métricas SM-n, leídas del PRD de BMAD por la fachada (`especificacion.py consultar`, solo lectura) y los beneficios B-nn del business case; los valores `actual`, dictados en el prompt 2 o traídos por el conector MCP como instantánea `gestion/03-control/fuentes/tability-AAAA-MM-DD.csv`.
 - **Objetivo:** OKR de la capa de negocio vinculados a objetivos (OBJ-n), beneficios del business case (B-nn) o métricas de éxito del PRD (SM-n), sin duplicar sus datos.
 - **Momento PRINCE2:** SU/IP (redacción), SB (revisión en cada límite de etapa), CP y revisiones de beneficios posteriores. Acepta la ejecutiva (o el usuario sénior dueño del beneficio); `pm-director` ejecuta `estado.py aprobar okr --por "<rol: nombre>"`.
 - **Dueña y agente:** `pm-okr` (metadato `agente: pm-director`); la usan `pm-inicio` (redacción), `pm-director` y `pm-cierre` (puntuación), `pm-planificacion` (solo lectura en SB).
-- **Externa:** Tability MCP, opcional (`integracion okr=tability`): lectura a instantánea; escritura solo con vista previa y confirmación. Operately y okr-writer no se incorporaron.
+- **Externa:** Tability MCP, opcional (`integracion okr=tability`): servidor oficial `https://mcp.tability.app/mcp` (verificado el 2026-10-17; detalle y Perdoo en el caso 9); lectura a instantánea; escritura solo con vista previa y confirmación. Operately y okr-writer no se incorporaron.
 - **Respaldo:** `okr=archivo`: `00-direccion/okr.csv` mantenido con `okr.py`.
 - **Frases:** "Definamos los OKR del proyecto para el próximo semestre" (#12) y "Score our key results for Q4" (#46). Tability: "Pull progress from Tability and update the OKR table for the board."
 - **Pasos reales:** los ejecuta el sistema; el usuario no los escribe.
@@ -513,12 +527,14 @@ Todo en IP (plan de proyecto y plan de la primera etapa de entrega) y en cada SB
      KR-1.3 Satisfacción posterior a la gestión [-/4 puntos] → - (sin-dato) · SM-5 · Sofía Ramírez
   ```
   Con Tability conectado, pm-integraciones guarda `03-control/fuentes/tability-AAAA-MM-DD.csv` con columnas
-  `clave,tipo,titulo,actual,meta,actualizado,url` y pm-okr actualiza la columna `actual` (conciliando por título o por
-  `notas=tability:<clave>`); `/pm-method:pm-sync okr` repite la lectura. **[sin verificar en vivo]**: no hubo servidor
-  Tability; en la prueba solo se creó la instantánea a mano para verificar su nombre.
+  `clave,tipo,titulo,actual,meta,actualizado,url`; desde v2.2 cada valor leído se registra como check-in
+  (`okr.py … --checkin KR-… --valor … --fuente tability`) en lugar de sobrescribir `actual`, y el KR se vincula con su
+  par por la columna `ref_externa` (`tability:<id>`). Publicar en Tability (escritura) va por `--propuesta-sync` y
+  `--marcar-publicado` (caso 9.1). `/pm-method:pm-sync okr` repite la lectura. **[sin verificar en vivo]**: no hubo
+  servidor Tability conectado; en la prueba solo se creó la instantánea a mano para verificar su nombre.
 - **Salidas (qué queda y dónde verificarlo):** `00-direccion/okr.csv`, `00-direccion/okr.md` (narrativa), `03-control/reportes/<fecha>-okr.md` (ejemplo en `docs/ejemplos/integraciones/okr-puntuado.md`); visual opcional con visual-explainer (caso 1.3). Dónde verificarlo: abrí `gestion/00-direccion/okr.csv` en Excel (columna `vinculo` con OBJ-1, SM-1, SM-2, SM-5) y `gestion/03-control/reportes/2026-12-18-okr.md`; tras la aceptación, `okr` figura `aprobado` en `gestion/estado.json` → `artefactos` y hay una fila `aprobado okr …` en `gestion/03-control/registros/decisiones.csv`; `/pm-method:pm-sanidad` no debe mostrar ESP-04 ni ESP-05.
 - **Controles:** la sanidad valida la existencia del vínculo: con un KR que cita `SM-99` salió `ERROR ESP-04 okr KR-1.4 cita SM-99, que no existe en la especificación vigente (bmad)`; un `B-n` ausente del business case da `AVISO ESP-05`. Un KR rojo que amenaza un beneficio pasa a riesgo o issue y, fuera de la tolerancia de beneficios, a excepción.
-- **Límites:** los umbrales 0,7/0,4 son convención OKR, no PRINCE2 ni PMBOK; se declaran en el informe. `okr.py` solo comprueba el formato del vínculo, no su existencia (eso lo hace `sanidad.py`); desde v2.1 acepta `SM-C1` (métricas de contrapeso del PRD 6.12.4). Escritura en Tability nunca sin confirmación.
+- **Límites:** los umbrales 0,7/0,4 son convención OKR, no PRINCE2 ni PMBOK; se declaran en el informe (desde v2.2, los KR comprometidos usan 1,0/0,7). `okr.py` solo comprueba el formato del vínculo, no su existencia (eso lo hace `sanidad.py`); desde v2.1 acepta `SM-C1` (métricas de contrapeso del PRD 6.12.4). Escritura en Tability nunca sin confirmación. El plan comercial de Tability que habilita el servidor MCP **[verificar]**.
 
 ---
 
@@ -572,7 +588,7 @@ Todo en IP (plan de proyecto y plan de la primera etapa de entrega) y en cada SB
 - **Momento PRINCE2:** CS/MP en cada período (`/pm-method:pm-sync tracker`); IP para registrar capacidades (`pm-inicio`, paso 15). El gestor confirma cada lote de escrituras externas.
 - **Dueña y agente:** `pm-integraciones`, desde `pm-control` (paso 2 del bucle) o `pm-inicio`.
 - **Externa:** capacidades genéricas, **sin conector predefinido** ni `.mcp.json` en el paquete. Notas relevadas al 2026-10-17 (INTEGRACIONES §2): Atlassian Rovo MCP Server requiere obtener el `cloudId` con `getAccessibleAtlassianResources` antes de herramientas como `searchJiraIssuesUsingJql` o `createJiraIssue`; el Slack MCP oficial (`https://mcp.slack.com/mcp`) está restringido a apps publicadas o internas; el servidor "Teams (preview)" de Microsoft figura como legado (se recomienda Work IQ). La skill siempre lee la descripción real de las herramientas presentes en la sesión.
-- **Respaldo:** registros CSV (`backlog.csv`, `acciones.csv`), Markdown local y borradores de mensaje para copiar.
+- **Respaldo:** registros CSV (`backlog.csv`, `acciones.csv`), Markdown local y borradores de mensaje para copiar. Para publicar en Teams o Slack sin servidor MCP, o para escribir a interesados del maestro, desde v2.2 está la capa de canales (webhooks, correo o `.eml`; caso 8).
 - **Frases:** "Traé los tickets abiertos de Jira del sprint actual" (#16); "Publicá el resumen semanal en el canal de Teams" (#17). EN: "Sync Jira and post the highlight to the project Slack channel."
 - **Pasos:** los ejecuta el sistema; el usuario no los escribe.
   ```bash
@@ -591,6 +607,38 @@ Todo en IP (plan de proyecto y plan de la primera etapa de entrega) y en cada SB
 - **Salidas (qué queda y dónde verificarlo):** `03-control/fuentes/jira-2026-12-18.csv`, propuestas de cambio a registros y anotaciones de publicación en `diario.md`. El tablero (caso 1.4) cita la instantánea como fuente y usa su fecha de corte. Dónde verificarlo: abrí `gestion/03-control/fuentes/jira-2026-12-18.csv` en Excel (columnas `clave,tipo,titulo,estado,asignado,sprint,puntos,actualizado,url`); en `gestion/estado.json` → `integraciones`: `tracker` = `jira`, `docs` = `confluence`, `chat` = `teams`; las propuestas aceptadas aparecen en `gestion/03-control/registros/acciones.csv` o `issues.csv` con `jira:<clave>` en `notas`; el id de cada publicación, en `gestion/03-control/registros/diario.md`; `/pm-method:pm-sanidad` sin INT-02.
 - **Controles:** INT-01…04; columnas de gobierno (`moscow`, `release`, `producto_pbs`, `prioridad`) solo de pm-method; en un subagente, toda escritura vuelve como "decisión humana requerida"; si una herramienta falla dos veces, alternativa local.
 - **Límites:** **documentado sin prueba en vivo** (no hubo servidores conectados); la instantánea de la prueba se escribió a mano para verificar los controles. `estado.py integracion` guarda un valor desconocido pero avisa en el momento (y la sanidad lo marca, INT-01). Desde v2.1 el hook impide modificar una instantánea existente de `03-control/fuentes/` (se crea una nueva con fecha). INT-03 (más de 14 días) no avisa si la fecha del nombre es futura.
+
+### 6.1 De la instantánea de Jira a riesgos e issues (v2.2)
+
+- **Prompt del usuario:** "Traé la instantánea de Jira del sprint y decime qué incidencias son riesgos o issues."
+- **Objetivo:** que las incidencias emergentes alimenten la gestión de riesgos: lo ya ocurrido se trata como issue (con
+  su riesgo derivado) y lo que todavía puede pasar, como riesgo candidato; sin que Jira escriba en los registros.
+- **Momento PRINCE2:** CS/MP, en cada período de control (tema riesgo y progreso).
+- **Dueñas y agente:** `pm-integraciones` trae la instantánea; `pm-riesgos` clasifica con `riesgos.py candidatos
+  --fuentes tracker`; `pm-issues-cambios` registra los issues; agente `pm-control`.
+- **Columnas:** las mínimas del caso 6 más, opcionales, `prioridad`, `etiquetas`, `vinculo` y `descripcion`
+  (INTEGRACIONES §3 y guía de pm-integraciones §3).
+- **Pasos:** los ejecuta el sistema; el usuario no los escribe.
+  ```bash
+  python3 $PM/pm-riesgos/scripts/riesgos.py --proyecto gestion candidatos --fuentes tracker --fecha 2026-12-16
+  python3 $E/registro.py --proyecto gestion actualizar riesgos R-001 --campo "estado=ocurrido" --campo "notas=… origen: jira:PS-102"
+  python3 $E/registro.py --proyecto gestion agregar issues --campo "tipo=problema-preocupacion" … --campo "notas=origen: jira:PS-102"
+  ```
+- **Salida real (guía E2E-1, paso 9):**
+  ```text
+  tracker: 3 candidatos · 1 fuente(s) leída(s)
+  CR-01 [issue/amenaza] jira:PS-101 … · La consulta de saldos devuelve timeout con el padrón de prueba · ¿relacionado con R-001?
+  CR-02 [issue/amenaza] jira:PS-102 … · Sin entorno de pruebas del padrón: historias 1-3 y 1-4 bloqueadas · ¿relacionado con R-001?
+  CR-03 [riesgo/amenaza] jira:PS-104 … · Evaluar un proveedor de SMS alternativo por la disponibilidad del segundo factor · ¿duplica R-003?
+  ```
+  Reglas: tipo bug, incidente o impedimento, o estado bloqueado → issue; etiqueta `riesgo` → riesgo; otro tipo con
+  prioridad alta → riesgo candidato; historias, tareas y épicas sin esas marcas se ignoran. El gestor decide: R-001 pasa a `ocurrido`, se registran I-001 (PS-102) e
+  I-002 fuera de especificación (PS-101), y R-003 anota el seguimiento de PS-104.
+- **Dónde verificarlo:** `gestion/03-control/reportes/2026-12-16-candidatos-riesgo.md`, `riesgos.csv` e `issues.csv`
+  (columna `notas` con `origen: jira:<clave>`).
+- **Límites:** probado con scripts sobre una instantánea escrita a mano (guía E2E-1 y `probar_paquete.py` caso I); la
+  lectura desde Atlassian Rovo sigue sin prueba en vivo. Los nombres de tipo, estado y prioridad dependen de la
+  configuración de cada Jira: los reconocidos están en `riesgos.py` (`TIPOS_ISSUE`, `ESTADO_BLOQUEO`, `PRIORIDAD_ALTA`).
 
 ---
 
@@ -637,8 +685,283 @@ Todo en IP (plan de proyecto y plan de la primera etapa de entrega) y en cada SB
   ```
   Tras cargar las estimaciones de gobierno, `avance --json` pasó a `"puntos_total": 24.0`, `"base_pct": "puntos"` (una fila por fecha).
 - **Salidas (qué queda y dónde verificarlo):** derivados en `02-planificacion/especificacion/` (`inventario-bmad.json`, `requisitos-bmad.csv`, `matriz-trazabilidad-bmad.csv`, `spec-index.json`, `handoff-bmad-<fecha>-<…>.md`), columnas derivadas de `backlog.csv`, `03-control/reportes/avance-bmad.csv`, línea base en `00-direccion/historial/bmad-prd-v1.0/`. Dónde verificarlo: abrí `gestion/02-planificacion/especificacion/matriz-trazabilidad-bmad.csv` y `gestion/02-planificacion/backlog.csv` en Excel (10 historias); la línea base es la clave `bmad-prd` de `gestion/estado.json` → `artefactos`, la carpeta `gestion/00-direccion/historial/bmad-prd-v1.0/` y una fila `línea base bmad-prd v1.0 …` en `gestion/03-control/registros/decisiones.csv`; `/pm-method:pm-estado` muestra el avance BMAD y `/pm-method:pm-sync bmad` corre `verificar` ("Sin desvíos…"); `_bmad-output/` no cambia.
-- **Controles:** hook: los derivados (`requisitos-bmad.csv`, `avance-bmad.csv`, …) no se editan ("es un derivado regenerable") y un subagente pm-* que escriba en `_bmad-output/` recibe "los agentes de gestión no escriben en carpetas de BMAD. Usar bmad.py handoff …"; el hilo principal sí puede (los flujos de BMAD escriben ahí). Sanidad ESP-01…15: `AVISO ESP-13 Traspaso a BMAD sin confirmar` hasta que el equipo BMAD marque `estado: aplicado`; ESP-10 si el PRD cambia sin solicitud de cambio (lo cubre `probar_paquete.py`, 80 OK en la corrida final).
+- **Controles:** hook: los derivados (`requisitos-bmad.csv`, `avance-bmad.csv`, …) no se editan ("es un derivado regenerable") y un subagente pm-* que escriba en `_bmad-output/` recibe "los agentes de gestión no escriben en carpetas de BMAD. Usar bmad.py handoff …"; el hilo principal sí puede (los flujos de BMAD escriben ahí). Sanidad ESP-01…15: `AVISO ESP-13 Traspaso a BMAD sin confirmar` hasta que el equipo BMAD marque `estado: aplicado`; ESP-10 si el PRD cambia sin solicitud de cambio (lo cubre `probar_paquete.py`, 138 OK en la versión 2.2.0).
 - **Límites:** en el formato 6.12.4 las historias no citan el FR, así que la traza es por épica y la columna `refs` de cada historia trae todos los FR de su épica. Desde v2.1 la `descripcion` derivada del backlog es el primer párrafo completo de la historia ("As a socio, I want…, So that…"). `bmad-spec` (`specs/spec-<slug>/SPEC.md`) no se traza. Fuera del rango probado, modo degradado con aviso.
+
+---
+
+## Caso 8 · Capa de canales: correo SMTP, conector de correo, Teams, Slack y .eml
+
+Contrato común (v2.2; guía de `pm-integraciones` §6 y de `pm-comunicacion-stakeholders` §6): una sola vía de salida
+para cualquier comunicación a interesados del maestro (`stakeholders.csv`): comunicados personalizados, informes,
+actas, recordatorios de acciones, convocatorias, decisiones de puerta y check-ins de OKR. Cada mensaje es un `.md` con
+frontmatter (`para`, `canal`, `destino`, `formato`, `nivel_detalle`, `idioma`, `registro`, `horario`, `asunto`,
+`estado`, `aprobado_por`, `proposito`) en `03-control/comunicaciones/<fecha>-<tema>/`, junto a `plan-envio.csv`. Lo
+crean `interesados.py plan-envio` (con el perfil de cada destinatario) o `envios.py nuevo --origen <archivo>`. Nada sale
+sin (1) mensaje aprobado con `aprobado_por` (acto humano) y (2) `--confirmar`; sin `--confirmar` todo es simulación.
+Los destinos se toman del maestro en el momento de enviar (`correo` para correo, `usuario_chat` para Slack y Teams); un
+reenvío solo alcanza a quien todavía no tiene fila `enviado`. Cada envío queda en `envios.csv` (EN-###, con
+`proposito`, `destino`, `referencia` y `confirmado_por`) y en `diario.md`; si hubo fallos, el código de salida es 2 y
+la integridad avisa STK-07. Credenciales **solo** por variables de entorno (INSTALACION §0.7, "Capa de canales");
+nunca en archivos, commits ni chat. Sin dependencias nuevas: biblioteca estándar (`smtplib`, `email`, `urllib`).
+
+Variables de los comandos (además de las del "Proyecto de prueba"):
+
+```bash
+I="$PM/pm-interesados/scripts/interesados.py"; V="$PM/pm-integraciones/scripts/envios.py"
+```
+
+| Modo de `envios.py enviar` | Canal del mensaje | Variables de entorno |
+|---|---|---|
+| `smtp` | correo | `PM_SMTP_HOST`, `PM_SMTP_REMITENTE` (obligatorias); `PM_SMTP_PUERTO` (587), `PM_SMTP_TLS` (`starttls` por defecto, `ssl`, `ninguno`), `PM_SMTP_USUARIO`, `PM_SMTP_CLAVE` |
+| `eml` | correo | ninguna |
+| `teams-webhook` | teams | `PM_TEAMS_WEBHOOK_URL` |
+| `slack-webhook` | slack | `PM_SLACK_WEBHOOK_URL` |
+| conector MCP (`preparar-mcp` + `registrar --modo mcp`) | correo, slack o teams | las del conector, en el cliente |
+
+### 8.1 Correo con el servidor SMTP de la organización
+
+- **Prompt del usuario:**
+  1. En tu terminal (una sola vez): definir `PM_SMTP_HOST`, `PM_SMTP_REMITENTE` y, si el servidor pide autenticación, `PM_SMTP_USUARIO` y `PM_SMTP_CLAVE`, como variables de entorno de tu usuario (INSTALACION §0.7); abrir Claude Code desde esa terminal.
+  2. "Verificá que el correo esté configurado y registrá SMTP como canal de correo." (corre `envios.py verificar --modo smtp` y `estado.py integracion correo=smtp`).
+  3. "Prepará el comunicado del avance al 8/1 para «gestionar de cerca» y «mantener satisfecho», menos yo, adaptado a cada perfil; mostrame los borradores y, si los apruebo, mandalos por correo."
+- **Respuestas del usuario:** "Sí, aprobados por Martín Suárez, gestor." Después de la simulación: "Sí, enviá."
+- **Entradas (qué aporta el usuario y cómo):** las variables de entorno, definidas por el usuario en su terminal (nunca en el chat); la audiencia, en el prompt; los correos, de la columna `correo` de `gestion/03-control/registros/stakeholders.csv`; el contenido base, redactado por `pm-comunicacion-stakeholders`.
+- **Objetivo:** que cada interesado reciba el comunicado por correo, adaptado a su perfil, con registro de quién aprobó y cuándo salió.
+- **Momento PRINCE2:** CS (highlight, comunicados, recordatorios) y DP/SB (convocatorias y decisiones de puerta), según el enfoque de comunicación del PID. Aprueba el gestor (o quien fije la matriz); el envío lo confirma el usuario.
+- **Dueña y agente:** contenido y plan de envío, `pm-comunicacion-stakeholders` con `pm-interesados`; envío, `pm-integraciones` (`envios.py`); desde `pm-control`.
+- **Externa:** el servidor SMTP de la organización (protocolo estándar; un correo de texto por destinatario; referencia = Message-ID).
+- **Respaldo:** modo `eml` (8.5) o conector de correo (8.2).
+- **Frase:** "Mandá el comunicado aprobado por correo a los interesados." EN: "Email the approved update to the stakeholders."
+- **Pasos reales** (corrida de referencia de la guía E2E-3, paso 11): los ejecuta el sistema; el usuario no los escribe.
+  ```text
+  $ python3 $V --proyecto gestion verificar --modo smtp          # corrida complementaria, sin variables definidas
+     PM_SMTP_HOST: no definida
+     PM_SMTP_REMITENTE: no definida
+     …
+  Faltan: PM_SMTP_HOST, PM_SMTP_REMITENTE
+  $ python3 $I --proyecto gestion plan-envio --tema "Avance del portal al 8 de enero" --audiencia "cuadrante:gestionar-de-cerca,cuadrante:mantener-satisfecho,-ST-009" --proposito informe --base gestion/03-control/reportes/2027-01-15-comunicado-consejo.md --agrupar --fecha 2027-01-15
+  Plan de envío → 03-control/comunicaciones/2027-01-15-avance-del-portal-al-8-de-enero/ (7 destinatarios, 5 mensajes en borrador)
+  $ python3 $V --proyecto gestion aprobar gestion/03-control/comunicaciones/2027-01-15-avance-del-portal-al-8-de-enero --por "Gestor: Martín Suárez"
+  5 mensaje(s) aprobados por Gestor: Martín Suárez
+  $ python3 $V --proyecto gestion enviar gestion/03-control/comunicaciones/2027-01-15-avance-del-portal-al-8-de-enero --modo smtp
+  SIMULACIÓN mensaje-01-correo-st-001-st-002-st-007.md [smtp] → ST-001 <laura.mendez@example.org>, ST-002 <consejo@example.org>, ST-007 <cumplimiento@example.org> · «Avance del portal al 8 de enero»
+     (faltan variables de entorno: PM_SMTP_HOST, PM_SMTP_REMITENTE)
+  Resumen: 0 enviados, 0 fallidos, 3 simulados, 2 omitidos · simulación: agregar --confirmar para enviar
+  $ python3 $V --proyecto gestion enviar gestion/03-control/comunicaciones/2027-01-15-avance-del-portal-al-8-de-enero --modo smtp --confirmar --fecha 2027-01-15
+  mensaje-01-correo-st-001-st-002-st-007.md: enviado · EN-001, EN-002, EN-003
+  · mensaje-02-teams-st-003.md: canal teams no corresponde a --modo smtp
+  mensaje-03-correo-st-004.md: enviado · EN-004
+  · mensaje-04-reunion-st-006.md: canal reunion no corresponde a --modo smtp
+  mensaje-05-correo-st-008.md: enviado · EN-005
+  Resumen: 5 enviados, 0 fallidos, 0 simulados, 2 omitidos
+  ```
+  En la corrida, el envío con `--confirmar` fue contra un servidor SMTP de prueba en 127.0.0.1 que levanta el script de la guía (recibió los cinco `RCPT TO`); con las variables del usuario sale a su servidor.
+- **Salidas (qué queda y dónde verificarlo):** borradores aprobados y `plan-envio.csv` en `gestion/03-control/comunicaciones/2027-01-15-avance-del-portal-al-8-de-enero/` (cada `.md` pasa a `estado: enviado` con `fecha_envio`); EN-001…EN-005 en `gestion/03-control/registros/envios.csv` (modo `smtp`, referencia = Message-ID, `confirmado_por` = "Gestor: Martín Suárez"); una línea por envío en `diario.md`; `integraciones.correo` = `smtp` en `gestion/estado.json`. Dónde verificarlo: abrir `envios.csv` en Excel; prompt "¿Qué le enviamos al sindicato y cuándo?" (`envios.py historial --stakeholder ST-004`).
+- **Controles:** `aprobar` rechaza borradores sin redactar y mensajes con destinatarios que ya no existen en el maestro (y avisa si quedó el título "Contenido base (adaptar…)"); con `--confirmar` y variables faltantes no se envía nada; un destinatario sin correo queda como fila `fallido` ("sin correo en stakeholders.csv"); reenvío sin duplicados; el hook `guardian.py` protege `envios.csv`.
+- **Límites:** probado con scripts contra un servidor de prueba local; con un servidor real **[sin verificar en vivo]**. Texto plano, sin adjuntos. Un servidor que exige OAuth en lugar de usuario y clave no se cubre: usar el conector (8.2) o `.eml` (8.5).
+
+### 8.2 Conector de correo Gmail u Outlook (MCP): `preparar-mcp` y `registrar`
+
+- **Prompt del usuario:**
+  1. Conectar el correo de la organización en el cliente (gestión de conectores de la aplicación, o `claude mcp add …` con el servidor que la organización tenga aprobado; URL y herramientas según el proveedor **[verificar]**).
+  2. "Usá el conector de Gmail como canal de correo." (registra `integraciones.correo=gmail`; con Outlook, `correo=outlook`).
+  3. "Mandale a Laura la decisión pendiente sobre la contingencia del panel, por el conector de correo."
+- **Respuestas del usuario:** "Aprobado por Martín Suárez, gestor." Ante la vista previa (destinatario, asunto, texto): "Confirmo, envialo."
+- **Entradas (qué aporta el usuario y cómo):** la conexión, hecha por el usuario en su cliente (las credenciales quedan ahí, no en el proyecto); el pedido, en el prompt; el destino, del maestro; el contenido, de `03-control/reportes/2027-01-15-comunicado-consejo.md`.
+- **Objetivo:** enviar desde la cuenta de la organización y dejar el mismo registro que la capa de canales.
+- **Momento PRINCE2, dueña y agente:** igual que 8.1; la herramienta del conector la usa el agente, nunca el script.
+- **Externa:** conector de correo de la organización (Gmail u Outlook). Sus nombres de herramientas no se citan: la skill lee la descripción real de las herramientas presentes en la sesión.
+- **Respaldo:** 8.1 o 8.5.
+- **Frase:** "Mandale la decisión pendiente a Laura por el conector de correo." EN: "Send the pending decision to Laura through the mail connector."
+- **Pasos reales** (corrida complementaria; el envío por el conector no se ejecutó): los ejecuta el sistema; el usuario no los escribe.
+  ```text
+  $ python3 $V --proyecto gestion nuevo --origen 03-control/reportes/2027-01-15-comunicado-consejo.md --audiencia ST-001 --asunto "Decisión pendiente: contingencia del panel" --proposito puerta --fecha 2027-01-17
+  Comunicación «Decisión pendiente: contingencia del panel» (puerta) → 03-control/comunicaciones/2027-01-17-contingencia-del-panel/ · 1 destinatarios
+     ST-001 Laura Méndez: correo · conclusion-primero · ejecutivo · mensaje-01-correo-st-001.md
+  $ python3 $V --proyecto gestion aprobar gestion/03-control/comunicaciones/2027-01-17-contingencia-del-panel --por "Gestor: Martín Suárez"
+  1 mensaje(s) aprobados por Gestor: Martín Suárez
+  $ python3 $V --proyecto gestion preparar-mcp gestion/03-control/comunicaciones/2027-01-17-contingencia-del-panel --canal correo
+  {"mensajes": [{"archivo": "mensaje-01-correo-st-001.md", "canal": "correo", "asunto": "Decisión pendiente: contingencia del panel", "proposito": "puerta",
+    "destinatarios": [{"id": "ST-001", "nombre": "Laura Méndez", "destino": "laura.mendez@example.org"}], "errores": [], "cuerpo": "…",
+    "registrar_despues": "envios.py --proyecto gestion registrar 03-control/comunicaciones/2027-01-17-contingencia-del-panel --mensaje mensaje-01-correo-st-001.md --modo mcp --referencia <id del mensaje>"}],
+   "nota": "Enviar con la herramienta MCP conectada SOLO tras mostrar la vista previa y obtener confirmación explícita; luego registrar cada envío."}
+  # vista previa → confirmación → el agente envía con la herramienta del conector → con el id que devuelve:
+  $ python3 $V --proyecto gestion registrar gestion/03-control/comunicaciones/2027-01-17-contingencia-del-panel --mensaje mensaje-01-correo-st-001.md --modo mcp --referencia id-del-mensaje-ejemplo --fecha 2027-01-17
+  EN-010
+  ```
+  (JSON recortado y en menos líneas.) Observación: el nombre de la carpeta se armó solo con la parte del asunto posterior a los dos puntos.
+- **Salidas (qué queda y dónde verificarlo):** el borrador aprobado en `gestion/03-control/comunicaciones/2027-01-17-contingencia-del-panel/`; EN-010 en `envios.csv` (`correo/mcp`, referencia = id del mensaje que devolvió el conector) y la línea en `diario.md`. Dónde verificarlo: `envios.py historial --stakeholder ST-001` → `EN-010 2027-01-17 ST-001 correo/mcp «Decisión pendiente: contingencia del panel» [enviado] id-del-mensaje-ejemplo`; el mensaje en la carpeta de enviados de la cuenta.
+- **Controles:** `preparar-mcp` solo lista mensajes aprobados y destinatarios pendientes; `registrar --estado enviado` se rechaza si el mensaje no está aprobado ("El mensaje no está aprobado: no se registra como enviado."); en un subagente, el envío vuelve como "decisión humana requerida".
+- **Límites:** `preparar-mcp` y `registrar` probados con scripts; el envío con un conector Gmail u Outlook real **[sin verificar en vivo]**. Que el registro refleje la entrega depende de que el agente registre la referencia que devuelve la herramienta.
+
+### 8.3 Webhook de Teams (Workflows)
+
+- **Prompt del usuario:**
+  1. En Teams (una sola vez, quien administre el canal): crear un flujo de Workflows con el desencadenador "When a Teams webhook request is received" que publique en el canal del proyecto, copiar la URL y definirla en tu terminal como `PM_TEAMS_WEBHOOK_URL` (la URL es en sí la credencial).
+  2. "Verificá Teams y mandale a Sofía el comunicado por Teams."
+- **Respuestas del usuario:** aprobación con nombre y rol; después de la simulación, "Sí, enviá".
+- **Entradas (qué aporta el usuario y cómo):** la URL del flujo, solo como variable de entorno; el mensaje, del plan de envío (canal `teams` porque Sofía lo pidió: PF-005); el nombre del destinatario, del maestro.
+- **Objetivo:** publicar en el canal de Teams del proyecto sin servidor MCP.
+- **Momento PRINCE2, dueña y agente:** igual que 8.1.
+- **Externa:** Teams Workflows. Mensaje `{"type":"message","attachments":[{"contentType":"application/vnd.microsoft.card.adaptive","content":{AdaptiveCard 1.0}}]}` con tres bloques (asunto, "Para: <nombres>", cuerpo); límite de 28 KB, según https://learn.microsoft.com/en-us/microsoftteams/platform/webhooks-and-connectors/how-to/add-incoming-webhook (verificado el 2026-10-17; esa página indica además que los conectores de Office 365 están "nearing deprecation").
+- **Respaldo:** conector MCP de Teams (8.2 con `--canal teams`) o correo (8.1).
+- **Frase:** "Mandale a Sofía el comunicado por Teams." EN: "Post the update to Sofía on Teams."
+- **Pasos reales** (guía E2E-3, paso 11): los ejecuta el sistema; el usuario no los escribe.
+  ```text
+  $ python3 $V --proyecto gestion verificar --modo teams-webhook          # corrida complementaria, sin la variable
+     PM_TEAMS_WEBHOOK_URL: no definida
+  Faltan: PM_TEAMS_WEBHOOK_URL
+  $ python3 $V --proyecto gestion enviar gestion/03-control/comunicaciones/2027-01-15-avance-del-portal-al-8-de-enero --modo teams-webhook --confirmar --fecha 2027-01-15
+  · mensaje-01-correo-st-001-st-002-st-007.md: canal correo no corresponde a --modo teams-webhook
+  mensaje-02-teams-st-003.md: enviado · EN-006
+  …
+  Resumen: 1 enviados, 0 fallidos, 0 simulados, 4 omitidos
+  ```
+  El receptor de prueba de 127.0.0.1 recibió la tarjeta con el asunto «Avance del portal al 8 de enero»; `historial` registra `EN-006 2027-01-15 ST-003 teams/teams-webhook «Avance del portal al 8 de enero» [enviado] teams-webhook HTTP 200`.
+- **Salidas (qué queda y dónde verificarlo):** EN-006 en `envios.csv` (destino = `usuario_chat` de ST-003; referencia = código HTTP); `mensaje-02-teams-st-003.md` en `estado: enviado`; la línea en `diario.md`. Dónde verificarlo: la tarjeta en el canal de Teams; `envios.csv` en Excel.
+- **Controles:** un mensaje de más de 28 KB no se envía (queda `fallido` con el motivo); respuesta HTTP distinta de 200 o 202 = `fallido`; solo se envían los mensajes de canal `teams`.
+- **Límites:** el webhook publica en un único canal (el del flujo) y la tarjeta no menciona personas: el destinatario figura en el bloque "Para:". Probado contra un receptor local; con un flujo real **[sin verificar en vivo]**.
+
+### 8.4 Webhook de Slack
+
+- **Prompt del usuario:**
+  1. En Slack (una sola vez, quien administre el espacio de trabajo): crear un webhook entrante para el canal del proyecto (procedimiento según la documentación de Slack **[verificar]**) y definir su URL en tu terminal como `PM_SLACK_WEBHOOK_URL`.
+  2. En una daily, Lucía dijo «Los recordatorios de acciones prefiero que me lleguen por Slack»: "Proponé y confirmá esa preferencia; su usuario de Slack es U0LUCIA01."
+  3. "Mandale a quien es R de la épica E-3 el recordatorio de acciones vencidas."
+- **Respuestas del usuario:** "Confirmala como Martín Suárez, gestor." · "Aprobado por Martín Suárez, gestor." · "Sí, enviá."
+- **Entradas (qué aporta el usuario y cómo):** la URL, solo como variable de entorno; el id de Slack, en el prompt (el sistema lo guarda en `usuario_chat`); la audiencia `raci:E-3:R`, resuelta contra `raci.csv`; el contenido base `03-control/reportes/2027-01-12-recordatorio-acciones.md`.
+- **Objetivo:** recordatorios y avisos breves en el canal del equipo, con mención a la persona.
+- **Momento PRINCE2, dueña y agente:** CS/MP (recordatorios de acciones desde actas confirmadas); igual que 8.1.
+- **Externa:** webhook entrante de Slack: JSON `{"text": …}` con el asunto en negrita y `<@ID>` cuando `usuario_chat` es un id de Slack (U… o W…).
+- **Respaldo:** conector MCP de Slack (8.2 con `--canal slack`), correo o `.eml`.
+- **Frase:** "Mandale el recordatorio de acciones vencidas por Slack." EN: "Send the overdue actions reminder on Slack."
+- **Pasos reales** (corrida complementaria sobre la carpeta de la guía E2E-3): los ejecuta el sistema; el usuario no los escribe.
+  ```text
+  $ python3 $I --proyecto gestion proponer --transcripcion gestion/03-control/reuniones/2027-01-12-daily-transcripcion.md --fecha 2027-01-12 --registrar
+  PF-009 ST-010 canal=slack (declarado) "Los recordatorios de acciones prefiero que me lleguen por Slack." [00:00:01]
+  …
+  $ python3 $I --proyecto gestion confirmar PF-009 --por "Gestor: Martín Suárez"
+  confirmar: PF-009
+  $ python3 $E/registro.py --proyecto gestion actualizar stakeholders ST-010 --campo usuario_chat=U0LUCIA01
+  ok
+  $ python3 $I --proyecto gestion plan-envio --tema "Recordatorio de acciones vencidas" --audiencia raci:E-3:R --proposito recordatorio --base gestion/03-control/reportes/2027-01-12-recordatorio-acciones.md --fecha 2027-01-12
+  Plan de envío → 03-control/comunicaciones/2027-01-12-recordatorio-de-acciones-vencidas/ (1 destinatarios, 1 mensajes en borrador)
+     ST-010 Lucía Benítez: slack → U0LUCIA01 · lista · detallado · es · mensaje-01-slack-st-010.md
+  $ python3 $V --proyecto gestion enviar gestion/03-control/comunicaciones/2027-01-12-recordatorio-de-acciones-vencidas --modo slack-webhook
+  SIMULACIÓN mensaje-01-slack-st-010.md [slack-webhook] → ST-010 <U0LUCIA01> · «Recordatorio de acciones vencidas»
+     (faltan variables de entorno: PM_SLACK_WEBHOOK_URL)
+  $ python3 $V --proyecto gestion enviar gestion/03-control/comunicaciones/2027-01-12-recordatorio-de-acciones-vencidas --modo slack-webhook --confirmar --fecha 2027-01-12
+  mensaje-01-slack-st-010.md: enviado · EN-008
+  Resumen: 1 enviados, 0 fallidos, 0 simulados, 0 omitidos
+  ```
+  Lo que recibió el receptor de prueba de 127.0.0.1: `{"text": "*Recordatorio de acciones vencidas*\n<@U0LUCIA01>\n# Recordatorio de acciones vencidas\n\nA-004 Prototipo de bandeja con métricas de equipo (vencida el 2026-12-11)."}`. Repetir el envío responde "· mensaje-01-slack-st-010.md: ya enviado".
+- **Salidas (qué queda y dónde verificarlo):** PF-009 `confirmada` en `preferencias.csv`; `usuario_chat=U0LUCIA01` en `stakeholders.csv`; EN-008 en `envios.csv` (`slack/slack-webhook`, referencia "slack-webhook HTTP 200"); la línea en `diario.md`. Dónde verificarlo: el mensaje en el canal de Slack; `envios.py historial --stakeholder ST-010`; `interesados.py vinculos ST-010` muestra PF-009 y EN-008.
+- **Controles:** solo se envían mensajes de canal `slack`; respuesta distinta de HTTP 200 = `fallido`. El texto se envía tal como quedó el borrador: en la corrida conservó el encabezado Markdown `# …` del contenido base (cómo lo muestra Slack **[verificar]**); conviene que el modelo adapte el texto al canal antes de aprobar.
+- **Límites:** el webhook publica en un único canal; la mención solo funciona con ids de Slack, no con correos. Probado contra un receptor local; con un webhook real **[sin verificar en vivo]**.
+
+### 8.5 Archivos .eml sin configuración
+
+- **Prompt del usuario:** "No tengo servidor de correo configurado: generá los .eml del highlight para cumplimiento y yo los mando desde mi correo." Después de enviarlo: "Ya lo mandé desde mi correo; registralo."
+- **Respuestas del usuario:** "Aprobado por Martín Suárez, gestor."
+- **Entradas (qué aporta el usuario y cómo):** el pedido, en el prompt; el informe de origen, `03-control/reportes/2027-01-08-highlight-report.md`; el correo del destinatario, del maestro. No hace falta ninguna variable de entorno.
+- **Objetivo:** enviar desde el cliente de correo del usuario manteniendo el registro.
+- **Momento PRINCE2, dueña y agente:** igual que 8.1 (`integraciones.correo=eml`).
+- **Externa:** ninguna; el usuario abre el `.eml` en su cliente de correo.
+- **Respaldo:** es en sí el respaldo de 8.1 y 8.2.
+- **Frase:** "Generá los .eml del comunicado." EN: "Create .eml drafts for the update."
+- **Pasos reales** (corrida complementaria): los ejecuta el sistema; el usuario no los escribe.
+  ```text
+  $ python3 $V --proyecto gestion nuevo --origen 03-control/reportes/2027-01-08-highlight-report.md --audiencia ST-007 --asunto "Highlight report al 8 de enero" --proposito informe --fecha 2027-01-16
+  Comunicación «Highlight report al 8 de enero» (informe) → 03-control/comunicaciones/2027-01-16-highlight-report-al-8-de-enero/ · 1 destinatarios
+     ST-007 Unidad de cumplimiento: correo · conclusion-primero · ejecutivo · mensaje-01-correo-st-007.md
+  $ python3 $V --proyecto gestion enviar gestion/03-control/comunicaciones/2027-01-16-highlight-report-al-8-de-enero --modo eml --confirmar --fecha 2027-01-16
+  mensaje-01-correo-st-007.md: eml-generado · EN-009
+  $ python3 $I --proyecto gestion integridad --corte 2027-01-16
+  AVISO STK-07: Envío EN-009 a ST-007 en estado pendiente (correo, Highlight report al 8 de enero)
+  $ python3 $V --proyecto gestion registrar gestion/03-control/comunicaciones/2027-01-16-highlight-report-al-8-de-enero --mensaje mensaje-01-correo-st-007.md --modo eml --referencia "enviado desde el cliente de correo" --fecha 2027-01-16
+  EN-009
+  $ python3 $I --proyecto gestion integridad --corte 2027-01-16
+  Integridad referencial y calidad del maestro: sin hallazgos.
+  ```
+  Cabeceras del archivo generado: `To: cumplimiento@example.org`, `Subject: Highlight report al 8 de enero`, `X-Unsent: 1`, `Content-Type: text/plain; charset="utf-8"`.
+- **Salidas (qué queda y dónde verificarlo):** `gestion/03-control/comunicaciones/2027-01-16-highlight-report-al-8-de-enero/eml/mensaje-01-correo-st-007-st-007.eml`; EN-009 en `envios.csv`, primero `pendiente` y, tras `registrar`, `enviado` (`correo/eml`). Dónde verificarlo: abrir el `.eml` (con `X-Unsent: 1`, Outlook lo abre como borrador para enviar; otros clientes **[verificar]**); `envios.py historial --stakeholder ST-007`.
+- **Controles:** mientras el `.eml` no se registre como enviado, la integridad avisa STK-07; `registrar` exige que el mensaje esté aprobado.
+- **Límites:** el registro depende de que el usuario avise que lo envió; la cabecera `Date` del `.eml` es la de su generación, no la de `--fecha`.
+
+---
+
+## Caso 9 · OKR con Tability o Perdoo (servidores MCP oficiales)
+
+Contrato común (guía de `pm-okr` §6): `okr.csv` y `00-direccion/okr_checkins.csv` siguen siendo la fuente; cada KR que
+se sincroniza lleva en `ref_externa` su par en la herramienta (`tability:<id>` o `perdoo:<id>`). Publicar (escritura)
+siempre es: `okr.py --propuesta-sync` (vista previa de los check-ins sin publicar, con la herramienta a usar) →
+confirmación explícita → el agente publica con la herramienta del servidor MCP → `okr.py --marcar-publicado
+KR@FECHA --destino … --ref <id>` (columna `publicado_en`). Leer: instantánea fechada en `03-control/fuentes/` y
+registro como check-in con `--fuente`. Sin herramienta conectada, todo funciona igual. Viva Goals se retiró el
+31/12/2025 (https://learn.microsoft.com/viva/goals/goals-retirement); Atlassian Goals y Asana Goals no se exponían por
+sus MCP oficiales al 17/10/2026 **[verificar]**.
+
+### 9.1 Tability
+
+- **Prompt del usuario:**
+  1. En tu terminal (una sola vez): `claude mcp add --transport http tability https://mcp.tability.app/mcp` (en Europa, `mcp-eu.tability.app/mcp`; en Australia, `mcp-au.tability.app/mcp`) y, en una sesión, `/mcp` para autenticar con OAuth. El usuario necesita tener habilitado "API access" en Tability.
+  2. "Usá Tability para los OKR; KR-1.1 es kr-registro-portal en Tability." (registra `integraciones.okr=tability` y `ref_externa=tability:kr-registro-portal`).
+  3. "Decime qué check-ins habría que publicar en Tability."
+- **Respuestas del usuario:** con el conector: "Sí, publicá el del 8/1 de KR-1.1." Sin conector: "No, solo mostrame la propuesta."
+- **Entradas (qué aporta el usuario y cómo):** la conexión MCP, hecha por el usuario en su cliente (OAuth; nada en el proyecto); el par de cada KR, en el prompt; los check-ins ya registrados en `okr_checkins.csv` (CASOS-DE-USO caso 45).
+- **Objetivo:** que el tablero de OKR de la organización refleje los check-ins del proyecto sin cargarlos dos veces.
+- **Momento PRINCE2:** CS (check-ins de cada período) y SB (puntuación en el límite de etapa); la aceptación de los OKR sigue siendo de la ejecutiva.
+- **Dueña y agente:** `pm-okr` (propuesta y marca), publicación vía `pm-integraciones`; desde `pm-control` o `pm-director`.
+- **Externa:** servidor MCP oficial de Tability (verificado el 2026-10-17: https://guides.tability.io/docs/become-a-tability-power-user/integrations/tability-mcp-server); escribe check-ins con `tability_create_checkin`. Plan comercial que lo habilita **[verificar]**.
+- **Respaldo:** `okr=archivo` (`okr.csv` + `okr_checkins.csv`).
+- **Frase:** "Decime qué check-ins habría que publicar en Tability." EN: "Which check-ins should we publish to Tability?"
+- **Pasos reales** (guía E2E-3, paso 10): los ejecuta el sistema; el usuario no los escribe.
+  ```text
+  $ python3 $O gestion/00-direccion/okr.csv --propuesta-sync tability
+  KR-1.1 2026-12-11 = 1 → tability:kr-registro-portal · tability_create_checkin (MCP oficial de Tability: https://mcp.tability.app/mcp) · confidence green
+  KR-1.1 2026-12-23 = 2 → tability:kr-registro-portal · tability_create_checkin (MCP oficial de Tability: https://mcp.tability.app/mcp) · confidence green
+  KR-1.1 2027-01-08 = 3 → tability:kr-registro-portal · tability_create_checkin (MCP oficial de Tability: https://mcp.tability.app/mcp) · confidence green
+  AVISO KR-1.2: sin ref_externa 'tability:…' (vincular el KR con su par en tability antes de publicar)
+  AVISO KR-2.1: sin ref_externa 'tability:…' (vincular el KR con su par en tability antes de publicar)
+  AVISO KR-2.2: sin ref_externa 'tability:…' (vincular el KR con su par en tability antes de publicar)
+  $ python3 $O gestion/00-direccion/okr.csv --marcar-publicado KR-1.1@2027-01-08 --destino tability --ref checkin-ejemplo-1
+  KR-1.1@2027-01-08 marcado como publicado en tability
+  ```
+  La confianza se traduce a los colores de Tability (rojo → red, ámbar → yellow, verde → green). Con `--json`, cada pendiente trae además el comando `marcar_despues` y la regla "Publicar solo tras mostrar esta vista previa y obtener confirmación explícita (pm-integraciones); okr.csv sigue siendo la fuente." En la corrida no hubo servidor Tability: `checkin-ejemplo-1` es una referencia de ejemplo.
+- **Salidas (qué queda y dónde verificarlo):** columna `publicado_en` (`tability:<fecha>`) y `ref_externa` del check-in en `gestion/00-direccion/okr_checkins.csv`; el check-in publicado deja de aparecer en la propuesta siguiente. Dónde verificarlo: abrir `okr_checkins.csv` en Excel; el check-in en Tability.
+- **Controles:** solo se proponen KR con `ref_externa` del destino; los demás salen como AVISO; `--marcar-publicado` falla si no existe el check-in ("No hay check-in KR-x del AAAA-MM-DD"); `integraciones.okr` acepta `archivo`, `tability` y `perdoo` (INT-01).
+- **Límites:** propuesta y marca probadas con scripts; la publicación con el servidor real **[sin verificar en vivo]**.
+
+### 9.2 Perdoo
+
+- **Prompt del usuario:**
+  1. En tu terminal (una sola vez): `claude mcp add --transport http perdoo https://mcp.perdoo.com` y autenticar con `/mcp` (OAuth) o con una API key de Perdoo (cómo se pasa, según la documentación de Perdoo **[verificar]**; siempre en el cliente, nunca en el proyecto).
+  2. "Usá Perdoo para los OKR; KR-2.2 es goal-solicitudes-completas en Perdoo." (registra `integraciones.okr=perdoo` y `ref_externa=perdoo:goal-solicitudes-completas`).
+  3. "Proponé qué publicar en Perdoo."
+- **Respuestas del usuario:** "Publicá el del 8/1." o "Solo la propuesta."
+- **Entradas (qué aporta el usuario y cómo):** la conexión MCP, en el cliente; el par del KR, en el prompt; los check-ins de `okr_checkins.csv`.
+- **Objetivo, momento, dueña y agente:** igual que 9.1.
+- **Externa:** servidor MCP oficial de Perdoo (https://support.perdoo.com/en/articles/14470891-mcp-server, artículo del 15/09/2026, verificado el 2026-10-17); registra progreso con `update_goal_progress` (valor, estado y nota). Plan comercial que lo habilita **[verificar]**.
+- **Respaldo:** `okr=archivo`.
+- **Frase:** "Proponé qué check-ins publicar en Perdoo." EN: "Propose which check-ins to push to Perdoo."
+- **Pasos reales** (corrida complementaria, sobre una copia de `okr.csv` con `ref_externa=perdoo:goal-solicitudes-completas` en KR-2.2): los ejecuta el sistema; el usuario no los escribe.
+  ```text
+  $ python3 $O okr-perdoo/okr.csv --propuesta-sync perdoo
+  KR-2.2 2026-12-11 = 64 → perdoo:goal-solicitudes-completas · update_goal_progress (MCP oficial de Perdoo: https://mcp.perdoo.com)
+  KR-2.2 2026-12-23 = 68 → perdoo:goal-solicitudes-completas · update_goal_progress (MCP oficial de Perdoo: https://mcp.perdoo.com)
+  KR-2.2 2027-01-08 = 72 → perdoo:goal-solicitudes-completas · update_goal_progress (MCP oficial de Perdoo: https://mcp.perdoo.com)
+  AVISO KR-1.1: sin ref_externa 'perdoo:…' (vincular el KR con su par en perdoo antes de publicar)
+  …
+  $ python3 $O okr-perdoo/okr.csv --marcar-publicado KR-2.2@2027-01-08 --destino perdoo --ref progreso-ejemplo-1
+  KR-2.2@2027-01-08 marcado como publicado en perdoo
+  $ python3 $O okr-perdoo/okr.csv --checkin KR-2.2 --valor 75 --confianza 7 --fecha 2027-01-22 --autor "Usuaria sénior: Sofía Ramírez" --fuente perdoo
+  Check-in KR-2.2 2027-01-22 = 75 → <repo>/okr-perdoo/okr_checkins.csv
+  ```
+  Con `--json`, cada pendiente trae un `status_sugerido` traducido de la confianza ("off track", "needs attention", "on track") marcado "[verificar nombres de estado en Perdoo]".
+- **Salidas (qué queda y dónde verificarlo):** `publicado_en` = `perdoo:<fecha>` en `okr_checkins.csv`; el check-in leído de Perdoo queda con `fuente=perdoo`. Dónde verificarlo: abrir `okr_checkins.csv` en Excel; el progreso en Perdoo.
+- **Controles:** los mismos que 9.1.
+- **Límites:** los nombres de estado de Perdoo **[verificar]**; publicación con el servidor real **[sin verificar en vivo]**.
 
 ---
 
@@ -655,10 +978,16 @@ Todo en IP (plan de proyecto y plan de la primera etapa de entrega) y en cada SB
 | Skills Office docx/xlsx/pptx | pm-exportar | orquestador · pm-director | `exportar.py`, `paquete.py`, guion de deck | INS-03, INS-01 | verificado en vivo (D1, D2; respaldo F1, F2) · `exportar.py` probado con scripts |
 | MSPDI + MPXJ | pm-cronograma-estimacion | pm-planificacion | `cpm.py` (CPM y Gantt Mermaid) | INT-01 (`cronograma`) | probado con scripts (lectura con MPXJ 16.10) |
 | EVM, WBS, CPM (`evm.py`, `wbs.py`, `cpm.py`) | pm-progreso-reportes · pm-planificacion-por-productos · pm-cronograma-estimacion | pm-control · pm-planificacion | — (internos) | EST-06/07, ESP-04 | probado con scripts |
-| Tability MCP | pm-okr (vía pm-integraciones) | pm-inicio · pm-director · pm-cierre | `okr.csv` con `okr.py` | INT-01 (`okr`), ESP-04/05 | `okr.py` probado con scripts · Tability documentado sin prueba en vivo |
+| Tability MCP (oficial) | pm-okr (vía pm-integraciones) | pm-inicio · pm-control · pm-director · pm-cierre | `okr.csv` + `okr_checkins.csv` con `okr.py` | INT-01 (`okr`), ESP-04/05, STK-08 | `okr.py` (check-ins, `--propuesta-sync`, `--marcar-publicado`) probado con scripts · URL del servidor verificada el 2026-10-17 · publicación sin verificar en vivo |
+| Perdoo MCP (oficial) | pm-okr (vía pm-integraciones) | ídem | ídem | ídem | `--propuesta-sync perdoo` probado con scripts · URL verificada el 2026-10-17 · nombres de estado y publicación sin verificar en vivo |
 | Granola / Fireflies / Zoom / minutes | pm-reuniones (vía pm-integraciones) | pm-control · pm-cierre | archivo VTT/SRT/TXT/DOCX o texto pegado | INT-01 (`reuniones`) | `transcripcion.py` probado con scripts · MCP documentado sin prueba en vivo (Zoom no confirmado) |
-| Atlassian Rovo (Jira, Confluence) | pm-integraciones | pm-control · pm-inicio | CSV y Markdown locales | INT-01…04 | documentado sin prueba en vivo · controles INT probados con scripts |
-| Slack MCP, Teams/Work IQ | pm-integraciones (y pm-comunicacion-stakeholders) | pm-control | borrador para copiar | INT-01 (`chat`) | documentado sin prueba en vivo |
+| Atlassian Rovo (Jira, Confluence) | pm-integraciones (riesgos candidatos: pm-riesgos) | pm-control · pm-inicio | CSV y Markdown locales | INT-01…04 | documentado sin prueba en vivo · controles INT y clasificación de la instantánea en riesgos e issues (`riesgos.py`, caso 6.1) probados con scripts |
+| Slack MCP, Teams/Work IQ | pm-integraciones (y pm-comunicacion-stakeholders) | pm-control | borrador para copiar o capa de canales (webhook, correo, `.eml`) | INT-01 (`chat`) | documentado sin prueba en vivo |
+| Capa de canales: correo SMTP | pm-integraciones (`envios.py`; contenido: pm-comunicacion-stakeholders) | pm-control | `.eml` | INT-01 (`correo`), STK-07, hook sobre `envios.csv` | probado con scripts contra un servidor SMTP local (guía E2E-3 y `probar_paquete.py` caso H) · servidor real sin verificar en vivo |
+| Capa de canales: conector Gmail u Outlook | pm-integraciones | pm-control | SMTP o `.eml` | INT-01 (`correo`), STK-07 | `preparar-mcp` y `registrar --modo mcp` probados con scripts · conector real sin verificar en vivo |
+| Capa de canales: webhook de Teams (Workflows) | pm-integraciones | pm-control | conector MCP de Teams o correo | STK-07 | probado con scripts contra un receptor local (formato de la tarjeta según la documentación de Microsoft) · flujo real sin verificar en vivo |
+| Capa de canales: webhook de Slack | pm-integraciones | pm-control | conector MCP de Slack, correo o `.eml` | STK-07 | probado con scripts contra un receptor local · webhook real sin verificar en vivo |
+| Capa de canales: `.eml` | pm-integraciones | pm-control | — (es el respaldo) | STK-07 (pendiente hasta `registrar`) | probado con scripts |
 | BMAD 6.12.4 / v4 | pm-bmad-puente | pm-planificacion · pm-control · pm-director | `requisitos.md`, `backlog.csv`, `wbs.csv` | ESP-01…15, hook | probado con scripts sobre artefactos reales de BMAD 6.12.4 (fixture) y en `probar_paquete.py` |
 
 Controles transversales: el hook `guardian.py` (PreToolUse) bloquea ediciones directas de `estado.json`, registros CSV,

@@ -1,7 +1,7 @@
 ---
 name: pm-calidad
 description: "Calidad y aceptación de productos. Usar: registro de calidad, revisar o auditar la calidad de un entregable, criterios de aceptación, aceptar producto, quality review, DoD. No: off-spec→pm-issues-cambios; consistencia→pm-sanidad."
-version: 2.1.0
+version: 2.2.0
 author: pm-method
 license: MIT
 metadata:
@@ -35,7 +35,7 @@ metadata:
 
 ## Entradas requeridas
 - `estado.json`: fase, `enfoque_entrega`, tolerancia de calidad (si vacía, proponer `[por confirmar]`), roles (usuario sénior, aseguramiento), `integraciones`.
-- Descripción del producto del proyecto (`02-planificacion/productos/descripcion-producto-proyecto.md`); si falta, `pm-planificacion-por-productos`.
+- Descripción del producto del proyecto (`02-planificacion/descripcion-producto-proyecto.md`); si falta, `pm-planificacion-por-productos`.
 - Enfoque de calidad (`02-planificacion/enfoques/enfoque-calidad.md`); si falta, versión mínima con `pm-enfoques-gestion`.
 - Descripciones de producto (`02-planificacion/productos/<producto>.md`) y `03-control/registros/calidad.csv` (`${CLAUDE_SKILL_DIR}/../pm-estado-proyecto/scripts/registro.py --proyecto <dir> esquema calidad`).
 - Revisión: producto, descripción y revisores. Auditoría: alcance y auditor independiente. Aceptación: evidencia de control y autoridad.
@@ -58,7 +58,7 @@ metadata:
 
 ### C. Aceptar
 11. Reunir las dos evidencias (control + revisión independiente) y completar `templates/registro-aceptacion.md`; clave `aceptacion-<producto>` para intermedios, `registro-aceptacion` solo para el producto del proyecto (guía §5).
-12. **Aceptación por requisito**: cobertura `terminado` en `listar requisitos` de la fachada (con BMAD, la RTM de `bmad.py trazabilidad` es anexo); DoD y code review como métodos de calidad registrados en `calidad.csv`; `done` en BMAD no sustituye la aceptación (guía §6).
+12. **Aceptación por requisito**: cobertura `terminado` en `listar requisitos` de la fachada (con BMAD, la RTM de `bmad.py trazabilidad` es anexo); DoD y code review como métodos de calidad registrados en `calidad.csv`; `done` en BMAD no sustituye la aceptación (guía §6); sanidad QUA-01…03 lo controla a volumen (guía §8.1).
 13. **PUERTA HUMANA — Aceptación.** La autoridad nombrada acepta o rechaza explícitamente; `estado.py aprobar aceptacion-<producto> --por "<rol: nombre>" --nivel gestor|junta`; actualizar el product status account (`pm-paquetes-trabajo`). Contractual antes que la del proyecto. El producto del proyecto lo conduce `pm-cierre-proyecto`.
 
 ### D. Auditar

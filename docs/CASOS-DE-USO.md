@@ -1,8 +1,8 @@
-# Casos de uso de pm-method 2.1.0 · Worked examples
+# Casos de uso de pm-method 2.2.0 · Worked examples
 
-Un ejemplo trabajado por cada una de las 37 skills, incluidos los seis comandos, sobre un mismo proyecto de muestra para que los casos se encadenen de principio a fin. Al final hay tres variantes cortas: predictivo sin BMAD, ágil en inglés y un proyecto con Jira y Teams conectados.
+Un ejemplo trabajado por cada una de las 38 skills, incluidos los seis comandos, sobre un mismo proyecto de muestra para que los casos se encadenen de principio a fin. La parte 6 (casos 38 a 48) reúne lo nuevo de la versión 2.2: el maestro de interesados (`pm-interesados`), la comunicación personalizada enviada por la capa de canales, los OKR con check-ins, los riesgos candidatos desde cuatro fuentes y los controles permanentes (caso 48). Al final hay tres variantes cortas: predictivo sin BMAD, ágil en inglés y un proyecto con Jira y Teams conectados.
 
-Los datos del proyecto de muestra (personas, montos, fechas, ids) siguen el caso de punta a punta con el que se probó la versión 2: las cifras de los ejemplos coinciden con lo que devolvieron los scripts en esa prueba. Las personas y la cooperativa son ficticias. Las respuestas humanas son simuladas.
+Los datos del proyecto de muestra (personas, montos, fechas, ids) siguen el caso de punta a punta con el que se probó la versión 2: las cifras de los ejemplos coinciden con lo que devolvieron los scripts en esa prueba. Los casos de la parte 6 usan, en cambio, la corrida de referencia de la guía [E2E-3](guias/E2E-3-interesados-okr-avance.md) (mismo portal y mismas personas, con diez interesados ST-001…ST-010): sus ids y cifras salen de [salida-g3.md](guias/evidencia/salida-g3.md) y no continúan la numeración de las partes 1 a 5 (el caso 48 toma además salidas de las guías E2E-2 y E2E-4, cada una con su propia carpeta y numeración). Las personas y la cooperativa son ficticias. Las respuestas humanas son simuladas.
 
 ## Proyecto de muestra
 
@@ -31,9 +31,12 @@ B="$PM/pm-bmad-puente/scripts/bmad.py"
 X="$PM/pm-exportar/scripts/paquete.py"
 O="$PM/pm-okr/scripts/okr.py"
 T="$PM/pm-reuniones/scripts/transcripcion.py"
+I="$PM/pm-interesados/scripts/interesados.py"   # maestro de interesados (v2.2)
+V="$PM/pm-integraciones/scripts/envios.py"      # capa de canales (v2.2)
+R="$PM/pm-riesgos/scripts/riesgos.py"           # riesgos candidatos desde cuatro fuentes (v2.2)
 ```
 
-Los scripts que reciben la carpeta usan `--proyecto gestion` y resuelven las rutas internas contra ella. Los que reciben un archivo (`wbs.py`, `cpm.py`, `okr.py`, `transcripcion.py`) llevan la ruta desde la raíz del repositorio.
+Los scripts que reciben la carpeta (incluidos `interesados.py` y `envios.py`) usan `--proyecto gestion` y resuelven las rutas internas contra ella. Los que reciben un archivo (`wbs.py`, `cpm.py`, `okr.py`, `transcripcion.py`) llevan la ruta desde la raíz del repositorio.
 
 **Cómo leer cada caso.** *Prompt del usuario*: el mensaje o los mensajes, en lenguaje natural, que escribe la persona; cuando hay un comando de barra equivalente, figura como "Atajo". *Respuestas del usuario*: lo que contesta la persona a las preguntas del orquestador, con nombre y rol cuando es una decisión (solo aparece si el sistema pregunta). *Quién*: la cadena orquestador → subagente → skill. *Qué pregunta o verifica*: lo que la skill comprueba antes de producir y lo que pregunta (siempre a través del orquestador, porque los subagentes no preguntan). *Comandos*: los ejecuta el sistema por detrás; el usuario no los escribe. *Entradas*: qué información o archivos aporta el usuario y cómo llegan (en el prompt, respondiendo al orquestador, un archivo en una ruta de la carpeta del proyecto o adjunto en la sesión, BMAD leído por la fachada en solo lectura, o un conector MCP). *Salidas*: qué queda, con su ruta dentro de `gestion/`, su id y su estado, y cómo lo verifica el usuario (abrir el archivo, abrir el CSV en un editor o Excel, mirar un campo de `estado.json` o escribir un prompt de verificación). *Decisión humana*: quién decide y quién registra después.
 
@@ -81,7 +84,7 @@ Regla que atraviesa todos los casos: cuando un subagente necesita una decisión,
   1. Martín Suárez, gestor: "Sí, tengo el correo del consejo; te lo paso en el próximo mensaje."
   2. Martín Suárez, gestor: "Estoy de acuerdo con la secuencia; arrancá por el mandato y el brief."
 - **Quién:** orquestador (hilo principal; también `claude --agent pm-method:pm-orquestador`).
-- **Qué pregunta o verifica:** corre la sanidad rápida, lee el estado y resume en tres líneas: SU, etapa 0, sin tolerancias ni puertas; enfoque híbrido; especificación BMAD. Clasifica la petición como SU y muestra la secuencia: pm-inicio con pm-mandato-y-brief, pm-organizacion-roles, pm-caso-de-negocio, pm-riesgos y pm-plan-etapa-y-limites → 🔒 `autorizar-inicio` (decide la ejecutiva). Hace una sola pregunta: "¿Tenés el correo o el acta del consejo con el pedido?".
+- **Qué pregunta o verifica:** corre la sanidad rápida, lee el estado y resume en tres líneas: SU, etapa 0, sin tolerancias ni puertas; enfoque híbrido; especificación BMAD. Clasifica la petición como SU y muestra la secuencia: pm-inicio con pm-mandato-y-brief, pm-organizacion-roles, pm-interesados, pm-caso-de-negocio, pm-riesgos y pm-plan-etapa-y-limites → 🔒 `autorizar-inicio` (decide la ejecutiva). Hace una sola pregunta: "¿Tenés el correo o el acta del consejo con el pedido?".
 - **Comandos:** los ejecuta el sistema; el usuario no los escribe.
   ```bash
   python3 $E/sanidad.py --proyecto gestion --rapido
@@ -129,31 +132,32 @@ Regla que atraviesa todos los casos: cuando un subagente necesita una decisión,
   - Cómo verificarlo: abrir los dos Markdown; abrir `decisiones.csv` y `lecciones.csv` en un editor o Excel (solo para leer: los cambios van siempre por el sistema); o escribir "Mostrame las decisiones registradas".
 - **Decisión humana:** el primer retorno trae dos preguntas: nivel de formalidad (decide el gestor) y enfoque de entrega (decide la ejecutiva). El orquestador las presenta, Martín elige "mínimo" y Laura confirma "híbrido", y se vuelve a delegar con las respuestas.
 
-### 5. `pm-organizacion-roles` — junta, roles e interesados
-- **Prompt del usuario:** "Diseñá la junta: Laura patrocina, Sofía representa a los socios y será la PO, el desarrollo lo hace un proveedor con Diego como proveedor sénior, Andrea hace aseguramiento y Lucía lidera el equipo del proveedor."
+### 5. `pm-organizacion-roles` — junta y roles (los interesados, con pm-interesados)
+- **Prompt del usuario:** "Diseñá la junta: Laura patrocina, Sofía representa a los socios y será la PO, el desarrollo lo hace un proveedor con Diego como proveedor sénior, Andrea hace aseguramiento y Lucía lidera el equipo del proveedor." Y, para los interesados: "Registrá a los interesados con su poder, interés y actitud."
 - **Respuestas del usuario:**
   1. Laura Méndez, ejecutiva: "Confirmo el diseño de la junta y los nombramientos."
   2. Martín Suárez, gestor: "Revisé las actitudes de los interesados; guardalas así."
-- **Quién:** orquestador → `pm-inicio` → `pm-organizacion-roles`.
-- **Qué pregunta o verifica:** un solo ejecutivo distinto del gestor; los tres intereses en la junta; aseguramiento fuera del gestor, los equipos y el soporte; sin responsabilidades huérfanas. Mapea roles ágiles y BMAD (el PM de BMAD no es el gestor del proyecto; la PO es la usuaria sénior). Detecta que el rol de soporte no tiene titular y lo deja `[por confirmar]`.
+- **Quién:** orquestador → `pm-inicio` → `pm-organizacion-roles` (junta, roles, descripciones de rol, team charter). Desde la versión 2.2 los interesados y la RACI son de `pm-interesados` (maestro de interesados), que el mismo subagente invoca a continuación (casos 38 a 43).
+- **Qué pregunta o verifica:** un solo ejecutivo distinto del gestor; los tres intereses en la junta; aseguramiento fuera del gestor, los equipos y el soporte; sin responsabilidades huérfanas. Mapea roles ágiles y BMAD (el PM de BMAD no es el gestor del proyecto; la PO es la usuaria sénior). Detecta que el rol de soporte no tiene titular y lo deja `[por confirmar]`. Para los interesados, `pm-interesados` pide poder e interés de cada uno (sin ellos no se ubican en la matriz: aviso STK-01) y deja las valoraciones como de circulación restringida.
 - **Comandos:** los ejecuta el sistema; el usuario no los escribe. Se corren después de la confirmación de la ejecutiva.
   ```bash
   python3 $E/estado.py --proyecto gestion rol ejecutivo="Laura Méndez" gestor_proyecto="Martín Suárez" \
       usuario_senior="Sofía Ramírez" proveedor_senior="Diego Ferreira" aseguramiento="Andrea Costa" \
       autoridad_cambio="Sofía Ramírez" product_owner="Sofía Ramírez" jefes_equipo="Lucía Benítez"
   python3 $E/estado.py --proyecto gestion agil cadencia_iteracion_dias=14 velocidad_referencia=30
+  # pm-interesados (maestro de interesados):
   python3 $E/registro.py --proyecto gestion agregar stakeholders --campo nombre="Consejo directivo" \
       --campo poder=alto --campo interes=medio --campo actitud=partidario --campo confidencial=no
+  python3 $I --proyecto gestion matriz
   ```
 - **Entradas (qué aporta el usuario y cómo):**
   - Personas y roles: escritos en el prompt.
   - Actitudes de los interesados: las revisa el gestor antes de guardarlas (respuesta al orquestador).
   - Cadencia de 14 días: dato del proyecto (sprints de 14 días). Velocidad de referencia 30: no figura en el prompt; el usuario la informa al orquestador **[verificar]** (el caso no dice de dónde sale).
 - **Salidas (qué queda y dónde verificarlo):**
-  - `gestion/00-direccion/estructura-organizativa.md` (organigrama Mermaid).
-  - `gestion/01-inicio/analisis-stakeholders.md` (circulación restringida).
-  - `gestion/02-planificacion/plan-compromiso-stakeholders.md` (cuatro brechas con acción).
-  - `gestion/03-control/registros/stakeholders.csv` con seis interesados (ST-004 con `confidencial=si`).
+  - `gestion/00-direccion/estructura-organizativa.md` (organigrama Mermaid), de `pm-organizacion-roles`.
+  - `gestion/01-inicio/analisis-stakeholders.md` (circulación restringida) y `gestion/02-planificacion/plan-compromiso-stakeholders.md` (cuatro brechas con acción): sus plantillas pasaron a `pm-interesados` en la versión 2.2.
+  - `gestion/03-control/registros/stakeholders.csv` con seis interesados (ST-004 con `confidencial=si`); `interesados.py matriz` muestra en la respuesta el cuadrante de cada uno con su estrategia (ejemplo completo en el caso 38).
   - `gestion/estado.json`: `roles` con los nombramientos (el rol de soporte queda `[por confirmar]`) y `agil.cadencia_iteracion_dias` = 14, `agil.velocidad_referencia` = 30; la decisión de la ejecutiva, nivel `junta`, en `gestion/03-control/registros/decisiones.csv`.
   - Cómo verificarlo: abrir los tres Markdown (el análisis es de circulación restringida); abrir `stakeholders.csv` en un editor o Excel; o escribir "Mostrame la junta y los roles registrados".
 - **Decisión humana:** dos puertas internas: Laura confirma diseño y nombramientos (decisión nivel `junta`) y Martín revisa las actitudes antes de guardarlas.
@@ -217,6 +221,7 @@ Regla que atraviesa todos los casos: cuando un subagente necesita una decisión,
   - `gestion/00-direccion/okr.md` (`en-revision`; `artefactos.okr`, que pasa a `aprobado` con `aprobado_por` "Ejecutivo: Laura Méndez" tras la aceptación).
   - `gestion/03-control/reportes/2026-10-17-okr.md`: tabla puntuada. Sin avisos de vínculo; los tres KR salen en rojo porque todavía no hay medición, y el informe lo aclara.
   - Cómo verificarlo: abrir `okr.csv` en un editor o Excel y la tabla puntuada; mirar `artefactos.okr` en `gestion/estado.json`.
+  - Desde la versión 2.2 este `okr.csv` sigue valiendo tal cual (sin columnas nuevas la salida es idéntica a la de 2.1); los tipos de KR, el compromiso, el peso, las iniciativas, los check-ins y la salud son opcionales (caso 45).
 - **Decisión humana:** la ejecutiva acepta objetivo y KR; con su respuesta, pm-director ejecuta `estado.py aprobar okr --por "Ejecutivo: Laura Méndez"`.
 
 ### 9. `pm-riesgos` — riesgos iniciales
@@ -452,7 +457,7 @@ Regla que atraviesa todos los casos: cuando un subagente necesita una decisión,
 - **Respuestas del usuario:**
   1. Laura Méndez, ejecutiva: "Apruebo la matriz de comunicaciones."
 - **Quién:** orquestador → `pm-inicio` → `pm-comunicacion-stakeholders`.
-- **Qué pregunta o verifica:** que exista el enfoque de comunicación (dueño pm-enfoques-gestion) y que la matriz lo respete; que todo `stakeholders.csv` quede cubierto; que las filas con `confidencial=si` no entren en comunicados amplios; idioma por audiencia.
+- **Qué pregunta o verifica:** que exista el enfoque de comunicación (dueño pm-enfoques-gestion) y que la matriz lo respete; que todo `stakeholders.csv` quede cubierto; que las filas con `confidencial=si` no entren en comunicados amplios; idioma por audiencia. Desde la versión 2.2 parte de la estrategia de cada cuadrante de la matriz poder/interés, de los estereotipos y de las preferencias confirmadas del maestro (casos 38 a 41); si una preferencia confirmada contradice la matriz, el perfil lo avisa y la matriz se actualiza.
 - **Comandos:** los ejecuta el sistema; el usuario no los escribe.
   ```bash
   python3 $E/registro.py --proyecto gestion listar stakeholders --json
@@ -468,6 +473,7 @@ Regla que atraviesa todos los casos: cuando un subagente necesita una decisión,
   - `gestion/02-planificacion/matriz-comunicaciones.md` (`en-revision`, `aprobado` tras la decisión; `artefactos.matriz-comunicaciones`) con la sprint review como evento recurrente.
   - Tras la aprobación: ST-001 con `canal=correo` y `frecuencia=mensual` en `gestion/03-control/registros/stakeholders.csv`.
   - Cómo verificarlo: abrir la matriz; abrir `stakeholders.csv` en un editor o Excel.
+  - Los mensajes que salen de la matriz se pueden enviar por la capa de canales (correo, Slack, Teams o `.eml`), siempre con aprobación y confirmación explícita (caso 44).
 - **Decisión humana:** la ejecutiva aprueba la matriz dentro del PID (pm-director `estado.py aprobar matriz-comunicaciones`).
 
 ### 20. `pm-acta-constitucion` — PID por referencia
@@ -534,7 +540,7 @@ Regla que atraviesa todos los casos: cuando un subagente necesita una decisión,
 - **Entradas (qué aporta el usuario y cómo):** lo que dice el prompt (sin tracker ni chat; transcripciones por archivo) y las herramientas MCP presentes en la sesión (ninguna de tracker, chat ni docs).
 - **Salidas (qué queda y dónde verificarlo):**
   - `gestion/estado.json` → `integraciones`: `tracker` = `ninguno`, `chat` = `ninguno`, `docs` = `ninguno`, `reuniones` = `archivo`, `okr` = `archivo`.
-  - Una nota en `gestion/03-control/registros/diario.md`. Las alternativas son el `backlog.csv`, la transcripción por archivo, borradores de mensajes para copiar y `okr.csv`.
+  - Una nota en `gestion/03-control/registros/diario.md`. Las alternativas son el `backlog.csv`, la transcripción por archivo, borradores de mensajes para copiar y `okr.csv`. Desde la versión 2.2, sin ningún conector igual se puede enviar a los interesados por la capa de canales: correo SMTP propio, webhooks de Slack o Teams, o archivos `.eml` sin configuración (caso 44 y [CASOS-DE-USO-INTEGRACIONES caso 8](CASOS-DE-USO-INTEGRACIONES.md)).
   - Cómo verificarlo: abrir `gestion/estado.json` y `diario.md`; o escribir "¿Qué integraciones tiene el proyecto?".
 - **Decisión humana:** ninguna. La skill sugiere conectar un tracker si el equipo lo usa, sin bloquear el trabajo (ver variante C).
 
@@ -589,6 +595,7 @@ Regla que atraviesa todos los casos: cuando un subagente necesita una decisión,
   - Transcripción normalizada `gestion/03-control/reuniones/2026-12-03-checkpoint-sprint3-transcripcion.md` (9 intervenciones, 3 hablantes).
   - Acta `gestion/03-control/reuniones/2026-12-03-acta-checkpoint-sprint3.md`.
   - Tras confirmar: D-026 en `gestion/03-control/registros/decisiones.csv`; A-001 (Lucía, 2026-12-11) y A-002 (Sofía, 2026-12-09) en `gestion/03-control/registros/acciones.csv`; R-006 (P4 × I3 = 12, EMV 8.400) en `gestion/03-control/registros/riesgos.csv`; I-002 (`problema-preocupacion`) en `gestion/03-control/registros/issues.csv`.
+  - Opcional desde la versión 2.2: distribuir el acta confirmada a los participantes por la capa de canales (`envios.py nuevo --origen <acta> --proposito acta`, con aprobación y `--confirmar`; caso 44) y proponer las preferencias de comunicación que alguien declaró en primera persona durante la reunión (`interesados.py proponer`; caso 41).
   - Cómo verificarlo: abrir el acta; abrir los CSV en un editor o Excel; o escribir "Mostrame las acciones abiertas".
 - **Decisión humana:** Martín, que presidió, confirma el acta y la lista de cargas. Nada entra a los registros antes.
 
@@ -638,7 +645,7 @@ Regla que atraviesa todos los casos: cuando un subagente necesita una decisión,
   - `gestion/03-control/reportes/2026-12-10-highlight-report.md` (`en-revision` → `aprobado`; `artefactos.highlight-2026-12-10`): PV 52.000, EV 47.000, AC 50.000, SPI 0,90, CPI 0,94, EAC 101.064, costo y plazo en ámbar, sin excepción; avance BMAD 13/21 puntos (61,9 %); 6 riesgos abiertos (1 alto), 1 issue abierto, A-002 vencida.
   - Una fila nueva en `gestion/03-control/reportes/avance-bmad.csv`.
   - Cómo verificarlo: abrir el informe; mirar `artefactos.highlight-2026-12-10` en `gestion/estado.json`.
-- **Decisión humana:** aseguramiento (Andrea) confirma; con la revisión del gestor, pm-director ejecuta `estado.py aprobar highlight-2026-12-10 --por "Gestor: Martín Suárez"`. Publicarlo en un canal requiere confirmación aparte.
+- **Decisión humana:** aseguramiento (Andrea) confirma; con la revisión del gestor, pm-director ejecuta `estado.py aprobar highlight-2026-12-10 --por "Gestor: Martín Suárez"`. Publicarlo en un canal requiere confirmación aparte: con un conector MCP (pm-integraciones) o por la capa de canales (`envios.py nuevo --origen 03-control/reportes/2026-12-10-highlight-report.md --proposito informe`, aprobación del gestor y `enviar … --confirmar`; caso 44).
 
 ### 27. `pm-progreso-reportes` — ¿estamos cerca de la tolerancia de proyecto?
 - **Prompt del usuario:** "La junta pregunta qué tan cerca estamos de la tolerancia de costo del proyecto. Calculalo y decime qué EAC usar."
@@ -679,7 +686,7 @@ Regla que atraviesa todos los casos: cuando un subagente necesita una decisión,
   - `gestion/03-control/reportes/2026-12-10-tablero-avance.html` (`borrador`; `artefactos.tablero-avance`): 2 acciones, 6 riesgos, 1 issue. Con `?actor=Sofía Ramírez` muestra A-002 vencida y los riesgos R-003, R-004 y R-006 de los que es propietaria.
   - Sin chat conectado, el texto con los enlaces para pegar queda en la respuesta.
   - Cómo verificarlo: abrir el HTML en el navegador, con y sin `?actor=…` al final de la dirección.
-- **Decisión humana:** el gestor confirma antes de compartirlo. Sin chat conectado, se entrega el texto con los enlaces para pegar.
+- **Decisión humana:** el gestor confirma antes de compartirlo. Sin chat conectado, se entrega el texto con los enlaces para pegar; desde la versión 2.2 también puede salir por la capa de canales (webhook de Slack o Teams, o correo) con aprobación del gestor y `--confirmar` (caso 44).
 
 ### 29. `/pm-estado` — dónde estamos
 - **Prompt del usuario:** "¿Dónde estamos y qué sigue?"
@@ -864,7 +871,7 @@ Regla que atraviesa todos los casos: cuando un subagente necesita una decisión,
   - `gestion/exportados/2027-02-12-registros-v1.xlsx` (una hoja por registro).
   - Nota en `gestion/03-control/registros/diario.md`.
   - Cómo verificarlo: abrir el ZIP y leer el `MANIFIESTO.md`; abrir el Excel. Son copias: la fuente de verdad sigue en la carpeta.
-- **Decisión humana:** el usuario confirma antes de enviar o subir los archivos; el envío lo hace pm-comunicacion-stakeholders.
+- **Decisión humana:** el usuario confirma antes de enviar o subir los archivos; el envío lo hace pm-comunicacion-stakeholders, con un conector o por la capa de canales (`envios.py`, con aprobación y `--confirmar`; caso 44).
 
 ---
 
@@ -892,7 +899,387 @@ Regla que atraviesa todos los casos: cuando un subagente necesita una decisión,
   - En `gestion/04-cierre/`: `registro-aceptacion.md` (FR-1 a FR-5 aceptados; NFR-1 con concesión), `handover.md`, `recomendaciones-seguimiento.md`, `plan-revision-beneficios.md` (B-01 medido el 2027-07-26 y el 2027-10-26; B-02 el 2027-11-30), `informe-lecciones.md`, `informe-fin-proyecto.md` (CPI 0,991, SPI 1,00, VAC −1.500), `notificacion-cierre.md` en borrador.
   - `gestion/estado.json`: `artefactos.registro-aceptacion` en `aprobado`; puerta `autorizar-cierre` en `puertas[]`; `fase` = `cerrado`.
   - Cómo verificarlo: abrir los archivos de `gestion/04-cierre/`; o escribir "¿Qué sigue?" (atajo `/pm-method:pm-estado`), que recuerda las revisiones de beneficios.
-- **Decisión humana:** dos puertas. Aceptación: Sofía acepta y Laura confirma; pm-director ejecuta `estado.py aprobar registro-aceptacion --por "Usuario sénior: Sofía Ramírez; Ejecutivo: Laura Méndez"`. Cierre: la junta autoriza y pm-director registra `estado.py puerta autorizar-cierre --decision aprobado --por "Ejecutivo: Laura Méndez" --fecha 2027-05-07`; la fase pasa a `cerrado` y `siguiente` recuerda las revisiones de beneficios. La notificación la firma la ejecutiva y se envía con confirmación. El ZIP de cierre sale con `python3 $X --proyecto gestion cierre`.
+- **Decisión humana:** dos puertas. Aceptación: Sofía acepta y Laura confirma; pm-director ejecuta `estado.py aprobar registro-aceptacion --por "Usuario sénior: Sofía Ramírez; Ejecutivo: Laura Méndez"`. Cierre: la junta autoriza y pm-director registra `estado.py puerta autorizar-cierre --decision aprobado --por "Ejecutivo: Laura Méndez" --fecha 2027-05-07`; la fase pasa a `cerrado` y `siguiente` recuerda las revisiones de beneficios. La notificación la firma la ejecutiva y se envía con confirmación (por ejemplo, por la capa de canales con `envios.py nuevo --origen 04-cierre/notificacion-cierre.md --proposito comunicado`; caso 44). El ZIP de cierre sale con `python3 $X --proyecto gestion cierre`.
+
+---
+
+## Parte 6 · Maestro de interesados, comunicación por canales, OKR, identificación de riesgos y controles permanentes (v2.2, transversal)
+
+Estos casos atraviesan el ciclo: el maestro de interesados se arma en SU e IP, se mantiene en cada etapa (CS) y se revisa en cada límite (SB). Los datos son los de la corrida de referencia de la guía [E2E-3](guias/E2E-3-interesados-okr-avance.md) (evidencia en [salida-g3.md](guias/evidencia/salida-g3.md)): diez interesados ST-001…ST-010, entre ellos Laura Méndez (ST-001), el Consejo directivo (ST-002), Sofía Ramírez (ST-003), el Sindicato de operadores (ST-004, confidencial), los socios piloto (ST-005), TI del núcleo (ST-006), la Unidad de cumplimiento (ST-007), Diego Ferreira (ST-008), Martín Suárez (ST-009) y Lucía Benítez (ST-010). Donde un caso muestra una salida que no está en esa evidencia, se aclara que viene de una corrida complementaria del 2026-10-17 sobre la misma carpeta, con los scripts del paquete. El maestro (`stakeholders.csv`) es la única fuente de personas: OKR, RACI, preferencias, envíos y registros lo citan por `ST-###` o por el nombre exacto. Nada de esto es asesoramiento jurídico; los límites de privacidad están en la guía de `pm-interesados` §10.
+
+### 38. `pm-interesados` — matriz poder/interés y estrategia por cuadrante
+- **Prompt del usuario:** "Ubicá a los interesados en la matriz poder/interés y decime la estrategia para cada cuadrante. Hacé el análisis de interesados (restringido)." Después: "¿Y si los «medio» cuentan como bajo?"
+- **Respuestas del usuario:**
+  1. Martín Suárez, gestor (si pregunta quién validó las valoraciones): "Las revisé con Laura; registralas."
+- **Quién:** orquestador → `pm-inicio` → `pm-interesados` (plantilla `templates/analisis-stakeholders.md`).
+- **Qué pregunta o verifica:** que cada interesado tenga poder e interés (si falta alguno, aviso STK-01 y no se ubica); poder es la autoridad real (aprobar presupuestos, asignar recursos, vetar decisiones) e interés, el involucramiento, la preocupación o el impacto que el proyecto le genera. Un valor «medio» se ubica del lado alto por convención del paquete y se marca como frontera (◇); `--medio bajo` aplica la convención contraria. Las valoraciones (actitud, compromiso) son de circulación restringida.
+- **Comandos:** los ejecuta el sistema; el usuario no los escribe.
+  ```bash
+  python3 $I --proyecto gestion matriz
+  python3 $I --proyecto gestion --medio bajo matriz          # la pregunta de seguimiento
+  python3 $E/estado.py --proyecto gestion artefacto analisis-stakeholders \
+      --ruta 01-inicio/analisis-stakeholders.md --estado en-revision
+  ```
+- **Entradas (qué aporta el usuario y cómo):** ninguna nueva: los diez interesados ya están en `gestion/03-control/registros/stakeholders.csv` con poder, interés, actitud, compromiso actual y deseado, canal, frecuencia, responsable de la relación y correo (guía E2E-3, paso 2). La pregunta de seguimiento va en el prompt.
+- **Salidas (qué queda y dónde verificarlo):**
+  - En la respuesta, la matriz con su estrategia (salida real):
+    ```text
+    Gestionar de cerca (7): ST-001 Laura Méndez, ST-002 Consejo directivo ◇, ST-003 Sofía Ramírez, ST-004 Sindicato de operadores ◇, ST-006 Área de TI del núcleo operativo ◇, ST-008 Diego Ferreira ◇, ST-009 Martín Suárez ◇
+       Los actores más críticos: comunicación constante, participación activa en las decisiones y máxima atención.
+    Mantener satisfecho (1): ST-007 Unidad de cumplimiento
+       No abrumar con detalles; reportes ejecutivos de alto nivel sobre beneficios y avance.
+    Mantener informado (2): ST-005 Socios usuarios piloto, ST-010 Lucía Benítez
+       Canales claros (boletines, reuniones informativas) y escucha activa de su retroalimentación: suelen ser aliados y fuente de información.
+    Monitorear (0): —
+       Supervisar con el menor esfuerzo, sin gastar recursos innecesarios, salvo que cambien de posición en la matriz.
+    ◇ = frontera ('medio' ubicado como alto)
+    ```
+  - Con `--medio bajo` (corrida complementaria): gestionar de cerca 2 (ST-001, ST-003); mantener satisfecho 3 (ST-002 ◇, ST-006 ◇, ST-007); mantener informado 5 (ST-004 ◇, ST-005, ST-008 ◇, ST-009 ◇, ST-010); monitorear 0.
+  - Cada cuadrante trae además un perfil de comunicación por defecto que se usa si nada más lo define: gestionar de cerca = reunión · conclusión primero · resumen · semanal; mantener satisfecho = correo · conclusión primero · ejecutivo · mensual; mantener informado = correo · lista · resumen · quincenal; monitorear = tablero · lista · ejecutivo · a demanda.
+  - `gestion/01-inicio/analisis-stakeholders.md` (`en-revision`, circulación restringida; `artefactos.analisis-stakeholders`). Con `matriz --markdown <archivo>` la tabla queda también en un Markdown.
+  - Cómo verificarlo: abrir el análisis; escribir "¿En qué cuadrante está el sindicato y qué estrategia le corresponde?"; la matriz dibujada aparece en el reporte del caso 46.
+- **Decisión humana:** el gestor valida las valoraciones antes de registrarlas y decide qué convención usar para los «medio»; el análisis no se comparte fuera de la junta.
+
+### 39. `pm-interesados` — estereotipos semilla y asignación
+- **Prompt del usuario:** "Cargá los estereotipos de audiencia y asigná: Laura y el Consejo a dirección-patrocinador, Sofía a product owner y usuarios clave, el panel a cliente-usuario, cumplimiento a regulador-comunidad, Diego a proveedores, Martín y Lucía a equipo." Más adelante: "¿Sugerís estereotipo para los que quedaron sin asignar?"
+- **Respuestas del usuario:**
+  1. Martín Suárez, gestor: "No los asignes: el sindicato y TI quedan sin estereotipo; su perfil sale del cuadrante y de sus preferencias."
+- **Quién:** orquestador → `pm-inicio` → `pm-interesados`.
+- **Qué pregunta o verifica:** la semilla solo se carga en un catálogo vacío (si `estereotipos.csv` ya tiene filas, lo rechaza); cada asignación cita un estereotipo existente (el registro valida la referencia); las sugerencias de `--sugerir` no se aplican solas.
+- **Comandos:** los ejecuta el sistema; el usuario no los escribe.
+  ```bash
+  python3 $I --proyecto gestion estereotipos --semilla
+  python3 $E/registro.py --proyecto gestion actualizar stakeholders ST-001 --campo estereotipo=ET-001
+  # … ST-002 → ET-001, ST-003 → ET-006, ST-005 → ET-003, ST-007 → ET-005, ST-008 → ET-004, ST-009 y ST-010 → ET-002
+  python3 $I --proyecto gestion estereotipos
+  python3 $I --proyecto gestion estereotipos --sugerir
+  ```
+- **Entradas (qué aporta el usuario y cómo):** las asignaciones, escritas en el prompt. Los seis estereotipos semilla salen de la guía de `pm-comunicacion-stakeholders` §1; se ajustan después con `registro.py actualizar estereotipos …`.
+- **Salidas (qué queda y dónde verificarlo):**
+  - `gestion/03-control/registros/estereotipos.csv` (registro opcional, se crea al primer uso) con ET-001…ET-006. Salida real tras las asignaciones:
+    ```text
+    ET-001 direccion-patrocinador [activo] gestionar-de-cerca · reunion · conclusion-primero · ejecutivo · por-hito → ST-001, ST-002
+    ET-002 equipo [activo] mantener-informado ·  · lista · detallado · semanal → ST-009, ST-010
+    ET-003 cliente-usuario [activo] mantener-informado · correo · narrativa · resumen · quincenal → ST-005
+    ET-004 proveedores [activo] mantener-satisfecho · correo · lista · resumen · por-hito → ST-008
+    ET-005 regulador-comunidad [activo] mantener-satisfecho · correo · conclusion-primero · ejecutivo · por-hito → ST-007
+    ET-006 product-owner-usuarios-clave [activo] gestionar-de-cerca · reunion · datos · detallado · semanal → ST-003
+    ```
+  - Columna `estereotipo` de `stakeholders.csv`. Un estereotipo inexistente se rechaza: `Integridad referencial: - estereotipo='ET-009' no existe en estereotipos.csv` (corrida complementaria).
+  - `--sugerir` (corrida complementaria, al final del recorrido): "Asignar ST-004 → ET-001 direccion-patrocinador (3 coincidencias)", lo mismo para ST-006, y "Las sugerencias no se aplican solas: el gestor decide."
+  - Cómo verificarlo: abrir `estereotipos.csv` y `stakeholders.csv` en un editor o Excel; escribir "¿Qué estereotipo tiene cada interesado?".
+- **Decisión humana:** el gestor decide cada asignación y cualquier ajuste del catálogo; un estereotipo que ya no se usa se marca retirado (si alguien lo sigue citando, aviso STK-03).
+
+### 40. `pm-interesados` — preferencias declaradas en una entrevista y su confirmación
+- **Prompt del usuario:** "Entrevisté a Laura (3/11): «Prefiero que el avance me llegue por correo, no por chat», «Una página, con la conclusión y lo que tengo que decidir arriba», «Los lunes antes de las 9 lo leo con calma». Registrá sus preferencias y mostrame su perfil de comunicación."
+- **Respuestas del usuario:**
+  1. Martín Suárez, gestor: "Sí, Laura aceptó que se registren; confirmalas como Martín Suárez, gestor."
+- **Quién:** orquestador → `pm-inicio` → `pm-interesados` (plantilla `templates/entrevista-interesado.md`).
+- **Qué pregunta o verifica:** que la persona aceptó que se registren sus preferencias; que cada una tenga la cita textual (evidencia), la fuente, la procedencia (`declarado`, `observado` o `inferido`) y una vigencia (por defecto 180 días); que el interesado exista en el maestro. No infiere emociones, personalidad ni datos sensibles: el perfil solo adapta comunicaciones. Mientras una preferencia no esté confirmada, no se aplica.
+- **Comandos:** los ejecuta el sistema; el usuario no los escribe.
+  ```bash
+  python3 $E/registro.py --proyecto gestion agregar preferencias --campo fecha=2026-11-03 --campo stakeholder_id=ST-001 \
+      --campo dimension=canal --campo valor=correo --campo procedencia=declarado \
+      --campo evidencia="«Prefiero que el avance me llegue por correo, no por chat.»" \
+      --campo fuente=01-inicio/entrevistas/2026-11-03-laura-mendez.md --campo vigencia_hasta=2027-05-02
+  # … formato=conclusion-primero, nivel_detalle=ejecutivo y horario="antes de las 9", con su cita → PF-002…PF-004
+  python3 $I --proyecto gestion confirmar PF-001 PF-002 PF-003 PF-004 --por "Gestor: Martín Suárez"
+  python3 $I --proyecto gestion perfil ST-001 --corte 2026-11-03
+  ```
+- **Entradas (qué aporta el usuario y cómo):** las citas de la entrevista, escritas en el prompt (o la nota de la entrevista adjunta en la sesión); el sistema guarda la entrevista en `gestion/01-inicio/entrevistas/2026-11-03-laura-mendez.md` (restringida). El consentimiento y la confirmación llegan como respuesta al orquestador.
+- **Salidas (qué queda y dónde verificarlo):**
+  - PF-001…PF-004 en `gestion/03-control/registros/preferencias.csv` (registro opcional), en estado `confirmada`, con `confirmado_por` = "Gestor: Martín Suárez" y `vigencia_hasta` = 2027-05-02.
+  - El perfil resuelto, con la procedencia de cada valor (salida real):
+    ```text
+    ST-001 Laura Méndez · gestionar-de-cerca · estereotipo ET-001 · destino laura.mendez@example.org
+       canal: correo  (PF-001 (declarado, 2026-11-03))
+       formato: conclusion-primero  (PF-002 (declarado, 2026-11-03))
+       nivel_detalle: ejecutivo  (PF-003 (declarado, 2026-11-03))
+       frecuencia: quincenal  (matriz de comunicaciones)
+       idioma: es  (idioma del proyecto)
+       registro: formal  (estereotipo:ET-001)
+       horario: antes de las 9  (PF-004 (declarado, 2026-11-03))
+       estilo_decision: datos  (estereotipo:ET-001)
+    ```
+  - Precedencia: cuadrante → idioma del proyecto → estereotipo → matriz de comunicaciones → preferencias confirmadas y vigentes. Las propuestas y las vencidas no se aplican.
+  - Cómo verificarlo: abrir `preferencias.csv` (columnas `evidencia`, `fuente`, `vigencia_hasta`, `confirmado_por`); escribir "¿Cómo le tengo que escribir a Laura?".
+- **Decisión humana:** el gestor confirma cada preferencia con la persona (`confirmar … --por`). Si una preferencia confirmada vence o queda sin `confirmado_por`, la integridad avisa STK-04 y se vuelve a validar con la persona.
+
+### 41. `pm-interesados` — preferencias propuestas desde la transcripción de una reunión
+- **Prompt del usuario:** "Procesá la transcripción del taller de la bandeja del 19/11: armá el acta con decisiones y acciones. El «Delegado sindical» es el Sindicato de operadores. Proponé las preferencias de comunicación que cada uno pidió." (la transcripción, exportada en VTT, guardada en `gestion/03-control/reuniones/2026-11-19-taller-bandeja-original.vtt`)
+- **Respuestas del usuario:**
+  1. Martín Suárez, gestor: "Sí, las validé con Sofía y con el delegado; confirmalas como Martín Suárez."
+  2. Martín Suárez, gestor (cuando avisa que la frecuencia del sindicato difiere de la matriz): "Actualizá la matriz a quincenal."
+- **Quién:** orquestador → `pm-control` → `pm-reuniones` (transcripción y acta) → `pm-interesados` (propuesta y confirmación de preferencias).
+- **Qué pregunta o verifica:** analiza solo oraciones en primera persona y guarda la cita con su marca de tiempo; asocia hablantes por nombre exacto o por `--mapa` (los que no puede asociar los lista); no infiere emociones ni rasgos (la preocupación del delegado queda en el acta, no en su perfil); todo queda como `propuesta` hasta que el gestor lo confirme con la persona. El análisis es por patrones: cada propuesta se revisa antes de confirmar y lo que no corresponde se rechaza con `rechazar … --motivo`. Si una preferencia confirmada contradice la matriz de comunicaciones, el perfil lo avisa.
+- **Comandos:** los ejecuta el sistema; el usuario no los escribe.
+  ```bash
+  python3 $T gestion/03-control/reuniones/2026-11-19-taller-bandeja-original.vtt \
+      --salida gestion/03-control/reuniones/2026-11-19-taller-bandeja-transcripcion.md
+  python3 $I --proyecto gestion proponer --transcripcion gestion/03-control/reuniones/2026-11-19-taller-bandeja-transcripcion.md \
+      --mapa "Delegado sindical=ST-004" --fecha 2026-11-19 --registrar
+  python3 $I --proyecto gestion confirmar PF-005 PF-006 PF-007 PF-008 --por "Gestor: Martín Suárez"
+  python3 $I --proyecto gestion perfil ST-004 --corte 2026-11-19
+  python3 $E/registro.py --proyecto gestion actualizar stakeholders ST-004 --campo frecuencia=quincenal
+  ```
+- **Entradas (qué aporta el usuario y cómo):** el archivo VTT, que el usuario deja en `gestion/03-control/reuniones/` o adjunta en la sesión (también sirven `.srt`, `.txt`, `.docx` o texto pegado); la correspondencia entre "Delegado sindical" y ST-004, escrita en el prompt; las confirmaciones, como respuestas.
+- **Salidas (qué queda y dónde verificarlo):**
+  - "5 intervenciones de 4 hablantes" en la transcripción normalizada; el acta, la decisión D-006 y la acción A-004 siguen el flujo de `pm-reuniones` del caso 24.
+  - Propuestas (salida real):
+    ```text
+    PF-005 ST-003 canal=teams (declarado) "A mí mandame las novedades del proyecto por Teams." [00:00:01]
+    PF-006 ST-004 canal=correo (declarado) "Prefiero que las novedades nos lleguen por correo, en un resumen corto, cada dos semanas." [00:00:10]
+    PF-007 ST-004 nivel_detalle=ejecutivo (declarado) "Prefiero que las novedades nos lleguen por correo, en un resumen corto, cada dos semanas." [00:00:10]
+    PF-008 ST-004 frecuencia=quincenal (declarado) "Prefiero que las novedades nos lleguen por correo, en un resumen corto, cada dos semanas." [00:00:10]
+    Estado: propuesta. Nada se aplica hasta que el gestor confirme con la persona: interesados.py confirmar PF-… --por "Rol: Nombre".
+    ```
+  - Tras confirmar, el perfil del sindicato avisa: `AVISO frecuencia: la preferencia confirmada PF-008 (quincenal) difiere de la matriz aprobada (mensual); actualizar la matriz (pm-comunicacion-stakeholders)`; ST-004 queda con `frecuencia=quincenal`.
+  - Rechazo (corrida complementaria, daily del 12/1 en la que Diego dijo «A mí escribime por Teams» sin confirmarlo después): `interesados.py rechazar PF-010 --por "Gestor: Martín Suárez" --motivo "Diego no lo confirmó: su canal sigue siendo el correo"` → `rechazar: PF-010`; la preferencia queda `rechazada` y no se aplica.
+  - Cómo verificarlo: abrir `gestion/03-control/reuniones/2026-11-19-taller-bandeja-transcripcion.md`; abrir `preferencias.csv` (columna `evidencia` con la cita y la marca de tiempo; columna `estado`); escribir "¿Qué preferencias de comunicación están pendientes de confirmar?". Una propuesta sin tratar por más de 30 días aparece como STK-05 (INFO).
+- **Decisión humana:** el gestor confirma o rechaza cada propuesta después de validarla con la persona; la actualización de la matriz la decide el gestor y la aprueba quien aprobó la matriz.
+
+### 42. `pm-interesados` — RACI sobre épicas, requisitos, paquetes y KR (y el rechazo de un segundo A)
+- **Prompt del usuario:** "Armá la RACI: épica E-1 (A Sofía, R Lucía, C TI, I Laura); épica E-3 (A Sofía, R Lucía, C sindicato y Diego); NFR-1 protección de datos (A cumplimiento, R Lucía, C Sofía); paquete 3.1 de la WBS (A Martín, R Lucía, I Sofía); KR-1.1 (A Laura, R Sofía, C panel de socios, I Consejo) y KR-2.2 (A Laura, R Sofía, I Consejo). Después intentá poner a Laura también como A de E-1. Mostrame quién participa en E-3 y verificá la integridad."
+- **Quién:** orquestador → `pm-inicio` → `pm-interesados` (plantilla `templates/matriz-raci.md`).
+- **Qué pregunta o verifica:** una fila por elemento × interesado; exactamente un A por elemento y al menos un R; interesados existentes en el maestro; el elemento existe en su fuente: épicas, requisitos e historias en la especificación (fachada de BMAD o `backlog.csv`), paquetes en `wbs.csv`, KR y objetivos en `okr.csv`, decisiones en `decisiones.csv`; un entregable en texto libre no se valida. El registro rechaza el segundo A, la fila duplicada y el interesado inexistente.
+- **Comandos:** los ejecuta el sistema; el usuario no los escribe.
+  ```bash
+  python3 $E/registro.py --proyecto gestion agregar raci --campo elemento=E-1 --campo stakeholder_id=ST-003 --campo rol=A   # RC-001
+  python3 $E/registro.py --proyecto gestion agregar raci --campo elemento=E-1 --campo stakeholder_id=ST-010 --campo rol=R   # RC-002
+  # … una fila por elemento e interesado, hasta RC-021
+  python3 $E/registro.py --proyecto gestion agregar raci --campo elemento=E-1 --campo stakeholder_id=ST-001 --campo rol=A   # se rechaza
+  python3 $I --proyecto gestion raci --markdown gestion/02-planificacion/matriz-raci.md
+  python3 $E/estado.py --proyecto gestion artefacto matriz-raci --ruta 02-planificacion/matriz-raci.md --estado en-revision
+  python3 $I --proyecto gestion raci --elemento E-3
+  python3 $I --proyecto gestion integridad
+  ```
+- **Entradas (qué aporta el usuario y cómo):** los roles por elemento, escritos en el prompt; los títulos de cada elemento salen de su fuente (la épica y el requisito, de la especificación de BMAD por la fachada en solo lectura; el paquete, de `wbs.csv`; el KR, de `okr.csv`).
+- **Salidas (qué queda y dónde verificarlo):**
+  - RC-001…RC-021 en `gestion/03-control/registros/raci.csv` (registro opcional). El segundo A se rechaza (salida real):
+    ```text
+    Integridad referencial:
+      - duplicado elemento=E-1 + stakeholder_id=ST-001 (una fila por combinación: actualizar la existente)
+      - elemento E-1 ya tiene un 'A' (exactamente uno: cambiar primero la otra fila)
+    ```
+  - `gestion/02-planificacion/matriz-raci.md` (`en-revision`; `artefactos.matriz-raci`):
+
+    | Elemento | Descripción | Laura | Consejo | Sofía | Sindicato | Socios | TI | Cumplimiento | Diego | Martín | Lucía |
+    |---|---|---|---|---|---|---|---|---|---|---|---|
+    | E-1 | Acceso seguro y consulta de mis productos | I | | A | | | C | | | | R |
+    | E-3 | Consola de operador | | | A | C | | | | C | | R |
+    | NFR-1 | Seguridad y privacidad (Ley 18.331) | | | C | | | | A | | | R |
+    | 3.1 | Acceso seguro (WBS) | | | I | | | | | | A | R |
+    | KR-1.1 | 30 % de socios registrados | A | I | R | | C | | | | | |
+    | KR-2.2 | Más del 90 % de solicitudes completas | A | I | R | | | | | | | |
+
+    y las líneas "RACI válida: un A por elemento, al menos un R, referencias existentes." e "Integridad referencial y calidad del maestro: sin hallazgos.".
+  - `raci --elemento E-3`: A ST-003 Sofía Ramírez · R ST-010 Lucía Benítez · C ST-004 Sindicato de operadores · C ST-008 Diego Ferreira.
+  - Con la RACI cargada, la verificación de `autorizar-proyecto` ya no muestra el aviso P-10 (sin RACI).
+  - Cómo verificarlo: abrir `raci.csv` en un editor o Excel y `matriz-raci.md`; escribir "¿Quién aprueba la consola de operador?".
+- **Decisión humana:** la RACI se aprueba con el PID en `autorizar-proyecto` (registra pm-director). Para cambiar el aprobador de un elemento primero se actualiza la fila del A vigente.
+
+### 43. `pm-interesados` — perfil de comunicación y vínculos de un interesado
+- **Prompt del usuario:** "¿Cómo le tengo que escribir a Sofía y dónde aparece en el proyecto?"
+- **Quién:** orquestador → `pm-control` (o el hilo principal) → `pm-interesados`.
+- **Qué pregunta o verifica:** resuelve el perfil con la precedencia del caso 40 a la fecha de corte; busca al interesado por id o por nombre exacto en RACI, OKR (responsables y KR), riesgos, acciones, decisiones, preferencias y envíos.
+- **Comandos:** los ejecuta el sistema; el usuario no los escribe.
+  ```bash
+  python3 $I --proyecto gestion perfil ST-003 --corte 2027-01-15
+  python3 $I --proyecto gestion vinculos ST-003
+  ```
+- **Entradas (qué aporta el usuario y cómo):** ninguna: el nombre va en el prompt y el resto sale del maestro y de los registros.
+- **Salidas (qué queda y dónde verificarlo):**
+  - Ninguna en disco. En la respuesta (salida real, al 15/1):
+    ```text
+    ST-003 Sofía Ramírez · gestionar-de-cerca · estereotipo ET-006 · destino sofia.ramirez@example.org
+       canal: teams  (PF-005 (declarado, 2026-11-19))
+       formato: datos  (estereotipo:ET-006)
+       nivel_detalle: detallado  (estereotipo:ET-006)
+       frecuencia: quincenal  (matriz de comunicaciones)
+       idioma: es  (idioma del proyecto)
+       registro: neutral  (estereotipo:ET-006)
+       estilo_decision: datos  (estereotipo:ET-006)
+    ```
+  - Vínculos de Sofía: A en E-1 y E-3, C en NFR-1, I en 3.1, R en KR-1.1 y KR-2.2; responsable de KR-1.1…KR-2.3; R-001 (propietaria); A-001 y A-002; D-006; PF-005 (confirmada); EN-006 (Teams, 15/1).
+  - Con `perfil todos` sale el perfil de los diez; con `--json`, la misma información para otras herramientas.
+  - Cómo verificarlo: leer la respuesta; comparar con `raci.csv`, `okr.csv` y `envios.csv`.
+- **Decisión humana:** ninguna.
+
+### 44. `pm-comunicacion-stakeholders` — comunicado personalizado: plan de envío, aprobación, simulación y envío por canales
+- **Prompt del usuario:** "Prepará el comunicado del avance al 8/1 para todos los de «gestionar de cerca» y «mantener satisfecho» (menos yo, Martín), adaptado al perfil de cada uno, con la decisión pendiente para la junta. Agrupá a quienes comparten perfil. Mostrame los borradores; si los apruebo, mandalos por correo y por Teams y registrá la entrega en la reunión técnica."
+- **Respuestas del usuario:**
+  1. Martín Suárez, gestor: "Sí, aprobados por Martín Suárez, gestor."
+  2. Martín Suárez, gestor: "Sí, enviá." (con las variables de entorno del servidor o un conector conectado; sin ninguno: "Generá los .eml")
+- **Quién:** orquestador → `pm-control` → `pm-comunicacion-stakeholders` (contenido y plan de envío, con `pm-interesados`) → `pm-integraciones` (capa de canales, `envios.py`).
+- **Qué pregunta o verifica:** la audiencia se resuelve contra el maestro (`todos`, `ST-001`, `cuadrante:<c>`, `estereotipo:ET-001`, `raci:<elemento>:<roles>`, `rol:<texto>`, `-ST-009` para excluir); una audiencia inválida no crea nada. Un borrador por destinatario o por grupo con el mismo perfil, con el perfil en el frontmatter. Nada sale sin (1) mensaje aprobado con `aprobado_por` y (2) `--confirmar`: sin `--confirmar` todo es simulación. Los destinos se toman del maestro en el momento de enviar; un reenvío solo alcanza a quien todavía no recibió. Credenciales solo por variables de entorno (INSTALACION §0.7, "Capa de canales"); nunca en archivos ni en el chat.
+- **Comandos:** los ejecuta el sistema; el usuario no los escribe.
+  ```bash
+  python3 $I --proyecto gestion plan-envio --tema "Avance del portal al 8 de enero" \
+      --audiencia "cuadrante:gestionar-de-cerca,cuadrante:mantener-satisfecho,-ST-009" --proposito informe \
+      --base gestion/03-control/reportes/2027-01-15-comunicado-consejo.md --agrupar --fecha 2027-01-15
+  C=gestion/03-control/comunicaciones/2027-01-15-avance-del-portal-al-8-de-enero
+  python3 $V --proyecto gestion estado $C
+  # el modelo adapta cada borrador a su perfil; luego, con la aprobación del gestor:
+  python3 $V --proyecto gestion aprobar $C --por "Gestor: Martín Suárez"
+  python3 $V --proyecto gestion enviar $C --modo smtp                          # simulación
+  python3 $V --proyecto gestion enviar $C --modo smtp --confirmar --fecha 2027-01-15
+  python3 $V --proyecto gestion enviar $C --modo teams-webhook --confirmar --fecha 2027-01-15
+  python3 $V --proyecto gestion registrar $C --mensaje mensaje-04-reunion-st-006.md --modo manual \
+      --referencia "reunión técnica del 2027-01-18" --fecha 2027-01-18
+  python3 $V --proyecto gestion historial
+  ```
+- **Entradas (qué aporta el usuario y cómo):** la audiencia y la intención, en el prompt; el contenido base, redactado por la skill en `gestion/03-control/reportes/2027-01-15-comunicado-consejo.md`; los destinos (`correo`, `usuario_chat`) y perfiles, del maestro; las credenciales, solo como variables de entorno de la terminal del usuario (`PM_SMTP_HOST`, `PM_SMTP_REMITENTE` y opcionales; `PM_TEAMS_WEBHOOK_URL`; `PM_SLACK_WEBHOOK_URL`).
+- **Salidas (qué queda y dónde verificarlo):**
+  - Plan (salida real): "Plan de envío → 03-control/comunicaciones/2027-01-15-avance-del-portal-al-8-de-enero/ (7 destinatarios, 5 mensajes en borrador)", con el aviso "AVISO ST-006 Área de TI del núcleo operativo: canal preferido «reunion» no es electrónico: entregarlo por esa vía y registrarlo con envios.py registrar --modo manual".
+  - Simulación (salida real, recortada): `SIMULACIÓN mensaje-01-correo-st-001-st-002-st-007.md [smtp] → ST-001 <laura.mendez@example.org>, ST-002 <consejo@example.org>, ST-007 <cumplimiento@example.org> · «Avance del portal al 8 de enero»`, el comienzo del texto, "(faltan variables de entorno: PM_SMTP_HOST, PM_SMTP_REMITENTE)" y "Resumen: 0 enviados, 0 fallidos, 3 simulados, 2 omitidos · simulación: agregar --confirmar para enviar".
+  - Envío: correo "Resumen: 5 enviados, 0 fallidos, 0 simulados, 2 omitidos" (EN-001…EN-005); Teams "mensaje-02-teams-st-003.md: enviado · EN-006"; entrega en la reunión técnica registrada a mano, EN-007. En la corrida de referencia el correo y Teams llegaron a servidores de prueba en 127.0.0.1; con las variables del usuario salen a su servidor.
+
+    | Mensaje | Para | Canal | Perfil aplicado | Resultado |
+    |---|---|---|---|---|
+    | mensaje-01 | ST-001, ST-002, ST-007 | correo | conclusión primero · ejecutivo · formal | EN-001…EN-003 enviados |
+    | mensaje-02 | ST-003 | teams | datos · detallado | EN-006 enviado |
+    | mensaje-03 | ST-004 | correo | conclusión primero · ejecutivo (su preferencia) | EN-004 enviado |
+    | mensaje-04 | ST-006 | reunión (no electrónico) | — | EN-007 registrado a mano |
+    | mensaje-05 | ST-008 | correo | lista · resumen | EN-005 enviado |
+
+  - Otras vías (corrida complementaria): `--modo eml --confirmar` deja un `.eml` por destinatario en `<carpeta>/eml/` (cabecera `X-Unsent: 1`), registrado como pendiente hasta `registrar --modo eml`; con un conector MCP de correo, Slack o Teams: `preparar-mcp` → envío con la herramienta tras la vista previa → `registrar --modo mcp --referencia <id>`. Detalle de cada modo en [CASOS-DE-USO-INTEGRACIONES caso 8](CASOS-DE-USO-INTEGRACIONES.md). El mismo flujo sirve para informes, actas, recordatorios, convocatorias, decisiones de puerta y OKR (`envios.py nuevo --origen <archivo> --proposito …`).
+  - Cómo verificarlo: abrir la carpeta `gestion/03-control/comunicaciones/2027-01-15-avance-del-portal-al-8-de-enero/` (borradores aprobados y `plan-envio.csv`); abrir `gestion/03-control/registros/envios.csv` (EN-001…EN-007, con `confirmado_por`) y `diario.md`; escribir "¿Qué le enviamos al sindicato y cuándo?".
+- **Decisión humana:** el gestor aprueba los borradores (acto humano con nombre y rol) y confirma el envío; sin `--confirmar` no sale nada. Un envío fallido deja código de salida 2 y aviso STK-07 hasta que se reintenta.
+
+### 45. `pm-okr` — OKR v2.2: tipos de KR, check-ins, salud y propuesta de sincronización con Tability
+- **Prompt del usuario:**
+  1. "Definí los OKR del proyecto ligados al business case (B-01, B-02, B-03) y a las métricas de éxito del PRD. Laura es la dueña de los objetivos y Sofía de los KR. Ciclo 2027, desde el 2/11. O-1 aspiracional (KR-1.1 30 % de socios registrados, pesa el doble, en Tability es kr-registro-portal; KR-1.2 bajar de 5.000 a 3.500 consultas); O-2 comprometido (KR-2.1 mantener la respuesta por debajo de 48 h; KR-2.2 más del 90 % de solicitudes completas; KR-2.3 la bandeja en producción para el 12/3 con las iniciativas de las historias 3-1, 3-2 y 3-3). Calculá el puntaje al 20/11."
+  2. "Check-ins de Sofía: 11/12 KR-1.1 1 % (confianza 7), KR-1.2 4.950 (6), KR-2.1 92 h (4), KR-2.2 64 % (6); 23/12 …; 8/1 3 %, 4.800, 80 h (5), 72 %."
+  3. "¿Cómo van los OKR al 8/1? Decime qué check-ins habría que publicar en Tability."
+- **Respuestas del usuario:**
+  1. Con el conector de Tability conectado: "Sí, publicá el del 8/1 de KR-1.1." Sin conector: "No, solo mostrame la propuesta."
+- **Quién:** orquestador → `pm-inicio` (redacción) y `pm-control` (check-ins) → `pm-okr`; la publicación, vía `pm-integraciones`.
+- **Qué pregunta o verifica:** tipos de KR (`de-a` por defecto, `mantener-sobre`, `mantener-bajo`, `binario`, `hito`), compromiso (`aspiracional` por defecto o `comprometido`), peso, iniciativas IN-n ligadas a un KR y a una épica, historia o paquete; responsables del maestro (si no figuran, aviso de `okr.py` y STK-08); vínculo a B-n, SM-n u OBJ-n (la sanidad valida su existencia: ESP-04 y ESP-05). Semáforo 0,7/0,4 para aspiracionales y 1,0/0,7 para comprometidos (convención de la práctica OKR, no de PRINCE2); salud contra el avance esperado lineal entre `fecha_inicio` y `fecha_meta`; confianza 1–3 rojo, 4–6 ámbar, 7–10 verde. Los check-ins solo se agregan: un segundo check-in del mismo KR y fecha se rechaza.
+- **Comandos:** los ejecuta el sistema; el usuario no los escribe.
+  ```bash
+  python3 $O gestion/00-direccion/okr.csv --corte 2026-11-20
+  python3 $O gestion/00-direccion/okr.csv --checkin KR-1.1 --valor 1 --confianza 7 --fecha 2026-12-11 \
+      --autor "Usuaria sénior: Sofía Ramírez"
+  # … 12 check-ins en total (4 KR × 3 fechas)
+  python3 $O gestion/00-direccion/okr.csv --corte 2027-01-08 --markdown gestion/03-control/reportes/2027-01-08-okr.md
+  python3 $O gestion/00-direccion/okr.csv --propuesta-sync tability
+  # tras la confirmación y la publicación con la herramienta del MCP oficial:
+  python3 $O gestion/00-direccion/okr.csv --marcar-publicado KR-1.1@2027-01-08 --destino tability --ref <id devuelto>
+  ```
+- **Entradas (qué aporta el usuario y cómo):** objetivos, KR, metas, pesos, compromiso, iniciativas y `ref_externa`, escritos en el prompt (el sistema los vuelca a `gestion/00-direccion/okr.csv`); B-n del business case y SM-n del PRD (leídos por la fachada); los check-ins, dictados en el chat o traídos por el conector como instantánea en `gestion/03-control/fuentes/`.
+- **Salidas (qué queda y dónde verificarlo):**
+  - Al 20/11, todo en 0,00 con la salud ya calculada: KR-2.1 y KR-2.3 «en riesgo» (salida real: `KR-2.3 Bandeja única de solicitudes en producción para los operadores [0/3 iniciativas] → 0.00 (rojo) · B-03; SM-3 · ST-003 · hito · salud en-riesgo (esperado 0.14)`).
+  - `gestion/00-direccion/okr_checkins.csv` con 12 check-ins (columnas `fecha,kr_id,valor,confianza,nota,autor,fuente,publicado_en,ref_externa`). Un duplicado se rechaza (corrida complementaria): "Ya hay un check-in de KR-2.2 el 2027-01-08: los check-ins solo se agregan (registrar uno nuevo con otra fecha o corregir en la nota del siguiente)".
+  - Al 8/1 (salida real): O-1 0,11 (rojo, aspiracional, promedio ponderado); KR-1.1 0,10 · salud en camino (esperado 0,16) · confianza 7 (verde); KR-1.2 0,13 en camino; O-2 0,24 (rojo, comprometido); KR-2.1 0,00 en riesgo (mantener-bajo: vale 1 solo al cumplir); KR-2.2 0,40 en camino; KR-2.3 0,33 (1 de 3 iniciativas) en riesgo (esperado 0,52). Tabla en `gestion/03-control/reportes/2027-01-08-okr.md`, con el historial de check-ins.
+  - Propuesta de sincronización (salida real): `KR-1.1 2027-01-08 = 3 → tability:kr-registro-portal · tability_create_checkin (MCP oficial de Tability: https://mcp.tability.app/mcp) · confidence green` (y los dos check-ins anteriores), más `AVISO KR-1.2: sin ref_externa 'tability:…' (vincular el KR con su par en tability antes de publicar)` para cada KR sin vínculo. Tras publicar: "KR-1.1@2027-01-08 marcado como publicado en tability" (columna `publicado_en`).
+  - Cómo verificarlo: abrir `okr.csv` y `okr_checkins.csv` en un editor o Excel; abrir el reporte del 8/1; escribir "¿Cómo van los OKR?". Con Perdoo el flujo es el mismo (`--propuesta-sync perdoo`); ver [CASOS-DE-USO-INTEGRACIONES caso 9](CASOS-DE-USO-INTEGRACIONES.md).
+- **Decisión humana:** la ejecutiva acepta objetivos y KR (pm-director `estado.py aprobar okr`); publicar en Tability o Perdoo requiere vista previa y confirmación explícita. `okr.csv` y `okr_checkins.csv` siguen siendo la fuente.
+
+### 46. `pm-interesados` — reporte de interesados e integridad del maestro (STK)
+- **Prompt del usuario:** "Dame el reporte de interesados al 15/1 (sin valoraciones), el perfil de comunicación de todos, dónde aparece Sofía en el proyecto y verificá la integridad y la sanidad. Exportame los registros a Excel."
+- **Quién:** orquestador → `pm-control` → `pm-interesados`; sanidad con `pm-sanidad`; Excel con `pm-exportar`.
+- **Qué pregunta o verifica:** el reporte HTML es autocontenido (modo claro y oscuro, legible en el teléfono) y sin valoraciones salvo `--restringido`; la integridad referencial y la calidad del maestro con la familia STK: STK-01 sin poder o interés · STK-02 RACI sin A, con más de un A o persona repetida · STK-03 referencia a interesado o estereotipo inexistente (ERROR; AVISO si el estereotipo está retirado o el correo es inválido) · STK-04 preferencia confirmada vencida o sin `confirmado_por` · STK-05 propuesta de más de 30 días · STK-06 actor de «gestionar de cerca» sin rol RACI · STK-07 envío fallido o pendiente · STK-08 responsable de OKR fuera del maestro · STK-09 elemento RACI inexistente en su fuente · STK-10 nombre repetido · STK-11 RACI sin R, sobre-consulta, concentración o A con poder bajo · STK-00 no se pudo verificar. La sanidad corre esta verificación cuando existe alguno de los registros nuevos.
+- **Comandos:** los ejecuta el sistema; el usuario no los escribe.
+  ```bash
+  python3 $I --proyecto gestion reporte --html gestion/03-control/reportes/2027-01-15-interesados.html \
+      --markdown gestion/03-control/reportes/2027-01-15-interesados.md --corte 2027-01-15
+  python3 $E/estado.py --proyecto gestion artefacto reporte-interesados \
+      --ruta 03-control/reportes/2027-01-15-interesados.html --estado borrador
+  python3 $I --proyecto gestion perfil todos --corte 2027-01-15
+  python3 $I --proyecto gestion vinculos ST-003
+  python3 $I --proyecto gestion integridad --corte 2027-01-15
+  python3 $E/sanidad.py --proyecto gestion --rapido
+  python3 $E/exportar.py xlsx --proyecto gestion
+  ```
+- **Entradas (qué aporta el usuario y cómo):** ninguna nueva: maestro, estereotipos, preferencias, RACI, envíos, OKR y registros ya están en la carpeta.
+- **Salidas (qué queda y dónde verificarlo):**
+  - Reporte (salida real): "Reporte de interesados → gestion/03-control/reportes/2027-01-15-interesados.html gestion/03-control/reportes/2027-01-15-interesados.md · 10 ubicados, 6 elementos RACI, 0 hallazgos". Secciones: matriz 2×2 en SVG, estrategias, RACI (letra y color), perfiles con procedencia, estereotipos, vínculos con OKR, especificación y WBS, envíos e integridad. Con `--restringido` agrega las valoraciones y lo advierte ("Circulación restringida: incluye valoraciones").
+  - Integridad: "Integridad referencial y calidad del maestro: sin hallazgos."; sanidad: "0 ERROR · 0 AVISO · 1 INFO" (ESP-02, índice de especificación desactualizado). Ejemplo de hallazgo (corrida complementaria): un `.eml` generado y todavía no registrado como enviado da `AVISO STK-07: Envío EN-009 a ST-007 en estado pendiente (correo, Highlight report al 8 de enero)`, que desaparece tras `envios.py registrar --modo eml`.
+  - `gestion/exportados/<fecha>-registros.xlsx` (una hoja por registro; el sindicato marcado como confidencial).
+  - Cómo verificarlo: abrir `gestion/03-control/reportes/2027-01-15-interesados.html` en el navegador y el `.md`; abrir el Excel; escribir "Verificá la integridad del maestro de interesados".
+- **Decisión humana:** antes de compartir el reporte o el Excel fuera de la junta, el gestor confirma la audiencia (el reporte por defecto no lleva actitudes; el Excel incluye la hoja `stakeholders`). Un ERROR STK-03 bloquea las puertas hasta corregirlo o hasta una decisión humana registrada.
+
+### 47. `pm-riesgos` — riesgos candidatos desde BMAD, transcripciones, Jira y artefactos
+- **Prompt del usuario:** "Antes del taller de riesgos, buscá candidatos en lo que ya tenemos: BMAD, la transcripción de la ronda con TI y el sindicato, y la instantánea de Jira del sprint. Para el proyecto que no usa BMAD, sacalos de los artefactos."
+- **Quién:** orquestador → `pm-inicio` (o `pm-control` en ejecución) → `pm-riesgos`; BMAD solo a través de `pm-bmad-puente`; la instantánea de Jira la trae `pm-integraciones`.
+- **Qué pregunta o verifica:** qué fuentes existen (sin BMAD informa "no aplica" y usa los artefactos); que cada candidato tenga clase (riesgo, supuesto, pregunta o issue), tipo (amenaza u oportunidad), cita y ubicación (archivo:línea, marca de tiempo o ticket); que lo ya ocurrido (bug, impedimento bloqueado) se trate como issue con su riesgo derivado; posibles duplicados o relaciones con riesgos registrados. No registra nada: cada candidato se formula como causa → evento → efecto y se evalúa con su propietario.
+- **Comandos:** los ejecuta el sistema; el usuario no los escribe.
+  ```bash
+  python3 $T gestion/03-control/reuniones/2026-10-27-ronda-riesgos-original.vtt \
+      --salida gestion/03-control/reuniones/2026-10-27-ronda-riesgos-transcripcion.md
+  python3 $R --proyecto gestion candidatos --fecha 2026-10-28            # BMAD + transcripciones + artefactos
+  python3 $R --proyecto gestion candidatos --fuentes tracker --fecha 2026-12-16   # toma la última instantánea de 03-control/fuentes/
+  python3 $E/registro.py --proyecto gestion agregar riesgos ... --campo "notas=... origen: brief.md:91 (BMAD) y ronda 2026-10-27 [00:00:13]"
+  python3 $E/registro.py --proyecto gestion agregar issues ... --campo "notas=origen: jira:PS-102"
+  ```
+  (Sintaxis completa en [CATALOGO §5.2](CATALOGO.md).)
+- **Entradas (qué aporta el usuario y cómo):** la transcripción `.vtt` de la ronda; la instantánea CSV de Jira (columnas mínimas del formato de pm-integraciones y, opcionales, `prioridad`, `etiquetas`, `vinculo`, `descripcion`); BMAD y los artefactos ya están en la carpeta.
+- **Salidas (qué queda y dónde verificarlo):**
+  - Salida real (guía E2E-1, paso 4): "bmad: 42 candidatos · 3 fuente(s) leída(s) · transcripciones: 6 candidatos · tracker: 0 candidatos · no disponible · artefactos: 0 candidatos"; por ejemplo `brief.md:91` (riesgo), `prd.md:249` (pregunta abierta), `ARCHITECTURE-SPINE.md:177` (decisión diferida) y «Nos preocupa que el padrón no tenga entorno de pruebas» (TI, ST-003, [00:00:13]).
+  - Paso 9 (Jira): "tracker: 3 candidatos": PS-101 (Bug, Highest) y PS-102 (Impedimento, Bloqueado) como issues «¿relacionado con R-001?», PS-104 (etiqueta `riesgo`) «¿duplica R-003?». El gestor registra R-001 ocurrido, I-001 e I-002 con `origen: jira:PS-…`.
+  - Paso 13 (sin BMAD): "bmad: no aplica … artefactos: 7 candidatos · 5 fuente(s)" del mandato, el brief, los requisitos y `supuestos.csv`.
+  - Borrador `gestion/03-control/reportes/<fecha>-candidatos-riesgo.md`; los registros solo cambian con `registro.py`.
+  - Cómo verificarlo: abrir el borrador y `riesgos.csv` / `issues.csv` (columna `notas` con el origen); escribir "Mostrame los riesgos candidatos y su fuente".
+- **Decisión humana:** el gestor y cada propietario deciden qué candidatos se registran, se descartan o se fusionan con uno existente; lo ocurrido se escala como issue según las tolerancias.
+
+### 48. `pm-sanidad` y `pm-direccion-decisiones` — controles permanentes: presupuesto de cambio, excepción, calidad a volumen, condiciones de puertas y cadencia de contacto
+- **Prompt del usuario:** "Hacé el control del período al 19 de febrero, con la sanidad a esa fecha: ¿cuánto queda del presupuesto de cambio, el pronóstico sigue dentro de la tolerancia, hay historias terminadas sin revisión de calidad, quedan condiciones de la junta abiertas y estamos hablando con cada interesado con la frecuencia que prometimos?"
+- **Respuestas del usuario:**
+  1. Laura Méndez, ejecutiva (ante el presupuesto de cambio excedido y el pronóstico fuera de tolerancia): "Pido un plan de excepción para la etapa 2; C-002 queda sujeto a ese plan." Con el plan presentado: "Amplío el presupuesto de cambio a 32.000 y ratifico C-002 con el plan de excepción X-001."
+  2. Sofía Ramírez, usuaria sénior (ante las historias `done` sin revisión): "Las cinco se revisaron el 25 de febrero contra sus criterios de aceptación; la 3-3 tiene una observación menor que va al backlog."
+  3. Laura Méndez, ejecutiva (condición de la puerta de la etapa 2): "La prueba de carga se aprobó el 2 de marzo y el gate de BMAD quedó en PASS el 3: doy por cumplida la condición."
+  4. Martín Suárez, gestor (ante la cadencia de contacto): "Retomamos la reunión técnica semanal con TI; para Lucía, el compromiso de contacto es el checkpoint semanal, no la daily."
+- **Quién:** orquestador → `pm-control` → `pm-sanidad` (`sanidad.py --corte`), `pm-progreso-reportes` (`evm.py --guardar`), `pm-issues-cambios` (costo y cargo de cada cambio, informe de excepción), `pm-calidad` (revisiones en lote), `pm-interesados` (STK-12); `pm-director` registra presupuestos, decisiones, la excepción, el cumplimiento de condiciones y las puertas.
+- **Qué pregunta o verifica:** lo que en la práctica se revisa a mano, tarde o nunca, y aquí corre en cada sanidad: consumo del presupuesto de cambio y de la reserva de riesgo contra lo que fijó la junta (CAM-03; > 100 % es ERROR y bloquea puertas) y cambios sobre el límite de la autoridad delegada (CAM-04); el último corte de EVM guardado contra las tolerancias (TOL-01 si pronostica excepción y no hay excepción abierta); cada historia terminada de `backlog.csv` contra `calidad.csv` (QUA-01) y revisiones vencidas (QUA-02); condiciones abiertas de puertas (EST-12 y, en la verificación de la puerta siguiente, G-01, que bloquea el cierre); y, para los cuadrantes gestionar de cerca, mantener satisfecho y mantener informado, el último contacto registrado contra la frecuencia del perfil (STK-12, tolerancia 1,5 ×). Pregunta quién decide cada corrección: lo que excede la autoridad delegada va a la junta.
+- **Comandos:** los ejecuta el sistema; el usuario no los escribe. Cada bloque viene de la corrida de referencia de una guía distinta, con su propia carpeta: E2E-2 ([salida-g2.md](guias/evidencia/salida-g2.md)), E2E-4 ([salida-g4.md](guias/evidencia/salida-g4.md)) y E2E-3 ([salida-g3.md](guias/evidencia/salida-g3.md)).
+  ```bash
+  # E2E-2, pasos 5 y 10: presupuesto de cambio, cambio con costo y cargo, corte de EVM y sanidad a la fecha de corte
+  python3 $E/estado.py --proyecto gestion presupuesto cambio=12000 limite_autoridad_cambio=10000 \
+      --por "Ejecutiva: Laura Méndez" --fecha 2026-11-27                                   # pm-director
+  python3 $E/registro.py --proyecto gestion agregar cambios --campo "titulo=Consentimiento informado y registro de accesos consultable por el socio" \
+      --campo "impacto_costo=+USD 15.000" --campo "costo=15000" --campo "cargo=presupuesto-cambio" ...
+  python3 $E/evm.py --pv 75000 --ev 60000 --ac 77000 --bac 133000 --modo agil --pct-no-must 20 \
+      --proyecto gestion --guardar --corte 2027-02-19
+  python3 $E/sanidad.py --proyecto gestion --rapido --corte 2027-02-19
+  python3 $E/estado.py --proyecto gestion puerta decision-ad-hoc --decision aprobado --por "Ejecutiva: Laura Méndez" --fecha 2027-02-22 \
+      --condiciones "X-001: la junta pide plan de excepción para la etapa 2; C-002 queda sujeto a ese plan"   # pm-director
+  python3 $E/estado.py --proyecto gestion limite-etapa --excepcion X-001                                     # pm-director
+  python3 $E/estado.py --proyecto gestion cumplir-condiciones decision-ad-hoc --fecha 2027-02-24 \
+      --por "Ejecutiva: Laura Méndez" --nota "plan de excepción X-001 presentado; C-002 se decide con él"    # pm-director
+  python3 $E/estado.py --proyecto gestion presupuesto cambio=32000 --por "Ejecutiva: Laura Méndez" --fecha 2027-02-26   # pm-director
+  python3 $E/puertas.py --proyecto gestion verificar autorizar-plan-excepcion
+  # E2E-4, pasos 8, 12 y 13: condición formal, calidad a volumen y cumplimiento
+  python3 $E/estado.py --proyecto gestion puerta autorizar-etapa --decision condicionado --por "Ejecutivo: Laura Méndez" \
+      --fecha 2026-11-27 --etapa-nombre "Release 1" --fin 2027-03-05                       # pm-director
+  python3 $E/sanidad.py --proyecto gestion --rapido --corte 2027-02-26
+  python3 $E/registro.py --proyecto gestion agregar calidad --campo "producto=Release 1 · historia 1-3 Consulta de saldos de ahorro y préstamos" \
+      --campo "metodo_verificacion=prueba" --campo "aprobador=Sofía Ramírez" --campo "fecha_real=2027-02-25" \
+      --campo "resultado=aprobado" --campo "estado=completada" ...                        # una por historia (Q-004…Q-008)
+  python3 $E/puertas.py --proyecto gestion verificar autorizar-etapa
+  python3 $E/estado.py --proyecto gestion cumplir-condiciones autorizar-etapa --fecha 2027-03-05 --por "Ejecutivo: Laura Méndez" \
+      --nota "Q-001 prueba de carga NFR-3 aprobada el 2027-03-02 (p95 2,4 s); gate de preparación de BMAD en PASS el 2027-03-03"   # pm-director
+  # E2E-3, paso 13: cadencia de contacto
+  python3 $I --proyecto gestion integridad --corte 2027-02-05
+  python3 $E/registro.py --proyecto gestion agregar envios --campo "fecha=2027-02-05" --campo "stakeholder_id=ST-006" --campo "canal=reunion" \
+      --campo "modo=manual" --campo "estado=enviado" --campo "asunto=Reunión técnica: integración con el núcleo (NFR-6) y prueba de carga (NFR-3)" \
+      --campo "notas=retroalimentación: ..."
+  python3 $E/registro.py --proyecto gestion actualizar stakeholders ST-010 --campo "canal=checkpoint" --campo "frecuencia=semanal"
+  ```
+  (Los `...` abrevian campos descriptivos que están completos en la evidencia; sintaxis en [CATALOGO §5](CATALOGO.md).)
+- **Entradas (qué aporta el usuario y cómo):** las decisiones de la junta en el prompt o respondiendo al orquestador (montos sin moneda ni separador de miles); el costo y el cargo de cada cambio; los valores de EVM del período; las revisiones de calidad realizadas; las reuniones y llamadas mantenidas, que se registran como envío manual.
+- **Salidas (qué queda y dónde verificarlo):**
+  - Sanidad del 2027-02-19 en la guía E2E-2 (salida real):
+    ```text
+    Sanidad de 'Portal de autoservicio para socios' (entrega/CS): 1 ERROR · 2 AVISO · 0 INFO
+      ERROR CAM-03 Presupuesto de cambio excedido: 24.000 de 12.000 (200 %).
+      AVISO CAM-04 Cambio C-002 (15.000) supera el límite de la autoridad de cambio (10.000) y lo decidió 'Autoridad de cambio: Sofía Ramírez'.
+      AVISO TOL-01 El EVM del 2027-02-19 pronostica salir de la tolerancia (costo=n/a-agil, cronograma=n/a-agil, alcance=rojo) y no hay excepción abierta.
+    ```
+    `evm.py` deja `Guardado: 03-control/reportes/evm-2027-02-19.json` (`semaforo_alcance rojo`, `excepcion_prevista True`). Con el ERROR, `puertas.py verificar autorizar-plan-excepcion` muestra `BLOQUEO sanidad CAM-03: Presupuesto de cambio excedido: 24.000 de 12.000 (200 %).`; tras la ampliación a 32.000 queda solo el bloqueo de la lista de control, que la ejecutiva confirma, y la puerta se registra. La sanidad del 2027-02-26: `0 ERROR · 1 AVISO · 1 INFO` con `INFO CAM-03 Presupuesto de cambio: 24.000 de 32.000 (75 %).` y `estado.py resumen` muestra `Presupuestos: cambio=32000, limite_autoridad_cambio=10000`.
+  - Sanidad del 2027-02-26 en la guía E2E-4 (salida real, extracto): `0 ERROR · 7 AVISO · 3 INFO`, con `AVISO EST-12 Condiciones abiertas de autorizar-etapa: gate de preparación de BMAD en CONCERNS (2026-11-26: NFR-3 sin prueba de carga planificada).`, cinco `AVISO QUA-01` (por ejemplo, `1-3-consulta-de-saldos-de-ahorro-y-préstamos: terminado sin revisión de calidad registrada.`) y `AVISO QUA-02 Revisión de calidad vencida Q-001 (NFR-3 prueba de carga (consultas de saldos y préstamos), prevista 2027-02-19).` Con las revisiones Q-004…Q-008 registradas: `0 ERROR · 2 AVISO · 2 INFO` (quedan EST-12 y QUA-02). La condición había nacido sola al registrar la puerta: `Condiciones agregadas desde la verificación: gate de preparación de BMAD en CONCERNS (2026-11-26: NFR-3 sin prueba de carga planificada)`. Antes de cumplirla, `puertas.py verificar autorizar-etapa` muestra `condición condiciones abiertas de puertas anteriores: autorizar-etapa 2026-11-27 (…)` (G-01); después, la sanidad del 2027-03-05 queda en `0 ERROR · 0 AVISO · 1 INFO`.
+  - Integridad del 2027-02-05 en la guía E2E-3 (salida real): `AVISO STK-12: ST-006 Área de TI del núcleo operativo (gestionar-de-cerca, frecuencia semanal): último contacto registrado el 2027-01-18, hace 18 días (máximo 10)`, y lo mismo para ST-009 (sin contacto desde 2027-01-15, 21 días; máximo 10) y ST-010 (frecuencia diaria; máximo 2). Con la reunión EN-008, los checkpoints EN-009 y EN-010, la acción A-005 y la frecuencia de ST-010 corregida a semanal: `Integridad referencial y calidad del maestro: sin hallazgos.`
+  - Dónde verificar: `estado.json` → `presupuestos` y `puertas[]` (`condiciones`, `condiciones_cumplidas`, `condiciones_verificadas_por`, `condiciones_nota`); `cambios.csv` (columnas `costo` y `cargo`); `03-control/reportes/evm-<corte>.json`; `calidad.csv`; `envios.csv`; `decisiones.csv` (presupuestos, decisión ad hoc y cumplimiento de condiciones). Prompts: "¿Cuánto queda del presupuesto de cambio?", "¿Qué condiciones de la junta siguen abiertas?", "¿A quién no contactamos con la frecuencia acordada?".
+- **Decisión humana:** la junta (Laura Méndez) decide la excepción, amplía el presupuesto, ratifica el cambio que superó el límite delegado y da por cumplidas las condiciones; pm-director registra cada decisión con `estado.py` (el hook impide que otro agente ejecute `presupuesto`, `cumplir-condiciones`, `puerta` o `limite-etapa --excepcion`). Sofía Ramírez aprueba las revisiones de calidad; el gestor decide la acción correctiva con TI y corrige la frecuencia. Ningún control decide: detecta, explica el arreglo y señala quién decide.
 
 ---
 
@@ -936,7 +1323,7 @@ Mismo portal de socios, pero el proveedor gestiona sus tickets en Jira y la coop
 2. **Leer sin confirmación.** Prompt del usuario: "Traé los tickets abiertos del sprint actual de Jira." Consulta por JQL y guarda una instantánea inmutable `03-control/fuentes/jira-2026-12-10.csv` con columnas `clave,tipo,titulo,estado,asignado,sprint,puntos,actualizado,url`. Dónde se verifica: `gestion/03-control/fuentes/jira-2026-12-10.csv` en un editor o Excel (no se edita: la próxima lectura crea otra con su fecha).
 3. **Conciliar.** Compara la instantánea con `backlog.csv`, `acciones.csv` e `issues.csv`. Las diferencias se proponen; un ticket de alcance que no rastrea al backlog va a pm-issues-cambios. Las columnas de gobierno (moscow, release, producto_pbs, prioridad) siguen siendo solo de pm-method; la clave de Jira se guarda en `notas` como `jira:ABC-12`. Prompt del usuario: "Compará lo que trajiste de Jira con el backlog y los registros." Dónde se verifica: las diferencias propuestas, en la respuesta; las que se aceptan, en `gestion/02-planificacion/backlog.csv` y en `gestion/03-control/registros/acciones.csv` o `issues.csv` (columna `notas`).
 4. **Escribir con confirmación.** Prompt del usuario: "Creá tickets en Jira para las acciones abiertas del proveedor." Respuesta del usuario: Martín Suárez, gestor: "Confirmo el lote tal como está en la vista previa." Como corre en un subagente, pm-control devuelve la vista previa exacta (proyecto Jira, resumen, asignado, vencimiento) como decisión humana requerida. El orquestador la muestra, Martín confirma el lote, y recién entonces se crean los tickets; las claves quedan en `notas` de cada A-###. Dónde se verifica: columna `notas` de `gestion/03-control/registros/acciones.csv` y los tickets en Jira.
-5. **Publicar.** Prompt del usuario: "Publicá el highlight de esta semana en el canal del proyecto en Teams." Respuesta del usuario: Martín Suárez, gestor: "Confirmo; publicalo." pm-integraciones prepara el mensaje en el idioma de la audiencia según la matriz de comunicaciones; vista previa → confirmación del gestor → publicación → anotación en `diario.md`. Dónde se verifica: el mensaje en el canal de Teams y la anotación en `gestion/03-control/registros/diario.md`.
+5. **Publicar.** Prompt del usuario: "Publicá el highlight de esta semana en el canal del proyecto en Teams." Respuesta del usuario: Martín Suárez, gestor: "Confirmo; publicalo." pm-integraciones prepara el mensaje en el idioma de la audiencia según la matriz de comunicaciones; vista previa → confirmación del gestor → publicación → anotación en `diario.md`. Si la publicación va dirigida a interesados del maestro, la capa de canales la registra además en `envios.csv` (`envios.py preparar-mcp` → publicación con la herramienta → `envios.py registrar --modo mcp`; caso 44). Dónde se verifica: el mensaje en el canal de Teams y la anotación en `gestion/03-control/registros/diario.md`.
 6. **Informes.** pm-progreso-reportes y pm-visuales citan la instantánea `jira-2026-12-10.csv` como fuente; riesgos, issues y acciones siguen saliendo de los registros. Prompt del usuario en cada período: "Volvé a traer los tickets de Jira." (atajo: `/pm-sync tracker`), que repite la lectura y crea una instantánea nueva por fecha. Dónde se verifica: la cita de la instantánea en el informe (`gestion/03-control/reportes/<fecha>-highlight-report.md`) y la nueva `gestion/03-control/fuentes/jira-AAAA-MM-DD.csv`.
 
-Si una herramienta falla dos veces o no tiene la operación, la skill lo informa y ofrece la alternativa local (CSV, Markdown o borrador para copiar).
+Si una herramienta falla dos veces o no tiene la operación, la skill lo informa y ofrece la alternativa local (CSV, Markdown o borrador para copiar; para mensajes a interesados, la capa de canales: webhook, correo SMTP o `.eml`).

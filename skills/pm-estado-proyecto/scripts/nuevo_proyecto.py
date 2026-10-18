@@ -30,8 +30,8 @@ def main():
         sys.exit(t("Ya existe estado.json en esa ruta; no se sobrescribe.", "estado.json already exists there; not overwritten."))
     for c in E.CARPETAS:
         os.makedirs(os.path.join(a.ruta, c), exist_ok=True)
-    for reg in E.REGISTROS:
-        E.asegurar_registro(a.ruta, reg)
+    for reg, spec in E.REGISTROS.items():
+        if not spec.get("opcional"): E.asegurar_registro(a.ruta, reg)   # los opcionales se crean al primer uso
     diario = os.path.join(a.ruta, "03-control", "registros", "diario.md")
     if not os.path.exists(diario):
         open(diario, "w", encoding="utf-8").write(DIARIO[a.idioma])

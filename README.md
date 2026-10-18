@@ -1,6 +1,6 @@
-# pm-method · Agentes y skills de gestión de proyectos (ES/EN) · v2.1.0
+# pm-method · Agentes y skills de gestión de proyectos (ES/EN) · v2.2.0
 
-Ecosistema bilingüe de **6 agentes**, **37 skills** y **3 hooks** para Claude Code (también Cowork y Hermes) que
+Ecosistema bilingüe de **6 agentes**, **38 skills** y **3 hooks** para Claude Code (también Cowork y Hermes) que
 gestiona un proyecto de la idea al cierre con **PRINCE2 7** como método y ciclo de vida, **PMBOK 8** como caja de
 técnicas, plantillas profesionales como artefactos y **BMAD** como fuente única de la especificación del producto.
 
@@ -23,12 +23,14 @@ tolerancias, gestión por excepción), **PMBOK 8** aporta solo técnicas, las **
 | La especificación (PRD, épicas, historias) y la gestión viven en mundos separados y se desincronizan | **Fuente única por dato**: BMAD es la especificación, pm-method la lee por una fachada (`especificacion.py`), detecta desvíos contra líneas base con sha256 y devuelve decisiones con un documento de traspaso |
 | El modelo "decide" cosas que debería decidir una persona | **Puertas humanas**: solo `pm-director` registra decisiones de la junta, y un hook lo hace cumplir también en los subagentes |
 | Archivos de estado editados a mano, registros inconsistentes | **Guardarraíles**: `estado.json` y los registros solo cambian por scripts que validan; el hook `guardian.py` bloquea ediciones directas por Edit **y** por Bash |
-| Integraciones frágiles o atadas a un proveedor | **MCP genérico** (Jira, Confluence, Slack, Teams, transcripciones, OKR) sin conectores predefinidos; skills externas de diagramas y Office con **respaldo interno** si no están |
-| Nadie sabe si "todo está bien" | **Sanidad permanente**: `sanidad.py` (familias INS, EST, ART, REG, ESP, INT) al iniciar sesión, antes de cada puerta y a pedido |
+| Comunicaciones iguales para todos y RACI desconectado del alcance | **Maestro de interesados** (`pm-interesados`): matriz poder/interés con estrategia por cuadrante, RACI ligada a WBS, requisitos, historias y KR, preferencias confirmadas por una persona y un perfil de comunicación por interesado |
+| Integraciones frágiles o atadas a un proveedor | **MCP genérico** (Jira, Confluence, Slack, Teams, transcripciones, OKR) sin conectores predefinidos y una **capa de canales** propia (correo SMTP, webhooks de Slack o Teams, `.eml`) que solo envía mensajes aprobados; skills externas de diagramas y Office con **respaldo interno** si no están |
+| Nadie sabe si "todo está bien" | **Sanidad permanente**: `sanidad.py` (familias INS, EST, ART, REG, CAM, QUA, TOL, ESP, INT, STK) al iniciar sesión, antes de cada puerta y a pedido |
+| Controles que se hacen a mano, tarde o nunca: cuánto queda del presupuesto de cambio, historias "terminadas" sin revisión, pronósticos que nadie vuelve a mirar, condiciones de la junta olvidadas, interesados sin contacto | **Controles permanentes**: presupuestos de la junta contra el costo de cada cambio, calidad a volumen sobre el backlog, cortes de EVM vigilados contra las tolerancias, condiciones formales de puertas con seguimiento hasta cumplirse y cadencia de contacto por interesado |
 
 **Valor agregado:** gobierno auditable (cada puerta con su fila en `decisiones.csv`), trazabilidad requisito → historia →
 paquete de trabajo → aceptación, informes de avance y excepción con valor ganado, visuales y exportaciones listos para la
-junta, y un ecosistema probado con **80 pruebas de regresión** y pruebas en vivo con Claude Code real.
+junta, y un ecosistema probado con **138 pruebas de regresión** y pruebas en vivo con Claude Code real.
 
 ---
 
@@ -36,20 +38,45 @@ junta, y un ecosistema probado con **80 pruebas de regresión** y pruebas en viv
 
 | Para | Beneficio concreto |
 |---|---|
-| Gestor de proyectos | planes, registros, informes (highlight, checkpoint, excepción, fin de etapa con valor ganado) y puertas preparados con método; menos trabajo administrativo |
+| Gestor de proyectos | planes, registros, informes (highlight, checkpoint, excepción, fin de etapa con valor ganado) y puertas preparados con método; comunicados personalizados por interesado y enviados con aprobación; menos trabajo administrativo |
 | Ejecutivo y junta | decisiones claras con opciones, tolerancias y excepciones a tiempo; cada puerta verificada (salud, criterios de éxito, lista de control) antes de decidir |
 | Product owner / equipo ágil | backlog sincronizado con BMAD, MoSCoW, release plan y avance por puntos sin copiar la especificación |
 | PMO / CoE de IA | un estándar reproducible y auditable: `estado.json` + `decisiones.csv`, trazabilidad requisito → historia → paquete → aceptación |
 
 | Evidencia (2026-10-17) | Resultado |
 |---|---|
-| Pruebas de regresión (`probar_paquete.py`) | 80 OK · 0 FALLO, incluida una instalación real de BMAD 6.12.4 |
-| Enrutamiento en vivo con Claude Code real | 60/60 frases a la skill o agente correcto |
+| Pruebas de regresión (`probar_paquete.py`) | 138 OK · 0 FALLO, incluida una instalación real de BMAD 6.12.4 y envíos SMTP y por webhooks contra servidores locales |
+| Enrutamiento en vivo con Claude Code real | 60/60 frases a la skill o agente correcto (v2.1; pendiente repetir para 2.2) |
 | Guardarraíles, idioma y robustez en vivo | 4/4 · 5/5 · inyección, datos desordenados, escala y varias sesiones: todos OK |
-| Diagramas Mermaid (`validar_mermaid.py --render`) | 122 bloques, 0 errores |
+| Diagramas Mermaid (`validar_mermaid.py --render`) | 127 bloques, 0 errores |
 | Recorridos E2E de las guías (`guias_e2e/correr.py`) | 4/4 OK con los scripts reales |
 
 Límites conocidos y detalle para presentar el proyecto: **[docs/RESUMEN-EJECUTIVO.md](docs/RESUMEN-EJECUTIVO.md)**.
+
+---
+
+## Novedades de la 2.2.0: interesados, canales, OKR y controles permanentes
+
+| Capacidad | Qué hace | Dónde |
+|---|---|---|
+| Maestro de interesados | matriz **poder/interés** (poder: autoridad, recursos, aprobar o vetar; interés: involucramiento o impacto) con su estrategia por cuadrante: gestionar de cerca, mantener satisfecho, mantener informado, monitorear | `pm-interesados` · `interesados.py matriz` |
+| RACI ligada al plan | RACI sobre paquetes de la WBS, requisitos y épicas del PRD, historias, KR y decisiones; un solo A por elemento; sanidad avisa si falta A, hay sobre-consulta o un actor clave sin rol | `interesados.py raci` · `integridad` |
+| Estereotipos y preferencias | 6 estereotipos semilla; preferencias propuestas desde entrevistas, actas y transcripciones (solo frases en primera persona, con cita y fuente) que una persona confirma o rechaza y que vencen | `interesados.py estereotipos` · `proponer` · `confirmar` |
+| Perfil de comunicación | canal, formato, nivel de detalle y frecuencia por interesado: cuadrante → idioma → estereotipo → matriz de comunicaciones → preferencias confirmadas y vigentes | `interesados.py perfil` · `plan-envio` |
+| Capa de canales | envío por correo SMTP, webhooks de Slack o Teams, archivos `.eml` o MCP conectados; simulación por defecto, solo mensajes aprobados, destinos siempre desde el maestro y registro en `envios.csv` y el diario | `pm-integraciones` · `envios.py` |
+| OKR v2.2 | tipos de KR (de-a, mantener, binario, hito), aspiracional o comprometido, pesos, iniciativas, check-ins en `okr_checkins.csv`, salud contra el avance esperado y propuesta de sincronización con Tability o Perdoo | `pm-okr` · `okr.py --checkin` · `--propuesta-sync` |
+| Reporte de interesados | HTML autocontenido: matriz, estrategias, RACI, perfiles con procedencia, estereotipos, vínculos, envíos e integridad | `interesados.py reporte --html` |
+| Riesgos candidatos | identificación desde cuatro fuentes: BMAD (incluido el descubrimiento, solo lectura), transcripciones de entrevistas y reuniones, incidencias del tracker (Jira: lo ocurrido → issue) y, sin BMAD, los artefactos del proyecto; borrador con cita y ubicación, nada se registra sin evaluarse | `pm-riesgos` · `riesgos.py candidatos` |
+| Controles permanentes | lo que en la práctica se revisa a mano, tarde o nunca, lo detecta la sanidad en cada corrida: presupuestos de la junta (cambio, reserva de riesgo, reserva de gestión, límite de la autoridad de cambio) contra el `costo` y el `cargo` de cada cambio (CAM-01…05; excedido = ERROR que bloquea puertas), historias terminadas sin revisión de calidad y revisiones vencidas (QUA-01…03), cortes de EVM guardados contra las tolerancias (TOL-01…03), condiciones formales de puertas hasta `cumplir-condiciones` (EST-12, G-01, que bloquea el cierre), beneficios que no pueden quedar solo en OKR (P-04) y cadencia de contacto por interesado (STK-12) | `estado.py presupuesto` · `cumplir-condiciones` · `evm.py --guardar` · `sanidad.py --corte` · [SANIDAD](docs/SANIDAD.md) |
+
+El perfil solo adapta comunicaciones: no infiere emociones, personalidad ni datos sensibles, y no analiza audio ni tono.
+Las cuatro guías muestran estos controles, cada una con su tabla "Controles permanentes que muestra esta guía": la
+**[E2E-1](docs/guias/E2E-1-riesgos.md)** (13 pasos) con los riesgos candidatos de BMAD, de una transcripción, de Jira y
+de un proyecto sin BMAD y la reserva de riesgo vigilada; la **[E2E-2](docs/guias/E2E-2-alcance-roadmap.md)** (10 pasos)
+con el presupuesto de cambio y la gestión por excepción; la **[E2E-3](docs/guias/E2E-3-interesados-okr-avance.md)**
+(13 pasos) con el maestro de interesados, las preferencias, la RACI, OKR v2.2, el envío por canales y el compromiso
+sostenido (STK-12); y la **[E2E-4](docs/guias/E2E-4-producto-bmad.md)** (15 pasos) con condiciones formales, calidad a
+volumen y la revisión de beneficios posterior al proyecto. Detalle: [CHANGELOG](CHANGELOG.md).
 
 ---
 
@@ -71,13 +98,14 @@ flowchart TB
         F["Subagentes de fase<br/>pm-inicio · pm-planificacion · pm-control · pm-cierre"]
     end
     subgraph T["PMBOK 8 · solo el cómo"]
-        S["31 skills de tema + 6 comandos<br/>EVM, CPM, PERT, P×I, EMV, VAN, MoSCoW…"]
+        S["32 skills de tema + 6 comandos<br/>EVM, CPM, PERT, P×I, EMV, VAN, MoSCoW…"]
     end
     subgraph E["BMAD · solo lectura"]
         B["brief · PRD · arquitectura · épicas · sprint-status"]
     end
     subgraph I["Integración opcional"]
-        M["Jira · Confluence · Slack · Teams · transcripciones · Tability"]
+        M["Jira · Confluence · Slack · Teams<br/>transcripciones · Tability · Perdoo"]
+        C["Capa de canales · envios.py<br/>correo SMTP · webhooks · .eml"]
         X["archify · diagram-design · visual-explainer · docx/xlsx/pptx"]
     end
     subgraph P["Persistencia · fuente de verdad"]
@@ -91,6 +119,7 @@ flowchart TB
     D --> S
     S --> B
     S --> M
+    S --> C
     S --> X
     S -->|"estado.py · registro.py"| J
     S --> R
@@ -208,9 +237,9 @@ flowchart TB
     ORQ["pm-orquestador<br/>(hilo principal)"]
     ORQ --> DIR & INI & PLA & CON & CIE
     DIR["pm-director · DP"] --- sd["pm-direccion-decisiones<br/>pm-caso-de-negocio<br/>pm-okr<br/>pm-exportar"]
-    INI["pm-inicio · SU/IP"] --- si["pm-mandato-y-brief<br/>pm-organizacion-roles<br/>pm-enfoques-gestion<br/>pm-acta-constitucion<br/>pm-caso-de-negocio<br/>pm-okr<br/>pm-riesgos"]
+    INI["pm-inicio · SU/IP"] --- si["pm-mandato-y-brief<br/>pm-organizacion-roles<br/>pm-interesados<br/>pm-enfoques-gestion<br/>pm-acta-constitucion<br/>pm-caso-de-negocio<br/>pm-okr<br/>pm-riesgos"]
     PLA["pm-planificacion · IP/SB"] --- sp["pm-planificacion-por-productos<br/>pm-cronograma-estimacion<br/>pm-costos-presupuesto<br/>pm-plan-etapa-y-limites<br/>pm-agil-hibrido<br/>pm-adquisiciones"]
-    CON["pm-control · CS/MP"] --- sc["pm-paquetes-trabajo<br/>pm-registros<br/>pm-riesgos<br/>pm-issues-cambios<br/>pm-progreso-reportes<br/>pm-calidad<br/>pm-reuniones<br/>pm-visuales<br/>pm-integraciones"]
+    CON["pm-control · CS/MP"] --- sc["pm-paquetes-trabajo<br/>pm-registros<br/>pm-riesgos<br/>pm-issues-cambios<br/>pm-progreso-reportes<br/>pm-calidad<br/>pm-reuniones<br/>pm-interesados<br/>pm-visuales<br/>pm-integraciones"]
     CIE["pm-cierre · CP"] --- se["pm-cierre-proyecto<br/>pm-lecciones-aprendidas"]
     TR["Transversales<br/>(cualquier agente)<br/>pm-bmad-puente<br/>pm-estado-proyecto<br/>pm-sanidad<br/>pm-knowledge<br/>pm-comunicacion-stakeholders<br/>pm-exportar"]
     sd & si & sp & sc & se -.-> TR
@@ -291,8 +320,12 @@ por sistema operativo y notas para WSL: **[INSTALACION §0.8](docs/INSTALACION.m
 ```
 
 **Probar las capacidades paso a paso:** [docs/guias/](docs/guias/README.md) tiene cuatro recorridos de punta a punta por
-prompts, con reporte y gráficos: gestión de riesgos; alcance, cambio, esfuerzo, priorización y mapa de ruta; interesados,
-comunicaciones, OKR y avance; y el producto de la idea al producto con BMAD.
+prompts, con reporte y gráficos: gestión de riesgos (ampliada en 2.2: identificación desde BMAD, transcripciones, Jira y
+artefactos, y reserva de riesgo vigilada); alcance, cambio, esfuerzo, priorización y mapa de ruta (en 2.2: presupuesto de
+cambio y gestión por excepción); interesados, comunicaciones, OKR y avance (ampliada en 2.2: matriz poder/interés,
+preferencias, RACI, OKR v2.2, envío por canales y cadencia de contacto); y el producto de la idea al producto con BMAD (en
+2.2: condiciones formales de puertas, calidad a volumen y revisión de beneficios posterior). Cada guía señala los
+controles permanentes que muestra.
 
 Para que el orquestador sea el agente de toda la sesión: `claude --agent pm-method:pm-orquestador`.
 Si el pedido nombra un producto concreto ("armá el business case", "highlight de esta semana", "acta de la reunión"),
@@ -309,9 +342,9 @@ cruzan procesos.
 |---|---|---|---|
 | `pm-orquestador` | hilo principal (también skill) | todos | lee el estado, pregunta, delega, presenta puertas |
 | `pm-director` | subagente | DP | solicitudes de decisión; **único** que registra puertas y aprobaciones de junta |
-| `pm-inicio` | subagente | SU, IP | mandato, brief, business case, OKR, organización, enfoques, PID |
+| `pm-inicio` | subagente | SU, IP | mandato, brief, business case, OKR, organización, interesados y RACI, enfoques, PID |
 | `pm-planificacion` | subagente | Plans, IP, SB | PBS/WBS o backlog, estimación, cronograma, presupuesto, planes |
-| `pm-control` | subagente | CS, MP | paquetes, registros, riesgos, issues, informes, calidad, actas, sincronización |
+| `pm-control` | subagente | CS, MP | paquetes, registros, riesgos, issues, informes, calidad, actas, preferencias, check-ins de OKR, envíos, sincronización |
 | `pm-cierre` | subagente | CP | aceptación, handover, lecciones, revisión de beneficios, informe final |
 
 Los subagentes no preguntan al usuario, no delegan en otros agentes, heredan las herramientas de la sesión (incluidos
@@ -340,12 +373,12 @@ Toda skill es invocable como `/pm-method:<skill>` (plugin) o `/<skill>` (copia m
 - **`UserPromptSubmit` → `idioma.py`**: si el pedido está en otro idioma que el proyecto (ES/EN), recuerda responder en
   el idioma del pedido.
 
-### Catálogo resumido (37 skills)
+### Catálogo resumido (38 skills)
 
 | Grupo | Skills |
 |---|---|
 | Dirección y estado | `pm-orquestador`, `pm-direccion-decisiones`, `pm-estado-proyecto`, `pm-sanidad` |
-| Inicio (SU, IP) | `pm-mandato-y-brief`, `pm-caso-de-negocio`, `pm-okr`, `pm-organizacion-roles`, `pm-enfoques-gestion`, `pm-acta-constitucion` |
+| Inicio (SU, IP) | `pm-mandato-y-brief`, `pm-caso-de-negocio`, `pm-okr`, `pm-organizacion-roles`, `pm-interesados`, `pm-enfoques-gestion`, `pm-acta-constitucion` |
 | Planificación | `pm-planificacion-por-productos`, `pm-cronograma-estimacion`, `pm-costos-presupuesto`, `pm-plan-etapa-y-limites`, `pm-agil-hibrido`, `pm-adquisiciones` |
 | Control (CS, MP) | `pm-paquetes-trabajo`, `pm-registros`, `pm-riesgos`, `pm-issues-cambios`, `pm-progreso-reportes`, `pm-calidad`, `pm-comunicacion-stakeholders`, `pm-reuniones`, `pm-visuales` |
 | Cierre (CP) | `pm-cierre-proyecto`, `pm-lecciones-aprendidas` |
@@ -371,7 +404,8 @@ Toda skill es invocable como `/pm-method:<skill>` (plugin) o `/<skill>` (copia m
 | drawio-mcp (draw.io oficial) | opcional | diagramas editables | https://github.com/jgraph/drawio-mcp |
 | `skills` CLI | opcional | instalar skills externas | https://github.com/vercel-labs/skills |
 | MPXJ (+ Java) | opcional | validar el MSPDI exportado | https://github.com/joniles/mpxj |
-| Conectores MCP (Atlassian, Slack, Teams, Granola, Fireflies, Zoom, Tability) | opcionales | fuentes y canales | ver [DEPENDENCIAS §5](docs/DEPENDENCIAS.md) |
+| Conectores MCP (Atlassian, Slack, Teams, Granola, Fireflies, Zoom, Tability, Perdoo) | opcionales | fuentes y canales | ver [DEPENDENCIAS §5](docs/DEPENDENCIAS.md) |
+| Servidor SMTP · webhook entrante de Slack · flujo de Workflows de Teams | opcionales | capa de canales (`envios.py`, solo biblioteca estándar); configuración solo por variables de entorno | ver `skills/pm-integraciones/references/guia.md` |
 
 Versiones probadas, licencias, comandos de instalación y cómo se verificó cada URL: **[docs/DEPENDENCIAS.md](docs/DEPENDENCIAS.md)**.
 
@@ -391,7 +425,7 @@ Versiones probadas, licencias, comandos de instalación y cómo se verificó cad
 | [SINCRONIZACION](docs/sincronizacion.md) | fuente única, fachada de especificación, traspaso BMAD ↔ gobierno |
 | [SANIDAD](docs/SANIDAD.md) | comprobaciones de consistencia y controles permanentes |
 | [RACI](docs/RACI.md) | responsabilidades por rol, agente y skill |
-| [CATALOGO](docs/CATALOGO.md) | las 37 skills: disparadores, artefactos, agente, scripts |
+| [CATALOGO](docs/CATALOGO.md) | las 38 skills: disparadores, artefactos, agente, scripts |
 | [CASOS-DE-USO](docs/CASOS-DE-USO.md) | situaciones típicas por skill |
 | [CASOS-DE-USO-INTEGRACIONES](docs/CASOS-DE-USO-INTEGRACIONES.md) | un caso por repositorio integrado (visuales, reportes, planificación, OKR, reuniones, trackers, BMAD) |
 | [CASO-MAESTRO](docs/CASO-MAESTRO.md) | proyecto de punta a punta con BMAD |
@@ -408,10 +442,12 @@ Versiones probadas, licencias, comandos de instalación y cómo se verificó cad
 
 | Verificación | Resultado |
 |---|---|
-| `python3 scripts/validar_paquete.py` | OK · 37 skills, 31 invocables, listado de 6.289 caracteres (límite 7.500) |
-| `python3 scripts/probar_paquete.py` | 80 OK · 0 FALLO (BMAD v6, 6.12.4 real, v4, nativo, hook guardian, puertas, regresiones) |
+| `python3 scripts/validar_paquete.py` | OK · 38 skills, 32 invocables, listado de 6.546 caracteres (límite 7.500) |
+| `python3 scripts/probar_paquete.py` | 138 OK · 0 FALLO (BMAD v6, 6.12.4 real, v4, nativo, hook guardian, puertas, regresiones; caso H: interesados, canales con SMTP y webhooks locales, OKR v2.2; caso I: candidatos de riesgo desde cuatro fuentes; caso J: controles permanentes) |
+| `python3 scripts/validar_mermaid.py --render` | 127 bloques, 0 errores |
+| `python3 scripts/pruebas/guias_e2e/correr.py` | 4/4 OK (E2E-1 13 pasos, E2E-2 10, E2E-3 13, E2E-4 15) |
 | `claude plugin validate .` | aprobado (un aviso esperado: `CLAUDE.md` de la raíz es para quien desarrolla el repositorio, no contexto del plugin) |
-| Enrutamiento en vivo (Claude Code real) | v2.0: 82 % de 75 frases → v2.1: 60/60 en la batería del repositorio (Sonnet 59/60, Haiku 56/60) |
+| Enrutamiento en vivo (Claude Code real) | v2.0: 82 % de 75 frases → v2.1: 60/60 en la batería del repositorio (Sonnet 59/60, Haiku 56/60); **pendiente para 2.2** (cambiaron cinco descripciones) |
 | Guardarraíles, idioma y robustez en vivo | guardarraíles 4/4; idioma 5/5 con el hook `idioma.py`; inyección en fuentes 6/6; datos desordenados 7/7; escala 5/5; varias sesiones con `/compact` 10/10 |
 | Skills externas en vivo | archify, diagram-design, visual-explainer y docx/xlsx/pptx delegadas y funcionando; respaldo interno sin ellas |
 
@@ -421,9 +457,9 @@ Versiones probadas, licencias, comandos de instalación y cómo se verificó cad
 
 ```
 pm-method/
-  .claude-plugin/     plugin.json (pm-method 2.1.0) · marketplace.json (pm-method)
+  .claude-plugin/     plugin.json (pm-method 2.2.0) · marketplace.json (pm-method)
   agents/             6 agentes (orquestador + 5 subagentes; personas en Hermes)
-  skills/             37 skills (SKILL.md + references/ + templates/ + scripts/)
+  skills/             38 skills (SKILL.md + references/ + templates/ + scripts/)
   hooks/              hooks.json · py.sh · guardian.py (PreToolUse) · inicio.py (SessionStart) · idioma.py (UserPromptSubmit)
   scripts/            validar_paquete.py · probar_paquete.py · pruebas/fixtures · pruebas_vivo/ (arnés con Claude Code real)
   docs/               documentación · evaluacion/frases-enrutamiento.tsv · ejemplos/
@@ -443,12 +479,14 @@ del usuario. Convenciones completas: `SPEC.md` §1.10.
 
 ## English summary
 
-pm-method 2.1.0 is a bilingual (Spanish/English) pack of 6 agents, 37 Agent Skills and 3 hooks for end-to-end project
+pm-method 2.2.0 is a bilingual (Spanish/English) pack of 6 agents, 38 Agent Skills and 3 hooks for end-to-end project
 management in Claude Code (also Cowork and Hermes). PRINCE2 7 provides the method and life cycle, PMBOK 8 only the
 techniques, a templates book the artifacts, BMAD the read-only product specification (single source of truth), and
 user-connected MCP tools the optional sources and channels. A main-thread orchestrator talks to the user; five phase
 subagents produce artifacts and return a structured block; only `pm-director` records board decisions, enforced by a
-PreToolUse hook that also blocks direct edits of state and registers. Install with
+PreToolUse hook that also blocks direct edits of state and registers. Version 2.2 adds a stakeholder master (power/interest
+grid, RACI linked to WBS/PRD/stories/OKR, human-confirmed preferences, communication profiles), a delivery channels layer
+(SMTP, Slack/Teams webhooks, .eml, MCP; approval and logging) and OKR check-ins and health. Install with
 `claude plugin marketplace add Arturo-Penas-Rial/pm-method` and `claude plugin install pm-method@pm-method`, then start
 with `/pm-method:pm-ayuda` or ask "what's next?". See `docs/INDICE.md` for the documentation map.
 

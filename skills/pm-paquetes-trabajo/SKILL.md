@@ -1,7 +1,7 @@
 ---
 name: pm-paquetes-trabajo
 description: "Paquetes de trabajo (WP) y product status account. Usar: autorizar paquete, work package, plan de equipo, recibir paquete, sprint como paquete, team plan. No: plan de etapa→pm-plan-etapa-y-limites."
-version: 2.1.0
+version: 2.2.0
 author: pm-method
 license: MIT
 metadata:

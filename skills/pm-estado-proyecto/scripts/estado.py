@@ -14,6 +14,9 @@ Uso / Usage:
   estado.py --proyecto ./p artefacto plan-etapa-2 --ruta 02-planificacion/plan-etapa-2.md --estado en-revision --version 0.3
   estado.py --proyecto ./p aprobar plan-etapa-2 --por "Ejecutivo: C. Ruiz" [--version 1.0] [--fecha 2027-02-01]
   estado.py --proyecto ./p puerta autorizar-etapa --decision aprobado --por "Junta" [--condiciones ".."] [--fecha ..] [--etapa-nombre ".."] [--inicio ..] [--fin ..] [--tol costo=5% tiempo=1sem]
+  estado.py --proyecto ./p cumplir-condiciones autorizar-etapa [--fecha ..] [--por "Ejecutivo: C. Ruiz"] [--nota ".."]
+  estado.py --proyecto ./p presupuesto cambio=15000 riesgo=20000 gestion=10000 limite_autoridad_cambio=5000 [--por ..] [--fecha ..]
+  estado.py --proyecto ./p resumen                                # fase, roles, tolerancias, presupuestos, puertas y siguiente paso
   estado.py --proyecto ./p limite-etapa [--excepcion X-001]      # CS → SB (fin de etapa o plan de excepción)
   estado.py --proyecto ./p cierre [--prematuro]                    # CS/SB → CP (cierre planificado o prematuro)
   estado.py --proyecto ./p etapa --numero 2 --nombre "Construcción" --inicio .. --fin ..   # corrección manual
@@ -43,7 +46,7 @@ def pendientes(e):
     return [p for p in e.get("puertas", []) if p.get("decision") == "pendiente" and not p.get("resuelta")]
 
 def condiciones_abiertas(e):
-    return [p for p in e.get("puertas", []) if p.get("decision") == "condicionado" and p.get("condiciones") and not p.get("condiciones_cumplidas")]
+    return [p for p in e.get("puertas", []) if p.get("decision") in ("condicionado", "aprobado") and p.get("condiciones") and not p.get("condiciones_cumplidas")]
 
 def siguiente(e):
     L = e.get("idioma", "es"); t = lambda es, en: E.t(L, es, en)
@@ -135,6 +138,13 @@ def registrar_puerta(a, e):
                            "o, si la junta lo decide expresamente, --forzar (queda anotado). Detalle: puertas.py --proyecto <dir> verificar " + a.tipo,
                            "'aprobado' is not recorded for " + a.tipo + " with these blockers:\n  - " + "\n  - ".join(bloqueos) +
                            "\nOptions: fix them; record --decision condicionado (added as conditions); or --forzar if the board explicitly decides so."))
+        if a.decision == "condicionado" and observaciones:
+            # los hallazgos de tipo condición (p. ej. CONCERNS del gate de preparación de BMAD) pasan a ser condiciones
+            # formales de la puerta, con seguimiento (sanidad EST-12, puertas G-01) hasta cumplir-condiciones
+            nuevas = [x for x in observaciones if x not in (a.condiciones or "") and not x.startswith(PU.PREFIJO_G01)]
+            if nuevas:
+                a.condiciones = "; ".join(x for x in [a.condiciones] + nuevas if x)
+                print(t("Condiciones agregadas desde la verificación: ", "Conditions added from verification: ") + " | ".join(nuevas))
         a._verificacion = {"lista": (lista or {}).get("ruta", ""), "confirmada_por": (lista or {}).get("confirmada_por", ""),
                            "bloqueos": bloqueos, "observaciones": observaciones}
     for p in pendientes(e):
@@ -242,7 +252,10 @@ def main():
     pu.add_argument("--por", required=True); pu.add_argument("--condiciones", default=""); pu.add_argument("--fecha"); pu.add_argument("--etapa-nombre", dest="etapa_nombre", default=""); pu.add_argument("--fin", default=""); pu.add_argument("--forzar", action="store_true")
     pu.add_argument("--inicio", default="", help="fecha de inicio de la etapa autorizada (por defecto, la de la puerta)")
     pu.add_argument("--tol", nargs="+", default=None, help="tolerancias de la etapa autorizada: costo=5%% tiempo=1sem …")
+    pr = sub.add_parser("presupuesto", help="presupuestos que fija la junta: cambio, riesgo, gestion, limite_autoridad_cambio (montos)")
+    pr.add_argument("pares", nargs="+"); pr.add_argument("--por", default=""); pr.add_argument("--fecha")
     cc = sub.add_parser("cumplir-condiciones"); cc.add_argument("tipo", choices=E.PUERTAS)
+    cc.add_argument("--fecha"); cc.add_argument("--por", default="", help="quién verificó el cumplimiento (Rol: Nombre)"); cc.add_argument("--nota", default="")
     le = sub.add_parser("limite-etapa"); le.add_argument("--excepcion", default="")
     ci = sub.add_parser("cierre"); ci.add_argument("--prematuro", action="store_true")
     a = ap.parse_args(); e = E.cargar_estado(a.proyecto); L = e.get("idioma", "es"); t = lambda es, en: E.t(L, es, en)
@@ -256,6 +269,8 @@ def main():
         print(t("Autorizado: ", "Authorized: ") + (t("sí", "yes") if e.get("proyecto_autorizado") else "no") + (f" · {t('excepción abierta', 'open exception')}: {e['excepcion_abierta']}" if e.get("excepcion_abierta") else ""))
         print(t("Roles: ", "Roles: ") + "; ".join(f"{k}={v if not isinstance(v, list) else ', '.join(v)}" for k, v in r.items() if v) or "-")
         print(t("Tolerancias: ", "Tolerances: ") + " | ".join(f"{n}: " + ", ".join(f"{k}={v}" for k, v in d.items() if v) for n, d in e.get("tolerancias", {}).items()))
+        pre = {k: v for k, v in e.get("presupuestos", {}).items() if v}
+        if pre: print(t("Presupuestos: ", "Budgets: ") + ", ".join(f"{k}={v}" for k, v in pre.items()))
         pend = [p["tipo"] for p in pendientes(e)]; cond = [p["tipo"] for p in condiciones_abiertas(e)]
         if pend: print(t("Puertas pendientes: ", "Pending gates: ") + ", ".join(pend))
         if cond: print(t("Condiciones abiertas: ", "Open conditions: ") + ", ".join(cond))
@@ -328,9 +343,30 @@ def main():
         aprobar(a, e)
     elif a.cmd == "puerta":
         registrar_puerta(a, e)
+    elif a.cmd == "presupuesto":
+        pares = kv(a.pares)
+        for k, v in pares.items():
+            if k not in E.CLAVES_PRESUPUESTO: sys.exit(t(f"Presupuesto desconocido: {k}", f"Unknown budget: {k}") + f" ({', '.join(E.CLAVES_PRESUPUESTO)})")
+            if v:
+                try:
+                    if re.fullmatch(r"-?\d{1,3}([.,]\d{3})+", v): raise ValueError   # 10.000 o 10,000: separador de miles ambiguo
+                    float(v.replace(",", "."))
+                except ValueError: sys.exit(t(f"{k}: el monto debe ser un número simple como 10000 (sin moneda ni separador de miles): {v}", f"{k}: amount must be a plain number such as 10000: {v}"))
+            e.setdefault("presupuestos", {})[k] = v
+        if a.por:
+            E.anotar_decision(a.proyecto, t("presupuestos de la junta: ", "board budgets: ") + ", ".join(f"{k}={v}" for k, v in pares.items()),
+                              a.por, nivel="junta", contexto=f"{e['fase']}/{e['proceso_actual']}", notas="estado.py presupuesto", fecha=a.fecha)
     elif a.cmd == "cumplir-condiciones":
+        hechas = 0
         for p in condiciones_abiertas(e):
-            if p["tipo"] == a.tipo: p["condiciones_cumplidas"] = datetime.date.today().isoformat()
+            if p["tipo"] == a.tipo:
+                p["condiciones_cumplidas"] = a.fecha or datetime.date.today().isoformat(); hechas += 1
+                if a.por: p["condiciones_verificadas_por"] = a.por
+                if a.nota: p["condiciones_nota"] = a.nota
+        if not hechas: sys.exit(t(f"No hay condiciones abiertas de {a.tipo}.", f"No open conditions for {a.tipo}."))
+        if a.por:
+            E.anotar_decision(a.proyecto, t(f"condiciones de {a.tipo} cumplidas", f"{a.tipo} conditions met") + (f" — {a.nota}" if a.nota else ""),
+                              a.por, nivel="junta", contexto=f"{e['fase']}/{e['proceso_actual']}", notas="estado.py cumplir-condiciones", fecha=a.fecha)
     elif a.cmd == "limite-etapa":
         if e["fase"] != "entrega": sys.exit(t("limite-etapa solo en etapas de entrega.", "limite-etapa only during delivery stages."))
         e["proceso_actual"] = "SB"; e["excepcion_abierta"] = a.excepcion

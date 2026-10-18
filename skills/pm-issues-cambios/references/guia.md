@@ -42,6 +42,12 @@ Términos EN la primera vez: request for change (RFC), off-specification, conces
 
 Autoridad delegada sin presupuesto de cambio es inútil: verificar ambos. La mayoría de los cambios nace en paquetes y debe poder decidirse cerca de ellos.
 
+### 4.1 Presupuesto de cambio, costo y cargo (control permanente)
+- La junta fija los montos y pm-director los registra en `estado.json` → `presupuestos`: `estado.py presupuesto cambio=15000 riesgo=20000 gestion=10000 limite_autoridad_cambio=5000 --por "Ejecutiva: …" [--fecha …]` (números sin moneda ni separador de miles; con `--por` queda en `decisiones.csv`). Este skill no ejecuta ese comando: lo pide.
+- Cada cambio declara cuánto consume y contra qué: `registro.py agregar|actualizar cambios … --campo costo=9000 --campo cargo=presupuesto-cambio|reserva-riesgo|reserva-gestion|plan-excepcion|sin-costo`. `costo` es numérico (`USD 9.000` se rechaza); el texto de `impacto_costo` sigue siendo la explicación.
+- Lo que en la práctica se revisa a mano y tarde (cuánto queda del presupuesto, quién aprobó qué) lo vigila la sanidad sobre los cambios aprobados, implementados o cerrados: CAM-01 impacto de costo sin `costo`/`cargo`; CAM-02 cargo a la reserva de riesgo sin citar el R-### que responde (la reserva de riesgo solo financia respuestas a riesgos); CAM-03 consumo contra el presupuesto (INFO < 80 %, AVISO ≥ 80 %, ERROR > 100 % que bloquea puertas); CAM-04 costo sobre el límite de la autoridad de cambio sin decisión de la junta o el ejecutivo (se reconoce en `decidido_por`); CAM-05 reserva de gestión sin la junta.
+- Antes de pedir la decisión, comparar el costo con el remanente (presupuesto − consumo) y con `limite_autoridad_cambio`: si no entra, sube a la junta (fila "fuera del umbral" de la tabla). Un CAM-03 ERROR o un CAM-04 se escalan como excepción (§6); la junta puede ampliar el presupuesto (`estado.py presupuesto … --por`) y ratificar el cambio (`decidido_por` con la junta o el ejecutivo).
+
 ## 5. Registro de decisiones y sincronización
 - Issues: `registro.py actualizar issues I-### --campo decision="..." --campo decidido_por="<rol: nombre>" --campo estado=en-accion|resuelto`.
 - Cambios: `--campo decision=aprobado|rechazado|diferido|pedir-plan-excepcion|pedir-mas-informacion --campo decidido_por=... --campo fecha_decision=...` (diferido exige fecha o evento de reevaluación en `notas`).
@@ -54,6 +60,7 @@ Autoridad delegada sin presupuesto de cambio es inútil: verificar ambos. La may
 - Dos pasos: aviso temprano inmediato a la junta + `templates/informe-excepcion.md` → `03-control/reportes/<fecha>-informe-excepcion-X-###.md` (causa, consecuencias, opciones cuantificadas por objetivo —al menos una sin plan de excepción si es viable—, recomendación, lecciones). `X-###` correlativo; `estado.py artefacto informe-excepcion-X-### --ruta ... --estado en-revision`; `issues.csv.estado=escalado`. No se registra puerta (ni `pendiente`).
 - Plantilla única del paquete: `pm-progreso-reportes` la usa cuando `evm.py` marca `excepcion_prevista`.
 - No fragmentar un cambio en partes pequeñas para evitar el escalado.
+- Si la junta pide un plan de excepción con `decision-ad-hoc` y `--condiciones`, la condición queda abierta (sanidad EST-12) hasta que pm-director registra `estado.py cumplir-condiciones decision-ad-hoc --fecha … --por … --nota …`.
 - Tras `decision-ad-hoc` (registrada por `pm-director`): reasignar tolerancias → `estado.py tolerancia --nivel etapa tiempo=... costo=...`; plan de excepción → `pm-director` ejecuta `estado.py limite-etapa --excepcion X-###` (CS→SB) y `pm-plan-etapa-y-limites` produce `02-planificacion/plan-excepcion-X-###.md`, aprobado con `autorizar-plan-excepcion`; se intenta alinear el nuevo fin de etapa con el original. Fuera de tolerancia de proyecto → capa de negocio.
 - Una excepción resuelta dentro de tolerancia de etapa no lleva informe, pero aparece en el siguiente highlight. Al cerrar una excepción, al menos una lección (cinco preguntas). La repetición de un tipo de issue señala una falla de gestión en otra parte.
 

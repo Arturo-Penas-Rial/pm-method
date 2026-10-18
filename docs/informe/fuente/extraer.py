@@ -351,6 +351,34 @@ for m in re.finditer(r"^### (.+)$", s21, re.M):
 X["chl_grupos"] = nov
 X["chl_v20_md"] = seccion(CHL, r"^2\.0\.0").strip().replace("\n", " ")
 
+# Novedades 2.2 (CHANGELOG): lema, introducción y grupos (la sección "Controles permanentes" trae un párrafo propio)
+s22 = seccion(CHL, r"^2\.2\.0")
+X["chl22_lema"] = re.search(r"2\.2\.0 · (\S+) — (.+)", CHL).group(2)
+X["chl22_intro"] = s22.strip().split("\n\n")[0].replace("\n", " ")
+nov22 = []
+for m in re.finditer(r"^### (.+)$", s22, re.M):
+    b = seccion(s22, "^" + re.escape(m.group(1)) + "$").strip()
+    intro = b.split("\n- ")[0].strip() if not b.startswith("- ") else ""
+    items = [re.sub(r"^- ", "", x).replace("\n  ", " ").strip() for x in re.split(r"\n(?=- )", b) if x.startswith("- ")]
+    nov22.append({"t": m.group(1), "intro": intro.replace("\n", " "), "items": items})
+X["chl22_grupos"] = nov22
+
+# Guías E2E v2.2: tabla "Controles permanentes que muestra esta guía" de cada guía y fuentes de identificación (E2E-1)
+GUIAS_E2E = {"E2E-1": "docs/guias/E2E-1-riesgos.md", "E2E-2": "docs/guias/E2E-2-alcance-roadmap.md",
+             "E2E-3": "docs/guias/E2E-3-interesados-okr-avance.md", "E2E-4": "docs/guias/E2E-4-producto-bmad.md"}
+X["guias_controles"] = {}
+X["guias_pasos"] = {}
+for g, ruta in GUIAS_E2E.items():
+    txt = leer(ruta)
+    resto = txt[txt.index("Controles permanentes que muestra esta guía"):]
+    X["guias_controles"][g] = tablas(resto)[0]
+    X["guias_pasos"][g] = len(re.findall(r"^## Paso (\d+) · ", txt, re.M)) - (1 if re.search(r"^## Paso 0 · ", txt, re.M) else 0)
+X["g1_fuentes"] = tabla(leer(GUIAS_E2E["E2E-1"]), r"^Cobertura de fuentes")
+
+# Capa de canales (INTEGRACIONES §3.2)
+X["canales_modos"] = tabla(INTG, r"^3\.2 Capa de canales", 0)
+X["canales_pasos"] = tabla(INTG, r"^3\.2 Capa de canales", 1)
+
 # CLAUDE.md (desarrollo con Claude Code)
 X["cla_flujo"] = [re.sub(r"^\d+\. ", "", b).replace("\n   ", " ").strip() for b in re.split(r"\n(?=\d+\. )", seccion(CLA, r"^Flujo de trabajo").strip())]
 X["cla_reglas"] = [re.sub(r"^- ", "", b).replace("\n  ", " ").strip() for b in re.split(r"\n(?=- )", seccion(CLA, r"^Reglas del autor").strip())]
@@ -407,11 +435,12 @@ X["raci_verif"] = tabla(RACI, r"^5\. Verificación")
 
 # Casos de uso
 casos, parte = [], ""
-for l_m in re.finditer(r"^(## Parte .*|### (\d+)\. `([^`]+)` — (.*))$", CU, re.M):
+for l_m in re.finditer(r"^(## Parte .*|### (\d+)\. `([^`]+)`((?: y `[^`]+`)*) — (.*))$", CU, re.M):
     if l_m.group(1).startswith("## Parte"):
         parte = l_m.group(1)[3:]
         continue
-    n, skill, titulo = int(l_m.group(2)), l_m.group(3), l_m.group(4)
+    # el caso 48 (v2.2) nombra dos skills: "`pm-sanidad` y `pm-direccion-decisiones`"
+    n, skill, titulo = int(l_m.group(2)), l_m.group(3) + re.sub(r" y `([^`]+)`", r" · \1", l_m.group(4) or ""), l_m.group(5)
     cuerpo = seccion(CU, r"^" + str(n) + r"\. `")
     campos = dict(vinetas_campos(cuerpo))
     com = campos.get("Comandos", "")
@@ -493,6 +522,12 @@ diagramas = []
 codigo_estados = bloques_mermaid(SYNC)[2].replace("stateDiagram-v2", "stateDiagram-v2\n  direction LR", 1)
 (DG / "sync-estados-lr.mmd").write_text(codigo_estados, encoding="utf-8")
 fuentes_mmd += [("sync-estados-lr", None, None, "Ciclo de vida de una línea base (horizontal)", "sincronizacion.md §6")]
+# v2.2: flujo de la capa de canales y gestión por excepción de la guía E2E-2 (paso 10), tal cual
+fuentes_mmd += [("canales", "docs/INTEGRACIONES.md", 0, "Capa de canales: crear, redactar, aprobar, simular, enviar y registrar", "INTEGRACIONES.md §3.2")]
+_exc = next(b for b in bloques_mermaid(leer("docs/guias/E2E-2-alcance-roadmap.md")) if "C-002 · requisito regulatorio" in b)
+if not (DG / "excepcion.mmd").exists() or (DG / "excepcion.mmd").read_text(encoding="utf-8") != _exc:
+    (DG / "excepcion.mmd").write_text(_exc, encoding="utf-8")
+fuentes_mmd += [("excepcion", None, None, "Gestión por excepción en la guía E2E-2, paso 10", "guias/E2E-2-alcance-roadmap.md, «Representaciones gráficas»")]
 for clave, archivo, k, titulo, origen in fuentes_mmd:
     if archivo is None:
         codigo = (DG / f"{clave}.mmd").read_text(encoding="utf-8")
@@ -540,6 +575,12 @@ import columna
 columna.generar(DG)
 diagramas.append({"id": "col-vertebral", "titulo": "Columna vertebral: leer, fijar, detectar y traspasar (síntesis del informe)", "origen": "sincronizacion.md §2–§8"})
 X["diagramas"] = diagramas
+
+# Recortes (sin escalar ni deformar) de las capturas reales del reporte de interesados, para diapositivas 16:9
+from PIL import Image
+for origen, caja, destino in [("g3-interesados-matriz.png", (60, 225, 1045, 695), "g3-matriz-recorte.png"),
+                              ("g3-interesados-raci-perfiles.png", (55, 30, 1225, 555), "g3-raci-recorte.png")]:
+    Image.open(BASE / "docs/guias/img" / origen).crop(caja).save(DG / destino)
 
 D["x"] = X
 (AQUI / "data.json").write_text(json.dumps(D, ensure_ascii=False, indent=1), encoding="utf-8")

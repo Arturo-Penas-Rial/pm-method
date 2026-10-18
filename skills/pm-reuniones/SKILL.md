@@ -1,7 +1,7 @@
 ---
 name: pm-reuniones
 description: "Actas desde transcripciones o notas pegadas: decisiones, acciones A-###, riesgos, lecciones, clima. Usar: acta, minuta, transcripción, acciones de la reunión, action items, minutes. No: matriz de comunicación→pm-comunicacion-stakeholders."
-version: 2.1.0
+version: 2.2.0
 author: pm-method
 license: MIT
 metadata:
@@ -50,7 +50,8 @@ Script: `python3 ${CLAUDE_SKILL_DIR}/../pm-reuniones/scripts/transcripcion.py` (
 4. **Clasificar** cada hallazgo (§4): acción ≠ issue; riesgo = incierto; issue = ocurrió o se pide (cinco tipos); decisión de junta o puerta = la registra `pm-director`; pronóstico fuera de tolerancia = excepción.
 5. **Puerta humana — confirmar el acta**: quien presidió la revisa. En el hilo principal, presentar la lista de propuestas a registros y pedir confirmación; en subagente, devolverla como "decisión humana requerida".
 6. **Cargar en registros solo lo confirmado** (§5), con `${CLAUDE_SKILL_DIR}/../pm-estado-proyecto/scripts/registro.py --proyecto <dir> agregar acciones|riesgos|issues|decisiones|lecciones --campo ...`, origen `acta-reunion-<fecha>`. Anotar los ids devueltos en el acta.
-7. **Distribuir** (opcional): resumen para chat o correo según la matriz de comunicaciones; envío vía `pm-integraciones` solo con vista previa y confirmación. Las acciones pueden crear tickets en el tracker con la misma regla.
+7. **Distribuir** (opcional): `envios.py nuevo --origen <acta> --audiencia "raci:…" o participantes --asunto … --proposito acta` (o `recordatorio` para las acciones) → borradores por perfil, aprobación y envío por la capa de canales (`pm-comunicacion-stakeholders`), solo con vista previa y confirmación. Las acciones pueden crear tickets vía `pm-integraciones`.
+7b. **Preferencias declaradas** (opcional, con aviso a los participantes): `interesados.py --proyecto <dir> proponer --transcripcion <normalizada> [--mapa "Nombre=ST-…"] --registrar` registra como `propuesta`, con cita, lo que cada interesado pidió para sí («mandame un resumen por correo los lunes»); las confirma el gestor con `pm-interesados`. Nunca emociones, personalidad ni tono de voz.
 8. **Clima agregado (opcional, con consentimiento)**: solo con `--anonimizar`, solo a nivel de equipo o rol, con `templates/analisis-clima-equipo.md` → `03-control/reuniones/<fecha>-clima-<equipo>.md`. Sin perfiles emocionales individuales, sin valoraciones personales guardadas, sin nombres (§6). El resultado se usa para ajustar formato y comunicación, no para evaluar personas.
 9. **Registrar** el acta con la clave canónica `acta-reunion-<fecha>` (varias el mismo día: `-2`, `-3`): `estado.py artefacto acta-reunion-<fecha> --ruta ... --estado en-revision`; pasa a `aprobado` cuando quien presidió la confirma. Las actas de junta las firma `pm-director` (`acta-junta-<fecha>`, de `pm-direccion-decisiones`).
 10. Cerrar con el bloque de retorno (SPEC §1.11) si corre como subagente.

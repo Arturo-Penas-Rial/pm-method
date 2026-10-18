@@ -1,44 +1,44 @@
 {
  "meta": {
-  "titulo": "Ecosistema de agentes y skills de gestión de proyectos: pm-method v2.1.0",
-  "corto": "Informe 2 · Ecosistema pm-method v2.1.0",
-  "subtitulo": "Qué es, qué valor aporta, cómo está construido, cómo se instala y se prueba un paquete bilingüe de 6 agentes, 37 skills y 3 hooks que aplica PRINCE2 7 como método, el PMBOK 8 como técnicas y BMAD como capa de especificación, con guardarraíles y controles permanentes de sanidad",
+  "titulo": "Ecosistema de agentes y skills de gestión de proyectos: pm-method v2.2.0",
+  "corto": "Informe 2 · Ecosistema pm-method v2.2.0",
+  "subtitulo": "Qué es, qué valor aporta, cómo está construido, cómo se instala y se prueba un paquete bilingüe de 6 agentes, 38 skills y 3 hooks que aplica PRINCE2 7 como método, el PMBOK 8 como técnicas y BMAD como capa de especificación, con maestro de interesados, capa de canales, guardarraíles y controles permanentes de sanidad",
   "autor": "Arturo",
   "fecha": "17 de octubre de 2026",
-  "version": "v2.1",
+  "version": "v2.2",
   "tag": "Informe 2 · Documentación del ecosistema",
-  "alcance": "Todo lo que afirma este informe sale de los archivos del paquete pm-method 2.1.0 (README, CHANGELOG, SPEC, CLAUDE.md, compatibilidad.json, docs/ —incluidos RESUMEN-EJECUTIVO, INDICE, DEPENDENCIAS, INSTALACION, PRUEBAS, PILOTO y CASOS-DE-USO-INTEGRACIONES—, docs/diagramas/, docs/evaluacion/resultados/ y agents/) y del registro de hechos verificados del 17/10/2026. Las cifras del caso maestro y de los casos de uso provienen de corridas reales de los scripts; las personas, la cooperativa y las decisiones humanas son simuladas. Lo que la documentación del paquete marca como [verificar] o \"URL a confirmar por el usuario\" se conserva tal cual: depende de la versión vigente de cada cliente o proveedor y no se probó en el entorno."
+  "alcance": "Todo lo que afirma este informe sale de los archivos del paquete pm-method 2.2.0 (README, CHANGELOG —sección 2.2.0—, SPEC, CLAUDE.md, compatibilidad.json, docs/ —incluidos RESUMEN-EJECUTIVO, INDICE, DEPENDENCIAS, INSTALACION, INTEGRACIONES, PRUEBAS, PILOTO y CASOS-DE-USO—, docs/guias/ y su evidencia, docs/diagramas/, docs/evaluacion/resultados/ y agents/) y de correr validar_paquete.py, probar_paquete.py y validar_mermaid.py --render el 17/10/2026. Las cifras del caso maestro, de los casos de uso y de las guías E2E provienen de corridas reales de los scripts; las personas, la cooperativa y las decisiones humanas son simuladas. Las pruebas en vivo con Claude Code real son de la versión 2.1 (para 2.2 están pendientes). Lo que la documentación marca como [verificar] o \"URL a confirmar por el usuario\" se conserva tal cual."
  },
  "kpis": [
   {
-   "v": "6 · 37 · 3",
+   "v": "6 · 38 · 3",
    "t": "agentes · skills · hooks",
-   "d": "1 orquestador + 5 subagentes; 31 skills invocables + 6 comandos; PreToolUse, SessionStart y UserPromptSubmit"
+   "d": "1 orquestador + 5 subagentes; 32 skills invocables + 6 comandos; PreToolUse, SessionStart y UserPromptSubmit"
   },
   {
-   "v": "80 OK",
+   "v": "138 OK",
    "t": "pruebas de regresión",
-   "d": "0 FALLO · casos A–G; el hook guardian acierta 36/36 decisiones; bloqueos de puerta"
+   "d": "0 FALLO · casos A–J (80 en 2.1.0); guardian 36/36; caso J: controles permanentes"
+  },
+  {
+   "v": "13",
+   "t": "registros",
+   "d": "9 base + 4 opcionales que se crean al primer uso (ET, PF, RC, EN), con claves foráneas y un solo A por elemento"
+  },
+  {
+   "v": "4 · 51",
+   "t": "guías E2E · pasos",
+   "d": "13/10/13/15 pasos, cada guía con su tabla de controles permanentes; correr.py 4/4 OK"
+  },
+  {
+   "v": "127",
+   "t": "bloques Mermaid",
+   "d": "validar_mermaid.py --render: 0 errores en README y docs/"
   },
   {
    "v": "60/60",
    "t": "enrutamiento en vivo",
-   "d": "Claude Code real, v2.1 (v2.0: 82 % en 75 frases); Sonnet 59/60, Haiku 56/60"
-  },
-  {
-   "v": "4/4",
-   "t": "guardarraíles en vivo",
-   "d": "Edit, Bash y subagente en BMAD: el hook negó y el estado quedó intacto"
-  },
-  {
-   "v": "6/6 · 7/7 · 5/5",
-   "t": "robustez en vivo",
-   "d": "inyección de instrucciones · transcripción desordenada · escala (350 requisitos)"
-  },
-  {
-   "v": "6.289",
-   "t": "caracteres de listado",
-   "d": "31 descripciones invocables; límite del paquete 7.500"
+   "d": "corrida v2.1 con Claude Code real; para 2.2 está pendiente (cambiaron cinco descripciones)"
   }
  ],
  "resumen": [
@@ -61,12 +61,12 @@
   {
    "rol": "PMO",
    "valor": "Un método estandarizado (PRINCE2 + PMBOK + plantillas) con dueños únicos por tema, matriz RACI que incluye a los agentes, controles permanentes de consistencia, verificación de cada puerta, dependencias con origen y licencia, y un manifiesto de compatibilidad para actualizar sin sorpresas.",
-   "leer": "3, 6, 7, 8, 10, 13, 17, 18 y 20"
+   "leer": "2, 3, 6, 7, 8, 10, 13, 17, 18 y 20"
   },
   {
    "rol": "PM no programador",
    "valor": "Trabaja en lenguaje natural con el orquestador y seis comandos; no necesita editar JSON ni CSV (los hooks lo impiden y los scripts lo hacen por él). Guía de instalación paso a paso, un caso de uso por skill y por integración, y una lista de aceptación.",
-   "leer": "11, 14, 15, 16, 17 y 18"
+   "leer": "2, 11, 14, 15, 16, 17 y 18"
   },
   {
    "rol": "Mantenedor técnico",
@@ -140,8 +140,8 @@
   "**Hooks también en subagentes.** Los hooks del plugin corren dentro de los subagentes y reciben `agent_type`; así `guardian.py` impide que un subagente pm-* escriba en carpetas de BMAD."
  ],
  "carga_cifras": [
-  "Nivel 1: 6.289 caracteres para las 31 skills invocables (los 6 comandos no cuentan). El presupuesto del listado de Claude Code es ≈1 % de la ventana de contexto; con BMAD u otros repositorios puede ampliarse con `\"skillListingBudgetFraction\": 0.02`. `skillOverrides` no aplica a skills de plugins. La sanidad avisa (INS-05) cuando las descripciones visibles superan ≈8.000 caracteres.",
-  "Nivel 2: el SKILL.md más largo (`pm-orquestador`) ronda 12,1 k bytes y ninguno supera 124 líneas; el validador tolera 12.500 bytes por los caracteres acentuados.",
+  "Nivel 1: 6.546 caracteres para las 32 skills invocables (los 6 comandos no cuentan), según `validar_paquete.py` (17/10/2026). El presupuesto del listado de Claude Code es ≈1 % de la ventana de contexto; con BMAD u otros repositorios puede ampliarse con `\"skillListingBudgetFraction\": 0.02`. `skillOverrides` no aplica a skills de plugins. La sanidad avisa (INS-05) cuando las descripciones visibles superan ≈8.000 caracteres.",
+  "Nivel 2: el SKILL.md más largo (`pm-direccion-decisiones`, 12.484 bytes) queda bajo el tope de 12.500 bytes que tolera el validador y ninguno supera 124 líneas (medido sobre los archivos el 17/10/2026).",
   "Tras compactar, Claude Code conserva hasta 5.000 tokens por skill; por eso el nivel 2 se mantiene por debajo.",
   "El conocimiento destilado (`pm-knowledge/references/`, 8 archivos) se consulta por encabezado con `grep`, nunca entero."
  ],
@@ -166,18 +166,19 @@
  ],
  "col_ciclo": "detectar → issue `solicitud-cambio` → decisión de la autoridad de cambio o de la junta → `bmad.py handoff --cambio C-###` → el equipo BMAD aplica con sus flujos y marca `estado: aplicado` → `bmad.py verificar` limpio → `bmad.py linea-base … --version` mayor (pm-director).",
  "fachada_cmds": "python3 <pm-estado-proyecto>/scripts/especificacion.py --proyecto <dir> fuente\npython3 <pm-estado-proyecto>/scripts/especificacion.py --proyecto <dir> resumen [--json]\npython3 <pm-estado-proyecto>/scripts/especificacion.py --proyecto <dir> consultar FR-3 | REQ-004 | 1-2-login | E-2 [--json]\npython3 <pm-estado-proyecto>/scripts/especificacion.py --proyecto <dir> listar requisitos|historias|epicas [--estado done] [--epica E-1] [--cobertura …] [--json]\npython3 <pm-estado-proyecto>/scripts/especificacion.py --proyecto <dir> indice     # fuerza la reconstrucción",
- "san_intro": "pm-method reparte datos entre `estado.json`, nueve registros CSV, documentos Markdown, derivados de la especificación, copias congeladas y, opcionalmente, las carpetas de BMAD. Los controles permanentes evitan que esos datos se contradigan y, cuando igual pasa, lo detectan antes de que llegue a una decisión de la junta. Funcionan en cuatro tiempos: prevenir, detectar, decidir y mantener.",
+ "san_intro": "pm-method reparte datos entre `estado.json`, nueve registros CSV base (y hasta cuatro opcionales desde v2.2), documentos Markdown, derivados de la especificación, copias congeladas y, opcionalmente, las carpetas de BMAD. Los controles permanentes evitan que esos datos se contradigan y, cuando igual pasa, lo detectan antes de que llegue a una decisión de la junta. Funcionan en cuatro tiempos: prevenir, detectar, decidir y mantener.",
  "san_cmds": "python3 <pm-estado-proyecto>/scripts/sanidad.py --proyecto <dir>              # completo\npython3 <pm-estado-proyecto>/scripts/sanidad.py --proyecto <dir> --rapido     # subconjunto (hook de inicio)\npython3 <pm-estado-proyecto>/scripts/sanidad.py --proyecto <dir> --informe    # escribe 03-control/reportes/<fecha>-sanidad.md\npython3 <pm-estado-proyecto>/scripts/sanidad.py --proyecto <dir> --reparar    # arreglos seguros\npython3 <pm-estado-proyecto>/scripts/sanidad.py --proyecto <dir> --json",
  "san_puntos": [
   "Salida: una línea de resumen y hallazgos ERROR, AVISO o INFO, cada uno con código, mensaje y cómo corregirlo. Código de salida 1 si hay algún ERROR (sirve para scripts y para la regla de puerta).",
   "`--rapido` omite el inventario de skills instaladas (INS-03…06) y las integraciones (INT); es lo que usa el hook de inicio.",
   "`--reparar` solo completa columnas de los registros según el esquema v2 y reconstruye el índice de especificación. Nunca copia datos de negocio: señala al dueño.",
-  "Dueños de la corrección: INS → usuario o mantenedor; EST y ART → pm-director; REG → pm-registros, pm-riesgos, pm-issues-cambios; ESP → pm-bmad-puente, pm-planificacion-por-productos, pm-issues-cambios; INT → pm-integraciones."
+  "`--corte AAAA-MM-DD` (v2.2) fija la fecha de los controles con vencimiento (REG-07, QUA-02, TOL, STK-12) para que el informe sea reproducible.",
+  "Dueños de la corrección: INS → usuario o mantenedor; EST y ART → pm-director; REG → pm-registros, pm-riesgos, pm-issues-cambios; ESP → pm-bmad-puente, pm-planificacion-por-productos, pm-issues-cambios; INT → pm-integraciones; STK → pm-interesados; CAM, QUA y TOL (v2.2) → pm-issues-cambios, pm-calidad y pm-progreso-reportes, con pm-director para presupuestos y excepciones."
  ],
  "componentes": [
   {
    "t": ".claude-plugin/",
-   "d": "`plugin.json` (pm-method 2.1.0, licencia MIT) y `marketplace.json` (marketplace `pm-method`): la raíz del repositorio es a la vez plugin y marketplace."
+   "d": "`plugin.json` (pm-method 2.2.0, licencia MIT) y `marketplace.json` (marketplace `pm-method`): la raíz del repositorio es a la vez plugin y marketplace."
   },
   {
    "t": "agents/",
@@ -185,7 +186,7 @@
   },
   {
    "t": "skills/",
-   "d": "37 skills (SKILL.md + references/ + templates/ + scripts/). `pm-knowledge/references/` guarda el conocimiento destilado en 8 archivos."
+   "d": "38 skills (SKILL.md + references/ + templates/ + scripts/). `pm-knowledge/references/` guarda el conocimiento destilado en 8 archivos."
   },
   {
    "t": "hooks/",
@@ -193,11 +194,11 @@
   },
   {
    "t": "scripts/",
-   "d": "`validar_paquete.py`, `probar_paquete.py` (80 pruebas), `pruebas/fixtures/` (BMAD v6 sintético, BMAD 6.12.4 real, BMAD v4), `pruebas/generar_bmad_grande.py` y `pruebas_vivo/` (`vivo.py`, `suite.py`, `escenarios.py`) para pruebas con Claude Code real."
+   "d": "`validar_paquete.py`, `validar_mermaid.py`, `probar_paquete.py` (138 pruebas), `pruebas/fixtures/` (BMAD v6 sintético, 6.12.4 real y v4), `pruebas/guias_e2e/` (recorridos de las guías) y `pruebas_vivo/` (`vivo.py`, `suite.py`, `escenarios.py`) para pruebas con Claude Code real."
   },
   {
    "t": "docs/",
-   "d": "Resumen ejecutivo, índice, dependencias, instalación, arquitectura, integraciones, sincronización, sanidad, RACI, catálogo, casos de uso (por skill y por integración), caso maestro, pruebas, plan de piloto, verificación de puertas, colisiones, `diagramas/`, `ejemplos/` y `evaluacion/` (frases y resultados)."
+   "d": "Resumen ejecutivo, índice, dependencias, instalación, arquitectura, integraciones, sincronización, sanidad, RACI, catálogo, casos de uso (por skill y por integración), caso maestro, pruebas, plan de piloto, verificación de puertas, colisiones, `guias/` (cuatro guías E2E con evidencia), `diagramas/`, `ejemplos/` y `evaluacion/` (frases y resultados)."
   },
   {
    "t": "compatibilidad.json, SPEC.md, CLAUDE.md",
@@ -381,6 +382,50 @@
   "37": [
    "pm-cierre",
    "Aceptación FR-1…FR-5, handover, beneficios; CPI 0,991; fase cerrado"
+  ],
+  "38": [
+   "pm-inicio",
+   "Matriz: gestionar de cerca 7 (5 en frontera), mantener satisfecho 1, mantener informado 2, monitorear 0; con `--medio bajo`: 2 · 3 · 5 · 0"
+  ],
+  "39": [
+   "pm-inicio",
+   "Estereotipos semilla ET-001…ET-006 asignados a 8 interesados; ET-009 inexistente rechazado; `--sugerir` no aplica nada solo"
+  ],
+  "40": [
+   "pm-inicio",
+   "PF-001…PF-004 declaradas y confirmadas (vigentes hasta 2027-05-02); perfil de ST-001 con la procedencia de cada valor"
+  ],
+  "41": [
+   "pm-control",
+   "5 intervenciones de 4 hablantes; PF-005…PF-008 propuestas y confirmadas; aviso preferencia vs matriz (quincenal / mensual); PF-010 rechazada"
+  ],
+  "42": [
+   "pm-inicio",
+   "RC-001…RC-021 sobre E-1, E-3, NFR-1, 3.1, KR-1.1 y KR-2.2; segundo A rechazado; integridad sin hallazgos; sin aviso P-10"
+  ],
+  "43": [
+   "pm-control",
+   "Perfil de ST-003 al 15/1 (canal teams por PF-005) y vínculos: RACI, KR, R-001, A-001/A-002, D-006, EN-006"
+  ],
+  "44": [
+   "pm-control",
+   "7 destinatarios en 5 mensajes; simulación sin variables; EN-001…EN-005 por correo, EN-006 por Teams, EN-007 reunión registrada a mano"
+  ],
+  "45": [
+   "pm-inicio · pm-control",
+   "Al 8/1: O-1 0,11 (aspiracional) y O-2 0,24 (comprometido) con salud por KR; propuesta de check-ins para Tability"
+  ],
+  "46": [
+   "pm-control",
+   "Reporte HTML: 10 ubicados, 6 elementos RACI, 0 hallazgos; sanidad 0 ERROR · 0 AVISO · 1 INFO"
+  ],
+  "47": [
+   "pm-inicio · pm-control",
+   "Candidatos: bmad 42 y transcripciones 6 (E2E-1 paso 4), tracker 3 (paso 9), artefactos 7 sin BMAD (paso 13); solo borrador"
+  ],
+  "48": [
+   "pm-control · pm-director",
+   "E2E-2 19/2: ERROR CAM-03 (24.000 de 12.000), CAM-04, TOL-01 → excepción; E2E-4 26/2: QUA-01 ×5, QUA-02, EST-12; E2E-3 5/2: STK-12 ×3"
   ]
  },
  "caso_cifras": [
@@ -518,7 +563,7 @@
   },
   {
    "t": "Cuando cambia una descripción, un agente o un hook",
-   "d": "Correr la suite en vivo de enrutamiento sobre las frases afectadas (`suite.py enrutamiento --ids …`, consume tokens) y, antes de una versión, `suite.py todo` y `suite.py robustez`; actualizar la matriz de colisiones y el TSV de frases (60 frases con skill esperada y aceptables)."
+   "d": "Correr la suite en vivo de enrutamiento sobre las frases afectadas (`suite.py enrutamiento --ids …`, consume tokens) y, antes de una versión, `suite.py todo` y `suite.py robustez`; actualizar la matriz de colisiones y el TSV de frases (66 frases con skill esperada y aceptables; la última corrida en vivo, v2.1, usó 60)."
   },
   {
    "t": "Al publicar una versión nueva",
@@ -526,6 +571,7 @@
   }
  ],
  "evolucion": [
+  "Repetir con Claude Code real el enrutamiento de las cinco descripciones que cambiaron en 2.2 (`suite.py enrutamiento --ids <afectados>`) y probar en vivo los controles permanentes (hoy probados con scripts: caso J y guías E2E).",
   "Corregir las seis limitaciones documentadas de los scripts (SANIDAD §10), en particular `bmad.py:303`, que pierde los traspasos al volver a detectar, y `bmad.py:568`, que pisa traspasos del mismo día.",
   "Mejoras candidatas registradas en el índice: Monte Carlo de contingencia (P50/P80), calendarios y feriados en `cpm.py` y trazado de `bmad-spec` (`SPEC.md`, ids `CAP-n`).",
   "Ejecutar el piloto real de `docs/PILOTO.md` (Windows real, conectores reales, usuarios no técnicos, revisión experta, varias semanas) y probar en vivo los conectores MCP de terceros, hoy documentados sin prueba en vivo.",
@@ -751,7 +797,7 @@
   },
   {
    "t": "Gestión por excepción",
-   "d": "Principio PRINCE2: cada nivel trabaja dentro de tolerancias y escala al superior solo cuando un pronóstico las supera."
+   "d": "Principio PRINCE2: cada nivel trabaja dentro de tolerancias y escala al superior solo cuando un pronóstico las supera. Desde v2.2 lo vigilan controles permanentes: TOL-01 (corte de EVM que pronostica salir de la tolerancia sin excepción abierta) y CAM-03/CAM-04 (presupuesto de cambio excedido o autoridad delegada superada)."
   },
   {
    "t": "gh (GitHub CLI)",
@@ -879,7 +925,7 @@
   },
   {
    "t": "OKR (O-n, KR-n.m)",
-   "d": "Objetivos y resultados clave; en pm-method los KR citan beneficios (B-nn) o métricas de éxito (SM-n) del business case, que manda."
+   "d": "Objetivos y resultados clave; en pm-method los KR citan beneficios (B-nn) o métricas de éxito (SM-n) del business case, que manda. Desde v2.2: tipos de KR, compromiso, peso, iniciativas IN-n, check-ins y salud (`okr.py`)."
   },
   {
    "t": "Orca",
@@ -943,7 +989,7 @@
   },
   {
    "t": "Prueba de aceptación",
-   "d": "Lista de 12 comprobaciones que el usuario marca en una carpeta de prueba antes de usar pm-method en un proyecto real."
+   "d": "Lista de 13 comprobaciones (docs/PRUEBAS.md §6) que el usuario marca en una carpeta de prueba antes de usar pm-method en un proyecto real."
   },
   {
    "t": "Puerta (gate)",
@@ -959,7 +1005,7 @@
   },
   {
    "t": "RACI",
-   "d": "Matriz de responsabilidades: Responsible, Accountable (una sola por fila), Consulted, Informed."
+   "d": "Matriz de responsabilidades: Responsible, Accountable (una sola por fila), Consulted, Informed. En el paquete: la matriz de docs/RACI.md (humanos y agentes) y, desde v2.2, `raci.csv` (RC-###) en cada proyecto, sobre elementos con fuente verificable (WBS, requisitos y épicas, KR, decisiones), con un solo A por elemento validado por `registro.py`."
   },
   {
    "t": "Rama y pull request (PR)",
@@ -967,11 +1013,11 @@
   },
   {
    "t": "Registros",
-   "d": "Nueve CSV con prefijo: riesgos (R), issues (I), cambios (C), decisiones (D), supuestos (S), lecciones (L), interesados (ST), calidad (Q) y acciones (A)."
+   "d": "Nueve CSV base con prefijo: riesgos (R), issues (I), cambios (C), decisiones (D), supuestos (S), lecciones (L), interesados (ST), calidad (Q) y acciones (A); desde v2.2, cuatro opcionales que se crean al primer uso: estereotipos (ET), preferencias (PF), raci (RC) y envíos (EN). 13 en total."
   },
   {
    "t": "Regresión determinista (probar_paquete.py)",
-   "d": "Batería de pruebas automáticas sin modelo (casos A–G) que recorre los scripts reales sobre proyectos temporales; en v2.1, 68 OK y 0 FALLO."
+   "d": "Batería de pruebas automáticas sin modelo (casos A–J) que recorre los scripts reales sobre proyectos temporales: 138 OK y 0 FALLO en 2.2.0 (80 en 2.1.0)."
   },
   {
    "t": "Reserva de gestión",
@@ -987,7 +1033,7 @@
   },
   {
    "t": "Sanidad",
-   "d": "Comprobación de consistencia del proyecto y de la instalación (`sanidad.py`, skill pm-sanidad) en seis familias: INS, EST, ART, REG, ESP, INT."
+   "d": "Comprobación de consistencia del proyecto y de la instalación (`sanidad.py`, skill pm-sanidad) por familias de códigos: INS, EST, ART, REG, ESP e INT y, desde v2.2, STK (interesados), CAM (cambios contra presupuestos), QUA (calidad a volumen) y TOL (pronóstico contra tolerancias)."
   },
   {
    "t": "Semáforo",
@@ -1088,6 +1134,122 @@
   {
    "t": "Épica / historia",
    "d": "Unidades de alcance del backlog: una épica agrupa historias; en BMAD las historias tienen clave `épica-historia-slug`."
+  },
+  {
+   "t": "Matriz poder/interés",
+   "d": "Cuadrícula 2×2 que ubica a cada interesado por poder (autoridad real, recursos, capacidad de aprobar o vetar; eje vertical) e interés (involucramiento, preocupación o impacto; eje horizontal) y asigna una estrategia por cuadrante: gestionar de cerca, mantener satisfecho, mantener informado o monitorear (`interesados.py matriz`)."
+  },
+  {
+   "t": "Frontera (valor «medio»)",
+   "d": "Interesado con poder o interés «medio»: por convención del paquete se ubica del lado alto de la matriz y se marca ◇; `--medio bajo` aplica la convención contraria."
+  },
+  {
+   "t": "Maestro de interesados",
+   "d": "`stakeholders.csv` como única fuente de personas del proyecto: OKR, RACI, preferencias, envíos y registros lo citan por ST-### o por el nombre exacto. Dueña: skill pm-interesados (v2.2)."
+  },
+  {
+   "t": "Estereotipo (de audiencia)",
+   "d": "Perfil de comunicación típico de un grupo (ET-###, `estereotipos.csv`). Seis semilla: dirección-patrocinador, equipo, cliente-usuario, proveedores, regulador-comunidad y product-owner-usuarios-clave. Se asigna en `stakeholders.estereotipo`."
+  },
+  {
+   "t": "Preferencia declarada / observada / inferida",
+   "d": "Procedencia de una preferencia de comunicación (PF-###, `preferencias.csv`): la persona la dijo, se vio en su conducta o se dedujo. Lleva cita (evidencia), fuente y vigencia (180 días por defecto); estados propuesta, confirmada, rechazada o vencida. Solo se aplica confirmada y vigente."
+  },
+  {
+   "t": "Perfil de comunicación",
+   "d": "Canal, formato, nivel de detalle, frecuencia, idioma, registro, horario y estilo de decisión de un interesado, resueltos con la precedencia cuadrante → idioma del proyecto → estereotipo → matriz de comunicaciones → preferencias confirmadas y vigentes (`interesados.py perfil`). Solo adapta comunicaciones: no infiere emociones, personalidad ni datos sensibles."
+  },
+  {
+   "t": "Integridad referencial",
+   "d": "Regla de que toda referencia apunte a algo existente. Desde v2.2 `esquema.py` declara claves foráneas (`refs`), unicidad (`unico`) y un solo A por elemento (`uno_por`); `registro.py` las valida y la sanidad (STK-03) detecta lo registrado con `--forzar`."
+  },
+  {
+   "t": "Capa de canales",
+   "d": "`envios.py` (pm-integraciones, v2.2): una sola vía de salida para comunicaciones a interesados por SMTP, webhooks de Slack o Teams, archivos `.eml` o conectores MCP, con aprobación humana, simulación por defecto, destinos tomados del maestro y registro en `envios.csv` (EN-###)."
+  },
+  {
+   "t": "Webhook (entrante)",
+   "d": "URL que recibe un mensaje por HTTP POST y lo publica en un canal de chat. pm-method usa el webhook entrante de Slack y un flujo de Workflows de Teams («When a Teams webhook request is received»); la URL vive solo en variables de entorno (`PM_SLACK_WEBHOOK_URL`, `PM_TEAMS_WEBHOOK_URL`)."
+  },
+  {
+   "t": "Tarjeta adaptable (Adaptive Card)",
+   "d": "Formato JSON de mensaje enriquecido que Teams muestra en el canal; `envios.py --modo teams-webhook` envía la versión 1.0 y rechaza mensajes de más de 28 KB."
+  },
+  {
+   "t": "Simulación (envío)",
+   "d": "Modo por defecto de `envios.py enviar`: muestra destinatarios, asunto y comienzo del texto y avisa variables faltantes, sin enviar ni registrar. Solo `--confirmar` envía."
+  },
+  {
+   "t": ".eml (X-Unsent: 1)",
+   "d": "Archivo de correo que se abre y envía desde el cliente habitual; `envios.py --modo eml` lo genera como respaldo sin credenciales y queda pendiente hasta `registrar --modo eml`."
+  },
+  {
+   "t": "Check-in de OKR",
+   "d": "Medición fechada de un KR (valor, confianza 1–10, nota, autor, fuente) en `00-direccion/okr_checkins.csv`, que solo admite altas; el valor actual es el último check-in hasta el corte (`okr.py --checkin`)."
+  },
+  {
+   "t": "Salud del KR",
+   "d": "En camino, en riesgo o desviado, según el valor del KR contra el avance esperado lineal entre `fecha_inicio` y `fecha_meta`."
+  },
+  {
+   "t": "KR comprometido / aspiracional",
+   "d": "Compromiso de un KR: el aspiracional (por defecto) da verde desde 0,7 y rojo bajo 0,4; el comprometido se espera completo (verde 1,0; rojo bajo 0,7). Convención de la práctica OKR."
+  },
+  {
+   "t": "Tipo de KR",
+   "d": "Cómo se puntúa un KR en `okr.py` v2.2: de-a (por defecto), mantener-sobre, mantener-bajo, binario o hito (por iniciativas)."
+  },
+  {
+   "t": "Iniciativa (IN-n)",
+   "d": "Trabajo que mueve un KR, ligado a una épica, historia o paquete; un KR de hito se puntúa por sus iniciativas."
+  },
+  {
+   "t": "Tability / Perdoo",
+   "d": "Herramientas de OKR con servidor MCP oficial (verificados el 17/10/2026); `okr.py --propuesta-sync tability|perdoo` prepara los check-ins a publicar y `--marcar-publicado` deja la constancia. Plan comercial requerido: [verificar]."
+  },
+  {
+   "t": "Riesgo candidato",
+   "d": "Posible riesgo, supuesto, pregunta o issue que `riesgos.py candidatos` destila de BMAD, transcripciones, una instantánea del tracker o los artefactos del proyecto, con cita y ubicación. Queda en un borrador y no entra al registro sin formularse y evaluarse."
+  },
+  {
+   "t": "Presupuesto de cambio",
+   "d": "Monto que la junta asigna para pagar cambios aprobados (`estado.py presupuesto cambio=…`, reservado a pm-director); la sanidad suma lo cargado en `cambios.csv` con `cargo=presupuesto-cambio` (CAM-03)."
+  },
+  {
+   "t": "Reserva de riesgo (presupuesto de riesgo)",
+   "d": "Monto fijado por la junta en `presupuestos.riesgo` para financiar respuestas y contingencias; cada cargo debe citar el R-### que responde (CAM-02) y su consumo se vigila de forma continua (CAM-03)."
+  },
+  {
+   "t": "Límite de autoridad de cambio",
+   "d": "Monto máximo que la autoridad de cambio puede aprobar sola (`limite_autoridad_cambio`); por encima decide la junta o el ejecutivo, y si no, aviso CAM-04."
+  },
+  {
+   "t": "Cargo (de un cambio)",
+   "d": "Columna de `cambios.csv` (v2.2) que dice qué fondo paga el cambio: presupuesto-cambio, reserva-riesgo, reserva-gestion, plan-excepcion o sin-costo; va junto a `costo` (numérico)."
+  },
+  {
+   "t": "Condición de puerta",
+   "d": "Observación con que la junta aprueba (`--decision condicionado`, o `aprobado` con `--condiciones`). Queda abierta (EST-12 en sanidad, G-01 en la verificación siguiente; bloquea `autorizar-cierre`) hasta `estado.py cumplir-condiciones` con fecha, quién verificó y nota."
+  },
+  {
+   "t": "Control permanente",
+   "d": "Comprobación automática que corre en cada `sanidad.py` o verificación de puerta, no solo al cierre, sobre algo que tradicionalmente se revisaba a mano, tarde o nunca. En v2.2: CAM, QUA, TOL, STK-12, G-01, P-04 y condiciones formales."
+  },
+  {
+   "t": "Cadencia de contacto",
+   "d": "Frecuencia de contacto prometida en el perfil de un interesado (diaria 1, semanal 7, quincenal 14, mensual 31, trimestral 92 días). STK-12 avisa cuando el último envío `enviado` supera 1,5 × ese período."
+  },
+  {
+   "t": "Calidad a volumen",
+   "d": "Familia QUA (v2.2): cada elemento terminado de `backlog.csv` debe tener una revisión aprobada en `calidad.csv` que lo cite (QUA-01); revisiones vencidas al corte (QUA-02) y rechazos sin tratamiento (QUA-03)."
+  },
+  {
+   "t": "Corte de EVM",
+   "d": "Cálculo de valor ganado guardado con fecha (`evm.py --guardar --corte` → `03-control/reportes/evm-<corte>.json`) que la sanidad compara con las tolerancias (familia TOL: TOL-01 excepción prevista, TOL-02 ámbar, TOL-03 sin corte reciente)."
+  },
+  {
+   "t": "Fecha de corte (sanidad --corte)",
+   "d": "Fecha que usa `sanidad.py --corte` para los controles con vencimiento (REG-07, QUA-02, TOL, STK-12), de modo que el informe sea reproducible."
   }
  ],
  "fuentes_internas": [
@@ -1097,7 +1259,7 @@
   ],
   [
    "CHANGELOG.md",
-   "novedades de la versión 2.1.0, incluidos los ajustes tras las pruebas de robustez"
+   "novedades de las versiones 2.2.0 (interesados, canales, OKR, riesgos desde cuatro fuentes, controles permanentes) y 2.1.0"
   ],
   [
    "CLAUDE.md · AGENTS.md",
@@ -1141,7 +1303,7 @@
   ],
   [
    "docs/INTEGRACIONES.md",
-   "dependencias, decisiones por candidato, contratos, cómo agregar una integración"
+   "dependencias, decisiones por candidato, contratos, capa de canales (§3.2), cómo agregar una integración"
   ],
   [
    "docs/RACI.md",
@@ -1149,11 +1311,11 @@
   ],
   [
    "docs/CATALOGO.md",
-   "comandos, agentes, fichas de las 37 skills, scripts"
+   "comandos, agentes, fichas de las 38 skills, scripts"
   ],
   [
    "docs/CASOS-DE-USO.md",
-   "un caso por skill y tres variantes"
+   "48 casos (un ejemplo por skill más los casos de la versión 2.2) y tres variantes"
   ],
   [
    "docs/CASOS-DE-USO-INTEGRACIONES.md",
@@ -1165,7 +1327,7 @@
   ],
   [
    "docs/PRUEBAS.md",
-   "niveles de prueba, regresión A–F, suite en vivo y escenarios de robustez, variación de modelo, resultados y aceptación"
+   "niveles de prueba, regresión A–J, recorridos E2E, suite en vivo y escenarios de robustez, variación de modelo, resultados, pendiente 2.2 y aceptación"
   ],
   [
    "docs/PILOTO.md",
@@ -1174,6 +1336,14 @@
   [
    "docs/PUERTAS.md",
    "ciclo de vida integrado PRINCE2 + BMAD, verificación de puertas en tres capas, controles por puerta y de BMAD, registro de la decisión, comandos"
+  ],
+  [
+   "skills/pm-interesados, pm-integraciones (envios.py), pm-okr, pm-riesgos",
+   "guías de las skills nuevas o ampliadas en 2.2 (consulta puntual)"
+  ],
+  [
+   "docs/guias/ (E2E-1…E2E-4, evidencia/, img/)",
+   "cuatro guías E2E con sus tablas de controles permanentes, salidas de la corrida de referencia e imágenes del reporte de interesados"
   ],
   [
    "docs/colisiones.md",
@@ -1185,11 +1355,11 @@
   ],
   [
    "docs/diagramas/",
-   "cinco diagramas Mermaid oficiales (.mmd y .svg)"
+   "siete diagramas Mermaid oficiales (.mmd y .svg)"
   ],
   [
    "docs/evaluacion/",
-   "60 frases de enrutamiento e informes de pruebas en vivo v2.0 y v2.1"
+   "66 frases de enrutamiento e informes de pruebas en vivo v2.0 y v2.1"
   ],
   [
    "agents/*.md",
@@ -1265,7 +1435,355 @@
     "https://alirezarezvani.github.io/claude-skills/skills/project-management/meeting-analyzer/",
     "https://github.com/MichaelFowler1/cost-risk-toolkit"
    ]
+  },
+  {
+   "g": "Canales y OKR (v2.2)",
+   "u": [
+    "https://learn.microsoft.com/en-us/microsoftteams/platform/webhooks-and-connectors/how-to/add-incoming-webhook",
+    "https://mcp.tability.app/mcp",
+    "https://support.perdoo.com/en/articles/14470891-mcp-server",
+    "https://rework.withgoogle.com/en/guides/set-goals-with-okrs",
+    "https://learn.microsoft.com/viva/goals/goals-retirement"
+   ]
   }
  ],
- "fuentes_nota": "Las URL externas provienen del registro de fuentes del informe 1 (relevadas entre el 13 y el 17/10/2026) y del propio paquete. Los hechos sobre subagentes, hooks, plugins y marketplaces de Claude Code, sobre Microsoft Teams/Work IQ, Granola, Fireflies y Zoom MCP se verificaron en documentación oficial el 17/10/2026 según el registro de hechos v2, que no conserva la URL exacta de cada página; no se agregan URL no registradas."
+ "fuentes_nota": "Las URL externas provienen del registro de fuentes del informe 1 (relevadas entre el 13 y el 17/10/2026) y del propio paquete. Los hechos sobre subagentes, hooks, plugins y marketplaces de Claude Code, sobre Microsoft Teams/Work IQ, Granola, Fireflies y Zoom MCP se verificaron en documentación oficial el 17/10/2026 según el registro de hechos v2, que no conserva la URL exacta de cada página; no se agregan URL no registradas. Las URL del grupo «Canales y OKR (v2.2)» figuran en docs/DEPENDENCIAS.md y en las guías de pm-integraciones y pm-okr, verificadas el 17/10/2026.",
+ "v22": {
+  "intro_mapa": "Lo nuevo de 2.2 se presenta en esta sección: el maestro de interesados, la capa de canales, OKR v2.2, la identificación de riesgos desde cuatro fuentes, los controles permanentes y las guías E2E actualizadas. Los códigos nuevos (STK, CAM, QUA, TOL) también figuran en la tabla de la sección 7 y los controles G-01, P-09 y P-10 en la sección 8.",
+  "antes_despues": [
+   [
+    "Skills (`validar_paquete.py`)",
+    "37 (31 invocables · listado de 6.289 caracteres)",
+    "**38** (32 invocables · **6.546** caracteres; límite 7.500)",
+    "CHANGELOG 2.2.0; corrida del 17/10/2026"
+   ],
+   [
+    "Registros del proyecto",
+    "9",
+    "**13**: 9 base + 4 opcionales que se crean al primer uso (estereotipos ET, preferencias PF, raci RC, envios EN)",
+    "compatibilidad.json; `esquema.py`"
+   ],
+   [
+    "Regresión (`probar_paquete.py`)",
+    "80 OK · 0 FALLO (casos A–G)",
+    "**138 OK · 0 FALLO** (casos A–J; nuevos H 33, I 9 y J 16 comprobaciones)",
+    "CHANGELOG; PRUEBAS §2; corrida del 17/10/2026"
+   ],
+   [
+    "Familias de sanidad",
+    "INS, EST, ART, REG, ESP, INT",
+    "+ **STK** (STK-00…STK-12), **CAM** (CAM-01…05), **QUA** (QUA-01…03), **TOL** (TOL-01…03)",
+    "SANIDAD §2.1"
+   ],
+   [
+    "Controles de puerta",
+    "—",
+    "**G-01** (condiciones abiertas de puertas anteriores; bloqueo en `autorizar-cierre`), **P-04** como condición, avisos **P-09** y **P-10**",
+    "PUERTAS §3; CHANGELOG"
+   ],
+   [
+    "Bloques Mermaid validados (`validar_mermaid.py --render`)",
+    "122, 0 errores",
+    "**127**, 0 errores",
+    "CHANGELOG 2.1.0 y 2.2.0; corrida del 18/10/2026"
+   ],
+   [
+    "Guías E2E",
+    "4 guías, sin tablas de controles permanentes",
+    "**4 guías · 13/10/13/15 pasos**, cada una con su tabla de controles; pasos nuevos E2E-2 10 (excepción) y E2E-3 13 (STK-12); `correr.py` 4/4 OK",
+    "guias/README.md; CHANGELOG"
+   ],
+   [
+    "Casos de uso documentados",
+    "37 (uno por skill)",
+    "**48** (parte 6: 11 casos de interesados, canales, OKR, riesgos y controles)",
+    "CASOS-DE-USO.md"
+   ],
+   [
+    "Capacidades nuevas",
+    "—",
+    "maestro de interesados (`interesados.py`), capa de canales (`envios.py`), OKR v2.2 (check-ins y salud), riesgos candidatos (`riesgos.py candidatos`), presupuestos de la junta (`estado.py presupuesto`)",
+    "CHANGELOG 2.2.0"
+   ],
+   [
+    "Dependencias nuevas",
+    "—",
+    "**ninguna**: solo biblioteca estándar (`smtplib`, `email`, `urllib`); nada se escribe en BMAD; proyectos 2.1 migran sin cambios",
+    "CHANGELOG 2.2.0"
+   ],
+   [
+    "Enrutamiento en vivo (Claude Code real)",
+    "60/60 en la corrida final",
+    "**pendiente de repetir**: cambiaron 5 descripciones; el TSV tiene 66 frases",
+    "CHANGELOG «Pendientes»; PRUEBAS §3.2"
+   ]
+  ],
+  "cuadrantes": [
+   [
+    "Gestionar de cerca",
+    "alto · alto",
+    "Los actores más críticos: comunicación constante, participación activa en las decisiones y máxima atención.",
+    "reunión · conclusión primero · resumen · semanal"
+   ],
+   [
+    "Mantener satisfecho",
+    "alto · bajo",
+    "No abrumar con detalle; reportes ejecutivos de alto nivel sobre beneficios y avance.",
+    "correo · conclusión primero · ejecutivo · mensual"
+   ],
+   [
+    "Mantener informado",
+    "bajo · alto",
+    "Canales claros (boletines, reuniones informativas) y escucha activa de su retroalimentación.",
+    "correo · lista · resumen · quincenal"
+   ],
+   [
+    "Monitorear",
+    "bajo · bajo",
+    "Supervisar con el menor esfuerzo, salvo que cambien de posición en la matriz.",
+    "tablero · lista · ejecutivo · a demanda"
+   ]
+  ],
+  "interesados_puntos": [
+   {
+    "t": "Maestro único",
+    "d": "Skill nueva `pm-interesados` (agente pm-inicio), dueña de `stakeholders.csv`, `estereotipos.csv`, `preferencias.csv` y `raci.csv`. OKR, RACI, preferencias, envíos y registros citan a las personas por `ST-###` o por el nombre exacto."
+   },
+   {
+    "t": "Estereotipos",
+    "d": "Seis semilla (dirección-patrocinador, equipo, cliente-usuario, proveedores, regulador-comunidad, product-owner-usuarios-clave), cada uno con un perfil típico. `--sugerir` propone asignaciones que no se aplican solas."
+   },
+   {
+    "t": "Preferencias con procedencia y vigencia",
+    "d": "Procedencia declarado, observado o inferido; estado propuesta, confirmada, rechazada o vencida; cita textual, fuente y vigencia (180 días por defecto). `proponer` lee entrevistas, actas o transcripciones y solo analiza oraciones en primera persona."
+   },
+   {
+    "t": "Perfil de comunicación con precedencia",
+    "d": "cuadrante → idioma del proyecto → estereotipo → matriz de comunicaciones → preferencias confirmadas y vigentes. Las propuestas y las vencidas no se aplican; un conflicto entre preferencia y matriz se avisa."
+   },
+   {
+    "t": "RACI ligada al plan",
+    "d": "Elementos con fuente verificable: paquetes y actividades de la WBS, requisitos, épicas e historias por la fachada `especificacion.py` o el backlog, KR y objetivos de `okr.csv`, decisiones. `registro.py` rechaza el segundo A, la fila duplicada y el interesado inexistente."
+   },
+   {
+    "t": "Integridad y privacidad",
+    "d": "Familia STK en sanidad (STK-03 es ERROR) y avisos P-09 y P-10 en `autorizar-proyecto`. El perfil solo adapta comunicaciones: no se infieren emociones, personalidad, salud ni datos sensibles, ni se analiza audio o tono (guía §10; no es asesoramiento jurídico)."
+   }
+  ],
+  "canales_reglas": [
+   "**Simulación por defecto:** sin `--confirmar`, `enviar` muestra destinatarios, asunto y comienzo del texto y no registra nada.",
+   "**Aprobación humana:** solo se envían mensajes aprobados (`aprobar --por \"Rol: Nombre\"`); `aprobar` rechaza borradores sin redactar y destinatarios que ya no están en el maestro.",
+   "**Destinos desde el maestro:** `correo` y `usuario_chat` se leen de `stakeholders.csv` al enviar, nunca del texto del mensaje; un reintento solo alcanza a quien no tiene fila `enviado`.",
+   "**Registro:** cada envío queda en `envios.csv` (EN-###, con quién aprobó) y en `diario.md`; código de salida 2 si hubo fallos (aviso STK-07 hasta reintentar).",
+   "**Credenciales solo en el entorno:** `PM_SMTP_HOST` y `PM_SMTP_REMITENTE` (obligatorias), `PM_SMTP_PUERTO` (587), `PM_SMTP_TLS` (starttls, ssl o ninguno), `PM_SMTP_USUARIO`, `PM_SMTP_CLAVE`, `PM_SLACK_WEBHOOK_URL`, `PM_TEAMS_WEBHOOK_URL`; nunca en archivos (INSTALACION §0.7).",
+   "**Respaldo sin conector ni credenciales:** `--modo eml` (archivos con `X-Unsent: 1`) o `registrar --modo manual`; el registro en `envios.csv` es el mismo."
+  ],
+  "okr": [
+   [
+    "Tipos de KR",
+    "`de-a` (por defecto), `mantener-sobre`, `mantener-bajo`, `binario`, `hito` (por iniciativas IN-n ligadas a épica, historia o paquete); puntuación por tipo y objetivo como promedio ponderado por `peso`"
+   ],
+   [
+    "Compromiso y semáforo",
+    "aspiracional (por defecto): verde ≥ 0,7, rojo < 0,4; comprometido: verde 1,0, rojo < 0,7 (convención de la práctica OKR)"
+   ],
+   [
+    "Salud",
+    "en camino, en riesgo o desviado contra el avance esperado lineal entre `fecha_inicio` y `fecha_meta`; confianza 1–3 rojo, 4–6 ámbar, 7–10 verde (criterio del paquete)"
+   ],
+   [
+    "Check-ins",
+    "`00-direccion/okr_checkins.csv`, solo altas: `okr.py okr.csv --checkin KR --valor V [--confianza N] [--nota] [--autor] [--fecha] [--fuente]`; el valor actual es el último check-in hasta el corte"
+   ],
+   [
+    "Tability y Perdoo",
+    "`--propuesta-sync tability|perdoo` y `--marcar-publicado KR@FECHA --destino … --ref …`; servidores MCP oficiales verificados el 17/10/2026; plan comercial requerido: [verificar]. Viva Goals se retiró el 31/12/2025"
+   ],
+   [
+    "Avisos nuevos",
+    "verbo de actividad en un KR, responsable fuera del maestro (y STK-08), tipo/compromiso/peso inválidos, iniciativa sin KR o sin vínculo, KR de hito sin iniciativas, check-in de KR inexistente, todos los aspiracionales en 1,0 al cierre"
+   ],
+   [
+    "Retrocompatible",
+    "con un `okr.csv` de 2.1 la salida es idéntica. Limitación: las iniciativas no guardan historia"
+   ]
+  ],
+  "okr_ejemplo": "Ejemplo (CASOS-DE-USO caso 45, al 8/1): O-1 0,11 (aspiracional, promedio ponderado), KR-1.1 0,10 en camino (esperado 0,16) con confianza 7; O-2 0,24 (comprometido), KR-2.3 0,33 (1 de 3 iniciativas) en riesgo (esperado 0,52); propuesta de check-ins para Tability con aviso para cada KR sin `ref_externa`.",
+  "riesgos_cifras": [
+   "42 candidatos (3 fuentes leídas)",
+   "6 candidatos",
+   "3 candidatos: PS-101 y PS-102 como issues, PS-104 posible duplicado de R-003",
+   "7 candidatos (5 fuentes leídas)"
+  ],
+  "riesgos_intro": "`riesgos.py candidatos [--fuentes bmad,transcripciones,tracker,artefactos]` destila riesgos candidatos (clase riesgo, supuesto, pregunta o issue; amenaza u oportunidad; cita y ubicación) y marca posibles duplicados o relaciones con los ya registrados. Escribe solo el borrador `03-control/reportes/<fecha>-candidatos-riesgo.md`: nada entra al registro sin formularse y evaluarse.",
+  "controles_intro": "Problemas que tradicionalmente no se automatizaban o no se controlaban de forma permanente —por falta de estandarización, por depender de procesos manuales o por el volumen y la heterogeneidad de los datos— y que en 2.2 detectan `sanidad.py` y `puertas.py` en cada corrida (el hook de inicio de sesión corre la sanidad rápida). Todos son AVISO o INFO salvo donde se indica.",
+  "controles": [
+   [
+    "Nadie suma lo que consumen los cambios aprobados ni sabe cuánto queda de la reserva de riesgo hasta el cierre",
+    "consumo de `cambios.csv` (`costo`, `cargo`) contra los presupuestos que fija la junta: INFO < 80 %, AVISO ≥ 80 %, **ERROR > 100 %** que bloquea puertas",
+    "CAM-03 (S-CAM-03 en puertas)",
+    "`sanidad.py` (`chk_cambios`); `puertas.py` capa 1; `estado.py presupuesto`",
+    "E2E-1 pasos 7, 9, 10 · E2E-2 pasos 7, 9, 10 · E2E-4 pasos 7, 11"
+   ],
+   [
+    "Cambio aprobado sin monto ni fondo que lo pague",
+    "impacto de costo sin `costo` ni `cargo`, o costo sin cargo",
+    "CAM-01",
+    "`sanidad.py` (`chk_cambios`)",
+    "E2E-2 paso 7 · E2E-4 pasos 7, 11"
+   ],
+   [
+    "La reserva de riesgo se usa como bolsa general",
+    "cargo a la reserva de riesgo sin citar el R-### que responde",
+    "CAM-02",
+    "`sanidad.py` (`chk_cambios`)",
+    "E2E-1 paso 9"
+   ],
+   [
+    "La autoridad de cambio aprueba por encima de su límite delegado",
+    "costo sobre `limite_autoridad_cambio` no decidido por la junta o el ejecutivo",
+    "CAM-04",
+    "`sanidad.py` (`chk_cambios`)",
+    "E2E-2 paso 10"
+   ],
+   [
+    "La reserva de gestión se usa sin que la junta la libere",
+    "cargo a la reserva de gestión no decidido por la junta o el ejecutivo",
+    "CAM-05",
+    "`sanidad.py` (`chk_cambios`)",
+    "— (SANIDAD §2.1; no aparece en las guías)"
+   ],
+   [
+    "Con decenas de historias terminadas, nadie verifica que cada una tenga su revisión de calidad",
+    "cada elemento terminado de `backlog.csv` contra `calidad.csv` (id completo o clave corta N-M)",
+    "QUA-01",
+    "`sanidad.py` (`chk_calidad`)",
+    "E2E-2 paso 9 · E2E-3 paso 9 · E2E-4 pasos 9, 12, 14"
+   ],
+   [
+    "La revisión prometida vence sin que nadie lo note",
+    "revisión planificada o en curso con `fecha_prevista` vencida al corte",
+    "QUA-02",
+    "`sanidad.py --corte` (`chk_calidad`)",
+    "E2E-4 pasos 8, 12, 13"
+   ],
+   [
+    "Un rechazo de calidad queda sin tratamiento",
+    "revisión rechazada sin issue, acción o cambio que cite su Q-###",
+    "QUA-03",
+    "`sanidad.py` (`chk_calidad`)",
+    "E2E-4 paso 12 (no se dispara)"
+   ],
+   [
+    "El pronóstico de EVM se calcula para el informe y se olvida, o se mira al fin de etapa",
+    "corte guardado (`evm.py --guardar --corte`) contra las tolerancias: excepción prevista sin excepción abierta (TOL-01), ámbar (TOL-02), sin corte reciente (TOL-03)",
+    "TOL-01 · TOL-02 · TOL-03",
+    "`evm.py`; `sanidad.py` (`chk_tolerancias`)",
+    "E2E-2 pasos 8–10 · E2E-3 pasos 9, 12 · E2E-4 pasos 8, 10, 12–14"
+   ],
+   [
+    "Con decenas de interesados, nadie verifica que se contacte a cada uno con la frecuencia prometida",
+    "último envío `enviado` en `envios.csv` contra la frecuencia del perfil, con tolerancia 1,5 ×",
+    "STK-12",
+    "`interesados.py integridad --corte`; `sanidad.py`",
+    "E2E-3 paso 13"
+   ],
+   [
+    "Una puerta se aprueba «con condiciones» que quedan en el acta y nadie vuelve a mirar",
+    "condición formal en la puerta, aviso en cada sanidad, condición en la puerta siguiente y **bloqueo del cierre**; `cumplir-condiciones` registra quién verificó",
+    "EST-12 · G-01",
+    "`puertas.py verificar`; `estado.py cumplir-condiciones`",
+    "E2E-2 paso 10 · E2E-3 paso 10 · E2E-4 pasos 8–14"
+   ],
+   [
+    "Los criterios de éxito quedan solo como OKR y nadie mide el beneficio después del cierre",
+    "condición si no hay beneficios en el business case ni enfoque de beneficios; aviso si falta el enfoque",
+    "P-04",
+    "`puertas.py verificar autorizar-proyecto`",
+    "E2E-1 paso 7 · E2E-2 paso 5 · E2E-3 pasos 6–7 · E2E-4 paso 7"
+   ],
+   [
+    "Plan de excepción sin informe, o puerta sin plan",
+    "verificación de `autorizar-plan-excepcion`",
+    "X-01 · X-02",
+    "`puertas.py verificar`",
+    "E2E-2 paso 10"
+   ]
+  ],
+  "ejemplos": [
+   {
+    "t": "E2E-2 paso 10 · gestión por excepción",
+    "d": "Un requisito regulatorio (C-002, USD 15.000) lo aprueba la autoridad de cambio. Sanidad del 19/2: «1 ERROR · 2 AVISO»: **ERROR CAM-03** presupuesto de cambio 24.000 de 12.000 (200 %), **AVISO CAM-04** (límite delegado 10.000) y **AVISO TOL-01** (alcance en rojo sin excepción abierta). Informe de excepción X-001; `autorizar-plan-excepcion` bloqueada por S-CAM-03 hasta que la junta amplía el presupuesto a 32.000; el 26/2 queda INFO CAM-03 al 75 %."
+   },
+   {
+    "t": "E2E-3 paso 13 · cadencia de contacto",
+    "d": "Al 5/2, **STK-12** avisa: TI (gestionar de cerca, semanal) lleva 18 días sin contacto (máximo 10); Martín y Lucía, 21. La reunión con TI se registra (EN-008), se abre A-005, se corrige la frecuencia de Lucía y se registran los checkpoints (EN-009, EN-010). TI se reevalúa de neutral a resistente (brecha +2). Sanidad final: 0 ERROR · 0 AVISO · 1 INFO."
+   },
+   {
+    "t": "E2E-4 pasos 12–13 · calidad a volumen y condición formal",
+    "d": "Al 26/2, sanidad «0 ERROR · 7 AVISO · 3 INFO»: **QUA-01** cinco veces (1-3, 1-4, 3-1, 3-2, 3-3), **QUA-02** (Q-001, prueba de carga de NFR-3 vencida el 19/2) y EST-12. Las revisiones en lote (Q-004…Q-008) apagan QUA-01. El 5/3 la verificación muestra **G-01** «0 bloqueo · 1 condición» hasta `cumplir-condiciones` (p95 2,4 s, gate en PASS); después, 0 · 0 · 0."
+   },
+   {
+    "t": "E2E-1 pasos 7, 9 y 10 · reserva de riesgo",
+    "d": "La ejecutiva fija el presupuesto de riesgo en 47.800 (respuestas 9.800 + EMV residual 31.800 + provisión 6.200): INFO CAM-03 al 21 %. En el paso 9 un cargo sin R-### da **AVISO CAM-02** (44 %; tras el rechazo, 37 %); en el paso 10 el consumo llega a 27.800 de 47.800 (58 %) y la sanidad recuerda la condición abierta (EST-12)."
+   }
+  ],
+  "pendientes": "Pendientes declarados en el CHANGELOG: repetir el enrutamiento en vivo (cambiaron cinco descripciones); probar en vivo los controles permanentes (hoy probados con scripts); plan comercial de los MCP de Tability y Perdoo [verificar]; exposición de objetivos por los MCP de otras herramientas de OKR [verificar]; alcance de la exclusión de texto escrito en el art. 5(1)(f) del AI Act [verificar].",
+  "vigente21": [
+   [
+    "Regresión automática (`probar_paquete.py`)",
+    "35 pruebas",
+    "80 OK · 0 FALLO (hoy 138)",
+    "CHANGELOG, PRUEBAS §2"
+   ],
+   [
+    "Decisiones del hook guardian en la regresión",
+    "—",
+    "**36/36** correctas (igual en 2.2)",
+    "salida de `probar_paquete.py`"
+   ],
+   [
+    "Hooks del plugin",
+    "2 (PreToolUse, SessionStart)",
+    "**3** (+ UserPromptSubmit · `idioma.py`)",
+    "CHANGELOG, INSTALACION §9"
+   ],
+   [
+    "Enrutamiento con Claude Code real",
+    "82 % en 75 frases",
+    "**60/60** en la corrida final (59/60 en la primera)",
+    "PRUEBAS §3.1"
+   ],
+   [
+    "Guardarraíles en vivo",
+    "escenario S5: PARTIAL (bypass por Bash)",
+    "**4/4**",
+    "resultados v2.0 y v2.1"
+   ],
+   [
+    "Idioma en vivo (pedido en inglés)",
+    "escenario S6: FAIL/PARTIAL",
+    "**3/3**",
+    "resultados v2.0 y v2.1"
+   ],
+   [
+    "Hook `guardian.py`",
+    "Write/Edit",
+    "Write/Edit **y Bash**; comandos de decisión reservados a pm-director también en el hilo principal (desde 2.2 incluye `presupuesto`)",
+    "CHANGELOG"
+   ],
+   [
+    "Robustez en vivo",
+    "—",
+    "inyección **6/6** · desorden **7/7** · escala **5/5** · multisesion **10/10**",
+    "PRUEBAS §3.1"
+   ],
+   [
+    "Variación de modelo (enrutamiento)",
+    "—",
+    "Sonnet **59/60** · Haiku **56/60**",
+    "PRUEBAS §3.1"
+   ]
+  ]
+ }
 }

@@ -1,10 +1,10 @@
 {
   "paquete": "pm-method",
-  "version": "2.1.0",
+  "version": "2.2.0",
   "spec": "SPEC.md v2 (§0, §1.10–§1.17)",
   "esquemas": {
     "estado.json": "v2 (migración automática desde v1)",
-    "registros": "esquema.py v2 (9 registros)",
+    "registros": "esquema.py v2.2 (13 registros: 9 base + estereotipos, preferencias, raci y envios, que se crean al primer uso)",
     "indice_especificacion": "pm-spec-index/1"
   },
   "bmad": {
@@ -46,8 +46,10 @@
       "Fireflies",
       "Zoom",
       "minutes (minutes-mcp)",
-      "Tability",
-      "drawio-mcp oficial (jgraph/drawio-mcp, npm @drawio/mcp)"
+      "Tability (MCP oficial https://mcp.tability.app/mcp, verificado 2026-10-17)",
+      "Perdoo (MCP oficial https://mcp.perdoo.com, verificado 2026-10-17)",
+      "drawio-mcp oficial (jgraph/drawio-mcp, npm @drawio/mcp)",
+      "Correo (Gmail u Outlook vía el conector de la organización) o SMTP propio vía envios.py"
     ],
     "skills_probadas_en_vivo": {
       "fecha": "2026-10-17",
@@ -77,6 +79,12 @@
         "licencia": "propietaria (ver LICENSE.txt de cada skill)",
         "instalar": "npx skills add anthropics/skills -a claude-code -s docx xlsx pptx -y"
       }
+    },
+    "canales_sin_conector": {
+      "smtp": "envios.py --modo smtp (PM_SMTP_HOST, PM_SMTP_REMITENTE, PM_SMTP_PUERTO, PM_SMTP_TLS, PM_SMTP_USUARIO, PM_SMTP_CLAVE)",
+      "slack": "envios.py --modo slack-webhook (PM_SLACK_WEBHOOK_URL)",
+      "teams": "envios.py --modo teams-webhook (PM_TEAMS_WEBHOOK_URL, flujo de Workflows)",
+      "eml": "envios.py --modo eml (sin configuración)"
     }
   },
   "clientes": {

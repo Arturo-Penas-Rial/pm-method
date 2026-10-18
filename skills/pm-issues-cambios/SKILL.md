@@ -1,7 +1,7 @@
 ---
 name: pm-issues-cambios
 description: "Issues, control de cambios e informe de excepción. Usar: issue, solicitud de cambio, change request, off-spec, concesión, desvío del PRD. No: pronóstico o semáforo→pm-progreso-reportes."
-version: 2.1.0
+version: 2.2.0
 author: pm-method
 license: MIT
 metadata:
@@ -45,7 +45,7 @@ metadata:
 2. **Capturar.** Prueba de certeza (incierto → `pm-riesgos`); exactamente uno de cinco tipos; formal/informal; prioridad y severidad; alta con `registro.py agregar issues` (`references/guia.md` §1–§2). Una tarea no es un issue → `acciones.csv`. Nunca rechazar sin evaluar.
 3. **Entrada BMAD.** Cada desvío o Sprint Change Proposal de `bmad.py verificar` entra como `solicitud-cambio` citando ids y sha, salvo elaboración progresiva declarada (guía §8).
 4. **Evaluar impacto integrado** sobre los siete objetivos, tolerancias, business case y otros productos; ruta crítica analizada; variación relativa; pronóstico vs. tolerancia (guía §3).
-5. **Documentar** (rutas en la tabla de artefactos). Si requiere análisis: `templates/informe-issue.md`. Solicitud de cambio: `templates/solicitud-cambio.md` + fila en `cambios.csv` (`notas=origen I-###` e ids afectados); issue en `pendiente-cambio`.
+5. **Documentar** (rutas en la tabla de artefactos). Si requiere análisis: `templates/informe-issue.md`. Solicitud de cambio: `templates/solicitud-cambio.md` + fila en `cambios.csv` (`notas=origen I-###`, ids afectados, `costo` y `cargo`: guía §4.1); issue en `pendiente-cambio`.
 6. **Recomendar** al menos dos opciones (incluida no hacer nada), con financiación del cambio o concesión/corrección del fuera de especificación (guía §3).
 7. **PUERTA HUMANA — Autoridad.** Determinar quién decide con la tabla (guía §4). El agente nunca decide: pide la decisión al PO, gestor, autoridad de cambio o junta. Sin umbral o presupuesto suficiente, subir de nivel; si el pronóstico sale de tolerancia → paso 10.
 8. **Registrar la decisión** en `issues.csv`/`cambios.csv` (`decidido_por`) y `decisiones.csv` con nivel; si decidió la junta, la puerta la registra `pm-director` y aquí se copia el `D-###` (guía §5).

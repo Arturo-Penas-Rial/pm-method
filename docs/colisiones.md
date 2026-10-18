@@ -13,11 +13,11 @@ Claude Code decide qué skill activar leyendo solo el `name` y la `description` 
 - "No:" es la pista de alcance (scope clue): nombra la colisión más probable y a qué skill corresponde.
 - Los seis comandos (`pm-ayuda`, `pm-nuevo`, `pm-estado`, `pm-reporte`, `pm-puerta`, `pm-sync`) llevan `disable-model-invocation: true`: no compiten en el enrutamiento ni consumen presupuesto, y no tienen pista "No:".
 
-**Presupuesto medido.** Las 31 descripciones invocables suman 6.289 caracteres (`validar_paquete.py`; el límite del paquete es 7.500, SPEC §3). Si conviven muchos plugins y el listado se recorta, se puede subir la fracción con `"skillListingBudgetFraction": 0.02` en `settings.json`. `skillOverrides` (`on | name-only | user-invocable-only | off`) no se aplica a skills de plugins.
+**Presupuesto medido.** Las 32 descripciones invocables suman 6.546 caracteres (2.2.0) (`validar_paquete.py`; el límite del paquete es 7.500, SPEC §3). Si conviven muchos plugins y el listado se recorta, se puede subir la fracción con `"skillListingBudgetFraction": 0.02` en `settings.json`. `skillOverrides` (`on | name-only | user-invocable-only | off`) no se aplica a skills de plugins.
 
 ## 2. Matriz de dueños
 
-Basada en la matriz del refactor v2, con las filas de las skills nuevas (pm-bmad-puente, pm-integraciones, pm-okr, pm-reuniones, pm-sanidad) completadas según sus SKILL.md.
+Basada en la matriz del refactor v2, con las filas de las skills nuevas (pm-bmad-puente, pm-integraciones, pm-okr, pm-reuniones, pm-sanidad y, desde 2.2, pm-interesados) completadas según sus SKILL.md.
 
 | Tema | Dueña | Vecinas que NO deben activarse (→ dueña de lo vecino) |
 |---|---|---|
@@ -34,10 +34,11 @@ Basada en la matriz del refactor v2, con las filas de las skills nuevas (pm-bmad
 | Alcance, PBS, WBS (`wbs.py`), descripciones de producto, requisitos y RTM sin BMAD | pm-planificacion-por-productos | requisitos con BMAD → pm-bmad-puente |
 | Backlog, historias, release plan, velocidad, swaps del PO, retro de iteración | pm-agil-hibrido | sincronización con BMAD → pm-bmad-puente |
 | Business case, beneficios, enfoques de beneficios y sostenibilidad | pm-caso-de-negocio | OKR → pm-okr; presupuesto → pm-costos-presupuesto |
-| **OKR** ligados a beneficios (B-n) y métricas de éxito (SM-n), puntuación, Tability | pm-okr | beneficios o business case → pm-caso-de-negocio |
-| Matriz de comunicaciones, mensajes por audiencia, seguimiento del compromiso | pm-comunicacion-stakeholders | actas → pm-reuniones; análisis o compromiso de interesados → pm-organizacion-roles |
+| **OKR** ligados a beneficios (B-n) y métricas de éxito (SM-n): tipos de KR, check-ins, salud, cascada, Tability o Perdoo | pm-okr | beneficios o business case → pm-caso-de-negocio |
+| Matriz de comunicaciones, mensajes por audiencia y su envío personalizado (plan de envío, aprobación) | pm-comunicacion-stakeholders | actas → pm-reuniones; mapa, RACI o preferencias → pm-interesados |
+| **Maestro de interesados**: matriz poder/interés y estrategia, RACI (WBS, PRD, OKR), estereotipos, preferencias, perfil de comunicación, análisis y plan de compromiso | pm-interesados | enviar comunicados → pm-comunicacion-stakeholders |
 | **Transcripciones, actas, acciones de reunión, clima agregado** | pm-reuniones | matriz de comunicación → pm-comunicacion-stakeholders |
-| Estructura de gestión, roles, RACI, análisis y plan de compromiso de interesados | pm-organizacion-roles | plan de comunicación → pm-comunicacion-stakeholders |
+| Estructura de gestión, roles, descripciones de rol, team charter, mapeo de roles ágiles o BMAD | pm-organizacion-roles | interesados o RACI → pm-interesados; plan de comunicación → pm-comunicacion-stakeholders |
 | Enfoques de gestión del PID y planes subsidiarios | pm-enfoques-gestion | PID ensamblado → pm-acta-constitucion |
 | Acta de constitución y PID ensamblado | pm-acta-constitucion | enfoques de gestión → pm-enfoques-gestion |
 | Mandato, propuesta, brief, canvas, visión, roadmap, enfoque de entrega | pm-mandato-y-brief | business case → pm-caso-de-negocio |
@@ -47,13 +48,13 @@ Basada en la matriz del refactor v2, con las filas de las skills nuevas (pm-bmad
 | Lecciones aprendidas, taller de etapa, informe de lecciones | pm-lecciones-aprendidas | retro de sprint → pm-agil-hibrido |
 | Cierre planificado o prematuro | pm-cierre-proyecto | lecciones → pm-lecciones-aprendidas |
 | Exportados Office y paquetes ZIP | pm-exportar | tablero → pm-visuales; informe → pm-progreso-reportes |
-| **Integraciones MCP** (tracker, docs, chat, correo, calendario) | pm-integraciones | BMAD → pm-bmad-puente; transcripciones → pm-reuniones |
+| **Integraciones MCP** (tracker, docs, chat, correo, calendario) y **capa de canales** (`envios.py`: SMTP, webhooks de Slack o Teams, `.eml`, MCP; `envios.csv`) | pm-integraciones | BMAD → pm-bmad-puente; transcripciones → pm-reuniones |
 | **BMAD** (puente de solo lectura, trazabilidad, línea base, traspaso) | pm-bmad-puente | escribir el PRD → flujos de BMAD; requisitos sin BMAD → pm-planificacion-por-productos |
 | **Sanidad y consistencia del ecosistema** | pm-sanidad | auditoría de calidad de productos → pm-calidad |
 | Conocimiento del método | pm-knowledge | producir artefactos → pm-orquestador |
 | Enrutamiento y conversación con el usuario | pm-orquestador | conceptos → pm-knowledge |
 
-**Dueños únicos de documentos que suelen duplicarse (SPEC §1.10.11).** Comunicación: el enfoque es de pm-enfoques-gestion y la matriz operativa de pm-comunicacion-stakeholders. Alcance: el QUÉ (`enunciado-alcance`, PBS/WBS) es de pm-planificacion-por-productos y el CÓMO (`plan-gestion-alcance-requisitos`) de pm-enfoques-gestion. Informe de excepción: la plantilla es de pm-issues-cambios; pm-progreso-reportes detecta el pronóstico fuera de tolerancia y la usa. Retrospectiva de iteración: pm-agil-hibrido; taller de lecciones de etapa: pm-lecciones-aprendidas. Burn-down y burn-up: en los informes; el release plan guarda solo la línea base.
+**Dueños únicos de documentos que suelen duplicarse (SPEC §1.10.11).** Interesados: `stakeholders.csv`, `estereotipos.csv`, `preferencias.csv`, `raci.csv`, `analisis-stakeholders`, `matriz-raci`, `plan-compromiso-stakeholders` y `reporte-interesados` son de pm-interesados. Envíos: `envios.csv` y la capa de canales son de pm-integraciones; el contenido del mensaje es de pm-comunicacion-stakeholders (o de pm-reuniones si es un acta). Comunicación: el enfoque es de pm-enfoques-gestion y la matriz operativa de pm-comunicacion-stakeholders. Alcance: el QUÉ (`enunciado-alcance`, PBS/WBS) es de pm-planificacion-por-productos y el CÓMO (`plan-gestion-alcance-requisitos`) de pm-enfoques-gestion. Informe de excepción: la plantilla es de pm-issues-cambios; pm-progreso-reportes detecta el pronóstico fuera de tolerancia y la usa. Retrospectiva de iteración: pm-agil-hibrido; taller de lecciones de etapa: pm-lecciones-aprendidas. Burn-down y burn-up: en los informes; el release plan guarda solo la línea base.
 
 ## 3. Pista "No:" de cada skill invocable
 
@@ -68,27 +69,28 @@ Basada en la matriz del refactor v2, con las filas de las skills nuevas (pm-bmad
 | pm-calidad | registro de calidad, revisión de calidad, criterios de aceptación, aceptar producto, quality audit, DoD | off-spec o concesión→pm-issues-cambios | "El módulo no cumple el tiempo de respuesta; ¿lo aceptamos como concesión?" → pm-issues-cambios |
 | pm-caso-de-negocio | caso de negocio, business case, ROI, VAN/NPV, payback, beneficios | OKR→pm-okr; presupuesto→pm-costos-presupuesto | "Definí los OKR del trimestre y sus resultados clave" → pm-okr |
 | pm-cierre-proyecto | cerrar proyecto, cierre prematuro, closeout, end project report | lecciones→pm-lecciones-aprendidas | "Facilitá el taller de lecciones de la etapa 3" → pm-lecciones-aprendidas |
-| pm-comunicacion-stakeholders | plan de comunicación, communication matrix, comunicado, status email, sprint review | actas→pm-reuniones; análisis o compromiso de interesados→pm-organizacion-roles | "Acá está la transcripción del comité de hoy; sacame el acta y las acciones" → pm-reuniones |
+| pm-comunicacion-stakeholders | plan de comunicación, comunicado, status email, enviar a interesados | actas→pm-reuniones; mapa, RACI o preferencias→pm-interesados | "Acá está la transcripción del comité de hoy; sacame el acta y las acciones" → pm-reuniones |
 | pm-costos-presupuesto | costear, presupuesto, BAC, contingencia, reserva de gestión, budget, cost baseline | business case→pm-caso-de-negocio | "Actualizá el ROI y el payback del caso de negocio" → pm-caso-de-negocio |
 | pm-cronograma-estimacion | estimar, cronograma, camino crítico, Gantt, schedule, critical path | presupuesto→pm-costos-presupuesto | "¿Cuánto cuesta la etapa 2 con reservas?" → pm-costos-presupuesto |
 | pm-direccion-decisiones | aprobar etapa, autorizar proyecto, junta, excepción, board decision, stage gate | riesgos→pm-riesgos; issues→pm-issues-cambios | "Anotá este riesgo del proveedor" → pm-riesgos (dueña del registro de riesgos; pm-registros solo para supuestos, decisiones, acciones y diario) |
 | pm-enfoques-gestion | enfoque de riesgos, control de cambios, enfoque de calidad, management approach, subsidiary plan | PID ensamblado→pm-acta-constitucion | "Ensamblá el PID y revisá la consistencia" → pm-acta-constitucion |
 | pm-estado-proyecto | crear proyecto, estado, etapa, tolerancias, project state | decidir puertas→pm-direccion-decisiones | "¿Apruebo la etapa 3 o pido más información?" → pm-direccion-decisiones |
 | pm-exportar | exportar a Word, Excel, PowerPoint, paquete de puerta, gate package | tablero→pm-visuales; informe→pm-progreso-reportes | "Armá el tablero de avance con semáforos" → pm-visuales |
-| pm-integraciones | sincronizar Jira, publicar en Slack/Teams, traer issues, sync | BMAD→pm-bmad-puente; transcripciones→pm-reuniones | "Sincronizá con BMAD" → pm-bmad-puente; "procesá la grabación del comité" → pm-reuniones |
+| pm-integraciones | sincronizar Jira, publicar en Slack/Teams, enviar correo, sync | BMAD→pm-bmad-puente; transcripciones→pm-reuniones | "Sincronizá con BMAD" → pm-bmad-puente; "procesá la grabación del comité" → pm-reuniones |
+| pm-interesados | interesados, stakeholders, RACI, poder/interés, preferencias | enviar comunicados→pm-comunicacion-stakeholders | "Mandale el informe de avance por correo a la junta" → pm-comunicacion-stakeholders |
 | pm-issues-cambios | issue, solicitud de cambio, change request, off-spec, concesión, desvío del PRD | pronóstico o semáforo→pm-progreso-reportes | "¿Cómo viene el CPI de la etapa y qué semáforo le toca?" → pm-progreso-reportes |
 | pm-knowledge | qué es, quién aprueba, qué campos, fórmula, glosario, what is | producir artefactos→pm-orquestador | "Armame el plan de la etapa 3" → pm-plan-etapa-y-limites (vía pm-orquestador) |
 | pm-lecciones-aprendidas | lección aprendida, lessons learned, lessons report, retro de etapa | retro de sprint→pm-agil-hibrido | "Hagamos la retro del sprint 7" → pm-agil-hibrido |
 | pm-mandato-y-brief | mandato, brief, arrancar, kick-off, canvas, visión, mandate, start up | business case→pm-caso-de-negocio | "Calculá NPV y payback de la opción elegida" → pm-caso-de-negocio |
-| pm-okr | OKR, objetivos y resultados clave, key results, puntuar OKR, Tability | beneficios o business case→pm-caso-de-negocio | "Calculá el VAN y el payback del proyecto" → pm-caso-de-negocio |
-| pm-organizacion-roles | junta, roles, RACI, interesados, stakeholders, engagement plan, team charter | plan de comunicación→pm-comunicacion-stakeholders | "Prepará el mensaje para el comité y la matriz de comunicaciones" → pm-comunicacion-stakeholders |
+| pm-okr | OKR, key results, check-in, puntuar OKR | beneficios o business case→pm-caso-de-negocio | "Calculá el VAN y el payback del proyecto" → pm-caso-de-negocio |
+| pm-organizacion-roles | junta, roles, descripción de rol, team charter, mapear roles ágiles o BMAD | interesados o RACI→pm-interesados; plan de comunicación→pm-comunicacion-stakeholders | "Prepará el mensaje para el comité y la matriz de comunicaciones" → pm-comunicacion-stakeholders |
 | pm-orquestador | gestionar proyecto, qué sigue, next step, PRINCE2 | conceptos→pm-knowledge | "¿Qué es un informe de destacados?" → pm-knowledge |
 | pm-paquetes-trabajo | autorizar paquete, work package, plan de equipo, recibir paquete, sprint como paquete, team plan | plan de etapa→pm-plan-etapa-y-limites | "Armá el plan de la etapa 3 con sus tolerancias" → pm-plan-etapa-y-limites |
 | pm-plan-etapa-y-limites | plan de etapa, fin de etapa, stage plan, end stage report | cronograma→pm-cronograma-estimacion; costos→pm-costos-presupuesto | "Calculá el camino crítico de la etapa 2" → pm-cronograma-estimacion |
 | pm-planificacion-por-productos | alcance, PBS, WBS, EDT, scope, product description | requisitos con BMAD→pm-bmad-puente | "Trazá los FR del PRD de BMAD a los paquetes" → pm-bmad-puente |
 | pm-progreso-reportes | checkpoint, highlight report, status report, valor ganado, EVM, burn-up, pronóstico | tablero o gráficos→pm-visuales | "Actualizá el tablero HTML con la vista por actor" → pm-visuales |
 | pm-registros | registrar, anotar, acción, supuesto, RAID, action log | riesgos→pm-riesgos; issues/cambios→pm-issues-cambios | "Analizá la probabilidad e impacto de los riesgos y proponé respuestas" → pm-riesgos |
-| pm-reuniones | acta, minuta, transcripción, minutes, meeting notes, clima del equipo | matriz de comunicación→pm-comunicacion-stakeholders | "Armá la matriz de comunicaciones para el cliente" → pm-comunicacion-stakeholders |
+| pm-reuniones | acta, minuta, transcripción, acciones de la reunión, action items, minutes | matriz de comunicación→pm-comunicacion-stakeholders | "Armá la matriz de comunicaciones para el cliente" → pm-comunicacion-stakeholders |
 | pm-riesgos | riesgo, risk register, matriz P×I, EMV, respuesta al riesgo, oportunidad, informe o auditoría de riesgos | issue ya ocurrido→pm-issues-cambios | "Se cayó la API de aduanas ayer y frenó al equipo" → pm-issues-cambios |
 | pm-sanidad | sanidad, chequeo, consistencia, doctor, health check, auditoría del proyecto | auditoría de calidad de productos→pm-calidad | "Auditá la calidad del módulo de pagos" → pm-calidad |
 | pm-visuales | organigrama, mapa de stakeholders, diagrama de la WBS, roadmap visual, tablero, dashboard, vista por actor | Gantt→pm-cronograma-estimacion; contenido del informe→pm-progreso-reportes | "Redactá el highlight de la quincena con el EVM" → pm-progreso-reportes |
@@ -103,7 +105,8 @@ Basada en la matriz del refactor v2, con las filas de las skills nuevas (pm-bmad
 | pm-progreso-reportes · pm-visuales | El contenido (cifras, semáforos, pronóstico, decisiones pedidas) es del informe; el dibujo (tablero HTML, burn-up, mapa de calor) es de pm-visuales, que toma las cifras del informe y de los registros. |
 | pm-progreso-reportes · pm-issues-cambios | pm-progreso-reportes detecta que el pronóstico sale de tolerancia; el informe de excepción se escribe con la plantilla de pm-issues-cambios. |
 | pm-plan-etapa-y-limites · pm-cronograma-estimacion · pm-costos-presupuesto | El plan integra; el cálculo de fechas (CPM, PERT, Gantt, MSPDI) y el de costos (BAC, reservas, PV) los hacen sus skills. |
-| pm-comunicacion-stakeholders · pm-reuniones · pm-organizacion-roles | Matriz y mensajes por audiencia → comunicación; transcripciones, actas y clima → reuniones; análisis, actitudes y plan de compromiso → organización. |
+| pm-comunicacion-stakeholders · pm-reuniones · pm-organizacion-roles · pm-interesados | Matriz y mensajes por audiencia → comunicación; transcripciones, actas y clima → reuniones; estructura, roles y team charter → organización; análisis, actitudes, matriz poder/interés, RACI, estereotipos, preferencias y plan de compromiso → interesados. Detalle en §4.1. |
+| pm-comunicacion-stakeholders · pm-integraciones | Redactar o adaptar el mensaje por perfil → comunicación; enviar uno ya aprobado, configurar o verificar el canal, historial de envíos → integraciones (`envios.py`). |
 | pm-caso-de-negocio · pm-okr | El business case manda: beneficios, metas y tolerancias viven ahí. Los OKR solo los citan (KR → B-nn o SM-n) y se puntúan; no reemplazan la justificación continua. |
 | pm-planificacion-por-productos · pm-bmad-puente | Sin BMAD, los requisitos y la RTM son de pm-planificacion-por-productos. Con BMAD, viven en el PRD; pm-bmad-puente deriva la matriz y pm-planificacion-por-productos solo cita ids en `ref`. |
 | pm-agil-hibrido · pm-bmad-puente | Las columnas de gobierno de `backlog.csv` (prioridad, moscow, estimacion, iteracion, release, producto_pbs) son de pm-agil-hibrido; las derivadas las refresca `bmad.py backlog`. |
@@ -112,11 +115,39 @@ Basada en la matriz del refactor v2, con las filas de las skills nuevas (pm-bmad
 | pm-estado-proyecto · pm-direccion-decisiones | La segunda prepara la decisión de la junta; la primera solo registra mecánicamente lo que una persona ya decidió (y lo ejecuta pm-director). |
 | pm-knowledge · pm-orquestador | Preguntar ("¿qué es…?", "¿quién aprueba…?") → pm-knowledge; hacer algo → pm-orquestador, que enruta a la skill de fase. |
 
+### 4.1 Interesados, roles, comunicación y canales (2.2)
+
+Desde 2.2 el tema "interesados" se reparte entre cuatro skills. Regla corta: **quiénes son y qué responsabilidad tienen
+→ pm-interesados; cómo está organizada la gestión → pm-organizacion-roles; qué se les dice → pm-comunicacion-stakeholders;
+por dónde sale el mensaje y su registro → pm-integraciones.**
+
+| Frase típica | Va a | Por qué |
+|---|---|---|
+| "Mapeá a los interesados en la matriz poder/interés y decime la estrategia para cada cuadrante" | pm-interesados | matriz y estrategia por cuadrante |
+| "Armá la RACI de las épicas E-1 a E-3 y del KR-1.2" | pm-interesados | RACI ligada a especificación y OKR (un A por elemento) |
+| "De la transcripción del taller, proponé las preferencias de comunicación de cada participante" | pm-interesados | preferencias con cita y fuente (las confirma una persona) |
+| "Show Laura's communication profile and where she appears across the project" | pm-interesados | perfil resuelto y vínculos |
+| "Diseñá la junta: la gerenta de operaciones patrocina…" · "Escribí la descripción de rol del gestor" | pm-organizacion-roles | estructura de gestión y roles |
+| "Draft the team charter for the kickoff workshop" · "mapeá los roles de BMAD a PRINCE2" | pm-organizacion-roles | team charter y mapeo de roles |
+| "Armá la matriz de comunicaciones del proyecto" · "Comunicá a la dirección que la etapa 2 se aprobó" | pm-comunicacion-stakeholders | matriz y mensajes por audiencia |
+| "Mandale el informe de avance por correo a la junta" · "Mandale un correo a los stakeholders con el estado" | pm-comunicacion-stakeholders | redacta por perfil, pide aprobación y usa la capa de canales para enviar |
+| "Mandá por correo el highlight aprobado a los de mantener satisfecho" | pm-integraciones | el mensaje ya está aprobado: solo falta el envío por la capa de canales (`envios.py`) |
+| "Configurá el envío por SMTP" · "verificá el webhook de Teams" · "¿a quién le falta recibir el comunicado?" | pm-integraciones | modo de envío, verificación e historial (`envios.csv`) |
+| "Publicá el highlight de esta semana en el canal del proyecto en Teams" | pm-integraciones | publicación en un canal, sin personalización por destinatario |
+| "Sacame el acta de la reunión" · (en el acta) "Laura dijo que prefiere resúmenes por correo" | pm-reuniones → pm-interesados | el acta es de pm-reuniones; la preferencia declarada se propone con `interesados.py proponer` (paso 7b) |
+| "Registrá el check-in del KR-1.2" · "¿qué KR están en riesgo?" | pm-okr | check-ins y salud de OKR |
+
+**Frontera más delicada.** "Enviar a interesados" aparece en las descripciones de pm-comunicacion-stakeholders y
+pm-integraciones (y el orquestador anota "envío: pm-integraciones" en su fila de comunicación). Si hay que redactar o
+adaptar el mensaje, la dueña es pm-comunicacion-stakeholders; si el mensaje ya existe y está aprobado, o la pregunta es
+sobre el canal, el envío o su registro, es pm-integraciones. Esta frontera todavía no se midió en vivo (ver §5.1).
+
 ## 5. Evaluación de enrutamiento
 
 ### 5.1 Método
 - **Conjunto de prueba:** `docs/evaluacion/frases-enrutamiento.tsv`, 52 frases con tres columnas sin cabecera: `id`, frase tal como la escribiría un usuario, skill esperada. Frases 1–38 y 49–52 en español rioplatense (42); frases 39–48 en inglés (10).
-- **Cobertura:** 30 de las 31 skills invocables tienen al menos una frase. Más frases en los temas con vecinos fuertes: pm-reuniones 4; pm-progreso-reportes, pm-cronograma-estimacion y pm-bmad-puente 3 cada una; la mayoría del resto 2 o 1. **pm-sanidad no tiene frases** (se agregó después de armar el conjunto).
+- **Pendiente 2.2:** las descripciones de pm-interesados (nueva), pm-organizacion-roles, pm-comunicacion-stakeholders, pm-integraciones y pm-okr cambiaron y la evaluación en vivo no se repitió (`python3 scripts/pruebas_vivo/suite.py enrutamiento --ids <afectados>`, consume tokens). Además, el conjunto todavía asigna a pm-organizacion-roles las frases 1 ("análisis de interesados con poder e interés") y 40 ("stakeholder engagement plan"), que desde 2.2 corresponden a pm-interesados, y no tiene frases propias de pm-interesados ni de la capa de canales: conviene corregirlo antes de correr la suite.
+- **Cobertura (v2.0, 31 invocables):** 30 de las 31 skills invocables tienen al menos una frase. Más frases en los temas con vecinos fuertes: pm-reuniones 4; pm-progreso-reportes, pm-cronograma-estimacion y pm-bmad-puente 3 cada una; la mayoría del resto 2 o 1. **pm-sanidad no tiene frases** (se agregó después de armar el conjunto).
 - **Evaluación ciega:** el modelo evaluador recibe solo el listado `- <name>: <description>` de las skills invocables (lo mismo que ve Claude Code para decidir) y las frases sin la columna esperada. Para cada frase debe nombrar una única skill. Las respuestas se comparan con la tercera columna.
 - **Qué mide y qué no:** mide si las descripciones bastan para separar vecinos. No mide el efecto del contexto de la conversación, de skills de otros plugins ni del recorte del listado si se agota el presupuesto.
 

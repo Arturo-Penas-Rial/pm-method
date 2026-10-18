@@ -5,6 +5,8 @@ EST = f"{RAIZ}/skills/pm-estado-proyecto/scripts"
 BMAD = f"{RAIZ}/skills/pm-bmad-puente/scripts/bmad.py"
 OKR = f"{RAIZ}/skills/pm-okr/scripts/okr.py"
 PAQ = f"{RAIZ}/skills/pm-exportar/scripts/paquete.py"
+IN = f"{RAIZ}/skills/pm-interesados/scripts/interesados.py"
+EV = f"{RAIZ}/skills/pm-integraciones/scripts/envios.py"
 LOG = []
 def run(cmd, cwd, mostrar=True, corte=110, ok=(0,)):
     r = subprocess.run(cmd, shell=True, cwd=cwd, capture_output=True, text=True)
@@ -12,9 +14,11 @@ def run(cmd, cwd, mostrar=True, corte=110, ok=(0,)):
     if r.returncode not in ok:
         print("FALLO", cmd, "\n", out); sys.exit(1)
     out = out.replace(cwd, "<repo>")
+    out = __import__("re").sub(r"<\d+\.\d+\.\d+@[^>]+>", "<message-id>", out)   # Message-ID de SMTP: varía en cada corrida
+    out = __import__("re").sub(r"índice reconstruido ahora \(\d{4}-\d{2}-\d{2}T[\d:]+\)", "índice reconstruido ahora (<fecha-hora>)", out)   # marca de tiempo de la corrida
     lineas = out.split("\n")
     rec = "\n".join(lineas[:corte]) + (f"\n… ({len(lineas)-corte} líneas más)" if len(lineas) > corte else "")
-    vis = cmd.replace(EST, "$EST").replace(BMAD, "$BMAD").replace(OKR, "$OKR").replace(PAQ, "$PAQ").replace(RAIZ, "$PLUGIN")
+    vis = cmd.replace(EST, "$EST").replace(BMAD, "$BMAD").replace(OKR, "$OKR").replace(PAQ, "$PAQ").replace(IN, "$IN").replace(EV, "$EV").replace(RAIZ, "$PLUGIN")
     LOG.append((vis, rec))
     if mostrar: print("$", vis); print(rec); print()
     return out

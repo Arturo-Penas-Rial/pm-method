@@ -3,17 +3,23 @@
 Este archivo sigue la convención AGENTS.md para agentes distintos de Claude Code. El contexto completo está en
 [CLAUDE.md](CLAUDE.md); lo esencial:
 
-- **Qué es:** el plugin pm-method (6 agentes, 37 skills, 3 hooks). PRINCE2 7 manda; PMBOK 8 solo técnicas; BMAD es
+- **Qué es:** el plugin pm-method 2.2.0 (6 agentes, 38 skills, 3 hooks). PRINCE2 7 manda; PMBOK 8 solo técnicas; BMAD es
   especificación de solo lectura.
 - **Verificar siempre después de cambiar algo:**
   ```bash
   python3 scripts/validar_paquete.py      # estructura, tamaños, descripciones, versiones → OK
-  python3 scripts/probar_paquete.py       # regresión → 0 FALLO (requiere pyyaml)
+  python3 scripts/probar_paquete.py       # regresión → 138 OK · 0 FALLO (requiere pyyaml)
+  python3 scripts/validar_mermaid.py --render   # si se tocó un diagrama → 0 errores
   ```
-- **No hacer:** editar `estado.json` o registros CSV de proyectos a mano; escribir en carpetas de BMAD; inventar
-  comandos, URLs o cifras; agregar marcas de empresas; incluir credenciales.
+- **No hacer:** editar `estado.json` o registros CSV de proyectos a mano (incluidos los opcionales `estereotipos`,
+  `preferencias`, `raci` y `envios`); escribir en carpetas de BMAD; inventar comandos, URLs o cifras; agregar marcas de
+  empresas; incluir credenciales (la capa de canales `envios.py` las lee solo de variables de entorno).
 - **Estilo:** documentación en español; mensajes de scripts bilingües; Python 3.9+ con biblioteca estándar en el
   núcleo.
+- **Scripts principales:** núcleo en `skills/pm-estado-proyecto/scripts/` (`esquema.py`, `estado.py`, `registro.py`,
+  `especificacion.py`, `sanidad.py`, `puertas.py`…); `pm-bmad-puente/scripts/bmad.py`; `pm-interesados/scripts/interesados.py`
+  (maestro de interesados); `pm-integraciones/scripts/envios.py` (capa de canales); `pm-okr/scripts/okr.py`. Mapa
+  completo en [CLAUDE.md](CLAUDE.md).
 - **Versionado:** la versión vive en `.claude-plugin/plugin.json`, `compatibilidad.json` y `esquema.py`
   (`VERSION_PAQUETE`); cambios en `CHANGELOG.md`.
 

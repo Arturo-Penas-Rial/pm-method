@@ -1,4 +1,4 @@
-# Dependencias · pm-method 2.1.0
+# Dependencias · pm-method 2.2.0
 
 Lista completa de lo que pm-method necesita o puede usar, con la **URL de origen** de cada elemento, para qué lo usa el
 paquete, si es obligatorio, la versión probada, la licencia y el comando de instalación. Cómo instalar y configurar
@@ -28,7 +28,8 @@ todo de punta a punta: [INSTALACION.md](INSTALACION.md). Decisiones y contratos 
 | Exportar Word/Excel, leer actas `.docx`, puente BMAD | además `pyyaml`, `python-docx`, `openpyxl` (§2) |
 | BMAD como capa de especificación | además Node.js (≥ 20.12 para `bmad-method@6.12.4`) (§3, §4.1) |
 | Skills externas de diagramas u Office instaladas con `npx skills` | además Node.js ≥ 22.20 (lo exige `skills@1.7.0`) (§3, §6) |
-| Conectores MCP (Jira, Slack, reuniones…) | el servidor MCP correspondiente, configurado en el cliente (§5) |
+| Conectores MCP (Jira, Slack, reuniones, OKR…) | el servidor MCP correspondiente, configurado en el cliente (§5) |
+| Enviar comunicaciones a interesados por correo SMTP, webhooks de Slack o Teams, o `.eml` (`envios.py`, v2.2) | nada que instalar (biblioteca estándar de Python); solo las variables de entorno del modo elegido (§5, `INSTALACION.md` §0.7); `.eml` sin configuración |
 
 **Node.js: versión mínima efectiva.** Cada componente declara un mínimo distinto en su `package.json` (`engines`,
 consultado con `npm view`): archify ≥ 18, `@drawio/mcp` ≥ 18, `minutes-mcp` ≥ 20, `bmad-method@6.12.4` ≥ 20.12.0,
@@ -43,9 +44,9 @@ El entorno de pruebas usó Node 22.22.0 y npm 10.9.4.
 
 | Nombre | Para qué lo usa pm-method | Nivel | Versión probada | Licencia | URL de origen | Instalación |
 |---|---|---|---|---|---|---|
-| Claude Code (CLI) | ejecuta las 37 skills, los 6 agentes y los 3 hooks (plugin) | obligatoria (uno de los tres clientes) | 2.1.302 (`compatibilidad.json`, `INTEGRACIONES.md` §3.1) | propietaria: "© Anthropic PBC. All rights reserved", sujeta a los términos comerciales de Anthropic (`LICENSE.md` del repositorio) | https://github.com/anthropics/claude-code · npm `@anthropic-ai/claude-code`: https://registry.npmjs.org/@anthropic-ai%2fclaude-code | según su README: macOS/Linux `curl -fsSL https://claude.ai/install.sh \| bash`; Homebrew `brew install --cask claude-code`; Windows (PowerShell) `irm https://claude.ai/install.ps1 \| iex` o `winget install Anthropic.ClaudeCode`; npm (marcado como obsoleto) `npm install -g @anthropic-ai/claude-code` |
+| Claude Code (CLI) | ejecuta las 38 skills, los 6 agentes y los 3 hooks (plugin) | obligatoria (uno de los tres clientes) | 2.1.302 (`compatibilidad.json`, `INTEGRACIONES.md` §3.1) | propietaria: "© Anthropic PBC. All rights reserved", sujeta a los términos comerciales de Anthropic (`LICENSE.md` del repositorio) | https://github.com/anthropics/claude-code · npm `@anthropic-ai/claude-code`: https://registry.npmjs.org/@anthropic-ai%2fclaude-code | según su README: macOS/Linux `curl -fsSL https://claude.ai/install.sh \| bash`; Homebrew `brew install --cask claude-code`; Windows (PowerShell) `irm https://claude.ai/install.ps1 \| iex` o `winget install Anthropic.ClaudeCode`; npm (marcado como obsoleto) `npm install -g @anthropic-ai/claude-code` |
 | Cowork | usa el formato de plugin (skills y agentes) | alternativa | no registrada | no verificada | URL a confirmar por el usuario | gestión de plugins de la aplicación **[verificar]** |
-| Hermes Agent | usa las 37 skills como comandos `/skill`; los agentes como personas; sin hooks | alternativa | no registrada | MIT (`LICENSE` del repositorio) | https://github.com/NousResearch/hermes-agent | según su README: Linux/macOS `curl -fsSL https://hermes-agent.nousresearch.com/install.sh \| bash`; Windows (PowerShell) `iex (irm https://hermes-agent.nousresearch.com/install.ps1)` |
+| Hermes Agent | usa las 38 skills como comandos `/skill`; los agentes como personas; sin hooks | alternativa | no registrada | MIT (`LICENSE` del repositorio) | https://github.com/NousResearch/hermes-agent | según su README: Linux/macOS `curl -fsSL https://hermes-agent.nousresearch.com/install.sh \| bash`; Windows (PowerShell) `iex (irm https://hermes-agent.nousresearch.com/install.ps1)` |
 
 Documentación de instalación citada en esos README, no accesible desde el entorno de verificación **[verificar]**:
 Claude Code `https://code.claude.com/docs/en/setup`; Hermes
@@ -98,7 +99,7 @@ Las tres juntas: `python3 -m pip install pyyaml python-docx openpyxl`.
 
 | Nombre | Para qué lo usa pm-method | Nivel | Versión probada | Licencia | URL de origen | Instalación |
 |---|---|---|---|---|---|---|
-| pm-method | el propio paquete (plugin y marketplace `pm-method`) | — | 2.1.0 (este documento) | MIT (`LICENSE` del repositorio publicado) | https://github.com/Arturo-Penas-Rial/pm-method | `claude plugin marketplace add Arturo-Penas-Rial/pm-method` y `claude plugin install pm-method@pm-method` |
+| pm-method | el propio paquete (plugin y marketplace `pm-method`) | — | 2.2.0 (este documento) | MIT (`LICENSE` del repositorio publicado) | https://github.com/Arturo-Penas-Rial/pm-method | `claude plugin marketplace add Arturo-Penas-Rial/pm-method` y `claude plugin install pm-method@pm-method` |
 | BMAD Method | capa de especificación de solo lectura: `pm-bmad-puente` (`bmad.py`), `especificacion.py`, `pm-nuevo` (detección) | opcional | 4.x, 6.11 y 6.12; relevado `bmad-method@6.12.4` (`compatibilidad.json`) | MIT (npm) | https://github.com/bmad-code-org/BMAD-METHOD · npm https://registry.npmjs.org/bmad-method | en la raíz del repositorio del producto: `npx bmad-method@6.12.4 install --modules bmm --tools claude-code --yes --user-name <nombre> --set core.project_name=<proyecto> --no-shims` (requiere Node ≥ 20.12.0) |
 
 ### 4.2 Skills externas (diagramas y Office)
@@ -125,7 +126,8 @@ nombres parecidos; el de draw.io (jgraph) es el que publica el paquete `@drawio/
 ## 5. Conectores MCP opcionales
 
 pm-method **no trae `.mcp.json` ni credenciales** y no predefine conectores: `pm-integraciones` resuelve capacidades
-(`tracker`, `docs`, `chat`, `reuniones`, `okr`, `diagramas`) con los servidores conectados en la sesión. Configuración
+(`tracker`, `docs`, `chat`, `correo`, `reuniones`, `okr`, `diagramas`) con los servidores conectados en la sesión. El envío
+a interesados tiene además una vía sin conector, la capa de canales (`envios.py`), que no agrega dependencias externas. Configuración
 en `INSTALACION.md` §6.
 
 | Conector | Capacidad en `estado.json` | Skill dueña | Versión probada | Licencia | URL de origen / servidor | Configuración en Claude Code |
@@ -137,7 +139,10 @@ en `INSTALACION.md` §6.
 | Fireflies | `reuniones=fireflies` | `pm-reuniones` | no probada | no verificada | URL a confirmar por el usuario | **[verificar]** |
 | Zoom | `reuniones=zoom` (obtención de transcripciones **no confirmada**) | `pm-reuniones` | no probada | no verificada | URL a confirmar por el usuario | **[verificar]** |
 | minutes (`minutes-mcp`) | `reuniones=minutes` | `pm-reuniones` | no probada en vivo; npm `minutes-mcp` 0.30.2 al 2026-10-17 | MIT (`LICENSE` y npm) | https://github.com/silverstein/minutes · npm https://registry.npmjs.org/minutes-mcp | según su README: `claude mcp add minutes -- npx -y minutes-mcp` (requiere Node ≥ 20) |
-| Tability | `okr=tability` | `pm-okr` (vía `pm-integraciones`) | no probada | no verificada | URL a confirmar por el usuario | **[verificar]** |
+| Tability (MCP oficial) | `okr=tability` | `pm-okr` (vía `pm-integraciones`; publicación con `tability_create_checkin`) | no probada en vivo con pm-method | no verificada (servicio comercial con sus propios términos) | servidor `https://mcp.tability.app/mcp` (nube de EE. UU., por defecto); UE `https://mcp-eu.tability.app/mcp`; AU `https://mcp-au.tability.app/mcp` · guía https://guides.tability.io/docs/become-a-tability-power-user/integrations/tability-mcp-server | `claude mcp add --transport http tability https://mcp.tability.app/mcp` y luego `/mcp` (OAuth en el navegador; requiere "API Access Enabled" para el usuario). La guía no muestra un comando de Claude Code: es la forma general de `claude mcp add` (`INSTALACION.md` §0.7) |
+| Perdoo (MCP oficial) | `okr=perdoo` | `pm-okr` (vía `pm-integraciones`; publicación con `update_goal_progress`) | no probada en vivo con pm-method | no verificada (servicio comercial); plan requerido **[verificar]** | servidor `https://mcp.perdoo.com` · artículo https://support.perdoo.com/en/articles/14470891-mcp-server (15/09/2026) | `claude mcp add --transport http perdoo https://mcp.perdoo.com` y luego `/mcp` (OAuth; o clave de API en la cabecera `Authorization: Bearer …`). El artículo no muestra un comando de Claude Code (forma general, `INSTALACION.md` §0.7) |
+| Correo vía conector de la organización (Gmail, Outlook) | `correo=gmail` / `correo=outlook` | `pm-integraciones` (`envios.py preparar-mcp` → herramienta MCP → `envios.py registrar --modo mcp`) | no probada | no verificada | URL a confirmar por el usuario **[verificar]** (depende del conector que habilite cada organización) | según el proveedor del conector **[verificar]** |
+| Capa de canales propia: SMTP y webhooks de Slack/Teams (`envios.py`) | `correo=smtp`, `correo=eml`; webhooks para `chat=slack`/`teams` | `pm-integraciones` | `probar_paquete.py` caso H, contra servidores locales en 127.0.0.1 (no contra servicios reales) | la del paquete (MIT) | no es un servidor MCP ni una dependencia: usa `smtplib`, `email` y `urllib` de la biblioteca estándar. Webhook de Teams según https://learn.microsoft.com/en-us/microsoftteams/platform/webhooks-and-connectors/how-to/add-incoming-webhook | variables de entorno `PM_SMTP_*`, `PM_SLACK_WEBHOOK_URL`, `PM_TEAMS_WEBHOOK_URL` (`INSTALACION.md` §0.7); `--modo eml` sin configuración |
 | draw.io | `diagramas=drawio` | `pm-visuales` | ver §4.3 | ver §4.3 | ver §4.3 | ver §4.3 |
 
 ---
@@ -146,8 +151,9 @@ en `INSTALACION.md` §6.
 
 | Archivo | Qué declara |
 |---|---|
-| `compatibilidad.json` | Python ≥ 3.9; recomendadas y opcionales; versiones de BMAD probadas; skills externas probadas en vivo (repositorio, commit, versión, comando); MCP opcionales |
-| `skills/pm-estado-proyecto/scripts/sanidad.py` | INS-01 (módulos Python), INS-03 (skills externas, Node, Chrome), INT-01 (valores de `integraciones`) |
+| `compatibilidad.json` | Python ≥ 3.9; recomendadas y opcionales; versiones de BMAD probadas; skills externas probadas en vivo (repositorio, commit, versión, comando); MCP opcionales (incluidos Tability y Perdoo); `canales_sin_conector` (modos de `envios.py` y sus variables de entorno) |
+| `skills/pm-estado-proyecto/scripts/sanidad.py` | INS-01 (módulos Python), INS-03 (skills externas, Node, Chrome), INT-01 (valores de `integraciones`, lista en `esquema.py: VALORES_INTEGRACION`, con `correo` y `okr=perdoo` desde 2.2) |
+| `skills/pm-integraciones/scripts/envios.py` | capa de canales: solo biblioteca estándar (`smtplib`, `email`, `urllib`); variables de entorno en su docstring y en `ENV` |
 | `INTEGRACIONES.md` §1–§3 | uso de cada dependencia y respaldo interno si falta |
 
 ---
@@ -215,7 +221,26 @@ la mayoría de los sitios de documentación está bloqueada por el proxy, por es
 - Sitios de documentación y descarga (python.org, nodejs.org, gitforwindows.org, code.claude.com,
   hermes-agent.nousresearch.com): el proxy del entorno no los alcanza (`curl` → 000). Se citan como figuran en los
   README de origen y con **[verificar]**.
-- Servidores MCP de Slack, Teams/Work IQ, Granola, Fireflies, Zoom y Tability: sin fuente comprobable desde este
-  entorno; la búsqueda en el registro de conectores no devolvió URLs. Figuran como "URL a confirmar por el usuario".
+- Servidores MCP de Slack, Teams/Work IQ, Granola, Fireflies y Zoom, y conectores de correo (Gmail, Outlook) de la
+  organización: sin fuente comprobable desde este entorno; la búsqueda en el registro de conectores no devolvió URLs.
+  Figuran como "URL a confirmar por el usuario". (Tability, pendiente en 2.1.0, quedó verificado: §7.5.)
+- Tability y Perdoo: si exigen un plan comercial concreto para usar el MCP (sus páginas no lo dicen). Webhooks de Slack
+  y Teams: los pasos de interfaz para crearlos y el envío contra un servicio real (solo se probó contra servidores
+  locales).
 - Cowork: sin URL ni procedimiento comprobado.
 - Licencias de Python, git, Node.js, Chrome/Chromium y Java: no leídas.
+
+### 7.5 Documentación de servicios consultada el 2026-10-17 (v2.2.0)
+
+Leída con la herramienta de lectura web del entorno de desarrollo; los servidores MCP no se conectaron en vivo con
+pm-method.
+
+| Fuente | URL | Qué se tomó |
+|---|---|---|
+| Guía del servidor MCP de Tability | https://guides.tability.io/docs/become-a-tability-power-user/integrations/tability-mcp-server | servidores `https://mcp.tability.app/mcp` (EE. UU., defecto), `https://mcp-eu.tability.app/mcp` (UE), `https://mcp-au.tability.app/mcp` (AU); OAuth en el navegador; requisito "API Access Enabled" por usuario; herramienta de verificación `tability_whoami`; no menciona plan ni comando de Claude Code |
+| Artículo de soporte del servidor MCP de Perdoo (15/09/2026) | https://support.perdoo.com/en/articles/14470891-mcp-server | servidor `https://mcp.perdoo.com`; OAuth o clave de API (cabecera `Authorization: Bearer …`); herramienta `update_goal_progress`; no menciona plan ni comando de Claude Code |
+| Microsoft Learn, "Create an Incoming Webhook" | https://learn.microsoft.com/en-us/microsoftteams/platform/webhooks-and-connectors/how-to/add-incoming-webhook | flujo de Workflows (plantilla "Send webhook alerts to a channel" o disparador "When a Teams webhook request is received"); límite de 28 KB; tarjeta adaptable en `attachments`; conectores de Microsoft 365 "nearing deprecation" |
+| Retiro de Viva Goals | https://learn.microsoft.com/viva/goals/goals-retirement | retirado el 31/12/2025 (no se ofrece como conector OKR) |
+| Google re:Work, OKR | https://rework.withgoogle.com/en/guides/set-goals-with-okrs | escala 0,0–1,0 y "punto óptimo" en 60–70 %, base del umbral 0,7 aspiracional de `okr.py`; el semáforo comprometido 1,0/0,7 es convención de la práctica OKR, no figura en esa página |
+
+Atlassian Goals y Asana Goals no estaban expuestos por sus MCP oficiales al 2026-10-17 **[verificar]**.

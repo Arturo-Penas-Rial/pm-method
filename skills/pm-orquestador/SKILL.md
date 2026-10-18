@@ -1,7 +1,7 @@
 ---
 name: pm-orquestador
 description: "Orquestador en el hilo principal: lee el estado, pregunta, delega en agentes de fase y presenta puertas. Usar: qué sigue, cómo venimos, next step, how are we doing, gestionar el proyecto. No: producto concreto→su skill."
-version: 2.1.0
+version: 2.2.0
 author: pm-method
 license: MIT
 metadata:
@@ -53,7 +53,7 @@ Detectar el idioma del usuario; si `estado.json.idioma` difiere, preguntar una v
 ### Tabla de enrutamiento
 | Señal en la petición | Proceso | Subagente | Skills |
 |---|---|---|---|
-| mandato, idea, brief, canvas, visión, "arrancar" | SU | pm-inicio | pm-mandato-y-brief, pm-organizacion-roles, pm-caso-de-negocio (esquemático), pm-plan-etapa-y-limites (plan de iniciación) |
+| mandato, idea, brief, canvas, visión, "arrancar" | SU | pm-inicio | pm-mandato-y-brief, pm-organizacion-roles, pm-interesados, pm-caso-de-negocio (esquemático), pm-plan-etapa-y-limites (plan de iniciación) |
 | PID, acta, "iniciar el proyecto", enfoques de gestión | IP | pm-inicio | pm-acta-constitucion, pm-enfoques-gestion, pm-caso-de-negocio, pm-comunicacion-stakeholders |
 | alcance, PBS/WBS, requisitos sin BMAD; cronograma, MS Project; presupuesto; plan de etapa o de excepción, backlog | IP, SB | pm-planificacion | pm-planificacion-por-productos, pm-cronograma-estimacion, pm-costos-presupuesto, pm-plan-etapa-y-limites, pm-agil-hibrido |
 | BMAD, PRD, trazabilidad de requisitos, sprint-status, desvío de especificación | IP, CS, SB | pm-planificacion (avance y desvíos: pm-control) | pm-bmad-puente (+ pm-issues-cambios si hay desvío) |
@@ -62,7 +62,8 @@ Detectar el idioma del usuario; si `estado.json.idioma` difiere, preguntar una v
 | riesgo, issue, cambio, acción, paquete de trabajo, highlight, EVM, calidad, proveedor | CS, MP | pm-control | pm-registros, pm-riesgos, pm-issues-cambios, pm-paquetes-trabajo, pm-progreso-reportes, pm-calidad, pm-adquisiciones |
 | sprint, iteración, review, retro de sprint, swap de backlog, burn-up | CS, MP | pm-control | pm-agil-hibrido |
 | reunión, transcripción, acta, acciones acordadas, clima | CS | pm-control | pm-reuniones |
-| plan de comunicación, mensajes por audiencia | IP, CS | pm-control | pm-comunicacion-stakeholders |
+| interesados, matriz poder/interés, RACI, estereotipos, preferencias | SU, IP, CS | pm-inicio / pm-control | pm-interesados |
+| plan de comunicación, mensajes por audiencia, enviar a interesados | IP, CS | pm-control | pm-comunicacion-stakeholders (envío: pm-integraciones) |
 | Jira, Slack, Teams, Confluence, sincronizar, publicar | transversal | subagente de la fase | pm-integraciones (escritura con confirmación) |
 | tablero, diagrama, Gantt visual; exportar Office o ZIP | transversal | subagente de la fase | pm-visuales; pm-exportar |
 | pronóstico fuera de tolerancia, excepción | CS → DP | pm-control → pm-director | pm-progreso-reportes, pm-issues-cambios, pm-direccion-decisiones |

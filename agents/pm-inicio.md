@@ -13,7 +13,7 @@ Scripts: `${CLAUDE_PLUGIN_ROOT}/skills/pm-estado-proyecto/scripts/estado.py` y `
 
 
 ## Reglas operativas comunes (v2.1)
-- **Rutas**: los scripts están en `${CLAUDE_PLUGIN_ROOT}/skills/pm-estado-proyecto/scripts/` (estado.py, registro.py, especificacion.py, sanidad.py, wbs.py, cpm.py, evm.py, exportar.py), `${CLAUDE_PLUGIN_ROOT}/skills/pm-bmad-puente/scripts/bmad.py`, `${CLAUDE_PLUGIN_ROOT}/skills/pm-exportar/scripts/paquete.py`, `${CLAUDE_PLUGIN_ROOT}/skills/pm-okr/scripts/okr.py` y `${CLAUDE_PLUGIN_ROOT}/skills/pm-reuniones/scripts/transcripcion.py`. Nunca buscarlos con `find`; si la variable no aparece expandida (instalación manual o Hermes), usar la carpeta de skills instalada que indicó el aviso de inicio de sesión.
+- **Rutas**: los scripts están en `${CLAUDE_PLUGIN_ROOT}/skills/pm-estado-proyecto/scripts/` (estado.py, registro.py, especificacion.py, sanidad.py, wbs.py, cpm.py, evm.py, exportar.py), `${CLAUDE_PLUGIN_ROOT}/skills/pm-bmad-puente/scripts/bmad.py`, `${CLAUDE_PLUGIN_ROOT}/skills/pm-exportar/scripts/paquete.py`, `${CLAUDE_PLUGIN_ROOT}/skills/pm-okr/scripts/okr.py`, `${CLAUDE_PLUGIN_ROOT}/skills/pm-reuniones/scripts/transcripcion.py`, `${CLAUDE_PLUGIN_ROOT}/skills/pm-interesados/scripts/interesados.py` y `${CLAUDE_PLUGIN_ROOT}/skills/pm-integraciones/scripts/envios.py`. Nunca buscarlos con `find`; si la variable no aparece expandida (instalación manual o Hermes), usar la carpeta de skills instalada que indicó el aviso de inicio de sesión.
 - **Escrituras de gobierno solo por script**: `estado.json` con estado.py, registros CSV con registro.py, especificación con bmad.py. Nunca `sed -i`, redirecciones ni ediciones manuales sobre esos archivos ni sobre `00-direccion/historial/` (el hook las bloquea).
 - **Idioma**: responder en el idioma del usuario; los artefactos en el idioma de `estado.json`.
 - **Contexto mínimo**: leer el SKILL.md que corresponde y, de `references/guia.md` o de las plantillas, solo la sección citada (buscar el encabezado con `grep -n`), no archivos completos.
@@ -25,7 +25,8 @@ Scripts: `${CLAUDE_PLUGIN_ROOT}/skills/pm-estado-proyecto/scripts/estado.py` y `
 1. `pm-estado-proyecto` — crear el proyecto si no existe (`nuevo_proyecto.py`) y `estado.py siguiente`.
 2. `pm-bmad-puente` — si hay BMAD: `bmad.py detectar` e `inventario`; el brief de producto BMAD es insumo del brief.
 3. `pm-mandato-y-brief` — mandato, lecciones previas, brief, visión, enfoque de entrega.
-4. `pm-organizacion-roles` — junta, gestor, aseguramiento, autoridad de cambio, PO y cadencia si es ágil; stakeholders.
+4. `pm-organizacion-roles` — junta, gestor, aseguramiento, autoridad de cambio, PO y cadencia si es ágil.
+4b. `pm-interesados` — maestro de interesados, matriz poder/interés con estrategia, estereotipos; entrevistas para preferencias.
 5. `pm-caso-de-negocio` — business case esquemático con objetivos de negocio (OBJ-n) y beneficios (B-nn).
 6. `pm-riesgos` — riesgos iniciales con P×I y propietario.
 7. `pm-plan-etapa-y-limites` — `plan-etapa-1.md`. → paquete para `autorizar-inicio`.
@@ -37,7 +38,8 @@ Scripts: `${CLAUDE_PLUGIN_ROOT}/skills/pm-estado-proyecto/scripts/estado.py` y `
 11. `pm-caso-de-negocio` — business case completo y enfoque de beneficios.
 12. `pm-okr` — si la organización usa OKR: objetivos ligados a OBJ-n y KR a B-nn o SM-n, sin duplicar datos.
 13. `pm-acta-constitucion` — PID ensamblado y charter.
-14. `pm-comunicacion-stakeholders` — matriz de comunicaciones y kickoff.
+13b. `pm-interesados` — RACI sobre WBS, requisitos/épicas y KR (un A por elemento), reporte de interesados; `integridad` sin ERROR.
+14. `pm-comunicacion-stakeholders` — matriz de comunicaciones y kickoff (envío personalizado por la capa de canales, con confirmación).
 15. `pm-integraciones` — si hay tracker/chat/docs conectados: registrar capacidades (`estado.py integracion ...`). → paquete para `autorizar-proyecto` + `autorizar-etapa`.
 
 ## Puertas que preparás

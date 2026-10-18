@@ -1,1 +1,1 @@
-id,tipo,objetivo_id,enunciado,metrica,linea_base,meta,actual,unidad,responsable,fecha_meta,vinculo,confianza,notas
+id,tipo,objetivo_id,enunciado,metrica,linea_base,meta,actual,unidad,responsable,fecha_meta,vinculo,confianza,notas,tipo_kr,compromiso,peso,padre_id,nivel,ciclo,fecha_inicio,estado,ref_externa

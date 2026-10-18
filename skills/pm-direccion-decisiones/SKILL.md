@@ -1,7 +1,7 @@
 ---
 name: pm-direccion-decisiones
 description: "Decisiones de la junta: puertas, tolerancias, excepciones. Usar: aprobar etapa, autorizar proyecto, junta, excepción, board decision, stage gate. No: anotar riesgos o issues→pm-registros."
-version: 2.1.0
+version: 2.2.0
 author: pm-method
 license: MIT
 metadata:
@@ -25,7 +25,7 @@ metadata:
 - EN: record a board decision once a named board member has decided.
 
 ## Idioma
-**Idioma · Language:** responder siempre en el idioma en que escribe el usuario (English request → English reply); los artefactos van en `estado.json.idioma` salvo que el usuario pida otro. primera mención con el término EN: solicitud de decisión de puerta (gate decision request), plan de excepción (exception plan), autoridad de cambio (change authority). Plantillas bilingües.
+**Idioma · Language:** responder siempre en el idioma en que escribe el usuario (English request → English reply); los artefactos van en `estado.json.idioma`. Primera mención con el término EN: solicitud de decisión de puerta (gate decision request), plan de excepción (exception plan), autoridad de cambio (change authority). Plantillas bilingües.
 
 ## Conocimiento
 - `references/guia.md`: §1 productos por puerta, §2 registro, §3 tolerancias, §4 excepciones, §5 ad hoc, §6 cierre, §7 mapa, §8 BMAD, §9 reglas, §10 columnas.
@@ -50,7 +50,7 @@ metadata:
 5. **Solicitud de decisión** (`templates/solicitud-puerta.md`): justificación · productos · desempeño · riesgos e issues · opciones (aprobar, condicionar, rechazar, pedir información; cierre prematuro) con consecuencias cuantificadas · recomendación con confianza · rol que decide. Guardar `en-revision` en `00-direccion/decisiones/AAAA-MM-DD-solicitud-<puerta>.md` y `estado.py artefacto solicitud-<puerta> …`. ZIP: `pm-exportar`.
 6. **🔒 Puerta humana**: presentar al rol que decide (ejecutivo con la junta; capa de negocio si toca tolerancias de proyecto). Nada se registra sin respuesta explícita de una persona con nombre y rol. Como subagente, la pregunta va en "Decisiones humanas requeridas" del bloque de retorno; el orquestador la presenta y vuelve a invocar a pm-director con la respuesta.
 7. **Registrar** (solo pm-director, tras el paso 6; guía §2): `estado.py puerta <tipo> --decision .. --por "<rol: nombre>" [--condiciones ..]` (escribe `decisiones.csv`); `estado.py aprobar <clave>` por documento; en `autorizar-proyecto`, congelar PID y business case v1.0; **con BMAD, `bmad.py --proyecto <dir> linea-base prd --version 1.0 --por "<rol: nombre>"`** (y demás especificaciones aprobadas); en `autorizar-etapa`, `tolerancia --nivel etapa`; acta (`templates/acta-decision-junta.md`); condiciones como acciones A-### y `cumplir-condiciones`.
-8. **Tolerancias y autoridad** (guía §3): siete objetivos con unidades; `templates/tolerancias-y-autoridad.md`; 🔒 ejecutivo confirma; `estado.py tolerancia`, `rol autoridad_cambio=..`, fila en `decisiones.csv`.
+8. **Tolerancias y autoridad** (guía §3): siete objetivos con unidades; `templates/tolerancias-y-autoridad.md`; 🔒 ejecutivo confirma; `estado.py tolerancia`, `rol autoridad_cambio=..`, `presupuesto cambio=.. riesgo=.. limite_autoridad_cambio=..` (sanidad CAM), fila en `decisiones.csv`.
 9. **Excepción** (guía §4): verificar que supera la tolerancia de etapa (si supera la de proyecto, escalar a la capa de negocio); `templates/evaluacion-excepcion.md` con opciones cuantificadas; 🔒 decisión; `puerta decision-ad-hoc`; si se pide plan, `estado.py limite-etapa --excepcion X-###` y encargo a `pm-plan-etapa-y-limites`; luego `autorizar-plan-excepcion`.
 10. **Ad hoc** (guía §5); **cierre** (guía §6). **Comunicar** vía `pm-comunicacion-stakeholders`; cerrar con el siguiente paso o el bloque de retorno (SPEC §1.11).
 

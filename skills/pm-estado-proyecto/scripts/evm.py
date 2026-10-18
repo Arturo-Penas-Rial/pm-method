@@ -10,6 +10,7 @@ Uso / Usage:
   python3 evm.py ... --modo agil [--pct-no-must 30]   # costo y fecha fijos: el desvío se lee como % de alcance que no entra;
         excepción solo si supera el % de alcance Should/Could (los Must peligran). Semáforos de costo/plazo = n/a-agil.
   python3 evm.py ... --proyecto ./p   # idioma y tolerancias de etapa (% en estado.json) si no se pasan --tol-*
+  python3 evm.py ... --proyecto ./p --guardar [--corte AAAA-MM-DD]   # guarda el corte (evm-<corte>.json); sanidad vigila la excepción prevista
 
 Definiciones del paquete:
   BAC = línea base de medición del desempeño (presupuesto de los paquetes + reserva de contingencia asignada),
@@ -89,6 +90,8 @@ def main():
     ap.add_argument("--modo", choices=["predictivo", "agil"], default="predictivo"); ap.add_argument("--idioma", choices=["es", "en"])
     ap.add_argument("--pct-no-must", type=float, dest="pct_no_must", help="modo ágil: %% del alcance (puntos) que es Should/Could; si no entra más que eso, los Must peligran → excepción")
     ap.add_argument("--proyecto", help="carpeta del proyecto: toma idioma y, si faltan, tolerancias de etapa en %% de estado.json")
+    ap.add_argument("--guardar", action="store_true", help="con --proyecto: guarda el último corte en 03-control/reportes/evm-<corte>.json (sanidad TOL-01/03 lo vigila)")
+    ap.add_argument("--corte", help="fecha de corte AAAA-MM-DD para --guardar (por defecto, hoy)")
     a = ap.parse_args()
     if a.proyecto and os.path.exists(os.path.join(a.proyecto, "estado.json")):
         est = json.load(open(os.path.join(a.proyecto, "estado.json"), encoding="utf-8"))
@@ -121,6 +124,16 @@ def main():
         r = calcular(a.pv, a.ev, a.ac, a.bac, a.eac, a.tol_costo, a.tol_plazo)
         if a.modo == "agil": lectura_agil(r, a.pct_no_must)
         filas.append(r)
+    if a.guardar:
+        if not a.proyecto: sys.exit("--guardar requiere --proyecto")
+        import datetime
+        corte = a.corte or datetime.date.today().isoformat()
+        d = os.path.join(a.proyecto, "03-control", "reportes"); os.makedirs(d, exist_ok=True)
+        ult = dict(filas[-1]); ult.update({"corte": corte, "modo": a.modo, "tol_costo_pct": a.tol_costo, "tol_plazo_pct": a.tol_plazo,
+                                            "pct_no_must": a.pct_no_must, "fuente": os.path.relpath(a.csv, a.proyecto) if a.csv else "valores"})
+        ruta = os.path.join(d, f"evm-{corte}.json")
+        json.dump(ult, open(ruta, "w", encoding="utf-8"), ensure_ascii=False, indent=2)
+        print(("Guardado: " if a.idioma == "es" else "Saved: ") + os.path.relpath(ruta, a.proyecto), file=sys.stderr if a.json else sys.stdout)
     if a.json: print(json.dumps(filas, ensure_ascii=False, indent=2)); return
     for r in filas:
         if r.get("periodo"): print(f"== {r['periodo']} ==")

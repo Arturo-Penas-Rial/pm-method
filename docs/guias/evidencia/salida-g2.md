@@ -57,7 +57,7 @@ $ python3 $EST/estado.py --proyecto gestion artefacto plan-gestion-alcance-requi
 ok
 ```
 
-## Paso 2 · Estructura de productos (PBS) y WBS con diccionario, trazada a requisitos e historias
+## Paso 2 · Estructura de productos (PBS), descripciones de producto con criterios de calidad y WBS trazada a requisitos e historias
 ```
 $ python3 $EST/wbs.py gestion/02-planificacion/wbs.csv --titulo "Portal de autoservicio para socios" --mermaid gestion/02-planificacion/visuales/wbs.md --diccionario gestion/02-planificacion/diccionario-wbs.md
 Portal de autoservicio para socios: 13 elementos, 8 hojas · esfuerzo 2480 h · costo 124,000
@@ -93,7 +93,17 @@ $ python3 $EST/especificacion.py --proyecto gestion listar requisitos --cobertur
 ```
 
 ```
-$ python3 $EST/sanidad.py --proyecto gestion --rapido
+$ python3 $EST/estado.py --proyecto gestion artefacto descripcion-producto-proyecto --ruta 02-planificacion/descripcion-producto-proyecto.md --estado en-revision
+ok
+```
+
+```
+$ python3 $EST/estado.py --proyecto gestion artefacto descripcion-producto-3.1 --ruta 02-planificacion/productos/3.1-acceso-seguro.md --estado en-revision
+ok
+```
+
+```
+$ python3 $EST/sanidad.py --proyecto gestion --rapido --corte 2026-11-13
 Sanidad de 'Portal de autoservicio para socios' (pre-proyecto/SU): 0 ERROR · 0 AVISO · 0 INFO
 ```
 
@@ -181,7 +191,7 @@ $ python3 $EST/estado.py --proyecto gestion artefacto release-plan --ruta 02-pla
 ok
 ```
 
-## Paso 5 · Presupuesto desde la WBS, línea base de alcance y puerta autorizar-proyecto
+## Paso 5 · Presupuesto desde la WBS, tolerancias y autoridad de cambio, línea base de alcance y puertas
 ```
 $ python3 $EST/wbs.py gestion/02-planificacion/wbs.csv --json --profundidad 1
 {
@@ -288,15 +298,32 @@ ok
 ```
 
 ```
+$ python3 $EST/estado.py --proyecto gestion artefacto tolerancias-y-autoridad --ruta 00-direccion/tolerancias-y-autoridad.md --estado en-revision
+ok
+```
+
+```
+$ python3 $EST/estado.py --proyecto gestion presupuesto cambio=12000 limite_autoridad_cambio=10000 --por "Ejecutiva: Laura Méndez" --fecha 2026-11-27
+ok
+```
+
+```
+$ python3 $EST/estado.py --proyecto gestion artefacto enfoque-beneficios --ruta 00-direccion/enfoque-beneficios.md --estado en-revision
+ok
+```
+
+```
 $ python3 $EST/puertas.py --proyecto gestion verificar autorizar-proyecto
-Puerta autorizar-proyecto: 1 bloqueo(s) · 0 condición(es) · 0 aviso(s)
+Puerta autorizar-proyecto: 1 bloqueo(s) · 0 condición(es) · 2 aviso(s)
   BLOQUEO   falta la lista de control de la junta: puertas.py --proyecto <dir> lista autorizar-proyecto y confirmarla (puertas.py confirmar …)
+  aviso     registro de interesados vacío: sin matriz poder/interés (pm-interesados)
+  aviso     sin matriz RACI (raci.csv o artefacto matriz-raci): quién es R, A, C e I en productos y decisiones clave
   → 'aprobado' no se registra: corregir, o decisión 'condicionado' (o --forzar) de la junta
 ```
 
 ```
 $ python3 $EST/puertas.py --proyecto gestion lista autorizar-proyecto
-Lista creada: 00-direccion/decisiones/2026-10-17-verificacion-autorizar-proyecto.md (0 hallazgos automáticos, 6 ítems para la junta)
+Lista creada: 00-direccion/decisiones/2026-10-17-verificacion-autorizar-proyecto.md (2 hallazgos automáticos, 6 ítems para la junta)
 ```
 
 ```
@@ -306,6 +333,8 @@ Lista 00-direccion/decisiones/2026-10-17-verificacion-autorizar-proyecto.md conf
 
 ```
 $ python3 $EST/estado.py --proyecto gestion puerta autorizar-proyecto --decision aprobado --por "Ejecutivo: Laura Méndez" --fecha 2026-11-27 
+Aviso: registro de interesados vacío: sin matriz poder/interés (pm-interesados)
+Aviso: sin matriz RACI (raci.csv o artefacto matriz-raci): quién es R, A, C e I en productos y decisiones clave
 ok
 Fase: inicio · Proceso: IP · Etapa 1: Iniciación · Enfoque: hibrido
 Iniciación (IP): enfoques de gestión, controles y tolerancias, PBS/WBS y plan de proyecto (cronograma, costos), business case detallado, PID; luego plan de la primera etapa de entrega. Híbrido: definir qué productos van con paquetes iterativos y su release plan. Agentes: pm-inicio + pm-planificacion. Puertas: autorizar-proyecto y autorizar-etapa (pm-director). Proyecto ya autorizado: falta autorizar-etapa para la primera etapa de entrega.
@@ -365,7 +394,7 @@ Control de etapa (CS) + entrega (MP): autorizar paquetes de trabajo, checkpoints
 ## Paso 6 · Cambio menor: intercambio de Should/Could por el PO (sin solicitud de cambio)
 ```
 $ python3 $EST/registro.py --proyecto gestion agregar decisiones --campo "fecha=2027-01-08" --campo "decision=Intercambio: 1-4 constancias PDF (Should) pasa a R2 y 2-3 contacto (Could) a R1 por pedido de cumplimiento; sin tocar Must, fecha ni costo" --campo "decidido_por=Product owner: Sofía Ramírez" --campo "nivel=product-owner" --campo "artefactos_afectados=02-planificacion/backlog.csv"
-D-008
+D-009
 ```
 
 ```
@@ -373,7 +402,7 @@ $ python3 $BMAD --proyecto gestion handoff
 Traspaso emitido → gestion/02-planificacion/especificacion/handoff-bmad-2026-10-17-prioridades.md (10 prioridades cambiadas)
 ```
 
-## Paso 7 · Cambio de alcance: nueva funcionalidad → análisis de impacto (WBS, esfuerzo, cronograma, costo) → decisión
+## Paso 7 · Cambio de alcance: nueva funcionalidad → análisis de impacto (WBS, esfuerzo, cronograma, costo) → decisión contra el presupuesto de cambio
 ```
 $ python3 $BMAD --proyecto gestion verificar
 - [desvio] bmad-prd: contenido distinto de la línea base aprobada → tratar como solicitud de cambio (pm-issues-cambios) salvo elaboración progresiva declarada · agregados ['FR-13'] · retirados []
@@ -403,7 +432,7 @@ Carga por recurso (días): {'PO + arquitecto': 10, 'Proveedor': 134, 'Usuario s�
 ```
 
 ```
-$ python3 $EST/registro.py --proyecto gestion agregar cambios --campo "fecha=2027-01-16" --campo "solicitante=Consejo directivo (vía Laura Méndez)" --campo "titulo=FR-13 simulador de préstamo" --campo "descripcion=Origen I-001" --campo "justificacion=mejora la conversión de solicitudes (SM-3)" --campo "impacto_alcance=nuevo paquete WBS 3.4 · historia 2-4 · 8 pts" --campo "impacto_tiempo=+11 días laborables en el camino crítico (fin 2027-05-03 → 2027-05-18), dentro de la tolerancia de ±3 semanas" --campo "impacto_costo=+USD 9.000" --campo "impacto_riesgo=ninguno nuevo" --campo "impacto_beneficios=refuerza B-03 (SM-3)" --campo "recomendacion=aprobar; costo contra la contingencia; FR-13 como Should en R2"
+$ python3 $EST/registro.py --proyecto gestion agregar cambios --campo "fecha=2027-01-16" --campo "solicitante=Consejo directivo (vía Laura Méndez)" --campo "titulo=FR-13 simulador de préstamo" --campo "descripcion=Origen I-001" --campo "justificacion=mejora la conversión de solicitudes (SM-3)" --campo "impacto_alcance=nuevo paquete WBS 3.4 · historia 2-4 · 8 pts" --campo "impacto_tiempo=+11 días laborables en el camino crítico (fin 2027-05-03 → 2027-05-18), dentro de la tolerancia de ±3 semanas" --campo "impacto_costo=+USD 9.000" --campo "impacto_riesgo=la reserva de cronograma a 2σ baja de ≈13 a ≈2 días laborables (riesgo nuevo)" --campo "impacto_beneficios=refuerza B-03 (SM-3)" --campo "recomendacion=aprobar; cargo al presupuesto de cambio (9.000 de 12.000, dentro del límite de 10.000 de la autoridad de cambio); FR-13 como Should en R2" --campo "costo=9000" --campo "cargo=presupuesto-cambio"
 C-001
 ```
 
@@ -415,6 +444,11 @@ ok
 ```
 $ python3 $EST/registro.py --proyecto gestion actualizar issues I-001 --campo "estado=pendiente-cambio" --campo "decision=tramitado como C-001" --campo "decidido_por=Autoridad de cambio: Sofía Ramírez"
 ok
+```
+
+```
+$ python3 $EST/registro.py --proyecto gestion agregar riesgos --campo "fecha_identificacion=2027-01-18" --campo "autor=Martín Suárez" --campo "categoria=gestion" --campo "causa=C-001 suma 11 días laborables al camino crítico y deja la reserva de cronograma a 2σ en ≈2 días" --campo "evento=un atraso adicional de más de 2 días laborables en el camino crítico" --campo "efecto=la puesta en producción pasa del 2027-05-18 y consume la tolerancia de tiempo del proyecto (±3 semanas)" --campo "tipo=amenaza" --campo "probabilidad=3" --campo "impacto=3" --campo "proximidad=mediano-plazo" --campo "disparador=SPI de un sprint < 0,90 o atraso acumulado ≥ 2 días en el camino crítico" --campo "respuesta=reducir" --campo "acciones=vigilar SPI por sprint con evm.py --guardar; preparar con el PO qué Should/Could salen si se dispara" --campo "propietario=Martín Suárez" --campo "ejecutor=Lucía Benítez" --campo "fecha_revision=2027-02-19" --campo "notas=surge de C-001"
+R-001
 ```
 
 ```
@@ -440,6 +474,23 @@ Mermaid escrito en gestion/02-planificacion/visuales/wbs.md
 ```
 $ python3 $BMAD --proyecto gestion handoff --cambio C-001
 Traspaso emitido → gestion/02-planificacion/especificacion/handoff-bmad-2026-10-17-C-001.md (cambio C-001)
+```
+
+```
+$ python3 $EST/sanidad.py --proyecto gestion --rapido --corte 2027-01-18
+Sanidad de 'Portal de autoservicio para socios' (entrega/CS): 0 ERROR · 4 AVISO · 3 INFO
+  AVISO ESP-10 bmad-prd difiere de su línea base v1.0 y hay un issue/cambio abierto que lo trata.
+        → Al aprobarse: bmad.py linea-base con versión mayor.
+  AVISO ESP-13 Traspaso a BMAD sin confirmar: 02-planificacion/especificacion/handoff-bmad-2026-10-17-prioridades.md.
+  AVISO ESP-13 Traspaso a BMAD sin confirmar: 02-planificacion/especificacion/handoff-bmad-2026-10-17-C-001.md.
+        → Cuando el equipo BMAD lo aplique: marcar estado: aplicado en el documento, bmad.py verificar y nueva línea base.
+  AVISO ESP-14 requisitos-bmad.csv no coincide con el PRD vigente (desactualizado o editado).
+        → bmad.py requisitos (es derivado: no se edita).
+  INFO  CAM-03 Presupuesto de cambio: 9.000 de 12.000 (75 %).
+  INFO  ESP-02 El índice de especificación está desactualizado (se reconstruye solo al consultarlo).
+        → especificacion.py indice o sanidad.py --reparar.
+  INFO  TOL-03 Etapa de entrega sin corte de EVM guardado: el pronóstico contra tolerancias no se vigila.
+        → evm.py … --proyecto <dir> --guardar --corte AAAA-MM-DD en cada período.
 ```
 
 ## Paso 8 · El equipo BMAD aplica el cambio → nuevas líneas base → roadmap actualizado
@@ -488,10 +539,13 @@ Sin desvíos: la especificación coincide con las líneas base registradas.
 ```
 
 ```
-$ python3 $EST/sanidad.py --proyecto gestion --rapido
-Sanidad de 'Portal de autoservicio para socios' (entrega/CS): 0 ERROR · 0 AVISO · 1 INFO
+$ python3 $EST/sanidad.py --proyecto gestion --rapido --corte 2027-01-25
+Sanidad de 'Portal de autoservicio para socios' (entrega/CS): 0 ERROR · 0 AVISO · 3 INFO
+  INFO  CAM-03 Presupuesto de cambio: 9.000 de 12.000 (75 %).
   INFO  ESP-02 El índice de especificación está desactualizado (se reconstruye solo al consultarlo).
         → especificacion.py indice o sanidad.py --reparar.
+  INFO  TOL-03 Etapa de entrega sin corte de EVM guardado: el pronóstico contra tolerancias no se vigila.
+        → evm.py … --proyecto <dir> --guardar --corte AAAA-MM-DD en cada período.
 ```
 
 ## Paso 9 · Avance del alcance: EVM ágil (alcance no entregable) e informe
@@ -501,7 +555,18 @@ Historias 11 · backlog 7 · ready-for-dev 0 · in-progress 0 · review 0 · don
 ```
 
 ```
-$ python3 $EST/evm.py --pv 60000 --ev 52000 --ac 58000 --bac 133000 --modo agil --pct-no-must 20 --proyecto gestion
+$ python3 $BMAD --proyecto gestion backlog
+backlog.csv: 0 nuevas, 11 actualizadas, 0 retiradas en BMAD. Columnas derivadas (criterios_aceptacion, descripcion, estado, origen, refs, tipo, titulo) se sobrescriben; las de gobierno (prioridad, moscow, estimacion, iteracion, release, producto_pbs) no se tocan.
+```
+
+```
+$ python3 $EST/registro.py --proyecto gestion agregar calidad --campo "producto=Release 1 parcial · historias 1-1, 1-2, 1-3 y 3-1 (productos 3.1, 3.2 y 4.1)" --campo "metodo_verificacion=revision" --campo "criterios=EC-01 a EC-04 de la descripción de producto 3.1 y criterios de aceptación de cada historia" --campo "responsable_productor=Lucía Benítez" --campo "revisores=QA del proveedor; Andrea Costa (aseguramiento)" --campo "aprobador=Sofía Ramírez" --campo "fecha_prevista=2027-01-28" --campo "fecha_real=2027-01-28" --campo "resultado=aprobado" --campo "estado=completada"
+Q-001
+```
+
+```
+$ python3 $EST/evm.py --pv 60000 --ev 52000 --ac 58000 --bac 133000 --modo agil --pct-no-must 20 --proyecto gestion --guardar --corte 2027-01-29
+Guardado: 03-control/reportes/evm-2027-01-29.json
 PV                     60,000.000
 EV                     52,000.000
 AC                     58,000.000
@@ -532,6 +597,16 @@ Modo ágil (costo y fecha fijos): un EAC > BAC significa que, al ritmo actual, n
 ```
 
 ```
+$ python3 $EST/sanidad.py --proyecto gestion --rapido --corte 2027-01-29
+Sanidad de 'Portal de autoservicio para socios' (entrega/CS): 0 ERROR · 0 AVISO · 3 INFO
+  INFO  CAM-03 Presupuesto de cambio: 9.000 de 12.000 (75 %).
+  INFO  ESP-02 El índice de especificación está desactualizado (se reconstruye solo al consultarlo).
+        → especificacion.py indice o sanidad.py --reparar.
+  INFO  TOL-02 El EVM del 2027-01-29 está en ámbar (costo=n/a-agil, cronograma=n/a-agil, alcance=ambar): 50–100 % de la tolerancia.
+        → Anticipar acciones correctivas y reportarlo en el highlight.
+```
+
+```
 $ python3 $EST/puertas.py --proyecto gestion estado --markdown
 ### Puertas y verificación / Gates and verification
 
@@ -544,5 +619,191 @@ $ python3 $EST/puertas.py --proyecto gestion estado --markdown
 **Próxima puerta / Next gate: autorizar-etapa** — 2 bloqueo(s), 0 condición(es), 0 aviso(s).
 - bloqueo: falta el plan de la etapa a autorizar (plan-etapa-3)
 - bloqueo: falta el informe de fin de la etapa 2 (informe-fin-etapa-2)
+```
+
+## Paso 10 · Excepción: un requisito regulatorio supera la autoridad y el presupuesto de cambio, y el EVM pronostica salir de la tolerancia
+```
+$ python3 $EST/registro.py --proyecto gestion agregar issues --campo "fecha=2027-02-15" --campo "autor=Martín Suárez" --campo "tipo=solicitud-cambio" --campo "titulo=Requisito regulatorio: consentimiento informado y consulta del registro de accesos por el socio" --campo "descripcion=Resultado de la revisión normativa supuesta en NFR-1 (Ley 18.331); pedido del Consejo directivo" --campo "prioridad=urgente" --campo "severidad=mayor" --campo "responsable=Martín Suárez"
+I-002
+```
+
+```
+$ python3 $EST/registro.py --proyecto gestion agregar cambios --campo "fecha=2027-02-16" --campo "solicitante=Consejo directivo (requisito regulatorio, vía Laura Méndez)" --campo "titulo=Consentimiento informado y registro de accesos consultable por el socio" --campo "descripcion=Origen I-002; refuerza NFR-1 y NFR-5" --campo "justificacion=obligatorio por regulación" --campo "impacto_alcance=nuevo paquete WBS 3.5 · 13 pts Must en R1" --campo "impacto_tiempo=+1 sprint en la etapa 2 (fin 2027-03-05 → 2027-03-19)" --campo "impacto_costo=+USD 15.000" --campo "impacto_riesgo=sin él, riesgo regulatorio de no poder salir a producción" --campo "impacto_beneficios=condición para B-02 (adopción)" --campo "recomendacion=aprobar: es obligatorio; Must en R1" --campo "costo=15000" --campo "cargo=presupuesto-cambio"
+C-002
+```
+
+```
+$ python3 $EST/registro.py --proyecto gestion actualizar cambios C-002 --campo "decision=aprobado" --campo "decidido_por=Autoridad de cambio: Sofía Ramírez" --campo "fecha_decision=2027-02-17" --campo "estado=aprobado"
+ok
+```
+
+```
+$ python3 $EST/evm.py --pv 75000 --ev 60000 --ac 77000 --bac 133000 --modo agil --pct-no-must 20 --proyecto gestion --guardar --corte 2027-02-19
+Guardado: 03-control/reportes/evm-2027-02-19.json
+PV                     75,000.000
+EV                     60,000.000
+AC                     77,000.000
+BAC                    133,000.000
+SV                     -15,000.000
+CV                     -17,000.000
+SPI                    0.800
+CPI                    0.779
+pct_completado         0.451
+pct_gastado            0.579
+EAC_tendencia          170,683.333
+EAC_atipico            150,000.000
+EAC_compuesto          194,104.167
+EAC_usado              tendencia
+ETC                    93,683.333
+VAC                    -37,683.333
+VAC_pct                -28.333
+sobrecosto_pct         28.333
+TCPI_bac               1.304
+TCPI_eac               0.779
+semaforo_cronograma    n/a-agil
+semaforo_costo         n/a-agil
+base_semaforo          alcance-agil
+alcance_no_entregable_pct 22.078
+semaforo_alcance       rojo
+excepcion_prevista     True
+Modo ágil (costo y fecha fijos): un EAC > BAC significa que, al ritmo actual, no se entregará todo el alcance con el presupuesto; leerlo como alcance pronosticado (ítems Must/Should que no entran) y comparar contra la tolerancia de ALCANCE, no como sobrecosto. Hay excepción si los ítems Must no entran.
+→ Pronóstico fuera de tolerancia: preparar informe de excepción (pm-progreso-reportes) y escalar a pm-director.
+```
+
+```
+$ python3 $EST/sanidad.py --proyecto gestion --rapido --corte 2027-02-19
+Sanidad de 'Portal de autoservicio para socios' (entrega/CS): 1 ERROR · 2 AVISO · 0 INFO
+  ERROR CAM-03 Presupuesto de cambio excedido: 24.000 de 12.000 (200 %).
+        → Escalar a la junta: informe de excepción o ampliación del presupuesto (decisión registrada).
+  AVISO CAM-04 Cambio C-002 (15.000) supera el límite de la autoridad de cambio (10.000) y lo decidió 'Autoridad de cambio: Sofía Ramírez'.
+        → Escalar a la junta y registrar su decisión (decision-ad-hoc), o ajustar el límite delegado.
+  AVISO TOL-01 El EVM del 2027-02-19 pronostica salir de la tolerancia (costo=n/a-agil, cronograma=n/a-agil, alcance=rojo) y no hay excepción abierta.
+        → pm-progreso-reportes: informe de excepción; pm-director: estado.py limite-etapa --excepcion X-### y puerta autorizar-plan-excepcion.
+```
+
+```
+$ python3 $EST/estado.py --proyecto gestion artefacto informe-excepcion-X-001 --ruta 03-control/reportes/2027-02-19-informe-excepcion-X-001.md --estado en-revision
+ok
+```
+
+```
+$ python3 $EST/registro.py --proyecto gestion agregar issues --campo "fecha=2027-02-19" --campo "autor=Martín Suárez" --campo "tipo=problema-preocupacion" --campo "titulo=Excepción X-001: presupuesto de cambio excedido y pronóstico fuera de tolerancia de alcance" --campo "descripcion=C-002 aprobado por la autoridad de cambio por encima de su límite; EVM del 2027-02-19 con excepcion_prevista" --campo "prioridad=urgente" --campo "severidad=critica" --campo "responsable=Martín Suárez" --campo "estado=escalado" --campo "notas=informe 03-control/reportes/2027-02-19-informe-excepcion-X-001.md"
+I-003
+```
+
+```
+$ python3 $EST/registro.py --proyecto gestion actualizar issues I-002 --campo "estado=escalado" --campo "decision=C-002 escalado a la junta (excepción X-001)"
+ok
+```
+
+```
+$ python3 $EST/estado.py --proyecto gestion puerta decision-ad-hoc --decision aprobado --por "Ejecutiva: Laura Méndez" --fecha 2027-02-22 --condiciones "X-001: la junta pide plan de excepción para la etapa 2; C-002 queda sujeto a ese plan"
+ok
+Fase: entrega · Proceso: CS · Etapa 2: Release 1 · Enfoque: hibrido
+Control de etapa (CS) + entrega (MP): autorizar paquetes de trabajo, checkpoints, iteraciones con review/retro, revisar riesgos/issues, highlight reports a la junta. Al acercarse el fin de etapa: estado.py limite-etapa. Pronóstico fuera de tolerancia: informe de excepción → pm-director. Agente: pm-control.
+Condiciones abiertas: decision-ad-hoc: X-001: la junta pide plan de excepción para la etapa 2; C-002 queda sujeto a ese plan
+```
+
+```
+$ python3 $EST/estado.py --proyecto gestion limite-etapa --excepcion X-001
+ok
+Fase: entrega · Proceso: SB · Etapa 2: Release 1 · Enfoque: hibrido
+Límite de etapa por excepción X-001: plan de excepción (reemplaza el plan vigente), actualizar plan de proyecto, business case y riesgos. Puerta: autorizar-plan-excepcion (pm-director).
+Condiciones abiertas: decision-ad-hoc: X-001: la junta pide plan de excepción para la etapa 2; C-002 queda sujeto a ese plan
+```
+
+```
+$ python3 $EST/estado.py --proyecto gestion artefacto plan-excepcion-X-001 --ruta 02-planificacion/plan-excepcion-X-001.md --estado en-revision
+ok
+```
+
+```
+$ python3 $EST/estado.py --proyecto gestion cumplir-condiciones decision-ad-hoc --fecha 2027-02-24 --por "Ejecutiva: Laura Méndez" --nota "plan de excepción X-001 presentado; C-002 se decide con él"
+ok
+```
+
+```
+$ python3 $EST/puertas.py --proyecto gestion verificar autorizar-plan-excepcion
+Puerta autorizar-plan-excepcion: 2 bloqueo(s) · 0 condición(es) · 0 aviso(s)
+  BLOQUEO   sanidad CAM-03: Presupuesto de cambio excedido: 24.000 de 12.000 (200 %).
+  BLOQUEO   falta la lista de control de la junta: puertas.py --proyecto <dir> lista autorizar-plan-excepcion y confirmarla (puertas.py confirmar …)
+  → 'aprobado' no se registra: corregir, o decisión 'condicionado' (o --forzar) de la junta
+```
+
+```
+$ python3 $EST/estado.py --proyecto gestion presupuesto cambio=32000 --por "Ejecutiva: Laura Méndez" --fecha 2027-02-26
+ok
+```
+
+```
+$ python3 $EST/registro.py --proyecto gestion actualizar cambios C-002 --campo "decidido_por=Junta: Laura Méndez (ejecutiva) · plan de excepción X-001" --campo "fecha_decision=2027-02-26" --campo "notas=aprobado primero por la autoridad de cambio (2027-02-17) por encima de su límite de 10.000; ratificado por la junta con el plan de excepción"
+ok
+```
+
+```
+$ python3 $EST/puertas.py --proyecto gestion verificar autorizar-plan-excepcion
+Puerta autorizar-plan-excepcion: 1 bloqueo(s) · 0 condición(es) · 0 aviso(s)
+  BLOQUEO   falta la lista de control de la junta: puertas.py --proyecto <dir> lista autorizar-plan-excepcion y confirmarla (puertas.py confirmar …)
+  → 'aprobado' no se registra: corregir, o decisión 'condicionado' (o --forzar) de la junta
+```
+
+```
+$ python3 $EST/puertas.py --proyecto gestion lista autorizar-plan-excepcion --fecha 2027-02-26
+Lista creada: 00-direccion/decisiones/2027-02-26-verificacion-autorizar-plan-excepcion.md (0 hallazgos automáticos, 3 ítems para la junta)
+```
+
+```
+$ python3 $EST/puertas.py --proyecto gestion confirmar autorizar-plan-excepcion --por "Ejecutiva: Laura Méndez" --fecha 2027-02-26
+Lista 00-direccion/decisiones/2027-02-26-verificacion-autorizar-plan-excepcion.md confirmada por Ejecutiva: Laura Méndez
+```
+
+```
+$ python3 $EST/estado.py --proyecto gestion puerta autorizar-plan-excepcion --decision aprobado --por "Ejecutiva: Laura Méndez" --fecha 2027-02-26 --fin 2027-03-19
+ok
+Fase: entrega · Proceso: CS · Etapa 2: Release 1 · Enfoque: hibrido
+Control de etapa (CS) + entrega (MP): autorizar paquetes de trabajo, checkpoints, iteraciones con review/retro, revisar riesgos/issues, highlight reports a la junta. Al acercarse el fin de etapa: estado.py limite-etapa. Pronóstico fuera de tolerancia: informe de excepción → pm-director. Agente: pm-control.
+```
+
+```
+$ python3 $EST/registro.py --proyecto gestion actualizar issues I-003 --campo "estado=cerrado" --campo "fecha_cierre=2027-02-26" --campo "decision=plan de excepción X-001 autorizado" --campo "decidido_por=Ejecutiva: Laura Méndez"
+ok
+```
+
+```
+$ python3 $EST/registro.py --proyecto gestion actualizar issues I-002 --campo "estado=pendiente-cambio" --campo "decision=tramitado como C-002 (ratificado por la junta)" --campo "decidido_por=Ejecutiva: Laura Méndez"
+ok
+```
+
+```
+$ python3 $BMAD --proyecto gestion handoff --cambio C-002
+Traspaso emitido → gestion/02-planificacion/especificacion/handoff-bmad-2026-10-17-C-002.md (cambio C-002 · 1 prioridades cambiadas)
+```
+
+```
+$ python3 $EST/sanidad.py --proyecto gestion --rapido --corte 2027-02-26
+Sanidad de 'Portal de autoservicio para socios' (entrega/CS): 0 ERROR · 1 AVISO · 1 INFO
+  AVISO ESP-13 Traspaso a BMAD sin confirmar: 02-planificacion/especificacion/handoff-bmad-2026-10-17-C-002.md.
+        → Cuando el equipo BMAD lo aplique: marcar estado: aplicado en el documento, bmad.py verificar y nueva línea base.
+  INFO  CAM-03 Presupuesto de cambio: 24.000 de 32.000 (75 %).
+```
+
+```
+$ python3 $EST/estado.py --proyecto gestion resumen
+Portal de autoservicio para socios · entrega/CS · etapa 2 Release 1 (2026-11-27 → 2027-03-19) · enfoque hibrido · idioma es
+Autorizado: sí
+Roles: ejecutivo=Laura Méndez; usuario_senior=Sofía Ramírez; proveedor_senior=Diego Ferreira; gestor_proyecto=Martín Suárez; aseguramiento=Andrea Costa; autoridad_cambio=Sofía Ramírez; product_owner=Sofía Ramírez; jefes_equipo=Lucía Benítez
+Tolerancias: proyecto: tiempo=±3 semanas, costo=±8 %, alcance=Must sin tolerancia; Should/Could los intercambia el PO, riesgo=ningún riesgo alto sin respuesta | etapa: tiempo=±10 %, costo=±10 %
+Presupuestos: cambio=32000, limite_autoridad_cambio=10000
+Artefactos: 19 (3 aprobados)
+Última puerta: autorizar-plan-excepcion · aprobado · 2027-02-26 · Ejecutiva: Laura Méndez
+Próxima puerta: autorizar-etapa · 2 bloqueo(s) · 0 condición(es) (detalle: puertas.py verificar autorizar-etapa)
+Fase: entrega · Proceso: CS · Etapa 2: Release 1 · Enfoque: hibrido
+Control de etapa (CS) + entrega (MP): autorizar paquetes de trabajo, checkpoints, iteraciones con review/retro, revisar riesgos/issues, highlight reports a la junta. Al acercarse el fin de etapa: estado.py limite-etapa. Pronóstico fuera de tolerancia: informe de excepción → pm-director. Agente: pm-control.
+```
+
+```
+$ python3 $EST/registro.py --proyecto gestion listar cambios
+id=C-001 | fecha=2027-01-16 | solicitante=Consejo directivo (vía Laura Méndez) | titulo=FR-13 simulador de préstamo | descripcion=Origen I-001 | justificacion=mejora la conversión de solicitudes (SM-3) | impacto_alcance=nuevo paquete WBS 3.4 · historia 2-4 · 8 pts | impacto_tiempo=+11 días laborables en el camino crítico (fin 2027-05-03 → 2027-05-18), dentro de la tolerancia de ±3 semanas | impacto_costo=+USD 9.000 | impacto_riesgo=la reserva de cronograma a 2σ baja de ≈13 a ≈2 días laborables (riesgo nuevo) | impacto_beneficios=refuerza B-03 (SM-3) | recomendacion=aprobar; cargo al presupuesto de cambio (9.000 de 12.000, dentro del límite de 10.000 de la autoridad de cambio); FR-13 como Should en R2 | decision=aprobado | decidido_por=Autoridad de cambio: Sofía Ramírez | fecha_decision=2027-01-18 | estado=implementado | costo=9000 | cargo=presupuesto-cambio
+id=C-002 | fecha=2027-02-16 | solicitante=Consejo directivo (requisito regulatorio, vía Laura Méndez) | titulo=Consentimiento informado y registro de accesos consultable por el socio | descripcion=Origen I-002; refuerza NFR-1 y NFR-5 | justificacion=obligatorio por regulación | impacto_alcance=nuevo paquete WBS 3.5 · 13 pts Must en R1 | impacto_tiempo=+1 sprint en la etapa 2 (fin 2027-03-05 → 2027-03-19) | impacto_costo=+USD 15.000 | impacto_riesgo=sin él, riesgo regulatorio de no poder salir a producción | impacto_beneficios=condición para B-02 (adopción) | recomendacion=aprobar: es obligatorio; Must en R1 | decision=aprobado | decidido_por=Junta: Laura Méndez (ejecutiva) · plan de excepción X-001 | fecha_decision=2027-02-26 | estado=aprobado | notas=aprobado primero por la autoridad de cambio (2027-02-17) por encima de su límite de 10.000; ratificado por la junta con el plan de excepción | costo=15000 | cargo=presupuesto-cambio
 ```
 

@@ -3,7 +3,7 @@
 Este repositorio **es** el plugin pm-method (no un proyecto que lo usa). Leer esto antes de cambiar algo.
 
 ## Qué es
-Plugin de Claude Code (también Cowork y Hermes) con 6 agentes, 37 skills y 3 hooks para gestión de proyectos.
+Plugin de Claude Code (también Cowork y Hermes) con 6 agentes, 38 skills y 3 hooks para gestión de proyectos (versión 2.2.0).
 Jerarquía fija, no negociable:
 1. **PRINCE2 7** = método y ciclo de vida; **siempre manda**.
 2. **PMBOK 8** = solo el "cómo" (técnicas) o vacíos de PRINCE2.
@@ -25,9 +25,17 @@ Bilingüe ES/EN: responder en el idioma del usuario; artefactos en `estado.json.
 - `skills/<skill>/` SKILL.md (≤ 12.500 bytes y ≤ 200 líneas), `references/guia.md`, `templates/`, `scripts/`.
 - `skills/pm-estado-proyecto/scripts/` núcleo: `esquema.py` (esquemas, valores, migración), `estado.py`,
   `registro.py`, `especificacion.py`, `sanidad.py`, `puertas.py` (verificación de puertas), `wbs.py`, `cpm.py`, `evm.py`, `exportar.py`, `nuevo_proyecto.py`.
-- `skills/pm-bmad-puente/scripts/bmad.py` puente BMAD. `hooks/` guardian.py, inicio.py, idioma.py, py.sh, hooks.json.
+- `skills/pm-bmad-puente/scripts/bmad.py` puente BMAD. `skills/pm-interesados/scripts/interesados.py` maestro de
+  interesados (matriz, estereotipos, preferencias, perfil, RACI, integridad, reporte, plan de envío; `sanidad.py` lo usa
+  para la familia STK). `skills/pm-integraciones/scripts/envios.py` capa de canales (SMTP, webhooks de Slack o Teams,
+  `.eml`, MCP; credenciales solo por variables de entorno). `skills/pm-okr/scripts/okr.py` OKR y check-ins.
+- `hooks/` guardian.py, inicio.py, idioma.py, py.sh, hooks.json.
 - `scripts/validar_paquete.py`, `scripts/probar_paquete.py`, `scripts/validar_mermaid.py`, `scripts/pruebas/fixtures/`, `scripts/pruebas/guias_e2e/` (recorridos de `docs/guias/`), `scripts/pruebas_vivo/`.
 - `SPEC.md` convenciones canónicas (claves de artefactos, registros, niveles de decisión, presupuestos).
+- Registros: 9 base y 4 **opcionales** que se crean al primer uso (`estereotipos` ET, `preferencias` PF, `raci` RC,
+  `envios` EN), con claves foráneas, unicidad y "uno por" declarados en `esquema.py` (`opcional`, `refs`, `unico`,
+  `uno_por`) y validados por `registro.py`. Un registro nuevo debe sumarse también a `hooks/guardian.py`,
+  `pm-registros/templates/guia-registros.md` y `SPEC.md` §1.10.8.
 
 ## Convenciones de código
 - Python 3.9+, solo biblioteca estándar en el núcleo (pyyaml, python-docx, openpyxl opcionales con mensaje claro).

@@ -29,12 +29,14 @@ flowchart TB
     T[Técnicas · PMBOK<br/>dentro de prácticas PRINCE2]
     E[Especificación · BMAD opcional, solo lectura<br/>vía especificacion.py / bmad.py]
     I[Integración · MCP de la sesión, opcional<br/>vía pm-integraciones]
+    K[Capa de canales · envios.py<br/>correo · Slack · Teams · .eml]
     P[(Persistencia · carpeta del proyecto<br/>estado.json · Markdown · CSV<br/>escrita solo por estado.py · registro.py)]
   end
   SA --> G
   G --> T
   G --> E
   G --> I
+  G --> K
   G --> P
 
   H{{Hooks: guardian.py · inicio.py · idioma.py}} -. protege .-> P

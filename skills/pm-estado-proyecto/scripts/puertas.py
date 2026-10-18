@@ -116,6 +116,8 @@ def preparacion_bmad(proyecto, e, bm):
             return {"resultado": "FAIL", "fuente": os.path.relpath(fail, proyecto), "fecha": f_fail}
     return reg or None
 
+PREFIJO_G01 = "condiciones abiertas de puertas anteriores: "
+
 def controles(proyecto, e, tipo, tol_nueva=None):
     """Lista de (severidad, id, mensaje) de las capas 1 y 2 para la puerta `tipo`."""
     out = []
@@ -125,6 +127,11 @@ def controles(proyecto, e, tipo, tol_nueva=None):
     n = e.get("etapa_actual", {}).get("numero", 0)
     bm = bmad_estado(proyecto, e)
     if bm and bm.get("error"): add("bloqueo", "B-00", f"BMAD declarado pero no legible: {bm['error']}"); bm = None
+    previas = [p for p in e.get("puertas", []) if p.get("decision") in ("condicionado", "aprobado") and p.get("condiciones") and not p.get("condiciones_cumplidas")]
+    if previas and tipo in ("autorizar-proyecto", "autorizar-etapa", "autorizar-plan-excepcion", "autorizar-cierre"):
+        txt = "; ".join(f"{p['tipo']} {p.get('fecha', '')}" for p in previas)
+        add("bloqueo" if tipo == "autorizar-cierre" else "condicion", "G-01",
+            f"{PREFIJO_G01}{txt} (verificarlas y registrar estado.py cumplir-condiciones, o traspasarlas como recomendación)")
     if tipo == "autorizar-inicio":
         if not art_ok(proyecto, e, "project-brief"): add("bloqueo", "I-01", "falta el project brief (pm-mandato-y-brief)")
         if not e["roles"].get("ejecutivo"): add("bloqueo", "I-02", "sin ejecutivo designado")
@@ -134,14 +141,23 @@ def controles(proyecto, e, tipo, tol_nueva=None):
             if not art_ok(proyecto, e, art): add("bloqueo", i, f"falta el artefacto {art} (o su archivo)")
         faltan = [d for d in ("tiempo", "costo") if not e["tolerancias"]["proyecto"].get(d)]
         if faltan: add("bloqueo", "P-03", f"faltan tolerancias de proyecto ({', '.join(faltan)}): las fija la junta; pm-director las registra")
-        exito = bool(art_prefijo(e, "enfoque-beneficios")) or bool(art_prefijo(e, "okr"))
+        beneficios = bool(art_prefijo(e, "enfoque-beneficios"))
         bc = e["artefactos"].get("business-case", {}).get("ruta", "")
         if bc and os.path.exists(os.path.join(proyecto, bc)):
-            exito = exito or bool(re.search(r"\bB-\d+|\bSM-C?\d+|beneficio", open(os.path.join(proyecto, bc), encoding="utf-8").read(), re.I))
-        if not exito: add("condicion", "P-04", "no se encontraron criterios de éxito (beneficios B-n, métricas SM-n, enfoque de beneficios u OKR)")
+            beneficios = beneficios or bool(re.search(r"\bB-\d+|\bSM-C?\d+|beneficio", open(os.path.join(proyecto, bc), encoding="utf-8").read(), re.I))
+        okr = bool(art_prefijo(e, "okr"))
+        if not beneficios and not okr: add("condicion", "P-04", "no se encontraron criterios de éxito (beneficios B-n, métricas SM-n, enfoque de beneficios u OKR)")
+        elif not beneficios: add("condicion", "P-04", "los criterios de éxito están solo en OKR: faltan beneficios B-n en el business case o un enfoque de beneficios con dueño y fecha de medición (los OKR complementan, no reemplazan, la revisión de beneficios)")
+        elif not art_prefijo(e, "enfoque-beneficios"): add("aviso", "P-04", "sin enfoque de beneficios (cómo, cuándo y quién mide cada beneficio, incluso después del proyecto)")
         for r in ("usuario_senior", "proveedor_senior"):
             if not e["roles"].get(r): add("condicion", "P-05", f"junta incompleta: falta {r}")
         if not art_ok(proyecto, e, "plan-proyecto"): add("condicion", "P-06", "sin plan de proyecto registrado (o incluido en el PID)")
+        sts = leer_csv(proyecto, "stakeholders")
+        sin_mapa = [f["id"] for f in sts if not f.get("poder") or not f.get("interes")]
+        if not sts: add("aviso", "P-09", "registro de interesados vacío: sin matriz poder/interés (pm-interesados)")
+        elif sin_mapa: add("aviso", "P-09", f"interesados sin ubicar en la matriz poder/interés: {', '.join(sin_mapa[:8])}{' …' if len(sin_mapa) > 8 else ''}")
+        if not leer_csv(proyecto, "raci") and not art_ok(proyecto, e, "matriz-raci"):
+            add("aviso", "P-10", "sin matriz RACI (raci.csv o artefacto matriz-raci): quién es R, A, C e I en productos y decisiones clave")
         if bm:
             if bm["prd"] is None: add("bloqueo", "P-07", "BMAD declarado pero sin PRD")
             elif bm["prd"] not in ("final", "approved"): add("bloqueo", "P-07", f"el PRD de BMAD no está final (status: {bm['prd'] or 'sin estado'}); cerrarlo con bmad-prd")
@@ -274,7 +290,7 @@ def estado_puertas(proyecto, e):
     if prox:
         bl, co, av, li = evaluar(proyecto, e, prox)
         prep = {"puerta": prox, "bloqueos": bl, "condiciones": co, "avisos": av, "lista": (li or {}).get("ruta", "")}
-    return {"puertas": regs, "condiciones_abiertas": [r for r in regs if r["decision"] == "condicionado" and r["condiciones"] and not r["condiciones_cumplidas"]],
+    return {"puertas": regs, "condiciones_abiertas": [r for r in regs if r["decision"] in ("condicionado", "aprobado") and r["condiciones"] and not r["condiciones_cumplidas"]],
             "forzadas": [r for r in regs if r["forzada"]], "proxima": prep}
 
 def markdown_estado(d, idioma="es"):
@@ -323,7 +339,7 @@ def main():
         e["actualizado"] = datetime.date.today().isoformat(); e["version_estado"] = e.get("version_estado", 0) + 1
         json.dump(e, open(os.path.join(a.proyecto, "estado.json"), "w", encoding="utf-8"), ensure_ascii=False, indent=2)
         E.anotar_decision(a.proyecto, f"gate de preparación de BMAD: {a.resultado}" + (f" — {a.nota}" if a.nota else ""), a.por, nivel="gestor",
-                          contexto=f"{e['fase']}/{e['proceso_actual']}", notas="bmad-sprint-planning readiness")
+                          contexto=f"{e['fase']}/{e['proceso_actual']}", notas="bmad-sprint-planning readiness", fecha=a.fecha)
         print(f"Preparación BMAD registrada: {a.resultado}")
 
 if __name__ == "__main__":

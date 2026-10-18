@@ -37,12 +37,26 @@ Antipatrones y su corrección:
 - Una meta de KR más ambiciosa que la meta del beneficio es válida (estiramiento), pero la tolerancia y la justificación se juzgan siempre contra el beneficio.
 - SM-n del PRD: el PRD es dueño de su definición; el OKR cita el id y la fuente (`requisitos-bmad.csv`, sha corto).
 
-## §4. Puntuación y semáforo
-- Fórmula del script: `p = (actual − base) / (meta − base)`, acotada a 0–1. Funciona igual para metas de reducción (base 4 200, meta 2 000, actual 3 100 → p = 0,50).
-- Objetivo = promedio simple de sus KR con dato. Si un KR pesa más, explicarlo en la narrativa; el script no pondera.
-- Semáforo por defecto ≥ 0,7 verde · 0,4–0,69 ámbar · < 0,4 rojo. Es una convención difundida en la práctica OKR (metas "aspiracionales" donde 0,7 se considera buen resultado), **no** una regla de PRINCE2 ni del PMBOK. Se cambia con `--umbrales verde,ambar` y se declara en el informe. Si la organización usa OKR "comprometidos" (se espera 1,0), usar `--umbrales 1.0,0.7`.
-- Este semáforo no sustituye al de tolerancias de `evm.py`: uno mide resultados de negocio; el otro, desempeño del plan.
-- `--json` sirve para alimentar el tablero de `pm-visuales`.
+## §4. Puntuación, semáforo, salud y check-ins
+- **Por tipo de KR** (`tipo_kr`, defecto `de-a`):
+
+| tipo_kr | Puntuación | Ejemplo |
+|---|---|---|
+| `de-a` | `(actual − base) / (meta − base)`, acotada a 0–1; sirve para metas de reducción | base 4 200, meta 2 000, actual 3 100 → 0,50 |
+| `mantener-sobre` / `mantener-bajo` | 1 si cumple el umbral (`meta`), 0 si no | satisfacción ≥ 4 |
+| `binario` | 1 si `actual` es sí, hecho, 1 o 100 %; 0 si no | certificación obtenida |
+| `hito` | proporción (ponderada por `peso`) de iniciativas `IN-n` completadas; sin iniciativas, `actual` como % | pago en línea publicado |
+
+- **Objetivo** = promedio **ponderado** por `peso` (defecto 1) de sus KR con dato.
+- **Semáforo**: aspiracional (defecto) ≥ 0,7 verde · 0,4–0,69 ámbar · < 0,4 rojo; comprometido ≥ 1,0 verde · 0,7–0,99 ámbar · < 0,7 rojo. Convenciones difundidas de la práctica OKR (la guía de Google re:Work considera sana la zona 0,6–0,7 en metas aspiracionales y espera 1,0 de las comprometidas), **no** reglas de PRINCE2 ni del PMBOK. `--umbrales verde,ambar` cambia el par aspiracional; declararlo en el informe. Fuente: https://rework.withgoogle.com/en/guides/set-goals-with-okrs
+- **Salud** (independiente del semáforo): compara la puntuación con el avance esperado lineal entre `fecha_inicio` (del KR, de su objetivo o del primer check-in) y `fecha_meta` a la fecha de corte: `en-camino` (≥ esperado − 0,10), `en-riesgo` (≥ esperado − 0,25), `desviado`. Para binarios y mantener: `en-camino` si cumple; si no, `en-riesgo` antes de la fecha meta y `desviado` después. Un comprometido en rojo a mitad de ciclo puede estar `en-camino`.
+- **Confianza** 1–10 del responsable: 1–3 rojo, 4–6 ámbar, 7–10 verde (criterio del paquete para alinear con herramientas que usan rojo/amarillo/verde).
+- **Check-ins** (`okr_checkins.csv`, junto a `okr.csv`): `okr.py <csv> --checkin KR-1.1 --valor 900 --confianza 7 --nota … --autor ST-001 [--fecha …]`. Solo se agregan (uno por KR y fecha); el `actual` usado es el último check-in con fecha ≤ corte y, si no hay, la columna `actual`. La tabla Markdown incluye el historial.
+- **Historia de los KR de hito**: las iniciativas guardan su estado actual, no su historia; al puntuar un corte pasado se usa el estado de hoy. Para la tendencia de un hito, registrar check-ins con el % de avance o leer la tendencia en los cortes ya publicados.
+- **Cascada**: `padre_id` de un objetivo apunta a otro `O-n` (o a un `OBJ-n` del business case); la salida ordena padres antes que hijos (↳).
+- **Avisos de calidad** además de los de v2.1: enunciado que empieza con verbo de actividad (realizar, ayudar, analizar…), responsable fuera del maestro, `tipo_kr`/`compromiso`/`peso` inválidos, iniciativa sin KR o sin vínculo a épica, historia o paquete, KR de hito sin iniciativas, check-in de un KR inexistente y todos los KR aspiracionales en 1,0 al cierre (metas posiblemente poco ambiciosas).
+- Este semáforo no sustituye al de tolerancias de `evm.py`: uno mide resultados de negocio; el otro, desempeño del plan. `--json` alimenta el tablero de `pm-visuales`.
+- Con `okr.csv` de v2.1 (sin columnas nuevas ni check-ins) la salida es idéntica a la de v2.1.
 
 ## §5. Cadencia de revisión
 | Momento | Qué se hace | Quién | Dónde queda |
@@ -54,11 +68,21 @@ Antipatrones y su corrección:
 | Cierre (CP) | Estado final; KR pendientes pasan al plan de revisión de beneficios | gestor + usuario sénior | `04-cierre/plan-revision-beneficios.md` |
 | Revisiones post-proyecto | Medición real de KR y beneficios | capa de negocio / usuario sénior | fuera del proyecto; el plan indica quién |
 
-## §6. Tability (opcional) vía pm-integraciones
-- Capacidad `okr`. Detectar herramientas con indicio `tability` en la sesión; leer su descripción real.
-- Lectura: objetivos, KR y último check-in → instantánea `03-control/fuentes/tability-AAAA-MM-DD.csv` con columnas `clave,tipo,titulo,actual,meta,actualizado,url` → conciliar por título o por `notas=tability:<clave>` y actualizar `actual`.
-- Escritura (crear KR o check-in): solo con vista previa y confirmación explícita; en subagente, devolverla como decisión humana.
-- Sin Tability: `okr.csv` es la única fuente; puede exportarse con `pm-exportar`.
+## §6. Tability o Perdoo (opcional) vía pm-integraciones
+- Ambas tienen **servidor MCP oficial** (verificado el 17/10/2026): Tability `https://mcp.tability.app/mcp` (también
+  `mcp-eu.tability.app/mcp` y `mcp-au.tability.app/mcp`; OAuth; requiere "API access" habilitado para el usuario; escribe
+  check-ins con `tability_create_checkin`) — https://guides.tability.io/docs/become-a-tability-power-user/integrations/tability-mcp-server ;
+  Perdoo `https://mcp.perdoo.com` (OAuth o API key; registra progreso con `update_goal_progress`: valor, estado y nota) —
+  https://support.perdoo.com/en/articles/14470891-mcp-server . El plan comercial que habilita cada uno: [verificar].
+- `estado.json.integraciones.okr = tability|perdoo`. Cada KR lleva `ref_externa` (`tability:<id>` o `perdoo:<id>`).
+- **Publicar** (escritura): `okr.py <csv> --propuesta-sync tability|perdoo` lista los check-ins sin publicar con la
+  herramienta a usar y la confianza traducida (Tability: red/yellow/green); vista previa y confirmación explícita →
+  el agente publica con la herramienta MCP → `okr.py <csv> --marcar-publicado KR-1.1@2027-01-05 --destino tability --ref <id>`.
+- **Leer**: instantánea `03-control/fuentes/<herramienta>-AAAA-MM-DD.csv` con `clave,tipo,titulo,actual,meta,actualizado,url`
+  → registrar el valor como check-in con `--fuente tability|perdoo`.
+- `okr.csv` y `okr_checkins.csv` siguen siendo la fuente; sin herramienta conectada, todo funciona igual.
+- Atlassian Goals y Asana Goals no se exponían por sus MCP oficiales al 17/10/2026 (solo API) [verificar]; Microsoft Viva Goals se retiró
+  el 31/12/2025 (https://learn.microsoft.com/viva/goals/goals-retirement).
 
 ## §7. Con BMAD
 - Las métricas de éxito SM-n del PRD son candidatas naturales a KR de producto. No se copian: se citan.

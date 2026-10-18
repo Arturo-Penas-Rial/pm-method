@@ -3,7 +3,7 @@ from playwright.sync_api import sync_playwright
 from PIL import Image
 OUT = pathlib.Path(sys.argv[2] if len(sys.argv) > 2 else "qa-html"); OUT.mkdir(exist_ok=True)
 for f in OUT.glob("*.png"): f.unlink()
-url = "file://" + str(pathlib.Path(sys.argv[1] if len(sys.argv) > 1 else "salida-v2.1/informe-2-ecosistema-pm-method-v2.1.html").resolve())
+url = "file://" + str(pathlib.Path(sys.argv[1] if len(sys.argv) > 1 else "salida-v2.2/informe-2-ecosistema-pm-method-v2.2.html").resolve())
 JS = """() => { const d=document.documentElement; const malos=[...document.querySelectorAll('body *')].filter(el=>{const r=el.getBoundingClientRect(); return r.right>d.clientWidth+1 && !el.closest('.scroll,.diag-in,pre')}).slice(0,8).map(el=>el.tagName+'.'+el.className+' '+(el.id||'')+' '+Math.round(el.getBoundingClientRect().right)); return {sw:d.scrollWidth, cw:d.clientWidth, h:d.scrollHeight, desbordes:malos} }"""
 with sync_playwright() as p:
     b = p.chromium.launch()

@@ -7,7 +7,7 @@
 - Con Bash se bloquean las mismas escrituras directas (redirecciones, tee, sed -i, cp/mv/rm hacia esos destinos, escrituras
   Python en línea), salvo que el comando sea uno de los scripts del paquete (estado.py, registro.py, bmad.py…).
 - Subagentes pm-*: no escriben en carpetas de BMAD. Nadie salvo pm-director (ni el hilo principal ni otros subagentes)
-  ejecuta estado.py puerta/rol/tolerancia/agil/umbrales-riesgo/cumplir-condiciones, limite-etapa --excepcion, set --forzar ni
+  ejecuta estado.py puerta/rol/tolerancia/presupuesto/agil/umbrales-riesgo/cumplir-condiciones, limite-etapa --excepcion, set --forzar ni
   aprobar de nivel superior a gestor. (Los comandos que la persona escribe en su propia terminal no pasan por el hook.)
 El hilo principal puede escribir en BMAD porque los flujos del propio BMAD lo hacen.
 Salida: JSON con permissionDecision "deny" y el motivo; sin salida = sin decisión. Ante cualquier error propio, no decide.
@@ -15,9 +15,11 @@ Salida: JSON con permissionDecision "deny" y el motivo; sin salida = sin decisi�
 import json, os, re, shlex, sys
 
 DERIVADOS = ("spec-index.json", "requisitos-bmad.csv", "matriz-trazabilidad-bmad.csv", "inventario-bmad.json", "avance-bmad.csv")
-REGISTROS = ("riesgos.csv", "issues.csv", "cambios.csv", "decisiones.csv", "supuestos.csv", "lecciones.csv", "stakeholders.csv", "calidad.csv", "acciones.csv")
+REGISTROS = ("riesgos.csv", "issues.csv", "cambios.csv", "decisiones.csv", "supuestos.csv", "lecciones.csv", "stakeholders.csv", "calidad.csv", "acciones.csv",
+             "estereotipos.csv", "preferencias.csv", "raci.csv", "envios.csv")
 BMAD = ("_bmad", "_bmad-output", ".bmad-core")
-SCRIPTS = ("estado.py", "registro.py", "bmad.py", "nuevo_proyecto.py", "sanidad.py", "especificacion.py", "paquete.py", "exportar.py", "puertas.py")
+SCRIPTS = ("estado.py", "registro.py", "bmad.py", "nuevo_proyecto.py", "sanidad.py", "especificacion.py", "paquete.py", "exportar.py", "puertas.py",
+           "interesados.py", "envios.py")
 
 def negar(motivo):
     print(json.dumps({"hookSpecificOutput": {"hookEventName": "PreToolUse", "permissionDecision": "deny",
@@ -62,7 +64,7 @@ def destinos_bash(cmd):
     for m in re.finditer(r"open\(\s*['\"]([^'\"]+)['\"]\s*,\s*['\"][wa]", cmd): d.append(m.group(1))
     return d
 
-RESERVADOS = ("puerta", "rol", "tolerancia", "agil", "cumplir-condiciones", "umbrales-riesgo")
+RESERVADOS = ("puerta", "rol", "tolerancia", "presupuesto", "agil", "cumplir-condiciones", "umbrales-riesgo")
 
 def subcomandos_estado(cmd, script="estado.py"):
     """Para cada invocación de `script` (estado.py, puertas.py) en el comando: (subcomando, argumentos restantes)."""

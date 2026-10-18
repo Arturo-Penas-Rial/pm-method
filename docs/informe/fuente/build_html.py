@@ -1,4 +1,4 @@
-"""Informe 2 · HTML. Uso: python3 build_html.py  (lee data.json y diagramas/; escribe salida-v2.1/informe-2-ecosistema-pm-method-v2.1.html)"""
+"""Informe 2 · HTML. Uso: python3 build_html.py  (lee data.json y diagramas/; escribe salida-v2.2/informe-2-ecosistema-pm-method-v2.2.html)"""
 import json, base64, html, pathlib, os, re, unicodedata
 
 AQUI = pathlib.Path(__file__).resolve().parent
@@ -8,8 +8,8 @@ X = D["x"]
 Mt = D["meta"]
 e = html.escape
 LOGO = ("data:image/png;base64," + base64.b64encode(open("logo.png", "rb").read()).decode()) if os.path.exists("logo.png") else ""
-SALIDA = "salida-v2.1/informe-2-ecosistema-pm-method-v2.1.html"
-pathlib.Path("salida-v2.1").mkdir(exist_ok=True)
+SALIDA = "salida-v2.2/informe-2-ecosistema-pm-method-v2.2.html"
+pathlib.Path("salida-v2.2").mkdir(exist_ok=True)
 
 
 # ---------- Markdown mínimo (inline + bloques) ----------

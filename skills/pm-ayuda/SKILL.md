@@ -3,7 +3,7 @@ name: pm-ayuda
 description: "Ayuda de pm-method: qué escribir en cada situación, lista de skills y comandos, ciclo de vida y carpetas. Uso manual: /pm-ayuda [tema]. Help: commands, skills, life cycle."
 disable-model-invocation: true
 argument-hint: "[tema / topic]"
-version: 2.1.0
+version: 2.2.0
 author: pm-method
 license: MIT
 metadata:
@@ -40,11 +40,13 @@ Ninguna. Si hay `estado.json`, agregar al final la salida de `estado.py siguient
    | Informe a la junta o al equipo | `/pm-reporte highlight` · `checkpoint` · `excepcion` |
    | Preparar una decisión de junta | `/pm-puerta autorizar-etapa` (u otra puerta) |
    | Traer datos de Jira/BMAD/Tability | `/pm-sync` |
+   | Interesados, matriz poder/interés, RACI | pedirlo en lenguaje natural (`pm-interesados`) |
+   | Enviar un comunicado o informe a interesados | pedirlo en lenguaje natural: borradores por perfil, aprobación y envío por correo, Slack, Teams o `.eml` (`pm-comunicacion-stakeholders` + `pm-integraciones`) |
    | Cualquier otra cosa | pedirlo en lenguaje natural o `/pm-orquestador` |
 2. Formas de invocar: plugin `/pm-method:<skill>`; instalación manual y Hermes `/<skill>`. Agente de hilo principal: `claude --agent pm-method:pm-orquestador`.
 3. **Skills** (todas invocables como comando):
    - Dirección: pm-orquestador, pm-direccion-decisiones, pm-estado-proyecto.
-   - Inicio: pm-mandato-y-brief, pm-caso-de-negocio, pm-okr, pm-organizacion-roles, pm-enfoques-gestion, pm-acta-constitucion.
+   - Inicio: pm-mandato-y-brief, pm-caso-de-negocio, pm-okr, pm-organizacion-roles, pm-interesados, pm-enfoques-gestion, pm-acta-constitucion.
    - Planificación: pm-planificacion-por-productos, pm-cronograma-estimacion, pm-costos-presupuesto, pm-plan-etapa-y-limites, pm-agil-hibrido, pm-adquisiciones.
    - Control: pm-paquetes-trabajo, pm-registros, pm-riesgos, pm-issues-cambios, pm-progreso-reportes, pm-calidad, pm-comunicacion-stakeholders, pm-reuniones, pm-visuales.
    - Cierre: pm-cierre-proyecto, pm-lecciones-aprendidas.

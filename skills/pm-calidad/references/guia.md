@@ -52,6 +52,20 @@ Estructura propuesta por el paquete (compatible con el método; la fuente no la 
 ## 8. Calidad en ágil o híbrido
 Definición de listo y de hecho en el enfoque de calidad; criterios de aceptación por historia como condición de terminado; prototipos, pruebas automatizadas y A/B como métodos; una fila de `calidad.csv` por incremento o historia significativa (no por tarea); la revisión de la iteración actúa como revisión de calidad y la demo como evidencia de aceptación, registrada con nombre y fecha (`demostracion`). La revisión/demo es además un evento de comunicación (`pm-comunicacion-stakeholders`; su acta, `pm-reuniones`).
 
+### 8.1 Calidad a volumen (control permanente)
+Con decenas de historias `done`, en la práctica nadie verifica una por una que tengan su revisión: se descubre en la
+aceptación o en producción. La sanidad lo controla en cada corrida (`sanidad.py --proyecto <dir> --corte AAAA-MM-DD`):
+- **QUA-01** (AVISO): cada elemento de `02-planificacion/backlog.csv` en estado terminado (`done`, terminado, hecho,
+  completado, cerrado, aceptado) necesita una fila de `calidad.csv` que lo cite en `producto`, `criterios` o `notas`
+  (por id completo o por la clave corta `N-M`, p. ej. "historia 1-3") con `estado=completada` y resultado `aprobado` o
+  `aprobado-con-observaciones`. Sin fila: "terminado sin revisión"; con fila sin aprobar: "terminado con revisión … sin
+  aprobar".
+- **QUA-02** (AVISO): revisión `planificada` o `en-curso` con `fecha_prevista` anterior al corte (típico: la prueba
+  prometida para cumplir una condición de puerta).
+- **QUA-03** (AVISO): revisión `rechazado` sin issue, acción o cambio que cite su Q-### → `pm-issues-cambios`
+  (fuera de especificación) o acción correctiva con `origen=Q-nnn`.
+- Corrección en lote: una fila por historia, citándola en `producto` (`registro.py agregar calidad --campo "producto=Release 1 · historia 1-3 …" --campo resultado=aprobado --campo estado=completada …`), con el aprobador que corresponda. El control no aprueba nada: señala lo que falta.
+
 ## 9. Columnas de `calidad.csv`
 `id` (Q-nnn, quality id) · `producto` · `metodo_verificacion` (quality method) · `criterios` · `responsable_productor` (producer) · `revisores` (separados por `;`) · `aprobador` (acceptance authority) · `fecha_prevista` · `fecha_real` · `resultado` (`aprobado`, `aprobado-con-observaciones`, `rechazado`, `pendiente`) · `estado` (`planificada`, `en-curso`, `completada`, `cancelada`) · `notas` (ubicación de la evidencia).
 

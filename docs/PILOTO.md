@@ -1,4 +1,4 @@
-# Plan de piloto · pm-method 2.1
+# Plan de piloto · pm-method 2.2
 
 Cómo pasar de "probado en laboratorio" a "útil en un proyecto real" con evidencia medible, sin poner en riesgo el
 proyecto. EN: *pilot plan with metrics, expert review rubric and usability test.*
@@ -30,9 +30,9 @@ proyecto. EN: *pilot plan with metrics, expert review rubric and usability test.
 
 | Fase | Semana | Actividades | Criterio para avanzar |
 |---|---|---|---|
-| 0 · Instalación | 1 | instalar desde GitHub en el equipo del líder; correr la lista de aceptación de [PRUEBAS §6](PRUEBAS.md); en Windows verificar que el resumen de inicio aparece y que una edición manual de `estado.json` queda bloqueada | 12/12 puntos de la lista o desvíos explicados |
+| 0 · Instalación | 1 | instalar desde GitHub en el equipo del líder; correr la lista de aceptación de [PRUEBAS §6](PRUEBAS.md); en Windows verificar que el resumen de inicio aparece y que una edición manual de `estado.json` queda bloqueada | 13/13 puntos de la lista o desvíos explicados |
 | 1 · Arranque | 1 | `pm-nuevo`; cargar mandato, roles, riesgos conocidos; conectar BMAD si existe; elegir 3 productos a comparar (p. ej. highlight, registro de riesgos, plan de etapa) | carpeta del proyecto con sanidad 0 ERROR |
-| 2 · Uso semanal | 2–4 | cada semana: actas de reuniones, actualización de registros, highlight, sanidad; una puerta si corresponde | registro semanal completo (§4) |
+| 2 · Uso semanal | 2–4 | cada semana: actas de reuniones, actualización de registros, highlight, sanidad; una puerta si corresponde; si se usan (v2.2): check-ins de OKR (`okr.py --checkin`) y el comunicado semanal por la capa de canales, empezando por `.eml` o simulación antes de enviar de verdad ([INTEGRACIONES §3.2](INTEGRACIONES.md)) | registro semanal completo (§4) |
 | 3 · Evaluación | 4 | revisión experta (§5), usabilidad (§6), costo, retrospectiva; decisión de adopción | informe de piloto con decisión |
 
 ## 4. Métricas (registro semanal)

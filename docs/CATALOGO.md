@@ -1,6 +1,6 @@
-# Catálogo de pm-method 2.1.0 · Agents and skills catalog
+# Catálogo de pm-method 2.2.0 · Agents and skills catalog
 
-Referencia de los 6 agentes, las 37 skills (31 que el modelo puede activar solo y 6 comandos de uso humano) y los scripts del paquete. Todo lo que figura aquí sale de `SPEC.md`, de `agents/*.md` y del frontmatter y cuerpo de cada `skills/*/SKILL.md`. Si algo de este catálogo contradice esos archivos, mandan ellos.
+Referencia de los 6 agentes, las 38 skills (32 que el modelo puede activar solo y 6 comandos de uso humano) y los scripts del paquete. Todo lo que figura aquí sale de `SPEC.md`, de `agents/*.md` y del frontmatter y cuerpo de cada `skills/*/SKILL.md`. Si algo de este catálogo contradice esos archivos, mandan ellos.
 
 ## 1. Cómo leer este catálogo
 
@@ -12,7 +12,7 @@ Referencia de los 6 agentes, las 37 skills (31 que el modelo puede activar solo 
 
 **Invocación.** Toda skill es invocable como comando: `/pm-method:<skill>` dentro del plugin, `/<skill>` en instalación manual y en Hermes Agent. El orquestador también corre como agente de hilo principal: `claude --agent pm-method:pm-orquestador`.
 
-**Rutas de scripts (SPEC §1.10.1).** `<pm-estado-proyecto>/scripts/x.py` es la carpeta instalada de esa skill: en el plugin, `${CLAUDE_PLUGIN_ROOT}/skills/pm-estado-proyecto/scripts/`; en instalación manual, `~/.claude/skills/pm-estado-proyecto/scripts/`; en Hermes, `~/.hermes/skills/pm-estado-proyecto/scripts/`. Todos los scripts aceptan la carpeta del proyecto con `--proyecto <dir>` (o como argumento posicional en `wbs.py`, `cpm.py`, `okr.py` y `transcripcion.py`, que reciben un archivo).
+**Rutas de scripts (SPEC §1.10.1).** `<pm-estado-proyecto>/scripts/x.py` es la carpeta instalada de esa skill: en el plugin, `${CLAUDE_PLUGIN_ROOT}/skills/pm-estado-proyecto/scripts/`; en instalación manual, `~/.claude/skills/pm-estado-proyecto/scripts/`; en Hermes, `~/.hermes/skills/pm-estado-proyecto/scripts/`. Todos los scripts aceptan la carpeta del proyecto con `--proyecto <dir>` (o como argumento posicional en `wbs.py`, `cpm.py`, `okr.py` y `transcripcion.py`, que reciben un archivo). `interesados.py`, `envios.py` y `riesgos.py` usan `--proyecto <dir>`.
 
 **Fachada de especificación (SPEC §1.16).** Ninguna skill abre archivos de BMAD ni `requisitos.md` para sacar datos. Todas consultan `especificacion.py` (contrato `pm-spec-index/1`), que con BMAD delega en `bmad.py` y sin BMAD lee `requisitos.md`, `backlog.csv` y `wbs.csv`. En cada ficha, la línea "Lee de la fachada" indica qué consulta esa skill.
 
@@ -37,9 +37,9 @@ Los seis comandos llevan `disable-model-invocation: true`: el modelo no los acti
 |---|---|---|---|---|
 | `pm-orquestador` | Hilo principal (`model: inherit`, sin `disallowedTools`) | Único que conversa con el usuario: lee el estado, clasifica la petición, delega, hace las preguntas y presenta las decisiones humanas. | SU, DP, IP, CS, MP, SB, CP (coordina) | Ninguna propia: presenta todas al humano |
 | `pm-director` | Subagente (`disallowedTools: Agent`) | Representa el nivel de dirección: prepara solicitudes de decisión y es el **único agente que ejecuta `estado.py puerta` y `estado.py aprobar`**, siempre después de una decisión humana con nombre y rol. | DP (y SB, CP en lo que toca a la junta) | Compone la solicitud de todas; registra todas |
-| `pm-inicio` | Subagente | Lleva el proyecto del mandato a quedar listo para autorizar. | SU, IP | `autorizar-inicio`; `autorizar-proyecto` + `autorizar-etapa` (etapa 2) |
+| `pm-inicio` | Subagente | Lleva el proyecto del mandato a quedar listo para autorizar (incluye maestro de interesados y RACI). | SU, IP | `autorizar-inicio`; `autorizar-proyecto` + `autorizar-etapa` (etapa 2) |
 | `pm-planificacion` | Subagente | Planificación basada en productos y técnicas de estimación, programación y costeo. | Plans; IP, SB | Insumos de `autorizar-inicio`, `autorizar-proyecto`, `autorizar-etapa`, `autorizar-plan-excepcion`; opciones para `decision-ad-hoc` |
-| `pm-control` | Subagente | Mantiene la etapa dentro de tolerancias: paquetes, registros, informes, calidad, actas, sincronización; prepara excepciones. | CS, MP | Informe de excepción (insumo de `decision-ad-hoc`) |
+| `pm-control` | Subagente | Mantiene la etapa dentro de tolerancias: paquetes, registros, informes, calidad, actas, preferencias declaradas, check-ins de OKR, comunicación personalizada y envío, sincronización; prepara excepciones. | CS, MP | Informe de excepción (insumo de `decision-ad-hoc`) |
 | `pm-cierre` | Subagente | Cierre ordenado, planificado o prematuro. | CP | `autorizar-cierre` |
 
 Ningún agente declara `tools`: heredan todas las herramientas de la sesión, incluidos los MCP que se conecten después. La organización puede restringir con `disallowedTools`. Los subagentes no pueden preguntar al usuario (Claude Code les quita `AskUserQuestion`) y no delegan en otros subagentes. Invocan skills por demanda; no las precargan.
@@ -74,8 +74,8 @@ El orquestador verifica *Hecho* con `estado.py ver` (ninguna puerta registrada f
 - **Hermes:** tarjetas Kanban "puerta" y "excepción" con aprobación humana obligatoria.
 
 #### pm-inicio
-- **SU:** pm-estado-proyecto (`nuevo_proyecto.py`, `siguiente`) → pm-bmad-puente (`detectar`, `inventario`) → pm-mandato-y-brief → pm-organizacion-roles → pm-caso-de-negocio (esquemático, OBJ-n y B-nn) → pm-riesgos (iniciales) → pm-plan-etapa-y-limites (`plan-etapa-1.md`).
-- **IP:** pm-enfoques-gestion → pm-adquisiciones (si hay proveedores) → planes con pm-planificacion (lo coordina el orquestador) → pm-caso-de-negocio (completo y enfoque de beneficios) → pm-okr → pm-acta-constitucion (PID) → pm-comunicacion-stakeholders (matriz y kickoff) → pm-integraciones (`estado.py integracion …`).
+- **SU:** pm-estado-proyecto (`nuevo_proyecto.py`, `siguiente`) → pm-bmad-puente (`detectar`, `inventario`) → pm-mandato-y-brief → pm-organizacion-roles → pm-interesados (maestro, matriz poder/interés, estereotipos) → pm-caso-de-negocio (esquemático, OBJ-n y B-nn) → pm-riesgos (iniciales) → pm-plan-etapa-y-limites (`plan-etapa-1.md`).
+- **IP:** pm-enfoques-gestion → pm-adquisiciones (si hay proveedores) → planes con pm-planificacion (lo coordina el orquestador) → pm-caso-de-negocio (completo y enfoque de beneficios) → pm-okr → pm-interesados (RACI sobre WBS, requisitos, épicas y KR; reporte; `integridad` sin ERROR) → pm-acta-constitucion (PID) → pm-comunicacion-stakeholders (matriz y kickoff) → pm-integraciones (`estado.py integracion …`).
 - **Entrega a pm-director:** cada producto con `estado.py artefacto <clave> --ruta .. --estado en-revision` y la lista del paquete de puerta.
 - **Perfil ágil mínimo:** brief ligero + visión, business case de una página, estructura con PO, enfoques en una página, backlog priorizado en lugar de PBS/WBS completa, release plan por etapas, DoD/DoR. Las puertas se mantienen.
 
@@ -85,7 +85,7 @@ El orquestador verifica *Hecho* con `estado.py ver` (ninguna puerta registrada f
 - **Prohibido:** `estado.py puerta`, `aprobar` y `tolerancia`.
 
 #### pm-control
-- **Bucle por período de informe:** pm-estado-proyecto (`ver`, `registro.py resumen --json`) → pm-integraciones (instantánea y conciliación) → pm-bmad-puente (`backlog`, `avance`, `verificar`) → pm-reuniones → pm-paquetes-trabajo → pm-registros, pm-riesgos, pm-issues-cambios → pm-calidad → pm-progreso-reportes (`evm.py` con tolerancias de etapa y proyecto) → pm-agil-hibrido → pm-comunicacion-stakeholders, pm-visuales, pm-exportar → pm-plan-etapa-y-limites (proponer `limite-etapa`). Scripts: `estado.py`, `registro.py`, `evm.py`, `bmad.py`, `transcripcion.py`, `okr.py`.
+- **Bucle por período de informe:** pm-estado-proyecto (`ver`, `registro.py resumen --json`) → pm-integraciones (instantánea y conciliación) → pm-bmad-puente (`backlog`, `avance`, `verificar`) → pm-reuniones (preferencias declaradas → pm-interesados) → pm-paquetes-trabajo → pm-registros, pm-riesgos, pm-issues-cambios → pm-calidad → pm-progreso-reportes (`evm.py` con tolerancias de etapa y proyecto) → pm-agil-hibrido → pm-okr (check-ins y salud), pm-comunicacion-stakeholders (versiones por perfil y envío por la capa de canales), pm-visuales, pm-exportar → pm-plan-etapa-y-limites (proponer `limite-etapa`). Scripts: `estado.py`, `registro.py`, `evm.py`, `bmad.py`, `transcripcion.py`, `okr.py`, `interesados.py`, `envios.py`.
 - **Excepción:** aviso temprano como borrador (envío = decisión humana); informe con la plantilla de pm-issues-cambios en `03-control/reportes/<fecha>-informe-excepcion-X-###.md`, `estado.py artefacto informe-excepcion-X-### --estado en-revision`, issue de origen `escalado`; derivar a pm-director. No ejecuta `limite-etapa --excepcion`.
 - **Hermes:** perfil natural para un cron diario (registros y acciones vencidas) y semanal (`/pm-sync`, `/pm-reporte highlight`, tablero).
 
@@ -119,7 +119,8 @@ Formato de cada ficha: **Produce** (artefactos y ruta), **PRINCE2** (procesos ·
 - **Produce:** informe `03-control/reportes/<fecha>-sanidad.md`; acciones A-### para los ERROR que requieren trabajo.
 - **PRINCE2:** DP, CS, SB, CP · progress, quality, issues.
 - **PMBOK como cómo:** auditoría de la información del proyecto.
-- **Plantillas:** ninguna. **Scripts:** `sanidad.py --proyecto <dir> [--rapido] [--informe] [--reparar] [--json]`. Familias de hallazgos: INS instalación, EST estado y puertas, ART artefactos, REG registros, ESP especificación y BMAD, INT integraciones. `--reparar` solo agrega columnas de esquema faltantes y reconstruye el índice.
+- **Plantillas:** ninguna. **Scripts:** `sanidad.py --proyecto <dir> [--rapido] [--informe] [--reparar] [--json] [--corte AAAA-MM-DD]`. Familias de hallazgos: INS instalación, EST estado y puertas, ART artefactos, REG registros, CAM cambios contra presupuestos, QUA calidad a volumen, TOL pronóstico contra tolerancias, ESP especificación y BMAD, STK maestro de interesados (incluida STK-12, cadencia de contacto), INT integraciones. `--corte` fija la fecha de los controles con vencimiento (REG-07, QUA-02, TOL, STK-12). `--reparar` solo agrega columnas de esquema faltantes y reconstruye el índice.
+- **Controles permanentes:** lo que en la práctica se revisa a mano, tarde o nunca: consumo del presupuesto de cambio y de la reserva de riesgo (CAM-03; ERROR > 100 % bloquea puertas), cambios sobre el límite delegado (CAM-04), historias terminadas sin revisión de calidad (QUA-01), pronóstico de EVM fuera de tolerancia sin excepción (TOL-01), condiciones de puertas abiertas (EST-12) e interesados sin contacto en su frecuencia (STK-12). Detalle en `docs/SANIDAD.md` §2.1.
 - **Lee de la fachada:** comprueba ids entre capas, cobertura, líneas base contra especificación (ESP-10 = cambio no controlado) y traspasos pendientes.
 - **Usar:** sanidad, chequeo, consistencia, doctor, health check, auditoría del proyecto. **No:** auditoría de calidad de productos→pm-calidad.
 
@@ -157,28 +158,31 @@ Ver §2. Metadatos: pm-ayuda (transversal, todos los procesos), pm-nuevo (inicio
 - **PRINCE2:** DP, SB, CS, CP · business-case, organizing, plans, issues, progress.
 - **PMBOK como cómo:** análisis de alternativas, análisis multicriterio, árbol de decisión con EMV, guardarraíles de IA.
 - **Plantillas:** `solicitud-puerta.md`, `tolerancias-y-autoridad.md`, `evaluacion-excepcion.md`, `acta-decision-junta.md`.
-- **Scripts:** `estado.py puerta|aprobar|tolerancia|rol|limite-etapa|cierre|cumplir-condiciones`, `registro.py`, `paquete.py listar`, `bmad.py verificar|linea-base`.
+- **Scripts:** `estado.py puerta|aprobar|tolerancia|presupuesto|rol|limite-etapa|cierre|cumplir-condiciones`, `registro.py`, `paquete.py listar`, `puertas.py verificar|lista|confirmar|preparacion-bmad`, `bmad.py verificar|linea-base`.
+- **Presupuestos y condiciones:** la junta fija el presupuesto de cambio, la reserva de riesgo, la reserva de gestión y el límite por cambio de la autoridad delegada (`estado.py presupuesto cambio=… riesgo=… gestion=… limite_autoridad_cambio=… --por "Ejecutiva: …"`); con `condicionado`, los hallazgos de tipo condición de la verificación pasan a condiciones formales, que siguen abiertas (EST-12, G-01; G-01 bloquea `autorizar-cierre`) hasta `estado.py cumplir-condiciones <tipo> --fecha … --por … --nota …`.
 - **Lee de la fachada:** con BMAD, `bmad.py verificar` antes de la puerta (desvío = `solicitud-cambio`) y estado del PRD y épicas que exige la puerta.
 - **Usar:** aprobar etapa, autorizar proyecto, junta, excepción, board decision, stage gate. **No:** anotar riesgos o issues→pm-registros.
 
 #### pm-okr
-- **Produce:** `00-direccion/okr.csv` (O-n ligados a OBJ-n; KR-n.m ligados a B-nn o SM-n), `00-direccion/okr.md`, tabla puntuada `03-control/reportes/<fecha>-okr.md`, instantánea `03-control/fuentes/tability-AAAA-MM-DD.csv` si hay Tability.
+- **Produce:** `00-direccion/okr.csv` (O-n ligados a OBJ-n; KR-n.m ligados a B-nn o SM-n; desde 2.2, iniciativas IN-n ligadas a un KR y a una épica, historia o paquete), `00-direccion/okr_checkins.csv` (check-ins, solo se agregan), `00-direccion/okr.md`, tabla puntuada `03-control/reportes/<fecha>-okr.md`, instantánea `03-control/fuentes/tability-AAAA-MM-DD.csv` si hay Tability.
 - **PRINCE2:** SU, IP, DP, SB, CP · business-case, progress. No es un producto de gestión PRINCE2: lee e ilustra el business case.
 - **PMBOK como cómo:** indicadores clave de desempeño, medición de resultados, análisis de tendencias.
-- **Plantillas:** `okr.csv`, `okr.md`. **Scripts:** `okr.py <csv> [--plantilla] [--umbrales 0.7,0.4] [--corte AAAA-MM-DD] [--markdown <ruta>] [--json]`. Los umbrales son convención de la práctica OKR, no de PRINCE2 ni del PMBOK.
+- **Plantillas:** `okr.csv`, `okr.md`. **Scripts:** `okr.py <csv> [--plantilla] [--umbrales 0.7,0.4] [--corte AAAA-MM-DD] [--markdown <ruta>] [--json] [--interesados <ruta>]`; check-in: `okr.py <csv> --checkin KR --valor V [--confianza N] [--nota] [--autor] [--fecha] [--fuente]`; sincronización: `--propuesta-sync tability|perdoo [--json]` y `--marcar-publicado KR@FECHA --destino tability|perdoo --ref X`. Los umbrales son convención de la práctica OKR, no de PRINCE2 ni del PMBOK.
+- **v2.2 (retrocompatible):** columnas opcionales `tipo_kr` (`de-a`, `mantener-sobre`, `mantener-bajo`, `binario`, `hito`), `compromiso` (aspiracional o comprometido), `peso`, `padre_id`, `nivel`, `ciclo`, `fecha_inicio`, `estado`, `ref_externa`; semáforo aspiracional 0,7/0,4 y comprometido 1,0/0,7; salud en camino/en riesgo/desviado contra el avance esperado lineal; avisos si el responsable no figura en el maestro de interesados.
 - **Lee de la fachada:** métricas de éxito SM-n.
 - **Invocada también por:** pm-inicio (IP), pm-control (cortes), pm-planificacion (lectura en SB), pm-cierre (puntuación final).
-- **Usar:** OKR, objetivos y resultados clave, key results, puntuar OKR, Tability. **No:** beneficios o business case→pm-caso-de-negocio.
+- **Usar:** OKR, key results, check-in, puntuar OKR (también tipos de KR, salud, cascada, Tability o Perdoo). **No:** beneficios o business case→pm-caso-de-negocio.
 
 #### pm-comunicacion-stakeholders
-- **Produce:** matriz `02-planificacion/matriz-comunicaciones.md` (anexo operativo del enfoque de comunicación), comunicados `03-control/reportes/AAAA-MM-DD-comunicado-<tema>.md`, correos de seguimiento, canal y frecuencia en `stakeholders.csv`, envíos anotados en `diario.md`.
+- **Produce:** matriz `02-planificacion/matriz-comunicaciones.md` (anexo operativo del enfoque de comunicación), comunicados `03-control/reportes/AAAA-MM-DD-comunicado-<tema>.md`, correos de seguimiento, canal y frecuencia en `stakeholders.csv`; desde 2.2, mensajes por destinatario en `03-control/comunicaciones/<fecha>-<tema>/` según el perfil de cada interesado, enviados por la capa de canales (registro en `envios.csv` y `diario.md`).
 - **PRINCE2:** IP, DP, CS, SB, CP · organizing, progress.
 - **PMBOK como cómo:** análisis de requisitos de comunicación, matriz de involucramiento actual/deseado, métodos interactivo/empuje/atracción, poder-interés.
 - **Plantillas:** `matriz-comunicaciones.md`, `comunicado-por-audiencia.md`, `correo-seguimiento.md`.
-- **Scripts:** `registro.py actualizar stakeholders`, `estado.py artefacto`.
+- **Scripts:** `registro.py actualizar stakeholders`, `estado.py artefacto`; `interesados.py perfil|matriz|plan-envio` (pm-interesados); `envios.py nuevo|aprobar|enviar|preparar-mcp|registrar|historial` (pm-integraciones).
+- **Envío personalizado:** plan de envío → redacción → aprobación humana (`aprobar --por`) → envío con `--confirmar` (sin él, simulación). Los destinos salen siempre del maestro de interesados.
 - **Lee de la fachada:** no. Fuentes: `decisiones.csv`, informes y actas confirmadas de pm-reuniones.
 - **Invocada también por:** pm-inicio (matriz y kickoff), pm-control (versiones por audiencia), pm-cierre (notificación).
-- **Usar:** plan de comunicación, communication matrix, comunicado, status email, sprint review. **No:** actas→pm-reuniones; análisis o compromiso de interesados→pm-organizacion-roles.
+- **Usar:** plan de comunicación, comunicado, status email, enviar a interesados. **No:** actas→pm-reuniones; mapa, RACI o preferencias→pm-interesados.
 
 #### Comando asignado a pm-director: pm-puerta
 Ver §2. Metadatos: dirección; DP, SB, CP; business-case, plans, progress; produce `solicitud-<puerta>`.
@@ -206,14 +210,27 @@ Ver §2. Metadatos: dirección; DP, SB, CP; business-case, plans, progress; prod
 - **Usar:** caso de negocio, business case, ROI, VAN/NPV, payback, beneficios. **No:** OKR→pm-okr; presupuesto→pm-costos-presupuesto.
 
 #### pm-organizacion-roles
-- **Produce:** `00-direccion/estructura-organizativa.md`, `00-direccion/roles/descripcion-rol-<rol>.md`, `01-inicio/analisis-stakeholders.md` (restringido), `stakeholders.csv`, `02-planificacion/matriz-raci.md`, `01-inicio/team-charter.md`, `02-planificacion/plan-compromiso-stakeholders.md`.
+- **Produce:** `00-direccion/estructura-organizativa.md`, `00-direccion/roles/descripcion-rol-<rol>.md`, `01-inicio/team-charter.md`. Desde 2.2, el análisis de interesados, `stakeholders.csv`, la matriz RACI y el plan de compromiso pasaron a **pm-interesados**.
 - **PRINCE2:** SU, IP, SB · organizing.
-- **PMBOK como cómo:** análisis de interesados, cuadrícula poder/interés, matriz RACI, acta del equipo, matriz de evaluación del compromiso.
-- **Plantillas:** `estructura-organizativa.md`, `descripcion-rol.md`, `analisis-stakeholders.md`, `matriz-raci.md`, `team-charter.md`, `plan-compromiso-stakeholders.md`.
-- **Scripts:** `estado.py rol …`, `estado.py agil cadencia_iteracion_dias=<n>`, `registro.py agregar stakeholders`.
+- **PMBOK como cómo:** diseño organizacional, acta del equipo.
+- **Plantillas:** `estructura-organizativa.md`, `descripcion-rol.md`, `team-charter.md`.
+- **Scripts:** `estado.py rol …`, `estado.py agil cadencia_iteracion_dias=<n>`.
 - **Lee de la fachada:** no. Mapea roles ágiles y de BMAD a los del método (el PM de BMAD no es el gestor del proyecto).
-- **Puertas humanas internas:** el ejecutivo confirma diseño y nombramientos; el usuario revisa las actitudes antes de guardarlas.
-- **Usar:** junta, roles, RACI, interesados, stakeholders, engagement plan, team charter. **No:** plan de comunicación→pm-comunicacion-stakeholders.
+- **Puertas humanas internas:** el ejecutivo confirma diseño y nombramientos.
+- **Usar:** junta, roles, descripción de rol, team charter, mapear roles ágiles o BMAD. **No:** interesados o RACI→pm-interesados; plan de comunicación→pm-comunicacion-stakeholders.
+
+#### pm-interesados
+- **Produce:** maestro de interesados `03-control/registros/stakeholders.csv` (dueña), `estereotipos.csv`, `preferencias.csv` y `raci.csv` (registros opcionales, se crean al primer uso); `01-inicio/analisis-stakeholders.md` (restringido), `02-planificacion/matriz-raci.md`, `02-planificacion/plan-compromiso-stakeholders.md`, entrevistas en `01-inicio/entrevistas/` (restringido), reporte HTML `03-control/reportes/<fecha>-interesados.html` (`reporte-interesados`) y planes de envío en `03-control/comunicaciones/<fecha>-<tema>/`.
+- **PRINCE2:** SU, IP, CS, SB, CP · organizing, progress.
+- **PMBOK como cómo:** análisis de interesados, cuadrícula poder/interés, matriz RACI, matriz de evaluación del compromiso, entrevistas.
+- **Plantillas:** `analisis-stakeholders.md`, `matriz-raci.md`, `plan-compromiso-stakeholders.md` (movidas desde pm-organizacion-roles), `entrevista-interesado.md` (nueva). Guía `references/guia.md` §1–§12.
+- **Scripts:** `interesados.py --proyecto <dir> [--medio alto|bajo] matriz|estereotipos|proponer|confirmar|rechazar|perfil|raci|vinculos|integridad|reporte|plan-envio` (sintaxis en §5.2); `registro.py agregar|actualizar stakeholders|preferencias|raci`; `estado.py artefacto`.
+- **Matriz y estrategia:** poder (autoridad real, recursos, aprobar o vetar) × interés (involucramiento, preocupación o impacto) → gestionar de cerca, mantener satisfecho, mantener informado, monitorear; "medio" va del lado alto y se marca frontera.
+- **Perfil de comunicación:** cuadrante → idioma del proyecto → estereotipo → matriz de comunicaciones → preferencias confirmadas y vigentes. Las preferencias se proponen desde entrevistas, actas o transcripciones (solo oraciones en primera persona, con cita y fuente) y una persona las confirma; no se infieren emociones, personalidad ni datos sensibles.
+- **Lee de la fachada:** requisitos, épicas e historias como elementos RACI (también `wbs.csv`, `actividades.csv`, `okr.csv`, `decisiones.csv`).
+- **Puertas humanas internas:** valoraciones de poder, interés y actitud; confirmación o rechazo de preferencias (`confirmar --por`); asignación de estereotipos.
+- **Invocada también por:** pm-control (preferencias declaradas en actas, pm-reuniones paso 7b), pm-comunicacion-stakeholders (`perfil`, `plan-envio`). Sanidad: familia STK (`integridad`), incluida **STK-12** (compromiso sostenido: último contacto registrado en `envios.csv` contra la frecuencia del perfil, tolerancia 1,5 ×; reuniones y llamadas como envío manual); frecuencias `diaria`, `semanal`, `quincenal`, `mensual` y `trimestral`; puertas: avisos P-09 y P-10 en `autorizar-proyecto`.
+- **Usar:** interesados, stakeholders, RACI, poder/interés, preferencias. **No:** enviar comunicados→pm-comunicacion-stakeholders.
 
 #### pm-enfoques-gestion
 - **Produce:** en `02-planificacion/enfoques/`: enfoques de calidad, riesgo, issues y cambios, comunicación, datos y tecnología digital, controles de sostenibilidad, y planes subsidiarios de alcance y requisitos, cronograma y costos, recursos y adquisiciones.
@@ -260,6 +277,7 @@ Ver §2. Metadatos: dirección; DP, SB, CP; business-case, plans, progress; prod
 - **Plantillas:** `hoja-costeo.md`, `presupuesto.md`, `linea-base-costo.csv`.
 - **Scripts:** `wbs.py 02-planificacion/wbs.csv` (consolidación), `exportar.py xlsx`, `evm.py --modo agil --pct-no-must` (lectura ágil).
 - **Regla de reservas (SPEC §1.10.6):** BAC = Σ paquetes base + contingencia; reserva de gestión fuera del BAC; presupuesto autorizado = BAC + reserva de gestión.
+- **Presupuestos de la junta:** los montos que la junta fija para el presupuesto de cambio, la reserva de riesgo, la reserva de gestión y el límite de la autoridad de cambio se registran en `estado.json` → `presupuestos` (lo hace pm-director con `estado.py presupuesto`); sanidad CAM-03 vigila su consumo desde `cambios.csv` (`costo`, `cargo`).
 - **Lee de la fachada:** épicas e historias por release.
 - **Usar:** costear, presupuesto, BAC, contingencia, reserva de gestión, budget, cost baseline. **No:** business case→pm-caso-de-negocio.
 
@@ -323,8 +341,8 @@ Ver §2. Metadatos: dirección; DP, SB, CP; business-case, plans, progress; prod
 - **PRINCE2:** SU, IP, CS, MP, SB, CP · risk, business-case, progress.
 - **PMBOK como cómo:** matriz probabilidad-impacto, valor monetario esperado, árbol de decisiones, Monte Carlo, pre-mortem, auditoría de riesgos.
 - **Plantillas:** `evaluacion-probabilidad-impacto.md`, `hoja-riesgo.md`, `informe-riesgos.md`, `auditoria-riesgos.md`.
-- **Scripts:** `registro.py agregar|actualizar riesgos` (recalcula P×I y EMV), `registro.py resumen --json`.
-- **Lee de la fachada:** AD-n, NFR y preguntas abiertas del PRD, citados por id como fuente de riesgo.
+- **Scripts:** `riesgos.py candidatos` (riesgos candidatos desde BMAD, transcripciones, la instantánea del tracker y los artefactos; borrador en `03-control/reportes/<fecha>-candidatos-riesgo.md`), `registro.py agregar|actualizar riesgos` (recalcula P×I y EMV), `registro.py resumen --json`.
+- **Lee de la fachada:** AD-n, NFR y preguntas abiertas del PRD, citados por id como fuente de riesgo; con `riesgos.py`, BMAD (incluida la fase de descubrimiento) solo vía `pm-bmad-puente`.
 - **Usar:** riesgo, risk register, matriz P×I, EMV, respuesta al riesgo, oportunidad, informe o auditoría de riesgos. **No:** issue ya ocurrido→pm-issues-cambios.
 
 #### pm-issues-cambios
@@ -332,7 +350,8 @@ Ver §2. Metadatos: dirección; DP, SB, CP; business-case, plans, progress; prod
 - **PRINCE2:** CS, MP, SB, DP · issues, progress, quality, business-case.
 - **PMBOK como cómo:** análisis de impacto, cinco porqués, causa-efecto, análisis de red, análisis multicriterio, gestión de configuración.
 - **Plantillas:** `solicitud-cambio.md`, `informe-issue.md`, `informe-excepcion.md`.
-- **Scripts:** `registro.py agregar|actualizar issues|cambios|decisiones`, `bmad.py handoff --cambio C-###`, `bmad.py verificar`.
+- **Scripts:** `registro.py agregar|actualizar issues|cambios|decisiones` (en `cambios`, `--campo costo=<monto> --campo cargo=presupuesto-cambio|reserva-riesgo|reserva-gestion|plan-excepcion|sin-costo`), `bmad.py handoff --cambio C-###`, `bmad.py verificar`.
+- **Control del presupuesto de cambio:** cada cambio aprobado lleva su costo y contra qué se paga; sanidad CAM-01 (sin monto o sin cargo), CAM-02 (reserva de riesgo sin R-###), CAM-03 (consumo; ERROR > 100 % bloquea puertas), CAM-04 (sobre el límite de la autoridad de cambio sin la junta) y CAM-05 (reserva de gestión sin la junta); excedido o sobre el límite → excepción a pm-director.
 - **Lee de la fachada:** ids afectados e historias; desvíos que informa `bmad.py verificar`.
 - **Usar:** issue, solicitud de cambio, change request, off-spec, concesión, desvío del PRD. **No:** pronóstico o semáforo→pm-progreso-reportes.
 
@@ -341,8 +360,9 @@ Ver §2. Metadatos: dirección; DP, SB, CP; business-case, plans, progress; prod
 - **PRINCE2:** CS, MP, DP · progress, risk, issues, quality.
 - **PMBOK como cómo:** valor ganado, análisis de variaciones, pronóstico EAC, burn-down, burn-up, velocidad, cronograma ganado.
 - **Plantillas:** `informe-avance-equipo.md`, `checkpoint-report.md`, `highlight-report.md`, `analisis-variaciones.md`, `analisis-valor-ganado.md`, `progreso.csv`.
-- **Scripts:** `evm.py --csv progreso.csv --bac … --tol-costo … --tol-plazo … [--proyecto <dir>] [--modo agil --pct-no-must …]`, `registro.py resumen --json --corte …`, `bmad.py verificar|avance`.
+- **Scripts:** `evm.py --csv progreso.csv --bac … --tol-costo … --tol-plazo … [--proyecto <dir>] [--modo agil --pct-no-must …] [--guardar --corte AAAA-MM-DD]`, `registro.py resumen --json --corte …`, `puertas.py estado --markdown`, `bmad.py verificar|avance`.
 - **Semáforo:** verde ≤ 50 % de la tolerancia, ámbar 50–100 %, rojo fuera (excepción).
+- **EVM vigilado:** con `--guardar` el corte queda en `03-control/reportes/evm-<corte>.json` y la sanidad lo vigila entre informes: TOL-01 (pronóstico fuera de tolerancia sin excepción abierta), TOL-02 (ámbar), TOL-03 (sin corte guardado o con más de 31 días).
 - **Lee de la fachada:** estados de historias y épicas; serie histórica en `avance-bmad.csv`.
 - **Usar:** checkpoint, highlight report, status report, valor ganado, EVM, burn-up, pronóstico. **No:** tablero o gráficos→pm-visuales.
 
@@ -353,6 +373,7 @@ Ver §2. Metadatos: dirección; DP, SB, CP; business-case, plans, progress; prod
 - **Plantillas:** `revision-calidad.md`, `registro-aceptacion.md`, `auditoria-calidad.md`.
 - **Scripts:** `registro.py agregar|actualizar calidad`, `estado.py aprobar aceptacion-<producto> --nivel gestor|junta` (tras decisión humana).
 - **Lee de la fachada:** criterios por historia, NFR y cobertura (`listar requisitos|historias`); la cobertura `terminado` es la evidencia por requisito; `done` en BMAD no sustituye la aceptación.
+- **Calidad a volumen:** sanidad QUA-01 cruza cada elemento terminado de `backlog.csv` con `calidad.csv` (revisión completada y aprobada que lo cite por id o por la clave corta `N-M`, p. ej. "historia 1-3"); QUA-02 revisión planificada vencida al corte; QUA-03 rechazo sin issue, acción o cambio que cite el Q-###.
 - **Usar:** registro de calidad, revisión de calidad, criterios de aceptación, aceptar producto, quality audit, DoD. **No:** off-spec o concesión→pm-issues-cambios.
 
 #### pm-reuniones
@@ -360,18 +381,19 @@ Ver §2. Metadatos: dirección; DP, SB, CP; business-case, plans, progress; prod
 - **PRINCE2:** DP, CS, MP, SB, CP · progress, issues, risk, organizing.
 - **PMBOK como cómo:** reuniones, gestión de la información del proyecto, habilidades interpersonales y de equipo.
 - **Plantillas:** `acta-reunion.md`, `analisis-clima-equipo.md`.
-- **Scripts:** `transcripcion.py <fuente .vtt|.srt|.txt|.docx> --salida <ruta> [--anonimizar] [--json] [--idioma es|en]`, `registro.py agregar acciones|riesgos|issues|decisiones|lecciones`.
+- **Scripts:** `transcripcion.py <fuente .vtt|.srt|.txt|.docx> --salida <ruta> [--anonimizar] [--json] [--idioma es|en]`, `registro.py agregar acciones|riesgos|issues|decisiones|lecciones`; desde 2.2, `envios.py nuevo --proposito acta|recordatorio` (paso 7, distribución por la capa de canales) e `interesados.py proponer` (paso 7b, preferencias declaradas, que confirma una persona).
 - **Lee de la fachada:** no.
-- **Usar:** acta, minuta, transcripción, minutes, meeting notes, clima del equipo. **No:** matriz de comunicación→pm-comunicacion-stakeholders.
+- **Usar:** acta, minuta, transcripción, acciones de la reunión, action items, minutes. **No:** matriz de comunicación→pm-comunicacion-stakeholders.
 
 #### pm-integraciones
-- **Produce:** instantáneas fechadas `03-control/fuentes/<sistema>-AAAA-MM-DD.<csv|md|json>`; mapa de capacidades en `estado.json.integraciones`; ids externos en `notas` o `diario.md` tras una escritura confirmada.
+- **Produce:** instantáneas fechadas `03-control/fuentes/<sistema>-AAAA-MM-DD.<csv|md|json>`; mapa de capacidades en `estado.json.integraciones`; ids externos en `notas` o `diario.md` tras una escritura confirmada; desde 2.2, `envios.csv` (EN-###, dueña) y los mensajes de `03-control/comunicaciones/<fecha>-<tema>/` (con `eml/` si se usa ese modo).
 - **PRINCE2:** CS, MP, SB, DP · progress, issues, organizing.
 - **PMBOK como cómo:** gestión de la información del proyecto, comunicaciones.
-- **Plantillas:** ninguna (formatos en `references/guia.md` §3). **Scripts:** `estado.py integracion tracker=… chat=… docs=… reuniones=… okr=…`.
+- **Plantillas:** ninguna (formatos en `references/guia.md` §3). **Scripts:** `estado.py integracion tracker=… chat=… docs=… reuniones=… okr=… correo=…`; `envios.py` (capa de canales, sintaxis en §5.2).
 - **Capacidades:** tracker, docs, chat, correo, calendario, reuniones, okr. No trae conectores ni credenciales; trabaja con los MCP presentes en la sesión.
+- **Capa de canales (2.2):** modos `smtp`, `slack-webhook`, `teams-webhook`, `eml` y MCP conectados (`preparar-mcp` → vista previa y confirmación → `registrar --modo mcp`). Sin `--confirmar` es simulación; solo mensajes aprobados; destinos desde el maestro; reenvío solo a quien falta; código de salida 2 si hubo fallos. Configuración solo por variables de entorno (`PM_SMTP_HOST`, `PM_SMTP_REMITENTE`, `PM_SMTP_PUERTO`, `PM_SMTP_TLS`, `PM_SMTP_USUARIO`, `PM_SMTP_CLAVE`, `PM_SLACK_WEBHOOK_URL`, `PM_TEAMS_WEBHOOK_URL`).
 - **Lee de la fachada:** no.
-- **Usar:** sincronizar Jira, publicar en Slack/Teams, traer issues, sync. **No:** BMAD→pm-bmad-puente; transcripciones→pm-reuniones.
+- **Usar:** sincronizar Jira, publicar en Slack/Teams, enviar correo, sync. **No:** BMAD→pm-bmad-puente; transcripciones→pm-reuniones.
 
 #### Comandos asignados a pm-control: pm-reporte, pm-sync
 Ver §2. Metadatos: pm-reporte (control; CS, MP; progress, issues; técnicas: análisis del valor ganado, análisis de variación), pm-sync (control; CS, MP; progress, issues; produce `backlog.csv`, `avance-bmad.csv` e instantáneas).
@@ -403,13 +425,13 @@ Ver §2. Metadatos: pm-reporte (control; CS, MP; progress, issues; técnicas: an
 |---|---|---|
 | pm-orquestador | pm-orquestador, pm-estado-proyecto, pm-sanidad, pm-knowledge, pm-visuales, pm-exportar · comandos pm-ayuda, pm-nuevo, pm-estado | 9 |
 | pm-director | pm-direccion-decisiones, pm-okr, pm-comunicacion-stakeholders · comando pm-puerta | 4 |
-| pm-inicio | pm-mandato-y-brief, pm-caso-de-negocio, pm-organizacion-roles, pm-enfoques-gestion, pm-acta-constitucion | 5 |
+| pm-inicio | pm-mandato-y-brief, pm-caso-de-negocio, pm-organizacion-roles, pm-interesados, pm-enfoques-gestion, pm-acta-constitucion | 6 |
 | pm-planificacion | pm-planificacion-por-productos, pm-cronograma-estimacion, pm-costos-presupuesto, pm-plan-etapa-y-limites, pm-agil-hibrido, pm-adquisiciones, pm-bmad-puente | 7 |
 | pm-control | pm-paquetes-trabajo, pm-registros, pm-riesgos, pm-issues-cambios, pm-progreso-reportes, pm-calidad, pm-reuniones, pm-integraciones · comandos pm-reporte, pm-sync | 10 |
 | pm-cierre | pm-cierre-proyecto, pm-lecciones-aprendidas | 2 |
-| **Total** | 31 invocables por el modelo + 6 comandos | **37** |
+| **Total** | 32 invocables por el modelo + 6 comandos | **38** |
 
-`metadata.agente` indica el agente dueño habitual. Varias skills se invocan desde más de un agente (por ejemplo, pm-okr desde pm-inicio, pm-control, pm-planificacion y pm-cierre; pm-comunicacion-stakeholders desde los cuatro agentes de fase; pm-riesgos desde pm-inicio y pm-planificacion). Las fichas de agentes de §3.3 dan el orden real.
+`metadata.agente` indica el agente dueño habitual. Varias skills se invocan desde más de un agente (por ejemplo, pm-okr desde pm-inicio, pm-control, pm-planificacion y pm-cierre; pm-comunicacion-stakeholders desde los cuatro agentes de fase; pm-riesgos desde pm-inicio y pm-planificacion; pm-interesados desde pm-inicio y pm-control). Las fichas de agentes de §3.3 dan el orden real.
 
 ## 5. Scripts
 
@@ -417,15 +439,15 @@ Ver §2. Metadatos: pm-reporte (control; CS, MP; progress, issues; técnicas: an
 
 | Script | Para qué | Comandos (sintaxis real de `--help`) |
 |---|---|---|
-| `nuevo_proyecto.py` | Crea la carpeta de SPEC §1.5, los nueve CSV, el diario y `estado.json` en `pre-proyecto`/SU/etapa 0. No sobrescribe. | `nuevo_proyecto.py --ruta <dir> --nombre "<nombre>" [--idioma es\|en] [--enfoque predictivo\|agil\|hibrido] [--ejecutivo ".."] [--gestor ".."]` |
-| `estado.py` | Única vía de escritura de `estado.json`. | `estado.py --proyecto <dir> ver` · `siguiente` · `set clave=valor …` · `tolerancia [--nivel proyecto\|etapa] tiempo=".." costo=".." …` · `rol clave=".." …` · `agil clave=..` · `umbrales-riesgo alto=.. medio=..` · `integracion especificacion=bmad tracker=.. …` · `etapa --numero N --nombre ".." [--inicio ..] [--fin ..]` · `artefacto <clave> --ruta <ruta> [--estado borrador\|en-revision\|aprobado\|obsoleto] [--version x.y]` · `aprobar <clave> --por "<rol: nombre>" [--version ..] [--fecha ..] [--nivel equipo\|product-owner\|gestor\|autoridad-cambio\|junta\|capa-negocio]` · `puerta <autorizar-inicio\|autorizar-proyecto\|autorizar-etapa\|autorizar-plan-excepcion\|autorizar-cierre\|decision-ad-hoc> --decision aprobado\|condicionado\|rechazado\|pendiente --por "<rol: nombre>" [--condiciones ..] [--fecha ..] [--etapa-nombre ..] [--fin ..] [--forzar]` · `cumplir-condiciones <tipo>` · `limite-etapa [--excepcion X-###]` · `cierre [--prematuro]` |
-| `registro.py` | Alta, actualización, listado y resumen de los nueve registros, validados contra `esquema.py`; acepta alias en inglés. No borra filas. | `registro.py --proyecto <dir> agregar <registro> --campo k=v … [--forzar]` · `actualizar <registro> <id> --campo k=v …` · `listar <registro> [--estado ..] [--abiertos] [--json]` · `resumen [--json] [--corte AAAA-MM-DD]` · `esquema <registro>` |
-| `esquema.py` | Fuente única de columnas, valores y prefijos de registros (R, I, C, D, S, L, ST, Q, A). | Módulo usado por `registro.py` y `sanidad.py` |
+| `nuevo_proyecto.py` | Crea la carpeta de SPEC §1.5, los nueve CSV base (los cuatro opcionales de 2.2 se crean al primer uso), el diario y `estado.json` en `pre-proyecto`/SU/etapa 0. No sobrescribe. | `nuevo_proyecto.py --ruta <dir> --nombre "<nombre>" [--idioma es\|en] [--enfoque predictivo\|agil\|hibrido] [--ejecutivo ".."] [--gestor ".."]` |
+| `estado.py` | Única vía de escritura de `estado.json`. | `estado.py --proyecto <dir> ver` · `siguiente` · `set clave=valor …` · `tolerancia [--nivel proyecto\|etapa] tiempo=".." costo=".." …` · `rol clave=".." …` · `agil clave=..` · `umbrales-riesgo alto=.. medio=..` · `integracion especificacion=bmad tracker=.. …` · `etapa --numero N --nombre ".." [--inicio ..] [--fin ..]` · `artefacto <clave> --ruta <ruta> [--estado borrador\|en-revision\|aprobado\|obsoleto] [--version x.y]` · `aprobar <clave> --por "<rol: nombre>" [--version ..] [--fecha ..] [--nivel equipo\|product-owner\|gestor\|autoridad-cambio\|junta\|capa-negocio]` · `puerta <autorizar-inicio\|autorizar-proyecto\|autorizar-etapa\|autorizar-plan-excepcion\|autorizar-cierre\|decision-ad-hoc> --decision aprobado\|condicionado\|rechazado\|pendiente --por "<rol: nombre>" [--condiciones ..] [--fecha ..] [--etapa-nombre ..] [--inicio ..] [--fin ..] [--tol costo=.. tiempo=..] [--forzar]` · `presupuesto cambio=N riesgo=N gestion=N limite_autoridad_cambio=N [--por "<rol: nombre>"] [--fecha ..]` (montos sin moneda ni separador de miles; con `--por` se anota en `decisiones.csv`) · `cumplir-condiciones <tipo> [--fecha ..] [--por "<rol: nombre>"] [--nota ..]` (falla si no hay condiciones abiertas de ese tipo) · `resumen` · `limite-etapa [--excepcion X-###]` · `cierre [--prematuro]` |
+| `registro.py` | Alta, actualización, listado y resumen de los registros (nueve base y cuatro opcionales), validados contra `esquema.py` (valores, claves foráneas, unicidad y un solo A por elemento en `raci`); acepta alias en inglés. No borra filas. | `registro.py --proyecto <dir> agregar <registro> --campo k=v … [--forzar]` · `actualizar <registro> <id> --campo k=v …` · `listar <registro> [--estado ..] [--abiertos] [--json]` · `resumen [--json] [--corte AAAA-MM-DD]` · `esquema <registro>` |
+| `esquema.py` | Fuente única de columnas, valores y prefijos de registros (R, I, C, D, S, L, ST, Q, A; opcionales ET, PF, RC, EN), claves foráneas (`refs`), unicidad (`unico`) y `uno_por`. | Módulo usado por `registro.py` y `sanidad.py` |
 | `especificacion.py` | Fachada única de especificación (contrato `pm-spec-index/1`, caché invalidada por huella sha256). | `especificacion.py --proyecto <dir> fuente` · `resumen [--json]` · `consultar FR-3\|REQ-004\|1-2-login\|E-2 [--json]` · `listar requisitos\|historias\|epicas [--estado done] [--epica E-1] [--cobertura sin-cobertura\|planificado\|en-curso\|terminado] [--json]` · `indice` |
-| `sanidad.py` | Controles de consistencia (INS, EST, ART, REG, ESP, INT). Código de salida 1 si hay ERROR. | `sanidad.py --proyecto <dir> [--rapido] [--informe] [--reparar] [--json]` |
+| `sanidad.py` | Controles de consistencia y controles permanentes (INS, EST, ART, REG, CAM, QUA, TOL, ESP, INT, STK; STK solo si existe alguno de los registros opcionales del maestro de interesados). Código de salida 1 si hay ERROR. | `sanidad.py --proyecto <dir> [--rapido] [--informe] [--reparar] [--json] [--corte AAAA-MM-DD]` |
 | `wbs.py` | Valida la EDT (regla del 100 %), consolida esfuerzo y costo y dibuja el árbol Mermaid. | `wbs.py 02-planificacion/wbs.csv [--titulo ..] [--mermaid 02-planificacion/visuales/wbs.md] [--diccionario 02-planificacion/diccionario-wbs-esqueleto.md] [--json] [--profundidad N] [--idioma es\|en]` |
 | `cpm.py` | Camino crítico, holguras, carga por recurso, Gantt Mermaid y MS Project XML (MSPDI, validado leyéndolo con MPXJ). | `cpm.py 02-planificacion/actividades.csv [--inicio AAAA-MM-DD] [--mermaid <ruta>] [--json] [--mspdi 02-planificacion/cronograma.xml] [--titulo ".."] [--wbs 02-planificacion/wbs.csv]` |
-| `evm.py` | Valor ganado con semáforo contra tolerancias y modo ágil. | `evm.py --bac N [--pv N --ev N --ac N \| --csv progreso.csv] [--eac tendencia\|atipico\|compuesto] [--tol-costo %] [--tol-plazo %] [--modo predictivo\|agil] [--pct-no-must %] [--idioma es\|en] [--proyecto <dir>] [--json]` |
+| `evm.py` | Valor ganado con semáforo contra tolerancias y modo ágil; con `--guardar`, guarda el último corte en `03-control/reportes/evm-<corte>.json` para que sanidad (TOL) vigile el pronóstico. | `evm.py --bac N [--pv N --ev N --ac N \| --csv progreso.csv] [--eac tendencia\|atipico\|compuesto] [--tol-costo %] [--tol-plazo %] [--modo predictivo\|agil] [--pct-no-must %] [--idioma es\|en] [--proyecto <dir>] [--guardar] [--corte AAAA-MM-DD] [--json]` (`--guardar` requiere `--proyecto`; `--corte` por defecto hoy) |
 | `exportar.py` | Markdown → `.docx` (banda BORRADOR si no está aprobado) y CSV → `.xlsx`. | `exportar.py docx --entrada <md> --salida exportados/<nombre>.docx` · `exportar.py xlsx --proyecto <dir> --salida exportados/AAAA-MM-DD-registros-v<n>.xlsx` (o `--entrada <csv>`) |
 
 ### 5.2 Scripts de otras skills
@@ -433,7 +455,10 @@ Ver §2. Metadatos: pm-reporte (control; CS, MP; progress, issues; técnicas: an
 | Script | Para qué | Comandos |
 |---|---|---|
 | `<pm-bmad-puente>/scripts/bmad.py` | Puente de solo lectura con BMAD (v4 y v6.11–v6.12); proveedor de la fachada. | `bmad.py --proyecto <dir> [--raiz <repo>] detectar` · `inventario [--json]` · `requisitos` · `trazabilidad [--wbs 02-planificacion/wbs.csv]` · `backlog` · `avance [--json]` · `linea-base prd\|arquitectura\|epicas\|brief\|ux --version X.Y --por "<rol: nombre>"` · `verificar [--json] [--marcar-vistas]` · `indice` · `handoff [--cambio C-###]` |
-| `<pm-okr>/scripts/okr.py` | Valida vínculos de KR y los puntúa. | `okr.py <dir>/00-direccion/okr.csv [--plantilla] [--umbrales 0.7,0.4] [--corte AAAA-MM-DD] [--markdown <ruta>] [--json]` |
+| `<pm-okr>/scripts/okr.py` | Valida vínculos de KR, los puntúa por tipo, calcula salud, registra check-ins y propone la sincronización. | `okr.py <dir>/00-direccion/okr.csv [--plantilla] [--umbrales 0.7,0.4] [--corte AAAA-MM-DD] [--markdown <ruta>] [--json] [--interesados <ruta>]` · `--checkin KR --valor V [--confianza N] [--nota ..] [--autor ..] [--fecha ..] [--fuente ..]` · `--propuesta-sync tability\|perdoo [--json]` · `--marcar-publicado KR@FECHA --destino tability\|perdoo --ref X` |
+| `<pm-interesados>/scripts/interesados.py` | Maestro de interesados: matriz, estereotipos, preferencias, perfil, RACI, vínculos, integridad (familia STK), reporte y plan de envío. | `interesados.py --proyecto <dir> [--medio alto\|bajo]` + `matriz [--markdown F] [--json]` · `estereotipos [--semilla] [--sugerir] [--json]` · `proponer --transcripcion F [--mapa "Nombre=ST-001;…"] [--fecha ..] [--fuente ..] [--vigencia-dias 180] [--registrar] [--json]` · `confirmar PF-… --por "Rol: Nombre" [--vigencia-hasta ..]` · `rechazar PF-… --por .. [--motivo ..]` · `perfil ST-…\|todos [--corte ..] [--json]` · `raci [--elemento ID] [--markdown F] [--json]` · `vinculos ST-… [--json]` · `integridad [--corte ..] [--json]` · `reporte --html F [--markdown F] [--corte ..] [--restringido]` · `plan-envio --tema .. --audiencia .. [--proposito ..] [--base F] [--agrupar] [--fecha ..]`. Audiencia: `todos`, `ST-001`, `cuadrante:<c>`, `estereotipo:ET-001`, `raci:<elemento>:<roles>`, `rol:<texto>`, `-ST-009` (excluir). |
+| `<pm-integraciones>/scripts/envios.py` | Capa de canales: prepara, aprueba, envía y registra comunicados por destinatario. | `envios.py --proyecto <dir>` + `nuevo --origen F --audiencia .. --asunto .. [--proposito ..] [--agrupar] [--fecha ..]` · `estado CARPETA [--json]` · `aprobar CARPETA [--mensaje F …] --por "Rol: Nombre"` · `enviar CARPETA --modo smtp\|slack-webhook\|teams-webhook\|eml [--confirmar] [--mensaje F …] [--fecha ..]` · `preparar-mcp CARPETA [--canal correo\|slack\|teams]` · `registrar CARPETA --mensaje F --modo mcp\|eml\|manual [--referencia X] [--estado enviado\|fallido] [--nota ..] [--fecha ..]` · `historial [--stakeholder ST-…] [--json]` · `verificar --modo ..` |
+| `<pm-riesgos>/scripts/riesgos.py` | Riesgos candidatos desde cuatro fuentes: BMAD (descubrimiento, brief, PRD, arquitectura, UX; solo lectura), transcripciones y actas, instantánea del tracker (lo ocurrido → issue) y artefactos del proyecto (mandato, brief, requisitos, `supuestos.csv`, `lecciones.csv`). No escribe registros. | `riesgos.py --proyecto <dir> candidatos [--fuentes bmad,transcripciones,tracker,artefactos] [--transcripcion F] (repetible) [--instantanea F] [--desde AAAA-MM-DD] [--salida F.md] [--json] [--fecha AAAA-MM-DD]` |
 | `<pm-reuniones>/scripts/transcripcion.py` | Normaliza transcripciones VTT, SRT, TXT o DOCX. | `transcripcion.py <entrada> [--salida <ruta>] [--anonimizar] [--json] [--idioma es\|en]` |
 | `<pm-exportar>/scripts/paquete.py` | Lista obligatorios y arma ZIP de puerta o cierre con manifiesto. | `paquete.py --proyecto <dir> listar puerta <tipo>` · `listar cierre` · `puerta autorizar-inicio\|autorizar-proyecto\|autorizar-etapa\|autorizar-plan-excepcion [--salida ..] [--extra <ruta> …]` · `cierre [--salida ..] [--extra <ruta> …]` |
 
@@ -441,10 +466,10 @@ Ver §2. Metadatos: pm-reporte (control; CS, MP; progress, issues; técnicas: an
 
 | Componente | Cuándo | Qué hace |
 |---|---|---|
-| `scripts/validar_paquete.py` | Tras cualquier cambio del paquete | Estructura, tamaños, formato y presupuesto de descripciones, referencias, agentes (herencia de herramientas, sin anidación), cobertura de orquestación y hooks. Última corrida: `Skills: 37 (31 invocables por el modelo, listado 6289 caracteres) · Agentes: 6 · OK`. |
-| `scripts/probar_paquete.py [--conservar]` | Tras cambios del paquete o de BMAD | Regresión de punta a punta con BMAD v6, BMAD 6.12.4 real, v4 y sin BMAD, sanidad con defectos sembrados, 36 decisiones del hook guardian, ciclo de puertas y regresiones (80 pruebas OK). Requiere PyYAML. Fixtures en `scripts/pruebas/fixtures/`. |
-| `skills/pm-estado-proyecto/scripts/puertas.py` (`verificar`, `lista`, `confirmar`, `preparacion-bmad`) | Antes de cada puerta de la junta | Verificación en tres capas (salud, controles PRINCE2 y BMAD, lista de control de la junta); `estado.py puerta` la usa para bloquear `aprobado`. Ver `docs/PUERTAS.md`. |
-| `hooks/guardian.py` (PreToolUse sobre Write, Edit, MultiEdit, NotebookEdit y Bash) | Cada escritura y cada comando Bash | Niega modificar sin script (por Write/Edit o por Bash) `estado.json`, los registros CSV, los derivados de la especificación, las copias congeladas de `00-direccion/historial/` y las instantáneas existentes de `03-control/fuentes/`; impide a los subagentes pm-* escribir en `_bmad/`, `_bmad-output/` o `.bmad-core/` y ejecutar comandos reservados a pm-director. Se lanza con `hooks/py.sh`. |
+| `scripts/validar_paquete.py` | Tras cualquier cambio del paquete | Estructura, tamaños, formato y presupuesto de descripciones, referencias, agentes (herencia de herramientas, sin anidación), cobertura de orquestación y hooks. Última corrida: `Skills: 38 (32 invocables por el modelo, listado 6546 caracteres) · Agentes: 6 · OK`. |
+| `scripts/probar_paquete.py [--conservar]` | Tras cambios del paquete o de BMAD | Regresión de punta a punta con BMAD v6, BMAD 6.12.4 real, v4 y sin BMAD, sanidad con defectos sembrados, 36 decisiones del hook guardian, ciclo de puertas, regresiones y, desde 2.2, el caso H (maestro de interesados, capa de canales con SMTP y webhooks contra servidores locales, OKR v2.2) el caso I (candidatos de riesgo desde cuatro fuentes) y el caso J (controles permanentes: presupuestos, CAM, P-04, condiciones y G-01, QUA, TOL, STK-12): 138 pruebas OK. Requiere PyYAML. Fixtures en `scripts/pruebas/fixtures/`. |
+| `skills/pm-estado-proyecto/scripts/puertas.py` (`verificar`, `lista`, `confirmar`, `estado`, `preparacion-bmad`) | Antes de cada puerta de la junta | Verificación en tres capas (salud, controles PRINCE2 y BMAD, lista de control de la junta); `estado.py puerta` la usa para bloquear `aprobado` y, con `condicionado`, convertir los hallazgos de tipo condición en condiciones formales; G-01 muestra las condiciones abiertas de puertas anteriores (bloqueo en `autorizar-cierre`). Sintaxis: `puertas.py --proyecto <dir> verificar <tipo> [--json]` · `lista <tipo> [--fecha ..]` · `confirmar <tipo> --por .. [--na ..] [--no ..] [--fecha ..]` · `estado [--json\|--markdown]` · `preparacion-bmad --resultado PASS\|CONCERNS\|FAIL --por .. [--fecha ..] [--nota ..]`. Ver `docs/PUERTAS.md`. |
+| `hooks/guardian.py` (PreToolUse sobre Write, Edit, MultiEdit, NotebookEdit y Bash) | Cada escritura y cada comando Bash | Niega modificar sin script (por Write/Edit o por Bash) `estado.json`, los registros CSV (incluidos `estereotipos`, `preferencias`, `raci` y `envios`), los derivados de la especificación, las copias congeladas de `00-direccion/historial/` y las instantáneas existentes de `03-control/fuentes/`; impide a los subagentes pm-* escribir en `_bmad/`, `_bmad-output/` o `.bmad-core/` y ejecutar comandos reservados a pm-director. Se lanza con `hooks/py.sh`. |
 | `hooks/inicio.py` (SessionStart: startup, resume, clear, compact) | Al abrir, retomar, limpiar o compactar | Agrega al contexto la fase, las puertas y los ERROR de la sanidad rápida. |
 
 Los hooks solo corren en Claude Code con el plugin instalado; en Hermes no hay equivalente documentado.

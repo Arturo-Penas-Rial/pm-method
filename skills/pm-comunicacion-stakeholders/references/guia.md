@@ -1,6 +1,8 @@
 # Guía de comunicación con stakeholders · Stakeholder communication guide
 
 ## 1. Estereotipos de audiencia y mensaje por defecto
+Estos seis estereotipos se cargan como catálogo editable con `interesados.py estereotipos --semilla` (`pm-interesados`, `estereotipos.csv`), donde además se combinan con la estrategia del cuadrante poder/interés y las preferencias confirmadas de cada persona (perfil resuelto: `interesados.py perfil`).
+
 | Estereotipo | Quién suele estar | Qué le importa | Qué NO recibe por defecto | Canal típico |
 |---|---|---|---|---|
 | dirección-patrocinador | ejecutivo, junta, capa de negocio, PMO | decisiones pendientes, desvíos contra tolerancias, riesgos del business case, hitos de puerta | detalle operativo, listas de tareas | paquete de decisión, highlight, reunión de junta |
@@ -43,13 +45,25 @@
 - Después: el acta, las acciones y las decisiones los produce `pm-reuniones` (tipo `revision-iteracion`); intercambios del PO → `decisiones.csv` `nivel=product-owner` (cambio ligero de `pm-issues-cambios`); desplazar un Must → solicitud de cambio. Esta skill emite el comunicado corto al patrocinador si cambió el pronóstico de Must.
 - La retrospectiva no es evento de comunicación externa: `pm-agil-hibrido`.
 
-## 6. Envíos externos
-- Toda salida (correo, Slack, Teams) se envía vía `pm-integraciones` según `estado.json.integraciones.chat`, con vista previa de destinatarios y texto y confirmación explícita; sin integración, entregar el texto listo para pegar.
-- El envío se anota en `03-control/registros/diario.md` (fecha, canal, destinatarios, ruta del comunicado).
+## 6. Envíos externos (capa de canales)
+- **Personalización**: `interesados.py plan-envio` resuelve el perfil de cada destinatario (cuadrante → estereotipo → matriz → preferencias confirmadas) y crea un borrador por persona (o por grupo con `--agrupar`) en `03-control/comunicaciones/<fecha>-<tema>/`. Para enviar un artefacto ya hecho (highlight, acta, decisión de puerta, OKR): `envios.py nuevo --origen <archivo> --audiencia … --asunto … --proposito informe|acta|puerta|okr|recordatorio|convocatoria`.
+- **Aprobación**: `envios.py aprobar <carpeta> --por "Gestor: Nombre"`; rechaza borradores sin redactar o con destinatarios que ya no existen en el maestro.
+- **Transportes** (`envios.py enviar <carpeta> --modo …`, simulación por defecto, `--confirmar` para enviar):
+
+| Modo | Canal | Configuración (solo variables de entorno) | Qué hace |
+|---|---|---|---|
+| `smtp` | correo | `PM_SMTP_HOST`, `PM_SMTP_REMITENTE`, opcionales `PM_SMTP_PUERTO` (587), `PM_SMTP_TLS` (starttls, ssl, ninguno), `PM_SMTP_USUARIO`, `PM_SMTP_CLAVE` | un correo por destinatario, Message-ID como referencia |
+| `eml` | correo | ninguna | genera `.eml` por destinatario para abrir y enviar desde el cliente de correo; luego `envios.py registrar --modo eml` |
+| `slack-webhook` | slack | `PM_SLACK_WEBHOOK_URL` | publica en el canal del webhook y menciona a quienes tienen `usuario_chat` de Slack |
+| `teams-webhook` | teams | `PM_TEAMS_WEBHOOK_URL` (Workflows de Teams) | publica una tarjeta adaptable (límite 28 KB) |
+| conector MCP | correo, slack, teams | el conector conectado en la sesión | `envios.py preparar-mcp` → el agente envía con la herramienta tras la vista previa → `envios.py registrar --modo mcp --referencia …` |
+
+- Canales no electrónicos (reunión, llamada, tablero): se entregan en el evento y se registran con `envios.py registrar --modo manual`.
+- Cada envío queda en `03-control/registros/envios.csv` (EN-###, con propósito, destino y referencia) y en `diario.md`. Reintento: `enviar` de nuevo solo envía a quienes falta. Los destinos se toman siempre del maestro vigente.
 - Correo de seguimiento de acciones (`templates/correo-seguimiento.md`): solo a partir de un acta confirmada (producida por `pm-reuniones`) o de un comunicado aprobado; acciones con su id `A-###` de `acciones.csv`.
 
 ## 7. Columnas de registros usadas
-- `stakeholders.csv` (ST-###): `nombre`, `rol_proyecto`, `poder`, `interes` (alto/medio/bajo), `actitud`, `nivel_compromiso_actual`, `nivel_compromiso_deseado` (lider/partidario/neutral/resistente/desconocedor), `canal`, `frecuencia`, `responsable_relacion`, `confidencial` (si/no).
+- `stakeholders.csv` (ST-###): `nombre`, `rol_proyecto`, `poder`, `interes` (alto/medio/bajo), `actitud`, `nivel_compromiso_actual`, `nivel_compromiso_deseado` (lider/partidario/neutral/resistente/desconocedor), `canal`, `frecuencia`, `responsable_relacion`, `confidencial` (si/no), `estereotipo`, `correo`, `usuario_chat`.
 - `acciones.csv` (A-###): `fecha`, `origen`, `descripcion`, `responsable`, `fecha_compromiso`, `prioridad`, `estado` (abierta/en-curso/completada/cancelada), `fecha_cierre`, `notas`.
 - Esquemas vigentes: `registro.py esquema stakeholders|acciones`.
 

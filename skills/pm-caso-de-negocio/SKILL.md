@@ -1,7 +1,7 @@
 ---
 name: pm-caso-de-negocio
 description: "Business case PRINCE2 y enfoques de beneficios y sostenibilidad. Usar: caso de negocio, business case, ROI, VAN/NPV, payback, beneficios. No: OKR→pm-okr; presupuesto→pm-costos-presupuesto."
-version: 2.1.0
+version: 2.2.0
 author: pm-method
 license: MIT
 metadata:

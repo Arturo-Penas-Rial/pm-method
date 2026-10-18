@@ -1,4 +1,4 @@
-# Pruebas y aceptación · pm-method 2.1.0
+# Pruebas y aceptación · pm-method 2.2.0
 
 Cómo se verifica el ecosistema, qué cubre cada prueba y cómo hacer la prueba de aceptación antes de usarlo en un
 proyecto real. EN: *test strategy, automated suites, live tests with real Claude Code and an acceptance checklist.*
@@ -29,8 +29,32 @@ proyecto real. EN: *test strategy, automated suites, live tests with real Claude
 | E · Ciclo de puertas | `set fase` sin `--forzar` rechazado; `autorizar-etapa` conserva tolerancias y acepta `--inicio`; `--tol`; `set --forzar` anotado en `decisiones.csv`; nivel `ejecutivo`; **bloqueos de puerta**: `aprobado` rechazado sin business case/PID, sin plan de etapa o con un ERROR de sanidad, y `condicionado` que suma los bloqueos como condiciones |
 | G · Puertas con BMAD | PRD en draft bloquea `autorizar-proyecto`; decisión con referencia a la lista; sin veredicto de preparación → aviso; hallazgos FAIL guardados → bloqueo; CONCERNS registrado después → condición; ítem "no cumple" en la lista → bloqueo; aprobada con la observación registrada |
 | F · Regresiones v2.1 | MSPDI sin tareas que terminan antes de empezar; signo de `VAC_pct` y `sobrecosto_pct`; OKR con `SM-C1`; `exportar xlsx` rechaza `.md`; `estado.py resumen` |
+| H · Maestro de interesados, capa de canales y OKR v2.2 (33 comprobaciones) | **Maestro**: los registros opcionales no se crean en un proyecto nuevo; matriz con "medio" ubicado como alto y marcado frontera (y `--medio bajo`); `registro.py` rechaza RACI con interesado inexistente, segundo A en el mismo elemento, fila duplicada y estereotipo inexistente; integridad STK-09/STK-11 contra la fachada de especificación. **Preferencias**: `proponer` toma solo lo declarado en primera persona, con cita ("no me mandes correos" = evitar, no canal correo); hablante sin asignar listado; las propuestas no se aplican, la confirmada vigente gana y la vencida no; estereotipo sobre el cuadrante. **Sanidad y reporte**: STK-04 y STK-09; referencia forzada a un interesado inexistente = ERROR STK-03 (código de salida 1); reporte HTML con matriz SVG, RACI, perfiles e integridad, sin valoraciones salvo `--restringido`. **Capa de canales**: audiencia inválida no crea nada; un borrador por destinatario según su canal; `aprobar` rechaza borradores sin redactar; `enviar` sin `--confirmar` es simulación; SMTP y webhook de Slack entregados a servidores locales en 127.0.0.1 y registrados (EN-###) con quien aprobó; el reenvío no duplica; webhook de Teams con tarjeta adaptable y propósito `puerta`. **Hook**: Write sobre `raci.csv` y `preferencias.csv` bloqueado, `interesados.py` permitido. **OKR**: check-in duplicado rechazado; actual = último check-in; puntuación por tipo de KR y objetivo ponderado; semáforo comprometido, salud y confianza; cascada; avisos de verbo de actividad y responsable fuera del maestro; `--propuesta-sync` y `--marcar-publicado`. **Puertas**: aviso P-09 sin bloquear |
+| I · Candidatos de riesgo desde cuatro fuentes (9 comprobaciones) | `riesgos.py candidatos` con BMAD (brief, PRD y arquitectura leídos vía pm-bmad-puente; nada escrito en `_bmad-output/`), una transcripción (preocupación y oportunidad con hablante y marca de tiempo; saludo ignorado), una instantánea de Jira (bug → issue; historia normal ignorada; etiqueta `riesgo` → riesgo marcado como posible duplicado del registrado) y un proyecto sin BMAD (`bmad: no aplica`, candidatos del mandato —restricción y lección— y del supuesto sin validar); borrador en `03-control/reportes/` sin registrar nada; y `interesados.py proponer` con «por Slack, no por correo» propone solo Slack; el enfoque de riesgo (método) no se toma como fuente de candidatos de artefactos; `proponer` reconoce la frecuencia `trimestral` («una vez por trimestre») |
+| J · Controles permanentes (16 comprobaciones) | **Presupuestos**: `estado.py presupuesto` rechaza un monto no numérico; la junta fija cambio, riesgo y límite delegado, anotado en `decisiones.csv`; el hook niega `estado.py presupuesto` a un subagente. **Cambios**: `costo` no numérico rechazado; CAM-04 (cambio de 6.000 sobre el límite de 5.000 decidido por la autoridad de cambio) y CAM-03 INFO al 60 %; CAM-03 ERROR al 110 %, CAM-02 (reserva de riesgo sin R-###) y CAM-01 (impacto de costo sin monto); la verificación de `autorizar-proyecto` bloquea por S-CAM-03. **Beneficios**: P-04 con criterios de éxito solo en OKR = condición. **Condiciones**: `condicionado` convierte los hallazgos de tipo condición en condiciones formales; G-01 en la puerta siguiente; `cumplir-condiciones` con fecha, quién verificó y nota (anotado en `decisiones.csv`) y G-01 desaparece. **Calidad a volumen**: QUA-01 (historia `done` sin revisión y otra con revisión rechazada; la cubierta por clave corta `1-1` y la en curso no salen), QUA-02 vencida al corte (no antes), QUA-03 que desaparece cuando un issue cita el Q-###. **Tolerancias**: `evm.py --guardar --corte` escribe `evm-<corte>.json` y TOL-01 avisa la excepción prevista; un corte posterior en verde la apaga y la fecha de corte de sanidad se respeta. **Interesados**: STK-12 por cuadrante y frecuencia (gestionar de cerca semanal a los 18 días; mantener informado quincenal recién a los 28; monitorear nunca) |
 
-Resultado al 2026-10-17: **80 OK · 0 FALLO**. Requiere `pyyaml`.
+Resultado al 2026-10-17 (versión 2.2.0): **138 OK · 0 FALLO** (80 en 2.1.0). Requiere `pyyaml`. Los casos H, I y J no salen a la red: el caso H levanta un servidor SMTP mínimo y un receptor HTTP en 127.0.0.1.
+
+### 2.1 Recorridos E2E (`scripts/pruebas/guias_e2e/`)
+
+`correr.py` reproduce con los scripts reales las cuatro guías de [docs/guias/](guias/README.md) y compara con
+`docs/guias/evidencia/`. Resultado al 2026-10-17 (versión 2.2.0): **4/4 OK**.
+
+En 2.2.0 las cuatro guías muestran los **controles permanentes** (cada una con la sección "Controles permanentes que
+muestra esta guía"); todas las llamadas a `sanidad.py` de los recorridos llevan `--corte` y las de `evm.py --guardar`,
+`--corte`, para que la evidencia sea reproducible:
+
+| Guía | Pasos | Lo nuevo en 2.2.0 |
+|---|---|---|
+| [E2E-1](guias/E2E-1-riesgos.md) | 13 (90–115 min) | candidatos de BMAD, de la transcripción y de Jira; paso 13 sin BMAD; presupuesto de riesgo de la junta y consumo de la reserva vigilado (CAM-02, CAM-03) |
+| [E2E-2](guias/E2E-2-alcance-roadmap.md) | 10 (80–110 min) | presupuesto y límite de la autoridad de cambio, cambio con costo y cargo, EVM ágil guardado, QUA-01; paso 10 nuevo de gestión por excepción (CAM-03 ERROR, CAM-04, TOL-01, informe y plan de excepción) |
+| [E2E-3](guias/E2E-3-interesados-okr-avance.md) | 13 (100–130 min) | maestro de interesados, preferencias, RACI, enfoque de beneficios con OKR, envío por canales; paso 13 nuevo de compromiso sostenido (STK-12) |
+| [E2E-4](guias/E2E-4-producto-bmad.md) | 15 (3–4 h) | condición formal desde el CONCERNS de BMAD (EST-12, G-01, `cumplir-condiciones`), calidad a volumen (QUA-01, QUA-02), cierre con traspaso y paso 15 posterior al proyecto |
+
+En la guía E2E-3, paso 11, el script `g3.py` levanta
+**servidores de prueba locales en 127.0.0.1** (SMTP y receptor HTTP para el webhook de Teams), de modo que el envío real
+se ejercita sin salir a la red; la evidencia registra lo que recibieron. Imágenes nuevas:
+`docs/guias/img/g3-interesados-matriz.png` y `g3-interesados-raci-perfiles.png`.
 
 ## 3. Pruebas en vivo (`scripts/pruebas_vivo/`)
 
@@ -86,6 +110,22 @@ El informe queda en `<salida>/INFORME.md`; el código de salida es 1 si alguna p
 | 2026-10-17 | 2.1.0 | `bmad-sprint-planning` real (intent readiness), 3 corridas | dos CONCERNS y un FAIL (plan roto a propósito); ninguna escribió archivo; el veredicto queda en la conversación o en el JSON no interactivo (`gate`, `findings`). Base del diseño de `puertas.py preparacion-bmad` |
 | 2026-10-17 | 2.1.0 | `multisesion` con verificación de puertas | 11/11: pm-director generó y confirmó las listas de control con la confirmación del usuario, registró PRD como línea base, tolerancias y las dos puertas; sanidad sin ERROR |
 
+### 3.2 Pendiente para 2.2.0: pruebas en vivo de enrutamiento
+
+Las pruebas en vivo con Claude real **no se corrieron para 2.2.0**. Cambiaron descripciones que afectan el enrutamiento:
+`pm-interesados` (nueva), `pm-organizacion-roles` (interesados y RACI pasan a `pm-interesados`),
+`pm-comunicacion-stakeholders` (incluye el envío), `pm-integraciones` (capa de canales) y `pm-okr` (tipos de KR,
+check-ins, Tability o Perdoo). Antes de publicar se recomienda (consume tokens):
+
+```bash
+python3 scripts/pruebas_vivo/suite.py enrutamiento --ids 1,2,12,16,17,40,46,51,61,62,63,64,65,66
+```
+
+Esos ids son las frases de `docs/evaluacion/frases-enrutamiento.tsv` que esperan alguna de las skills afectadas. El
+TSV ya está actualizado: las frases 1 y 40 esperan `pm-interesados`, y las 61–66 son nuevas (RACI, preferencias de
+comunicación, envío a interesados por canales, check-in de OKR y riesgos candidatos desde transcripciones o Jira; la
+descripción de `pm-riesgos` no cambió, la 66 verifica que el pedido nuevo siga llegando a ella).
+
 Los informes completos están en `docs/evaluacion/resultados/` (v2.0: enrutamiento y orquestación; v2.1: suite, idioma, modelos, inyección, desorden, escala y varias sesiones).
 
 ## 4. Próximo nivel: piloto real
@@ -104,7 +144,7 @@ Lo que no se puede probar en el laboratorio (Windows real, conectores reales, us
 
 Marcar cada punto en una carpeta de prueba (no en el proyecto real):
 
-1. [ ] `claude plugin list` muestra `pm-method` 2.1.0 habilitado.
+1. [ ] `claude plugin list` muestra `pm-method` 2.2.0 habilitado.
 2. [ ] `/pm-method:pm-ayuda` responde con la guía.
 3. [ ] `/pm-method:pm-nuevo "Prueba"` crea la carpeta; al reabrir la sesión aparece el resumen del hook de inicio con la
    ruta de los scripts.
@@ -118,5 +158,8 @@ Marcar cada punto en una carpeta de prueba (no en el proyecto real):
 10. [ ] Si se usan: un organigrama con la skill externa de diagramas y un Excel con la skill `xlsx`.
 11. [ ] Un pedido en inglés recibe respuesta en inglés.
 12. [ ] `python3 scripts/probar_paquete.py` en el clon del repositorio → 0 FALLO.
+13. [ ] (v2.2) "Armá la matriz poder/interés y la RACI" → invoca `pm-interesados`; luego un comunicado a un
+    cuadrante queda como borradores en `03-control/comunicaciones/`, `envios.py aprobar … --por` los aprueba y
+    `envios.py enviar … --modo eml` (sin `--confirmar`) muestra la simulación sin enviar nada.
 
 Si algún punto falla: [INSTALACION §12](INSTALACION.md) (problemas frecuentes) y `sanidad.py --informe`.

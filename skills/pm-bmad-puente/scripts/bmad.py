@@ -246,6 +246,11 @@ def inventario(b):
                     else:
                         add(clave, [xs[-1]], xs[:-1])
                     break
+        # fase de descubrimiento (brainstorming, PRFAQ, investigación): solo se leen; nombres de carpeta tomados como patrones amplios [verificar por versión]
+        desc = []
+        for pat in ("brainstorming/**/*.md", "*brainstorm*.md", "prfaq*/**/*.md", "*prfaq*.md", "research/**/*.md", "*research*.md", "*investigacion*.md"):
+            desc += [x for x in glob.glob(os.path.join(P, pat), recursive=True) if not os.path.basename(x).startswith(".") and x not in desc]
+        add("descubrimiento", sorted(desc))
         add("epicas", [os.path.join(P, "epics.md")] if os.path.exists(os.path.join(P, "epics.md")) else glob.glob(os.path.join(P, "*epic*.md")))
         add("estado-sprint", [os.path.join(I, "sprint-status.yaml")])
         add("propuestas-cambio", sorted(glob.glob(os.path.join(P, "sprint-change-proposal-*.md"))))

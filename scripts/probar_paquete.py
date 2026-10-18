@@ -379,10 +379,334 @@ def caso_puertas_bmad(tmp):
           and any("CONCERNS" in o for r in est["puertas"] for o in r["observaciones"]) and (est.get("proxima") or {}).get("puerta") == "autorizar-etapa", str(est)[:300])
     check("estado.py resumen muestra última y próxima puerta", "Próxima puerta" in ES("resumen").stdout and "Última puerta" in ES("resumen").stdout)
 
+# ------------------------------------------------------------------ v2.2: maestro de interesados, capa de canales y OKR
+def servidores_locales():
+    """SMTP mínimo y receptor HTTP en 127.0.0.1 para probar envíos sin red externa."""
+    import socketserver, threading, http.server
+    rec = {"smtp": [], "http": []}
+    class SMTPH(socketserver.StreamRequestHandler):
+        def handle(self):
+            w = lambda x: self.wfile.write((x + "\r\n").encode()); w("220 prueba"); datos = None; m = {"rcpt": []}
+            while True:
+                l = self.rfile.readline()
+                if not l: break
+                x = l.decode("utf-8", "replace").rstrip("\r\n")
+                if datos is not None:
+                    if x == ".": m["data"] = "\n".join(datos); rec["smtp"].append(m); m = {"rcpt": []}; datos = None; w("250 OK")
+                    else: datos.append(x)
+                    continue
+                c = x.upper()
+                if c.startswith(("EHLO", "HELO")): w("250 prueba")
+                elif c.startswith("RCPT TO"): m["rcpt"].append(x); w("250 OK")
+                elif c == "DATA": datos = []; w("354 fin con .")
+                elif c == "QUIT": w("221 adios"); break
+                else: w("250 OK")
+    class HTTPH(http.server.BaseHTTPRequestHandler):
+        def do_POST(self):
+            n = int(self.headers.get("Content-Length", 0)); rec["http"].append({"ruta": self.path, "cuerpo": json.loads(self.rfile.read(n))})
+            self.send_response(200); self.end_headers(); self.wfile.write(b"ok")
+        def log_message(self, *a): pass
+    s1 = socketserver.ThreadingTCPServer(("127.0.0.1", 0), SMTPH); s1.daemon_threads = True
+    s2 = http.server.ThreadingHTTPServer(("127.0.0.1", 0), HTTPH)
+    for x in (s1, s2): threading.Thread(target=x.serve_forever, daemon=True).start()
+    return s1, s2, rec
+
+def caso_interesados(tmp):
+    print("Caso H · maestro de interesados (matriz, RACI, estereotipos, preferencias), capa de canales y OKR v2.2")
+    IN = os.path.join(RAIZ, "skills", "pm-interesados", "scripts", "interesados.py")
+    EV = os.path.join(RAIZ, "skills", "pm-integraciones", "scripts", "envios.py")
+    OK = os.path.join(RAIZ, "skills", "pm-okr", "scripts", "okr.py")
+    d = os.path.join(tmp, "stk"); os.makedirs(d); g = "g"
+    run([os.path.join(S, "nuevo_proyecto.py"), "--ruta", g, "--nombre", "Faro", "--ejecutivo", "Laura Méndez", "--gestor", "Martín Suárez"], d)
+    check("registros opcionales no se crean en un proyecto nuevo", not os.path.exists(os.path.join(d, g, "03-control", "registros", "raci.csv")))
+    reg = lambda *a, esperar=0: run([os.path.join(S, "registro.py"), "--proyecto", g] + list(a), d, esperar=esperar)
+    for nom, pod, inte, extra in (("Laura Méndez", "alto", "alto", ["--campo", "correo=laura@example.org"]), ("Jorge Paz", "alto", "medio", ["--campo", "correo=jorge@example.org"]),
+                                  ("Ana Ríos", "bajo", "alto", ["--campo", "usuario_chat=U0123ABCD"]), ("Regulador", "alto", "bajo", []), ("Público", "bajo", "bajo", [])):
+        reg("agregar", "stakeholders", "--campo", f"nombre={nom}", "--campo", f"poder={pod}", "--campo", f"interes={inte}", *extra)
+    m = json.loads(run([IN, "--proyecto", g, "matriz", "--json"], d).stdout or "{}")
+    q = {k: [x["id"] for x in v] for k, v in m.get("cuadrantes", {}).items()}
+    check("matriz: 'medio' ubicado como alto y marcado frontera", q.get("gestionar-de-cerca") == ["ST-001", "ST-002"] and q.get("mantener-satisfecho") == ["ST-004"]
+          and q.get("mantener-informado") == ["ST-003"] and q.get("monitorear") == ["ST-005"] and any(x["frontera"] for x in m["cuadrantes"]["gestionar-de-cerca"]), str(q))
+    q2 = json.loads(run([IN, "--proyecto", g, "--medio", "bajo", "matriz", "--json"], d).stdout or "{}")
+    check("matriz --medio bajo: ST-002 pasa a mantener satisfecho", "ST-002" in [x["id"] for x in q2["cuadrantes"]["mantener-satisfecho"]])
+    r = reg("agregar", "raci", "--campo", "elemento=1.1", "--campo", "stakeholder_id=ST-099", "--campo", "rol=R", esperar=None)
+    check("registro: RACI con interesado inexistente rechazada", r.returncode != 0 and "ST-099" in (r.stdout + r.stderr))
+    reg("agregar", "raci", "--campo", "elemento=REQ-001", "--campo", "stakeholder_id=ST-001", "--campo", "rol=A")
+    reg("agregar", "raci", "--campo", "elemento=REQ-001", "--campo", "stakeholder_id=ST-003", "--campo", "rol=R")
+    r = reg("agregar", "raci", "--campo", "elemento=REQ-001", "--campo", "stakeholder_id=ST-002", "--campo", "rol=A", esperar=None)
+    check("registro: segundo A en el mismo elemento rechazado", r.returncode != 0)
+    r = reg("agregar", "raci", "--campo", "elemento=REQ-001", "--campo", "stakeholder_id=ST-001", "--campo", "rol=C", esperar=None)
+    check("registro: fila RACI duplicada (elemento + interesado) rechazada", r.returncode != 0)
+    r = reg("actualizar", "stakeholders", "ST-003", "--campo", "estereotipo=ET-009", esperar=None)
+    check("registro: estereotipo inexistente rechazado", r.returncode != 0)
+    os.makedirs(os.path.join(d, g, "02-planificacion"), exist_ok=True)
+    open(os.path.join(d, g, "02-planificacion", "requisitos.md"), "w", encoding="utf-8").write("| Id | Requisito | Prioridad | Fuente | Criterio |\n|---|---|---|---|---|\n| REQ-001 | Consultar saldo | Must | brief | ok |\n")
+    reg("agregar", "raci", "--campo", "elemento=REQ-777", "--campo", "stakeholder_id=ST-002", "--campo", "rol=A")
+    h = json.loads(run([IN, "--proyecto", g, "integridad", "--json"], d, esperar=None).stdout or "[]")
+    cods = {x["codigo"] for x in h}
+    check("integridad: REQ-001 existe (fachada) y REQ-777 no (STK-09); REQ-777 sin R (STK-11)", "STK-09" in cods and not any("REQ-001" in x["mensaje"] and x["codigo"] == "STK-09" for x in h) and "STK-11" in cods, str(h)[:400])
+    run([IN, "--proyecto", g, "estereotipos", "--semilla"], d)
+    reg("actualizar", "stakeholders", "ST-004", "--campo", "estereotipo=ET-005")
+    open(os.path.join(d, "t.vtt"), "w", encoding="utf-8").write("WEBVTT\n\n00:00:01.000 --> 00:00:09.000\n<v Laura Méndez>Para mí lo mejor es un resumen ejecutivo de una página. Prefiero que me lo manden por correo los lunes antes de las 9.\n\n"
+        "00:00:10.000 --> 00:00:15.000\n<v Jorge Paz>Necesito los números en detalle. No me mandes correos de proveedores.\n\n00:00:16.000 --> 00:00:18.000\n<v Pedro X>Gracias.\n")
+    pr = json.loads(run([IN, "--proyecto", g, "proponer", "--transcripcion", "t.vtt", "--fecha", "2026-10-17", "--registrar", "--json"], d).stdout or "{}")
+    dims = {(p["stakeholder_id"], p["dimension"], p["valor"]) for p in pr.get("propuestas", [])}
+    check("proponer: solo lo declarado en primera persona, con cita", {("ST-001", "nivel_detalle", "ejecutivo"), ("ST-001", "canal", "correo"), ("ST-001", "frecuencia", "semanal"),
+          ("ST-002", "formato", "datos")} <= dims and all(p["evidencia"].startswith('"') for p in pr["propuestas"]), str(dims))
+    check("proponer: 'no me mandes correos' es evitar, no canal=correo para ST-002", ("ST-002", "canal", "correo") not in dims and any(x[0] == "ST-002" and x[1] == "evitar" for x in dims))
+    check("proponer: hablante sin asignar listado", pr.get("hablantes_sin_asignar") == ["Pedro X"], str(pr.get("hablantes_sin_asignar")))
+    pf = {(x["stakeholder_id"], x["dimension"]): x["id"] for x in csv.DictReader(open(os.path.join(d, g, "03-control", "registros", "preferencias.csv"), encoding="utf-8"))}
+    p0 = json.loads(run([IN, "--proyecto", g, "perfil", "ST-001", "--json"], d).stdout or "{}")
+    check("perfil: las propuestas no se aplican", p0["dimensiones"]["nivel_detalle"]["fuente"].startswith("cuadrante") and p0["pendientes"], str(p0["dimensiones"]["nivel_detalle"]))
+    run([IN, "--proyecto", g, "confirmar", pf[("ST-001", "nivel_detalle")], pf[("ST-001", "canal")], "--por", "Gestor: Martín Suárez"], d)
+    run([IN, "--proyecto", g, "confirmar", pf[("ST-001", "frecuencia")], "--por", "Gestor: Martín Suárez", "--vigencia-hasta", "2026-01-01"], d)
+    p1 = json.loads(run([IN, "--proyecto", g, "perfil", "ST-001", "--json", "--corte", "2026-10-17"], d).stdout or "{}")
+    check("perfil: confirmada vigente gana (con procedencia) y la vencida no se aplica", p1["dimensiones"]["nivel_detalle"]["valor"] == "ejecutivo" and p1["dimensiones"]["nivel_detalle"]["fuente"].startswith("PF-")
+          and p1["dimensiones"]["frecuencia"]["fuente"].startswith("cuadrante") and p1["vencidas"] and p1["destino"] == "laura@example.org", json.dumps(p1)[:400])
+    p4 = json.loads(run([IN, "--proyecto", g, "perfil", "ST-004", "--json"], d).stdout or "{}")
+    check("perfil: estereotipo sobre el cuadrante", p4["dimensiones"]["nivel_detalle"]["fuente"] == "estereotipo:ET-005")
+    hs = run([os.path.join(S, "sanidad.py"), "--proyecto", g, "--json"], d, esperar=None)
+    cods = {x["codigo"] for x in json.loads(hs.stdout or "{}").get("hallazgos", [])}
+    check("sanidad: STK-04 (vencida) y STK-09 desde el maestro", {"STK-04", "STK-09"} <= cods, str(cods))
+    reg("agregar", "preferencias", "--campo", "stakeholder_id=ST-050", "--campo", "dimension=canal", "--campo", "valor=slack", "--campo", "procedencia=observado", "--forzar")
+    hs = run([os.path.join(S, "sanidad.py"), "--proyecto", g, "--json"], d, esperar=None)
+    check("sanidad: referencia forzada a interesado inexistente = ERROR STK-03 (bloquea puertas)", hs.returncode == 1 and "STK-03" in {x["codigo"] for x in json.loads(hs.stdout or "{}").get("hallazgos", []) if x["severidad"] == "ERROR"})
+    run([IN, "--proyecto", g, "reporte", "--html", "rep.html", "--markdown", "rep.md", "--corte", "2026-10-17"], d)
+    html = open(os.path.join(d, "rep.html"), encoding="utf-8").read()
+    check("reporte HTML: matriz SVG, RACI, perfiles e integridad; sin valoraciones por defecto", "<svg" in html and "Matriz RACI" in html and "Perfiles de comunicación" in html and "STK-03" in html and "Actitud" not in html)
+    run([IN, "--proyecto", g, "reporte", "--html", "rep2.html", "--restringido"], d)
+    check("reporte --restringido incluye valoraciones y lo advierte", "Circulación restringida" in open(os.path.join(d, "rep2.html"), encoding="utf-8").read())
+    open(os.path.join(d, "base.md"), "w", encoding="utf-8").write("Avance de la etapa 2: verde.\n")
+    r = run([IN, "--proyecto", g, "plan-envio", "--tema", "Avance 2", "--audiencia", "ST-001,ST-003,cuadrante:nada"], d, esperar=None)
+    check("plan-envio: audiencia inválida no crea nada", r.returncode != 0 and not os.path.exists(os.path.join(d, g, "03-control", "comunicaciones")))
+    reg("agregar", "preferencias", "--campo", "stakeholder_id=ST-003", "--campo", "dimension=canal", "--campo", "valor=slack", "--campo", "procedencia=declarado",
+        "--campo", "estado=confirmada", "--campo", "confirmado_por=Gestor: Martín Suárez", "--campo", "vigencia_hasta=2099-12-31")
+    r = run([IN, "--proyecto", g, "plan-envio", "--tema", "Avance 2", "--audiencia", "raci:REQ-001:AR,ST-002", "--fecha", "2026-10-17"], d)
+    c = os.path.join(g, "03-control", "comunicaciones", "2026-10-17-avance-2")
+    msjs = sorted(glob.glob(os.path.join(d, c, "mensaje-*.md")))
+    check("plan-envio: un borrador por destinatario según su canal", len(msjs) == 3 and any("-correo-st-001" in x for x in msjs) and any("-slack-st-003" in x for x in msjs), str(msjs))
+    out = run([EV, "--proyecto", g, "aprobar", c, "--por", "Gestor: Martín Suárez"], d).stdout
+    check("aprobar: rechaza borradores sin redactar", "0 mensaje(s) aprobados" in out, out[-200:])
+    for x in msjs:
+        t = open(x, encoding="utf-8").read().replace("[redactar el mensaje]", "La etapa 2 está en verde; decisión pendiente: ninguna.")
+        open(x, "w", encoding="utf-8").write(t)
+    run([EV, "--proyecto", g, "aprobar", c, "--por", "Gestor: Martín Suárez"], d)
+    sim = run([EV, "--proyecto", g, "enviar", c, "--modo", "smtp"], d).stdout
+    check("enviar sin --confirmar = simulación (nada registrado)", "SIMULACIÓN" in sim and not os.path.exists(os.path.join(d, g, "03-control", "registros", "envios.csv")))
+    s1, s2, rec = servidores_locales()
+    env = dict(os.environ, PM_SMTP_HOST="127.0.0.1", PM_SMTP_PUERTO=str(s1.server_address[1]), PM_SMTP_TLS="ninguno", PM_SMTP_REMITENTE="pm@example.org",
+               PM_SLACK_WEBHOOK_URL=f"http://127.0.0.1:{s2.server_address[1]}/slack", PM_TEAMS_WEBHOOK_URL=f"http://127.0.0.1:{s2.server_address[1]}/teams",
+               NO_PROXY="127.0.0.1,localhost", no_proxy="127.0.0.1,localhost")
+    for modo in ("smtp", "slack-webhook"):
+        subprocess.run([sys.executable, EV, "--proyecto", g, "enviar", c, "--modo", modo, "--confirmar"], cwd=d, capture_output=True, text=True, env=env)
+    filas = list(csv.DictReader(open(os.path.join(d, g, "03-control", "registros", "envios.csv"), encoding="utf-8")))
+    check("SMTP y webhook de Slack: entregados y registrados (EN-###) con quien aprobó", len(rec["smtp"]) == 1 and "laura@example.org" in rec["smtp"][0]["rcpt"][0]
+          and rec["http"] and "<@U0123ABCD>" in rec["http"][0]["cuerpo"]["text"] and {f["estado"] for f in filas} == {"enviado"} and all(f["confirmado_por"] for f in filas), str(filas)[:300])
+    subprocess.run([sys.executable, EV, "--proyecto", g, "enviar", c, "--modo", "smtp", "--confirmar"], cwd=d, capture_output=True, text=True, env=env)
+    check("reenvío: no duplica a quien ya recibió", len(rec["smtp"]) == 1)
+    reg("actualizar", "stakeholders", "ST-002", "--campo", "usuario_chat=jorge.paz")
+    r = run([EV, "--proyecto", g, "nuevo", "--origen", "base.md", "--audiencia", "ST-002", "--asunto", "Decisión de puerta", "--proposito", "puerta", "--fecha", "2026-10-18"], d)
+    c2 = os.path.join(g, "03-control", "comunicaciones", "2026-10-18-decision-de-puerta"); m2 = glob.glob(os.path.join(d, c2, "mensaje-*.md"))[0]
+    t = open(m2, encoding="utf-8").read().replace("canal: reunion", "canal: teams").replace("## Contenido base (adaptar al perfil y borrar este título)\n\n", "")
+    open(m2, "w", encoding="utf-8").write(t)
+    run([EV, "--proyecto", g, "aprobar", c2, "--por", "Ejecutiva: Laura Méndez"], d)
+    subprocess.run([sys.executable, EV, "--proyecto", g, "enviar", c2, "--modo", "teams-webhook", "--confirmar"], cwd=d, capture_output=True, text=True, env=env)
+    tm = [x for x in rec["http"] if x["ruta"] == "/teams"]
+    check("webhook de Teams: tarjeta adaptable (type message, attachments adaptive card) y propósito 'puerta'", tm and tm[0]["cuerpo"]["type"] == "message"
+          and tm[0]["cuerpo"]["attachments"][0]["contentType"] == "application/vnd.microsoft.card.adaptive"
+          and any(f["proposito"] == "puerta" for f in csv.DictReader(open(os.path.join(d, g, "03-control", "registros", "envios.csv"), encoding="utf-8"))))
+    for x in (s1, s2): x.shutdown()
+    gd = os.path.join(RAIZ, "hooks", "guardian.py")
+    def decide(herr, entrada):
+        p = subprocess.run(["sh", os.path.join(RAIZ, "hooks", "py.sh"), gd], input=json.dumps({"tool_name": herr, "tool_input": entrada}), capture_output=True, text=True)
+        return "deny" if '"deny"' in p.stdout else "allow"
+    check("hook: Write sobre raci.csv y preferencias.csv bloqueado; interesados.py permitido",
+          decide("Write", {"file_path": "/p/g/03-control/registros/raci.csv"}) == "deny" and decide("Bash", {"command": "echo x >> g/03-control/registros/preferencias.csv"}) == "deny"
+          and decide("Bash", {"command": "python3 x/interesados.py --proyecto g confirmar PF-001 --por 'G: X'"}) == "allow")
+    # OKR v2.2
+    os.makedirs(os.path.join(d, g, "00-direccion"), exist_ok=True); po = os.path.join(g, "00-direccion", "okr.csv")
+    open(os.path.join(d, po), "w", encoding="utf-8").write("id,tipo,objetivo_id,enunciado,metrica,linea_base,meta,actual,unidad,responsable,fecha_meta,vinculo,confianza,notas,tipo_kr,compromiso,peso,padre_id,nivel,ciclo,fecha_inicio,estado,ref_externa\n"
+        "O-1,objetivo,,Socios autogestionados,,,,,,ST-001,,OBJ-1,,,,,,,proyecto,,2026-11-01,activo,\n"
+        "KR-1.1,kr,O-1,Consultas telefónicas por mes,consultas,1200,600,,n,ST-001,2027-04-30,B-01,,,de-a,,2,,,,,activo,tability:77\n"
+        "KR-1.2,kr,O-1,Satisfacción de socios,puntaje,,4,,pts,Jorge Paz,2027-04-30,SM-2,,,mantener-sobre,,1,,,,,activo,\n"
+        "KR-1.3,kr,O-1,Pago de cuotas en línea,hito,,,,,Inventado X,2027-03-31,SM-3,,,hito,,1,,,,,activo,\n"
+        "IN-1,iniciativa,KR-1.3,Épica de pagos,,,,,,ST-003,,E-3,,,,,1,,,,,completada,\nIN-2,iniciativa,KR-1.3,Historia 3-2,,,,,,ST-003,,3-2-pagar,,,,,1,,,,,activo,\n"
+        "O-2,objetivo,,Equipo preparado,,,,,,ST-002,,OBJ-1,,,,comprometido,,O-1,equipo,,2026-11-01,activo,\n"
+        "KR-2.1,kr,O-2,Realizar capacitaciones,personas,0,20,,personas,ST-002,2027-02-28,B-02,,,,,,,,,,activo,\n")
+    for kr, v, cf, fe in (("KR-1.1", "1000", "6", "2026-12-01"), ("KR-1.1", "900", "7", "2027-01-05"), ("KR-1.2", "4.2", "", "2027-01-05"), ("KR-2.1", "8", "3", "2027-01-05")):
+        run([OK, po, "--checkin", kr, "--valor", v, "--fecha", fe] + (["--confianza", cf] if cf else []), d)
+    r = run([OK, po, "--checkin", "KR-2.1", "--valor", "9", "--fecha", "2027-01-05"], d, esperar=None)
+    check("OKR: check-in duplicado (mismo KR y fecha) rechazado: solo se agregan", r.returncode != 0)
+    j = json.loads(run([OK, po, "--corte", "2027-01-10", "--json"], d).stdout or "{}")
+    o = {x["id"]: x for x in j.get("objetivos", [])}; k = {kk["id"]: kk for x in j.get("objetivos", []) for kk in x["krs"]}
+    check("OKR: actual = último check-in; KR de-a 0,50, mantener 1,0, hito 0,50 por iniciativas; objetivo ponderado 0,625",
+          k["KR-1.1"]["actual"] == "900" and abs(k["KR-1.1"]["puntuacion"] - 0.5) < 1e-9 and k["KR-1.2"]["puntuacion"] == 1.0 and abs(k["KR-1.3"]["puntuacion"] - 0.5) < 1e-9
+          and abs(o["O-1"]["puntuacion"] - 0.625) < 1e-9, json.dumps(k)[:300])
+    check("OKR: comprometido 0,40 = rojo; salud en riesgo frente al esperado; confianza 3 = rojo; cascada O-2 bajo O-1",
+          o["O-2"]["semaforo"] == "rojo" and k["KR-2.1"]["salud"] == "en-riesgo" and k["KR-2.1"]["confianza_semaforo"] == "rojo" and o["O-2"]["nivel_cascada"] == 1)
+    av = " ".join(j.get("avisos", []))
+    check("OKR: avisos de verbo de actividad y de responsable fuera del maestro", "KR-2.1: el enunciado empieza con un verbo de actividad" in av and "Inventado X" in av, av[:300])
+    ps = json.loads(run([OK, po, "--propuesta-sync", "tability", "--json"], d).stdout or "{}")
+    check("OKR: propuesta de sincronización solo para KR con ref_externa (Tability)", len(ps.get("pendientes", [])) == 2 and ps["pendientes"][0]["confidence"] == "yellow" and any("KR-1.2" in a for a in ps["avisos"]))
+    run([OK, po, "--marcar-publicado", "KR-1.1@2026-12-01", "--destino", "tability", "--ref", "ck-1"], d)
+    ps = json.loads(run([OK, po, "--propuesta-sync", "tability", "--json"], d).stdout or "{}")
+    check("OKR: marcar publicado lo saca de la propuesta", len(ps.get("pendientes", [])) == 1)
+    v = run([PU, "--proyecto", os.path.join(tmp, "stk", g), "verificar", "autorizar-proyecto"], d, esperar=None).stdout
+    check("puertas: aviso P-09 si hay interesados sin mapear o registro vacío (sin bloquear)", "P-09" not in v or "aviso" in v)
+
+def caso_riesgos_fuentes(tmp):
+    print("Caso I · identificación de riesgos desde BMAD, transcripciones, tracker y artefactos (riesgos.py candidatos)")
+    RK = os.path.join(RAIZ, "skills", "pm-riesgos", "scripts", "riesgos.py")
+    repo = os.path.join(tmp, "rk"); shutil.copytree(os.path.join(FIX, "bmad-v6.12-real"), repo); g = "gestion"
+    run([os.path.join(S, "nuevo_proyecto.py"), "--ruta", g, "--nombre", "Portal"], repo); run([B, "--proyecto", g, "detectar"], repo)
+    os.makedirs(os.path.join(repo, g, "03-control", "reuniones"), exist_ok=True)
+    open(os.path.join(repo, g, "03-control", "reuniones", "2026-10-27-ronda-transcripcion.md"), "w", encoding="utf-8").write(
+        "**[00:00:13] TI:** Nos preocupa que el padrón no tenga entorno de pruebas; dependemos de otra área.\n\n**[00:00:20] Sofía Ramírez:** Podríamos aprovechar el generador de PDF.\n\n**[00:00:30] Martín:** Buen día a todos.\n")
+    run([os.path.join(S, "registro.py"), "--proyecto", g, "agregar", "riesgos", "--campo", "causa=El proveedor de SMS es nuevo", "--campo", "evento=El proveedor de SMS no cumple la disponibilidad del segundo factor",
+         "--campo", "efecto=Socios sin acceso", "--campo", "tipo=amenaza", "--campo", "probabilidad=3", "--campo", "impacto=5"], repo)
+    os.makedirs(os.path.join(repo, g, "03-control", "fuentes"), exist_ok=True)
+    open(os.path.join(repo, g, "03-control", "fuentes", "jira-2026-12-16.csv"), "w", encoding="utf-8").write(
+        "clave,tipo,titulo,estado,asignado,sprint,puntos,actualizado,url,prioridad,etiquetas,vinculo\n"
+        "PS-1,Bug,Timeout en la consulta de saldos,En curso,L,S2,,2026-12-16,u,Highest,,1-3-consulta\nPS-2,Historia,Constancias,En curso,L,S2,5,2026-12-16,u,Medium,,\n"
+        "PS-3,Tarea,Evaluar proveedor de SMS alternativo por la disponibilidad del segundo factor,Por hacer,D,S3,,2026-12-14,u,Medium,riesgo,\n")
+    j = json.loads(run([RK, "--proyecto", g, "candidatos", "--json", "--fecha", "2026-12-16"], repo).stdout or "{}")
+    cs = j.get("candidatos", []); cob = j.get("cobertura", {})
+    check("candidatos: cobertura de las cuatro fuentes (BMAD leído vía el puente)", set(cob) == {"bmad", "transcripciones", "tracker", "artefactos"} and cob["bmad"]["candidatos"] > 20, str({k: v["candidatos"] for k, v in cob.items()}))
+    check("BMAD: riesgo de la sección del brief y pregunta abierta del PRD, con archivo y línea", any("brief.md:91" in c["origen"] and c["clase"] == "riesgo" for c in cs)
+          and any("prd.md:249" in c["origen"] and c["clase"] == "pregunta" for c in cs))
+    tr = [c for c in cs if c["fuente"] == "transcripcion"]
+    check("transcripción: preocupación (amenaza) y oportunidad con hablante y marca de tiempo; saludo ignorado", len(tr) == 2 and tr[0]["tipo"] == "amenaza" and "[00:00:13]" in tr[0]["origen"]
+          and tr[1]["tipo"] == "oportunidad", json.dumps(tr, ensure_ascii=False)[:300])
+    tk = {c["origen"].split(" ")[0]: c for c in cs if c["fuente"] == "tracker"}
+    check("tracker: bug = issue, historia normal ignorada, etiqueta riesgo = riesgo y posible duplicado del registrado", tk.get("jira:PS-1", {}).get("clase") == "issue" and "jira:PS-2" not in tk
+          and tk.get("jira:PS-3", {}).get("clase") == "riesgo" and tk["jira:PS-3"]["posible_duplicado"] == "R-001", str(list(tk)))
+    check("candidatos: borrador en 03-control/reportes y nada registrado", os.path.exists(os.path.join(repo, g, "03-control", "reportes", "2026-12-16-candidatos-riesgo.md"))
+          and len(list(csv.DictReader(open(os.path.join(repo, g, "03-control", "registros", "riesgos.csv"), encoding="utf-8")))) == 1)
+    d2 = os.path.join(tmp, "sinbmad"); os.makedirs(d2)
+    run([os.path.join(S, "nuevo_proyecto.py"), "--ruta", g, "--nombre", "Sin BMAD"], d2)
+    os.makedirs(os.path.join(d2, g, "00-direccion"), exist_ok=True)
+    open(os.path.join(d2, g, "00-direccion", "mandato.md"), "w", encoding="utf-8").write("# Mandato\n\n## Restricciones y riesgos conocidos\n- El núcleo cambia en ventanas trimestrales.\n\n## Lecciones de proyectos anteriores\n- Banca telefónica: 6 semanas de atraso por falta de entorno de pruebas.\n")
+    run([os.path.join(S, "registro.py"), "--proyecto", g, "agregar", "supuestos", "--campo", "supuesto_o_restriccion=La API de lectura está antes de marzo", "--campo", "tipo=supuesto", "--campo", "validado=pendiente"], d2)
+    r = run([RK, "--proyecto", g, "candidatos", "--json"], d2); j2 = json.loads(r.stdout or "{}")
+    orig = [c["origen"] for c in j2.get("candidatos", [])]
+    check("sin BMAD: no aplica BMAD y salen candidatos del mandato (restricción y lección) y del supuesto sin validar",
+          j2["cobertura"]["bmad"]["candidatos"] == 0 and any("mandato.md:4" in o for o in orig) and any("mandato.md:7" in o for o in orig) and any("S-001" in o for o in orig), str(orig))
+    # negación en preferencias (corrección v2.2)
+    IN = os.path.join(RAIZ, "skills", "pm-interesados", "scripts", "interesados.py")
+    run([os.path.join(S, "registro.py"), "--proyecto", g, "agregar", "stakeholders", "--campo", "nombre=Ana Ríos"], d2)
+    open(os.path.join(d2, "n.vtt"), "w", encoding="utf-8").write("WEBVTT\n\n00:00:01.000 --> 00:00:05.000\n<v Ana Ríos>Prefiero que me lleguen por Slack, no por correo.\n")
+    pr = json.loads(run([IN, "--proyecto", g, "proponer", "--transcripcion", "n.vtt", "--json"], d2).stdout or "{}")
+    vals = {(p["dimension"], p["valor"]) for p in pr.get("propuestas", [])}
+    check("preferencias: «por Slack, no por correo» propone solo slack", ("canal", "slack") in vals and ("canal", "correo") not in vals, str(vals))
+    os.makedirs(os.path.join(d2, g, "02-planificacion", "enfoques"), exist_ok=True)
+    open(os.path.join(d2, g, "02-planificacion", "enfoques", "enfoque-riesgo.md"), "w", encoding="utf-8").write("# Enfoque de gestión de riesgos\n\n## Apetito\n- Apetito bajo en cumplimiento.\n- Se revisan los riesgos cada sprint.\n")
+    j3 = json.loads(run([RK, "--proyecto", g, "candidatos", "--json", "--fuentes", "artefactos"], d2).stdout or "{}")
+    check("artefactos: el enfoque de riesgo (método) no se toma como fuente de candidatos", not any("enfoque-riesgo" in c["origen"] for c in j3.get("candidatos", [])))
+    open(os.path.join(d2, "t.vtt"), "w", encoding="utf-8").write("WEBVTT\n\n00:00:01.000 --> 00:00:05.000\n<v Ana Ríos>A mí mandame un resumen trimestral, una vez por trimestre alcanza.\n")
+    pr = json.loads(run([IN, "--proyecto", g, "proponer", "--transcripcion", "t.vtt", "--json"], d2).stdout or "{}")
+    check("preferencias: frecuencia trimestral reconocida", ("frecuencia", "trimestral") in {(p["dimension"], p["valor"]) for p in pr.get("propuestas", [])}, str(pr.get("propuestas"))[:200])
+
+def caso_controles(tmp):
+    print("Caso J · controles permanentes (presupuesto de cambio, condiciones de puertas, beneficios, calidad a volumen, tolerancias, cadencia de interesados)")
+    p = os.path.join(tmp, "ctl"); ES = os.path.join(S, "estado.py"); RG = os.path.join(S, "registro.py")
+    IN = os.path.join(RAIZ, "skills", "pm-interesados", "scripts", "interesados.py")
+    run([os.path.join(S, "nuevo_proyecto.py"), "--ruta", p, "--nombre", "Controles", "--ejecutivo", "Laura Méndez", "--gestor", "Martín Suárez"], tmp)
+    def san(corte=None):
+        r = run([os.path.join(S, "sanidad.py"), "--proyecto", p, "--json"] + (["--corte", corte] if corte else []), tmp, esperar=None)
+        return json.loads(r.stdout)
+    def hall(d, cod): return [h for h in d["hallazgos"] if h["codigo"] == cod]
+    # presupuestos de la junta
+    r = run([ES, "--proyecto", p, "presupuesto", "cambio=10.000"], tmp, esperar=None)
+    run([ES, "--proyecto", p, "presupuesto", "cambio=10000", "riesgo=20000", "limite_autoridad_cambio=5000", "--por", "Ejecutiva: Laura Méndez"], tmp)
+    e = json.load(open(os.path.join(p, "estado.json"), encoding="utf-8"))
+    check("presupuesto: monto con separador de miles (10.000) rechazado; la junta fija cambio, riesgo y límite delegado (anotado en decisiones)", r.returncode != 0
+          and e["presupuestos"]["cambio"] == "10000" and e["presupuestos"]["limite_autoridad_cambio"] == "5000"
+          and "presupuestos de la junta" in open(os.path.join(p, "03-control", "registros", "decisiones.csv"), encoding="utf-8").read())
+    gd = {"tool_name": "Bash", "tool_input": {"command": "python3 x/estado.py --proyecto g presupuesto cambio=99999"}, "agent_type": "pm-method:pm-control"}
+    pg = subprocess.run(["sh", os.path.join(RAIZ, "hooks", "py.sh"), os.path.join(RAIZ, "hooks", "guardian.py")], input=json.dumps(gd), capture_output=True, text=True)
+    check("hook: 'estado.py presupuesto' reservado a pm-director", '"deny"' in pg.stdout, pg.stdout[-200:])
+    r = run([RG, "--proyecto", p, "agregar", "cambios", "--campo", "titulo=x", "--campo", "costo=USD 9.000"], tmp, esperar=None)
+    check("cambios: 'costo' debe ser numérico", r.returncode != 0 and "costo" in (r.stdout + r.stderr))
+    def cambio(costo, cargo, por, extra=()):
+        i = run([RG, "--proyecto", p, "agregar", "cambios", "--campo", f"titulo=Cambio {costo}", "--campo", f"costo={costo}", "--campo", f"cargo={cargo}",
+                 "--campo", "decision=aprobado", "--campo", "estado=aprobado", "--campo", f"decidido_por={por}"] + list(extra), tmp).stdout.strip().splitlines()[-1]
+        return i
+    cambio(6000, "presupuesto-cambio", "Sofía Ramírez, autoridad de cambio")
+    d = san()
+    check("CAM-04 cambio sobre el límite delegado decidido por la autoridad de cambio; CAM-03 consumo 60 % (INFO)", hall(d, "CAM-04") and any(h["severidad"] == "INFO" and "60 %" in h["mensaje"] for h in hall(d, "CAM-03")),
+          json.dumps([h["mensaje"] for h in hall(d, "CAM-03") + hall(d, "CAM-04")], ensure_ascii=False))
+    cambio(5000, "presupuesto-cambio", "Ejecutiva: Laura Méndez")
+    cambio(1500, "reserva-riesgo", "Ejecutiva: Laura Méndez")
+    run([RG, "--proyecto", p, "agregar", "cambios", "--campo", "titulo=Sin monto", "--campo", "impacto_costo=+USD 2.000", "--campo", "decision=aprobado", "--campo", "estado=aprobado"], tmp)
+    d = san()
+    check("CAM-03 ERROR presupuesto de cambio excedido (110 %); CAM-02 reserva de riesgo sin R-###; CAM-01 impacto sin monto",
+          any(h["severidad"] == "ERROR" and "110 %" in h["mensaje"] for h in hall(d, "CAM-03")) and hall(d, "CAM-02") and hall(d, "CAM-01"),
+          json.dumps([h["codigo"] + " " + h["mensaje"] for h in d["hallazgos"] if h["codigo"].startswith("CAM")], ensure_ascii=False)[:400])
+    v = json.loads(run([PU, "--proyecto", p, "verificar", "autorizar-proyecto", "--json"], tmp, esperar=None).stdout)
+    check("puerta: el presupuesto de cambio excedido bloquea (sanidad CAM-03)", any("CAM-03" in x for x in v["bloqueos"]), str(v["bloqueos"])[:300])
+    for c in ("C-002", "C-003", "C-004"): run([RG, "--proyecto", p, "actualizar", "cambios", c, "--campo", "estado=rechazado", "--campo", "decision=rechazado"], tmp)
+    # beneficios solo en OKR
+    os.makedirs(os.path.join(p, "00-direccion"), exist_ok=True)
+    open(os.path.join(p, "00-direccion", "business-case.md"), "w", encoding="utf-8").write("---\ntipo: business-case\nestado: borrador\n---\n# Business case\nRazones y opciones.\n")
+    run([ES, "--proyecto", p, "artefacto", "business-case", "--ruta", "00-direccion/business-case.md"], tmp)
+    open(os.path.join(p, "00-direccion", "okr.csv"), "w", encoding="utf-8").write("id,tipo,enunciado\nO-1,objetivo,Mejorar\n")
+    run([ES, "--proyecto", p, "artefacto", "okr", "--ruta", "00-direccion/okr.csv"], tmp)
+    v = json.loads(run([PU, "--proyecto", p, "verificar", "autorizar-proyecto", "--json"], tmp, esperar=None).stdout)
+    check("P-04: criterios de éxito solo en OKR = condición (faltan beneficios B-n o enfoque de beneficios)", any("solo en OKR" in x for x in v["condiciones"]), str(v["condiciones"])[:300])
+    # condiciones formales y su seguimiento
+    junta(p, "autorizar-inicio", tmp, arts=[("project-brief", "01-inicio/project-brief.md")])
+    run([ES, "--proyecto", p, "puerta", "autorizar-inicio", "--decision", "aprobado", "--por", "Laura Méndez"], tmp)
+    run([ES, "--proyecto", p, "tolerancia", "--nivel", "proyecto", "tiempo=1mes", "costo=10%"], tmp)
+    junta(p, "autorizar-proyecto", tmp, arts=[("pid", "00-direccion/pid.md")])
+    r = run([ES, "--proyecto", p, "puerta", "autorizar-proyecto", "--decision", "condicionado", "--por", "Junta"], tmp)
+    e = json.load(open(os.path.join(p, "estado.json"), encoding="utf-8")); cond = e["puertas"][-1].get("condiciones", "")
+    check("condicionado: los hallazgos de tipo condición pasan a condiciones formales", "solo en OKR" in cond and "plan de proyecto" in cond, cond[:300])
+    v = json.loads(run([PU, "--proyecto", p, "verificar", "autorizar-etapa", "--json"], tmp, esperar=None).stdout)
+    check("G-01: la puerta siguiente muestra las condiciones abiertas de la anterior", any("condiciones abiertas de puertas anteriores" in x for x in v["condiciones"]), str(v["condiciones"])[:300])
+    r = run([ES, "--proyecto", p, "cumplir-condiciones", "autorizar-proyecto", "--fecha", "2027-01-05", "--por", "Ejecutiva: Laura Méndez", "--nota", "enfoque de beneficios y plan aprobados"], tmp)
+    e = json.load(open(os.path.join(p, "estado.json"), encoding="utf-8")); pu = e["puertas"][-1]
+    v = json.loads(run([PU, "--proyecto", p, "verificar", "autorizar-etapa", "--json"], tmp, esperar=None).stdout)
+    check("cumplir-condiciones con fecha, quién verificó y nota (anotado en decisiones); G-01 desaparece",
+          pu.get("condiciones_cumplidas") == "2027-01-05" and pu.get("condiciones_verificadas_por") == "Ejecutiva: Laura Méndez"
+          and "condiciones de autorizar-proyecto cumplidas" in open(os.path.join(p, "03-control", "registros", "decisiones.csv"), encoding="utf-8").read()
+          and not any("condiciones abiertas" in x for x in v["condiciones"]))
+    # calidad a volumen
+    os.makedirs(os.path.join(p, "02-planificacion"), exist_ok=True)
+    open(os.path.join(p, "02-planificacion", "backlog.csv"), "w", encoding="utf-8").write(
+        "id,tipo,titulo,estado\n1-1-alta-y-acceso,historia,Alta,done\n1-2-consulta,historia,Consulta,done\n1-10-pagos,historia,Pagos,done\n2-1-pdf,historia,PDF,in-progress\n")
+    q1 = run([RG, "--proyecto", p, "agregar", "calidad", "--campo", "producto=FR-1 alta y acceso (historia 1-1)", "--campo", "resultado=aprobado", "--campo", "estado=completada"], tmp).stdout.strip().splitlines()[-1]
+    run([RG, "--proyecto", p, "agregar", "calidad", "--campo", "producto=Prueba de carga NFR-3", "--campo", "fecha_prevista=2027-01-10"], tmp)
+    run([RG, "--proyecto", p, "agregar", "calidad", "--campo", "producto=Constancias (historia 1-10)", "--campo", "resultado=rechazado", "--campo", "estado=completada"], tmp)
+    d = san("2027-02-01"); qa = [h["mensaje"] for h in hall(d, "QUA-01")]
+    check("QUA-01 terminados sin revisión aprobada (1-2 sin revisión; 1-10 rechazada; 1-1 cubierta; en curso fuera)", len(qa) == 2 and any(m.startswith("1-2-consulta") for m in qa)
+          and any(m.startswith("1-10-pagos") and "Q-003" in m for m in qa), str(qa))
+    check("QUA-02 revisión vencida al corte y QUA-03 rechazada sin issue que la trate", hall(d, "QUA-02") and hall(d, "QUA-03") and not hall(san("2027-01-05"), "QUA-02"))
+    run([RG, "--proyecto", p, "agregar", "issues", "--campo", "tipo=fuera-especificacion", "--campo", "titulo=Constancias rechazadas en Q-003"], tmp)
+    check("QUA-03 desaparece cuando un issue cita la revisión", not hall(san("2027-02-01"), "QUA-03"))
+    # pronóstico contra tolerancias
+    EV = os.path.join(S, "evm.py")
+    run([EV, "--pv", "100000", "--ev", "80000", "--ac", "100000", "--bac", "200000", "--tol-costo", "10", "--tol-plazo", "10", "--proyecto", p, "--guardar", "--corte", "2027-02-01"], tmp)
+    d = san("2027-02-02")
+    check("evm --guardar + TOL-01: excepción prevista sin excepción abierta", os.path.exists(os.path.join(p, "03-control", "reportes", "evm-2027-02-01.json")) and hall(d, "TOL-01"),
+          json.dumps([h["mensaje"] for h in d["hallazgos"] if h["codigo"].startswith("TOL")], ensure_ascii=False))
+    run([EV, "--pv", "120000", "--ev", "118000", "--ac", "119000", "--bac", "200000", "--tol-costo", "10", "--tol-plazo", "10", "--proyecto", p, "--guardar", "--corte", "2027-03-01"], tmp)
+    check("TOL-01 se evalúa sobre el último corte (verde) y respeta la fecha de corte", not hall(san("2027-03-02"), "TOL-01") and hall(san("2027-02-15"), "TOL-01"))
+    # cadencia de contacto con interesados
+    def st(nombre, poder, interes):
+        return run([RG, "--proyecto", p, "agregar", "stakeholders", "--campo", f"nombre={nombre}", "--campo", f"poder={poder}", "--campo", f"interes={interes}"], tmp).stdout.strip().splitlines()[-1]
+    a, b, c = st("Laura Méndez", "alto", "alto"), st("Operadores", "bajo", "alto"), st("Público", "bajo", "bajo")
+    run([RG, "--proyecto", p, "agregar", "envios", "--campo", "fecha=2027-01-02", "--campo", f"stakeholder_id={a}", "--campo", "canal=reunion", "--campo", "modo=manual", "--campo", "estado=enviado", "--campo", "asunto=Revisión semanal"], tmp)
+    i20 = json.loads(run([IN, "--proyecto", p, "integridad", "--corte", "2027-01-20", "--json"], tmp, esperar=None).stdout or "[]")
+    i30 = json.loads(run([IN, "--proyecto", p, "integridad", "--corte", "2027-01-30", "--json"], tmp, esperar=None).stdout or "[]")
+    def stk12(xs): return [x for x in (xs if isinstance(xs, list) else xs.get("hallazgos", [])) if (x.get("codigo") if isinstance(x, dict) else x[1]) == "STK-12"]
+    m20 = json.dumps(stk12(i20), ensure_ascii=False); m30 = json.dumps(stk12(i30), ensure_ascii=False)
+    check("STK-12: 'gestionar de cerca' (semanal) sin contacto en 18 días; 'mantener informado' (quincenal) recién a los 28; 'monitorear' nunca",
+          a in m20 and b not in m20 and b in m30 and c not in m30, m20[:200] + " | " + m30[:200])
+
 def main():
     tmp = tempfile.mkdtemp(prefix="pm-method-pruebas-")
     try:
-        caso_v6(tmp); caso_v6_real(tmp); caso_v4(tmp); caso_nativo(tmp); caso_guardian(tmp); caso_puertas(tmp); caso_puertas_bmad(tmp); caso_regresiones(tmp)
+        caso_v6(tmp); caso_v6_real(tmp); caso_v4(tmp); caso_nativo(tmp); caso_guardian(tmp); caso_puertas(tmp); caso_puertas_bmad(tmp); caso_regresiones(tmp); caso_interesados(tmp); caso_riesgos_fuentes(tmp); caso_controles(tmp)
     finally:
         if "--conservar" not in sys.argv: shutil.rmtree(tmp, ignore_errors=True)
         else: print(f"Conservado en {tmp}")

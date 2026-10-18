@@ -14,6 +14,7 @@ Por cada paquete en curso: informe de avance de miembro (`templates/informe-avan
 - `python3 ${CLAUDE_SKILL_DIR}/../pm-estado-proyecto/scripts/evm.py --csv <dir>/03-control/reportes/progreso.csv --bac <BAC> --tol-costo <%> --tol-plazo <%> --eac tendencia|atipico|compuesto --idioma <es|en> --json` (acepta también `pv_acumulado`, `ev_acumulado`, `ac_acumulado`; `--proyecto <dir>` toma datos de la carpeta).
 - Devuelve SV, CV, SPI, CPI, % completado/gastado, tres EAC, ETC, VAC, TCPI, `semaforo_costo`, `semaforo_cronograma`, `excepcion_prevista`, `base_semaforo`.
 - Correr una vez con tolerancias de etapa y otra con las de proyecto. Sin `--tol-*` usa índices de referencia (0,95/0,85) y lo declara en `base_semaforo`: decirlo en el informe.
+- **Guardar el corte (control permanente):** en cada período, la corrida con las tolerancias de etapa se repite con `--proyecto <dir> --guardar --corte <fecha del informe>`; queda `03-control/reportes/evm-<corte>.json` y la sanidad vigila el pronóstico entre informes, sin esperar al fin de etapa: TOL-01 (AVISO) si el último corte pronostica excepción y no hay excepción abierta ni puerta `autorizar-plan-excepcion` posterior; TOL-02 (INFO) en ámbar; TOL-03 (INFO) etapa de entrega sin corte guardado o con el último de más de 31 días. Vale igual en ágil (`--modo agil --pct-no-must`). Correr `sanidad.py --corte` con la misma fecha.
 - Controles: EV ≤ PV total del componente; acumulados del período anterior = informe anterior; BAC con cambios aprobados; al menos dos EAC con la elegida justificada (atípica, tendencia típica, CPI×SPI); ETC, VAC y TCPI recalculados; índices con la tendencia de los últimos períodos; SPI tiende a 1 al final → complementar con camino crítico o cronograma ganado.
 
 ## 4. Medición ágil y bloque burn-up
@@ -43,6 +44,8 @@ Si hay un tracker conectado (Jira, Linear, GitHub, Azure DevOps), `pm-integracio
 | Verde | desvío previsto ≤ 50 % de la tolerancia | SPI/CPI ≥ 0,95 | todos los Must y Should previstos entran |
 | Ámbar | 50–100 % de la tolerancia; acciones con responsable | 0,85 ≤ SPI/CPI < 0,95 | caen Should/Could dentro de la tolerancia de alcance |
 | Rojo | pronóstico fuera (`excepcion_prevista = true`) → informe de excepción | SPI/CPI < 0,85 | algún Must no entra → excepción |
+
+Un rojo guardado con `--guardar` que no se trata aparece como TOL-01 en cada sanidad hasta que hay excepción abierta (`estado.py limite-etapa --excepcion X-###`, pm-director) o puerta `autorizar-plan-excepcion`. El highlight informa también el consumo del presupuesto de cambio y de la reserva de riesgo (sanidad CAM-03) y las condiciones de puertas abiertas o cumplidas (`puertas.py estado --markdown`).
 
 Riesgos: un riesgo alto sin respuesta o sin propietario rompe la línea de tolerancia por defecto (SPEC §1.10.9) → rojo. Usar `registro.py resumen --corte <fecha del informe>` para que las acciones vencidas coincidan con el tablero.
 

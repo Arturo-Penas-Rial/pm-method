@@ -32,12 +32,13 @@ Para pm-director tras una decisión humana, agregar: `Decisión: <aprobado|condi
 - Escrituras externas: mostrar destino y contenido exactos (vista previa) y pedir confirmación por lote.
 
 ## 4. Secuencias tipo
-- **Arranque**: pm-inicio (SU) → 🔒 `autorizar-inicio` → pm-inicio + pm-planificacion (IP, PID, `plan-etapa-2`) → 🔒 `autorizar-proyecto` + `autorizar-etapa`.
+- **Arranque**: pm-inicio (SU; maestro de interesados y matriz poder/interés con `pm-interesados`) → 🔒 `autorizar-inicio` → pm-inicio + pm-planificacion (IP, PID, `plan-etapa-2`; RACI sobre WBS, requisitos y KR e `integridad` con `pm-interesados`; matriz de comunicaciones con `pm-comunicacion-stakeholders`) → 🔒 `autorizar-proyecto` + `autorizar-etapa` (sin maestro mapeado o sin RACI, la verificación de puerta da los avisos P-09/P-10, que no bloquean).
 - **Fin de etapa**: `limite-etapa` → pm-control (informe de fin de etapa, lecciones) + pm-planificacion (plan siguiente) → 🔒 `autorizar-etapa`.
 - **Excepción**: pm-control (informe X-###) → 🔒 `decision-ad-hoc` → `limite-etapa --excepcion` → pm-planificacion (plan de excepción) → 🔒 `autorizar-plan-excepcion`.
 - **Cierre**: `cierre [--prematuro]` → pm-cierre → 🔒 `autorizar-cierre`.
 - **Con BMAD**: en IP, pm-planificacion usa `pm-bmad-puente` (inventario, requisitos, trazabilidad); antes de cada puerta, `bmad.py verificar`; tras la decisión, pm-director fija la línea base.
-- **Reunión de la junta**: pm-control con `pm-reuniones` (acta, acciones A-###) → decisiones de la junta presentadas al humano para confirmar → pm-director registra.
+- **Reunión de la junta (o de control)**: pm-control con `pm-reuniones` (acta, acciones A-###; preferencias declaradas → `interesados.py proponer`, quedan como propuesta hasta que el gestor las confirme con `pm-interesados`) → decisiones de la junta presentadas al humano para confirmar → pm-director registra → distribución opcional del acta o del recordatorio de acciones por la capa de canales (`envios.py nuevo --proposito acta|recordatorio`, adaptado al perfil de cada interesado; aprobación humana y vista previa antes de enviar).
+- **Comunicación a interesados** (highlight, decisión de puerta, check-in de OKR, comunicado): pm-control → `pm-comunicacion-stakeholders` redacta según el perfil resuelto de cada interesado (cuadrante, estereotipo, preferencias confirmadas; `pm-interesados`) → borradores por destinatario (`interesados.py plan-envio` o `envios.py nuevo`) → el humano aprueba (`envios.py aprobar --por`) → `pm-integraciones` simula, envía con confirmación (SMTP, webhook de Slack o Teams, `.eml` o conector MCP) y registra en `envios.csv`.
 - En cada 🔒: retorno del subagente → el orquestador pregunta al humano → pm-director registra.
 
 ## 5. Perfil ágil mínimo

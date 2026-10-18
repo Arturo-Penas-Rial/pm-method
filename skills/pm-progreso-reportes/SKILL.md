@@ -1,7 +1,7 @@
 ---
 name: pm-progreso-reportes
 description: "Informes de avance PRINCE2 con EVM y semáforos. Usar: checkpoint, highlight report, status report, valor ganado, EVM, burn-up, pronóstico. No: tablero o gráficos→pm-visuales."
-version: 2.1.0
+version: 2.2.0
 author: pm-method
 license: MIT
 metadata:
@@ -44,7 +44,7 @@ metadata:
 1. **Situar.** `estado.json`, plan de etapa y highlight anterior (lo prometido, seguimientos, semáforos previos).
 2. **Recoger avance por paquete** (`templates/informe-avance-equipo.md`, `templates/checkpoint-report.md`; en ágil, tablero en modo pull). Controles en `references/guia.md` §2. Actualizar el plan de etapa: completado solo si está aprobado en `calidad.csv`.
 3. **Especificación y fuentes externas.** Estados por la fachada (`resumen`, `listar historias --estado …`). Con BMAD, cada período: `python3 ${CLAUDE_SKILL_DIR}/../pm-bmad-puente/scripts/bmad.py --proyecto <dir> verificar` (desvío no traspasado o Sprint Change Proposal → `pm-issues-cambios`) y `bmad.py avance` (fila en `avance-bmad.csv`, burn-up; guía §5). Tracker: solo instantáneas (guía §6).
-4. **Medir desempeño.** Predictivo o híbrido con línea base: actualizar `progreso.csv` y correr `evm.py --tol-costo --tol-plazo` con tolerancias de etapa y de proyecto (comando y controles en guía §3). Ágil: velocidad, burn-down, burn-up y, opcional, `evm.py --modo agil --pct-no-must` (guía §4).
+4. **Medir desempeño.** Predictivo o híbrido con línea base: actualizar `progreso.csv` y correr `evm.py --tol-costo --tol-plazo` con tolerancias de etapa y de proyecto, y guardar el corte (`--guardar --corte`; guía §3). Ágil: velocidad, burn-down, burn-up y, opcional, `evm.py --modo agil --pct-no-must` (guía §4).
 5. **Analizar variaciones** de tiempo, costo y desempeño técnico con causa raíz, respuesta, responsable y fecha; `templates/analisis-variaciones.md` si se supera el umbral de atención (guía §7).
 6. **Pronosticar contra los siete objetivos** y comparar el pronóstico (no el acumulado) con las tolerancias de etapa y proyecto; semáforo por regla (guía §8).
 7. **PUERTA HUMANA — Acción correctiva o excepción.** Dentro de tolerancia → acciones correctivas que el gestor confirma, en `acciones.csv` o enmienda del paquete. Problema de fondo que es un issue → `pm-issues-cambios`. Pronóstico fuera de tolerancia (`excepcion_prevista` o rojo en otra dimensión) → aviso temprano e **informe de excepción** con `pm-issues-cambios/templates/informe-excepcion.md` en `03-control/reportes/`, `en-revision`; pm-control lo entrega a `pm-director`, único que registra la decisión.

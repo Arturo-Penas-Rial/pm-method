@@ -1,7 +1,7 @@
 ---
 name: pm-sanidad
 description: "Sanidad y consistencia del ecosistema (estado, puertas, registros, BMAD↔PRINCE2, integraciones). Usar: sanidad, chequeo, consistencia, doctor, health check, antes de una puerta. No: cómo venimos→pm-orquestador; calidad→pm-calidad."
-version: 2.1.0
+version: 2.2.0
 author: pm-method
 license: MIT
 metadata:
@@ -32,12 +32,12 @@ metadata:
 
 ## Entradas requeridas
 - Carpeta del proyecto con `estado.json`. Con BMAD: `integraciones.especificacion = bmad` y raíz detectada.
-- Script: `python3 ${CLAUDE_SKILL_DIR}/../pm-estado-proyecto/scripts/sanidad.py --proyecto <dir> [--rapido] [--informe] [--reparar] [--json]`.
+- Script: `python3 ${CLAUDE_SKILL_DIR}/../pm-estado-proyecto/scripts/sanidad.py --proyecto <dir> [--rapido] [--informe] [--reparar] [--json] [--corte AAAA-MM-DD]`. `--corte`: fecha de los controles con vencimiento (REG-07, QUA-02, TOL, STK-12); usar la del informe o tablero.
 
 ## Procedimiento
-1. **Ejecutar** `sanidad.py --proyecto <dir> --informe` (completo) o `--rapido` (inicio de sesión). Familias: INS instalación e integraciones externas · EST estado, roles y puertas · ART artefactos · REG registros · ESP especificación y BMAD · INT integraciones MCP.
+1. **Ejecutar** `sanidad.py --proyecto <dir> --informe` (completo) o `--rapido` (inicio de sesión). Familias: INS instalación e integraciones externas · EST estado, roles y puertas · ART artefactos · REG registros · CAM cambios contra presupuestos · QUA calidad a volumen · TOL pronóstico de EVM contra tolerancias · ESP especificación y BMAD · STK maestro de interesados (STK-12 cadencia de contacto) · INT integraciones MCP. CAM, QUA, TOL y STK-12 son controles permanentes: lo que a mano se revisa tarde o nunca (guía §1).
 2. **Reparar lo seguro** con `--reparar` (solo agrega columnas de esquema faltantes y reconstruye el índice de especificación). Nada más se corrige automáticamente.
-3. **Clasificar** cada ERROR por dueño (ver `references/guia.md` §2) y derivar: estado/puertas → pm-director; registros → pm-registros, pm-riesgos o pm-issues-cambios; especificación → pm-bmad-puente o pm-planificacion-por-productos; cambio no controlado (ESP-10) → pm-issues-cambios; integraciones → pm-integraciones; instalación → usuario.
+3. **Clasificar** cada ERROR por dueño (ver `references/guia.md` §2) y derivar: estado/puertas → pm-director; registros → pm-registros, pm-riesgos o pm-issues-cambios; especificación → pm-bmad-puente o pm-planificacion-por-productos; cambio no controlado (ESP-10) → pm-issues-cambios; presupuestos y cambios (CAM) → pm-issues-cambios, y a pm-director si exceden el presupuesto o la autoridad delegada; calidad (QUA) → pm-calidad; tolerancias (TOL) → pm-progreso-reportes; interesados (STK) → pm-interesados; integraciones → pm-integraciones; instalación → usuario.
 4. **Regla de puerta**: con ERROR abierto no se presenta una puerta a la junta; si el humano decide seguir igual, queda como condición en la decisión (`--condiciones`) y en `decisiones.csv`.
 5. **Registrar** el resultado: el informe queda en `03-control/reportes/<fecha>-sanidad.md`; los ERROR que requieren trabajo se convierten en acciones (`registro.py agregar acciones`) con responsable.
 6. Si corre como subagente: devolver el bloque de retorno (SPEC §1.11) con los ERROR como "decisiones humanas requeridas" cuando haga falta decidir.
@@ -45,7 +45,7 @@ metadata:
 ## Reglas del método
 1. [PRINCE2] Gestión por excepción también para los datos: un ERROR de sanidad es una desviación del control del proyecto y se trata antes de decidir.
 2. Fuente única: la sanidad nunca "arregla" datos de negocio copiando de un lado a otro; señala al dueño (SPEC §1.16).
-3. Cambio no controlado (especificación distinta de su línea base sin issue que la cite) es siempre ERROR.
+3. Cambio no controlado (especificación distinta de su línea base sin issue que la cite) es siempre ERROR; también el presupuesto de cambio o la reserva de riesgo excedidos (CAM-03 > 100 %).
 4. Derivados y copias congeladas no se editan; si difieren, se regeneran o se crea una versión nueva.
 5. Los hallazgos de instalación (INS) no bloquean puertas, pero se informan al usuario.
 6. [PMBOK→Progress] La sanidad es una auditoría de información del proyecto, no de calidad de productos (eso es pm-calidad).
@@ -59,6 +59,7 @@ metadata:
 - [ ] Ejecutada antes de cada puerta y tras cada sincronización.
 - [ ] Ningún ERROR sin dueño ni acción.
 - [ ] ESP-10 (cambio no controlado) en cero o tramitado.
+- [ ] Corrida con `--corte` igual a la fecha del informe; condiciones abiertas (EST-12) con responsable.
 
 ## Escalamiento y excepciones
 - ERROR de puertas o roles → pm-director. ERROR de especificación → pm-bmad-puente / pm-issues-cambios.

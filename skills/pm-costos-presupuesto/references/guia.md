@@ -27,6 +27,14 @@ EMV con la convención del paquete: P 1–5 → 10/30/50/70/90 % (configurable).
 - **Reserva de gestión**: fuera del BAC y del PV, para lo no identificado; la propone esta skill y solo la libera la junta (o la capa de negocio).
 - **Presupuesto de cambio** (PRINCE2, opcional): fuera del BAC, declarado aparte, lo administra la autoridad de cambio.
 - Nunca se quita contingencia sin cambiar la respuesta al riesgo que la sustenta.
+- **Registro en `estado.json` (control permanente):** cuando la junta aprueba los montos, pm-director los registra en
+  `presupuestos`: `estado.py presupuesto cambio=<presupuesto de cambio> riesgo=<reserva de riesgo> gestion=<reserva de gestión> limite_autoridad_cambio=<tope por cambio> --por "Ejecutiva: …" [--fecha …]`
+  (números sin moneda ni separador de miles; queda en `decisiones.csv`; `estado.py resumen` los muestra). Esta skill
+  propone los montos en `presupuesto.md`, no ejecuta el comando. Desde ahí la sanidad suma el consumo con el `costo` y
+  el `cargo` de cada cambio de `cambios.csv` (CAM-03: INFO < 80 %, AVISO ≥ 80 %, ERROR > 100 %, que bloquea puertas;
+  AVISO si se carga a un presupuesto no fijado), exige que lo cargado a la reserva de riesgo cite el R-### (CAM-02) y
+  que la reserva de gestión la libere la junta (CAM-05). Lo que a mano se mira recién al fin de etapa, se ve en cada
+  sanidad.
 
 ## 4. Consolidación con `wbs.py`
 Cuando la hoja de costeo está lista, cargar la estimación base de cada paquete en la columna `costo` (y las horas en `esfuerzo_h`) de `02-planificacion/wbs.csv` y correr `python3 ${CLAUDE_SKILL_DIR}/../pm-estado-proyecto/scripts/wbs.py 02-planificacion/wbs.csv --mermaid 02-planificacion/visuales/wbs.md`. El total consolidado debe ser igual a Σ paquetes base de `hoja-costeo.md`; la contingencia y la reserva de gestión **no** se cargan en la WBS (viven en el presupuesto). Diferencias típicas: paquetes sin costo, costos cargados en un nodo padre (el script los ignora), paquete de gestión ausente de la WBS. El diagrama resultante (paquete, responsable, horas y costo) sirve como anexo del presupuesto.

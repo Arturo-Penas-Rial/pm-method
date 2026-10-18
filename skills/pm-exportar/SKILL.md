@@ -1,7 +1,7 @@
 ---
 name: pm-exportar
 description: "Exportados Office y paquetes ZIP de puerta o cierre. Usar: exportar a Word, Excel, PowerPoint, paquete de puerta, gate package. No: tablero→pm-visuales; informe→pm-progreso-reportes."
-version: 2.1.0
+version: 2.2.0
 author: pm-method
 license: MIT
 metadata:

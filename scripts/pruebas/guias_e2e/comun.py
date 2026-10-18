@@ -91,3 +91,58 @@ def tablero(repo, corte, desde, hasta, proximo, objetivos, hitos, decisiones, it
             url = "file://" + os.path.join(repo, G, rel) + (f"?actor={actor}" if actor else "")
             pg.goto(url); pg.wait_for_timeout(600); pg.screenshot(path=salida_png, full_page=True); b.close()
     return os.path.join(repo, G, rel)
+
+
+def servidores_prueba():
+    """Servidor SMTP mínimo y receptor de webhooks en 127.0.0.1 (solo para la corrida de referencia; sin red externa)."""
+    import socketserver, threading, http.server
+    rec = {"smtp": [], "http": []}
+    class SMTPH(socketserver.StreamRequestHandler):
+        def handle(self):
+            w = lambda x: self.wfile.write((x + "\r\n").encode()); w("220 servidor-de-prueba"); datos = None; m = {"rcpt": []}
+            while True:
+                l = self.rfile.readline()
+                if not l: break
+                x = l.decode("utf-8", "replace").rstrip("\r\n")
+                if datos is not None:
+                    if x == ".": m["data"] = "\n".join(datos); rec["smtp"].append(m); m = {"rcpt": []}; datos = None; w("250 OK")
+                    else: datos.append(x)
+                    continue
+                c = x.upper()
+                if c.startswith(("EHLO", "HELO")): w("250 servidor-de-prueba")
+                elif c.startswith("RCPT TO"): m["rcpt"].append(x); w("250 OK")
+                elif c == "DATA": datos = []; w("354 fin con .")
+                elif c == "QUIT": w("221 adios"); break
+                else: w("250 OK")
+    class HTTPH(http.server.BaseHTTPRequestHandler):
+        def do_POST(self):
+            n = int(self.headers.get("Content-Length", 0)); rec["http"].append({"ruta": self.path, "cuerpo": json.loads(self.rfile.read(n))})
+            self.send_response(200); self.end_headers(); self.wfile.write(b"ok")
+        def log_message(self, *a): pass
+    s1 = socketserver.ThreadingTCPServer(("127.0.0.1", 0), SMTPH); s1.daemon_threads = True
+    s2 = http.server.ThreadingHTTPServer(("127.0.0.1", 0), HTTPH)
+    for x in (s1, s2): threading.Thread(target=x.serve_forever, daemon=True).start()
+    env = {"PM_SMTP_HOST": "127.0.0.1", "PM_SMTP_PUERTO": str(s1.server_address[1]), "PM_SMTP_TLS": "ninguno", "PM_SMTP_REMITENTE": "martin.suarez@example.org",
+           "PM_TEAMS_WEBHOOK_URL": f"http://127.0.0.1:{s2.server_address[1]}/teams", "PM_SLACK_WEBHOOK_URL": f"http://127.0.0.1:{s2.server_address[1]}/slack",
+           "NO_PROXY": "127.0.0.1,localhost", "no_proxy": "127.0.0.1,localhost"}
+    return s1, s2, rec, env
+
+def run_env(cmd, cwd, env_extra, ok=(0,)):
+    """Como run(), con variables de entorno extra (las de los servidores de prueba). En el registro se muestran como $PM_…"""
+    viejo = {k: os.environ.get(k) for k in env_extra}
+    os.environ.update(env_extra)
+    try: return run(cmd, cwd, ok=ok)
+    finally:
+        for k, v in viejo.items():
+            if v is None: os.environ.pop(k, None)
+            else: os.environ[k] = v
+
+def captura_html(html, png, ancho=1280, alto=900):
+    try:
+        from playwright.sync_api import sync_playwright
+        with sync_playwright() as p:
+            b = p.chromium.launch(); pg = b.new_page(viewport={"width": ancho, "height": alto}); pg.goto("file://" + html); pg.wait_for_timeout(300)
+            pg.screenshot(path=png, full_page=True); b.close()
+        return True
+    except Exception as x:
+        print("captura omitida:", x); return False

@@ -1,7 +1,7 @@
 ---
 name: pm-planificacion-por-productos
 description: "Alcance por productos: descripción del producto, PBS, WBS/EDT (wbs.py), requisitos y RTM. Usar: alcance, PBS, WBS, EDT, scope, product description. No: requisitos con BMAD→pm-bmad-puente."
-version: 2.1.0
+version: 2.2.0
 author: pm-method
 license: MIT
 metadata:
@@ -11,7 +11,7 @@ metadata:
     procesos_prince2: [SU, IP, SB]
     practicas_prince2: [plans, quality]
     tecnicas_pmbok: [descomposición, regla del 100 %, planificación gradual, elicitación de requisitos, matriz de trazabilidad, MoSCoW]
-    artefactos: [descripcion-producto-proyecto, pbs-wbs, wbs.csv, descripciones-producto, flujo-productos, enunciado-alcance, requisitos, matriz-trazabilidad, diccionario-wbs]
+    artefactos: [descripcion-producto-proyecto, pbs-wbs, wbs.csv, descripcion-producto-<id>, flujo-productos, enunciado-alcance, requisitos, matriz-trazabilidad, diccionario-wbs]
     idiomas: [es, en]
 ---
 
@@ -78,7 +78,7 @@ metadata:
 | Descripción del producto del proyecto | `templates/descripcion-producto-proyecto.md` | `02-planificacion/descripcion-producto-proyecto.md` | `descripcion-producto-proyecto` |
 | PBS ↔ WBS y registro de productos | `templates/pbs-wbs.md` | `02-planificacion/pbs-wbs.md` (o `-etapa-<n>`) | `pbs-wbs` |
 | WBS en CSV + diagrama | `templates/wbs.csv` + `wbs.py` | `02-planificacion/wbs.csv`, `visuales/wbs.md` | en `pbs-wbs` |
-| Descripciones de producto | `templates/descripcion-producto.md` | `02-planificacion/productos/<id>-<nombre>.md` | `descripciones-producto` |
+| Descripciones de producto | `templates/descripcion-producto.md` | `02-planificacion/productos/<id>-<nombre>.md` | `descripcion-producto-<id>` |
 | Flujo de productos | `templates/flujo-productos.md` | `02-planificacion/flujo-productos.md` | `flujo-productos` |
 | Enunciado del alcance | `templates/enunciado-alcance.md` | `02-planificacion/enunciado-alcance.md` | `enunciado-alcance` |
 | Requisitos (solo sin BMAD) | `templates/requisitos.md` | `02-planificacion/requisitos.md` | `requisitos` |

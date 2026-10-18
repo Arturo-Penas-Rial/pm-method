@@ -9,6 +9,15 @@
 - Umbrales distintos: `estado.py umbrales-riesgo alto=.. medio=..` (los usa `registro.py resumen`); declararlo en cada informe.
 
 ## 2. Identificar
+- **Descubrimiento de candidatos** (`scripts/riesgos.py --proyecto <dir> candidatos [--fuentes …] [--transcripcion F] [--instantanea F] [--desde AAAA-MM-DD] [--json]`): cada candidato trae clase (riesgo, supuesto, pregunta abierta, issue), tipo (amenaza u oportunidad), origen (archivo y línea, hablante y marca de tiempo, o clave del ticket), ids citados, interesado del maestro, categoría sugerida y posible duplicado o relación con riesgos ya registrados. Salida: `03-control/reportes/<fecha>-candidatos-riesgo.md` (borrador). No registra nada.
+
+| Fuente | Qué lee | Qué se destila |
+|---|---|---|
+| `bmad` (si `integraciones.especificacion = bmad`) | vía pm-bmad-puente, solo lectura: descubrimiento (brainstorming, PRFAQ, investigación), brief, PRD, arquitectura, UX | secciones de riesgos, restricciones, dependencias y preguntas abiertas; marcas `[SUPUESTO]`, `[por confirmar]`, `TBD`; decisiones diferidas de la arquitectura |
+| `transcripciones` | `03-control/reuniones/*transcripcion*.md` (o `--transcripcion`), VTT, SRT, TXT | frases de preocupación, dependencia, incertidumbre, atraso u oportunidad, con hablante y marca de tiempo; sin inferir emociones |
+| `tracker` | instantánea más reciente de `03-control/fuentes/<sistema>-AAAA-MM-DD.csv` (Jira vía pm-integraciones) | bug, incidente o impedimento, bloqueado o prioridad alta → **issue** (ya ocurrió) más el riesgo derivado; etiqueta `riesgo` → riesgo |
+| `artefactos` | mandato, project brief, canvas, business case, requisitos, plan del proyecto, PID, enfoques, `supuestos.csv` sin validar, `lecciones.csv` | restricciones, riesgos conocidos, supuestos, preguntas abiertas, lecciones previas |
+- Del candidato al riesgo: confirmar que afecta un objetivo medible, formular causa → evento → efecto con el propietario, evaluar P×I y registrar citando el origen en `notas` (`origen: brief.md:91 (BMAD) y ronda 2026-10-27 [00:00:13]`, `origen: jira:PS-102`). Un supuesto se valida en `supuestos.csv`; si no puede validarse, se registra el riesgo de que sea falso. Una pregunta abierta recibe dueño y fecha.
 - Técnicas: listas por categoría, PESTLE/SWOT, pre-mortem, revisión de supuestos (`supuestos.csv`), lecciones previas, causa-efecto.
 - Cada riesgo como causa → evento → efecto en campos separados; rechazar formulaciones que solo nombren causa o efecto; amenazas y oportunidades separadas aunque compartan causa.
 - `registro.py --proyecto <dir> agregar riesgos --campo causa=... --campo evento=... --campo efecto=... --campo tipo=amenaza|oportunidad --campo categoria=... --campo propietario=... --campo autor=...` (valida valores; `--forzar` solo con motivo en `notas`).
@@ -54,8 +63,8 @@
 
 ## 8. Variantes de entrega
 - **Ágil/híbrido**: revisión de riesgos en la planificación y la retrospectiva de cada iteración; tablero opcional, pero `riesgos.csv` es la fuente de verdad; la tolerancia de alcance absorbe riesgos por intercambio de ítems que decide el PO (`nivel=product-owner`); un riesgo que amenaza un Must es candidato a excepción.
-- **BMAD** (`integraciones.especificacion = bmad`): las decisiones de arquitectura (AD-n) y los NFR del PRD son fuente de riesgos técnicos; se citan por id en `notas` o `causa`, sin copiar el texto. Un gate de preparación del sprint planning con CONCERNS/FAIL se registra como riesgo (o condición de `autorizar-etapa`). Ids nuevos o retirados detectados por `bmad.py verificar` no son riesgos sino solicitudes de cambio (`pm-issues-cambios`).
-- **Trackers**: si hay un tracker conectado, riesgos o bloqueos marcados allí se leen vía `pm-integraciones` como instantánea en `03-control/fuentes/` y se incorporan a `riesgos.csv` tras revisión; crear tickets de acciones de respuesta solo con confirmación.
+- **BMAD** (`integraciones.especificacion = bmad`): los artefactos de descubrimiento (brainstorming, PRFAQ, investigación), el brief (riesgos, restricciones, preguntas abiertas), las decisiones de arquitectura (AD-n) y los NFR y supuestos del PRD son fuente de riesgos (`riesgos.py candidatos --fuentes bmad`); se citan por id en `notas` o `causa`, sin copiar el texto. Un gate de preparación del sprint planning con CONCERNS/FAIL se registra como riesgo (o condición de `autorizar-etapa`). Ids nuevos o retirados detectados por `bmad.py verificar` no son riesgos sino solicitudes de cambio (`pm-issues-cambios`).
+- **Trackers**: si hay un tracker conectado, riesgos, bugs o bloqueos se leen vía `pm-integraciones` como instantánea en `03-control/fuentes/`; `riesgos.py candidatos --fuentes tracker` los clasifica (issue o riesgo, relación con riesgos existentes) y se incorporan a `issues.csv` o `riesgos.csv` tras revisión; crear tickets de acciones de respuesta solo con confirmación.
 
 ## 9. Sesgos y reglas extendidas
 - Señales: todos los riesgos "bajos", ninguna oportunidad, ningún escalado en varios períodos, un único propietario → proponer pre-mortem, revisión por pares o redistribución.

@@ -9,9 +9,11 @@ Uso / Usage:
   python3 registro.py --proyecto ./p resumen [--corte AAAA-MM-DD] [--json]
   python3 registro.py --proyecto ./p esquema riesgos        # columnas y valores permitidos
 Registros y prefijos: riesgos R-, issues I-, cambios C-, decisiones D-, supuestos S-, lecciones L-,
-stakeholders ST-, calidad Q-, acciones A-. Valores permitidos: ver esquema.py y pm-registros/templates/guia-registros.md.
+stakeholders ST-, calidad Q-, acciones A-; maestro de interesados (v2.2, se crean al primer uso): estereotipos ET-,
+preferencias PF-, raci RC-, envios EN-. Se validan claves foráneas (stakeholder_id, estereotipo), unicidad
+(raci: elemento + stakeholder_id) y un solo A por elemento de la RACI. Valores permitidos: ver esquema.py y pm-registros/templates/guia-registros.md.
 """
-import argparse, os, sys, datetime, json
+import argparse, os, re, sys, datetime, json
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import esquema as E
 
@@ -35,9 +37,38 @@ def validar(reg, fila, forzar=False):
     for col in spec.get("enteros_1_5", []):
         v = fila.get(col, "")
         if v and not (v.isdigit() and 1 <= int(v) <= 5): errores.append(f"{col}='{v}' " + ("must be an integer 1–5" if en else "debe ser entero 1–5"))
+    for col in spec.get("numericos", []):
+        v = (fila.get(col, "") or "").strip()
+        if v:
+            try:
+                if re.fullmatch(r"-?\d{1,3}([.,]\d{3})+", v): raise ValueError   # 9.000 o 9,000: separador de miles ambiguo
+                float(v.replace(",", "."))
+            except ValueError: errores.append(f"{col}='{v}' " + ("must be a plain number such as 9000 (no currency or thousands separators)" if en else "debe ser un número simple como 9000 (sin moneda ni separador de miles)"))
     if errores and not forzar:
         sys.exit(("Validation:" if en else "Validación:") + "\n  - " + "\n  - ".join(errores)
                  + ("\n(use --forzar to record anyway; English aliases such as threat/high/open are accepted)" if en else "\n(usar --forzar para registrar igual; se aceptan alias en inglés como threat/high/open)"))
+    return errores
+
+def integridad(proyecto, reg, fila, filas, forzar=False):
+    """Claves foráneas (refs), unicidad (unico) y 'uno por grupo' (uno_por) del esquema: se validan al escribir."""
+    spec = E.REGISTROS[reg]; errores = []; en = IDIOMA == "en"
+    for col, destino in spec.get("refs", {}).items():
+        v = (fila.get(col) or "").strip()
+        if not v: continue
+        pd = E.ruta_registro(proyecto, destino)
+        ids = {f.get("id") for f in E.leer_csv(pd)[1]} if os.path.exists(pd) else set()
+        if v not in ids: errores.append(f"{col}='{v}' " + (f"does not exist in {destino}.csv" if en else f"no existe en {destino}.csv"))
+    otros = [f for f in filas if f.get("id") != fila.get("id")]
+    if spec.get("unico") and all(fila.get(c) for c in spec["unico"]):
+        if any(all(f.get(c) == fila.get(c) for c in spec["unico"]) for f in otros):
+            errores.append(("duplicate " if en else "duplicado ") + " + ".join(f"{c}={fila.get(c)}" for c in spec["unico"]) + (" (one row per combination; update the existing one)" if en else " (una fila por combinación: actualizar la existente)"))
+    u = spec.get("uno_por")
+    if u and fila.get("rol") == u["rol"]:
+        if any(f.get("rol") == u["rol"] and f.get(u["grupo"]) == fila.get(u["grupo"]) for f in otros):
+            errores.append((f"{u['grupo']} {fila.get(u['grupo'])} already has an '{u['rol']}' (exactly one; change the other row first)" if en else
+                            f"{u['grupo']} {fila.get(u['grupo'])} ya tiene un '{u['rol']}' (exactamente uno: cambiar primero la otra fila)"))
+    if errores and not forzar:
+        sys.exit(("Referential integrity:" if en else "Integridad referencial:") + "\n  - " + "\n  - ".join(errores))
     return errores
 
 def recalcular(reg, f):
@@ -142,11 +173,13 @@ def main():
             if fc in cols and not fila.get(fc): fila[fc] = datetime.date.today().isoformat()
         if "estado" in cols and not fila.get("estado") and spec.get("estado_inicial"): fila["estado"] = spec["estado_inicial"]
         recalcular(args.registro, fila); validar(args.registro, fila, args.forzar)
+        integridad(args.proyecto, args.registro, fila, filas, args.forzar)
         filas.append(fila); E.escribir_csv(p, cols, filas); print(fila["id"])
     elif args.cmd == "actualizar":
         for f in filas:
             if f.get("id") == args.id:
                 f.update(campos); recalcular(args.registro, f); validar(args.registro, f, args.forzar)
+                integridad(args.proyecto, args.registro, f, filas, args.forzar)
                 if f.get("estado") in ("cerrado", "resuelto", "completada") and "fecha_cierre" in cols and not f.get("fecha_cierre"):
                     f["fecha_cierre"] = datetime.date.today().isoformat()
                 E.escribir_csv(p, cols, filas); print("ok"); return

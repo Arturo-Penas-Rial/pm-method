@@ -1,4 +1,4 @@
-# Instalación y configuración · pm-method 2.1.0
+# Instalación y configuración · pm-method 2.2.0
 
 Guía para instalar, configurar, verificar, actualizar y desinstalar el paquete de agentes y skills **pm-method** en
 Claude Code, Cowork y Hermes Agent, y para instalar y conectar de punta a punta sus dependencias: Python y sus paquetes,
@@ -22,7 +22,7 @@ BMAD, las skills externas de diagramas y Office, y los conectores MCP de la orga
 |---|---|---|
 | 1 | Revisar los requisitos previos según el sistema operativo | §1 |
 | 2 | Instalar el plugin desde GitHub (o desde una carpeta local) | §0 (o §2) |
-| 2b | Configurar la credencial del cliente (suscripción o clave de API) y, si se usan, los tokens MCP | §0.7 |
+| 2b | Configurar la credencial del cliente (suscripción o clave de API) y, si se usan, los tokens MCP y las variables de la capa de canales (correo, Slack, Teams) | §0.7 |
 | 3 | Instalar los paquetes Python recomendados | §5 |
 | 4 | Crear la carpeta del proyecto de gestión | §7.2 |
 | 5 | Si el producto usa BMAD: instalarlo en su repositorio y detectarlo desde pm-method | §4 |
@@ -53,7 +53,7 @@ actualizaciones con dos comandos.
 ### 0.2 Publicar el repositorio (lo hace el responsable del paquete)
 ```bash
 # en la carpeta del paquete
-git init && git add . && git commit -m "pm-method 2.1.0"
+git init && git add . && git commit -m "pm-method 2.2.0"
 gh auth login                       # inicia sesión en el navegador
 gh repo create <usuario>/pm-method --public --source . --push
 ```
@@ -66,7 +66,7 @@ que muestra `claude plugin list` y la que usa `claude plugin update` para decidi
 ```bash
 claude plugin marketplace add Arturo-Penas-Rial/pm-method   # acepta owner/repo de GitHub; necesita git
 claude plugin install pm-method@pm-method                   # alcance por defecto: user
-claude plugin list                                          # pm-method@pm-method · Version: 2.1.0 · Status: enabled
+claude plugin list                                          # pm-method@pm-method · Version: 2.2.0 · Status: enabled
 ```
 - Dentro de una sesión: `/plugin marketplace add Arturo-Penas-Rial/pm-method` y `/plugin install pm-method@pm-method`.
 - Alcances: `claude plugin marketplace add … --scope user|project|local` (por defecto `user`) y
@@ -91,8 +91,8 @@ Si `update` responde que ya está en la última versión, el repositorio publica
 ### 0.5 Hermes Agent
 ```bash
 git clone https://github.com/Arturo-Penas-Rial/pm-method.git ~/pm-method
-python3 ~/pm-method/scripts/instalar_hermes.py        # → ~/.hermes/skills/pm-method/ (37 skills adaptadas)
-hermes skills list | grep -c "pm-"                    # → 37
+python3 ~/pm-method/scripts/instalar_hermes.py        # → ~/.hermes/skills/pm-method/ (38 skills adaptadas)
+hermes skills list | grep -c "pm-"                    # → 38
 ```
 Dentro de Hermes: `/reload-skills` (o reiniciar) y probar `/pm-ayuda`. Detalle, agentes y límites: §3.
 No usar `hermes skills tap add` ni `hermes skills install` con este repositorio: instalan las skills tal cual, con rutas
@@ -103,9 +103,12 @@ Seguir §8.
 
 ### 0.7 Claves de API y credenciales: cuáles, dónde y cómo
 
-**pm-method no necesita ninguna clave propia.** Sus scripts son Python local y no llaman a servicios externos. Las
-credenciales las necesitan solo tres cosas: el **cliente** que ejecuta el modelo (Claude Code o Hermes), los
-**servidores MCP** de la organización (Jira, Slack, etc.) y, si se usa, **Orca** (§0.8), que reutiliza el inicio de
+**pm-method no necesita ninguna clave propia.** Sus scripts son Python local y no llaman a servicios externos, con una
+sola excepción opcional: la **capa de canales** (`envios.py`, v2.2), que envía comunicaciones aprobadas por correo SMTP
+o por webhooks de Slack o Teams **solo si definís sus variables de entorno** (ver "Capa de canales" más abajo); sin
+ellas, genera archivos `.eml` o deja el envío a un conector MCP. Las credenciales las necesitan solo cuatro cosas: el
+**cliente** que ejecuta el modelo (Claude Code o Hermes), los **servidores MCP** de la organización (Jira, Slack,
+Tability, Perdoo, etc.), la **capa de canales** si se usa y, si se usa, **Orca** (§0.8), que reutiliza el inicio de
 sesión de cada agente. BMAD se instala con `npx` y tampoco pide claves.
 
 | Qué | Credencial | Dónde se guarda | Cómo se configura |
@@ -120,6 +123,10 @@ sesión de cada agente. BMAD se instala con `npx` y tampoco pide claves.
 | Servidor MCP remoto (HTTP) | OAuth o cabecera | Claude Code: `~/.claude.json` | `claude mcp add --transport http <nombre> <url>` y luego `/mcp` para autenticar; o `-H "Authorization: Bearer …"` |
 | Servidor MCP compartido por el equipo | nunca el valor: solo `${VARIABLE}` | `.mcp.json` en la raíz del proyecto (versionado) | `${VAR}` o `${VAR:-valor}` en `env`, `args`, `url` o `headers`; cada integrante define la variable en su entorno |
 | MCP en Hermes | variable del servidor | bloque `env:` de `mcp_servers` en `~/.hermes/config.yaml` | ver la guía MCP de Hermes |
+| Capa de canales: correo SMTP (`envios.py --modo smtp`) | `PM_SMTP_HOST`, `PM_SMTP_REMITENTE` (obligatorias); `PM_SMTP_PUERTO`, `PM_SMTP_TLS`, `PM_SMTP_USUARIO`, `PM_SMTP_CLAVE` (opcionales) | solo variables de entorno del usuario (nunca archivos del proyecto) | ver "Capa de canales" |
+| Capa de canales: Slack (`--modo slack-webhook`) | `PM_SLACK_WEBHOOK_URL` (la URL del webhook entrante es en sí la credencial) | ídem | ver "Capa de canales" |
+| Capa de canales: Teams (`--modo teams-webhook`) | `PM_TEAMS_WEBHOOK_URL` (URL del flujo de Workflows; también es la credencial) | ídem | ver "Capa de canales" |
+| Capa de canales: `.eml` (`--modo eml`) | ninguna | — | sin configuración |
 
 **Claude Code con clave de API, en Linux o WSL** (la clave se crea en la Claude Console, platform.claude.com):
 ```bash
@@ -159,11 +166,116 @@ chmod 600 ~/.hermes/.env                       # recomendado
 Proveedores con OAuth (por ejemplo `hermes auth add nous`) no usan clave escrita. La tabla completa de proveedores y
 variables está en la documentación de Hermes (*Providers*).
 
+#### Capa de canales: envío a interesados por correo, Slack o Teams (opcional, v2.2)
+
+`skills/pm-integraciones/scripts/envios.py` envía comunicaciones **ya aprobadas** a los interesados del maestro
+(`stakeholders.csv`). Usa solo la biblioteca estándar de Python y lee las credenciales **únicamente de variables de
+entorno**: nunca de archivos, `estado.json` ni registros, y nunca las imprime. Sin `--confirmar` todo es simulación.
+En los comandos, `<pm-integraciones>` es la carpeta instalada de esa skill, hermana de `<pm-estado-proyecto>` (§7.1).
+
+| Variable | Modo | Obligatoria | Valor por defecto / valores |
+|---|---|---|---|
+| `PM_SMTP_HOST` | `smtp` | sí | nombre del servidor de correo, p. ej. `<tu-servidor>` |
+| `PM_SMTP_REMITENTE` | `smtp` | sí | dirección del remitente, p. ej. `<tu-direccion>` |
+| `PM_SMTP_PUERTO` | `smtp` | no | `587` |
+| `PM_SMTP_TLS` | `smtp` | no | `starttls` (defecto), `ssl` o `ninguno` |
+| `PM_SMTP_USUARIO`, `PM_SMTP_CLAVE` | `smtp` | no (solo si el servidor pide autenticación; se usan si están las dos) | — |
+| `PM_SLACK_WEBHOOK_URL` | `slack-webhook` | sí | URL del webhook entrante de Slack |
+| `PM_TEAMS_WEBHOOK_URL` | `teams-webhook` | sí | URL del flujo de Workflows de Teams |
+
+**Dónde definirlas** (igual que `ANTHROPIC_API_KEY`; solo para tu usuario, nunca en la carpeta del proyecto ni en el
+repositorio). Los valores de abajo son marcadores: reemplazarlos por los tuyos solo en tu terminal o en tu archivo de
+perfil, nunca en el chat.
+
+```bash
+# Linux / WSL: en ~/.bashrc (macOS: igual, en ~/.zshrc)
+echo 'export PM_SMTP_HOST="<tu-servidor>"'          >> ~/.bashrc
+echo 'export PM_SMTP_REMITENTE="<tu-direccion>"'    >> ~/.bashrc
+echo 'export PM_SMTP_USUARIO="<tu-usuario>"'        >> ~/.bashrc   # solo si el servidor pide autenticación
+echo 'export PM_SMTP_CLAVE="<tu-clave>"'            >> ~/.bashrc   # ídem
+echo 'export PM_SLACK_WEBHOOK_URL="<url-del-webhook-de-slack>"' >> ~/.bashrc
+echo 'export PM_TEAMS_WEBHOOK_URL="<url-del-flujo-de-teams>"'   >> ~/.bashrc
+chmod 600 ~/.bashrc
+source ~/.bashrc
+```
+Windows PowerShell (persistente para el usuario; una línea por variable):
+`[Environment]::SetEnvironmentVariable("PM_SMTP_HOST","<tu-servidor>","User")` y abrir una terminal nueva.
+Para no dejar la clave SMTP escrita en un archivo de perfil, puede definirse solo en la terminal de la sesión
+(`export PM_SMTP_CLAVE=…` en Linux/macOS/WSL, `$env:PM_SMTP_CLAVE = "…"` en PowerShell) antes de abrir Claude Code.
+Claude Code hereda el entorno de la terminal desde la que se abre: después de definirlas, abrir una terminal nueva y
+reiniciar la sesión. En Hermes y Cowork, cómo llegan las variables de entorno a los scripts no se probó **[verificar]**.
+
+**Comprobar** (no usa la red: solo informa qué variables están definidas, sin mostrar sus valores; código de salida 1
+si falta alguna obligatoria):
+```bash
+python3 <pm-integraciones>/scripts/envios.py --proyecto ./gestion verificar --modo smtp
+python3 <pm-integraciones>/scripts/envios.py --proyecto ./gestion verificar --modo slack-webhook
+python3 <pm-integraciones>/scripts/envios.py --proyecto ./gestion verificar --modo teams-webhook
+```
+`verificar` no prueba la conexión: la primera prueba real conviene hacerla con un mensaje aprobado dirigido a uno mismo
+(`enviar … --modo smtp --confirmar --mensaje <archivo>`). El flujo completo (crear, aprobar, simular, enviar, registrar)
+está en [INTEGRACIONES.md §3.2](INTEGRACIONES.md).
+
+**Sin ninguna configuración: archivos `.eml`.** `envios.py --proyecto ./gestion enviar <carpeta> --modo eml --confirmar`
+escribe un `.eml` por destinatario en `<carpeta>/eml/` (cabecera `X-Unsent: 1`, que Outlook abre como borrador; en
+otros clientes de correo **[verificar]**) y lo registra como `pendiente` en `envios.csv`. Se abre, se revisa y se envía
+desde el cliente de correo habitual; luego se deja constancia con
+`envios.py --proyecto ./gestion registrar <carpeta> --mensaje <mensaje-NN-….md> --modo eml`. El modo `eml` no necesita
+variables, servidor ni conector.
+
+**Crear el webhook de Teams (Workflows).** Según la página de Microsoft "Create an Incoming Webhook"
+(https://learn.microsoft.com/en-us/microsoftteams/platform/webhooks-and-connectors/how-to/add-incoming-webhook,
+consultada el 2026-10-17), a alto nivel: en Teams, ir al equipo y canal que recibirán los mensajes → **More options
+(…)** junto al canal → **Workflows** → buscar y elegir una plantilla como **Send webhook alerts to a channel** →
+configurar los parámetros → **Save** → copiar el enlace del webhook que muestra el flujo. También puede crearse un flujo
+desde cero con el disparador **When a Teams webhook request is received**. Los nombres de menús y plantillas pueden
+cambiar y pueden variar según el idioma de Teams **[verificar en tu Teams]**. Esa misma página indica que los conectores
+de Microsoft 365 (antes Office 365) están "nearing deprecation" y que el límite de mensaje es 28 KB (`envios.py`
+rechaza mensajes más grandes). `envios.py` envía una tarjeta adaptable (`type: message` con `attachments`
+`application/vnd.microsoft.card.adaptive`); se probó solo contra un servidor local, no contra un flujo real
+**[verificar con tu flujo]**. La URL copiada va en `PM_TEAMS_WEBHOOK_URL`; quien la tenga puede publicar en el canal,
+así que se trata como credencial.
+
+**Crear el webhook entrante de Slack.** A alto nivel: en la administración de apps de Slack, crear (o reutilizar) una
+app del espacio de trabajo, activar **Incoming Webhooks**, agregar un webhook nuevo eligiendo el canal y copiar su URL
+**[verificar nombres y pasos en la documentación vigente de Slack; puede requerir aprobación de un administrador del
+espacio de trabajo]**. Cada webhook publica en un solo canal. La URL va en `PM_SLACK_WEBHOOK_URL` y se trata como
+credencial. `envios.py` menciona a la persona (`<@ID>`) solo si su `usuario_chat` en `stakeholders.csv` es un id de
+usuario de Slack (empieza con `U` o `W`).
+
+#### Conectores OKR: Tability y Perdoo (opcional, v2.2)
+
+Ambos publican un servidor MCP remoto oficial (verificado el 2026-10-17 en su documentación). Se agregan como cualquier
+MCP remoto (§6) y se autentican en una sesión con `/mcp`:
+
+```bash
+# Tability (servidor por defecto, nube de EE. UU.)
+claude mcp add --transport http tability https://mcp.tability.app/mcp
+#   espacios de trabajo en la nube de la UE: https://mcp-eu.tability.app/mcp · de Australia: https://mcp-au.tability.app/mcp
+# Perdoo
+claude mcp add --transport http perdoo https://mcp.perdoo.com
+# luego, dentro de una sesión de Claude Code:
+/mcp
+```
+
+| Conector | Autenticación | Requisitos | Herramienta para check-ins | Fuente |
+|---|---|---|---|---|
+| Tability | OAuth en el navegador (su guía indica que nunca se pide pegar un token) | "API Access Enabled" = Yes para tu usuario (Settings > Users; puede hacerlo el administrador del espacio de trabajo) | `tability_create_checkin` | https://guides.tability.io/docs/become-a-tability-power-user/integrations/tability-mcp-server |
+| Perdoo | OAuth o clave de API (Personal settings > API tokens; se envía en la cabecera `Authorization: Bearer …`) | plan comercial requerido: no lo indica la página **[verificar]** | `update_goal_progress` | https://support.perdoo.com/en/articles/14470891-mcp-server (artículo del 15/09/2026) |
+
+Preferir OAuth. Si se usa la clave de Perdoo: `claude mcp add --transport http perdoo https://mcp.perdoo.com -H
+"Authorization: Bearer <tu-clave-de-api>"` (queda en `~/.claude.json`; nunca en `.mcp.json` versionado). Ninguna de las
+dos guías muestra un comando de Claude Code: el comando es la forma general de `claude mcp add` ya documentada; no se
+probó en vivo con pm-method **[verificar]**. Después: `estado.py --proyecto ./gestion integracion okr=tability` (o
+`okr=perdoo`); la publicación de check-ins la propone `okr.py 00-direccion/okr.csv --propuesta-sync tability|perdoo` y
+siempre requiere vista previa y confirmación.
+
 **Reglas de seguridad** (las mismas que aplica el paquete):
 - Nunca pegar claves, tokens ni contraseñas en el chat con Claude ni con ningún asistente, ni escribirlas en archivos de
   la carpeta del proyecto, en `estado.json`, en los registros ni en commits.
 - En archivos versionados (`.mcp.json`, `.claude/settings.json`) solo referencias `${VARIABLE}`, nunca el valor.
-- Si una clave se expuso: revocarla en su consola de origen (Claude Console, Jira, Slack…) y crear una nueva.
+- Si una clave se expuso: revocarla en su consola de origen (Claude Console, Jira, Slack…) y crear una nueva. Una URL de
+  webhook expuesta se trata igual: eliminar el webhook (o el flujo de Teams) y crear otro.
 
 ### 0.8 Orca (opcional): varias sesiones de agentes y proyectos en un solo lugar
 
@@ -274,7 +386,7 @@ Origen, licencia y versión probada de cada uno: [DEPENDENCIAS.md](DEPENDENCIAS.
 ### 2.1 Como plugin desde el marketplace local
 
 Alternativa a §0 cuando se trabaja con una copia local (por ejemplo, el mantenedor). La carpeta del paquete es a la vez
-un plugin (`.claude-plugin/plugin.json`, nombre `pm-method`, versión 2.1.0) y un marketplace local
+un plugin (`.claude-plugin/plugin.json`, nombre `pm-method`, versión 2.2.0) y un marketplace local
 (`.claude-plugin/marketplace.json`, nombre `pm-method`). Junto con §0, es la única modalidad que activa los **hooks** de
 protección y de sanidad (§9).
 
@@ -292,7 +404,7 @@ O dentro de una sesión de Claude Code:
 ```
 
 Qué queda disponible:
-- 37 skills, invocables como `/pm-method:<skill>` (31 que el modelo puede activar solo y 6 comandos de uso humano).
+- 38 skills, invocables como `/pm-method:<skill>` (32 que el modelo puede activar solo y 6 comandos de uso humano).
 - 6 agentes: `pm-method:pm-orquestador` (para el hilo principal) y los subagentes de fase `pm-method:pm-director`,
   `pm-method:pm-inicio`, `pm-method:pm-planificacion`, `pm-method:pm-control`, `pm-method:pm-cierre`.
 - Hooks `PreToolUse` (`hooks/guardian.py`) y `SessionStart` (`hooks/inicio.py`), declarados en `hooks/hooks.json`.
@@ -327,14 +439,15 @@ de `~/.claude/skills/` no son una vía de instalación para Cowork.
 ## 3. Instalación en Hermes Agent
 
 **Compatibilidad (verificada el 2026-10-17 con Hermes Agent `8ce2a4f`, 2026.9.24):** Hermes lee skills `SKILL.md` y
-las ofrece como comandos `/nombre`; la instalación con `scripts/instalar_hermes.py` dejó visibles las 37 skills en
-`hermes skills list`, y la sustitución de `${HERMES_SKILL_DIR}` de Hermes resolvió las rutas de los scripts a archivos
+las ofrece como comandos `/nombre`; la instalación con `scripts/instalar_hermes.py` dejó visibles las 37 skills de la versión 2.1.0 en
+`hermes skills list` (la 2.2.0 agrega `pm-interesados`: 38; el script copia todas las carpetas de `skills/`, pero esa
+cifra no se volvió a comprobar dentro de Hermes **[verificar]**), y la sustitución de `${HERMES_SKILL_DIR}` de Hermes resolvió las rutas de los scripts a archivos
 existentes. **No se probó una conversación completa con un modelo dentro de Hermes** (no había proveedor configurado en el
 entorno de prueba) **[verificar en el primer uso]**.
 
 | Capacidad | Claude Code (plugin) | Hermes |
 |---|---|---|
-| 37 skills y comandos `/…` | sí (`/pm-method:<skill>`) | sí (`/<skill>`) |
+| 38 skills y comandos `/…` | sí (`/pm-method:<skill>`) | sí (`/<skill>`) |
 | Scripts (estado, registros, BMAD, sanidad, EVM, CPM…) | sí | sí (mismos scripts Python) |
 | Subagentes de fase y orquestador como agente | sí | no: los agentes se usan como persona/personalidad; las skills corren en el mismo hilo |
 | Hooks (guardian, inicio, idioma) | sí | no: la protección de `estado.json` y registros queda en las reglas de las skills y en la sanidad (`/pm-sanidad`, `/pm-puerta`) |
@@ -494,6 +607,8 @@ claude mcp remove <nombre>
   | Atlassian Rovo (Jira, Confluence) | `claude mcp add --transport http atlassian https://mcp.atlassian.com/v2/mcp` y luego `/mcp` en una sesión para autenticar (README de `atlassian/atlassian-mcp-server`) |
   | minutes | `claude mcp add minutes -- npx -y minutes-mcp` (README de `silverstein/minutes`) |
   | draw.io | `claude mcp add drawio -- npx -y @drawio/mcp` (README de `jgraph/drawio-mcp`); o el plugin: `claude plugin marketplace add jgraph/drawio-mcp` y `claude plugin install drawio@drawio` |
+  | Tability (OKR) | `claude mcp add --transport http tability https://mcp.tability.app/mcp` (UE: `mcp-eu.tability.app/mcp`; AU: `mcp-au.tability.app/mcp`) y luego `/mcp`; URL de su guía oficial, detalle en §0.7 |
+  | Perdoo (OKR) | `claude mcp add --transport http perdoo https://mcp.perdoo.com` y luego `/mcp`; URL de su artículo de soporte, detalle en §0.7 |
 
 - Conectores de la aplicación (claude.ai / Cowork): se conectan desde su gestión de conectores; las credenciales quedan
   en el cliente.
@@ -514,8 +629,9 @@ Valores reconocidos por la sanidad (lista de **INT-01** en `sanidad.py`; valores
 | `tracker` | `ninguno`, `jira`, `linear`, `github`, `azure-devops` | `ninguno` | Atlassian Rovo MCP Server |
 | `docs` | `ninguno`, `confluence`, `notion`, `sharepoint` | `ninguno` | Atlassian Rovo (Confluence) |
 | `chat` | `ninguno`, `slack`, `teams` | `ninguno` | Slack MCP oficial; Teams/Work IQ |
+| `correo` (v2.2) | `ninguno`, `smtp`, `gmail`, `outlook`, `eml` | `ninguno` | `gmail`/`outlook`: conector de la organización **[verificar]**; `smtp`/`eml`: capa de canales sin conector (§0.7) |
 | `reuniones` | `manual`, `archivo`, `granola`, `fireflies`, `zoom`, `minutes`, `teams` | `manual` | Granola, Fireflies, Zoom, minutes-mcp |
-| `okr` | `archivo`, `tability` | `archivo` | Tability MCP |
+| `okr` | `archivo`, `tability`, `perdoo` | `archivo` | Tability MCP, Perdoo MCP (§0.7) |
 | `especificacion` | `ninguna`, `bmad` | `ninguna` | — (lo fija `bmad.py detectar`, §4.2) |
 | `diagramas` | `mermaid`, `diagram-design`, `archify`, `visual-explainer`, `drawio` (o lista por prioridad, `archify,visual-explainer`) | `mermaid` | drawio-mcp; skills externas (§6.1) |
 | `cronograma` | `cpm`, `mspdi` | `cpm` | — (interno) |
@@ -626,9 +742,9 @@ directo sirve para la carga inicial o una corrección. Tiempo y costo son el mí
 
 ### 7.4 Settings recomendados en Claude Code
 
-El listado de descripciones de skills de Claude Code tiene un presupuesto de ≈1 % de la ventana de contexto. Las 31
-skills de pm-method que el modelo puede activar suman ≈6.300 caracteres (6.289 según `validar_paquete.py` el
-2026-10-17); con BMAD u otros repositorios de skills en la misma sesión el total puede superar el presupuesto (en la
+El listado de descripciones de skills de Claude Code tiene un presupuesto de ≈1 % de la ventana de contexto. Las 32
+skills de pm-method que el modelo puede activar suman ≈6.500 caracteres (6.546 según `validar_paquete.py` en la
+versión 2.2.0); con BMAD u otros repositorios de skills en la misma sesión el total puede superar el presupuesto (en la
 prueba con BMAD 6.12.4 instalado, ≈23.000 caracteres) y el listado se recorta. En ese caso, en `settings.json`:
 
 ```json
@@ -661,11 +777,11 @@ Secuencia final, en este orden. `<raíz>` es la carpeta del paquete: un clon del
 
 | # | Paso | Comando | Resultado esperado |
 |---|---|---|---|
-| 1 | Plugin instalado y versión | `claude plugin list` | `pm-method@pm-method` · `Version: 2.1.0` · `Status: enabled` |
+| 1 | Plugin instalado y versión | `claude plugin list` | `pm-method@pm-method` · `Version: 2.2.0` · `Status: enabled` |
 | 2 | Manifiestos | `claude plugin validate <raíz>` | `Validation passed` |
 | 3 | Python y paquetes | `python3 --version` y `python3 -c "import yaml, docx, openpyxl; print('ok')"` | 3.9 o superior; `ok` |
-| 4 | Estructura del paquete | `python3 <raíz>/scripts/validar_paquete.py` | `Skills: 37 (31 invocables por el modelo, listado <n> caracteres) · Agentes: 6` y `OK` |
-| 5 | Regresión de punta a punta (requiere PyYAML; trabaja en una carpeta temporal) | `python3 <raíz>/scripts/probar_paquete.py` | `Resultado: <n> OK · 0 FALLO` (80 OK en la corrida del 2026-10-17) |
+| 4 | Estructura del paquete | `python3 <raíz>/scripts/validar_paquete.py` | `Skills: 38 (32 invocables por el modelo, listado <n> caracteres) · Agentes: 6` y `OK` |
+| 5 | Regresión de punta a punta (requiere PyYAML; trabaja en una carpeta temporal) | `python3 <raíz>/scripts/probar_paquete.py` | `Resultado: <n> OK · 0 FALLO` (138 OK en la corrida del 2026-10-17, versión 2.2.0) |
 | 6 | Skills visibles | `/pm-method:pm-ayuda` en una sesión | tabla "qué escribir", catálogo de skills y comandos |
 | 7 | Proyecto de prueba | `nuevo_proyecto.py --ruta <tmp>/prueba --nombre "Prueba"` y `estado.py --proyecto <tmp>/prueba siguiente` | carpeta creada y siguiente paso del método |
 | 8 | BMAD (si se instaló) | `bmad.py --proyecto ./gestion detectar` | layout `v6`, `version` 6.12.x, `soporte: soportada` |
@@ -692,7 +808,7 @@ evalúan INS-01 e INS-02):
 
 | Hook | Disparo | Qué hace |
 |---|---|---|
-| `PreToolUse` → `hooks/guardian.py` | cada `Write`, `Edit`, `MultiEdit`, `NotebookEdit` y `Bash` | niega (`permissionDecision: "deny"`) con el motivo: modificar `estado.json` sin `estado.py`, `nuevo_proyecto.py` o `bmad.py`; los nueve registros CSV de `03-control/registros/` sin `registro.py`; los derivados de especificación (`spec-index.json`, `requisitos-bmad.csv`, `matriz-trazabilidad-bmad.csv`, `inventario-bmad.json`, `avance-bmad.csv`), las copias congeladas de `00-direccion/historial/` o una instantánea existente de `03-control/fuentes/` — tanto con Write/Edit como con Bash (`sed -i`, `>`/`>>`, `tee`, `cp`/`mv`/`rm`, Python en línea); que un subagente `pm-*` escriba en `_bmad/`, `_bmad-output/` o `.bmad-core/`; y que el hilo principal o un subagente distinto de pm-director ejecute `estado.py puerta|rol|tolerancia|agil|umbrales-riesgo|cumplir-condiciones`, `limite-etapa --excepcion`, `set --forzar` o `aprobar` de nivel superior a gestor |
+| `PreToolUse` → `hooks/guardian.py` | cada `Write`, `Edit`, `MultiEdit`, `NotebookEdit` y `Bash` | niega (`permissionDecision: "deny"`) con el motivo: modificar `estado.json` sin `estado.py`, `nuevo_proyecto.py` o `bmad.py`; los registros CSV de `03-control/registros/` (los 9 base y, desde 2.2, `estereotipos.csv`, `preferencias.csv`, `raci.csv` y `envios.csv`) sin `registro.py` (o `interesados.py` / `envios.py`, que también figuran entre los scripts permitidos); los derivados de especificación (`spec-index.json`, `requisitos-bmad.csv`, `matriz-trazabilidad-bmad.csv`, `inventario-bmad.json`, `avance-bmad.csv`), las copias congeladas de `00-direccion/historial/` o una instantánea existente de `03-control/fuentes/` — tanto con Write/Edit como con Bash (`sed -i`, `>`/`>>`, `tee`, `cp`/`mv`/`rm`, Python en línea); que un subagente `pm-*` escriba en `_bmad/`, `_bmad-output/` o `.bmad-core/`; y que el hilo principal o un subagente distinto de pm-director ejecute `estado.py puerta|rol|tolerancia|agil|umbrales-riesgo|cumplir-condiciones`, `limite-etapa --excepcion`, `set --forzar` o `aprobar` de nivel superior a gestor |
 | `SessionStart` → `hooks/inicio.py` | `startup`, `resume`, `clear`, `compact` | si hay un `estado.json` a ≤ 2 niveles de la carpeta de trabajo (hasta 3 proyectos), agrega al contexto fase, proceso, etapa, el resultado de `sanidad.py --rapido` con los primeros ERROR, una guía de enrutamiento y la ruta absoluta de los scripts |
 | `UserPromptSubmit` → `hooks/idioma.py` | cada pedido del usuario | si hay proyecto pm-method y el pedido está en otro idioma que `estado.json.idioma` (español/inglés), agrega al contexto la instrucción de responder en el idioma del pedido; no bloquea nada |
 
@@ -726,7 +842,7 @@ skills y de la sanidad.
 2. Copia manual: volver a copiar `skills/` y `agents/`. Hermes: `git pull` y volver a correr
    `scripts/instalar_hermes.py` (§3.3); luego `/reload-skills`.
 3. **Proyectos existentes:** `estado.json` y los registros migran solos al leerse (esquema `estado.json` v2 desde v1;
-   `esquema.py` v2 con 9 registros). La sanidad avisa la diferencia de versión como **INS-02**.
+   `esquema.py` v2 con 9 registros; desde 2.2, 4 registros opcionales más del maestro de interesados que se crean al primer uso, sin migración destructiva). La sanidad avisa la diferencia de versión como **INS-02**.
 4. Skills externas y BMAD: §6.1 (actualizar skills y plugins externos) y §4.3 (BMAD).
 5. Después de actualizar pm-method o BMAD: correr la sanidad completa en cada proyecto activo y, si BMAD cambió de
    versión, `probar_paquete.py`.
@@ -758,7 +874,7 @@ claude plugin marketplace remove pm-method
 | Síntoma | Causa probable | Solución |
 |---|---|---|
 | `/pm-method:…` no aparece | plugin no instalado o deshabilitado | `claude plugin list`; `claude plugin enable pm-method`; reiniciar la sesión |
-| `claude plugin list` muestra una versión anterior a 2.1.0 | catálogo sin refrescar o versión aún no publicada | §0.4; si persiste, el repositorio publicado no tiene la versión nueva |
+| `claude plugin list` muestra una versión anterior a 2.2.0 | catálogo sin refrescar o versión aún no publicada | §0.4; si persiste, el repositorio publicado no tiene la versión nueva |
 | El modelo no activa la skill esperada | listado recortado por presupuesto (BMAD u otros repos) | `"skillListingBudgetFraction": 0.02` (§7.4); sanidad INS-05; invocar la skill por comando |
 | Responde una skill de otro repositorio | colisión de disparadores | sanidad INS-06; ajustar la descripción local u ocultar la externa con `skillOverrides`; ver `docs/colisiones.md` |
 | Windows: las ediciones o comandos quedan bloqueados por un hook, o no aparece el resumen de inicio | falta Git for Windows, no hay Python 3.9+ en Git Bash (`py.sh` lo avisa) o el clon tiene finales de línea CRLF en `hooks/py.sh` (volver a clonar con el `.gitattributes` vigente) | §1.2 |
@@ -785,3 +901,5 @@ claude plugin marketplace remove pm-method
 | diagram-design pregunta por la guía de estilo | primera vez, estilo por defecto | responder (personalizar o mantener); sin usuario usa el estilo por defecto |
 | La skill de Office no encuentra `docx`/`pptxgenjs` | paquete npm no resoluble por `require` | `npm install docx pptxgenjs` en una carpeta de trabajo fuera del proyecto |
 | Un conector MCP no aparece en la sesión | no configurado, no aprobado (`.mcp.json`) o sin autenticar | `claude mcp list`; `claude mcp login <nombre>` o `/mcp`; luego `pm-integraciones` |
+| `envios.py enviar … --confirmar` responde "Faltan variables de entorno" y no envía nada | variables de la capa de canales no definidas en el entorno de la sesión | §0.7 (definirlas, abrir terminal nueva, reiniciar la sesión); `envios.py --proyecto ./gestion verificar --modo …`; sin configuración: `--modo eml` |
+| `envios.py enviar` termina con código 2 | algún destinatario falló (servidor, webhook o falta de correo en `stakeholders.csv`) | revisar `envios.csv` (estado `fallido`, columna `notas`) y la sanidad STK-07; reintentar: solo se reenvía a quien falta |

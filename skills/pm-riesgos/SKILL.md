@@ -1,7 +1,7 @@
 ---
 name: pm-riesgos
 description: "Registro y respuestas de riesgo PRINCE2. Usar: riesgo, risk register, matriz P×I, EMV, respuesta al riesgo, oportunidad, informe o auditoría de riesgos. No: issue ya ocurrido→pm-issues-cambios."
-version: 2.1.0
+version: 2.2.0
 author: pm-method
 license: MIT
 metadata:
@@ -11,7 +11,7 @@ metadata:
     procesos_prince2: [SU, IP, CS, MP, SB, CP]
     practicas_prince2: [risk, business-case, progress]
     tecnicas_pmbok: [matriz probabilidad-impacto, valor monetario esperado, árbol de decisiones, Monte Carlo, pre-mortem, auditoría de riesgos]
-    artefactos: [riesgos.csv, evaluacion-probabilidad-impacto, hoja-riesgo, informe-riesgos, auditoria-riesgos]
+    artefactos: [candidatos-riesgo, riesgos.csv, evaluacion-probabilidad-impacto, hoja-riesgo, informe-riesgos, auditoria-riesgos]
     idiomas: [es, en]
 ---
 
@@ -44,7 +44,7 @@ metadata:
 ## Procedimiento
 1. **Objetivos.** Listar los siete objetivos en riesgo con unidades y tolerancias. Sin objetivos acordados no se registra ningún riesgo.
 2. **Escala. PUERTA HUMANA.** Sin enfoque aprobado, redactar `templates/evaluacion-probabilidad-impacto.md` (1–5; alto ≥ 15, medio 6–12, bajo ≤ 5; P → 10/30/50/70/90 %); el ejecutivo la aprueba y se registra con `estado.py aprobar` (`references/guia.md` §1). Hasta entonces, puntuaciones como propuesta.
-3. **Identificar** con la técnica adecuada; causa → evento → efecto; amenazas y oportunidades separadas; alta con `${CLAUDE_SKILL_DIR}/../pm-estado-proyecto/scripts/registro.py --proyecto <dir> agregar riesgos ...` (guía §2). Revisar AD-n y NFR de la fachada citando ids (guía §8).
+3. **Identificar** desde las fuentes, no de memoria: `python3 ${CLAUDE_SKILL_DIR}/../pm-riesgos/scripts/riesgos.py --proyecto <dir> candidatos` destila candidatos citados de BMAD (vía pm-bmad-puente), transcripciones, el tracker (Jira) y los artefactos del proyecto (sin BMAD); guía §2. En el taller, formular causa → evento → efecto y registrar con `registro.py agregar riesgos … --campo notas="origen: …"`; lo ocurrido va a `pm-issues-cambios`.
 4. **Evaluar** P, I (en unidades del objetivo), proximidad e impacto monetario con `registro.py actualizar riesgos` (recalcula puntuación y EMV; guía §3). Altos sin respuesta o propietario → lista de escalado.
 5. **Perfil agregado** con `registro.py resumen --json`; comparar exposición con `tolerancias.*.riesgo`. Si se supera → paso 10.
 6. **Planificar respuestas** del catálogo (guía §4), justificadas por EMV antes − EMV residual; residual, secundarios, disparador y contingencia; `templates/hoja-riesgo.md` para riesgos sobre la línea. **PUERTA HUMANA:** el propietario acepta la respuesta y el ejecutor sus acciones; si no, `[por confirmar]`.

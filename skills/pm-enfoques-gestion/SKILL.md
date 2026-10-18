@@ -1,7 +1,7 @@
 ---
 name: pm-enfoques-gestion
 description: "Enfoques de gestión del PID y planes subsidiarios. Usar: enfoque de riesgos, control de cambios, enfoque de calidad, management approach, subsidiary plan. No: PID ensamblado→pm-acta-constitucion."
-version: 2.1.0
+version: 2.2.0
 author: pm-method
 license: MIT
 metadata:

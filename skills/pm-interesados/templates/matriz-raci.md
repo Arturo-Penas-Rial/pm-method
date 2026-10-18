@@ -13,6 +13,9 @@ idioma: "{{idioma}}"
 
 > Intersección entre productos, paquetes de trabajo, decisiones o actividades y los roles del proyecto, con el tipo de participación de cada uno. Técnica de apoyo (su uso o sustitución no es adaptación del método). / Who does what for each product, work package, decision or activity.
 
+**Fuente de datos / Data source:** `03-control/registros/raci.csv` (una fila por elemento × interesado: `elemento`, `tipo_elemento`, `stakeholder_id`, `rol`). La sección 2 se genera con `interesados.py raci --markdown` y la sección 3 la calcula el mismo script (un A por elemento, al menos un R, referencias existentes en el maestro y en la especificación, OKR o WBS). No editar la matriz a mano: corregir `raci.csv` con `registro.py`.
+*Las columnas son interesados del maestro (`stakeholders.csv`): personas, roles o grupos registrados. Las filas pueden ser productos o paquetes de la WBS, requisitos, épicas o historias (vía la fachada de especificación), KR u objetivos de `okr.csv`, decisiones `D-###` o entregables.*
+
 **Nivel de las filas / Row level:** {{nivel_filas}}
 *`producto`, `paquete de trabajo`, `actividad del proceso` o `decisión`. Proporcional al tamaño: en versión mínima, por entregable con tres a seis columnas.*
 

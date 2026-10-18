@@ -1,4 +1,4 @@
-# Integraciones · pm-method 2.1.0
+# Integraciones · pm-method 2.2.0
 
 Qué necesita pm-method para funcionar, con qué herramientas externas puede integrarse, qué se decidió incorporar (y
 qué no) y cómo agregar una integración nueva sin romper el ecosistema.
@@ -16,7 +16,7 @@ Fuente: `compatibilidad.json`.
 | Tipo | Dependencia | Uso | Si falta |
 |---|---|---|---|
 | Obligatoria | Python ≥ 3.9 | todos los scripts | no hay ejecución |
-| Obligatoria | — (`dependencias.obligatorias` vacío) | el núcleo usa solo la biblioteca estándar | — |
+| Obligatoria | — (`dependencias.obligatorias` vacío) | el núcleo usa solo la biblioteca estándar; también la capa de canales de v2.2 (`smtplib`, `email`, `urllib`) | — |
 | Recomendada | `pyyaml` | leer la configuración de BMAD y `sprint-status.yaml` | el puente BMAD no funciona; sanidad INS-01 |
 | Recomendada | `python-docx` | exportar `.docx`, leer actas `.docx` | sin exportación Word; INS-01 |
 | Recomendada | `openpyxl` | exportar `.xlsx` | sin exportación Excel; INS-01 |
@@ -42,6 +42,8 @@ Los candidatos provienen de un informe previo de relevamiento; la valoración en
 | Granola / Fireflies / Zoom / minutes (MCP) + transcripciones VTT/SRT | ★★★★ | **Fuente de transcripciones** vía MCP o archivo | `pm-reuniones` (`transcripcion.py`) | La transcripción es un insumo; el valor está en el acta y en los registros. Archivo local siempre disponible como respaldo. Zoom MCP: obtención de transcripciones **no confirmada** |
 | meeting-analyzer | ★★★★ | **No incorporado** | `pm-reuniones` | Se aplican reglas de privacidad propias: clima del equipo solo agregado, con consentimiento y anonimizado; sin perfiles emocionales individuales |
 | Tability MCP | ★★★ | **Opcional** para OKR | `pm-okr` | Lectura de progreso a instantánea; escritura solo con confirmación. No existe un formato estándar de OKR, por eso el registro propio es `okr.csv` |
+| Perdoo MCP (v2.2) | — (no estaba en el informe) | **Opcional** para OKR, igual que Tability | `pm-okr` (vía `pm-integraciones`) | Servidor MCP oficial (`https://mcp.perdoo.com`, OAuth o clave de API) con `update_goal_progress`; `okr.py --propuesta-sync perdoo` prepara los check-ins sin publicar y `--marcar-publicado` registra el id externo |
+| Capa de canales propia: SMTP, webhooks de Slack y Teams, `.eml` (v2.2) | — (decisión propia) | **Integrada** en `pm-integraciones` (`envios.py`), sin dependencias nuevas | `pm-integraciones`; la usan `pm-comunicacion-stakeholders`, `pm-reuniones`, `pm-okr` y `pm-interesados` (`plan-envio`) | Una sola vía de salida para cualquier comunicación a interesados, con aprobación humana, destinos tomados del maestro de interesados y registro de cada envío (`envios.csv`). Funciona sin conectores (SMTP, webhooks, `.eml`) y también con un conector MCP de correo o chat (`preparar-mcp` + `registrar`) |
 | Operately / okr-writer | ★★★★ | **No incorporados** | `pm-okr` (`okr.py`) | Operately es una aplicación sin MCP; okr-writer, una skill externa. Se optó por OKR propio en CSV con vínculo a beneficios (B-n) y métricas de éxito (SM-n) |
 | utf8proj + MPXJ | ★★★★ | utf8proj **descartado**; exportador MSPDI **propio**, validado con MPXJ; MPXJ **opcional** para `.mpp` | `pm-cronograma-estimacion` (`cpm.py --mspdi`) | utf8proj es inmaduro (v0.10.0, pre-1.0, 6 estrellas). MSPDI es un formato XML abierto (solo `UID` obligatorio en Task); el exportador propio evita la dependencia y se validó leyéndolo con MPXJ (PyPI `mpxj` 16.10.0, LGPL, requiere Java) |
 | knowledge-work-plugins status-report / dashboards | ★★★★ | **No incorporado** | — | Duplica `pm-progreso-reportes` y `pm-visuales`, y generaría dos dueños para el mismo informe |
@@ -52,7 +54,10 @@ Referencias consultadas al 2026-10-17 que condicionan las decisiones: el servido
 marcado como legado (se recomienda Work IQ); el Slack MCP oficial (`https://mcp.slack.com/mcp`) está restringido a apps
 publicadas o internas; Atlassian Rovo MCP Server requiere obtener el `cloudId` con `getAccessibleAtlassianResources`
 antes de usar herramientas como `searchJiraIssuesUsingJql` o `createJiraIssue`; Operately es Apache-2.0 sin MCP;
-minutes es MIT (`minutes-mcp`); phuryn/pm-skills (MIT, brainstorm-okrs) se relevó como referencia.
+minutes es MIT (`minutes-mcp`); phuryn/pm-skills (MIT, brainstorm-okrs) se relevó como referencia. Para OKR (v2.2):
+Tability (`https://mcp.tability.app/mcp`) y Perdoo (`https://mcp.perdoo.com`) tienen MCP oficial; Viva Goals se
+retiró el 31/12/2025; Atlassian Goals y Asana Goals no estaban expuestos por sus MCP oficiales **[verificar]**. Fuentes en
+[DEPENDENCIAS.md §7.5](DEPENDENCIAS.md).
 
 ---
 
@@ -70,9 +75,10 @@ Cada integración se declara en `estado.json.integraciones` (`estado.py integrac
 | Cronograma MS Project | `cronograma=mspdi` | `pm-cronograma-estimacion` | `actividades.csv` (+ `wbs.csv`) | `02-planificacion/cronograma.xml` (MSPDI; copia en `exportados/`) | `cronograma=cpm`: CPM y Gantt Mermaid de `cpm.py` |
 | Tracker | `tracker=jira\|linear\|github\|azure-devops` | `pm-integraciones` | consultas de lectura; vista previa para escrituras | instantánea `03-control/fuentes/<sistema>-AAAA-MM-DD.<ext>`; propuestas de cambio a registros | registros CSV (`backlog.csv`, `acciones.csv`) |
 | Documentación | `docs=confluence\|notion\|sharepoint` | `pm-integraciones` | lectura de páginas; publicación con confirmación | instantánea o página publicada (id anotado) | Markdown local |
-| Chat / correo | `chat=slack\|teams` | `pm-integraciones`, `pm-comunicacion-stakeholders` | mensaje con vista previa | id externo en `notas` o `diario.md` | borrador para copiar |
+| Chat | `chat=slack\|teams` | `pm-integraciones`, `pm-comunicacion-stakeholders` | mensaje con vista previa; para interesados, mensajes aprobados de la capa de canales (§3.2) | id externo en `envios.csv` (columna `referencia`) y `diario.md` | webhook de Slack o Teams (`envios.py`); si no hay, borrador para copiar |
+| Correo (v2.2) | `correo=ninguno\|smtp\|gmail\|outlook\|eml` (`gmail`/`outlook` = conector MCP de la organización; `smtp`/`eml` = capa de canales sin conector) | `pm-integraciones` (capa de canales), `pm-comunicacion-stakeholders` | mensajes `.md` aprobados en `03-control/comunicaciones/<fecha>-<tema>/` | `03-control/registros/envios.csv` (EN-###) y `diario.md` | `.eml` para enviar desde el cliente de correo; o borrador para copiar |
 | Reuniones | `reuniones=manual\|archivo\|granola\|fireflies\|zoom\|minutes\|teams` | `pm-reuniones` | transcripción por MCP o archivo `.vtt`/`.srt`/`.txt`/`.docx` | `03-control/reuniones/` (transcripción normalizada y acta); registros solo tras confirmación de quien presidió | texto pegado o archivo |
-| OKR | `okr=archivo\|tability` | `pm-okr` | progreso leído vía `pm-integraciones` | `03-control/fuentes/tability-AAAA-MM-DD.csv` → columna `actual` de `00-direccion/okr.csv` | `okr.csv` mantenido a mano con `okr.py` |
+| OKR | `okr=archivo\|tability\|perdoo` | `pm-okr` | progreso leído vía `pm-integraciones`; check-ins sin publicar de `okr.py --propuesta-sync tability\|perdoo` | `03-control/fuentes/<tability\|perdoo>-AAAA-MM-DD.csv`; check-ins en `00-direccion/okr_checkins.csv` (solo se agregan) con `publicado_en` y `ref_externa` tras `okr.py --marcar-publicado KR@FECHA --destino … --ref …` | `okr.csv` y `okr_checkins.csv` mantenidos con `okr.py --checkin` |
 
 Reglas comunes:
 - Lectura libre; **escritura externa solo con vista previa y confirmación explícita**, una vez por lote. En un
@@ -99,6 +105,61 @@ sobre un proyecto de prueba con `wbs.csv`, roles, brief, presupuesto y highlight
 Antes de estos ajustes (contrato solo declarativo) la delegación era errática: archify sí, diagram-design y
 visual-explainer no (Mermaid o HTML a mano), y las skills de Office tampoco (scripts y planilla improvisada).
 
+### 3.2 Capa de canales: envío a interesados (`envios.py`, v2.2)
+
+Una sola vía de salida para **cualquier** comunicación a interesados: comunicados personalizados, informes (highlight,
+fin de etapa), actas y recordatorios de acciones, convocatorias, decisiones de puerta y check-ins de OKR. Script:
+`skills/pm-integraciones/scripts/envios.py --proyecto <dir> <comando>`; dueña `pm-integraciones`. Solo biblioteca
+estándar de Python.
+
+**Modos**
+
+| Modo (`--modo`) | Canal del mensaje | Variables de entorno | Qué hace | Referencia que registra |
+|---|---|---|---|---|
+| `smtp` | `correo` | `PM_SMTP_HOST`, `PM_SMTP_REMITENTE` (obligatorias); `PM_SMTP_PUERTO` (587), `PM_SMTP_TLS` (`starttls` defecto, `ssl`, `ninguno`), `PM_SMTP_USUARIO`, `PM_SMTP_CLAVE` | un correo por destinatario | Message-ID |
+| `slack-webhook` | `slack` | `PM_SLACK_WEBHOOK_URL` | publica `{"text": …}` en el canal del webhook; menciona `<@ID>` si `usuario_chat` es un id de Slack (U…/W…) | `slack-webhook HTTP <código>` |
+| `teams-webhook` | `teams` | `PM_TEAMS_WEBHOOK_URL` | publica una tarjeta adaptable en el canal del flujo de Workflows; rechaza mensajes de más de 28 KB | `teams-webhook HTTP <código>` |
+| `eml` | `correo` | ninguna | escribe `.eml` (`X-Unsent: 1`) en `<carpeta>/eml/`; quedan `pendiente` hasta `registrar --modo eml` | ruta del `.eml` |
+| conector MCP (Gmail, Outlook, Slack, Teams conectados en la sesión) | según el conector | las del conector, en el cliente | `preparar-mcp` entrega un JSON; el agente envía con la herramienta MCP tras vista previa y confirmación; luego `registrar --modo mcp` | id que devuelva la herramienta |
+
+Configuración de las variables y creación de los webhooks: [INSTALACION.md §0.7](INSTALACION.md).
+
+**Flujo**
+
+```mermaid
+flowchart LR
+  N["nuevo<br/>(o interesados.py plan-envio)"] --> R["redactar cada<br/>mensaje-NN-….md"]
+  R --> A["aprobar --por<br/>(acto humano)"]
+  A --> S["enviar --modo …<br/>(simulación)"]
+  S --> E["enviar --modo … --confirmar"]
+  A --> M["preparar-mcp →<br/>herramienta MCP"]
+  M --> G["registrar --modo mcp"]
+  E --> L["envios.csv (EN-###)<br/>+ diario.md"]
+  G --> L
+```
+
+| Paso | Comando | Regla |
+|---|---|---|
+| 1 · Crear | `envios.py nuevo --origen <archivo> --audiencia … --asunto … [--proposito comunicado\|informe\|recordatorio\|convocatoria\|puerta\|okr\|acta\|otro] [--agrupar] [--fecha]` o `interesados.py plan-envio --tema … --audiencia …` | carpeta `03-control/comunicaciones/<fecha>-<tema>/` con un `mensaje-NN-<canal>-<st>.md` por destinatario (o grupo con `--agrupar`), con el perfil resuelto en el frontmatter, y `plan-envio.csv`; estado inicial `borrador`; audiencia inválida = no se crea nada |
+| 2 · Redactar | (el agente o la persona edita el cuerpo de cada mensaje) | adaptar el contenido base al perfil de cada destinatario |
+| 3 · Revisar | `envios.py estado <carpeta> [--json]` | marca los mensajes sin redactar |
+| 4 · Aprobar | `envios.py aprobar <carpeta> [--mensaje <archivo> …] --por "Rol: Nombre"` | acto humano; rechaza borradores sin redactar y mensajes con destinatarios que ya no están en el maestro |
+| 5 · Simular | `envios.py enviar <carpeta> --modo …` | por defecto (sin `--confirmar`): muestra destinatarios, asunto y comienzo del texto, y avisa variables faltantes; no registra nada |
+| 6 · Enviar | `envios.py enviar <carpeta> --modo … --confirmar [--mensaje <archivo> …] [--fecha]` | solo mensajes aprobados cuyo canal corresponde al modo; destinos tomados del maestro en ese momento; registra `envios.csv` y `diario.md`; código de salida 2 si hubo fallos; un reintento solo alcanza a quienes no tienen fila `enviado` |
+| 6b · Vía MCP | `envios.py preparar-mcp <carpeta> [--canal correo\|slack\|teams]` → herramienta conectada → `envios.py registrar <carpeta> --mensaje <archivo> --modo mcp --referencia <id> [--estado enviado\|fallido] [--nota]` | vista previa y confirmación explícita antes de usar la herramienta |
+| 7 · Consultar | `envios.py historial [--stakeholder ST-…] [--json]` | — |
+
+Comprobación de variables sin red: `envios.py verificar --modo smtp|slack-webhook|teams-webhook|eml`.
+
+**Respaldo interno si no hay conector ni credenciales:** `--modo eml` (archivos para enviar desde el cliente de correo
+habitual, luego `registrar --modo eml`) o, para chat, el texto aprobado como borrador para copiar y
+`registrar --modo manual`. En todos los casos el registro en `envios.csv` es el mismo, así que la sanidad (STK-07) y
+el reporte de interesados ven el historial completo.
+
+Integridad: los destinos (`correo`, `usuario_chat`) se toman siempre de `stakeholders.csv` vigente, no del texto del
+mensaje; nada sale sin mensaje `aprobado` con `aprobado_por` y sin `--confirmar`; las credenciales viven solo en
+variables de entorno.
+
 ---
 
 ## 4. Control de consistencia
@@ -112,11 +173,13 @@ informan.
 | INS-03 | AVISO / INFO | las skills externas declaradas (`diagramas`: archify, diagram-design, visual-explainer, también en lista; `export=skills-office`: docx, xlsx, pptx) están instaladas como skill del proyecto (en la carpeta o sus superiores), del usuario, sincronizada de claude.ai o plugin instalado (`installed_plugins.json`, respetando el alcance de proyecto); informa con qué nombre invocarlas y avisa si falta Node (o Chrome para archify). Un plugin cargado solo con `--plugin-dir` no es detectable |
 | INS-05 | AVISO | presupuesto del listado de skills, incluidas las de BMAD y otros repos (umbral ≈8.000 caracteres) |
 | INS-06 | AVISO | posible colisión de activación entre una skill externa y una pm-* (tres o más disparadores compartidos) |
-| INT-01 | AVISO | valores de `integraciones` conocidos para `tracker`, `chat`, `docs`, `reuniones`, `okr` y `especificacion` |
+| INT-01 | AVISO | valores de `integraciones` conocidos para `tracker`, `chat`, `correo`, `docs`, `reuniones`, `okr` y `especificacion` |
 | INT-02 | AVISO | tracker declarado sin instantáneas en `03-control/fuentes/` durante la fase de entrega |
 | INT-03 | AVISO | última instantánea del tracker con más de 14 días |
 | INT-04 | AVISO | instantánea sin fecha en el nombre (`<sistema>-AAAA-MM-DD.<ext>`) |
 | ESP-01…15 | ERROR / AVISO | especificación legible, cobertura, ids, versión de BMAD probada, carpeta fuera de BMAD, líneas base vs especificación (cambio no controlado), traspasos pendientes, derivados desactualizados |
+| STK-07 | AVISO | envío de la capa de canales en estado `fallido` o `pendiente` (por ejemplo, `.eml` generado sin registrar) |
+| STK-00…11 | ERROR / AVISO / INFO | integridad del maestro de interesados (detalle en [SANIDAD.md §2.1](SANIDAD.md)) |
 
 Controles adicionales:
 - **Hook `PreToolUse`** (plugin de Claude Code): impide editar a mano los derivados de la especificación y que los
@@ -124,7 +187,7 @@ Controles adicionales:
 - **`pm-puerta` / `pm-director`**: ninguna puerta con ERROR sin decisión humana registrada como condición.
 - **`compatibilidad.json`**: declara versiones probadas de BMAD (4.x, 6.11, 6.12), integraciones externas opcionales y
   comportamiento por cliente.
-- **`scripts/probar_paquete.py`**: regresión de punta a punta (80 pruebas: BMAD v6, v6.12.4 real, v4, nativo, hook guardian, ciclo de puertas y regresiones).
+- **`scripts/probar_paquete.py`**: regresión de punta a punta (138 pruebas: BMAD v6, v6.12.4 real, v4, nativo, hook guardian, ciclo de puertas, regresiones y, desde 2.2, el caso H con maestro de interesados, capa de canales contra servidores SMTP y HTTP locales y OKR, el caso I con candidatos de riesgo desde BMAD, transcripciones, una instantánea de Jira y artefactos, y el caso J con los controles permanentes).
 
 Observación: INT-01 valida también `diagramas` (acepta listas de valores conocidos), `cronograma` y `export`; la instalación de las skills externas la controla INS-03.
 

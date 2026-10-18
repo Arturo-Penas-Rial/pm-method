@@ -2,7 +2,7 @@ __pycache__/
 *.pyc
 .DS_Store
 # salidas regenerables del informe 2
-docs/informe/fuente/salida-v2.1/
+docs/informe/fuente/salida-v2.*/
 docs/informe/fuente/data.json
 docs/informe/fuente/diagramas/*.png
 docs/informe/fuente/diagramas/*.svg

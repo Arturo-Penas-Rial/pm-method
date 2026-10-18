@@ -1,0 +1,9 @@
+flowchart LR
+  N["nuevo<br/>(o interesados.py plan-envio)"] --> R["redactar cada<br/>mensaje-NN-….md"]
+  R --> A["aprobar --por<br/>(acto humano)"]
+  A --> S["enviar --modo …<br/>(simulación)"]
+  S --> E["enviar --modo … --confirmar"]
+  A --> M["preparar-mcp →<br/>herramienta MCP"]
+  M --> G["registrar --modo mcp"]
+  E --> L["envios.csv (EN-###)<br/>+ diario.md"]
+  G --> L

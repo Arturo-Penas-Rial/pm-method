@@ -3,7 +3,7 @@ name: pm-sync
 description: "Sincroniza fuentes externas con el proyecto: BMAD (backlog, avance, desvíos) e instantáneas de tracker y OKR. Escribe afuera solo con confirmación. Uso manual: /pm-sync [bmad|tracker|okr]."
 disable-model-invocation: true
 argument-hint: "[bmad|tracker|okr|todo] [carpeta]"
-version: 2.1.0
+version: 2.2.0
 author: pm-method
 license: MIT
 metadata:
@@ -42,7 +42,7 @@ Scripts en `${CLAUDE_PLUGIN_ROOT}/skills/<skill>/scripts/` (manual/Hermes: `~/.c
 2. **BMAD** (si `especificacion = bmad`): `bmad.py --proyecto <dir> backlog`, `… avance`, `… verificar`. Desvío no traspasado o Sprint Change Proposal → proponer issue `solicitud-cambio` (`pm-issues-cambios`).
 3. **Traspasos pendientes**: revisar `estado.json.integraciones.bmad.handoffs`; listar los no confirmados por el equipo BMAD y su antigüedad. Si `backlog.csv` tiene cambios de MoSCoW/release/iteración sin traspasar, proponer `bmad.py --proyecto <dir> handoff` (lo decide `pm-agil-hibrido`/PO); cambio aprobado sin traspaso → `handoff --cambio C-###` vía `pm-issues-cambios`.
 4. **Tracker / docs / chat** (si están conectados): con `pm-integraciones`, leer y guardar instantánea `03-control/fuentes/<sistema>-AAAA-MM-DD.csv|md`; conciliar contra backlog, acciones e issues y **proponer** las diferencias.
-5. **OKR** (si `okr = tability`): instantánea y actualización de `actual` en `00-direccion/okr.csv`; puntuar con `okr.py`.
+5. **OKR** (si `okr = tability|perdoo`): instantánea en `03-control/fuentes/` y check-in por KR (`okr.py <csv> --checkin KR-… --valor … --fuente tability|perdoo`); puntuar con `okr.py`; los check-ins locales sin publicar se proponen con `okr.py --propuesta-sync` y se publican solo con confirmación.
 6. Mostrar un resumen: qué se leyó, traspasos pendientes, qué cambió en archivos derivados, qué propuestas hay. Cambios a registros de gobierno y cualquier escritura externa (crear tickets, publicar) solo tras vista previa y confirmación explícita.
 
 ## Reglas del método

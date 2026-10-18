@@ -49,10 +49,12 @@ REGISTROS = {
         "prefijo": "C", "estado_inicial": "abierto",
         "columnas": ["id", "fecha", "solicitante", "titulo", "descripcion", "justificacion", "impacto_alcance",
                      "impacto_tiempo", "impacto_costo", "impacto_calidad", "impacto_riesgo", "impacto_beneficios",
-                     "recomendacion", "decision", "decidido_por", "fecha_decision", "estado", "notas"],
+                     "recomendacion", "decision", "decidido_por", "fecha_decision", "estado", "notas", "costo", "cargo"],
         "valores": {"decision": ["", "aprobado", "rechazado", "diferido", "pedir-plan-excepcion", "pedir-mas-informacion"],
+                    "cargo": ["", "presupuesto-cambio", "reserva-riesgo", "reserva-gestion", "plan-excepcion", "sin-costo"],
                     "estado": ["abierto", "en-evaluacion", "pendiente-decision", "aprobado", "rechazado", "diferido",
                                "implementado", "cerrado"]},
+        "numericos": ["costo"],
         "abiertos": ["abierto", "en-evaluacion", "pendiente-decision", "aprobado", "diferido"],
     },
     "decisiones": {
@@ -78,15 +80,59 @@ REGISTROS = {
         "abiertos": ["registrada", "revisada"],
     },
     "stakeholders": {
-        "prefijo": "ST", "estado_inicial": None,
+        "prefijo": "ST", "estado_inicial": None, "refs": {"estereotipo": "estereotipos"},
         "columnas": ["id", "nombre", "rol_organizacion", "rol_proyecto", "poder", "interes", "actitud",
                      "nivel_compromiso_actual", "nivel_compromiso_deseado", "expectativas", "canal", "frecuencia",
-                     "responsable_relacion", "confidencial", "notas"],
+                     "responsable_relacion", "confidencial", "notas", "estereotipo", "correo", "usuario_chat"],
         "valores": {"poder": ["", "alto", "medio", "bajo"], "interes": ["", "alto", "medio", "bajo"],
                     "actitud": ["", "lider", "partidario", "neutral", "resistente", "desconocedor"],
                     "nivel_compromiso_actual": ["", "lider", "partidario", "neutral", "resistente", "desconocedor"],
                     "nivel_compromiso_deseado": ["", "lider", "partidario", "neutral", "resistente", "desconocedor"],
                     "confidencial": ["", "si", "no"]},
+    },
+    # ---- maestro de interesados (v2.2, dueña pm-interesados). "opcional": se crean al primer uso, no en proyectos nuevos.
+    "estereotipos": {
+        "prefijo": "ET", "estado_inicial": "activo", "opcional": True,
+        "columnas": ["id", "nombre", "descripcion", "cuadrante", "canal", "formato", "nivel_detalle", "frecuencia",
+                     "idioma", "registro", "horario", "estilo_decision", "evitar", "estado", "notas"],
+        "valores": {"cuadrante": ["", "gestionar-de-cerca", "mantener-satisfecho", "mantener-informado", "monitorear"],
+                    "canal": ["", "correo", "slack", "teams", "reunion", "llamada", "tablero", "documento"],
+                    "formato": ["", "conclusion-primero", "narrativa", "datos", "visual", "lista"],
+                    "nivel_detalle": ["", "ejecutivo", "resumen", "detallado"],
+                    "frecuencia": ["", "diaria", "semanal", "quincenal", "mensual", "trimestral", "por-hito", "a-demanda"],
+                    "idioma": ["", "es", "en", "pt"],
+                    "registro": ["", "formal", "neutral", "cercano"],
+                    "estilo_decision": ["", "datos", "consenso", "rapido", "delegado"],
+                    "estado": ["activo", "retirado"]},
+        "abiertos": ["activo"],
+    },
+    "preferencias": {
+        "prefijo": "PF", "estado_inicial": "propuesta", "opcional": True, "refs": {"stakeholder_id": "stakeholders"},
+        "columnas": ["id", "fecha", "stakeholder_id", "dimension", "valor", "procedencia", "evidencia", "fuente",
+                     "vigencia_hasta", "estado", "confirmado_por", "notas"],
+        "valores": {"dimension": ["canal", "formato", "nivel_detalle", "frecuencia", "idioma", "registro", "horario",
+                                  "estilo_decision", "evitar", "otro"],
+                    "procedencia": ["declarado", "observado", "inferido"],
+                    "estado": ["propuesta", "confirmada", "rechazada", "vencida"]},
+        "abiertos": ["propuesta"],
+    },
+    "raci": {
+        "prefijo": "RC", "estado_inicial": None, "opcional": True, "refs": {"stakeholder_id": "stakeholders"},
+        "unico": ["elemento", "stakeholder_id"], "uno_por": {"rol": "A", "grupo": "elemento"},
+        "columnas": ["id", "elemento", "tipo_elemento", "descripcion", "stakeholder_id", "rol", "notas"],
+        "valores": {"rol": ["R", "A", "C", "I"],
+                    "tipo_elemento": ["", "producto", "paquete", "actividad", "entregable", "requisito", "epica",
+                                      "historia", "kr", "objetivo", "decision", "otro"]},
+    },
+    "envios": {
+        "prefijo": "EN", "estado_inicial": "pendiente", "opcional": True, "refs": {"stakeholder_id": "stakeholders"},
+        "columnas": ["id", "fecha", "stakeholder_id", "canal", "modo", "destino", "asunto", "proposito", "archivo", "estado",
+                     "referencia", "confirmado_por", "notas"],
+        "valores": {"canal": ["", "correo", "slack", "teams", "reunion", "llamada", "tablero", "documento"],
+                    "proposito": ["", "comunicado", "informe", "recordatorio", "convocatoria", "puerta", "okr", "acta", "otro"],
+                    "modo": ["", "mcp", "smtp", "slack-webhook", "teams-webhook", "eml", "manual"],
+                    "estado": ["pendiente", "simulado", "enviado", "fallido", "cancelado"]},
+        "abiertos": ["pendiente", "fallido"],
     },
     "calidad": {
         "prefijo": "Q", "estado_inicial": "planificada",
@@ -125,6 +171,14 @@ ALIAS_EN = {
     "leading": ["lider"], "supportive": ["partidario"], "neutral": ["neutral"], "resistant": ["resistente"], "unaware": ["desconocedor"],
     "review": ["revision"], "test": ["prueba"], "inspection": ["inspeccion"], "demonstration": ["demostracion"], "audit": ["auditoria"],
     "registered": ["registrada"], "reviewed": ["revisada"],
+    "proposed": ["propuesta"], "confirmed": ["confirmada"], "expired": ["vencida"], "declared": ["declarado"], "observed": ["observado"],
+    "inferred": ["inferido"], "active": ["activo"], "sent": ["enviado"], "simulated": ["simulado"], "failed": ["fallido"], "pending": ["pendiente"],
+    "email": ["correo"], "meeting": ["reunion"], "call": ["llamada"], "dashboard": ["tablero"], "document": ["documento"],
+    "manage-closely": ["gestionar-de-cerca"], "keep-satisfied": ["mantener-satisfecho"], "keep-informed": ["mantener-informado"], "monitor": ["monitorear"],
+    "bottom-line-up-front": ["conclusion-primero"], "narrative": ["narrativa"], "data": ["datos"], "visual": ["visual"], "list": ["lista"],
+    "executive": ["ejecutivo"], "summary": ["resumen"], "detailed": ["detallado"], "daily": ["diaria"], "weekly": ["semanal"],
+    "biweekly": ["quincenal"], "monthly": ["mensual"], "per-milestone": ["por-hito"], "on-demand": ["a-demanda"],
+    "formal": ["formal"], "casual": ["cercano"], "consensus": ["consenso"], "fast": ["rapido"], "delegated": ["delegado"],
 }
 
 # Umbrales de puntuación P×I (escala 1–5 × 1–5). Configurables en el enfoque de gestión del riesgo;
@@ -133,7 +187,7 @@ UMBRAL_RIESGO_ALTO = 15   # 15–25 alto
 UMBRAL_RIESGO_MEDIO = 6   # 6–12 medio; 1–5 bajo
 
 # ---------------------------------------------------------------- estado.json
-VERSION_PAQUETE = "2.1.0"          # debe coincidir con .claude-plugin/plugin.json y compatibilidad.json
+VERSION_PAQUETE = "2.2.0"          # debe coincidir con .claude-plugin/plugin.json y compatibilidad.json
 FASES = ["pre-proyecto", "inicio", "entrega", "cierre", "cerrado"]
 PROCESOS = ["SU", "IP", "CS", "SB", "CP"]          # DP y MP son continuos (junta y equipos), no "estado actual"
 DIMENSIONES_TOLERANCIA = ["tiempo", "costo", "alcance", "calidad", "beneficios", "riesgo", "sostenibilidad"]
@@ -141,6 +195,9 @@ NIVELES_TOLERANCIA = ["proyecto", "etapa"]          # las de paquete de trabajo 
 PUERTAS = ["autorizar-inicio", "autorizar-proyecto", "autorizar-etapa", "autorizar-plan-excepcion",
            "autorizar-cierre", "decision-ad-hoc"]
 DECISIONES_PUERTA = ["aprobado", "condicionado", "rechazado", "pendiente"]
+# presupuestos que fija la junta (montos en la moneda del proyecto): presupuesto de cambio, reserva de riesgo (contingencia),
+# reserva de gestión y límite por cambio que puede aprobar la autoridad de cambio delegada (PRINCE2: issues y planes).
+CLAVES_PRESUPUESTO = ["cambio", "riesgo", "gestion", "limite_autoridad_cambio"]
 ESTADOS_ARTEFACTO = ["borrador", "en-revision", "aprobado", "obsoleto"]
 
 
@@ -158,17 +215,20 @@ def estado_inicial(nombre, idioma="es", enfoque="predictivo", ejecutivo="", gest
                   "aseguramiento": [], "soporte": "", "autoridad_cambio": "", "product_owner": "", "jefes_equipo": []},
         "agil": {"cadencia_iteracion_dias": "", "velocidad_referencia": "", "tracker_backlog": ""},
         "umbrales_riesgo": {"alto": UMBRAL_RIESGO_ALTO, "medio": UMBRAL_RIESGO_MEDIO},
+        "presupuestos": {k: "" for k in CLAVES_PRESUPUESTO},
         "artefactos": {}, "puertas": [],
         "integraciones": {"tracker": "ninguno", "chat": "ninguno", "docs": "ninguno", "reuniones": "manual", "okr": "archivo",
-                          "diagramas": "mermaid", "cronograma": "cpm", "export": "scripts", "especificacion": "ninguna"},
+                          "diagramas": "mermaid", "cronograma": "cpm", "export": "scripts", "especificacion": "ninguna",
+                          "correo": "ninguno"},
         "creado": hoy, "actualizado": hoy, "version_estado": 1,
     }
 
 
 # valores conocidos de estado.json.integraciones (los usan estado.py integracion y sanidad INT-01)
 VALORES_INTEGRACION = {"tracker": {"ninguno", "jira", "linear", "github", "azure-devops"}, "chat": {"ninguno", "slack", "teams"},
+    "correo": {"ninguno", "smtp", "gmail", "outlook", "eml"},
     "docs": {"ninguno", "confluence", "notion", "sharepoint"}, "reuniones": {"manual", "archivo", "granola", "fireflies", "zoom", "minutes", "teams"},
-    "okr": {"archivo", "tability"}, "especificacion": {"ninguna", "bmad"},
+    "okr": {"archivo", "tability", "perdoo"}, "especificacion": {"ninguna", "bmad"},
     "diagramas": {"mermaid", "diagram-design", "archify", "visual-explainer", "drawio"}, "cronograma": {"cpm", "mspdi"},
     "export": {"scripts", "skills-office"}}
 
@@ -186,8 +246,10 @@ def migrar(e):
     e.setdefault("proyecto_autorizado", any(p.get("tipo") == "autorizar-proyecto" and p.get("decision") in ("aprobado", "condicionado") for p in e.get("puertas", [])))
     e.setdefault("excepcion_abierta", "")
     e.setdefault("umbrales_riesgo", {"alto": UMBRAL_RIESGO_ALTO, "medio": UMBRAL_RIESGO_MEDIO})
+    for k in CLAVES_PRESUPUESTO: e.setdefault("presupuestos", {}).setdefault(k, "")
     for k, v in {"tracker": "ninguno", "chat": "ninguno", "docs": "ninguno", "reuniones": "manual", "okr": "archivo",
-                 "diagramas": "mermaid", "cronograma": "cpm", "export": "scripts", "especificacion": "ninguna"}.items():
+                 "diagramas": "mermaid", "cronograma": "cpm", "export": "scripts", "especificacion": "ninguna",
+                 "correo": "ninguno"}.items():
         e.setdefault("integraciones", {}).setdefault(k, v)
     if e["integraciones"].get("cronograma") in ("mermaid", "utf8proj"): e["integraciones"]["cronograma"] = "cpm"
     if e.get("fase") == "planificacion": e["fase"] = "inicio"

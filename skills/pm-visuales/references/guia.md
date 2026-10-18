@@ -44,6 +44,7 @@ Está instalada si figura en el listado de skills de la sesión con cualquiera d
 ## 2. Contenido de cada visual
 - **Organigrama**: tres intereses (negocio, usuario, proveedor) en la junta, un ejecutivo, gestor, aseguramiento separado, soporte, gestores de equipo; líneas de reporte; autoridad de cambio si existe. Si la fuente viola la separación, se señala.
 - **Mapa poder/interés**: cuatro cuadrantes con criterios explícitos; actitud; estrategia por cuadrante; circulación restringida; nunca para evaluar personas del equipo.
+- **Reporte de interesados (v2.2)**: es el visual del maestro de interesados y lo genera su dueña, `pm-interesados`: `python3 ${CLAUDE_SKILL_DIR}/../pm-interesados/scripts/interesados.py --proyecto <dir> reporte --html 03-control/reportes/<fecha>-interesados.html` (HTML autocontenido con la matriz poder/interés en SVG, RACI, perfiles y envíos; contenido y opciones en la guía de `pm-interesados` §8). pm-visuales no lo redibuja ni copia sus datos: lo enlaza o lo incluye en un tablero; un mapa poder/interés con motor externo (tabla 1.2) parte de `interesados.py matriz --json`.
 - **PBS/WBS**: producto del proyecto en la raíz; externos marcados; sin actividades en la PBS; la WBS deriva de la PBS. Desde `wbs.csv`: `python3 ${CLAUDE_SKILL_DIR}/../pm-estado-proyecto/scripts/wbs.py 02-planificacion/wbs.csv --titulo "<Proyecto>" --mermaid 02-planificacion/visuales/wbs.md [--profundidad 3] [--diccionario 02-planificacion/diccionario-wbs-esqueleto.md]` (valida la EDT, consolida esfuerzo y costo y escribe el árbol Mermaid `flowchart TD`). El contenido de la EDT es de `pm-planificacion-por-productos`; aquí solo se dibuja.
 - **Flujo de productos**: dependencias entre productos de un plan; externos como entradas; aristas sin confirmar en línea punteada.
 - **Gantt y roadmap**: Gantt desde `cpm.py --mermaid` o el plan (camino crítico resaltado); roadmap por etapas de gestión con puertas como hitos.
@@ -102,7 +103,8 @@ Si hay un tracker conectado (Jira, Linear, GitHub, Azure DevOps), `pm-integracio
 | Visual | Datos mínimos | Fuente | Si falta |
 |---|---|---|---|
 | Organigrama | ejecutivo, usuario sénior, proveedor sénior, gestor | `estado.json.roles` | nodo `[por confirmar]`; avisar a `pm-organizacion-roles` |
-| Mapa de stakeholders | nombre o grupo, poder, interés | `stakeholders.csv` | no ubicar; listar aparte |
+| Mapa de stakeholders | nombre o grupo, poder, interés | `stakeholders.csv` (vía `interesados.py matriz --json`) | no ubicar; listar aparte |
+| Reporte de interesados | maestro con poder e interés | `interesados.py reporte --html` (`pm-interesados`) | lo informa su sección de integridad; avisar a `pm-interesados` |
 | PBS / WBS | producto del proyecto y primer nivel | `pbs-wbs.md` o `wbs.csv` | solo raíz; pedir `pm-planificacion-por-productos` |
 | Flujo de productos | productos y dependencias | descripciones de producto | aristas punteadas `[por confirmar]` |
 | Gantt | actividades, duración, predecesoras, inicio | `actividades.csv` + `cpm.py` | no generar; pedir el cronograma |

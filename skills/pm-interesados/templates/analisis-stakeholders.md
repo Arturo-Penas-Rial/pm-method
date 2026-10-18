@@ -38,7 +38,7 @@ confidencial: si
 | ST-002 | {{s2_poder}} | {{s2_interes}} | {{s2_actitud}} | {{s2_actual}} | {{s2_deseado}} | {{s2_expectativas}} | {{s2_preocupaciones}} | {{s2_fuente_val}} | {{s2_confidencial}} |
 | ST-003 | {{s3_poder}} | {{s3_interes}} | {{s3_actitud}} | {{s3_actual}} | {{s3_deseado}} | {{s3_expectativas}} | {{s3_preocupaciones}} | {{s3_fuente_val}} | {{s3_confidencial}} |
 
-*Poder e interés: alto / medio / bajo. Actitud y compromiso: líder, partidario, neutral, resistente, desconocedor. La actitud se evalúa por separado del interés (un interesado muy interesado puede ser opositor). Cada valoración con fuente: entrevista con fecha, observación, histórico; nunca solo la opinión del gestor.*
+*Definiciones: **poder** = autoridad real, control de recursos, capacidad de aprobar presupuestos o vetar decisiones (eje vertical); **interés** = grado de involucramiento, preocupación o impacto personal o profesional que el proyecto genera en el actor (eje horizontal). Poder e interés: alto / medio / bajo; en la matriz 2×2, «medio» se ubica del lado alto por defecto y se marca como frontera (`interesados.py --medio bajo` para la convención contraria). Actitud y compromiso: líder, partidario, neutral, resistente, desconocedor. La actitud se evalúa por separado del interés (un interesado muy interesado puede ser opositor). Cada valoración con fuente: entrevista con fecha, observación, histórico; nunca solo la opinión del gestor.*
 
 ## 3. Cuadrícula poder / interés / Power–interest grid
 
@@ -56,16 +56,16 @@ quadrantChart
     "{{s2_nombre_corto}}": [0.30, 0.80]
     "{{s3_nombre_corto}}": [0.70, 0.25]
 ```
-*Coordenadas entre 0 y 1 (interés en x, poder en y). La actitud se indica en la tabla, no en la cuadrícula. Si `estado.json.integraciones.diagramas` es `diagram-design` o `archify`, `pm-visuales` puede producir una versión con actitud por color.*
+*La versión de referencia de la matriz (sin coordenadas manuales, con cada interesado en su cuadrante y las fronteras marcadas) la genera `interesados.py reporte --html 03-control/reportes/<fecha>-interesados.html`. Esta cuadrícula Mermaid es opcional. Coordenadas entre 0 y 1 (interés en x, poder en y). La actitud se indica en la tabla, no en la cuadrícula. Si `estado.json.integraciones.diagramas` es `diagram-design` o `archify`, `pm-visuales` puede producir una versión con actitud por color.*
 
 ## 4. Estrategia por grupo / Strategy by group
 
 | Cuadrante / Quadrant | Interesados / Stakeholders | Estrategia base / Base strategy | Modulación por actitud / Attitude adjustment |
 |---|---|---|---|
-| Poder alto · interés alto | {{q1_lista}} | Gestionar de cerca; involucrar en decisiones | {{q1_modulacion}} |
-| Poder alto · interés bajo | {{q2_lista}} | Mantener satisfecho; comunicación ejecutiva | {{q2_modulacion}} |
-| Poder bajo · interés alto | {{q3_lista}} | Mantener informado; aliados o resistencia temprana | {{q3_modulacion}} |
-| Poder bajo · interés bajo | {{q4_lista}} | Monitorear con esfuerzo mínimo | {{q4_modulacion}} |
+| Poder alto · interés alto | {{q1_lista}} | Gestionar de cerca: patrocinadores clave, dirección, clientes principales; comunicación constante, participación activa en decisiones, máxima atención | {{q1_modulacion}} |
+| Poder alto · interés bajo | {{q2_lista}} | Mantener satisfecho: directivos o reguladores fuera del día a día que pueden frenar el proyecto; sin abrumar con detalle, reportes ejecutivos sobre beneficios y avance | {{q2_modulacion}} |
+| Poder bajo · interés alto | {{q3_lista}} | Mantener informado: usuarios finales, equipos colaboradores, áreas afectadas; canales claros (boletines, reuniones informativas) y escucha de su retroalimentación | {{q3_modulacion}} |
+| Poder bajo · interés bajo | {{q4_lista}} | Monitorear: público general o áreas periféricas; esfuerzo mínimo, salvo que cambien de posición | {{q4_modulacion}} |
 
 *Un opositor de alto poder exige plan de conversión o mitigación; un aliado de alto poder puede actuar como patrocinador informal. Las acciones concretas van al plan de compromiso.*
 

@@ -20,15 +20,15 @@ idioma: "{{idioma}}"
 **Autoridad de cambio / Change authority:** {{autoridad_cambio}}
 *Rol o persona a quien la junta delegó decisiones de cambio; copiar de `estado.json.roles.autoridad_cambio`.*
 
-Convenciones comunes a todos los CSV: codificación UTF-8, separador coma, fechas ISO `AAAA-MM-DD`, valores de enumeración en minúsculas sin acentos, `id` secuencial con prefijo fijo que nunca se reutiliza, `estado` nunca se borra (se cierra). Los valores se guardan en español; al registrar se aceptan alias en inglés (`threat`, `opportunity`, `open`, `closed`, `high`, `medium`, `low`, `avoid`, `reduce`, `change-request`, `off-specification`…) que `registro.py` convierte al valor canónico. / Values are stored in Spanish; English aliases are accepted on input. Los prefijos de id son: R (riesgos), I (issues), C (cambios), D (decisiones), S (supuestos), L (lecciones), ST (stakeholders), Q (calidad), A (acciones). `X-###` no es un registro: es el id de un informe de excepción (documento en `03-control/reportes/`).
+Convenciones comunes a todos los CSV: codificación UTF-8, separador coma, fechas ISO `AAAA-MM-DD`, valores de enumeración en minúsculas sin acentos, `id` secuencial con prefijo fijo que nunca se reutiliza, `estado` nunca se borra (se cierra). Los valores se guardan en español; al registrar se aceptan alias en inglés (`threat`, `opportunity`, `open`, `closed`, `high`, `medium`, `low`, `avoid`, `reduce`, `change-request`, `off-specification`…) que `registro.py` convierte al valor canónico. / Values are stored in Spanish; English aliases are accepted on input. Los prefijos de id son: R (riesgos), I (issues), C (cambios), D (decisiones), S (supuestos), L (lecciones), ST (stakeholders), Q (calidad), A (acciones) y, desde v2.2, ET (estereotipos), PF (preferencias), RC (raci), EN (envios); estos cuatro se crean al primer uso. `X-###` no es un registro: es el id de un informe de excepción (documento en `03-control/reportes/`).
 
 **Fuente única del esquema / Single source of schema:** `${CLAUDE_SKILL_DIR}/../pm-estado-proyecto/scripts/esquema.py`. Esta guía documenta exactamente las mismas columnas, en el mismo orden, y los mismos valores permitidos; si cambia una, cambian las dos. Para consultar el esquema vigente desde la consola: `python3 ${CLAUDE_SKILL_DIR}/../pm-estado-proyecto/scripts/registro.py --proyecto <dir> esquema <registro>`.
 
-**Validación / Validation:** `registro.py agregar` y `actualizar` rechazan valores fuera de la lista "Valores permitidos" y, en riesgos, probabilidades e impactos que no sean enteros 1–5; también rechazan columnas inexistentes. `--forzar` registra igual, solo con motivo anotado en `notas`. Las columnas marcadas "libre" no se validan (los valores listados son sugerencias). Si un CSV de una versión anterior no tiene una columna nueva, el script la agrega al final sin perder filas.
+**Validación / Validation:** `registro.py agregar` y `actualizar` rechazan valores fuera de la lista "Valores permitidos" y, en riesgos, probabilidades e impactos que no sean enteros 1–5; también rechazan columnas inexistentes y, desde v2.2, referencias a interesados o estereotipos inexistentes, filas RACI duplicadas (elemento + interesado) y un segundo `A` en el mismo elemento. `--forzar` registra igual, solo con motivo anotado en `notas`. Las columnas marcadas "libre" no se validan (los valores listados son sugerencias). Si un CSV de una versión anterior no tiene una columna nueva, el script la agrega al final sin perder filas.
 
-**Estado inicial / Initial state** (lo pone `registro.py agregar` si no se indica): riesgos `abierto`, issues `abierto`, cambios `abierto`, supuestos `abierto`, lecciones `registrada`, calidad `planificada`, acciones `abierta`; decisiones y stakeholders no tienen columna `estado`.
+**Estado inicial / Initial state** (lo pone `registro.py agregar` si no se indica): riesgos `abierto`, issues `abierto`, cambios `abierto`, supuestos `abierto`, lecciones `registrada`, calidad `planificada`, acciones `abierta`, estereotipos `activo`, preferencias `propuesta`, envios `pendiente`; decisiones, stakeholders y raci no tienen columna `estado`.
 
-**Estados "abiertos" / Open states** (los que cuentan `registro.py listar --abiertos` y `resumen`): riesgos `abierto|en-seguimiento|escalado`; issues `abierto|en-evaluacion|en-accion|escalado|pendiente-cambio`; cambios `abierto|en-evaluacion|pendiente-decision|aprobado|diferido`; supuestos `abierto`; lecciones `registrada|revisada`; calidad `planificada|en-curso`; acciones `abierta|en-curso`.
+**Estados "abiertos" / Open states** (los que cuentan `registro.py listar --abiertos` y `resumen`): riesgos `abierto|en-seguimiento|escalado`; issues `abierto|en-evaluacion|en-accion|escalado|pendiente-cambio`; cambios `abierto|en-evaluacion|pendiente-decision|aprobado|diferido`; supuestos `abierto`; lecciones `registrada|revisada`; calidad `planificada|en-curso`; acciones `abierta|en-curso`; estereotipos `activo`; preferencias `propuesta`; envios `pendiente|fallido`.
 
 ## 1. riesgos.csv · Risk register
 
@@ -103,6 +103,10 @@ Convenciones comunes a todos los CSV: codificación UTF-8, separador coma, fecha
 | fecha_decision | Cuándo | Decision date | ISO |
 | estado | Situación | Status | `abierto`, `en-evaluacion`, `pendiente-decision`, `aprobado`, `rechazado`, `diferido`, `implementado`, `cerrado` |
 | notas | `origen I-###`, versión nueva de línea base, fecha de reevaluación si diferido | Notes | texto |
+| costo | Monto que consume el cambio (v2.2) | Cost | número sin moneda ni separador de miles (`9000`); se valida como numérico |
+| cargo | Contra qué presupuesto se paga (v2.2) | Charged to | vacío o `presupuesto-cambio`, `reserva-riesgo`, `reserva-gestion`, `plan-excepcion`, `sin-costo` |
+
+*Control permanente / Standing control:* en los cambios aprobados, implementados o cerrados, la sanidad exige `costo` y `cargo` cuando hay impacto de costo (CAM-01), que un cargo a `reserva-riesgo` cite el R-### que responde (CAM-02), suma el consumo contra `estado.json.presupuestos` (CAM-03: INFO < 80 %, AVISO ≥ 80 %, ERROR > 100 %) y avisa si un costo supera `limite_autoridad_cambio` o usa `reserva-gestion` sin que decida la junta o el ejecutivo (CAM-04, CAM-05; se reconoce en `decidido_por` por "ejecutiv", "junta", "board", "executive" o el nombre del ejecutivo). Ejemplo: `registro.py agregar cambios --campo titulo=… --campo impacto_costo="+USD 9.000" --campo costo=9000 --campo cargo=presupuesto-cambio`.
 
 ## 4. decisiones.csv · Decision log
 
@@ -168,17 +172,85 @@ Convenciones comunes a todos los CSV: codificación UTF-8, separador coma, fecha
 | nivel_compromiso_deseado | Involucramiento objetivo | Desired engagement | vacío o `lider`, `partidario`, `neutral`, `resistente`, `desconocedor` |
 | expectativas | Qué espera del proyecto | Expectations | texto |
 | canal | Medio de comunicación | Channel | texto |
-| frecuencia | Cadencia de contacto | Frequency | texto |
+| frecuencia | Cadencia de contacto | Frequency | texto (`diaria`, `semanal`, `quincenal`, `mensual` o `trimestral` habilitan el control STK-12 de cadencia de contacto) |
 | responsable_relacion | Quien gestiona la relación | Relationship owner | nombre o rol |
 | confidencial | La fila contiene valoraciones sensibles | Confidential | vacío, `si`, `no`; `si` = circulación restringida (no se exporta en la versión pública) |
 | notas | Observaciones | Notes | texto |
+| estereotipo | Estereotipo asignado (v2.2) | Stereotype | vacío o `ET-###` existente en `estereotipos.csv` (se valida) |
+| correo | Correo para la capa de canales (v2.2) | E-mail | texto `nombre@dominio` |
+| usuario_chat | Usuario de Slack o Teams (v2.2) | Chat user | texto (en Slack, id `U…`/`W…` para mencionar) |
+
+### 7.1 estereotipos.csv · Stereotypes (v2.2, se crea al primer uso; dueña `pm-interesados`)
+| Columna | Significado ES | Meaning EN | Valores permitidos / formato |
+|---|---|---|---|
+| id | Identificador | Id | `ET-###` |
+| nombre | Nombre del estereotipo | Name | texto |
+| descripcion | Quiénes y qué les importa | Description | texto |
+| cuadrante | Cuadrante típico | Quadrant | vacío o `gestionar-de-cerca`, `mantener-satisfecho`, `mantener-informado`, `monitorear` |
+| canal | Canal | Channel | vacío o `correo`, `slack`, `teams`, `reunion`, `llamada`, `tablero`, `documento` |
+| formato | Formato | Format | vacío o `conclusion-primero`, `narrativa`, `datos`, `visual`, `lista` |
+| nivel_detalle | Nivel de detalle | Detail level | vacío o `ejecutivo`, `resumen`, `detallado` |
+| frecuencia | Frecuencia | Frequency | vacío o `diaria`, `semanal`, `quincenal`, `mensual`, `trimestral`, `por-hito`, `a-demanda` |
+| idioma | Idioma | Language | vacío o `es`, `en`, `pt` |
+| registro | Registro | Tone | vacío o `formal`, `neutral`, `cercano` |
+| horario | Días u horarios | Hours | texto |
+| estilo_decision | Qué necesita para decidir | Decision style | vacío o `datos`, `consenso`, `rapido`, `delegado` |
+| evitar | Qué no enviar | Avoid | texto |
+| estado | Estado | Status | `activo`, `retirado` |
+| notas | Observaciones | Notes | texto |
+
+### 7.2 preferencias.csv · Preferences (v2.2; dueña `pm-interesados`)
+| Columna | Significado ES | Meaning EN | Valores permitidos / formato |
+|---|---|---|---|
+| id | Identificador | Id | `PF-###` |
+| fecha | Fecha de la fuente | Date | `AAAA-MM-DD` |
+| stakeholder_id | Interesado | Stakeholder | `ST-###` existente (se valida) |
+| dimension | Dimensión | Dimension | `canal`, `formato`, `nivel_detalle`, `frecuencia`, `idioma`, `registro`, `horario`, `estilo_decision`, `evitar`, `otro` |
+| valor | Valor | Value | valores normalizados de 7.1 (texto para horario, evitar, otro) |
+| procedencia | De dónde sale | Provenance | `declarado`, `observado`, `inferido` |
+| evidencia | Cita textual y marca de tiempo | Evidence | texto |
+| fuente | Archivo de origen | Source | ruta |
+| vigencia_hasta | Fecha de revalidación | Valid until | `AAAA-MM-DD` (defecto: fecha + 180 días) |
+| estado | Estado | Status | `propuesta`, `confirmada`, `rechazada`, `vencida` |
+| confirmado_por | Quién confirmó o rechazó | Confirmed by | "Rol: Nombre" |
+| notas | Observaciones | Notes | texto |
+
+### 7.3 raci.csv · RACI (v2.2; dueña `pm-interesados`)
+| Columna | Significado ES | Meaning EN | Valores permitidos / formato |
+|---|---|---|---|
+| id | Identificador | Id | `RC-###` |
+| elemento | Producto, paquete, requisito, épica, historia, KR, decisión… | Item | id de su fuente (`1.2`, `FR-3`, `E-2`, `2-1-slug`, `KR-1.1`, `D-004`) |
+| tipo_elemento | Tipo | Item type | vacío (se deduce) o `producto`, `paquete`, `actividad`, `entregable`, `requisito`, `epica`, `historia`, `kr`, `objetivo`, `decision`, `otro` |
+| descripcion | Descripción (si la fuente no tiene título) | Description | texto |
+| stakeholder_id | Interesado | Stakeholder | `ST-###` existente (se valida) |
+| rol | Rol | Role | `R`, `A`, `C`, `I`; una fila por elemento + interesado y un solo `A` por elemento (se valida) |
+| notas | Observaciones | Notes | texto |
+
+### 7.4 envios.csv · Deliveries (v2.2; dueña `pm-integraciones`, lo escribe `envios.py`)
+| Columna | Significado ES | Meaning EN | Valores permitidos / formato |
+|---|---|---|---|
+| id | Identificador | Id | `EN-###` |
+| fecha | Fecha | Date | `AAAA-MM-DD` |
+| stakeholder_id | Destinatario | Recipient | `ST-###` existente (se valida) |
+| canal | Canal | Channel | valores de 7.1 |
+| modo | Transporte | Transport | `mcp`, `smtp`, `slack-webhook`, `teams-webhook`, `eml`, `manual` |
+| destino | Correo o usuario usado | Destination | texto |
+| asunto | Asunto | Subject | texto |
+| proposito | Para qué | Purpose | vacío o `comunicado`, `informe`, `recordatorio`, `convocatoria`, `puerta`, `okr`, `acta`, `otro` |
+| archivo | Mensaje enviado | Message file | ruta en `03-control/comunicaciones/` |
+| estado | Estado | Status | `pendiente`, `simulado`, `enviado`, `fallido`, `cancelado` |
+| referencia | Id del mensaje o respuesta HTTP | Reference | texto |
+| confirmado_por | Quién aprobó el mensaje | Approved by | "Rol: Nombre" |
+| notas | Observaciones | Notes | texto (en reuniones y llamadas, la retroalimentación recibida: `retroalimentación: …`) |
+
+*Contactos que no son mensajes:* una reunión o una llamada se registra como envío manual (`registro.py agregar envios --campo fecha=… --campo stakeholder_id=ST-… --campo canal=reunion|llamada --campo modo=manual --campo estado=enviado --campo asunto=…`). La sanidad (STK-12) compara el último envío `enviado` de cada interesado de los cuadrantes gestionar de cerca, mantener satisfecho y mantener informado con la frecuencia de su perfil (tolerancia 1,5 ×).
 
 ## 8. calidad.csv · Quality register
 
 | Columna | Significado ES | Meaning EN | Valores permitidos / formato |
 |---|---|---|---|
 | id | Identificador | Unique id | `Q-###` |
-| producto | Producto verificado | Product | nombre o id del PBS |
+| producto | Producto verificado | Product | nombre o id del PBS; para historias, citar el id del backlog o la clave corta (`historia 1-3`): así la sanidad QUA-01 la cruza con los elementos terminados de `backlog.csv` |
 | metodo_verificacion | Cómo se verifica | Verification method | vacío o `revision`, `prueba`, `inspeccion`, `demostracion`, `auditoria` |
 | criterios | Criterios de calidad aplicados | Criteria | texto o referencia a la descripción de producto |
 | responsable_productor | Quien produce | Producer | nombre o rol |
