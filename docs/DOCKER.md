@@ -37,7 +37,7 @@ never baked into the image. Cowork does not run inside the container.*
 | Paquetes Python | `pyyaml` 6.0.3, `python-docx` 1.2.0, `openpyxl` 3.1.5, `matplotlib` 3.11.2, `playwright` 1.56.0 y sus transitivas | PyPI, con hash obligatorio (`docker/requirements.txt`) |
 | Node.js | 22.22 (paquete `nodejs` de Ubuntu) | archivo de Ubuntu |
 | Paquetes Node | `@anthropic-ai/claude-code` 2.1.304, `@mermaid-js/mermaid-cli` 11.16.0, `pptxgenjs` 4.0.1 (con `image-size` 2.0.3 por `overrides`) y `npm` 11.21.1, que aporta `npm` y `npx` para instalar BMAD o skills externas dentro del contenedor (§5.4) | npm, con `npm ci` y `docker/node/package-lock.json` (integridad sha512); `npm audit`: 0 críticos y 0 altos ([SEGURIDAD](SEGURIDAD.md) SEG-13) |
-| Chromium | headless shell de Playwright, revisión 1194 (la de `playwright` 1.56.0); lo usan `mmdc` y las capturas de los recorridos E2E | CDN de Playwright (`playwright install --only-shell chromium`) |
+| Chromium | headless shell de Playwright, revisión 1194 (la de `playwright` 1.56.0), compilación de Ubuntu 24.04 (`PLAYWRIGHT_HOST_PLATFORM_OVERRIDE`, porque Playwright 1.56 no publica descargas para Ubuntu 26.04; la etapa final verifica con `ldd` que no falten bibliotecas); lo usan `mmdc` y las capturas de los recorridos E2E | CDN de Playwright (`playwright install --only-shell chromium`) |
 | Otras | git, `tini` (proceso init), fuentes DejaVu, Liberation y Noto Color Emoji | archivo de Ubuntu |
 | pm-method | el repositorio, en `/opt/pm-method` (solo lectura) | el contexto de construcción (filtrado por `.dockerignore`) |
 
@@ -311,6 +311,7 @@ No verificado: una sesión de Claude Code con credenciales dentro del contenedor
 | `Could not load certificates from /run/secrets/ca_proxy` | el archivo del `--secret` no existe o no es PEM |
 | `apt-get update`: `does not have a Release file` detrás de un proxy | faltan los `--build-arg` de proxy o `--network host` (§8) |
 | `playwright install` falla al descargar | sin acceso a la CDN de Playwright: `--build-context navegadores=…` (§8) |
+| `playwright install` termina con error sin descargar nada | Playwright no reconoce la versión de Ubuntu de la imagen base y no tiene URL de descarga: el Dockerfile fija `PLAYWRIGHT_HOST_PLATFORM_OVERRIDE=ubuntu24.04-<arq>`; si cambiás `BASE_IMAGE` o la versión de `playwright`, revisá ese valor (`playwright install --dry-run --only-shell chromium` muestra la URL que usaría) |
 | `ERROR: no se encontró el Chromium headless shell de Playwright` | la carpeta pasada en `--build-context navegadores` no tiene `chromium_headless_shell-*/` en su raíz |
 | `Permission denied` al escribir en `/trabajo` | el dueño de la carpeta del host no es el UID 1000: reconstruir con `--build-arg UID=$(id -u) --build-arg GID=$(id -g)` (y ajustar el tmpfs de `/home/pm`) |
 | `Read-only file system` al instalar algo con `pip` o `npm -g` | es intencional: agregar la dependencia al `Dockerfile` o a los lockfiles y reconstruir |

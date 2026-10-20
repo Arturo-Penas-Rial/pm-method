@@ -81,10 +81,16 @@ RUN --mount=type=secret,id=ca_proxy,mode=0444 \
 #   docker build --build-context navegadores=<carpeta con chromium_headless_shell-NNNN/> ...
 # ---------------------------------------------------------------------------------------------------------------
 FROM herramientas-python AS descarga-navegadores
+# Playwright 1.56 no tiene descargas para Ubuntu 26.04 (detecta "ubuntu26.04" y no encuentra URL): se fuerza la
+# compilación de Ubuntu 24.04 de la misma revisión; la etapa final verifica con ldd que no falten bibliotecas.
 RUN --mount=type=secret,id=ca_proxy,mode=0444 \
     set -eu; \
     if [ -s /run/secrets/ca_proxy ]; then export NODE_EXTRA_CA_CERTS=/run/secrets/ca_proxy; fi; \
-    PLAYWRIGHT_BROWSERS_PATH=/ms-playwright /opt/venv/bin/playwright install --only-shell chromium
+    case "$(uname -m)" in x86_64) arq=x64 ;; aarch64) arq=arm64 ;; *) echo "arquitectura no soportada: $(uname -m)" >&2; exit 1 ;; esac; \
+    PLAYWRIGHT_HOST_PLATFORM_OVERRIDE="ubuntu24.04-${arq}" PLAYWRIGHT_BROWSERS_PATH=/ms-playwright \
+      /opt/venv/bin/playwright install --only-shell chromium; \
+    test -n "$(find /ms-playwright -maxdepth 3 -type f \( -name headless_shell -o -name chrome-headless-shell \))" \
+      || { echo "ERROR: Playwright no descargó el Chromium headless shell" >&2; exit 1; }
 
 FROM scratch AS navegadores
 COPY --from=descarga-navegadores /ms-playwright/ /

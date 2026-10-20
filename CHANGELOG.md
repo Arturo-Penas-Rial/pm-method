@@ -164,6 +164,10 @@ de 90 minutos, 42 imágenes) y 186 diapositivas de contenido en los mazos del we
   (archivos de credenciales en `.gitignore`).
 
 ### Corregido
+- `docker/Dockerfile`: la descarga del Chromium headless shell fallaba en una construcción con acceso normal a la red
+  (GitHub Actions), porque Playwright 1.56 detecta «ubuntu26.04» y no tiene descarga para esa plataforma. Se fuerza la
+  compilación de Ubuntu 24.04 de la misma revisión (`PLAYWRIGHT_HOST_PLATFORM_OVERRIDE`) y se verifica que el binario
+  quedó descargado.
 - `docs/informe/fuente/build_html.py`: f-string que no compilaba con Python 3.9, con la misma salida.
 - `docs/informe/fuente/build_pptx.js`: número de diapositiva como propiedad `slideNumber` del layout (pptxgenjs 4.0.1
   ignoraba el que estaba dentro de `objects`).
