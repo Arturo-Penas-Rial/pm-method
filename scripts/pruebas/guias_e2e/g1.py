@@ -6,17 +6,51 @@ WBS = open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "wbs.csv"), 
 EJ = "Ejecutiva: Laura Méndez"
 PCT = {1: 0.1, 2: 0.3, 3: 0.5, 4: 0.7, 5: 0.9}          # conversión de la escala aprobada (paso 3)
 usd = lambda n: f"{n:,.0f}".replace(",", ".")
-def puerta_f(repo, tipo, por, fecha, extra="", decision="aprobado"):
-    """Como puerta() de comun.py, con la fecha del paso en la lista de control (corrida determinista)."""
-    run(E(f'puertas.py --proyecto {G} verificar {tipo}'), repo, ok=(0, 1, 2))
-    run(E(f'puertas.py --proyecto {G} lista {tipo} --fecha {fecha}'), repo, mostrar=False)
-    run(E(f'puertas.py --proyecto {G} confirmar {tipo} --por "{por}" --fecha {fecha}'), repo)
-    return run(E(f'estado.py --proyecto {G} puerta {tipo} --decision {decision} --por "{por}" --fecha {fecha} {extra}'), repo)
-def sanidad(repo, corte):
-    return run(E(f'sanidad.py --proyecto {G} --rapido --corte {corte}'), repo, ok=(0, 1, 2))
+def sanidad(repo, corte, etiqueta=None):
+    out = run(E(f'sanidad.py --proyecto {G} --rapido --corte {corte}'), repo, ok=(0, 1, 2))
+    if "REG-09" in out: REG09.append(corte)        # cortes en los que la sanidad avisa riesgos con la revisión vencida
+    if etiqueta:                                   # consumo de la reserva tal como lo informa CAM-03 (para el gráfico)
+        m = re.search(r"CAM-03 Reserva de riesgo[^\n]*?([\d.]+) de ([\d.]+)", out)
+        if m: CAM.append((etiqueta, int(m.group(1).replace(".", "")), int(m.group(2).replace(".", ""))))
+    return out
+
+# ---- datos para los gráficos (visuales.py), siempre leídos de los registros reales del recorrido
+import csv as _c
+import visuales as V
+OUT = os.environ.get("GUIAS_SALIDA", os.getcwd())
+ABIERTOS = ("abierto", "en-seguimiento", "escalado")
+CAM, TEND, REG09 = [], [], []
+def filas_riesgos():
+    return list(_c.DictReader(open(os.path.join(repo, G, "03-control/registros/riesgos.csv"), encoding="utf-8")))
+def emv_resid(f):
+    return float(f["impacto_monetario"] or 0) * PCT[int(f["probabilidad_residual"] or f["probabilidad"])]
+def exposicion(etiqueta):
+    """EMV actual y EMV residual planificado de las amenazas abiertas (riesgos.csv) en un corte."""
+    am = [f for f in filas_riesgos() if f["tipo"] == "amenaza" and f["estado"] in ABIERTOS]
+    actual = sum(float(f["valor_esperado"] or 0) for f in am)
+    residual = sum(emv_resid(f) for f in am) if any(f["probabilidad_residual"] for f in am) else None
+    TEND.append((etiqueta, actual, residual))
+    LOG.append((f"(exposición de amenazas abiertas al {etiqueta}, desde riesgos.csv: suma de valor_esperado y del EMV residual planificado)",
+                f"amenazas abiertas: {', '.join(f['id'] for f in am)}\nexposición actual (EMV): USD {usd(actual)}" + (f" · EMV residual planificado: USD {usd(residual)}" if residual is not None else " · sin respuestas todavía")))
+    return actual, residual
+def hallazgos(corte, codigo=None):
+    """Hallazgos de la sanidad (sanidad.py --json) al corte, sin dejar rastro en la evidencia: para contar y graficar."""
+    d = json.loads(run(E(f'sanidad.py --proyecto {G} --rapido --json --corte {corte}'), repo, mostrar=False, ok=(0, 1, 2))); LOG.pop()
+    return [h for h in d["hallazgos"] if codigo is None or h["codigo"] == codigo]
+def reg09(corte):
+    """Lista completa de REG-09 (riesgo abierto con la revisión vencida) al corte: la salida de texto de la sanidad
+    muestra cinco por código; la lista entera sale de sanidad.py --json. Días = corte − fecha de revisión prevista."""
+    import datetime as _d
+    v = []
+    for h in hallazgos(corte, "REG-09"):
+        m = re.search(r"Riesgo (R-\d{3}) abierto con la revisión vencida \((\d{4}-\d{2}-\d{2}); propietario: ([^)]*)\)", h["mensaje"])
+        v.append((m.group(1), m.group(2), (_d.date.fromisoformat(corte) - _d.date.fromisoformat(m.group(2))).days, m.group(3)))
+    LOG.append((f"(sanidad.py --rapido --json --corte {corte}: lista completa de REG-09, con los días desde la revisión prevista)",
+                f"riesgos con la revisión vencida: {len(v)}\n" + "\n".join(f"{i}  revisión prevista {f} · {d} días · propietario {p}" for i, f, d, p in v)))
+    return v
 
 P("Paso 1 · Proyecto, junta y objetivos con tolerancias")
-base_su(repo)
+base_su(repo, "2026-10-20")
 run(E(f'estado.py --proyecto {G} tolerancia --nivel proyecto "tiempo=±3 semanas" "costo=±8 %" "alcance=Must sin tolerancia" "beneficios=-10 %" "riesgo=ningún riesgo alto sin respuesta; exposición total ≤ USD 60.000"'), repo)
 run(E(f'estado.py --proyecto {G} resumen'), repo)
 
@@ -135,6 +169,7 @@ P("Paso 5 · Evaluación y perfil de riesgo (P×I, EMV, exposición)")
 run(E(f'registro.py --proyecto {G} resumen --json --corte 2026-11-03'), repo)
 run(E(f'registro.py --proyecto {G} listar riesgos --abiertos'), repo)
 sanidad(repo, "2026-11-03")
+exposicion("03-nov")
 
 P("Paso 6 · Respuestas con costo justificado por EMV, residual, secundarios, disparadores y acciones")
 resp = {"R1": ("reducir", "spike de integración con datos sintéticos en el sprint 1; pedir entorno de pruebas a TI", 2, 4, "spike sin datos del padrón al día 5", 2000),
@@ -149,11 +184,11 @@ for k, (r, acc, pr, ir, disp, costo) in resp.items():
     antes, despues = monto[k] * PCT[prob[k]], monto[k] * PCT[pr]
     delta = despues - antes if r == "explotar" else antes - despues
     filas_j.append((R[k], r, antes, despues, costo, delta))
-    act(repo, "riesgos", R[k], respuesta=r, acciones=f"{acc} · costo USD {usd(costo)} · ΔEMV USD {usd(delta)}", probabilidad_residual=pr, impacto_residual=ir, disparador=disp, estado="en-seguimiento", fecha_revision="2026-11-17")
+    act(repo, "riesgos", R[k], respuesta=r, acciones=f"{acc} · costo USD {usd(costo)} · ΔEMV USD {usd(delta)}", probabilidad_residual=pr, impacto_residual=ir, disparador=disp, estado="en-seguimiento", fecha_revision="2026-12-15")
 R["R7"] = reg(repo, "riesgos", fecha_identificacion="2026-11-04", autor="Martín Suárez", categoria="comercial", causa=f"La respuesta de {R['R3']} transfiere el riesgo con una penalidad con tope de USD 2.000 por mes",
               evento="El proveedor de SMS falla y la penalidad cobrada no cubre el costo del atraso", efecto="Costo del atraso no recuperado (WBS 3.1)", tipo="amenaza", probabilidad=2, impacto=3, impacto_monetario=6000,
               proximidad="mediano-plazo", respuesta="aceptar", acciones="aceptar: el correo como factor alternativo (respuesta de R-003) limita el atraso · costo USD 0", probabilidad_residual=2, impacto_residual=3,
-              disparador="primera caída con penalidad menor que el costo del atraso", propietario="Diego Ferreira", ejecutor="Lucía Benítez", estado="en-seguimiento", fecha_revision="2026-11-17",
+              disparador="primera caída con penalidad menor que el costo del atraso", propietario="Diego Ferreira", ejecutor="Lucía Benítez", estado="en-seguimiento", fecha_revision="2026-12-15",
               notas=f"WBS 3.1 · riesgo secundario de {R['R3']} (respuesta transferir)")
 filas_j.append((R["R7"], "aceptar", 1800, 1800, 0, 0))
 LOG.append(("(pm-riesgos: justificación económica de cada respuesta, desde riesgos.csv; EMV = impacto_monetario × probabilidad convertida)",
@@ -166,6 +201,27 @@ A3 = reg(repo, "acciones", fecha="2026-11-03", origen=R["R3"], descripcion="Nego
 for ks, quien, nivel in ((("R1", "R3", "R5", "R7"), "Proveedor sénior: Diego Ferreira", "gestor"), (("R2", "R6"), "Usuaria sénior: Sofía Ramírez", "gestor"), (("R4",), EJ, "ejecutivo")):
     reg(repo, "decisiones", fecha="2026-11-04", decision=f"La persona propietaria acepta la respuesta, su costo y el residual de {', '.join(R[k] for k in ks)}", decidido_por=quien, nivel=nivel)
 run(E(f'registro.py --proyecto {G} listar riesgos --abiertos'), repo, corte=12)
+exposicion("04-nov")
+am6 = [f for f in filas_riesgos() if f["tipo"] == "amenaza"]
+inh = [dict(f, probabilidad="" if f["id"] == R["R7"] else f["probabilidad"]) for f in am6]   # el secundario nace con la respuesta
+alt_i = sum(1 for f in am6 if f["id"] != R["R7"] and int(f["puntuacion"]) >= 15)
+alt_r = sum(1 for f in am6 if int(f["probabilidad_residual"]) * int(f["impacto_residual"]) >= 15)
+V.mapa_calor(inh, os.path.join(OUT, "g1-mapa-inherente-residual.png"),
+             "Después de las respuestas, ninguna amenaza queda en zona alta" if alt_r == 0 else f"Después de las respuestas quedan {alt_r} amenazas en zona alta",
+             f"Amenazas al 04/11 · inherente (taller del 29/10) frente a residual planificado · {R['R7']} es el secundario que crea la respuesta de {R['R3']}",
+             "riesgos.csv (probabilidad, impacto, probabilidad_residual, impacto_residual)", residual_titulo="Residual")
+ant = {f[0]: (0 if f[0] == R["R7"] else f[2]) for f in filas_j if f[1] != "explotar"}
+res_ = {f[0]: f[3] for f in filas_j if f[1] != "explotar"}
+ids6 = sorted(ant, key=lambda i: (-ant[i], i))
+c_resp6 = sum(f[4] for f in filas_j)
+V.barras_comparadas([f"{i} {'(secundario)' if i == R['R7'] else ''}".strip() for i in ids6], [[ant[i] for i in ids6], [res_[i] for i in ids6]],
+                    os.path.join(OUT, "g1-exposicion-respuestas.png"),
+                    f"Con USD {V.miles(c_resp6)} en respuestas, la exposición baja de {V.miles(sum(ant.values()))} a {V.miles(sum(res_.values()))}",
+                    f"EMV por amenaza (USD) antes de responder y residual planificado · {R['R7']} no existía antes: lo crea la transferencia de {R['R3']}",
+                    "riesgos.csv · justificación de respuestas del paso 6", nombres=["EMV antes de responder", "EMV residual planificado"])
+LOG.append(("(gráficos del paso 6 → g1-mapa-inherente-residual.png y g1-exposicion-respuestas.png; datos)",
+            f"zona alta inherente: {alt_i} · zona alta residual: {alt_r}\n" + "\n".join(f"{i}  antes {usd(ant[i]):>6}  residual {usd(res_[i]):>6}" for i in ids6)
+            + f"\ntotal antes {usd(sum(ant.values()))} · total residual {usd(sum(res_.values()))} · costo de respuestas {usd(c_resp6)}"))
 
 P("Paso 7 · Presupuesto de riesgo (respuestas + EMV residual + no identificados), control de la reserva y puertas")
 run(E(f'registro.py --proyecto {G} resumen --json --corte 2026-11-20'), repo)
@@ -189,11 +245,11 @@ C1 = reg(repo, "cambios", fecha="2026-11-27", solicitante="Martín Suárez", tit
          descripcion="spike del padrón (R-001) 2.000; taller y piloto (R-002) 1.500; sobreprecio del SLA y correo alternativo (R-003) 2.500; bono de permanencia (R-005) 3.000; spike de reutilización (R-006) 800",
          justificacion="cada costo es menor que la reducción de EMV que logra (enfoque de riesgo §7)", impacto_costo="9.800 de la reserva de riesgo",
          decision="aprobado", decidido_por=EJ, fecha_decision="2026-11-27", estado="aprobado", costo=c_resp, cargo="reserva-riesgo")
-sanidad(repo, "2026-11-27")
+sanidad(repo, "2026-11-27", "27-nov · C-001 respuestas")
 run(E(f'estado.py --proyecto {G} resumen'), repo)
 for c, r in (("mandato", "00-direccion/mandato.md"), ("project-brief", "01-inicio/project-brief.md"), ("plan-etapa-1", "02-planificacion/plan-etapa-1.md")):
     art(repo, c, r)
-puerta_f(repo, "autorizar-inicio", EJ, "2026-10-30", "--fin 2026-11-27")
+puerta(repo, "autorizar-inicio", EJ, "2026-10-30", "--fin 2026-11-27")
 art(repo, "business-case", "00-direccion/business-case.md", version="1.0", texto="# Business case\n\nB-01 desvío de consultas (SM-2); B-02 adopción (SM-1).\n")
 BEN = """# Enfoque de gestión de beneficios (mínimo)
 
@@ -205,21 +261,23 @@ BEN = """# Enfoque de gestión de beneficios (mínimo)
 art(repo, "enfoque-beneficios", "00-direccion/enfoque-beneficios.md", texto=BEN)
 art(repo, "pid", "00-direccion/pid.md"); art(repo, "plan-proyecto", "02-planificacion/plan-proyecto.md")
 run(E(f'estado.py --proyecto {G} aprobar business-case --por "{EJ}" --version 1.0 --fecha 2026-11-27'), repo)
-puerta_f(repo, "autorizar-proyecto", EJ, "2026-11-27")
+puerta(repo, "autorizar-proyecto", EJ, "2026-11-27")
 run(f'python3 {BMAD} --proyecto {G} linea-base prd --version 1.0 --por "{EJ}"', repo, mostrar=False)
 run(E(f'puertas.py --proyecto {G} preparacion-bmad --resultado PASS --por "Arquitecto: Diego Ferreira" --fecha 2026-11-26'), repo, mostrar=False)
 art(repo, "plan-etapa-2", "02-planificacion/plan-etapa-2.md")
-puerta_f(repo, "autorizar-etapa", EJ, "2026-11-27", '--etapa-nombre "Release 1" --fin 2027-03-05 --tol "tiempo=±10 %" "costo=±10 %"')
+puerta(repo, "autorizar-etapa", EJ, "2026-11-27", '--etapa-nombre "Release 1" --fin 2027-03-05 --tol "tiempo=±10 %" "costo=±10 %"')
 
 P("Paso 8 · Seguimiento en la etapa: revisión de riesgos del sprint (reevaluar, cerrar acciones, detectar vencidas)")
 act(repo, "acciones", A2, estado="completada", fecha_cierre="2026-11-19")
 act(repo, "acciones", A3, estado="completada", fecha_cierre="2026-11-24")
-act(repo, "riesgos", R["R2"], probabilidad=2, notas=f"WBS 4.1 y 5.1 · producto Consola de operador · interesado {st['Sindicato de operadores']} · taller {A2} realizado: actitud mejoró", fecha_revision="2026-12-15")
+act(repo, "riesgos", R["R2"], probabilidad=2, notas=f"WBS 4.1 y 5.1 · producto Consola de operador · interesado {st['Sindicato de operadores']} · taller {A2} realizado: actitud mejoró", fecha_revision="2026-12-29")
 act(repo, "riesgos", R["R6"], estado="cerrado", notas="WBS 3.2 · oportunidad aprovechada: generador reutilizado, ahorro 60 h", fecha_revision="2026-12-15")
+for k in ("R1", "R3", "R4", "R5", "R7"):        # revisados en el sprint: próxima revisión en el sprint siguiente (cadencia de 14 días)
+    act(repo, "riesgos", R[k], fecha_revision="2026-12-29")
 run(E(f'registro.py --proyecto {G} resumen --corte 2026-12-15'), repo)
 sanidad(repo, "2026-12-15")
+exposicion("15-dic")
 
-OUT = os.environ.get("GUIAS_SALIDA", os.getcwd())
 obj1 = [{"clave": "tiempo", "pronostico": "en plan", "tol_etapa": "±10 %", "tol_proyecto": "±3 semanas", "rag": "verde"},
         {"clave": "costo", "pronostico": "en plan", "tol_etapa": "±10 %", "tol_proyecto": "±8 %", "rag": "verde"},
         {"clave": "alcance", "pronostico": "Must en R1", "tol_etapa": "", "tol_proyecto": "Must sin tolerancia", "rag": "verde"},
@@ -253,13 +311,13 @@ C2 = reg(repo, "cambios", fecha="2026-12-17", solicitante="Martín Suárez", tit
 C3 = reg(repo, "cambios", fecha="2026-12-18", solicitante="Lucía Benítez", titulo="Licencias adicionales de la herramienta de diseño para el equipo UX",
          descripcion="dos licencias anuales porque el equipo de diseño creció", justificacion="productividad del equipo de diseño", impacto_costo="3.000",
          decision="aprobado", decidido_por="Gestor: Martín Suárez", fecha_decision="2026-12-18", estado="aprobado", costo=3000, cargo="reserva-riesgo")
-sanidad(repo, "2026-12-18")
+sanidad(repo, "2026-12-18", "18-dic · C-002 y C-003 sin R-###")
 act(repo, "cambios", C3, decision="rechazado", estado="rechazado", decidido_por="Autoridad de cambio: Sofía Ramírez", fecha_decision="2026-12-18",
     notas="no responde a ningún riesgo: la reserva de riesgo no es una bolsa general; si hace falta, va como solicitud de cambio contra el presupuesto de cambio cuando la junta lo fije")
-sanidad(repo, "2026-12-18")
+sanidad(repo, "2026-12-18", "18-dic · C-003 rechazado")
 
 P("Paso 10 · Riesgo nuevo sobre la línea: hoja de riesgo, escalamiento a la junta y revisión del business case")
-R8 = reg(repo, "riesgos", fecha_identificacion="2027-01-08", autor="Martín Suárez", categoria="externo", causa="El regulador anunció nueva norma de autenticación para servicios financieros", evento="La norma exige biometría para operaciones de préstamo (FR-6)", efecto="Rediseño del acceso y atraso del Release 2", tipo="amenaza", probabilidad=3, impacto=5, impacto_monetario=40000, proximidad="mediano-plazo", respuesta="escalar", propietario="Laura Méndez", ejecutor="Martín Suárez", estado="escalado", notas=f"WBS 3.1 y 3.3 · interesado {st['Unidad de cumplimiento']} · afecta el business case: decide la junta")
+R8 = reg(repo, "riesgos", fecha_identificacion="2027-01-08", autor="Martín Suárez", categoria="externo", causa="El regulador anunció nueva norma de autenticación para servicios financieros", evento="La norma exige biometría para operaciones de préstamo (FR-6)", efecto="Rediseño del acceso y atraso del Release 2", tipo="amenaza", probabilidad=3, impacto=5, impacto_monetario=40000, proximidad="mediano-plazo", respuesta="escalar", propietario="Laura Méndez", ejecutor="Martín Suárez", estado="escalado", fecha_revision="2027-01-12", notas=f"WBS 3.1 y 3.3 · interesado {st['Unidad de cumplimiento']} · afecta el business case: decide la junta")
 HOJA = f"""---
 tipo: hoja-riesgo
 proyecto: "Portal de autoservicio para socios"
@@ -304,8 +362,9 @@ C4 = reg(repo, "cambios", fecha="2027-01-12", solicitante="Martín Suárez", tit
          descripcion="asesoría externa sobre la norma de autenticación y diseño de autenticación reforzada detrás de IdentityPort (AD-5)",
          justificacion=f"hoja de riesgo de {R8}: justificación regulatoria (costo 10.000 mayor que la reducción de EMV 8.000)", impacto_costo="10.000", impacto_riesgo=f"responde a {R8}",
          decision="aprobado", decidido_por=EJ, fecha_decision="2027-01-12", estado="aprobado", costo=10000, cargo="reserva-riesgo", notas="decision-ad-hoc de la junta del 2027-01-12")
-act(repo, "riesgos", R8, respuesta="reducir", acciones=f"análisis normativo con asesoría externa ({C4}); diseño de autenticación reforzada detrás de IdentityPort (AD-5) · costo USD 10.000 · ΔEMV USD 8.000", probabilidad_residual=2, impacto_residual=4, estado="en-seguimiento",
+act(repo, "riesgos", R8, respuesta="reducir", acciones=f"análisis normativo con asesoría externa ({C4}); diseño de autenticación reforzada detrás de IdentityPort (AD-5) · costo USD 10.000 · ΔEMV USD 8.000", probabilidad_residual=2, impacto_residual=4, estado="en-seguimiento", fecha_revision="2027-01-26",
     notas=f"WBS 3.1 y 3.3 · interesado {st['Unidad de cumplimiento']} · hoja: 03-control/registros/{R8}-hoja-riesgo.md · decisión de la junta del 2027-01-12")
+A4 = reg(repo, "acciones", fecha="2027-01-12", origen=R8, descripcion=f"Entregar a la junta el análisis normativo de la asesoría externa ({C4})", responsable="Martín Suárez", fecha_compromiso="2027-02-05", prioridad="alta")
 art(repo, "business-case", "00-direccion/business-case.md", version="1.1", texto=f"""# Business case
 
 B-01 desvío de consultas (SM-2); B-02 adopción (SM-1).
@@ -316,29 +375,110 @@ B-01 desvío de consultas (SM-2); B-02 adopción (SM-1).
   la junta mantiene el proyecto y vuelve a revisar {R8} y este caso en la próxima reunión.
 """)
 run(E(f'estado.py --proyecto {G} aprobar business-case --por "{EJ}" --version 1.1 --fecha 2027-01-12'), repo)
-sanidad(repo, "2027-01-12")
+sanidad(repo, "2027-01-12", "12-ene · C-004 análisis normativo")
+exposicion("12-ene")
 
 P("Paso 11 · Informe de riesgos e insumo para el highlight")
 run(E(f'registro.py --proyecto {G} resumen --corte 2027-01-15'), repo)
+sanidad(repo, "2027-01-15")
 run(E(f'puertas.py --proyecto {G} estado --markdown'), repo)
 art(repo, "informe-riesgos-2027-01-15", "03-control/reportes/2027-01-15-informe-riesgos.md")
 
-P("Paso 12 · Límite de etapa: auditoría de riesgos, lecciones y cierre de riesgos")
-run(E(f'estado.py --proyecto {G} limite-etapa'), repo)
+P("Paso 12 · Revisión periódica del registro: riesgos sin revisar, una respuesta vencida y un disparador alcanzado")
+run(E(f'estado.py --proyecto {G} contexto --corte 2027-02-12'), repo)   # lo que el hook de inicio pone en la sesión
+sanidad(repo, "2027-02-12")                      # lo que encuentra la revisión cuando el registro quedó quieto un mes
+venc12 = reg09("2027-02-12")
+abiertos12 = [f for f in filas_riesgos() if f["estado"] in ABIERTOS]
+corto = {R[k]: n for k, n in (("R1", "padrón sin entorno de pruebas"), ("R2", "resistencia a la consola"), ("R3", "disponibilidad del SMS"),
+                                ("R4", "Ley 18.331 y constancias"), ("R5", "rotación del equipo"), ("R6", "reutilizar el PDF"),
+                                ("R7", "secundario de la penalidad del SMS"))}; corto[R8] = "norma de biometría"
+dias = [d for _, _, d, _ in venc12]
+sprints = lambda d: f"más de {d // 14} sprint{'s' if d // 14 > 1 else ''} de 14 días" if d >= 14 else "menos de un sprint"
+V.estados([(f"{i} · {corto[i]}", d, "critico" if d > 28 else "serio" if d > 14 else "atencion", sprints(d))
+           for i, _, d, _ in sorted(venc12, key=lambda v: (-v[2], v[0]))],
+          os.path.join(OUT, "g1-revisiones-vencidas.png"),
+          (f"Al 12/02, los {len(venc12)} riesgos abiertos llevan entre {min(dias)} y {max(dias)} días sin revisar" if len(venc12) == len(abiertos12)
+           else f"Al 12/02, {len(venc12)} de {len(abiertos12)} riesgos abiertos tienen la revisión vencida"),
+          f"Días entre la revisión prevista (fecha_revision) y el corte · la sanidad lo avisa con REG-09 desde el {REG09[0][8:]}/{REG09[0][5:7]}",
+          "sanidad.py --json --corte 2027-02-12 (REG-09) · riesgos.csv", maximo=15 * (max(dias) // 15 + 1), decimales=0, sufijo=" días")
 act(repo, "issues", I1, estado="resuelto", fecha_cierre="2027-02-10", decision="entorno de pruebas habilitado el 2027-02-08")
+act(repo, "acciones", A4, fecha_compromiso="2027-02-26", notas="replanificada en la revisión del 2027-02-12: la asesoría externa pidió dos semanas más; la junta revisa R-008 el 2027-03-01")
+act(repo, "riesgos", R["R3"], probabilidad=4, fecha_revision="2027-02-26", notas="WBS 3.1 · producto Portal del socio · origen: prd.md:249 y ARCHITECTURE-SPINE.md:177 (BMAD) y ronda 2026-10-27 [00:00:46] · seguimiento: jira:PS-104 (proveedor alternativo) · disparador alcanzado: caídas del proveedor de SMS el 2027-01-20 y el 2027-02-03")
+for k in ("R2", "R4", "R5", "R7"):
+    act(repo, "riesgos", R[k], fecha_revision="2027-02-26")
+act(repo, "riesgos", R8, fecha_revision="2027-02-26")
+run(E(f'registro.py --proyecto {G} resumen --corte 2027-02-12'), repo)
+sanidad(repo, "2027-02-12")
+exposicion("12-feb")
+
+P("Paso 13 · La reserva como presupuesto vivo: contingencia de R-003, alerta al 80 % y decisión de la ejecutiva")
+C5 = reg(repo, "cambios", fecha="2027-02-15", solicitante="Martín Suárez", titulo=f"Proveedor de SMS alternativo en paralelo durante 6 meses (contingencia de {R['R3']}, disparador alcanzado)",
+         descripcion="contrato con el proveedor evaluado en jira:PS-104 como respaldo activo del segundo factor, con conmutación ante caídas",
+         justificacion=f"disparador de {R['R3']} alcanzado (dos caídas en un mes): sin respaldo queda en P4 × I5 = 20", impacto_costo="11.000", impacto_riesgo=f"responde a {R['R3']} (residual P2 I3)",
+         decision="aprobado", decidido_por=EJ, fecha_decision="2027-02-15", estado="aprobado", costo=11000, cargo="reserva-riesgo",
+         notas="supera los USD 5.000 que el enfoque de riesgo delega en el gestor: decide la ejecutiva")
+act(repo, "riesgos", R["R3"], acciones=f"SLA de 99,9 % con penalidad y correo como factor alternativo · costo USD 2.500 · contingencia activada ({C5}): proveedor de SMS alternativo en paralelo · costo USD 11.000", probabilidad_residual=2, impacto_residual=3)
+sanidad(repo, "2027-02-15", "15-feb · C-005 contingencia R-003")
+usado13, tope13 = CAM[-1][1], CAM[-1][2]
+am13 = [f for f in filas_riesgos() if f["tipo"] == "amenaza" and f["estado"] in ABIERTOS]
+LOG.append(("(pm-riesgos: remanente de la reserva frente al EMV residual planificado de las amenazas abiertas, desde estado.json, cambios.csv y riesgos.csv)",
+            f"presupuesto {usd(tope13)} · consumido {usd(usado13)} ({100 * usado13 / tope13:.0f} %) · remanente {usd(tope13 - usado13)}\n"
+            + "\n".join(f"{f['id']}  EMV residual {usd(emv_resid(f)):>6}" for f in am13) + f"\nEMV residual planificado de las amenazas abiertas: {usd(sum(emv_resid(f) for f in am13))}"))
+reg(repo, "decisiones", fecha="2027-02-15", decision=f"Mantener el presupuesto de riesgo en {usd(tope13)}; hasta el límite de etapa todo nuevo uso de la reserva lo decide la ejecutiva (se suspende la delegación de USD 5.000 al gestor)",
+    contexto=f"AVISO CAM-03: reserva de riesgo al {100 * usado13 / tope13:.0f} % tras {C5}; remanente {usd(tope13 - usado13)} frente a un EMV residual de {usd(sum(emv_resid(f) for f in am13))}",
+    opciones_consideradas="ampliar el presupuesto de riesgo con reserva de gestión · mantenerlo y concentrar la autoridad · pedir plan de excepción",
+    decidido_por=EJ, nivel="ejecutivo", revisar_en="2027-03-01", artefactos_afectados="02-planificacion/enfoques/enfoque-riesgo.md §7")
+run(E(f'estado.py --proyecto {G} resumen'), repo)
+
+P("Paso 14 · Límite de etapa: auditoría de riesgos, lecciones y cierre de riesgos")
+run(E(f'estado.py --proyecto {G} limite-etapa'), repo)
+act(repo, "acciones", A4, estado="completada", fecha_cierre="2027-02-26")
 act(repo, "riesgos", R["R5"], estado="retirado", notas="WBS 1.1 · equipo estable durante la etapa", fecha_revision="2027-03-01")
-reg(repo, "lecciones", etapa="2", categoria="riesgo", situacion=f"{R['R1']} se materializó: el entorno de pruebas del núcleo dependía de otra área", efecto=f"USD 8.000 de la reserva de riesgo ({C2}) y 3 días de atraso en WBS 3.2 (sin el entorno temporal, 2 semanas)", recomendacion="exigir el entorno de pruebas como condición de la puerta autorizar-etapa", prioridad="alta", responsable_seguimiento="Martín Suárez")
+act(repo, "riesgos", R["R3"], probabilidad=2, fecha_revision="2027-03-15")
+act(repo, "riesgos", R8, probabilidad=2, fecha_revision="2027-03-15", notas=f"WBS 3.1 y 3.3 · interesado {st['Unidad de cumplimiento']} · hoja: 03-control/registros/{R8}-hoja-riesgo.md · decisión de la junta del 2027-01-12 · análisis normativo ({A4}): la biometría se exigiría desde 2028, después del Release 2")
+for k in ("R2", "R4", "R7"):
+    act(repo, "riesgos", R[k], fecha_revision="2027-03-15")
+reg(repo, "lecciones", fecha="2027-03-01", etapa="2", categoria="riesgo", situacion=f"{R['R1']} se materializó: el entorno de pruebas del núcleo dependía de otra área", efecto=f"USD 8.000 de la reserva de riesgo ({C2}) y 3 días de atraso en WBS 3.2 (sin el entorno temporal, 2 semanas)", recomendacion="exigir el entorno de pruebas como condición de la puerta autorizar-etapa", prioridad="alta", responsable_seguimiento="Martín Suárez")
+reg(repo, "lecciones", fecha="2027-03-01", etapa="2", categoria="riesgo", situacion=f"La revisión de riesgos del 2026-12-29 no se hizo; la sanidad lo avisó con REG-09 desde el {REG09[0]} y la revisión se postergó hasta el 2027-02-12 porque la junta y el issue de {R['R1']} ocuparon las revisiones del sprint", efecto=f"el disparador de {R['R3']} se alcanzó sin que nadie lo mirara y la acción {A4} venció sin replanificar; la contingencia ({C5}) llevó la reserva al {100 * usado13 / tope13:.0f} %", recomendacion="empezar cada revisión de sprint por los REG-09 de la sanidad del día y no cerrarla con riesgos de revisión vencida, aunque haya urgencias", prioridad="alta", responsable_seguimiento="Martín Suárez")
 art(repo, "auditoria-riesgos-2027-03-01", "03-control/reportes/2027-03-01-auditoria-riesgos.md")
 run(E(f'registro.py --proyecto {G} resumen --corte 2027-03-01'), repo)
 run(E(f'estado.py --proyecto {G} cumplir-condiciones decision-ad-hoc --fecha 2027-03-01 --por "{EJ}" --nota "{R8} revisado en la junta; análisis normativo entregado ({C4})"'), repo)
 run(E(f'puertas.py --proyecto {G} verificar autorizar-etapa'), repo, ok=(0, 1, 2))
 run(E(f'exportar.py xlsx --proyecto {G}'), repo, ok=(0, 1))
-import csv as _c
+fin = sanidad(repo, "2027-03-01", "01-mar · fin de etapa")
+venc = hallazgos("2027-03-01", "REG-09")
+exp_fin, _ = exposicion("01-mar")
+rs = json.loads(run(E(f'registro.py --proyecto {G} resumen --json --corte 2027-03-01'), repo, mostrar=False)); LOG.pop()   # solo para las tarjetas
 filas = list(_c.DictReader(open(os.path.join(repo, G, "03-control/registros/riesgos.csv"), encoding="utf-8")))
 LOG.append(("(riesgos.csv al cierre de la etapa: id, tipo, P×I, residual, EMV, respuesta, estado)", "\n".join(f"{f['id']} {f['tipo'][:4]} P{f['probabilidad']}×I{f['impacto']}={f['puntuacion']:>3} res P{f['probabilidad_residual']}×I{f['impacto_residual']} EMV {f['valor_esperado']:>7} {f['respuesta']:10s} {f['estado']}" for f in filas)))
-P("Paso 13 · Variante sin BMAD: destilar riesgos de los artefactos del proyecto")
+# gráficos de la etapa (datos de la corrida: CAM-03 de cada sanidad, exposición por corte, sanidad y resumen del 01/03)
+cam_g = [c for c in CAM if not c[0].startswith("01-mar")]
+V.consumo(cam_g, os.path.join(OUT, "g1-consumo-reserva.png"),
+          f"La reserva llegó al {100 * cam_g[-1][1] / cam_g[-1][2]:.0f} % y la sanidad avisó antes de agotarse",
+          f"Consumo acumulado de la reserva de riesgo (USD) en cada corrida de la sanidad · tope fijado por la ejecutiva: {V.miles(cam_g[-1][2])}",
+          "sanidad CAM-03 · cambios.csv (cargo=reserva-riesgo) · estado.json presupuestos.riesgo")
+V.lineas([t[0] for t in TEND], [[t[1] for t in TEND], [t[2] for t in TEND]], os.path.join(OUT, "g1-exposicion-tendencia.png"),
+         "La exposición rozó la tolerancia en febrero" if max(t[1] for t in TEND) >= 0.9 * 60000 else "La exposición se mantuvo lejos de la tolerancia",
+         f"Amenazas abiertas (USD) en cada revisión · cerró la etapa en {V.miles(exp_fin)}",
+         "riesgos.csv en cada corte (valor_esperado, probabilidad_residual)", nombres=["EMV actual", "EMV residual planificado"],
+         referencia=(60000, "Tolerancia 60.000"))
+h_fin = hallazgos("2027-03-01"); reg06 = sum(h["codigo"] == "REG-06" for h in h_fin); est12 = sum(h["codigo"] == "EST-12" for h in h_fin); venc_acc = len(rs["acciones"]["vencidas"])
+pct_fin = 100 * CAM[-1][1] / CAM[-1][2]
+V.tarjetas([(V.miles(exp_fin), "Exposición de amenazas", "tolerancia USD 60.000", "bien" if exp_fin < 0.8 * 60000 else "atencion"),
+            (f"{pct_fin:.0f} %", "Reserva de riesgo consumida", f"{V.miles(CAM[-1][1])} de {V.miles(CAM[-1][2])}", "atencion" if pct_fin >= 80 else "bien"),
+            (str(rs["riesgos"]["altos_abiertos"]), "Riesgos altos abiertos", f"REG-06: {reg06} sin respuesta", "bien" if reg06 == 0 else "critico"),
+            (str(venc_acc), "Acciones vencidas", "REG-07 al corte", "bien" if venc_acc == 0 else "serio"),
+            (str(len(venc)), "Riesgos con la revisión vencida", "REG-09 al corte", "bien" if not venc else "serio"),
+            (str(est12), "Condiciones de la junta abiertas", "EST-12", "bien" if est12 == 0 else "serio")],
+           os.path.join(OUT, "g1-tarjetas-etapa.png"), "Fin de la etapa 2: exposición bajo la tolerancia y reserva bajo vigilancia",
+           "Indicadores de riesgo al 01/03/2027, límite de la etapa 2 \"Release 1\"", "sanidad --corte 2027-03-01 · registro.py resumen · riesgos.csv")
+LOG.append(("(gráficos de la etapa → g1-consumo-reserva.png, g1-exposicion-tendencia.png y g1-tarjetas-etapa.png; datos)",
+            "consumo de la reserva (CAM-03):\n" + "\n".join(f"  {e}: {usd(u)} de {usd(t)} ({100 * u / t:.0f} %)" for e, u, t in CAM)
+            + "\nexposición por corte (actual · residual planificado):\n" + "\n".join(f"  {e}: {usd(a)} · {usd(r) if r is not None else '—'}" for e, a, r in TEND)
+            + f"\ntarjetas: exposición {usd(exp_fin)} · reserva {pct_fin:.0f} % · altos abiertos {rs['riesgos']['altos_abiertos']} (sin respuesta {reg06}) · acciones vencidas {venc_acc} · revisiones vencidas {len(venc)} · condiciones abiertas {est12}"))
+P("Paso 15 · Variante sin BMAD: destilar riesgos de los artefactos del proyecto")
 base2 = os.path.join(os.path.dirname(repo), "portal-sin-bmad"); os.makedirs(base2)
-run(E(f'nuevo_proyecto.py --ruta {G} --nombre "Portal de socios (sin BMAD)" --ejecutivo "Laura Méndez" --gestor "Martín Suárez"'), base2)
+run(E(f'nuevo_proyecto.py --ruta {G} --nombre "Portal de socios (sin BMAD)" --ejecutivo "Laura Méndez" --gestor "Martín Suárez" --fecha 2026-10-28'), base2)
 for rel_, txt in (("00-direccion/mandato.md", "# Mandato\n\n## Contexto\nPortal de autoservicio para socios.\n\n## Restricciones y riesgos conocidos\n- La salida en producción debe ocurrir antes del cierre del ejercicio (31/12/2027).\n- El núcleo operativo es de un proveedor externo con ventanas de cambio trimestrales.\n\n## Lecciones de proyectos anteriores\n- El proyecto de banca telefónica se atrasó 6 semanas porque el proveedor del núcleo no tenía entorno de pruebas.\n"),
                   ("01-inicio/project-brief.md", "# Project brief\n\n## Enfoque\nEquipo interno con apoyo de un proveedor. [supuesto] El área de TI asigna dos personas a tiempo completo.\n\n## Preguntas abiertas\n- ¿Quién aprueba los préstamos simples en el canal digital?\n"),
                   ("02-planificacion/requisitos.md", "# Requisitos\n\n| Id | Requisito | Prioridad | Fuente | Criterio |\n|---|---|---|---|---|\n| REQ-001 | Consultar saldos | Must | brief | p95 < 3 s |\n\n## Supuestos y dependencias\n- Los saldos se leen del núcleo operativo por una API de lectura [por confirmar].\n")):

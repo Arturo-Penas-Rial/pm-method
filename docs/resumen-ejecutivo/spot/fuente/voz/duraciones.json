@@ -1,0 +1,14 @@
+{
+ "voz": "em_alex",
+ "sr": 24000,
+ "duraciones": {
+  "gancho": 2.943,
+  "giro": 4.364,
+  "jerarquia": 5.602,
+  "gobierno": 4.968,
+  "controles": 6.532,
+  "estrategia": 5.939,
+  "prueba": 6.49,
+  "cierre": 2.46
+ }
+}

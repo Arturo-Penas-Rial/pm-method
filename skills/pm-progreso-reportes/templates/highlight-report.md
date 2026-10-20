@@ -152,7 +152,7 @@ idioma: "{{idioma}}"
 **Resumen de registros / Register summary:** riesgos abiertos {{r_abiertos}} · altos abiertos (P×I ≥ 15) {{r_altos}} · sin respuesta {{r_sin_respuesta}} · sin propietario {{r_sin_propietario}} · issues abiertos {{i_abiertos}} · issues sin responsable {{i_sin_responsable}}
 
 **Acciones / Actions:** abiertas {{a_abiertas}} · vencidas {{a_vencidas}} · abiertas por responsable / open by owner {{a_por_responsable}}
-*Valores tal como los devuelve `registro.py resumen --json` (`abiertos`, `altos_abiertos`, `sin_respuesta`, `sin_propietario`, `sin_responsable`, `vencidas`, `abiertas_por_responsable`); solo los críticos se listan en la tabla.*
+*Valores tal como los devuelve `registro.py resumen --json` (`abiertos`, `altos_abiertos`, `sin_respuesta`, `sin_propietario`, `sin_responsable`, `vencidas`, `abiertas_por_responsable`; cantidades desde `<lista>_total`); solo los críticos se listan en la tabla.*
 
 **Solicitudes de cambio y fuera de especificación / RFCs and off-specs:** planteadas {{rfc_planteadas}} · decididas {{rfc_decididas}} · pendientes {{rfc_pendientes}}
 *Listar ids (`C-###`, `I-###`) aunque sea "ninguna".*

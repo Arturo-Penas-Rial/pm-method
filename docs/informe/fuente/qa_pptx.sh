@@ -1,7 +1,8 @@
 #!/bin/sh
 # Render del deck a PDF (LibreOffice) y PNG a 50 dpi, grillas 2x2 numeradas y control de texto fuera de la zona de contenido.
-# Uso: qa_pptx.sh [pptx] [carpeta]   (por defecto: salida-v2.2/informe-2-ecosistema-pm-method-v2.2.pptx  qa-pptx/)
-P=${1:-salida-v2.2/informe-2-ecosistema-pm-method-v2.2.pptx}; Q=${2:-qa-pptx}
+# Uso: qa_pptx.sh [pptx] [carpeta]   (por defecto: el PPTX de salida-<versión>/ y qa-pptx/)
+VER=$(python3 -c 'import json; print(json.load(open("data.json", encoding="utf-8"))["meta"]["version"])')
+P=${1:-salida-$VER/informe-2-ecosistema-pm-method-$VER.pptx}; Q=${2:-qa-pptx}
 rm -rf "$Q" && mkdir -p "$Q"
 soffice --headless --convert-to pdf --outdir "$Q" "$P" >/dev/null 2>&1
 PDF=$(ls "$Q"/*.pdf)

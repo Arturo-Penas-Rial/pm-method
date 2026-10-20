@@ -18,8 +18,10 @@ Uso / Usage (--raiz <repo con BMAD> va ANTES del subcomando: bmad.py --proyecto 
   bmad.py --proyecto ./gestion trazabilidad [--wbs 02-planificacion/wbs.csv]   # FR → historias → paquetes WBS
   bmad.py --proyecto ./gestion backlog                  # sincroniza columnas derivadas de 02-planificacion/backlog.csv
   bmad.py --proyecto ./gestion avance [--json]          # estados de historias/épicas → 03-control/reportes/avance-bmad.csv
-  bmad.py --proyecto ./gestion linea-base prd|arquitectura|epicas|brief --version 1.0 --por "Ejecutivo: Nombre"
+  bmad.py --proyecto ./gestion linea-base prd|arquitectura|epicas|brief|ux --version 1.0 --por "Ejecutivo: Nombre" [--fecha AAAA-MM-DD]
   bmad.py --proyecto ./gestion verificar [--json]       # desvíos contra la línea base y propuestas de cambio nuevas
+  bmad.py --proyecto ./gestion recorridos [--id UJ-2] [--json]   # detalle de los recorridos UJ-n: campos, FR que los realizan, KPI SM-n
+  bmad.py --proyecto ./gestion capacidades [--json]     # mapa de capacidades → módulo → AD-n, decisiones diferidas y stack
   bmad.py --proyecto ./gestion indice                   # contrato pm-spec-index/1 (lo usa especificacion.py; normalmente no hace falta llamarlo)
   bmad.py --proyecto ./gestion handoff [--cambio C-001] # sentido inverso: decisión de gobierno → documento de traspaso al equipo BMAD
 """
@@ -423,6 +425,89 @@ def historias_de(q_id, hs):
     por_epica = sorted((k for k, h in hs.items() if q_id in h.get("refs_epica", ())), key=lambda k: orden_num(hs[k]["numero"]))
     return (por_epica, "epica") if por_epica else ([], "")
 
+# ------------------------------------------------------------------ detalle de solo lectura: recorridos UJ y mapa de capacidades
+CAMPOS_UJ = [("persona", r"persona"), ("entrada", r"estado de entrada|entry state|entry"), ("recorrido", r"recorrido|journey|path|flow"),
+             ("climax", r"cl[ií]max|climax"), ("resolucion", r"resoluci[oó]n|resolution"), ("caso_limite", r"caso l[ií]mite|edge case")]
+
+def _ids_rango(texto, tipo="FR"):
+    """Ids de un tipo en un texto, con rangos 'FR-1 a FR-8' / 'FR-1 to FR-8' expandidos."""
+    out = set()
+    for m in re.finditer(rf"\b{tipo}-(\d+)\s+(?:a|to|al|hasta)\s+{tipo}-(\d+)\b", texto):
+        out |= {f"{tipo}-{i}" for i in range(int(m.group(1)), int(m.group(2)) + 1)}
+    out |= {f"{tipo}-{int(n)}" for n in re.findall(rf"\b{tipo}-(\d+)\b", texto)}
+    return out
+
+def recorridos(arts):
+    """Recorridos de usuario (UJ-n) del PRD con sus campos, los FR que los realizan y las métricas SM-n que validan esos FR.
+    Solo lectura. Un FR realiza un UJ si su bloque dice 'Realiza UJ-n' (o 'Realizes'); si solo lo dice la sección, nivel 'seccion'."""
+    rutas = arts.get("prd", {}).get("rutas", [])
+    ujs, frs, sms, contrapesos = {}, {}, {}, {}
+    for r in rutas:
+        actual = None; fr = None; seccion_uj = set(); seccion_frs = []
+        for n, l in enumerate(open(r, encoding="utf-8", errors="replace"), 1):
+            h = re.match(r"^(#{1,6})\s+(.*)$", l)
+            if h:
+                actual = None
+                mfr = re.match(r"^(FR)-?(\d+)\b", h.group(2).strip())
+                if mfr: fr = f"FR-{int(mfr.group(2))}"; frs.setdefault(fr, {"directos": set(), "seccion": set(seccion_uj)}); seccion_frs.append(fr)
+                elif len(h.group(1)) <= 3: fr = None; seccion_uj = set(); seccion_frs = []
+                continue
+            mu = re.match(r"^\s*[-*]\s*\*\*\s*UJ-?(\d+)\s*[.:\-–—]?\s*(.*?)\*\*\s*(.*)$", l)
+            if mu:
+                actual = f"UJ-{int(mu.group(1))}"
+                ujs[actual] = {"id": actual, "titulo": (mu.group(2) + " " + mu.group(3)).strip().rstrip("."), "fuente": os.path.relpath(r), "linea": n,
+                               **{k: "" for k, _ in CAMPOS_UJ}}
+                continue
+            if actual:
+                mc = re.match(r"^\s+[-*]\s*\*\*([^*:]+):?\*\*:?\s*(.*)$", l)
+                if mc:
+                    for k, rx in CAMPOS_UJ:
+                        if re.match(rf"^\s*({rx})", mc.group(1).strip(), re.I) and not ujs[actual][k]:
+                            ujs[actual][k] = mc.group(2).strip(); break
+                    continue
+                if l.strip() and not l.startswith((" ", "\t")): actual = None
+            if re.search(r"\b(Realiza|Realizes|Realises)\b", l):
+                u = {f"UJ-{int(x)}" for x in re.findall(r"\bUJ-?(\d+)\b", l)}
+                if fr: frs[fr]["directos"] |= u
+                else: seccion_uj |= u
+            ms = re.match(r"^\s*[-*]\s*\*\*\s*(SM-C?)(\d+)\b[^*]*\*\*\s*(.*)$", l)
+            if ms:
+                sid = f"{ms.group(1)}{int(ms.group(2))}" if ms.group(1) == "SM-C" else f"SM-{int(ms.group(2))}"
+                if ms.group(1) == "SM-C": contrapesos[sid] = {f"SM-{int(x)}" for x in re.findall(r"\bSM-(\d+)\b", l)}
+                else: sms[sid] = _ids_rango(l)
+    out = []
+    for uid, u in sorted(ujs.items(), key=lambda kv: int(kv[0][3:])):
+        directos = sorted((f for f, d in frs.items() if uid in d["directos"]), key=lambda x: int(x[3:]))
+        seccion = sorted((f for f, d in frs.items() if uid in d["seccion"] and uid not in d["directos"] and not d["directos"]), key=lambda x: int(x[3:]))
+        todos = set(directos) | set(seccion)
+        kpi = sorted((s for s, fs in sms.items() if fs & todos), key=lambda x: int(x[3:]))
+        out.append({**u, "frs": directos, "frs_seccion": seccion, "kpi": kpi,
+                    "contrapesos": sorted(c for c, base in contrapesos.items() if base & set(kpi))})
+    return out
+
+def capacidades(arts):
+    """Mapa de capacidades → módulo → decisiones (AD-n), decisiones diferidas y stack de la arquitectura. Solo lectura."""
+    filas, diferidas, stack = [], [], []
+    for r in arts.get("arquitectura", {}).get("rutas", []):
+        seccion = ""
+        for n, l in enumerate(open(r, encoding="utf-8", errors="replace"), 1):
+            h = re.match(r"^#{1,6}\s+(.*)$", l)
+            if h: seccion = h.group(1).strip().lower(); continue
+            celdas = [c.strip() for c in l.strip().strip("|").split("|")] if l.lstrip().startswith("|") else []
+            if celdas and set("".join(celdas)) <= set("-: "): continue
+            if re.search(r"capabilit|capacidad", seccion) and len(celdas) >= 3 and not re.match(r"^(capability|capacidad)", celdas[0], re.I):
+                ids = sorted(_ids_rango(celdas[0], "FR") | _ids_rango(celdas[0], "NFR"), key=lambda x: (x.split("-")[0], int(x.split("-")[1])))
+                nombre = re.sub(r"^\s*((N?FR-\d+)\s*(,|y|and|a|to)?\s*)+", "", celdas[0]).strip()
+                filas.append({"capacidad": nombre or celdas[0], "ids": ids, "modulo": celdas[1].replace("`", ""),
+                              "ad": sorted({f"AD-{int(x)}" for x in re.findall(r"\bAD-(\d+)\b", celdas[2])}, key=lambda x: int(x[3:])),
+                              "fuente": os.path.relpath(r), "linea": n})
+            elif re.search(r"deferred|diferid|pendiente", seccion) and re.match(r"^\s*[-*]\s+\S", l):
+                texto = re.sub(r"^\s*[-*]\s+", "", l).strip()
+                diferidas.append({"texto": texto, "tema": re.split(r"\s*[:(]", texto)[0].strip(), "fuente": os.path.relpath(r), "linea": n})
+            elif seccion == "stack" and len(celdas) >= 2 and not re.match(r"^(name|nombre)$", celdas[0], re.I):
+                stack.append({"nombre": celdas[0], "version": celdas[1], "fuente": os.path.relpath(r), "linea": n})
+    return {"capacidades": filas, "diferidas": diferidas, "stack": stack}
+
 # ------------------------------------------------------------------ comandos
 def cmd_detectar(a, e):
     b = detectar_bmad(a.proyecto, a.raiz, e)
@@ -580,10 +665,9 @@ def cmd_linea_base(a, e):
     copia_principal = os.path.join(hist, os.path.basename(art["rutas"][0]))
     e["artefactos"][clave] = {"ruta": os.path.relpath(copia_principal, a.proyecto), "externo": "bmad",
                               "rutas_bmad": [os.path.relpath(r, b["raiz"]) for r in art["rutas"]],
-                              "estado": "aprobado", "version": a.version, "aprobado_por": a.por, "fecha": hoy(), "sha256": art["sha256"],
+                              "estado": "aprobado", "version": a.version, "aprobado_por": a.por, "fecha": a.fecha or hoy(), "sha256": art["sha256"],
                               "copia": os.path.relpath(hist, a.proyecto), "ids": ids_de(arts, a.artefacto)}
     guardar_estado(a.proyecto, e)
-    if a.fecha: e["artefactos"][clave]["fecha"] = a.fecha; guardar_estado(a.proyecto, e)
     if E: E.anotar_decision(a.proyecto, f"línea base {clave} v{a.version} (sha {art['sha256'][:12]})", a.por, nivel=a.nivel,
                             artefactos=";".join(e["artefactos"][clave]["rutas_bmad"]), notas="puente BMAD", fecha=a.fecha)
     print(f"Línea base {clave} v{a.version} registrada · sha {art['sha256'][:12]} · copia congelada en {os.path.relpath(hist)}")
@@ -746,6 +830,29 @@ def cmd_handoff(a, e):
     guardar_estado(a.proyecto, e)
     print(f"Traspaso emitido → {os.path.relpath(out)} ({'cambio ' + a.cambio if a.cambio else ''}{' · ' if a.cambio and cambios_prio else ''}{str(len(cambios_prio)) + ' prioridades cambiadas' if cambios_prio else ''})")
 
+def cmd_recorridos(a, e):
+    """Detalle de los recorridos UJ-n (solo lectura; no escribe nada)."""
+    b = detectar_bmad(a.proyecto, a.raiz, e); xs = recorridos(inventario(b))
+    if a.id:
+        q = re.sub(r"^UJ-?(\d+)$", lambda m: f"UJ-{int(m.group(1))}", a.id.strip(), flags=re.I)
+        xs = [x for x in xs if x["id"] == q]
+        if not xs: sys.exit(f"No se encontró {a.id} en el PRD de BMAD.")
+    if a.json: print(json.dumps(xs, ensure_ascii=False, indent=2)); return
+    for x in xs:
+        print(f"{x['id']} {x['titulo']} ({x['fuente']}:{x['linea']})")
+        for k, _ in CAMPOS_UJ:
+            if x[k]: print(f"  {k}: {x[k]}")
+        print(f"  FR: {', '.join(x['frs']) or '-'}" + (f" · por sección: {', '.join(x['frs_seccion'])}" if x["frs_seccion"] else "")
+              + f" · KPI: {', '.join(x['kpi']) or '-'}" + (f" · contrapesos: {', '.join(x['contrapesos'])}" if x["contrapesos"] else ""))
+
+def cmd_capacidades(a, e):
+    """Mapa de capacidades, decisiones diferidas y stack de la arquitectura (solo lectura; no escribe nada)."""
+    b = detectar_bmad(a.proyecto, a.raiz, e); d = capacidades(inventario(b))
+    if a.json: print(json.dumps(d, ensure_ascii=False, indent=2)); return
+    for c in d["capacidades"]: print(f"capacidad {c['capacidad']} · {', '.join(c['ids'])} · {c['modulo']} · {', '.join(c['ad'])} ({c['fuente']}:{c['linea']})")
+    for x in d["diferidas"]: print(f"diferida {x['tema']} ({x['fuente']}:{x['linea']})")
+    for x in d["stack"]: print(f"stack {x['nombre']} {x['version']}")
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--proyecto", required=True); ap.add_argument("--raiz")
@@ -761,12 +868,17 @@ def main():
     sub.add_parser("indice")
     ho = sub.add_parser("handoff"); ho.add_argument("--cambio", help="id C-### aprobado en cambios.csv")
     v = sub.add_parser("verificar"); v.add_argument("--json", action="store_true"); v.add_argument("--marcar-vistas", action="store_true", dest="marcar_vistas")
+    rc = sub.add_parser("recorridos"); rc.add_argument("--id", help="UJ-n (defecto: todos)"); rc.add_argument("--json", action="store_true")
+    ca = sub.add_parser("capacidades"); ca.add_argument("--json", action="store_true")
     a = ap.parse_args()
+    if a.cmd == "linea-base" and a.fecha:
+        try: datetime.date.fromisoformat(a.fecha)
+        except ValueError: sys.exit(f"--fecha {a.fecha}: formato AAAA-MM-DD")
     if not yaml: print("AVISO: falta PyYAML (pip install pyyaml); sin él no se leen config.yaml ni sprint-status.yaml.", file=sys.stderr)
     e = cargar_estado(a.proyecto)
     {"detectar": cmd_detectar, "inventario": cmd_inventario, "requisitos": cmd_requisitos, "trazabilidad": cmd_trazabilidad,
      "backlog": cmd_backlog, "avance": cmd_avance, "linea-base": cmd_linea_base, "verificar": cmd_verificar,
-     "indice": cmd_indice, "handoff": cmd_handoff}[a.cmd](a, e)
+     "indice": cmd_indice, "handoff": cmd_handoff, "recorridos": cmd_recorridos, "capacidades": cmd_capacidades}[a.cmd](a, e)
 
 if __name__ == "__main__":
     main()

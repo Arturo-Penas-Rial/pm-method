@@ -2,9 +2,9 @@
 """OKR del proyecto: validación, puntuación, salud, check-ins y vínculo con beneficios (PRINCE2), métricas de éxito (PRD)
 y el maestro de interesados. Project OKRs: validation, scoring, health, check-ins and links.
 
-CSV 00-direccion/okr.csv. Columnas base (v2.1, obligatorias):
+CSV 00-direccion/okr.csv. Columnas base (obligatorias):
   id,tipo,objetivo_id,enunciado,metrica,linea_base,meta,actual,unidad,responsable,fecha_meta,vinculo,confianza,notas
-Columnas opcionales (v2.2; si faltan, el comportamiento es el de v2.1):
+Columnas opcionales (si faltan, se usan los valores por defecto):
   tipo_kr      de-a (defecto) | mantener-sobre | mantener-bajo | binario | hito
   compromiso   aspiracional (defecto) | comprometido      → umbrales 0,7/0,4 o 1,0/0,7 (convención de la práctica OKR)
   peso         peso del KR en el objetivo (defecto 1)

@@ -1,0 +1,65 @@
+# Entorno Docker opcional de pm-method (docs/DOCKER.md). Desde la raíz del repositorio:
+#   docker compose -f docker/compose.yaml build
+#   PROYECTO=/ruta/al/proyecto docker compose -f docker/compose.yaml run --rm pm          # shell en el proyecto
+#   docker compose -f docker/compose.yaml run --rm pruebas                                # pruebas, sin red
+#   PROYECTO=/ruta/al/proyecto docker compose -f docker/compose.yaml run --rm pm-sin-red  # shell sin red
+# Credenciales: solo por variables de entorno del host (ANTHROPIC_API_KEY o CLAUDE_CODE_OAUTH_TOKEN) o con
+# /login dentro del contenedor (queda en el volumen claude-config). Nunca se escriben en este archivo.
+name: pm-method
+
+# Endurecimiento común: raíz de solo lectura, sin capacidades, sin escalar privilegios y con límites de recursos.
+x-endurecido: &endurecido
+  image: pm-method:2.3.0
+  read_only: true
+  cap_drop: [ALL]
+  security_opt:
+    - no-new-privileges:true
+  shm_size: 256m
+  deploy:
+    resources:
+      limits:
+        cpus: "2"
+        memory: 4g
+        pids: 1024
+  tmpfs:
+    - /tmp:size=1g,mode=1777
+    # exec: npx (BMAD, skills externas) ejecuta lo que descarga en ~/.npm
+    - /home/pm:size=512m,uid=1000,gid=1000,mode=0700,exec
+
+services:
+  pm: &pm
+    <<: *endurecido
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    stdin_open: true
+    tty: true
+    working_dir: /trabajo
+    environment:
+      # Se pasan solo si existen en el host; sin valor aquí.
+      - ANTHROPIC_API_KEY
+      - CLAUDE_CODE_OAUTH_TOKEN
+    volumes:
+      # Proyecto de trabajo (lectura y escritura). Por defecto, la carpeta desde la que se ejecuta el comando.
+      - ${PROYECTO:-${PWD}}:/trabajo
+      # Configuración e inicio de sesión de Claude Code (CLAUDE_CONFIG_DIR), persistente entre ejecuciones.
+      - claude-config:/home/pm/.claude
+    # Red: la de Docker por defecto (Claude Code necesita salir a api.anthropic.com).
+
+  # Igual que pm pero sin red (scripts y revisión de artefactos sin que nada salga; Claude Code no funciona así).
+  pm-sin-red:
+    <<: *pm
+    network_mode: none
+    profiles: [sin-red]
+    pull_policy: never
+
+  pruebas:
+    <<: *endurecido
+    # Las pruebas gratuitas no necesitan red: se corren aisladas.
+    network_mode: none
+    command: ["pm-pruebas", "--salida", "/tmp/pm-pruebas"]
+    profiles: [pruebas]
+    pull_policy: never
+
+volumes:
+  claude-config:

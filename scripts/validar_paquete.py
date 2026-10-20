@@ -4,9 +4,12 @@ Validates the pm-method package structure.
 
 Uso / Usage: python3 scripts/validar_paquete.py [--estricto]
 Comprueba: frontmatter YAML parseable, name == carpeta, description <= 200 caracteres,
-encabezados obligatorios en orden, referencias a skills existentes, plantillas con frontmatter.
+encabezados obligatorios en orden, referencias a skills existentes, plantillas con frontmatter, que todo el Python
+compile y que la sintaxis sea compatible con Python 3.9 (la versión mínima): con un intérprete 3.9 si hay uno
+(variable PM_PYTHON39, `python3.9` en el PATH o `uv python find 3.9`) y, si no, con un análisis propio de las
+f-strings que solo compilan desde 3.12 (barra invertida, comillas iguales anidadas o comentarios en la expresión).
 """
-import os, re, sys, glob
+import io, json, os, re, shutil, subprocess, sys, glob, tokenize
 
 LISTADO = []   # largos de description de skills invocables por el modelo (presupuesto del listado)
 RAIZ = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -27,7 +30,66 @@ def campo(fm, nombre):
     if (v.startswith('"') and v.endswith('"')) or (v.startswith("'") and v.endswith("'")): v = v[1:-1]
     return v
 
+def fstrings_39(src):
+    """(línea, problema) de las f-strings que Python 3.9–3.11 no compila y 3.12+ sí (PEP 701). Solo hace falta cuando
+    el intérprete es 3.12 o posterior: en 3.9–3.11 esos casos ya fallan al compilar."""
+    if not hasattr(tokenize, "FSTRING_START"): return []
+    def comilla(s):
+        s = s.lstrip("rRbBuUfF")
+        return s[:3] if s[:3] in ('"""', "'''") else s[:1]
+    try: toks = list(tokenize.generate_tokens(io.StringIO(src).readline))
+    except (tokenize.TokenError, SyntaxError): return []
+    out, pila = set(), []   # pila: comillas de las f-strings abiertas
+    for t in toks:
+        if pila:
+            if t.type == tokenize.COMMENT: out.add((t.start[0], "comentario dentro de la expresión de un f-string"))
+            if "\\" in t.string and (t.type == tokenize.STRING or (t.type == tokenize.FSTRING_MIDDLE and len(pila) > 1)):
+                out.add((t.start[0], "barra invertida dentro de la expresión de un f-string"))
+            if t.type in (tokenize.STRING, tokenize.FSTRING_START):
+                q = comilla(t.string)
+                if any(q.startswith(p) if len(p) == 1 else q == p for p in pila):
+                    out.add((t.start[0], "comillas iguales a las del f-string que las contiene"))
+        if t.type == tokenize.FSTRING_START: pila.append(comilla(t.string))
+        elif t.type == tokenize.FSTRING_END and pila: pila.pop()
+    return sorted(out)
+
+def interprete_39():
+    """Ruta de un Python 3.9 instalado (no descarga nada), o None."""
+    cands = [os.environ.get("PM_PYTHON39"), shutil.which("python3.9")]
+    if shutil.which("uv"):
+        try: cands.append(subprocess.run(["uv", "python", "find", "3.9"], capture_output=True, text=True, timeout=30).stdout.strip())
+        except (OSError, subprocess.SubprocessError): pass
+    for c in cands:
+        if not c or not os.path.exists(c): continue
+        try:
+            v = subprocess.run([c, "-c", "import sys; print(sys.version_info[:2] == (3, 9))"], capture_output=True, text=True, timeout=30).stdout.strip()
+        except (OSError, subprocess.SubprocessError): continue
+        if v == "True": return c
+    return None
+
+ANALIZAR_39 = """import ast, json, sys
+out = []
+for p in json.load(sys.stdin):
+    try: ast.parse(open(p, encoding="utf-8").read(), p)
+    except SyntaxError as ex: out.append([p, ex.lineno, ex.msg])
+print(json.dumps(out))"""
+
+def compat_39(archivos):
+    """Errores de sintaxis en Python 3.9 y el método usado."""
+    py39 = sys.executable if sys.version_info[:2] == (3, 9) else interprete_39()
+    if py39:
+        r = subprocess.run([py39, "-I", "-c", ANALIZAR_39], input=json.dumps(archivos), capture_output=True, text=True, timeout=300)
+        try: return [f"{os.path.relpath(p, RAIZ)}:{n}: {m}" for p, n, m in json.loads(r.stdout)], f"intérprete {py39}"
+        except ValueError: return [f"no se pudo analizar con {py39}: {r.stderr[-300:]}"], f"intérprete {py39}"
+    errs = []
+    for p in archivos:
+        for n, m in fstrings_39(open(p, encoding="utf-8").read()):
+            errs.append(f"{os.path.relpath(p, RAIZ)}:{n}: {m}")
+    return errs, "análisis de f-strings (no hay un intérprete 3.9 instalado)"
+
 def main():
+    if "-h" in sys.argv or "--help" in sys.argv:
+        print(__doc__.strip()); return
     estricto = "--estricto" in sys.argv
     errores, avisos = [], []
     skills = sorted(d for d in os.listdir(os.path.join(RAIZ, "skills")) if os.path.isdir(os.path.join(RAIZ, "skills", d)))
@@ -119,13 +181,16 @@ def main():
         if len({vp, vc, ve}) != 1: errores.append(f"versiones desalineadas: plugin.json {vp}, compatibilidad.json {vc}, esquema.py {ve}")
     except Exception as ex: errores.append(f"no se pudo verificar versiones: {ex}")
     import py_compile
-    for py in glob.glob(os.path.join(RAIZ, "**", "*.py"), recursive=True):
-        if "/fixtures/" in py: continue
+    pys = [py for py in glob.glob(os.path.join(RAIZ, "**", "*.py"), recursive=True) if "/fixtures/" not in py and "/node_modules/" not in py]
+    for py in pys:
         try: py_compile.compile(py, doraise=True)
         except Exception as ex: errores.append(f"script no compila: {os.path.relpath(py, RAIZ)} ({ex.__class__.__name__})")
+    errs39, metodo39 = compat_39(pys)
+    errores += [f"sintaxis incompatible con Python 3.9: {x}" for x in errs39]
     tot = sum(LISTADO)
     if tot > 7500: errores.append(f"listado de descriptions = {tot} caracteres (>7 500, SPEC 1.3)")
     print(f"Skills: {len(skills)} ({len(LISTADO)} invocables por el modelo, listado {tot} caracteres) · Agentes: {len(glob.glob(os.path.join(RAIZ, 'agents', '*.md')))}")
+    print(f"Python 3.9: {len(pys)} archivos .py verificados con {metodo39}")
     for e in errores: print("ERROR ", e)
     for w in avisos: print("AVISO ", w)
     if errores or (estricto and avisos): sys.exit(1)

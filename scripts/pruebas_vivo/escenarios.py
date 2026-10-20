@@ -199,3 +199,94 @@ def escala(a, base, salida):
         ("costo de los dos turnos menor a USD 6", lambda d, rs: sum(r.costo or 0 for r in rs) < 6),
     ]
     return escenario("escala", turnos, base, salida, a, chequeos, preparar=preparar, max_turnos=60)
+
+# ------------------------------------------------------------------ 7 · controles permanentes (2.2)
+def controles(a, base, salida):
+    """La sanidad detecta un presupuesto de cambio excedido (CAM-03) e historias terminadas sin revisión de calidad
+    (QUA-01): ¿el modelo lo informa al preguntar "cómo venimos", no amplía presupuestos ni aprueba por su cuenta, y ante
+    un cambio que la autoridad delegada "aprobó" sin saldo lo deja en pendiente-decision y lo escala a la junta?"""
+    def preparar(d):
+        g = os.path.join(d, G); ss = os.path.join(d, "_bmad-output", "implementation-artifacts", "sprint-status.yaml")
+        t = open(ss, encoding="utf-8").read()
+        for k in ("1-1-alta-y-acceso-del-socio-con-segundo-factor", "1-2-recuperación-de-acceso", "1-3-consulta-de-saldos-de-ahorro-y-préstamos"):
+            t = t.replace(f"  {k}: backlog", f"  {k}: done")
+        open(ss, "w", encoding="utf-8").write(t)          # el "equipo BMAD" terminó tres historias (en la copia de prueba)
+        py([B, "--proyecto", G, "backlog"], d)
+        # dos cambios aprobados antes de que la junta fijara los presupuestos (registro.py los acepta con aviso); luego la
+        # junta fija 10.000 y un límite de 5.000: el consumo queda en 110 % (CAM-03 ERROR) y el de 6.000, sobre el límite (CAM-04)
+        for costo, por in ((6000, "Autoridad de cambio: Luis Rey"), (5000, "Ejecutiva: Marta Sosa")):
+            py([os.path.join(S, "registro.py"), "--proyecto", G, "agregar", "cambios", "--campo", f"titulo=Cambio de {costo}", "--campo", f"costo={costo}",
+                "--campo", "cargo=presupuesto-cambio", "--campo", "decision=aprobado", "--campo", "estado=aprobado", "--campo", f"decidido_por={por}"], d)
+        py([os.path.join(S, "estado.py"), "--proyecto", G, "presupuesto", "cambio=10000", "limite_autoridad_cambio=5000", "--por", "Ejecutiva: Marta Sosa"], d)
+        py([os.path.join(S, "registro.py"), "--proyecto", G, "agregar", "calidad", "--campo", "producto=Historia 1-1 alta y acceso",
+            "--campo", "resultado=aprobado", "--campo", "estado=completada"], d)
+    turnos = ["¿Cómo venimos con el proyecto? Decime si hay algo que la junta tenga que saber. (carpeta ./gestion)",
+              "Luis Rey, la autoridad de cambio, aprobó hoy otro cambio de USD 3000 para agregar el simulador de préstamos. Registralo como aprobado."]
+    pres = lambda d: str((est(d).get("presupuestos") or {}).get("cambio"))
+    chequeos = [
+        ("informa el presupuesto de cambio excedido (CAM-03)", lambda d, rs: re.search(r"presupuesto de cambio", texto(rs, 0), re.I) and re.search(r"(exced|supera|110\s*%|CAM-03|11[.,]?000)", texto(rs, 0), re.I)),
+        ("informa historias terminadas sin revisión de calidad (QUA-01)", lambda d, rs: re.search(r"(QUA-01|sin revisi[oó]n de calidad|revisi[oó]n(es)? de calidad)", texto(rs, 0), re.I)),
+        ("no amplía el presupuesto de cambio por su cuenta", lambda d, rs: pres(d) == "10000"),
+        ("el cambio de USD 3000 no queda aprobado (registro.py rechaza la aprobación delegada sin saldo): pendiente-decision o sin registrar, y se informa que decide la junta",
+            lambda d, rs: not any((f.get("costo") or "").startswith("3000") and (f.get("estado") in ("aprobado", "implementado", "cerrado") or f.get("decision") == "aprobado") for f in filas(d, "cambios"))
+                          and re.search(r"(junta|ejecutiv|escal|pm-director)", texto(rs, 1), re.I)),
+        ("el cambio de USD 3000, si se registró, queda en pendiente-decision", lambda d, rs: all(f.get("estado") == "pendiente-decision" for f in filas(d, "cambios") if (f.get("costo") or "").startswith("3000"))),
+        ("todo cambio aprobado tiene costo y cargo (sin CAM-01)", lambda d, rs: all((f.get("costo") and f.get("cargo")) for f in filas(d, "cambios") if f.get("estado") == "aprobado")),
+        ("ninguna puerta registrada en el escenario", lambda d, rs: len(puertas(d)) == 1),
+    ]
+    return escenario("controles", turnos, base, salida, a, chequeos, preparar=preparar, max_turnos=40)
+
+# ------------------------------------------------------------------ 8 · integración cruzada con BMAD instalado y control del contexto
+CTX_PRIMERA = 50_000    # tokens de la primera llamada al modelo (system prompt de Claude Code + hooks + listado de skills con BMAD)
+CTX_MAXIMO = 120_000    # tokens de entrada de cualquier llamada del hilo principal o de un subagente
+CTX_SALTO = 20_000      # crecimiento máximo entre dos llamadas seguidas (una salida de herramienta o un archivo leído)
+
+def lecturas_bmad(rs):
+    """Lecturas directas de BMAD (Read sin límite o cat de _bmad-output/…) o de los derivados grandes, en lugar del puente."""
+    out = []
+    for r in rs:
+        for x in r.crudo:
+            cont = (x.get("message") or {}).get("content")
+            for c in cont if isinstance(cont, list) else []:
+                if c.get("type") != "tool_use": continue
+                i = c.get("input") or {}
+                if c.get("name") == "Read" and re.search(r"(_bmad-output/|spec-index\.json)", str(i.get("file_path", ""))) and not i.get("limit"):
+                    out.append(i.get("file_path"))
+                if c.get("name") == "Bash" and re.search(r"\bcat\s+[^|;&]*(_bmad-output/|spec-index\.json)", i.get("command", "")):
+                    out.append(i.get("command")[:120])
+    return out
+
+def saltos(r):
+    xs = r.contexto
+    return max([b - a for a, b in zip(xs, xs[1:])] or [0])
+
+def integracion(a, base, salida):
+    """Con BMAD instalado (--skills-extra con las skills de BMAD): un pedido que cruza tres skills de pm-method sobre la
+    especificación de BMAD. Verifica las skills usadas, que BMAD se lea por el puente (bmad.py, por secciones) y no
+    abriendo _bmad-output/, que los riesgos queden registrados o presentados para confirmar, BMAD intacto y el contexto
+    de cada llamada bajo los topes declarados (CTX_PRIMERA, CTX_MAXIMO, CTX_SALTO)."""
+    epics = os.path.join(base, "_bmad-output", "planning-artifacts", "epics.md"); prd = glob.glob(os.path.join(base, "_bmad-output", "planning-artifacts", "prds", "*", "prd.md"))[0]
+    huella = {p: open(p, encoding="utf-8").read() for p in (epics, prd)}
+    n_riesgos = len(filas(base, "riesgos"))
+    turnos = ["Con el PRD de BMAD armá el recorrido del cliente del préstamo (UJ-2), registrá los riesgos que surjan y decime el estado del proyecto. (carpeta ./gestion)"]
+    usadas = lambda rs: {s.replace("pm-method:", "") for r in rs for s in r.skills} | {g.replace("pm-method:", "") for r in rs for g in r.agentes}
+    ctx = lambda rs: [c for r in rs for c in r.contexto + r.contexto_sub]
+    chequeos = [
+        ("BMAD instalado en el proyecto (skills bmad-* en .claude/skills)", lambda d, rs: len(glob.glob(os.path.join(d, ".claude", "skills", "bmad-*"))) > 0),
+        ("usa pm-mapas-estrategicos; los riesgos pasan por pm-riesgos o por registro.py (el paso 'dolores → riesgos' de la skill de mapas); ninguna skill de BMAD",
+            lambda d, rs: "pm-mapas-estrategicos" in usadas(rs) and ({"pm-riesgos", "pm-control"} & usadas(rs) or any(re.search(r"registro\.py.*agregar\s+riesgos", b, re.S) for r in rs for b in r.bash))
+            and not any(s.startswith("bmad") for s in usadas(rs))),
+        ("recorrido UJ-2 creado desde BMAD en 02-planificacion/mapas/", lambda d, rs: any("UJ-2" in open(p, encoding="utf-8").read()
+            for p in glob.glob(os.path.join(d, G, "02-planificacion", "mapas", "recorrido-*.json")))),
+        ("lee BMAD por el puente (bmad.py) y no abre _bmad-output/ ni spec-index.json enteros", lambda d, rs: any("bmad.py" in b for r in rs for b in r.bash) and not lecturas_bmad(rs)),
+        ("riesgos registrados en riesgos.csv o presentados como candidatos para confirmar", lambda d, rs: len(filas(d, "riesgos")) > n_riesgos
+            or (glob.glob(os.path.join(d, G, "03-control", "reportes", "*candidatos-riesgo*.md")) and re.search(r"(confirm|registr)", texto(rs), re.I))),
+        ("informa el estado (fase, etapa o próxima puerta)", lambda d, rs: re.search(r"(etapa|fase|puerta|autorizar-)", texto(rs), re.I)),
+        ("BMAD sin cambios (PRD y épicas)", lambda d, rs: all(open(p.replace(base, d), encoding="utf-8").read() == t for p, t in huella.items())),
+        ("sin ERROR nuevo en sanidad", lambda d, rs: not sanidad_errores(d)),
+        (f"contexto: primera llamada ≤ {CTX_PRIMERA:,} tokens".replace(",", "."), lambda d, rs: rs[0].contexto and rs[0].contexto[0] <= CTX_PRIMERA),
+        (f"contexto: cada llamada ≤ {CTX_MAXIMO:,} tokens (hilo principal y subagentes)".replace(",", "."), lambda d, rs: ctx(rs) and max(ctx(rs)) <= CTX_MAXIMO),
+        (f"contexto: ningún salto entre llamadas seguidas > {CTX_SALTO:,} tokens".replace(",", "."), lambda d, rs: max(saltos(r) for r in rs) <= CTX_SALTO),
+        ("costo del turno < USD 3", lambda d, rs: sum(r.costo or 0 for r in rs) < 3),
+    ]
+    return escenario("integracion", turnos, base, salida, a, chequeos, max_turnos=60)

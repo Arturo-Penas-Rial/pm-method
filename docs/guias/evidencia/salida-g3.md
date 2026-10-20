@@ -1,6 +1,6 @@
 ## Paso 1 · Proyecto y junta
 ```
-$ python3 $EST/nuevo_proyecto.py --ruta gestion --nombre "Portal de autoservicio para socios" --idioma es --enfoque hibrido --ejecutivo "Laura Méndez" --gestor "Martín Suárez"
+$ python3 $EST/nuevo_proyecto.py --ruta gestion --nombre "Portal de autoservicio para socios" --idioma es --enfoque hibrido --ejecutivo "Laura Méndez" --gestor "Martín Suárez" --fecha 2026-10-26
 Proyecto creado en gestion · enfoque de entrega: hibrido · siguiente: estado.py siguiente
 ```
 
@@ -453,7 +453,7 @@ ok
 ```
 $ python3 $EST/puertas.py --proyecto gestion verificar autorizar-inicio
 Puerta autorizar-inicio: 1 bloqueo(s) · 0 condición(es) · 0 aviso(s)
-  BLOQUEO   falta la lista de control de la junta: puertas.py --proyecto <dir> lista autorizar-inicio y confirmarla (puertas.py confirmar …)
+  BLOQUEO   L-01 falta la lista de control de la junta: puertas.py --proyecto <dir> lista autorizar-inicio y confirmarla (puertas.py confirmar …)
   → 'aprobado' no se registra: corregir, o decisión 'condicionado' (o --forzar) de la junta
 ```
 
@@ -493,7 +493,7 @@ ok
 ```
 $ python3 $EST/puertas.py --proyecto gestion verificar autorizar-proyecto
 Puerta autorizar-proyecto: 1 bloqueo(s) · 0 condición(es) · 0 aviso(s)
-  BLOQUEO   falta la lista de control de la junta: puertas.py --proyecto <dir> lista autorizar-proyecto y confirmarla (puertas.py confirmar …)
+  BLOQUEO   L-01 falta la lista de control de la junta: puertas.py --proyecto <dir> lista autorizar-proyecto y confirmarla (puertas.py confirmar …)
   → 'aprobado' no se registra: corregir, o decisión 'condicionado' (o --forzar) de la junta
 ```
 
@@ -532,9 +532,9 @@ ok
 ```
 $ python3 $EST/puertas.py --proyecto gestion verificar autorizar-etapa
 Puerta autorizar-etapa: 2 bloqueo(s) · 1 condición(es) · 0 aviso(s)
-  BLOQUEO   faltan tolerancias de la etapa (--tol o 'tolerancia --nivel etapa')
-  BLOQUEO   falta la lista de control de la junta: puertas.py --proyecto <dir> lista autorizar-etapa y confirmarla (puertas.py confirmar …)
-  condición gate de preparación de BMAD en CONCERNS (2026-11-26: NFR-3 sin prueba de carga planificada)
+  BLOQUEO   E-02 faltan tolerancias de la etapa (--tol o 'tolerancia --nivel etapa')
+  BLOQUEO   L-01 falta la lista de control de la junta: puertas.py --proyecto <dir> lista autorizar-etapa y confirmarla (puertas.py confirmar …)
+  condición E-10 gate de preparación de BMAD en CONCERNS (2026-11-26: NFR-3 sin prueba de carga planificada)
   → 'aprobado' no se registra: corregir, o decisión 'condicionado' (o --forzar) de la junta
 ```
 
@@ -755,6 +755,16 @@ Check-in KR-2.2 2026-12-11 = 64 → <repo>/gestion/00-direccion/okr_checkins.csv
 ```
 
 ```
+$ $OKR gestion/00-direccion/okr.csv --corte 2026-12-11 --json   # resumen: puntaje (esperado) salud
+O-1 0,03 · O-2 0,04
+KR-1.1 0,03 (esperado 0,09) en-camino
+KR-1.2 0,03 (esperado 0,09) en-camino
+KR-2.1 0,00 (esperado 0,09) en-riesgo
+KR-2.2 0,13 (esperado 0,09) en-camino
+KR-2.3 0,00 (esperado 0,30) desviado
+```
+
+```
 $ python3 $EST/registro.py --proyecto gestion agregar calidad --campo "producto=Sprint review 2: historia 1-2 e historia 3-1" --campo "metodo_verificacion=demostracion" --campo "criterios=criterios de aceptación de cada historia y definición de terminado" --campo "responsable_productor=Lucía Benítez" --campo "revisores=Sofía Ramírez" --campo "aprobador=Product owner: Sofía Ramírez" --campo "fecha_prevista=2026-12-23" --campo "fecha_real=2026-12-23" --campo "resultado=aprobado" --campo "estado=completada"
 Q-002
 ```
@@ -782,6 +792,16 @@ Check-in KR-2.1 2026-12-23 = 88 → <repo>/gestion/00-direccion/okr_checkins.csv
 ```
 $ python3 $OKR gestion/00-direccion/okr.csv --checkin KR-2.2 --valor 68 --confianza 6 --fecha 2026-12-23 --autor "Usuaria sénior: Sofía Ramírez"
 Check-in KR-2.2 2026-12-23 = 68 → <repo>/gestion/00-direccion/okr_checkins.csv
+```
+
+```
+$ $OKR gestion/00-direccion/okr.csv --corte 2026-12-23 --json   # resumen: puntaje (esperado) salud
+O-1 0,07 · O-2 0,20
+KR-1.1 0,07 (esperado 0,12) en-camino
+KR-1.2 0,07 (esperado 0,12) en-camino
+KR-2.1 0,00 (esperado 0,12) en-riesgo
+KR-2.2 0,27 (esperado 0,12) en-camino
+KR-2.3 0,33 (esperado 0,39) en-camino
 ```
 
 ```
@@ -815,6 +835,24 @@ Check-in KR-2.2 2027-01-08 = 72 → <repo>/gestion/00-direccion/okr_checkins.csv
 ```
 
 ```
+$ $OKR gestion/00-direccion/okr.csv --corte 2027-01-08 --json   # resumen: puntaje (esperado) salud
+O-1 0,11 · O-2 0,24
+KR-1.1 0,10 (esperado 0,16) en-camino
+KR-1.2 0,13 (esperado 0,16) en-camino
+KR-2.1 0,00 (esperado 0,16) en-riesgo
+KR-2.2 0,40 (esperado 0,16) en-camino
+KR-2.3 0,33 (esperado 0,52) en-riesgo
+```
+
+```
+$ (gráfico g3-okr-salud.png: margen frente al avance esperado, en pp)
+KR-1.1: 11-dic -6 · 23-dic -5 · 08-ene -6
+KR-1.2: 11-dic -6 · 23-dic -5 · 08-ene -3
+KR-2.2: 11-dic +4 · 23-dic +15 · 08-ene +24
+KR-2.3: 11-dic -30 · 23-dic -6 · 08-ene -19
+```
+
+```
 $ python3 $EST/registro.py --proyecto gestion actualizar acciones A-002 --campo "estado=completada" --campo "fecha_cierre=2026-11-28"
 ok
 ```
@@ -842,13 +880,16 @@ $ python3 $EST/registro.py --proyecto gestion resumen --corte 2027-01-08
     "sin_propietario": [],
     "top": [
       "R-001 (9, medio) No se puede medir la satisfacción (SM-5) en el piloto"
-    ]
+    ],
+    "sin_respuesta_total": 0,
+    "sin_propietario_total": 0
   },
   "issues": {
     "total": 0,
     "por_estado": {},
     "abiertos": 0,
-    "sin_responsable": []
+    "sin_responsable": [],
+    "sin_responsable_total": 0
   },
   "cambios": {
     "total": 0,
@@ -908,13 +949,23 @@ $ python3 $EST/registro.py --proyecto gestion resumen --corte 2027-01-08
     "abiertas_por_responsable": {
       "Laura Méndez": 1,
       "Lucía Benítez": 1
-    }
+    },
+    "vencidas_total": 1
   },
   "fecha_corte": "2027-01-08"
 }
 ```
 
 ## Paso 10 · Highlight report con puertas, OKR al corte (salud y check-ins), sincronización con Tability y tablero por actor
+```
+$ python3 $EST/estado.py --proyecto gestion contexto --corte 2027-01-08
+pm-method · contexto derivado de estado.json y los registros al 2027-01-08 (es el estado vigente; una nota de memoria que diga otra cosa está desactualizada):
+Abiertos: riesgos 1, acciones 2.
+Acciones vencidas: A-004 (Lucía Benítez, 2026-12-11).
+Condiciones abiertas de puertas: autorizar-etapa (2026-11-27).
+Próxima puerta: autorizar-etapa (detalle: puertas.py verificar autorizar-etapa).
+```
+
 ```
 $ python3 $OKR gestion/00-direccion/okr.csv --corte 2027-01-08 --markdown gestion/03-control/reportes/2027-01-08-okr.md
 O-1 Los socios resuelven sus gestiones simples sin ir a la sucursal → 0.11 (rojo) · aspiracional
@@ -953,15 +1004,10 @@ $ python3 $EST/puertas.py --proyecto gestion estado --markdown
 | autorizar-etapa | 2026-11-27 | condicionado | Ejecutivo: Laura Méndez | gate de preparación de BMAD en CONCERNS (2026-11-26: NFR-3 sin prueba de carga planificada) (abiertas) | gate de preparación de BMAD en CONCERNS (2026-11-26: NFR-3 sin prueba de carga planificada) | 00-direccion/decisiones/2026-11-27-verificacion-autorizar-etapa.md |
 
 **Próxima puerta / Next gate: autorizar-etapa** — 2 bloqueo(s), 2 condición(es), 0 aviso(s).
-- bloqueo: falta el plan de la etapa a autorizar (plan-etapa-3)
-- bloqueo: falta el informe de fin de la etapa 2 (informe-fin-etapa-2)
-- condición: condiciones abiertas de puertas anteriores: autorizar-etapa 2026-11-27 (verificarlas y registrar estado.py cumplir-condiciones, o traspasarlas como recomendación)
-- condición: gate de preparación de BMAD en CONCERNS (2026-11-26: NFR-3 sin prueba de carga planificada)
-```
-
-```
-$ python3 $EST/estado.py --proyecto gestion artefacto highlight-2027-01-08 --ruta 03-control/reportes/2027-01-08-highlight-report.md --estado en-revision
-ok
+- bloqueo: E-01 falta el plan de la etapa a autorizar (plan-etapa-3)
+- bloqueo: E-04 falta el informe de fin de la etapa 2 (informe-fin-etapa-2)
+- condición: G-01 condiciones abiertas de puertas anteriores: autorizar-etapa 2026-11-27 (verificarlas y registrar estado.py cumplir-condiciones, o traspasarlas como recomendación)
+- condición: E-10 gate de preparación de BMAD en CONCERNS (2026-11-26: NFR-3 sin prueba de carga planificada)
 ```
 
 ```
@@ -970,6 +1016,81 @@ fecha, historias, backlog, ready-for-dev, in-progress, review, done, epicas, epi
 ```
 
 ```
+$ python3 $EST/estado.py --proyecto gestion artefacto highlight-2027-01-08 --ruta 03-control/reportes/2027-01-08-highlight-report.md --estado en-revision
+ok
+```
+
+```
+$ (highlight armado desde el dato → gestion/03-control/reportes/2027-01-08-highlight-report.md)
+---
+tipo: highlight-report
+proyecto: "Portal de autoservicio para socios"
+fecha: "2027-01-08"
+autor: "Martín Suárez"
+estado: borrador
+variante: minima
+fuentes: "evm-2027-01-08.json · okr.py --corte 2027-01-08 --json · registro.py resumen --corte 2027-01-08 --json · puertas.py estado --markdown · avance-bmad.csv"
+---
+
+# Informe de aspectos destacados (highlight report) · 2027-01-08
+
+**Etapa:** Release 1 · **Período:** 2026-12-24 – 2027-01-08 · **Variante:** mínima · **Audiencia:** junta del proyecto
+
+## 1. Resumen ejecutivo
+Estado general **ámbar**. Tiempo y costo en ámbar, dentro de la tolerancia de etapa de 10 %: SPI 0,933, CPI 0,942,
+EAC USD 131.676 (+6,2 %); excepción prevista: no. Beneficios en ámbar: la bandeja (KR-2.3) está
+en riesgo. Decisión que se pide: aprobar USD 4.000 de contingencia para el incentivo del panel (R-001) antes del 2027-01-22.
+
+## 2. Semáforo por objetivo
+| Objetivo | Estado | Cifra y umbral | Fuente |
+|---|---|---|---|
+| Tiempo | ámbar | SPI 0,933; desvío de 6,7 % del PV contra una tolerancia de 10 % (ámbar = 50–100 %) | evm-2027-01-08.json |
+| Costo | ámbar | CPI 0,942; EAC USD 131.676, sobrecosto de 6,2 % contra 10 % | evm-2027-01-08.json |
+| Alcance | verde | Must completos en R1 (pronóstico del gestor sobre el burn-up: 26 de 68 puntos) | avance-bmad.csv |
+| Calidad | verde | 3 revisiones completadas y aprobadas, 0 abiertas | registro.py resumen |
+| Beneficios | ámbar | B-01 4.000 y B-02 25 % en meta (R1 +1 semana, antes de medir); B-03 48 h solo con la bandeja (KR-2.3 en riesgo; hoy 80 h sin bandeja) (pronóstico del gestor contra la tolerancia de −10 %; B-03 ≤ 52,8 h) | enfoque de beneficios · okr.py |
+| Riesgo | verde | 1 riesgo(s) abierto(s), 0 alto(s), 0 sin respuesta, 0 sin propietario | registro.py resumen |
+| Sostenibilidad | [por confirmar] | sin medida definida en el enfoque | — |
+
+## 4. Este período
+**Historias aceptadas en el período (calidad aprobada):** historia 1-3 (3 revisiones aprobadas en la etapa) · **Puntos terminados:** 26 de 68 (38,2 %), 8 en el período.
+**Compromisos vencidos:** A-004 Lucía Benítez 2026-12-11.
+
+## 5. Próximo período
+Historias en curso: 1 (avance-bmad.csv) · KR-2.3 (bandeja): 1/3 iniciativas completadas; hito al 2027-03-12 (okr.csv).
+
+## 6. Decisiones que necesita la junta
+| Puerta | Fecha | Decisión | Por | Condiciones (estado) | Observaciones de la verificación | Lista |
+|---|---|---|---|---|---|---|
+| autorizar-inicio | 2026-10-30 | aprobado | Ejecutivo: Laura Méndez | — | — | 00-direccion/decisiones/2026-10-30-verificacion-autorizar-inicio.md |
+| autorizar-proyecto | 2026-11-27 | aprobado | Ejecutivo: Laura Méndez | — | — | 00-direccion/decisiones/2026-11-27-verificacion-autorizar-proyecto.md |
+| autorizar-etapa | 2026-11-27 | condicionado | Ejecutivo: Laura Méndez | gate de preparación de BMAD en CONCERNS (2026-11-26: NFR-3 sin prueba de carga planificada) (abiertas) | gate de preparación de BMAD en CONCERNS (2026-11-26: NFR-3 sin prueba de carga planificada) | 00-direccion/decisiones/2026-11-27-verificacion-autorizar-etapa.md |
+
+**Próxima puerta / Next gate: autorizar-etapa** — 2 bloqueo(s), 2 condición(es), 0 aviso(s).
+- bloqueo: E-01 falta el plan de la etapa a autorizar (plan-etapa-3)
+- bloqueo: E-04 falta el informe de fin de la etapa 2 (informe-fin-etapa-2)
+- condición: G-01 condiciones abiertas de puertas anteriores: autorizar-etapa 2026-11-27 (verificarlas y registrar estado.py cumplir-condiciones, o traspasarlas como recomendación)
+- condición: E-10 gate de preparación de BMAD en CONCERNS (2026-11-26: NFR-3 sin prueba de carga planificada)
+
+| Decisión | Contexto | Fecha límite |
+|---|---|---|
+| Aprobar USD 4.000 de contingencia para el incentivo del panel | respuesta a R-001 (9, medio) No se puede medir la satisfacción (SM-5) en el piloto | 2027-01-22 |
+
+## 7b. Avance ágil (burn-up)
+| Corte | Alcance total (pts) | Terminado acumulado (pts) | Velocidad (pts) | % terminado |
+|---|---|---|---|---|
+| 2026-12-11 | 68 | 8 | 8 | 11,8 % |
+| 2026-12-23 | 68 | 18 | 10 | 26,5 % |
+| 2027-01-08 | 68 | 26 | 8 | 38,2 % |
+
+## 10. Registros
+Riesgos abiertos 1 · altos 0 · issues abiertos 0 · acciones abiertas 2 · vencidas 1 · cambios 0.
+
+## OKR (complementan los beneficios)
+O-1 0,11 · O-2 0,24. KR: KR-1.1 0,10 (en camino) · KR-1.2 0,13 (en camino) · KR-2.1 0,00 (en riesgo) · KR-2.2 0,40 (en camino) · KR-2.3 0,33 (en riesgo).
+```
+
+```
 $ python3 $EST/estado.py --proyecto gestion artefacto tablero-avance --ruta 03-control/reportes/2027-01-08-tablero-avance.html --estado en-revision
 ok
 ```
@@ -987,11 +1108,29 @@ ok
 ```
 $ (pm-visuales arma el tablero con la receta de references/guia.md §3 → gestion/03-control/reportes/2027-01-08-tablero-avance.html)
 riesgos abiertos 1 · issues 0 · acciones 4 · iteraciones 3
+```
+
+```
+$ python3 $EST/puertas.py --proyecto gestion verificar autorizar-etapa
+Puerta autorizar-etapa: 2 bloqueo(s) · 2 condición(es) · 0 aviso(s)
+  BLOQUEO   E-01 falta el plan de la etapa a autorizar (plan-etapa-3)
+  BLOQUEO   E-04 falta el informe de fin de la etapa 2 (informe-fin-etapa-2)
+  condición G-01 condiciones abiertas de puertas anteriores: autorizar-etapa 2026-11-27 (verificarlas y registrar estado.py cumplir-condiciones, o traspasarlas como recomendación)
+  condición E-10 gate de preparación de BMAD en CONCERNS (2026-11-26: NFR-3 sin prueba de carga planificada)
+  → 'aprobado' no se registra: corregir, o decisión 'condicionado' (o --forzar) de la junta
 ```
 
 ```
 $ python3 $EST/estado.py --proyecto gestion cumplir-condiciones autorizar-etapa --fecha 2027-01-08 --por "Ejecutiva: Laura Méndez" --nota "prueba de carga de NFR-3 planificada en el sprint 5 (plan de la etapa 2, Lucía Benítez)"
 ok
+```
+
+```
+$ python3 $EST/puertas.py --proyecto gestion verificar autorizar-etapa --json   # resumen de 'hallazgos' (severidad, id) tras cumplir-condiciones
+bloqueo E-01
+bloqueo E-04
+condicion E-10
+G-01 presente: no
 ```
 
 ## Paso 11 · Comunicación personalizada por perfil y envío por la capa de canales
@@ -1021,6 +1160,28 @@ mensaje-02-teams-st-003.md: teams → ST-003 · borrador
 mensaje-03-correo-st-004.md: correo → ST-004 · borrador
 mensaje-04-reunion-st-006.md: reunion → ST-006 · borrador
 mensaje-05-correo-st-008.md: correo → ST-008 · borrador
+```
+
+```
+$ (cadena de reporte: cifras del comunicado y de los borradores contra el highlight del 2027-01-08)
+comunicado base: 4 cifra(s) (6,2, 0,11, 0,24, 4.000) · sin respaldo en el highlight: ninguna
+mensaje-01-correo-st-001-st-002-st-007.md: 4 cifra(s) (6,2, 0,11, 0,24, 4.000) · sin respaldo en el highlight: ninguna
+mensaje-02-teams-st-003.md: 8 cifra(s) (0,10, 0,13, 0,33, 0,40, 38,2, 0,933, 0,942, 131.676) · sin respaldo en el highlight: ninguna
+mensaje-03-correo-st-004.md: 0 cifra(s)  · sin respaldo en el highlight: ninguna
+mensaje-04-reunion-st-006.md: 0 cifra(s)  · sin respaldo en el highlight: ninguna
+mensaje-05-correo-st-008.md: 0 cifra(s)  · sin respaldo en el highlight: ninguna
+```
+
+```
+$ (hook guardian.py: decisión ante cada comando, tal como la recibe Claude Code)
+[hilo principal] python3 $EV --proyecto gestion aprobar gestion/03-control/comunicaciones/2027-01-15-avance-del-portal-al-8-de-enero --por "Gestor: Martín Suárez"
+   → ask: pm-method: envios.py aprobar registra la aprobación humana de un mensaje (aprobado_por). Confirmar solo si la persona que figura en --por aprobó este mensaje. / Records a human approval: confirm only if that person approved it.
+[hilo principal] python3 $EV --proyecto gestion enviar gestion/03-control/comunicaciones/2027-01-15-avance-del-portal-al-8-de-enero --modo smtp
+   → sin decisión del hook (corre sin pedido de permiso adicional)
+[hilo principal] python3 $EV --proyecto gestion enviar gestion/03-control/comunicaciones/2027-01-15-avance-del-portal-al-8-de-enero --modo smtp --confirmar
+   → ask: pm-method: envios.py enviar --confirmar envía mensajes reales a los interesados (SMTP o webhook). Confirmar solo si la persona revisó la vista previa y pidió el envío. / Sends real messages: confirm only after reviewing the preview.
+[pm-method:pm-director] python3 $EV --proyecto gestion aprobar gestion/03-control/comunicaciones/2027-01-15-avance-del-portal-al-8-de-enero --por "Gestor: Martín Suárez"
+   → ask: pm-method: envios.py aprobar registra la aprobación humana de un mensaje (aprobado_por). Confirmar solo si la persona que figura en --por aprobó este mensaje. / Records a human approval: confirm only if that person approved it.
 ```
 
 ```
@@ -1285,6 +1446,19 @@ Sanidad de 'Portal de autoservicio para socios' (entrega/CS): 0 ERROR · 3 AVISO
 ```
 
 ```
+$ (gráfico g3-cadencia-stk12.png: días desde el último contacto y máximo al 2027-02-05)
+ST-001 Laura Méndez (quincenal): 21 de 21 días
+ST-002 Consejo directivo (trimestral): 21 de 138 días
+ST-003 Sofía Ramírez (quincenal): 21 de 21 días
+ST-004 Sindicato de operadores (quincenal): 21 de 21 días
+ST-005 Socios usuarios piloto (mensual): 21 de 46 días
+ST-006 Área de TI del núcleo operativo (semanal): 18 de 10 días
+ST-008 Diego Ferreira (mensual): 21 de 46 días
+ST-009 Martín Suárez (semanal): 21 de 10 días
+ST-010 Lucía Benítez (diaria): 21 de 2 días
+```
+
+```
 $ python3 $EST/registro.py --proyecto gestion agregar envios --campo "fecha=2027-02-05" --campo "stakeholder_id=ST-006" --campo "canal=reunion" --campo "modo=manual" --campo "estado=enviado" --campo "proposito=otro" --campo "asunto=Reunión técnica: integración con el núcleo (NFR-6) y prueba de carga (NFR-3)" --campo "referencia=acta 2027-02-05 reunión técnica" --campo "confirmado_por=Jefa de equipo: Lucía Benítez" --campo "notas=retroalimentación: TI se enteró por terceros del cambio en la consulta al padrón; sin la reunión semanal no pudo planificar el ambiente de carga. Pide retomar la reunión semanal con acta el mismo día."
 EN-008
 ```
@@ -1353,5 +1527,118 @@ ST-006 Área de TI del núcleo operativo · Proveedor interno · gestionar-de-ce
    RACI C en E-1 (epica) Acceso seguro y consulta de mis productos
    EN-007 2027-01-18 reunion «Avance del portal al 8 de enero» [enviado]
    EN-008 2027-02-05 reunion «Reunión técnica: integración con el núcleo (NFR-6) y prueba de carga (NFR-3)» [enviado]
+```
+
+## Paso 14 · Revisión periódica del compromiso: la cadencia y la brecha se miden en cada período
+```
+$ python3 $EST/estado.py --proyecto gestion artefacto resumen-quincenal-2027-02-05 --ruta 03-control/reportes/2027-02-05-resumen-quincenal.md --estado en-revision
+ok
+```
+
+```
+$ python3 $IN --proyecto gestion plan-envio --tema "Resumen quincenal al 5 de febrero" --audiencia "ST-001,ST-003,ST-004" --proposito informe --base gestion/03-control/reportes/2027-02-05-resumen-quincenal.md --agrupar --fecha 2027-02-05
+Plan de envío → 03-control/comunicaciones/2027-02-05-resumen-quincenal-al-5-de-febrero/ (3 destinatarios, 3 mensajes en borrador)
+   ST-001 Laura Méndez: correo → laura.mendez@example.org · conclusion-primero · ejecutivo · es · mensaje-01-correo-st-001.md
+   ST-003 Sofía Ramírez: teams → sofia.ramirez@example.org · datos · detallado · es · mensaje-02-teams-st-003.md
+   ST-004 Sindicato de operadores: correo → delegado.sindical@example.org · conclusion-primero · ejecutivo · es · mensaje-03-correo-st-004.md
+Siguiente: redactar cada mensaje según su perfil, aprobar con envios.py aprobar y enviar con envios.py enviar (simulación por defecto).
+```
+
+```
+$ python3 $EV --proyecto gestion aprobar gestion/03-control/comunicaciones/2027-02-05-resumen-quincenal-al-5-de-febrero --por "Gestor: Martín Suárez"
+3 mensaje(s) aprobados por Gestor: Martín Suárez
+```
+
+```
+$ python3 $EV --proyecto gestion enviar gestion/03-control/comunicaciones/2027-02-05-resumen-quincenal-al-5-de-febrero --modo smtp --confirmar --fecha 2027-02-05
+mensaje-01-correo-st-001.md: enviado · EN-011
+· mensaje-02-teams-st-003.md: canal teams no corresponde a --modo smtp
+mensaje-03-correo-st-004.md: enviado · EN-012
+Resumen: 2 enviados, 0 fallidos, 0 simulados, 1 omitidos
+```
+
+```
+$ python3 $EV --proyecto gestion enviar gestion/03-control/comunicaciones/2027-02-05-resumen-quincenal-al-5-de-febrero --modo teams-webhook --confirmar --fecha 2027-02-05
+· mensaje-01-correo-st-001.md: canal correo no corresponde a --modo teams-webhook
+mensaje-02-teams-st-003.md: enviado · EN-013
+· mensaje-03-correo-st-004.md: canal correo no corresponde a --modo teams-webhook
+Resumen: 1 enviados, 0 fallidos, 0 simulados, 2 omitidos
+```
+
+```
+$ (lo que recibieron los servidores de prueba de 127.0.0.1)
+{"correos": [["rcpt to:<laura.mendez@example.org>"], ["rcpt to:<delegado.sindical@example.org>"]], "teams": 1}
+```
+
+```
+$ python3 $EST/registro.py --proyecto gestion agregar envios --campo "fecha=2027-02-12" --campo "stakeholder_id=ST-006" --campo "canal=reunion" --campo "modo=manual" --campo "estado=enviado" --campo "proposito=otro" --campo "asunto=Reunión técnica semanal: ambiente de prueba de carga (NFR-3)" --campo "referencia=acta 2027-02-12 reunión técnica" --campo "confirmado_por=Jefa de equipo: Lucía Benítez" --campo "notas=retroalimentación: el acta llegó el mismo día; TI confirma el ambiente de carga para el sprint 5 y pide seguir con el aviso previo de cambios en el padrón."
+EN-014
+```
+
+```
+$ python3 $EST/registro.py --proyecto gestion actualizar acciones A-005 --campo "estado=completada" --campo "fecha_cierre=2027-02-12" --campo "notas=reunión semanal retomada (5/2 y 12/2) con acta el mismo día"
+ok
+```
+
+```
+$ python3 $EST/registro.py --proyecto gestion agregar envios --campo "fecha=2027-02-12" --campo "stakeholder_id=ST-009" --campo "canal=reunion" --campo "modo=manual" --campo "estado=enviado" --campo "proposito=informe" --campo "asunto=Checkpoint semanal del 2027-02-12 (Lucía Benítez → Martín Suárez)" --campo "referencia=checkpoint-report 2027-02-12" --campo "confirmado_por=Gestor: Martín Suárez"
+EN-015
+```
+
+```
+$ python3 $EST/registro.py --proyecto gestion agregar envios --campo "fecha=2027-02-12" --campo "stakeholder_id=ST-010" --campo "canal=reunion" --campo "modo=manual" --campo "estado=enviado" --campo "proposito=informe" --campo "asunto=Checkpoint semanal del 2027-02-12 (Lucía Benítez → Martín Suárez)" --campo "referencia=checkpoint-report 2027-02-12" --campo "confirmado_por=Gestor: Martín Suárez"
+EN-016
+```
+
+```
+$ python3 $EST/registro.py --proyecto gestion agregar envios --campo "fecha=2027-02-19" --campo "stakeholder_id=ST-006" --campo "canal=reunion" --campo "modo=manual" --campo "estado=enviado" --campo "proposito=otro" --campo "asunto=Reunión técnica semanal: integración con el núcleo (NFR-6)" --campo "referencia=acta 2027-02-19 reunión técnica" --campo "confirmado_por=Jefa de equipo: Lucía Benítez" --campo "notas=retroalimentación: sin cambios sorpresivos en el padrón; TI vuelve a participar en la planificación del sprint y propone revisar juntos la consulta al padrón."
+EN-017
+```
+
+```
+$ python3 $EST/registro.py --proyecto gestion actualizar stakeholders ST-006 --campo "nivel_compromiso_actual=neutral" --campo "notas=2027-02-19: tres reuniones semanales con acta (5/2, 12/2 y 19/2) y A-005 cumplida; el deseado sigue en partidario"
+ok
+```
+
+```
+$ python3 $IN --proyecto gestion integridad --corte 2027-02-19
+Integridad referencial y calidad del maestro: sin hallazgos.
+```
+
+```
+$ python3 $EST/sanidad.py --proyecto gestion --rapido --corte 2027-02-19
+Sanidad de 'Portal de autoservicio para socios' (entrega/CS): 0 ERROR · 0 AVISO · 2 INFO
+  INFO  TOL-02 El EVM del 2027-01-08 está en ámbar (costo=ambar, cronograma=ambar): 50–100 % de la tolerancia.
+        → Anticipar acciones correctivas y reportarlo en el highlight.
+  INFO  TOL-03 Último corte de EVM guardado el 2027-01-08 (más de 31 días).
+        → evm.py … --guardar en cada período de informe.
+```
+
+```
+$ (matriz de evaluación del compromiso al 2027-02-19, leída de stakeholders.csv: A = actual, D = deseado)
+| Interesado | desconocedor | resistente | neutral | partidario | lider | Brecha |
+|---|---|---|---|---|---|---|
+| ST-001 Laura Méndez |  |  |  |  | A=D | — |
+| ST-002 Consejo directivo |  |  |  | A | D | +1 |
+| ST-003 Sofía Ramírez |  |  |  |  | A=D | — |
+| ST-004 Sindicato de operadores |  |  | A=D |  |  | — |
+| ST-005 Socios usuarios piloto |  |  |  | A=D |  | — |
+| ST-006 Área de TI del núcleo operativo |  |  | A | D |  | +1 |
+| ST-007 Unidad de cumplimiento |  |  | A | D |  | +1 |
+| ST-008 Diego Ferreira |  |  |  | A=D |  | — |
+| ST-009 Martín Suárez |  |  |  |  | A=D | — |
+| ST-010 Lucía Benítez |  |  |  | A=D |  | — |
+```
+
+```
+$ (evolución de la brecha de compromiso en cada revisión: actual → deseado (brecha), leída de stakeholders.csv)
+| Interesado | 2026-11-02 | 2027-01-15 | 2027-02-05 | 2027-02-19 |
+|---|---|---|---|---|
+| ST-002 Consejo directivo | partidario → lider (+1) | partidario → lider (+1) | partidario → lider (+1) | partidario → lider (+1) |
+| ST-004 Sindicato de operadores | resistente → neutral (+1) | neutral → neutral (0) | neutral → neutral (0) | neutral → neutral (0) |
+| ST-005 Socios usuarios piloto | desconocedor → partidario (+3) | partidario → partidario (0) | partidario → partidario (0) | partidario → partidario (0) |
+| ST-006 Área de TI del núcleo operativo | neutral → partidario (+1) | neutral → partidario (+1) | resistente → partidario (+2) | neutral → partidario (+1) |
+| ST-007 Unidad de cumplimiento | neutral → partidario (+1) | neutral → partidario (+1) | neutral → partidario (+1) | neutral → partidario (+1) |
+| **Brecha total (niveles)** | **7** | **3** | **4** | **3** |
 ```
 

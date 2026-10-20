@@ -1,0 +1,80 @@
+<!doctype html>
+<!--
+tipo: mapa-recorrido (vista HTML)
+proyecto: "{{proyecto}}"
+fecha: "{{corte}}"
+estado: {{estado}}
+idioma: "{{idioma}}"
+
+Plantilla autocontenida: sin red, sin librerías ni scripts. mapas.py reemplaza los marcadores {{…}} con texto ya escapado
+(html.escape) y arma la tabla de carriles y la curva de emoción en SVG a partir de 02-planificacion/mapas/recorrido-<slug>.json.
+No editar el HTML generado: se regenera con "mapas.py … recorrido render <slug>".
+Self-contained template (no network, no scripts). mapas.py fills the markers with escaped text; do not edit the output.
+-->
+<html lang="{{idioma}}">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mapa de recorrido · Journey map</title>
+<style>
+  :root {
+    --bg: #f6f7f9; --panel: #ffffff; --ink: #1d2430; --muted: #5d6675; --line: #d9dee6; --accent: #1f4e79;
+    --neg: #c0392b; --pos: #2e8b57; --neu: #8a93a2; --pain-zone: #fbe9e7; --target: #1f4e79; --lane: #f1f4f8;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #11161d; --panel: #1a212b; --ink: #e8ecf1; --muted: #a2abb8; --line: #2d3642; --accent: #8fb8e8;
+      --neg: #ef7b6e; --pos: #6cc596; --neu: #a2abb8; --pain-zone: #3a2220; --target: #8fb8e8; --lane: #202935;
+    }
+  }
+  :root[data-theme="dark"] { --bg: #11161d; --panel: #1a212b; --ink: #e8ecf1; --muted: #a2abb8; --line: #2d3642; --accent: #8fb8e8;
+    --neg: #ef7b6e; --pos: #6cc596; --neu: #a2abb8; --pain-zone: #3a2220; --target: #8fb8e8; --lane: #202935; }
+  * { box-sizing: border-box; }
+  body { margin: 0; padding: 16px; background: var(--bg); color: var(--ink); font: 14px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  main { max-width: 2400px; margin: 0 auto; }
+  header { border-bottom: 2px solid var(--accent); padding-bottom: 8px; margin-bottom: 14px; }
+  h1 { font-size: 20px; margin: 0 0 4px; }
+  h2 { font-size: 15px; color: var(--accent); margin: 18px 0 6px; }
+  .meta { color: var(--muted); font-size: 12px; }
+  .ficha { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 6px 16px; margin: 0 0 14px; }
+  .ficha div { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 6px 10px; }
+  .ficha dt { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .03em; }
+  .ficha dd { margin: 0; }
+  .tabla { overflow-x: auto; background: var(--panel); border: 1px solid var(--line); border-radius: 6px; }
+  table { border-collapse: collapse; table-layout: fixed; }
+  th, td { border: 1px solid var(--line); padding: 6px 8px; vertical-align: top; text-align: left; overflow-wrap: anywhere; }
+  th[scope="row"] { background: var(--lane); font-size: 12px; color: var(--muted); position: sticky; left: 0; z-index: 1; }
+  th.etapa { background: var(--accent); color: var(--panel); text-align: center; }
+  td.sin-relleno { padding: 0; }
+  tr.chica td, .chica { font-size: 12px; color: var(--muted); }
+  tr.dolor td { color: var(--neg); }
+  tr.oportunidad td { color: var(--pos); }
+  tr.carril td { background: var(--lane); }
+  tr.carril.backstage td, tr.carril.backstage th { border-top: 2px dashed var(--muted); }
+  .causa, .kano { display: inline-block; font-size: 11px; border: 1px solid currentColor; border-radius: 9px; padding: 0 6px; margin-left: 2px; }
+  .alerta { color: var(--neg); font-weight: 600; }
+  svg.curva { display: block; }
+  svg .zona-dolor { fill: var(--pain-zone); }
+  svg .guia { stroke: var(--line); stroke-width: 1; }
+  svg .cero { stroke: var(--muted); stroke-width: 1.2; }
+  svg .linea { fill: none; stroke: var(--ink); stroke-width: 2.4; }
+  svg .objetivo { fill: none; stroke: var(--target); stroke-width: 2; stroke-dasharray: 6 5; }
+  svg circle { stroke: var(--panel); stroke-width: 2; }
+  svg circle.meta-obj { fill: var(--panel); stroke: var(--target); stroke-width: 2; }
+  svg circle.neg { fill: var(--neg); } svg circle.pos { fill: var(--pos); } svg circle.neu { fill: var(--neu); }
+  svg .valor { font-size: 12px; fill: var(--muted); }
+  .leyenda { font-size: 12px; color: var(--muted); margin: 8px 0; }
+  @media print { @page { size: A4 landscape; margin: 10mm; } body { padding: 0; background: #fff; } .tabla { overflow: visible; border: 0; } }
+</style>
+</head>
+<body>
+<main>
+<header>
+  <h1>Mapa de recorrido · Journey map — {{titulo}}</h1>
+  <div class="meta">{{proyecto}} · corte · cut-off {{corte}} · estado · status {{estado}}</div>
+</header>
+<p class="leyenda">{{leyenda}}</p>
+{{contenido}}
+</main>
+</body>
+</html>

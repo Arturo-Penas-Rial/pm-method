@@ -4,9 +4,11 @@ Create a project folder, its CSV registers and its initial estado.json.
 
 Uso / Usage:
   python3 nuevo_proyecto.py --ruta ./mi-proyecto --nombre "Proyecto Faro" --idioma es \
-      --enfoque hibrido --ejecutivo "Nombre" --gestor "Nombre"
+      --enfoque hibrido --ejecutivo "Nombre" --gestor "Nombre" [--fecha AAAA-MM-DD]
+--fecha fija la fecha de creación (creado, actualizado e inicio de la etapa 0) para recorridos con fechas simuladas o
+proyectos que se registran después de empezar; por defecto, hoy.
 """
-import argparse, json, os, sys
+import argparse, datetime, json, os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import esquema as E
 
@@ -23,8 +25,12 @@ def main():
     ap.add_argument("--enfoque", default="predictivo", choices=["predictivo", "agil", "hibrido"])
     ap.add_argument("--ejecutivo", default="")
     ap.add_argument("--gestor", default="")
+    ap.add_argument("--fecha", help="fecha de creación AAAA-MM-DD (defecto: hoy)")
     a = ap.parse_args()
     t = lambda es, en: E.t(a.idioma, es, en)
+    if a.fecha:
+        try: datetime.date.fromisoformat(a.fecha)
+        except ValueError: sys.exit(t(f"--fecha debe tener el formato AAAA-MM-DD: {a.fecha}", f"--fecha must be YYYY-MM-DD: {a.fecha}"))
 
     if os.path.exists(os.path.join(a.ruta, "estado.json")):
         sys.exit(t("Ya existe estado.json en esa ruta; no se sobrescribe.", "estado.json already exists there; not overwritten."))
@@ -37,6 +43,8 @@ def main():
         open(diario, "w", encoding="utf-8").write(DIARIO[a.idioma])
 
     estado = E.estado_inicial(a.nombre, a.idioma, a.enfoque, a.ejecutivo, a.gestor)
+    if a.fecha:
+        estado["creado"] = estado["actualizado"] = estado["etapa_actual"]["inicio"] = a.fecha
     json.dump(estado, open(os.path.join(a.ruta, "estado.json"), "w", encoding="utf-8"), ensure_ascii=False, indent=2)
     print(t(f"Proyecto creado en {a.ruta} · enfoque de entrega: {a.enfoque} · siguiente: estado.py siguiente",
             f"Project created in {a.ruta} · delivery approach: {a.enfoque} · next: estado.py siguiente"))

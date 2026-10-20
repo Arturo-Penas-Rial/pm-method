@@ -1,4 +1,4 @@
-# Matriz RACI de pm-method 2.2.0 · Humans and agents
+# Matriz RACI de pm-method 2.3.0 · Humans and agents
 
 Quién hace qué a lo largo del ciclo de vida PRINCE2 cuando se trabaja con los agentes del paquete. La matriz cruza los roles humanos del método con los seis agentes y nombra las skills que ejecutan cada actividad. Está verificada contra `SPEC.md` (§1.10.4, §1.11, §1.13, §1.16), `agents/*.md` y los procedimientos de las skills; la sección 5 resume esa verificación y las tensiones encontradas.
 
@@ -43,8 +43,9 @@ Quién hace qué a lo largo del ciclo de vida PRINCE2 cuando se trabaja con los 
 | | **Puesta en marcha (SU)** | | | | | | | | | | | | | | | | |
 | 1 | Mandato | A/R | C | I | I | C | – | – | – | – | I | – | R | – | – | – | pm-mandato-y-brief |
 | 2 | Project brief y enfoque de entrega | I | A | C | C | R | – | C | – | C | I | – | R | – | – | – | pm-mandato-y-brief |
+| 2b | Mapas de Wardley y de recorrido del cliente (evidencia para opciones, enfoque, hacer o comprar y riesgos) | – | A | C | C | R | – | C | – | C | I | – | R | C | – | – | pm-mapas-estrategicos |
 | 3 | Business case (esquemático, completo, actualizado, final) | C | A | C | C | R | – | C | – | – | I | C | R | C | – | R | pm-caso-de-negocio |
-| 4 | OKR del proyecto (incluidos check-ins y salud desde 2.2) | C | A | C | – | R | – | – | – | – | I | C | R | C | R | R | pm-okr |
+| 4 | OKR del proyecto (incluidos check-ins y salud) | C | A | C | – | R | – | – | – | – | I | C | R | C | R | R | pm-okr |
 | 5 | Tolerancias de proyecto | A | C | C | C | C | – | C | – | – | I | R | R | – | – | – | pm-caso-de-negocio, pm-enfoques-gestion, pm-direccion-decisiones, pm-estado-proyecto |
 | 6 | Estructura de gestión, roles y nombramientos | C | A | C | C | R | I | C | I | I | I | – | R | – | – | – | pm-organizacion-roles |
 | 7 | Análisis y registro de interesados (maestro, matriz poder/interés y estrategia, estereotipos) | – | C | C | C | A/R | – | I | – | – | I | – | R | – | – | – | pm-interesados |
@@ -102,12 +103,12 @@ Quién hace qué a lo largo del ciclo de vida PRINCE2 cuando se trabaja con los 
 **Cómo se leen algunas filas.**
 - **Fila 3:** el ejecutivo rinde cuentas del business case; el usuario sénior aporta los beneficios y el proveedor sénior los costos. pm-director lo consulta en cada puerta (justificación continua) y pm-cierre produce la versión final.
 - **Fila 5:** las tolerancias de proyecto las fija la capa de negocio. pm-inicio puede ejecutar `estado.py tolerancia --nivel proyecto` después de esa decisión (pm-caso-de-negocio paso 7, pm-enfoques-gestion paso 11); pm-planificacion tiene prohibido `tolerancia`.
-- **Filas 7, 7a y 7b (2.2):** el gestor revisa las valoraciones de poder, interés y actitud, confirma o rechaza cada preferencia propuesta (`interesados.py confirmar|rechazar --por`) y responde por la RACI; pm-inicio la arma en SU e IP y pm-control la mantiene y propone preferencias desde las actas. Dentro de la RACI de un elemento, el A de una decisión de la junta es un rol de la junta (pm-interesados regla 3).
+- **Filas 7, 7a y 7b:** el gestor revisa las valoraciones de poder, interés y actitud, confirma o rechaza cada preferencia propuesta (`interesados.py confirmar|rechazar --por`) y responde por la RACI; pm-inicio la arma en SU e IP y pm-control la mantiene y propone preferencias desde las actas. Dentro de la RACI de un elemento, el A de una decisión de la junta es un rol de la junta (pm-interesados regla 3).
 - **Fila 19:** el PO intercambia ítems dentro de la tolerancia de alcance sin solicitud de cambio (`decisiones.csv`, `nivel=product-owner`). Lo que desplaza un Must o excede la tolerancia pasa a la fila 30.
 - **Fila 23:** el gestor rinde cuentas de que cada decisión aprobada llegue a BMAD como traspaso; el equipo BMAD lo aplica con sus propios flujos y lo confirma. Después, `verificar` limpio y nueva línea base (fila 21).
 - **Fila 24:** el gestor autoriza el paquete y lo recibe; el jefe de equipo lo acepta, lo ejecuta y notifica. Sin el acto de autorización y aceptación, el trabajo no empieza.
 - **Fila 30:** el orquestador presenta la decisión; pm-control registra la decisión de la autoridad delegada en `issues.csv`, `cambios.csv` y `decisiones.csv`; si decide la junta, pm-director registra `decision-ad-hoc`.
-- **Fila 36a (2.2):** el gestor aprueba cada mensaje (`envios.py aprobar --por "Gestor: …"`) y el orquestador pide la confirmación del envío; el agente ejecuta `enviar --confirmar` (sin `--confirmar` solo simula) o, por MCP, `preparar-mcp` → envío tras vista previa → `registrar`. Los destinatarios salen siempre del maestro de interesados. Nota ³: si el destinatario es la capa de negocio o un tercero externo, confirma el ejecutivo.
+- **Fila 36a:** el gestor aprueba cada mensaje (`envios.py aprobar --por "Gestor: …"`) y el orquestador pide la confirmación del envío; el agente ejecuta `enviar --confirmar` (sin `--confirmar` solo simula) o, por MCP, `preparar-mcp` → envío tras vista previa → `registrar`. Los destinatarios salen siempre del maestro de interesados. Nota ³: si el destinatario es la capa de negocio o un tercero externo, confirma el ejecutivo.
 - **Fila 49:** las revisiones de beneficios posteriores al cierre las ejecuta el negocio, no el proyecto; el usuario sénior rinde cuentas de la realización de beneficios también después del cierre, y el ejecutivo del plan.
 
 ## 4. Matriz compacta skills × humanos: decisiones sensibles
@@ -158,10 +159,10 @@ Solo las decisiones que cambian líneas base, comprometen dinero, salen del proy
 | Transiciones | `limite-etapa` lo ejecuta pm-control o pm-director; con `--excepcion`, solo pm-director. `cierre` lo ejecuta pm-cierre (o pm-director si es prematuro). Consistente. | SPEC §1.10.4; `agents/pm-control.md`; `agents/pm-cierre.md`; pm-plan-etapa-y-limites paso 9 |
 | Tolerancias | Proyecto: la decide la capa de negocio; la registra pm-inicio o pm-director. Etapa: solo pm-director tras `autorizar-etapa`. pm-planificacion tiene prohibido `tolerancia`. Consistente. | SPEC §1.10.5; `agents/pm-planificacion.md`; pm-caso-de-negocio paso 7 |
 | BMAD solo lectura | Consistente: pm-bmad-puente regla 3, SPEC §1.13 y el hook `guardian.py`, que niega escrituras de subagentes pm-* en carpetas de BMAD. | SPEC §1.13; `hooks/guardian.py` |
-| Escrituras externas | Consistente: todas las skills las condicionan a vista previa y confirmación; desde un subagente se devuelven como decisión humana. Desde 2.2, la capa de canales lo impone en el script: sin `--confirmar` simula y solo envía mensajes aprobados con `aprobar --por`. | SPEC §1.12; pm-integraciones regla 2; `envios.py` |
+| Escrituras externas | Consistente: todas las skills las condicionan a vista previa y confirmación; desde un subagente se devuelven como decisión humana. La capa de canales lo impone en el script: sin `--confirmar` simula y solo envía mensajes aprobados con `aprobar --por`. | SPEC §1.12; pm-integraciones regla 2; `envios.py` |
 | Interesados y preferencias | Consistente: valoraciones, preferencias y estereotipos sugeridos son borradores hasta que el gestor los confirma; las propuestas y vencidas no se aplican al perfil; la RACI exige un A por elemento (validado por `registro.py` y la sanidad STK-02). | pm-interesados reglas 2–3; SPEC §1.10.8 y §1.10.10 |
 
-**Reglas de registro resueltas en v2.0.0** (SPEC §1.10.4).
+**Reglas de registro** (SPEC §1.10.4).
 1. **`estado.py aprobar`**: nivel junta o capa de negocio → solo pm-director; nivel gestor, product owner o equipo (aceptación de paquetes de trabajo, revisiones de calidad, informes del gestor) → el agente de la fase, con `--nivel`, después de la confirmación humana que trae el orquestador. En el hilo principal o en Hermes lo ejecuta quien corre la skill, siempre tras la aprobación humana explícita.
 2. **Nombramientos y cadencia ágil**: el ejecutivo confirma; pm-director registra `estado.py rol …` (incluido `product_owner`) y `estado.py agil cadencia_iteracion_dias=…`. pm-organizacion-roles y pm-agil-hibrido dicen lo mismo.
 3. **`metadata.agente`** indica el dueño habitual de la skill, no el único invocador; la matriz refleja quién la invoca realmente.

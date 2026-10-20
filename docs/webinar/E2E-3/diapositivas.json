@@ -1,0 +1,667 @@
+{
+ "caso": "E2E-3",
+ "titulo": "Interesados, comunicaciones, OKR y reporte de avance",
+ "subtitulo": "Del mapa de interesados al compromiso sostenido, con el highlight armado desde el dato",
+ "clases": [
+  {
+   "numero": 1,
+   "titulo": "Del mapa de interesados al plan de compromiso",
+   "duracion_min": 90,
+   "objetivos": [
+    "Construir un maestro único de interesados con matriz poder/interés y de compromiso",
+    "Distinguir preferencias declaradas de inferidas y leer un perfil de comunicación",
+    "Separar beneficios del business case de OKR y explicar P-04",
+    "Armar una RACI con un solo aprobador por elemento"
+   ],
+   "diapositivas": [
+    {
+     "tipo": "seccion",
+     "titulo": "Clase 1 · Del mapa de interesados al plan de compromiso",
+     "subtitulo": "¿A quién le prometimos qué, y quién responde por cada resultado?",
+     "nota": "Presentá el escenario: un portal de autoservicio para los socios de una cooperativa, con diez interesados. Hoy montamos el sistema: quiénes son, qué se les promete y cómo se mide el éxito. La próxima clase lo operamos período a período."
+    },
+    {
+     "tipo": "gancho",
+     "titulo": "TI pasó de neutral a resistente y nadie lo notó",
+     "puntos": [
+      "Le prometimos una reunión técnica semanal",
+      "Al 5/2 llevaba 18 días sin contacto (máximo 10)",
+      "3 de 9 interesados vigilados, fuera de cadencia",
+      "¿Lo habrías visto a tiempo en tu proyecto?"
+     ],
+     "nota": "Contá la historia al revés: primero el resultado, después la pregunta. No expliques todavía cómo se detectó: es el corazón de la clase 2. El dato sale de la sanidad del 5/2 (paso 13)."
+    },
+    {
+     "tipo": "pregunta",
+     "titulo": "Mano alzada",
+     "pregunta": "¿Cuántos verificaron este mes que cada interesado recibió el contacto que le prometieron?",
+     "nota": "Esperá pocas manos. Respuesta esperada: el plan de comunicaciones se escribe una vez y nadie lo controla. En los pasos 13 y 14 vamos a ver que se puede verificar solo, en cada sesión."
+    },
+    {
+     "tipo": "tabla",
+     "titulo": "Del uso único al control continuo",
+     "tabla": {
+      "cab": [
+       "Actividad",
+       "Hoy",
+       "Con pm-method",
+       "Indicador"
+      ],
+      "filas": [
+       [
+        "Contacto prometido",
+        "Plan escrito una vez",
+        "STK-12 en cada sesión",
+        "3 de 9 fuera al 5/2"
+       ],
+       [
+        "Compromiso actual vs deseado",
+        "Taller de inicio",
+        "Revisión por período",
+        "Brecha 7 → 3 niveles"
+       ],
+       [
+        "Highlight report",
+        "Redactado a mano",
+        "Desde el dato + cadena",
+        "12 cifras, 0 sin respaldo"
+       ],
+       [
+        "OKR",
+        "Al final del ciclo",
+        "Salud en cada check-in",
+        "KR-2.3 a −19 pp"
+       ],
+       [
+        "Criterios de éxito",
+        "Solo OKR",
+        "P-04 en la puerta",
+        "B-01…B-03 con dueña"
+       ],
+       [
+        "Aprobadores",
+        "Dos o ninguno",
+        "Un A por elemento (STK-02)",
+        "6 elementos RACI"
+       ]
+      ]
+     },
+     "nota": "Esta es la tesis del caso: actividades que hoy se hacen una vez, a mano o nunca, pasan a ser controles que corren solos. Las tres primeras filas son la clase 2; las tres últimas, la de hoy."
+    },
+    {
+     "tipo": "contenido",
+     "titulo": "Un solo maestro de interesados",
+     "puntos": [
+      "Diez interesados, ST-001…ST-010, en stakeholders.csv",
+      "OKR, RACI, preferencias y envíos los citan por id",
+      "Poder, interés, actitud y compromiso: valoraciones restringidas",
+      "El sindicato, marcado como confidencial",
+      "Si alguien no está en el maestro, STK-08 lo avisa"
+     ],
+     "nota": "El maestro es la única fuente de personas del ecosistema. Si la misma persona aparece con dos nombres en dos planillas, ningún control la puede seguir. Paso 2 de la guía."
+    },
+    {
+     "tipo": "tabla",
+     "titulo": "Matriz poder/interés: una estrategia por cuadrante",
+     "tabla": {
+      "cab": [
+       "Cuadrante",
+       "Interesados",
+       "Estrategia"
+      ],
+      "filas": [
+       [
+        "Gestionar de cerca (7)",
+        "Laura, Consejo ◇, Sofía, Sindicato ◇, TI ◇, Diego ◇, Martín ◇",
+        "Comunicación constante y participación en decisiones"
+       ],
+       [
+        "Mantener satisfecho (1)",
+        "Unidad de cumplimiento",
+        "Reportes ejecutivos, sin abrumar con detalle"
+       ],
+       [
+        "Mantener informado (2)",
+        "Socios piloto, Lucía",
+        "Canales claros y escucha de su retroalimentación"
+       ],
+       [
+        "Monitorear (0)",
+        "—",
+        "Esfuerzo mínimo, salvo que cambien"
+       ]
+      ]
+     },
+     "nota": "◇ es frontera: tienen un valor medio y la convención del paquete los ubica del lado alto. Cinco de los siete de arriba son frontera; con --medio bajo, el Consejo y TI pasan a mantener satisfecho. Paso 3."
+    },
+    {
+     "tipo": "imagen",
+     "titulo": "La matriz en el reporte de interesados",
+     "imagen": "docs/guias/img/g3-interesados-matriz.png",
+     "nota": "Así se ve en el reporte HTML del paso 12, con las fronteras marcadas y la estrategia de cada cuadrante. Es el mismo maestro: no hay una segunda planilla."
+    },
+    {
+     "tipo": "contenido",
+     "titulo": "Matriz de evaluación del compromiso",
+     "puntos": [
+      "Cinco niveles: desconocedor, resistente, neutral, partidario, líder",
+      "Actual y deseado por interesado, en el maestro",
+      "Brecha = niveles que faltan para el deseado",
+      "Al inicio: 7 niveles (los socios piloto, 3)",
+      "Cada brecha, con una acción: A-001, A-002, A-003"
+     ],
+     "nota": "Técnica del PMBOK. La brecha de partida es la línea de base de los pasos 13 y 14: vamos a medirla de nuevo el 15/1, el 5/2 y el 19/2. Paso 5 para las acciones."
+    },
+    {
+     "tipo": "tabla",
+     "titulo": "Preferencias declaradas: el perfil de Laura",
+     "tabla": {
+      "cab": [
+       "Dimensión",
+       "Valor",
+       "De dónde sale"
+      ],
+      "filas": [
+       [
+        "Canal",
+        "correo",
+        "PF-001 (declarado, 3/11)"
+       ],
+       [
+        "Formato",
+        "conclusión primero",
+        "PF-002"
+       ],
+       [
+        "Nivel de detalle",
+        "ejecutivo",
+        "PF-003"
+       ],
+       [
+        "Frecuencia",
+        "quincenal",
+        "matriz de comunicaciones"
+       ],
+       [
+        "Horario",
+        "antes de las 9",
+        "PF-004"
+       ]
+      ]
+     },
+     "nota": "Cada valor dice de dónde sale. Las preferencias se declaran con cita y se confirman (Martín Suárez); nada inferido se aplica sin confirmar. Precedencia: cuadrante, idioma, estereotipo, matriz y preferencias confirmadas. Paso 4."
+    },
+    {
+     "tipo": "demo",
+     "titulo": "Demo · estereotipos y preferencias (paso 4)",
+     "prompt": "Cargá los estereotipos de audiencia y asigná: Laura y el Consejo a dirección-patrocinador, Sofía a product owner y\nusuarios clave, el panel a cliente-usuario, cumplimiento a regulador-comunidad, Diego a proveedores, Martín y Lucía a\nequipo. Después entrevisté a Laura (3/11): \"Prefiero que el avance me llegue por correo, no por chat\", \"Una página, con\nla conclusión y lo que tengo que decidir arriba\", \"Los lunes antes de las 9 lo leo con calma\". Registrá sus\npreferencias y mostrame su perfil de comunicación.",
+     "nota": "Si pregunta si Laura aceptó: «Sí, aceptó; confirmalas como Martín Suárez, gestor». Mostrá el perfil resultante y señalá la columna de procedencia."
+    },
+    {
+     "tipo": "tabla",
+     "titulo": "Beneficios del business case y KR que los complementan",
+     "tabla": {
+      "cab": [
+       "Beneficio",
+       "Meta",
+       "Tolerancia (−10 %)",
+       "KR"
+      ],
+      "filas": [
+       [
+        "B-01 desvío de consultas",
+        "5.000 → 4.000/mes al 31/12/2027",
+        "≥ 900 desviadas",
+        "KR-1.2 (aspira a 3.500)"
+       ],
+       [
+        "B-02 adopción",
+        "25 % de socios activos",
+        "≥ 22,5 %",
+        "KR-1.1 (aspira a 30 %)"
+       ],
+       [
+        "B-03 préstamos < 48 h",
+        "96 h → 48 h al 30/6/2027",
+        "≤ 52,8 h",
+        "KR-2.1, KR-2.2, KR-2.3"
+       ]
+      ]
+     },
+     "nota": "El beneficio es el compromiso con la junta: dueña Sofía, tolerancia y revisión después del cierre. Los KR son metas de ciclo y pueden apuntar más alto sin mover el compromiso. Paso 6."
+    },
+    {
+     "tipo": "contenido",
+     "titulo": "P-04: criterios de éxito con dueño",
+     "puntos": [
+      "Condición si los criterios de éxito están solo en OKR",
+      "Aviso si hay B-n sin enfoque de beneficios",
+      "Con el enfoque: autorizar-proyecto sin P-04",
+      "Puerta: 1 bloqueo (la lista de la junta), 0 condiciones, 0 avisos"
+     ],
+     "nota": "P-04 es un control de la verificación de autorizar-proyecto. El enfoque de beneficios dice cómo, cuándo y quién mide cada beneficio, incluso después del proyecto. Pasos 6 y 7."
+    },
+    {
+     "tipo": "demo",
+     "titulo": "Demo · RACI con un solo aprobador (paso 7)",
+     "prompt": "Armá la RACI: épica E-1 (A Sofía, R Lucía, C TI, I Laura); épica E-3 (A Sofía, R Lucía, C sindicato y Diego); NFR-1\nprotección de datos (A cumplimiento, R Lucía, C Sofía); paquete 3.1 de la WBS (A Martín, R Lucía, I Sofía); KR-1.1\n(A Laura, R Sofía, C panel de socios, I Consejo) y KR-2.2 (A Laura, R Sofía, I Consejo). Después intentá poner a Laura\ntambién como A de E-1. Mostrame quién participa en E-3 y verificá la integridad.",
+     "nota": "El registro rechaza el segundo A en E-1: «elemento E-1 ya tiene un 'A'». Si pregunta si reemplaza a Sofía: «No, dejá a Sofía». Los títulos salen de su fuente: BMAD, la WBS y okr.csv."
+    },
+    {
+     "tipo": "imagen",
+     "titulo": "RACI y perfiles resueltos",
+     "imagen": "docs/guias/img/g3-interesados-raci-perfiles.png",
+     "nota": "Seis elementos: dos épicas, un requisito, un paquete de la WBS y dos KR. Debajo, el perfil resuelto de cada interesado con su procedencia."
+    },
+    {
+     "tipo": "contenido",
+     "titulo": "Del taller al acta y al perfil",
+     "puntos": [
+      "Transcripción VTT: 5 intervenciones de 4 hablantes",
+      "Decisión D-006: métricas de equipo, no individuales",
+      "Acción A-004: prototipo de Lucía para el 11/12",
+      "PF-005…PF-008: solo frases en primera persona",
+      "El sindicato pasa de resistente a neutral"
+     ],
+     "nota": "No se infieren emociones ni rasgos: la preocupación del delegado queda en el acta y se responde con una decisión, no va a su perfil. La frecuencia que pidió (quincenal) difiere de la matriz y se actualiza. Paso 8."
+    },
+    {
+     "tipo": "pregunta",
+     "titulo": "Para discutir",
+     "pregunta": "¿Los OKR pueden reemplazar a los beneficios del business case?",
+     "nota": "Respuesta esperada: no. Los KR son metas de ciclo, a veces aspiracionales; el beneficio tiene dueña, tolerancia de −10 % y revisión después del cierre. Por eso KR-1.1 apunta a 30 % y B-02 a 25 %."
+    },
+    {
+     "tipo": "ejercicio",
+     "titulo": "Ejercicio · parte A (10 minutos)",
+     "puntos": [
+      "Cinco interesados de tu proyecto: poder, interés y cuadrante",
+      "Compromiso actual y deseado, y su brecha",
+      "Canal y frecuencia que les prometiste",
+      "Un criterio de éxito: ¿beneficio o KR?"
+     ],
+     "nota": "Hoja en docs/webinar/E2E-3/ejercicio.md, parte A. Pedí que marquen qué frecuencias pidió la persona y cuáles supusieron ellos. La solución de referencia usa el escenario del caso."
+    },
+    {
+     "tipo": "cierre",
+     "titulo": "Lo que nos llevamos",
+     "puntos": [
+      "Un maestro único: una persona, un id",
+      "Preferencias declaradas y confirmadas, nunca inferidas",
+      "Beneficios con dueño y tolerancia; los OKR los complementan",
+      "Próxima clase: ¿estamos cumpliendo lo que prometimos?"
+     ],
+     "nota": "Cerrá con la pregunta de la clase 2. Pedí que traigan la fecha del último contacto con sus cinco interesados y su último informe de avance: los vamos a usar en la parte B del ejercicio."
+    }
+   ]
+  },
+  {
+   "numero": 2,
+   "titulo": "Del dato al reporte y al compromiso sostenido",
+   "duracion_min": 90,
+   "objetivos": [
+    "Retomar la sesión desde el contexto derivado de los registros",
+    "Armar un highlight report desde las salidas de los scripts y comprobar la cadena de reporte hasta el correo",
+    "Explicar por qué aprobar y enviar exigen confirmación humana",
+    "Leer la salud de un KR contra su avance esperado",
+    "Vigilar la cadencia de contacto (STK-12) y reevaluar la brecha en cada período"
+   ],
+   "diapositivas": [
+    {
+     "tipo": "seccion",
+     "titulo": "Clase 2 · Del dato al reporte y al compromiso sostenido",
+     "subtitulo": "¿Estamos cumpliendo lo que prometimos, y cómo nos enteramos a tiempo?",
+     "nota": "Repasá en un minuto la clase 1: maestro, frecuencias prometidas, beneficios con tolerancia. Hoy operamos el sistema durante tres meses de proyecto, del 11/12 al 19/2."
+    },
+    {
+     "tipo": "gancho",
+     "titulo": "¿El número del informe coincide con el del correo?",
+     "puntos": [
+      "El highlight se arma copiando cifras",
+      "El tablero dice una cosa y el correo otra",
+      "Nadie compara después de enviar",
+      "Aquí: 12 cifras comprobadas antes de enviar"
+     ],
+     "nota": "Preguntá cuántos recibieron alguna vez una corrección de la junta por un número que no coincidía. El caso muestra la cadena de reporte del paso 11."
+    },
+    {
+     "tipo": "indicadores",
+     "titulo": "Highlight al 8/1: cada tarjeta sale de un script",
+     "imagen": "docs/guias/img/g3-highlight-indicadores.png",
+     "puntos": [
+      "SPI 0,933 y CPI 0,942: ámbar dentro de la tolerancia",
+      "26 de 68 puntos terminados (38,2 %)",
+      "1 compromiso vencido: A-004"
+     ],
+     "nota": "Las seis tarjetas salen de evm-2027-01-08.json, avance-bmad.csv, okr.py y registro.py resumen. Ninguna se tipea. Paso 10."
+    },
+    {
+     "tipo": "contenido",
+     "titulo": "Al retomar la sesión el 8/1",
+     "subtitulo": "Lo que Claude ya sabe antes de que escribas",
+     "puntos": [
+      "Resumen derivado de los registros, en cada inicio de sesión",
+      "Acción vencida: A-004 (Lucía Benítez, 11/12)",
+      "Condición abierta: autorizar-etapa (27/11)",
+      "Próxima puerta: autorizar-etapa",
+      "Los registros mandan sobre cualquier nota de memoria"
+     ],
+     "nota": "El hook de inicio corre estado.py contexto: conteos, ids vencidos y condiciones, a lo sumo 2.000 caracteres y sin texto libre. Dos cosas que el highlight tiene que contar aparecen antes de preguntar. Si una nota de memoria dijera «prototipo entregado», manda el registro. Paso 10."
+    },
+    {
+     "tipo": "contenido",
+     "titulo": "Informe de aspectos destacados (highlight report)",
+     "puntos": [
+      "Informe periódico del gestor a la junta (PRINCE2)",
+      "Pronóstico contra la tolerancia, no el acumulado",
+      "Siete objetivos, cada semáforo con cifra y umbral",
+      "Decisiones que se piden a la junta, con fecha",
+      "Una página; el detalle, en anexos"
+     ],
+     "nota": "Es la pieza central de la gestión por excepción: la junta no se reúne a ver avance, lee el highlight y decide solo lo que excede la autoridad delegada. Reglas de pm-progreso-reportes."
+    },
+    {
+     "tipo": "tabla",
+     "titulo": "Cada sección del highlight, su fuente",
+     "tabla": {
+      "cab": [
+       "Sección",
+       "Fuente"
+      ],
+      "filas": [
+       [
+        "Tiempo y costo: SPI, CPI, EAC, semáforo",
+        "evm-2027-01-08.json"
+       ],
+       [
+        "Calidad, riesgos, acciones vencidas",
+        "registro.py resumen --json"
+       ],
+       [
+        "Puntaje y salud de los OKR",
+        "okr.py --corte --json"
+       ],
+       [
+        "Puertas y condiciones",
+        "puertas.py estado --markdown"
+       ],
+       [
+        "Burn-up y puntos terminados",
+        "avance-bmad.csv"
+       ],
+       [
+        "Alcance y beneficios",
+        "pronóstico del gestor, marcado"
+       ]
+      ]
+     },
+     "nota": "Lo único que escribe el gestor es el juicio: el pronóstico de alcance y de beneficios. Queda marcado como tal y cita las cifras en que se apoya."
+    },
+    {
+     "tipo": "imagen",
+     "titulo": "La bandeja (KR-2.3) cae a «en riesgo»",
+     "imagen": "docs/guias/img/g3-okr-salud.png",
+     "nota": "Margen frente al avance esperado. KR-2.3 estaba desviado el 11/12, se recupera con IN-1 el 23/12 y vuelve a caer: −19 pp el 8/1. Un 0,33 se lee distinto según la fecha. Paso 9."
+    },
+    {
+     "tipo": "demo",
+     "titulo": "Demo · highlight desde el dato (paso 10)",
+     "prompt": "Armá el highlight report del período 24/12 al 8/1 para la junta desde los datos: el corte de EVM guardado, los OKR al\n8/1, el resumen de registros, las puertas con sus condiciones y el avance de BMAD. Cada cifra con su fuente; marcá lo\nque sea pronóstico tuyo. En la fila de beneficios pronosticá B-01…B-03 contra su meta y la tolerancia de −10 % del\nenfoque de beneficios; los OKR van como complemento. Decisión pendiente para la junta: aprobar USD 4.000 de\ncontingencia para el incentivo del panel. Decime qué check-ins habría que publicar en Tability y mostrame el tablero y\nla vista de Sofía.",
+     "nota": "Mostrá el campo fuentes del frontmatter y las filas marcadas como pronóstico del gestor. Si avisa por la condición de la etapa (G-01): «Lucía ya planificó la prueba de carga de NFR-3 en el sprint 5; Laura Méndez, ejecutiva, la da por cumplida»."
+    },
+    {
+     "tipo": "tabla",
+     "titulo": "Semáforo del highlight al 8/1",
+     "tabla": {
+      "cab": [
+       "Objetivo",
+       "Estado",
+       "Cifra y umbral"
+      ],
+      "filas": [
+       [
+        "Tiempo",
+        "ámbar",
+        "SPI 0,933; desvío 6,7 % contra 10 %"
+       ],
+       [
+        "Costo",
+        "ámbar",
+        "CPI 0,942; sobrecosto 6,2 % contra 10 %"
+       ],
+       [
+        "Alcance",
+        "verde",
+        "Must en R1 (pronóstico del gestor)"
+       ],
+       [
+        "Calidad",
+        "verde",
+        "3 revisiones aprobadas, 0 abiertas"
+       ],
+       [
+        "Beneficios",
+        "ámbar",
+        "B-03 depende de la bandeja; hoy 80 h"
+       ],
+       [
+        "Riesgo",
+        "verde",
+        "1 abierto, 0 altos, 0 sin respuesta"
+       ]
+      ]
+     },
+     "nota": "Estado general ámbar. Los beneficios se pronostican contra los B-n y su tolerancia, no contra los KR: B-01 y B-02 siguen en meta; B-03 depende del KR en riesgo. El corte de EVM del 8/1 (SPI 0,933, CPI 0,942, EAC USD 131.676) queda guardado y la sanidad lo vigila en cada sesión: TOL-02 en ámbar y TOL-03 si pasan más de 31 días."
+    },
+    {
+     "tipo": "contenido",
+     "titulo": "Cadena de reporte antes de enviar",
+     "puntos": [
+      "Comunicado y mensaje ejecutivo: 4 cifras cada uno",
+      "Mensaje de Sofía: 8 cifras",
+      "Ninguna sin respaldo en el highlight",
+      "7 destinatarios, 5 borradores por perfil"
+     ],
+     "nota": "Regla 12 de pm-progreso-reportes: mismas cifras en el highlight, el tablero y los comunicados. En la corrida de referencia la comprobación la hace el script de la guía y se detiene si una cifra no tiene respaldo. Paso 11."
+    },
+    {
+     "tipo": "contenido",
+     "titulo": "Ningún correo sale sin una persona",
+     "puntos": [
+      "envios.py aprobar → pedido de permiso",
+      "enviar --confirmar → pedido de permiso",
+      "La simulación y registrar no lo piden: no envían",
+      "También para pm-director y con Bash preaprobado",
+      "Enviados y registrados: EN-001…EN-007"
+     ],
+     "nota": "El hook guardian.py responde «ask»: Claude Code detiene el comando y muestra el motivo; una persona dice sí o no. Una instrucción escondida en una transcripción no alcanza para que salga un correo. Quién aprobó queda en el mensaje (aprobado_por) y en envios.csv. Paso 11."
+    },
+    {
+     "tipo": "contenido",
+     "titulo": "STK-12: la frecuencia prometida, como control",
+     "puntos": [
+      "Gestionar de cerca, mantener satisfecho e informado",
+      "Último contacto enviado en envios.csv",
+      "Frecuencia del perfil: diaria 1 … trimestral 92 días",
+      "Tolerancia de 1,5 × el período",
+      "Corre en cada sesión, con la sanidad del hook"
+     ],
+     "nota": "Correo, chat, reunión o llamada cuentan si quedan registrados. Sin contacto propio, cuenta desde el primer envío del proyecto. Una frecuencia por hito se revisa en cada puerta. Paso 13."
+    },
+    {
+     "tipo": "demo",
+     "titulo": "Demo · ¿a quién descuidamos? (paso 13)",
+     "prompt": "Es 5/2. Verificá la integridad y la sanidad al 5/2: ¿a quién no estamos contactando con la frecuencia que le\nprometimos?",
+     "nota": "Deberían salir tres STK-12: TI 18 de 10 días, Martín 21 de 10 y Lucía 21 de 2. La sanidad: 0 ERROR · 3 AVISO · 1 INFO. Si pregunta si registra algo: «Todavía no; primero mostrame quién está atrasado»."
+    },
+    {
+     "tipo": "imagen",
+     "titulo": "Al 5/2, 3 de 9 interesados fuera de su cadencia",
+     "imagen": "docs/guias/img/g3-cadencia-stk12.png",
+     "nota": "Días desde el último contacto como porcentaje del máximo. Laura, Sofía y el sindicato están en 21 de 21: al día siguiente STK-12 los marcaría."
+    },
+    {
+     "tipo": "contenido",
+     "titulo": "Dos problemas distintos",
+     "puntos": [
+      "TI: el contacto no ocurrió (18 días)",
+      "Martín y Lucía: el checkpoint ocurre y no se registra",
+      "La «daily» no es un compromiso con un interesado",
+      "Corrección: EN-008…EN-010 y acción A-005",
+      "Reevaluación: TI pasa a resistente (brecha +2)"
+     ],
+     "nota": "El control obliga a revisar la frecuencia acordada, no solo a contactar. La retroalimentación de TI queda en la columna notas del contacto y cambia el plan de compromiso."
+    },
+    {
+     "tipo": "imagen",
+     "titulo": "La brecha baja de 7 a 3 niveles; TI cae y repunta",
+     "imagen": "docs/guias/img/g3-brecha-compromiso.png",
+     "nota": "Brecha por interesado al inicio, al 5/2 y al 19/2. El sindicato y los socios cierran su brecha; TI muestra que el compromiso también retrocede, y se recupera con contacto sostenido. Paso 14."
+    },
+    {
+     "tipo": "contenido",
+     "titulo": "Revisión periódica al 19/2",
+     "puntos": [
+      "Resumen quincenal del 5/2: EN-011…EN-013",
+      "Reuniones con TI del 12/2 y del 19/2; A-005 cumplida",
+      "STK-12 limpio; brecha total en 3 niveles",
+      "TOL-03: el último corte de EVM es del 8/1",
+      "Próximo resumen quincenal: vence el 26/2"
+     ],
+     "nota": "TOL-03 es el mismo patrón del caso, del lado del avance: el highlight dejó de salir con un corte nuevo y el control lo recuerda en cada sesión."
+    },
+    {
+     "tipo": "pregunta",
+     "titulo": "Para discutir",
+     "pregunta": "Laura, Sofía y el sindicato están en 21 de 21 días. ¿Hay que hacer algo?",
+     "nota": "Respuesta esperada: sí, contactarlos ahora; al día siguiente STK-12 los marcaría. En el paso 14 el resumen quincenal sale el 5/2 por el canal de cada uno y el próximo vence el 26/2."
+    },
+    {
+     "tipo": "ejercicio",
+     "titulo": "Ejercicio · parte B (10 minutos)",
+     "puntos": [
+      "Último contacto con tus cinco interesados",
+      "Días contra el máximo (frecuencia × 1,5)",
+      "Cinco cifras de tu último informe y su fuente",
+      "¿Coinciden en el informe, el tablero y el correo?"
+     ],
+     "nota": "Hoja en docs/webinar/E2E-3/ejercicio.md, parte B. Lo habitual es descubrir un contacto que ocurrió y no quedó registrado, y una cifra copiada a mano."
+    },
+    {
+     "tipo": "cierre",
+     "titulo": "Lo que nos llevamos",
+     "puntos": [
+      "El highlight sale del dato; el juicio, marcado",
+      "Un KR se lee contra su avance esperado",
+      "La frecuencia prometida se vigila sola (STK-12)",
+      "La brecha de compromiso se mide en cada período",
+      "Próximo caso: E2E-4, de la idea al cierre con BMAD"
+     ],
+     "nota": "Puente a E2E-4: aquí preparamos las puertas con un atajo y dejamos los beneficios con dueño y tolerancia. En E2E-4 se recorre el ciclo completo, se cierra la condición formal, se controla la calidad a volumen y se hace la primera revisión de beneficios."
+    }
+   ]
+  }
+ ],
+ "glosario": [
+  {
+   "termino": "Interesado (stakeholder)",
+   "definicion": "Persona o grupo que puede afectar al proyecto o verse afectado por él."
+  },
+  {
+   "termino": "Maestro de interesados",
+   "definicion": "Registro único de interesados (stakeholders.csv) que citan por id los OKR, la RACI, las preferencias y los envíos."
+  },
+  {
+   "termino": "Matriz poder/interés",
+   "definicion": "Ubica a cada interesado en un cuadrante según su poder y su interés, y le asigna una estrategia. Un valor «medio» es frontera: la convención del paquete lo ubica del lado alto."
+  },
+  {
+   "termino": "Matriz de evaluación del compromiso",
+   "definicion": "Técnica del PMBOK que compara el compromiso actual y el deseado de cada interesado."
+  },
+  {
+   "termino": "Brecha de compromiso",
+   "definicion": "Niveles que faltan entre el compromiso actual y el deseado (desconocedor, resistente, neutral, partidario, líder)."
+  },
+  {
+   "termino": "Plan de compromiso de los interesados",
+   "definicion": "Acciones con dueño y fecha para cerrar cada brecha de compromiso."
+  },
+  {
+   "termino": "Estereotipo de audiencia",
+   "definicion": "Perfil tipo (por ejemplo, dirección-patrocinador) con canal, formato y frecuencia por defecto."
+  },
+  {
+   "termino": "Preferencia declarada",
+   "definicion": "Lo que la persona pidió en primera persona, con cita y fuente, confirmado por el gestor."
+  },
+  {
+   "termino": "Perfil de comunicación",
+   "definicion": "Canal, formato, detalle, frecuencia y horario resueltos para un interesado, con la procedencia de cada valor."
+  },
+  {
+   "termino": "Matriz RACI",
+   "definicion": "Quién es responsable (R), aprobador (A), consultado (C) e informado (I) en cada elemento; un solo A."
+  },
+  {
+   "termino": "Beneficio (B-n)",
+   "definicion": "Mejora medible comprometida en el business case, con dueño, línea base, meta, fecha y tolerancia."
+  },
+  {
+   "termino": "Enfoque de beneficios",
+   "definicion": "Cómo, cuándo y quién mide cada beneficio, incluso después del cierre del proyecto."
+  },
+  {
+   "termino": "OKR",
+   "definicion": "Objetivos y resultados clave: metas de ciclo que complementan los beneficios y se siguen con check-ins (mediciones fechadas con su confianza)."
+  },
+  {
+   "termino": "Salud de un KR",
+   "definicion": "Puntaje frente al avance esperado a la fecha: en camino, en riesgo o desviado."
+  },
+  {
+   "termino": "Informe de aspectos destacados (highlight report)",
+   "definicion": "Informe periódico del gestor a la junta: pronóstico contra tolerancias, decisiones que se piden y puertas."
+  },
+  {
+   "termino": "Cadena de reporte",
+   "definicion": "Comprobación de que las mismas cifras aparecen en el highlight, el tablero y los comunicados."
+  },
+  {
+   "termino": "Tolerancia",
+   "definicion": "Desvío permitido sobre un objetivo antes de escalar a la junta (gestión por excepción)."
+  },
+  {
+   "termino": "Valor ganado (EVM)",
+   "definicion": "Mide avance y costo con PV, EV y AC; de ahí SPI, CPI y el pronóstico EAC."
+  },
+  {
+   "termino": "Junta del proyecto (project board)",
+   "definicion": "Ejecutiva, usuaria sénior y proveedor sénior: autoriza las puertas y decide las excepciones."
+  },
+  {
+   "termino": "Capa de canales",
+   "definicion": "Envía y registra comunicaciones aprobadas por correo, Teams, Slack, .eml o un conector MCP (envios.py)."
+  },
+  {
+   "termino": "Contexto de sesión",
+   "definicion": "Resumen derivado de estado.json y los registros que el hook de inicio agrega en cada sesión; prevalece sobre la memoria."
+  },
+  {
+   "termino": "Confirmación humana (pedido de permiso)",
+   "definicion": "Antes de envios.py aprobar y enviar --confirmar, Claude Code se detiene y una persona confirma o rechaza (hook guardian.py)."
+  },
+  {
+   "termino": "STK-12",
+   "definicion": "Control de cadencia de contacto: avisa si un interesado lleva más de 1,5 × su frecuencia sin contacto registrado."
+  },
+  {
+   "termino": "TOL-03",
+   "definicion": "Aviso de sanidad: etapa de entrega sin corte de EVM guardado o con el último de más de 31 días."
+  },
+  {
+   "termino": "P-04",
+   "definicion": "Control de la puerta autorizar-proyecto: criterios de éxito solo en OKR o beneficios sin enfoque."
+  }
+ ]
+}

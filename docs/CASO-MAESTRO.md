@@ -6,7 +6,7 @@ La regla de fondo es la de `SPEC.md` §0: **PRINCE2 define qué se hace, cuándo
 
 > **Origen de las cifras.** Todo lo que sigue sale de una corrida real del 2026-10-17 con los scripts vigentes del paquete, sobre una copia del fixture `scripts/pruebas/fixtures/bmad-v6`. Las decisiones humanas están **simuladas** y se marcan así: `[simulado]`. Las fechas del caso (2026-10 → 2027-05) se pasan con `--fecha`. Algunos scripts no aceptan `--fecha` (`bmad.py linea-base` y `bmad.py handoff`), por eso esas filas quedan con la fecha de la corrida (ver *Lecciones del caso*).
 >
-> **Versión 2.2.0.** La corrida se hizo con la 2.1.0 y sus cifras no cambian. En la 2.2 los interesados y la RACI pasan a la skill `pm-interesados` (maestro de interesados) y los comunicados pueden enviarse por la capa de canales; los pasos 6, 15 y 25 lo indican con una nota «En 2.2». El recorrido completo de esas capacidades, con salidas reales, está en la guía [E2E-3](guias/E2E-3-interesados-okr-avance.md).
+> **Corrida de referencia.** El caso se corrió con la versión 2.1.0 del paquete y sus cifras siguen vigentes. Los interesados y la RACI son de la skill `pm-interesados` (maestro de interesados) y los comunicados pueden enviarse por la capa de canales; los pasos 6, 15 y 25 lo indican con una nota «Con el maestro de interesados» o «Con la capa de canales». El recorrido completo de esas capacidades, con salidas reales, está en la guía [E2E-3](guias/E2E-3-interesados-okr-avance.md).
 
 ---
 
@@ -105,8 +105,8 @@ flowchart TB
 | Agente / skill | mantenedor |
 | Rol humano y decisión | ninguna |
 | Entradas (cómo las aporta el usuario) | el paquete pm-method instalado y el repositorio del producto con BMAD. En el caso, `repo/` es una copia de `scripts/pruebas/fixtures/bmad-v6` que el usuario prepara en su terminal |
-| Salidas y dónde verificarlas | ninguna dentro de `gestion/` (todavía no existe). Se verifica en la salida de `validar_paquete.py`: `Skills: 38 … · Agentes: 6` → `OK` |
-| Resultado | `Skills: 38 (32 invocables por el modelo, listado 6546 caracteres) · Agentes: 6` → `OK` (versión 2.2.0) |
+| Salidas y dónde verificarlas | ninguna dentro de `gestion/` (todavía no existe). Se verifica en la salida de `validar_paquete.py`: `Skills: 39 … · Agentes: 6` → `OK` |
+| Resultado | `Skills: 39 (33 invocables por el modelo, listado 6817 caracteres) · Agentes: 6` → `OK` (versión 2.3.0; en la corrida con 2.1.0, 37 skills) |
 
 *Comandos que escribe el usuario en su terminal:*
 
@@ -266,7 +266,7 @@ python3 $EST/registro.py --proyecto gestion agregar stakeholders --campo "nombre
   --campo nivel_compromiso_deseado=neutral --campo confidencial=si
 ```
 
-*En 2.2:* después del alta, `pm-interesados` corre `interesados.py --proyecto gestion matriz`, que ubica a cada interesado en su cuadrante (gestionar de cerca, mantener satisfecho, mantener informado, monitorear) con la estrategia que le corresponde y marca como frontera los valores «medio» (el sindicato, con poder medio e interés alto, queda en «gestionar de cerca» como frontera). Esta corrida es anterior y no lo ejecutó; la salida real con diez interesados está en la guía E2E-3, paso 3, y en [CASOS-DE-USO](CASOS-DE-USO.md) caso 38.
+*Con el maestro de interesados:* después del alta, `pm-interesados` corre `interesados.py --proyecto gestion matriz`, que ubica a cada interesado en su cuadrante (gestionar de cerca, mantener satisfecho, mantener informado, monitorear) con la estrategia que le corresponde y marca como frontera los valores «medio» (el sindicato, con poder medio e interés alto, queda en «gestionar de cerca» como frontera). Esta corrida es anterior y no lo ejecutó; la salida real con diez interesados está en la guía E2E-3, paso 3, y en [CASOS-DE-USO](CASOS-DE-USO.md) caso 38.
 
 ### Paso 7 · Riesgos con P×I y valor esperado
 
@@ -476,7 +476,7 @@ python3 <pm-okr>/scripts/okr.py gestion/00-direccion/okr.csv --corte 2026-11-02 
 | Salidas y dónde verificarlas | `gestion/00-direccion/matriz-raci.md`, `gestion/02-planificacion/enfoques/enfoques-gestion.md`, `gestion/02-planificacion/adquisiciones/estrategia-adquisiciones.md`, `gestion/02-planificacion/plan-proyecto.md`, `gestion/02-planificacion/plan-etapa-2.md`, `gestion/00-direccion/pid.md`; la aprobación de la RACI quedó como D-048 en `decisiones.csv`. Verificar: abrir cada archivo; en la RACI, filas "Uso de la reserva de gestión" (A = Ejecutivo) y "Solicitudes de cambio ≤ USD 5.000" (A = Usuario sénior) |
 | Resultado | RACI: "Uso de la reserva de gestión" A = Ejecutivo; "Solicitudes de cambio ≤ USD 5.000" A = Usuario sénior; "PRD y épicas (BMAD)" A = Usuario sénior, R = jefa de equipo. En la corrida la RACI se registró al final (`aprobar … --fecha 2026-11-06`) y por eso su decisión es D-048 |
 
-*En 2.2:* la RACI además puede cargarse en el registro `raci.csv` (una fila por elemento × interesado, con `registro.py agregar raci`), que la valida al escribir: exactamente un A por elemento (un segundo A se rechaza), interesados existentes en el maestro y sin filas duplicadas. `interesados.py raci --markdown …` genera la matriz desde ese registro, con los títulos tomados de su fuente (épicas y requisitos de BMAD por la fachada, paquetes de la WBS, KR de `okr.csv`); las filas de autoridad de este caso, como «Uso de la reserva de gestión», quedan como elementos de texto libre, que no se validan contra una fuente. Ejemplo real en la guía E2E-3, paso 7, y en [CASOS-DE-USO](CASOS-DE-USO.md) caso 42.
+*Con el maestro de interesados:* la RACI además puede cargarse en el registro `raci.csv` (una fila por elemento × interesado, con `registro.py agregar raci`), que la valida al escribir: exactamente un A por elemento (un segundo A se rechaza), interesados existentes en el maestro y sin filas duplicadas. `interesados.py raci --markdown …` genera la matriz desde ese registro, con los títulos tomados de su fuente (épicas y requisitos de BMAD por la fachada, paquetes de la WBS, KR de `okr.csv`); las filas de autoridad de este caso, como «Uso de la reserva de gestión», quedan como elementos de texto libre, que no se validan contra una fuente. Ejemplo real en la guía E2E-3, paso 7, y en [CASOS-DE-USO](CASOS-DE-USO.md) caso 42.
 
 ### Paso 16 · Sanidad antes de la puerta: un aviso real y su corrección
 
@@ -715,7 +715,7 @@ python3 $EST/evm.py --pv 52000 --ev 47000 --ac 50000 --bac 95000 --modo agil --p
 python3 $EST/registro.py --proyecto gestion resumen --corte 2026-12-10
 ```
 
-*En 2.2:* una vez revisado, el highlight puede llegar a cada miembro de la junta adaptado a su perfil de comunicación por la capa de canales: `envios.py nuevo --origen 03-control/reportes/2026-12-10-highlight-report.md --audiencia … --proposito informe` (o `interesados.py plan-envio`) crea un borrador por destinatario; el gestor los aprueba (`envios.py aprobar … --por "Gestor: Martín Suárez"`), `envios.py enviar` simula y solo con `--confirmar` envía por correo, Teams, Slack o `.eml`, con registro en `envios.csv` y `diario.md`. Esta corrida es anterior y no lo ejecutó; ver [CASOS-DE-USO](CASOS-DE-USO.md) caso 44.
+*Con la capa de canales:* una vez revisado, el highlight puede llegar a cada miembro de la junta adaptado a su perfil de comunicación por la capa de canales: `envios.py nuevo --origen 03-control/reportes/2026-12-10-highlight-report.md --audiencia … --proposito informe` (o `interesados.py plan-envio`) crea un borrador por destinatario; el gestor los aprueba (`envios.py aprobar … --por "Gestor: Martín Suárez"`), `envios.py enviar` simula y solo con `--confirmar` envía por correo, Teams, Slack o `.eml`, con registro en `envios.csv` y `diario.md`. Esta corrida es anterior y no lo ejecutó; ver [CASOS-DE-USO](CASOS-DE-USO.md) caso 44.
 
 ### Paso 26 · Escenario de excepción (sobre una copia del proyecto)
 
@@ -986,7 +986,7 @@ Proyecto cerrado. Pendiente fuera del proyecto: revisiones de beneficios según 
 ### Integridad al final
 
 - **BMAD:** al comparar las huellas sha256 del principio y del final, solo cambiaron los tres archivos que editó el "equipo BMAD": `prd.md`, `epics.md` y `sprint-status.yaml`. Ningún script de pm-method escribió en `_bmad*`.
-- **Regresión:** `scripts/probar_paquete.py` → **138 OK · 0 FALLO** en la versión 2.2.0 (BMAD v6, v6.12.4 real, v4, sin BMAD, hook guardian, ciclo de puertas, regresiones, maestro de interesados y canales, riesgos desde cuatro fuentes y controles permanentes; 80 OK cuando se recorrió este caso con 2.1.0).
+- **Regresión:** `scripts/probar_paquete.py` → **216 OK · 0 FALLO** con la versión 2.3.0 (80 OK cuando se recorrió este caso con 2.1.0); detalle de los casos en [PRUEBAS §2](PRUEBAS.md).
 
 ---
 

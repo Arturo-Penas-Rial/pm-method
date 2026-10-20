@@ -1,0 +1,624 @@
+{
+  "caso": "E2E-2",
+  "titulo": "Alcance, cambio y mapa de ruta",
+  "subtitulo": "Del alcance por productos a la gestión por excepción, con impacto medido antes de cada decisión",
+  "clases": [
+    {
+      "numero": 1,
+      "titulo": "Del alcance a la línea base",
+      "duracion_min": 90,
+      "objetivos": [
+        "Leer un alcance por productos con criterios de calidad y su cobertura de trazabilidad",
+        "Leer un camino crítico y calcular una reserva a 2σ con PERT",
+        "Fijar la línea base de cambio: tolerancias, límite por cambio, presupuesto de cambio y VAN"
+      ],
+      "diapositivas": [
+        {
+          "tipo": "gancho",
+          "titulo": "El 19/2 un cambio iba a llevar el presupuesto al 200 %",
+          "puntos": [
+            "Venía \"aprobado\" de palabra",
+            "Un cambio obligatorio de 15.000",
+            "Quien lo aprobó tenía un límite de 10.000",
+            "¿Lo habrías frenado antes de comprometer el gasto?"
+          ],
+          "nota": "Contá la historia al revés: primero el resultado, después la pregunta. No expliques todavía cómo se detectó: es el cierre de la clase 2. Pedí que levanten la mano quienes lo habrían visto a tiempo en su proyecto."
+        },
+        {
+          "tipo": "pregunta",
+          "titulo": "Mano alzada",
+          "pregunta": "¿Cuántos tienen hoy una matriz de trazabilidad actualizada?",
+          "nota": "Esperá pocas manos. Respuesta esperada: se arma una vez en la planificación y se abandona con el primer cambio. En el paso 8 vamos a ver que se puede recalcular en cada sincronización."
+        },
+        {
+          "tipo": "tabla",
+          "titulo": "Del uso único al control continuo",
+          "tabla": {
+            "cab": [
+              "Actividad",
+              "Hoy",
+              "Con pm-method",
+              "Indicador"
+            ],
+            "filas": [
+              [
+                "Trazabilidad",
+                "Matriz armada una vez",
+                "Se recalcula en cada sincronización",
+                "13 de 13 requisitos"
+              ],
+              [
+                "Impacto de un cambio",
+                "A ojo o nunca",
+                "Tabla de impacto antes de decidir, con VAN",
+                "+11 días; 200 %; VAN 30.939"
+              ],
+              [
+                "Presupuesto de cambio",
+                "Nadie lo suma",
+                "registro.py y CAM-03",
+                "75 %: C-002 no entra sin saldo"
+              ],
+              [
+                "Autoridad delegada",
+                "Sin tope escrito",
+                "registro.py contra el límite",
+                "15.000 sobre 10.000: rechazado"
+              ],
+              [
+                "Pronóstico",
+                "Planilla al fin de etapa",
+                "Corte guardado · TOL-01",
+                "10,3 % → 22,1 %"
+              ],
+              [
+                "Excepción",
+                "Se explica al cierre",
+                "Informe, plan y puerta",
+                "Aprobada el 26/2"
+              ]
+            ]
+          },
+          "nota": "Esta es la tesis del caso: actividades que hoy se hacen una vez, a mano o nunca, pasan a ser controles que corren solos. Cada fila tiene un código de control y un indicador que vamos a ver en las dos clases."
+        },
+        {
+          "tipo": "contenido",
+          "titulo": "Producto antes que tarea",
+          "puntos": [
+            "PBS: qué se entrega; WBS: con qué trabajo y costo",
+            "Descripción de producto: qué significa terminado",
+            "CA-02: consultas con p95 menor a 3 s",
+            "Quién acepta: Sofía Ramírez, usuaria sénior",
+            "Cada paquete de la WBS cita sus requisitos"
+          ],
+          "nota": "PRINCE2 planifica por productos. La descripción de producto evita que la calidad se discuta en la UAT: fija medidas y quién acepta. La columna ref de la WBS cita los ids de BMAD, y eso permite trazar."
+        },
+        {
+          "tipo": "demo",
+          "titulo": "Demo · Paso 2: WBS, descripciones y trazabilidad",
+          "prompt": "Armá la WBS por productos con estos paquetes y su referencia a la especificación (USD 50 la hora): 1.1 Gestión de etapas 400 h · 2.1 Brief, PRD, UX y arquitectura (BMAD) 240 h (UJ-1, UJ-2, UJ-3) · 3.1 Acceso seguro 420 h (FR-1, FR-2, FR-11, historias 1.1 y 1.2) · 3.2 Consulta y constancias 380 h (FR-3, FR-4, FR-5, historias 1.3 y 1.4) · 3.3 Solicitudes del socio 440 h (FR-6, FR-7, FR-8, FR-12, historias 2.1 a 2.3) · 4.1 Bandeja y resolución 400 h (FR-9, FR-10, historias 3.1 a 3.3) · 5.1 UAT, prueba de carga y capacitación 200 h (NFR-2, NFR-3) · 5.2 Puesta en producción (hito). Generá el diagrama, el diccionario y la matriz de trazabilidad, y decime si queda algún requisito sin cubrir. Escribí también la descripción del producto del proyecto con los criterios de aceptación priorizados y la descripción de producto del 3.1 Acceso seguro con sus especificaciones de calidad, métodos de calidad y quién acepta.",
+          "nota": "Copiá el prompt tal cual. Si pregunta por los criterios de calidad, respondé con el texto de Sofía de la guía. Señalá en la salida el total de la WBS y la línea de trazabilidad sin huecos."
+        },
+        {
+          "tipo": "contenido",
+          "titulo": "Qué deberías ver en el paso 2",
+          "puntos": [
+            "13 elementos, 8 hojas · 2.480 h · 124.000",
+            "Ningún requisito funcional sin historia",
+            "Ninguna referencia de la WBS a ids inexistentes",
+            "Cobertura: 12 de 12 con historia y paquete",
+            "Sanidad: 0 ERROR · 0 AVISO · 0 INFO"
+          ],
+          "nota": "Estas cifras salen de la evidencia de referencia. Remarcá que la cobertura es un número que se puede volver a calcular: lo vamos a comparar en el paso 8, después del primer cambio."
+        },
+        {
+          "tipo": "contenido",
+          "titulo": "PERT y camino crítico",
+          "puntos": [
+            "Tres estimaciones: optimista, más probable, pesimista",
+            "tE = (O + 4M + P) / 6 · σ = (P − O) / 6",
+            "Camino crítico: actividades sin holgura",
+            "σ del camino = √Σσ² · reserva a 2σ",
+            "La reserva cubre la incertidumbre, no los cambios"
+          ],
+          "nota": "Para el público de negocio: el camino crítico es la cadena que fija la fecha; si una actividad se atrasa, se atrasa el proyecto. La reserva a 2σ cubre lo que no sabemos de las estimaciones, no los cambios de alcance."
+        },
+        {
+          "tipo": "demo",
+          "titulo": "Demo · Paso 3: PERT, camino crítico y reserva",
+          "prompt": "Estimá con PERT de tres puntos las actividades y armá el cronograma con camino crítico desde el 30/11, con exportación a MS Project. Lucía va a validar los valores. Calculá la reserva de cronograma a 2σ del camino crítico.",
+          "nota": "Si pregunta por los valores, usá la tabla de Lucía de la guía. Mostrá en la salida la duración total, el fin previsto y la línea del camino crítico, y después la reserva calculada."
+        },
+        {
+          "tipo": "imagen",
+          "titulo": "Camino crítico: 110 días, fin el 3/5/2027",
+          "imagen": "docs/guias/img/g2-gantt.png",
+          "nota": "Cinco actividades sin holgura, en naranja, fijan el fin. A04 tiene 3 días de holgura y A02, 34. La reserva a 2σ es de 13,0 días laborables, dentro de la tolerancia de 15 que fija la junta en el paso 5."
+        },
+        {
+          "tipo": "contenido",
+          "titulo": "MoSCoW: el margen del product owner",
+          "puntos": [
+            "Must: sin esto no hay producto",
+            "Should y Could: lo que se puede mover",
+            "Orden: MoSCoW y después valor sobre puntos",
+            "R1: 47 de 48 puntos · R2: 21 de 24",
+            "Margen de alcance: 20 % Should/Could"
+          ],
+          "nota": "En un proyecto de costo y fecha fijos, Should y Could son el colchón. El PO puede intercambiarlos sin pedir permiso, siempre que no toque Must, fecha ni costo. Ese 20 % vuelve en el EVM de la clase 2."
+        },
+        {
+          "tipo": "tabla",
+          "titulo": "Tres números que fija la junta",
+          "tabla": {
+            "cab": [
+              "Elemento",
+              "Valor",
+              "Quién lo usa",
+              "Control"
+            ],
+            "filas": [
+              [
+                "Tolerancia de tiempo",
+                "±3 semanas",
+                "Gestor y junta",
+                "TOL-01"
+              ],
+              [
+                "Tolerancia de costo",
+                "±8 %",
+                "Gestor y junta",
+                "TOL-01"
+              ],
+              [
+                "Límite por cambio",
+                "10.000",
+                "Autoridad de cambio",
+                "registro.py · CAM-04"
+              ],
+              [
+                "Presupuesto de cambio",
+                "12.000",
+                "Autoridad de cambio",
+                "registro.py · CAM-03"
+              ]
+            ]
+          },
+          "nota": "Esta es la línea base de cambio. Sin estos números escritos, la autoridad de cambio aprueba lo razonable y nadie suma. Con ellos en estado.json, registro.py no deja registrar una aprobación que los supere y sanidad compara cada cambio aprobado de forma continua."
+        },
+        {
+          "tipo": "demo",
+          "titulo": "Demo · Paso 5: presupuesto, business case y línea base",
+          "prompt": "Calculá el presupuesto desde la WBS, armá el release plan y el roadmap por etapas con las puertas, y preparame las puertas de inicio, proyecto y etapa 2. Antes de la de proyecto: documentá las tolerancias y la autoridad delegada (Sofía decide cambios de hasta 10.000 cada uno, con un presupuesto de cambio de 12.000 que fija la junta) y el enfoque de beneficios (B-01 a B-03, quién los mide y cuándo). En la de proyecto fijá la línea base del PRD y de las épicas, y que Sofía apruebe el backlog como línea base.",
+          "nota": "Respondé como Sofía y Laura con el texto de la guía, incluida la tabla de flujos del business case. Mostrá el VAN de inversion.py, el comando estado.py presupuesto que registra la decisión y la verificación de la puerta de proyecto."
+        },
+        {
+          "tipo": "contenido",
+          "titulo": "Qué deja la línea base",
+          "puntos": [
+            "BAC: 124.000 desde la WBS",
+            "Business case: VAN 39.776 a 5 años",
+            "PRD, épicas y backlog v1.0 con copia congelada",
+            "Puerta de proyecto: L-01, P-09 y P-10",
+            "Sin aviso P-04: enfoque de beneficios registrado"
+          ],
+          "nota": "El VAN sale de inversion.py con los flujos que da Sofía y la tasa de 10 % de la cooperativa; B-01 puede caer 23 % antes de que el VAN llegue a 0. El bloqueo L-01 es la lista de control, que Laura confirma; P-09 y P-10 se trabajan en E2E-3. Desde acá, todo cambio se mide contra esta foto."
+        },
+        {
+          "tipo": "pregunta",
+          "titulo": "Discusión",
+          "pregunta": "¿Quién aprueba un cambio de 9.000? ¿Y uno de 15.000?",
+          "nota": "Respuesta esperada: 9.000 lo aprueba la autoridad de cambio si queda saldo en el presupuesto de cambio. 15.000 supera el límite de 10.000 y lo decide la junta. Dejá la pregunta abierta: es el hilo de la clase 2."
+        },
+        {
+          "tipo": "ejercicio",
+          "titulo": "Ejercicio · Parte A: tu línea base de cambio",
+          "puntos": [
+            "Completá los tres números de tu proyecto",
+            "Calculá tu margen de Should/Could",
+            "¿Cuándo se actualizó tu trazabilidad?",
+            "Autoevaluate con la tabla de criterios",
+            "10 minutos"
+          ],
+          "nota": "Repartí la hoja de ejercicio.md. Si alguien no tiene esos números, ese es el hallazgo: anotarlo como no definido. Pedí uno o dos voluntarios para compartir su respuesta en el cierre."
+        },
+        {
+          "tipo": "cierre",
+          "titulo": "Mensajes clave de la clase 1",
+          "puntos": [
+            "El alcance es una lista de productos con criterios",
+            "La trazabilidad sirve si se recalcula",
+            "La línea base de cambio son tres números de la junta",
+            "Próxima clase: tres cambios bajo control"
+          ],
+          "nota": "Resumí los tres mensajes y anticipá la clase 2: un intercambio del PO, un cambio de alcance y una excepción. Pedí que traigan un cambio real de su proyecto para la parte B del ejercicio."
+        }
+      ]
+    },
+    {
+      "numero": 2,
+      "titulo": "El cambio bajo control",
+      "duracion_min": 90,
+      "objetivos": [
+        "Distinguir los tres caminos de un cambio y su dueño",
+        "Armar una tabla de impacto antes de decidir, con el VAN del business case",
+        "Reconocer y recorrer una excepción hasta la puerta de la junta"
+      ],
+      "diapositivas": [
+        {
+          "tipo": "gancho",
+          "titulo": "¿Quién aprobó esto y cuándo se enteró la junta?",
+          "puntos": [
+            "Presupuesto de cambio: 12.000",
+            "Límite por cambio: 10.000",
+            "Tolerancia de tiempo: ±3 semanas",
+            "Mirá la barra roja de la próxima diapositiva"
+          ],
+          "nota": "Repasá en un minuto la línea base de la clase 1 con estos tres números y prepará la imagen siguiente. La pregunta queda abierta hasta el paso 10, donde se ve cómo se detectó."
+        },
+        {
+          "tipo": "imagen",
+          "titulo": "Sin saldo para C-002: quedó pendiente de la junta",
+          "imagen": "docs/guias/img/g2-consumo-cambio.png",
+          "nota": "75 % tras C-001; el 19/2, el 200 % que habría sumado C-002 si se registraba la aprobación de Sofía (registro.py la rechazó y el consumo siguió en 75 %); 75 % cuando la junta amplía el tope a 32.000 y aprueba C-002."
+        },
+        {
+          "tipo": "tabla",
+          "titulo": "Tres caminos de un cambio",
+          "tabla": {
+            "cab": [
+              "Camino",
+              "Quién decide",
+              "Cuándo",
+              "En el caso"
+            ],
+            "filas": [
+              [
+                "Intercambio",
+                "Product owner",
+                "Should/Could sin tocar Must, fecha ni costo",
+                "D-009"
+              ],
+              [
+                "Cambio de alcance",
+                "Autoridad de cambio",
+                "Dentro del límite y del saldo",
+                "C-001 · 9.000"
+              ],
+              [
+                "Excepción",
+                "Junta",
+                "Supera límite, presupuesto o tolerancia",
+                "C-002 · 15.000"
+              ]
+            ]
+          },
+          "nota": "Cada camino tiene dueño. La pregunta no es si el cambio es bueno, sino quién tiene autoridad para decidirlo. Vamos a recorrer los tres con el mismo proyecto."
+        },
+        {
+          "tipo": "contenido",
+          "titulo": "Paso 6 · El intercambio del product owner",
+          "puntos": [
+            "La 2.3 (Could) pasa a R1 y la 1.4 (Should) a R2",
+            "Sin tocar Must, fecha ni costo",
+            "Decisión D-009, nivel product-owner",
+            "Sin solicitud de cambio",
+            "Traspaso de prioridades a BMAD"
+          ],
+          "nota": "Primer camino, el más liviano. pm-agil-hibrido verifica que el intercambio está permitido y lo registra como decisión del PO. El equipo BMAD recibe las prioridades para el sprint planning."
+        },
+        {
+          "tipo": "demo",
+          "titulo": "Demo · Paso 7: cambio de alcance con análisis de impacto",
+          "prompt": "Verificá la especificación contra la línea base. Si hay algo nuevo, registralo como solicitud de cambio y analizá el impacto antes de decidir: paquete de la WBS nuevo, esfuerzo, camino crítico, reserva de cronograma, costo, presupuesto de cambio, autoridad, capacidad del release y beneficios. Estimá el simulador en O 8, M 10, P 16 días después de los sprints de solicitudes. Si la reserva de cronograma queda chica, registralo como riesgo.",
+          "nota": "Copiá el prompt tal cual. Si pregunta la decisión, respondé como Sofía: aprobado contra el presupuesto de cambio. Antes de esa respuesta, mostrá la tabla de impacto en la salida."
+        },
+        {
+          "tipo": "tabla",
+          "titulo": "Tabla de impacto de C-001, antes de decidir",
+          "tabla": {
+            "cab": [
+              "Objetivo",
+              "Con C-001",
+              "Contra qué",
+              "Lectura"
+            ],
+            "filas": [
+              [
+                "Tiempo",
+                "121 días (+11)",
+                "±3 semanas = 15 días",
+                "Dentro: 73 %"
+              ],
+              [
+                "Reserva",
+                "13,0 − 11 = 2,0 días",
+                "Atraso posible",
+                "Riesgo R-001"
+              ],
+              [
+                "Presupuesto de cambio",
+                "9.000 de 12.000 (75 %)",
+                "CAM-03",
+                "Dentro del saldo"
+              ],
+              [
+                "Autoridad",
+                "9.000 en un cambio",
+                "Límite 10.000",
+                "Decide Sofía"
+              ],
+              [
+                "Capacidad del R2",
+                "29 pts de 24",
+                "Velocidad 8",
+                "+1 sprint (32)"
+              ],
+              [
+                "Business case",
+                "VAN 45.939 (+6.163)",
+                "VAN de la línea base",
+                "Se paga solo"
+              ]
+            ]
+          },
+          "nota": "Recorré la tabla fila por fila. La pregunta habitual es cuánto cuesta; las que se olvidan son la reserva, la capacidad, la autoridad y el valor. Con esta tabla la decisión de Sofía es informada y sale con condiciones: R-001 y el sprint 10."
+        },
+        {
+          "tipo": "imagen",
+          "titulo": "C-001 no mueve el Release 1 y corre 11 días la puesta en producción",
+          "imagen": "docs/guias/img/g2-roadmap-c001.png",
+          "nota": "El Release 1 sigue en el día 68. UAT y puesta en producción pasan de 110 a 121 días laborables: del 3/5 al 18/5, dentro de la tolerancia de 15 días."
+        },
+        {
+          "tipo": "imagen",
+          "titulo": "Tras C-001: 13 de 13 requisitos con historia y paquete",
+          "imagen": "docs/guias/img/g2-trazabilidad.png",
+          "nota": "Paso 8: el equipo BMAD aplicó el traspaso y la cobertura se recalculó sola. La barra ámbar indica que BMAD traza 12 requisitos a nivel de épica: una mejora para el equipo de producto, no un hueco de alcance."
+        },
+        {
+          "tipo": "contenido",
+          "titulo": "Paso 9 · EVM ágil: alcance que no entra",
+          "puntos": [
+            "Corte 29/1: SPI 0,867 · CPI 0,897",
+            "Con costo y fecha fijos, EAC > BAC = alcance",
+            "No entra el 10,3 %: menos que el 20 % de margen",
+            "SPI < 0,90 activa el disparador de R-001",
+            "Q-001 cubre lo terminado: sin QUA-01"
+          ],
+          "nota": "Para el público de negocio: en ágil no se pide más plata, se recorta alcance. Mientras lo que no entra quepa en Should y Could, el PO lo resuelve: es la respuesta que R-001 ya tenía prevista. TOL-02 deja el ámbar a la vista y el corte queda guardado."
+        },
+        {
+          "tipo": "demo",
+          "titulo": "Demo · Paso 10: el cambio que excede la autoridad",
+          "prompt": "Registrá el requisito regulatorio como solicitud de cambio: paquete nuevo 3.5, 13 puntos Must en R1, +1 sprint en la etapa 2, USD 15.000. Sofía lo aprobó el 17/2 porque es obligatorio: registralo. Guardá el corte de EVM del 19/2 (PV 75.000, EV 60.000, AC 77.000, BAC 133.000, ágil, 20 % Should/Could), corré sanidad al 19/2 y armá la tabla de impacto de C-002. Si hay excepción, prepará el informe de excepción para la junta y registrá el issue.",
+          "nota": "Corré solo el prompt 1 en vivo. Los prompts 2 y 3, de la junta, se leen en voz alta y se muestran en la evidencia para no depender de dos rondas más."
+        },
+        {
+          "tipo": "contenido",
+          "titulo": "19/2: la aprobación fuera de la autoridad no se registra",
+          "puntos": [
+            "registro.py rechaza la aprobación de Sofía",
+            "15.000 supera su límite de 10.000",
+            "Sin saldo: 24.000 de 12.000 (200 %)",
+            "C-002 queda pendiente-decision y se escala",
+            "AVISO TOL-01: alcance en rojo, sin excepción abierta"
+          ],
+          "nota": "Este es el momento clave del caso: la aprobación fuera de la autoridad se frena el mismo día, antes de comprometer el gasto. C-002 espera la decisión de la junta y no consume presupuesto; sanidad marca a la vez el pronóstico fuera de tolerancia (TOL-01)."
+        },
+        {
+          "tipo": "tabla",
+          "titulo": "Tabla de impacto de C-002",
+          "tabla": {
+            "cab": [
+              "Objetivo",
+              "Con C-002",
+              "Contra qué",
+              "Lectura"
+            ],
+            "filas": [
+              [
+                "Presupuesto de cambio",
+                "24.000 de 12.000 (200 %)",
+                "Saldo de la junta",
+                "No alcanza"
+              ],
+              [
+                "Autoridad",
+                "15.000 en un cambio",
+                "Límite 10.000",
+                "Excedida: rechazada"
+              ],
+              [
+                "Capacidad del R1",
+                "55 pts sin la 2-3",
+                "Velocidad 8 × 6",
+                "+1 sprint"
+              ],
+              [
+                "Tiempo de la etapa 2",
+                "Fin 2027-03-19 (+14)",
+                "±10 % = 9,8 días",
+                "Fuera"
+              ],
+              [
+                "Alcance (EVM)",
+                "No entra el 22,1 %",
+                "Margen 20 %",
+                "Must en riesgo"
+              ],
+              [
+                "Business case",
+                "VAN 30.939",
+                "Tolerancia de beneficios −10 %",
+                "Justificado, B-01 −18 %"
+              ]
+            ]
+          },
+          "nota": "Lo que la aprobación del 17/2 no miró: tres límites superados, los Must en riesgo y 15.000 menos de VAN. El caso sigue justificado, con menos margen. El fin del proyecto no se recalcula en la guía: lo actualiza el plan de proyecto junto con el plan de excepción."
+        },
+        {
+          "tipo": "imagen",
+          "titulo": "El 19/2 no entra el 22 % del alcance, más que el 20 % de margen",
+          "imagen": "docs/guias/img/g2-alcance-evm.png",
+          "nota": "El mismo indicador, guardado por corte, pasa de ámbar a rojo. El segundo corte supera el margen de Should/Could y dispara TOL-01: ya no lo puede resolver el PO."
+        },
+        {
+          "tipo": "imagen",
+          "titulo": "Con los dos cambios el business case sigue justificado",
+          "imagen": "docs/guias/img/g2-business-case.png",
+          "nota": "C-001 suma 6.163 de VAN; C-002 no suma beneficio y resta 15.000. Con los dos, el VAN es 30.939 y B-01 puede caer 18 % antes de llegar a 0, más que su tolerancia de −10 %. Es la pregunta que PRINCE2 hace en cada puerta: ¿sigue valiendo la pena?"
+        },
+        {
+          "tipo": "contenido",
+          "titulo": "La ruta de la excepción",
+          "puntos": [
+            "19/2: informe de excepción X-001 e issue I-003",
+            "22/2: la junta pide plan de excepción; límite de etapa",
+            "24/2: plan y business case actualizado",
+            "26/2: presupuesto de 32.000 y C-002 aprobado",
+            "26/2: puerta aprobada; REG-09 y revisión de R-001"
+          ],
+          "nota": "La excepción no es un fracaso: es la ruta prevista. En una semana la junta recibió el informe, pidió un plan, verificó el business case, amplió el presupuesto y autorizó el fin de etapa del 19/3. Ese día sanidad recordó con REG-09 que R-001 tenía la revisión vencida: el gestor la hizo y la probabilidad subió de 3 a 4."
+        },
+        {
+          "tipo": "pregunta",
+          "titulo": "Discusión",
+          "pregunta": "Sofía aprobó C-002 porque era obligatorio. ¿Estuvo mal?",
+          "nota": "Respuesta esperada: la necesidad no se discute; la autoridad sí. 15.000 supera su límite de 10.000 y deja el presupuesto al 200 %: debía escalar a la junta, y por eso registro.py no registra su aprobación. Obligatorio responde si hay que hacerlo, no quién lo decide."
+        },
+        {
+          "tipo": "indicadores",
+          "titulo": "Al 26/2 cada cambio quedó medido; la reserva casi se agotó",
+          "imagen": "docs/guias/img/g2-indicadores.png",
+          "nota": "Cerrá el recorrido con las seis tarjetas: VAN de 30.939 con los dos cambios, fin el 18/5, 2 días de reserva, presupuesto al 75 %, 22,1 % de alcance en riesgo en el corte del 19/2 y 13 de 13 requisitos trazados."
+        },
+        {
+          "tipo": "ejercicio",
+          "titulo": "Ejercicio · Parte B: la tabla de impacto de tu cambio",
+          "puntos": [
+            "Elegí un cambio real ya aprobado",
+            "Completá la tabla como si fuera antes de decidir",
+            "¿Qué camino le correspondía?",
+            "Compará con quién lo aprobó",
+            "10 minutos"
+          ],
+          "nota": "Si el camino que correspondía no coincide con quien aprobó, encontraron un caso de autoridad excedida: es el hallazgo más valioso del ejercicio. La solución de referencia está en ejercicio.md."
+        },
+        {
+          "tipo": "cierre",
+          "titulo": "Mensajes clave de la clase 2",
+          "puntos": [
+            "Tres caminos, tres dueños: PO, autoridad de cambio, junta",
+            "El impacto se mira antes, en todos los objetivos y en el VAN",
+            "Obligatorio no define quién decide",
+            "Siguiente caso, E2E-3: interesados y comunicación"
+          ],
+          "nota": "Todo lo que vimos lo decidieron la junta, la PO y el equipo. En E2E-3 sumamos al resto: quiénes son los interesados, qué quieren saber y cómo se verifica que el contacto prometido se cumple."
+        }
+      ]
+    }
+  ],
+  "glosario": [
+    {
+      "termino": "PBS (estructura de productos)",
+      "definicion": "Descomposición de lo que el proyecto entrega, producto por producto (product breakdown structure)."
+    },
+    {
+      "termino": "WBS (estructura de desglose del trabajo)",
+      "definicion": "La PBS con el trabajo, el esfuerzo y el costo de cada paquete; su suma da el BAC."
+    },
+    {
+      "termino": "Descripción de producto",
+      "definicion": "Documento que fija qué significa terminado para un producto: medidas, tolerancias de calidad y quién acepta (product description)."
+    },
+    {
+      "termino": "Trazabilidad",
+      "definicion": "Relación requisito → historia → paquete de la WBS; en pm-method se recalcula en cada sincronización con BMAD."
+    },
+    {
+      "termino": "PERT de tres puntos",
+      "definicion": "Estimación con valores optimista, más probable y pesimista: tE = (O + 4M + P)/6 y σ = (P − O)/6."
+    },
+    {
+      "termino": "Camino crítico",
+      "definicion": "Cadena de actividades sin holgura: si una se atrasa, se atrasa el fin del proyecto."
+    },
+    {
+      "termino": "Reserva de cronograma",
+      "definicion": "Margen para la incertidumbre de las estimaciones del camino crítico; en el caso, 2σ = 13,0 días."
+    },
+    {
+      "termino": "MoSCoW",
+      "definicion": "Clasificación del alcance en Must, Should, Could y Won't; Should y Could son el margen del product owner."
+    },
+    {
+      "termino": "Business case",
+      "definicion": "Justificación del proyecto: costos, beneficios, riesgos y opciones. Se verifica en cada puerta y se actualiza con un plan de excepción."
+    },
+    {
+      "termino": "Línea base",
+      "definicion": "Versión aprobada del alcance, el cronograma o el costo contra la que se mide todo cambio."
+    },
+    {
+      "termino": "VAN (valor actual neto)",
+      "definicion": "Suma de los flujos de cada año descontados a la tasa de la organización. Positivo: el proyecto crea valor. En el caso, lo calcula inversion.py."
+    },
+    {
+      "termino": "Tolerancia",
+      "definicion": "Desvío que un nivel de gestión puede absorber sin escalar al nivel de arriba (tolerance)."
+    },
+    {
+      "termino": "Autoridad de cambio",
+      "definicion": "Persona o grupo al que la junta delega decidir cambios dentro de un límite y un presupuesto (change authority)."
+    },
+    {
+      "termino": "Presupuesto de cambio",
+      "definicion": "Monto que la junta reserva para pagar cambios aprobados, separado de la reserva de riesgo (change budget)."
+    },
+    {
+      "termino": "Solicitud de cambio",
+      "definicion": "Pedido formal de cambiar una línea base, registrado como issue y como cambio con su impacto (request for change)."
+    },
+    {
+      "termino": "Intercambio del product owner",
+      "definicion": "Cambio de Should/Could equivalentes sin tocar Must, fecha ni costo; no requiere solicitud de cambio."
+    },
+    {
+      "termino": "Tabla de impacto",
+      "definicion": "Análisis de un cambio antes de decidirlo: tiempo, reserva, costo, presupuesto, autoridad, capacidad y beneficios."
+    },
+    {
+      "termino": "BAC",
+      "definicion": "Presupuesto a la conclusión (budget at completion); en el caso, 124.000 y 133.000 tras C-001."
+    },
+    {
+      "termino": "Valor ganado (EVM)",
+      "definicion": "Técnica que compara lo planificado (PV), lo ganado (EV) y lo gastado (AC) para pronosticar."
+    },
+    {
+      "termino": "Alcance que no entra",
+      "definicion": "En EVM ágil, parte del alcance que al ritmo actual no se entrega con el costo y la fecha fijos."
+    },
+    {
+      "termino": "Gestión por excepción",
+      "definicion": "Cada nivel decide dentro de su tolerancia y escala solo cuando un pronóstico la supera (management by exception)."
+    },
+    {
+      "termino": "Informe de excepción",
+      "definicion": "Documento con el que el gestor informa a la junta un desvío fuera de tolerancia, con opciones y recomendación."
+    },
+    {
+      "termino": "Plan de excepción",
+      "definicion": "Plan que reemplaza al vigente cuando la junta lo pide tras un informe de excepción; se aprueba en una puerta."
+    },
+    {
+      "termino": "Sanidad",
+      "definicion": "Conjunto de controles automáticos de pm-method (sanidad.py) que marcan ERROR, AVISO o INFO con un código."
+    },
+    {
+      "termino": "Puerta",
+      "definicion": "Decisión formal de la junta; pm-method la verifica y la bloquea si sanidad tiene un ERROR."
+    }
+  ]
+}

@@ -1,6 +1,6 @@
-## Paso 1 · Proyecto y detección de BMAD
+## Paso 1a · Proyecto y detección de BMAD
 ```
-$ python3 $EST/nuevo_proyecto.py --ruta gestion --nombre "Portal de autoservicio para socios" --idioma es --enfoque hibrido --ejecutivo "Laura Méndez" --gestor "Martín Suárez"
+$ python3 $EST/nuevo_proyecto.py --ruta gestion --nombre "Portal de autoservicio para socios" --idioma es --enfoque hibrido --ejecutivo "Laura Méndez" --gestor "Martín Suárez" --fecha 2026-10-20
 Proyecto creado en gestion · enfoque de entrega: hibrido · siguiente: estado.py siguiente
 ```
 
@@ -23,7 +23,7 @@ $ python3 $EST/estado.py --proyecto gestion integracion especificacion=bmad
 ok
 ```
 
-## Paso 2 · Idea → brief de producto (BMAD) → mandato y project brief (pm-method)
+## Paso 1b · Idea → brief de producto (BMAD) → mandato y project brief (pm-method)
 ```
 $ python3 $BMAD --proyecto gestion inventario
 BMAD v6 (soportada) en <repo>
@@ -60,7 +60,7 @@ $ python3 $EST/registro.py --proyecto gestion agregar decisiones --campo "fecha=
 D-001
 ```
 
-## Paso 3 · Junta, tolerancias, business case esquemático y puerta autorizar-inicio
+## Paso 1c · Junta, business case esquemático y puerta autorizar-inicio
 ```
 $ python3 $EST/estado.py --proyecto gestion rol usuario_senior="Sofía Ramírez" proveedor_senior="Diego Ferreira" product_owner="Sofía Ramírez" autoridad_cambio="Sofía Ramírez" aseguramiento="Andrea Costa" jefes_equipo="Lucía Benítez"
 ok
@@ -84,7 +84,7 @@ ok
 ```
 $ python3 $EST/puertas.py --proyecto gestion verificar autorizar-inicio
 Puerta autorizar-inicio: 1 bloqueo(s) · 0 condición(es) · 0 aviso(s)
-  BLOQUEO   falta la lista de control de la junta: puertas.py --proyecto <dir> lista autorizar-inicio y confirmarla (puertas.py confirmar …)
+  BLOQUEO   L-01 falta la lista de control de la junta: puertas.py --proyecto <dir> lista autorizar-inicio y confirmarla (puertas.py confirmar …)
   → 'aprobado' no se registra: corregir, o decisión 'condicionado' (o --forzar) de la junta
 ```
 
@@ -106,7 +106,7 @@ Iniciación (IP): enfoques de gestión, controles y tolerancias, PBS/WBS y plan 
 Aviso: faltan tolerancias de proyecto (tiempo, costo).
 ```
 
-## Paso 4 · PRD, UX y arquitectura (BMAD) → requisitos en la fachada
+## Paso 1d · PRD, UX y arquitectura (BMAD) → requisitos en la fachada
 ```
 $ python3 $BMAD --proyecto gestion requisitos
 42 identificadores · {'UJ': 3, 'FR': 12, 'NFR': 6, 'SM': 8, 'AD': 13} → gestion/02-planificacion/especificacion/requisitos-bmad.csv (derivado: no editar)
@@ -133,7 +133,7 @@ epicas: ['E-2']
 cobertura: planificado
 ```
 
-## Paso 5 · Épicas e historias (BMAD) → WBS por productos y trazabilidad
+## Paso 1e · Épicas e historias (BMAD) → WBS por productos y trazabilidad
 ```
 $ python3 $EST/wbs.py gestion/02-planificacion/wbs.csv --titulo "Portal de autoservicio para socios" --mermaid gestion/02-planificacion/visuales/wbs.md
 Portal de autoservicio para socios: 13 elementos, 8 hojas · esfuerzo 2480 h · costo 124,000
@@ -167,7 +167,7 @@ $ python3 $EST/especificacion.py --proyecto gestion listar requisitos --cobertur
 
 ```
 
-## Paso 6 · Backlog con columnas de gobierno, MoSCoW y release plan
+## Paso 1f · Backlog con columnas de gobierno, MoSCoW y release plan
 ```
 $ python3 $BMAD --proyecto gestion backlog
 backlog.csv: 10 nuevas, 0 actualizadas, 0 retiradas en BMAD. Columnas derivadas (criterios_aceptacion, descripcion, estado, origen, refs, tipo, titulo) se sobrescriben; las de gobierno (prioridad, moscow, estimacion, iteracion, release, producto_pbs) no se tocan.
@@ -192,7 +192,7 @@ $ (columnas de gobierno de backlog.csv completadas por pm-agil-hibrido: priorida
 3-3-resolución-de-solicitudes              Must      8 pts  S4  R1  WBS 4.1
 ```
 
-## Paso 7 · Business case, enfoques de beneficios, calidad y sostenibilidad, PID adaptado, OKR y puerta autorizar-proyecto
+## Paso 1g · Business case, enfoques de beneficios, calidad y sostenibilidad, PID adaptado, OKR y puerta autorizar-proyecto
 ```
 $ python3 $EST/estado.py --proyecto gestion artefacto business-case --ruta 00-direccion/business-case.md --estado en-revision
 ok
@@ -237,10 +237,10 @@ $ (pm-acta-constitucion; §8 con la adaptación del método → gestion/00-direc
 ```
 $ python3 $EST/puertas.py --proyecto gestion verificar autorizar-proyecto
 Puerta autorizar-proyecto: 1 bloqueo(s) · 0 condición(es) · 3 aviso(s)
-  BLOQUEO   falta la lista de control de la junta: puertas.py --proyecto <dir> lista autorizar-proyecto y confirmarla (puertas.py confirmar …)
-  aviso     sin enfoque de beneficios (cómo, cuándo y quién mide cada beneficio, incluso después del proyecto)
-  aviso     registro de interesados vacío: sin matriz poder/interés (pm-interesados)
-  aviso     sin matriz RACI (raci.csv o artefacto matriz-raci): quién es R, A, C e I en productos y decisiones clave
+  BLOQUEO   L-01 falta la lista de control de la junta: puertas.py --proyecto <dir> lista autorizar-proyecto y confirmarla (puertas.py confirmar …)
+  aviso     P-04 sin enfoque de beneficios (cómo, cuándo y quién mide cada beneficio, incluso después del proyecto)
+  aviso     P-09 registro de interesados vacío: sin matriz poder/interés (pm-interesados)
+  aviso     P-10 sin matriz RACI (raci.csv o artefacto matriz-raci): quién es R, A, C e I en productos y decisiones clave
   → 'aprobado' no se registra: corregir, o decisión 'condicionado' (o --forzar) de la junta
 ```
 
@@ -306,9 +306,9 @@ Sanidad de 'Portal de autoservicio para socios' (inicio/IP): 0 ERROR · 0 AVISO 
 ```
 $ python3 $EST/puertas.py --proyecto gestion verificar autorizar-proyecto
 Puerta autorizar-proyecto: 1 bloqueo(s) · 0 condición(es) · 2 aviso(s)
-  BLOQUEO   falta la lista de control de la junta: puertas.py --proyecto <dir> lista autorizar-proyecto y confirmarla (puertas.py confirmar …)
-  aviso     registro de interesados vacío: sin matriz poder/interés (pm-interesados)
-  aviso     sin matriz RACI (raci.csv o artefacto matriz-raci): quién es R, A, C e I en productos y decisiones clave
+  BLOQUEO   L-01 falta la lista de control de la junta: puertas.py --proyecto <dir> lista autorizar-proyecto y confirmarla (puertas.py confirmar …)
+  aviso     P-09 registro de interesados vacío: sin matriz poder/interés (pm-interesados)
+  aviso     P-10 sin matriz RACI (raci.csv o artefacto matriz-raci): quién es R, A, C e I en productos y decisiones clave
   → 'aprobado' no se registra: corregir, o decisión 'condicionado' (o --forzar) de la junta
 ```
 
@@ -362,12 +362,12 @@ ok
 ```
 
 ```
-$ python3 $BMAD --proyecto gestion linea-base prd --version 1.0 --por "Ejecutivo: Laura Méndez"
+$ python3 $BMAD --proyecto gestion linea-base prd --version 1.0 --por "Ejecutivo: Laura Méndez" --fecha 2026-11-27
 Línea base bmad-prd v1.0 registrada · sha bc048f7f59a3 · copia congelada en gestion/00-direccion/historial/bmad-prd-v1.0
 ```
 
 ```
-$ python3 $BMAD --proyecto gestion linea-base epicas --version 1.0 --por "Ejecutivo: Laura Méndez"
+$ python3 $BMAD --proyecto gestion linea-base epicas --version 1.0 --por "Ejecutivo: Laura Méndez" --fecha 2026-11-27
 Línea base bmad-epicas v1.0 registrada · sha 3ff846d6f8d9 · copia congelada en gestion/00-direccion/historial/bmad-epicas-v1.0
 ```
 
@@ -385,7 +385,7 @@ Fase: inicio · Proceso: IP · Etapa 1: Iniciación · Enfoque: hibrido
 Iniciación (IP): enfoques de gestión, controles y tolerancias, PBS/WBS y plan de proyecto (cronograma, costos), business case detallado, PID; luego plan de la primera etapa de entrega. Híbrido: definir qué productos van con paquetes iterativos y su release plan. Agentes: pm-inicio + pm-planificacion. Puertas: autorizar-proyecto y autorizar-etapa (pm-director). Proyecto ya autorizado: falta autorizar-etapa para la primera etapa de entrega.
 ```
 
-## Paso 8 · Gate de preparación de BMAD y puerta autorizar-etapa (Release 1) con condición formal
+## Paso 2 · Gate de preparación de BMAD y puerta autorizar-etapa (Release 1) con condición formal
 ```
 $ python3 $EST/puertas.py --proyecto gestion preparacion-bmad --resultado CONCERNS --por "Arquitecto: Diego Ferreira" --fecha 2026-11-26 --nota "NFR-3 sin prueba de carga planificada"
 Preparación BMAD registrada: CONCERNS
@@ -404,8 +404,8 @@ ok
 ```
 $ python3 $EST/puertas.py --proyecto gestion verificar autorizar-etapa
 Puerta autorizar-etapa: 1 bloqueo(s) · 1 condición(es) · 0 aviso(s)
-  BLOQUEO   falta la lista de control de la junta: puertas.py --proyecto <dir> lista autorizar-etapa y confirmarla (puertas.py confirmar …)
-  condición gate de preparación de BMAD en CONCERNS (2026-11-26: NFR-3 sin prueba de carga planificada)
+  BLOQUEO   L-01 falta la lista de control de la junta: puertas.py --proyecto <dir> lista autorizar-etapa y confirmarla (puertas.py confirmar …)
+  condición E-10 gate de preparación de BMAD en CONCERNS (2026-11-26: NFR-3 sin prueba de carga planificada)
   → 'aprobado' no se registra: corregir, o decisión 'condicionado' (o --forzar) de la junta
 ```
 
@@ -443,7 +443,12 @@ Sanidad de 'Portal de autoservicio para socios' (entrega/CS): 0 ERROR · 1 AVISO
         → evm.py … --proyecto <dir> --guardar --corte AAAA-MM-DD en cada período.
 ```
 
-## Paso 9 · Sprint 1 como paquete de trabajo; construcción con BMAD; checkpoint y aceptación del paquete
+```
+$ python3 $BMAD --proyecto gestion avance --corte 2026-11-27
+Historias 10 · backlog 9 · ready-for-dev 1 · in-progress 0 · review 0 · done 0 · épicas terminadas 0/3 · 0.0 % (puntos) → gestion/03-control/reportes/avance-bmad.csv
+```
+
+## Paso 3 · Sprint 1 como paquete de trabajo; construcción con BMAD; checkpoint y aceptación del paquete
 ```
 $ python3 $EST/estado.py --proyecto gestion artefacto WP-001 --ruta 03-control/paquetes-trabajo/WP-001-sprint-1.md --estado aprobado --version 1.0
 ok
@@ -481,6 +486,11 @@ Q-003
 ```
 
 ```
+$ (foto de calidad «23/12 · Sprint 1» para g4-calidad-entregas.png: historias done en backlog.csv contra historias con revisión aprobada en calidad.csv)
+terminadas 2 · con revisión aprobada 2 · sin revisión aprobada 0
+```
+
+```
 $ (pm-progreso-reportes, templates/checkpoint-report.md → gestion/03-control/reportes/2026-12-23-checkpoint-WP-001.md)
 # Informe de punto de control · WP-001 (sprint 1) · 2026-12-23
 Gestora de equipo: Lucía Benítez · Para: Martín Suárez (gestor) · Período: 2026-11-30 – 2026-12-23
@@ -514,7 +524,7 @@ historias: 10
 por_estado: {'backlog': 7, 'ready-for-dev': 0, 'in-progress': 0, 'review': 1, 'done': 2}
 ```
 
-## Paso 10 · Valor ganado ágil (corte guardado) y highlight con puertas y condiciones
+## Paso 4 · Valor ganado ágil (corte guardado) y highlight con puertas y condiciones
 ```
 $ python3 $EST/evm.py --pv 41000 --ev 38000 --ac 40500 --bac 124000 --modo agil --pct-no-must 20 --proyecto gestion --guardar --corte 2027-01-08
 Guardado: 03-control/reportes/evm-2027-01-08.json
@@ -558,14 +568,14 @@ $ python3 $EST/puertas.py --proyecto gestion estado --markdown
 | autorizar-etapa | 2026-11-27 | condicionado | Ejecutivo: Laura Méndez | gate de preparación de BMAD en CONCERNS (2026-11-26: NFR-3 sin prueba de carga planificada) (abiertas) | gate de preparación de BMAD en CONCERNS (2026-11-26: NFR-3 sin prueba de carga planificada) | 00-direccion/decisiones/2026-11-27-verificacion-autorizar-etapa.md |
 
 **Próxima puerta / Next gate: autorizar-etapa** — 2 bloqueo(s), 3 condición(es), 0 aviso(s).
-- bloqueo: falta el plan de la etapa a autorizar (plan-etapa-3)
-- bloqueo: falta el informe de fin de la etapa 2 (informe-fin-etapa-2)
-- condición: condiciones abiertas de puertas anteriores: autorizar-etapa 2026-11-27 (verificarlas y registrar estado.py cumplir-condiciones, o traspasarlas como recomendación)
-- condición: revisiones de calidad sin cerrar: Q-001
-- condición: gate de preparación de BMAD en CONCERNS (2026-11-26: NFR-3 sin prueba de carga planificada)
+- bloqueo: E-01 falta el plan de la etapa a autorizar (plan-etapa-3)
+- bloqueo: E-04 falta el informe de fin de la etapa 2 (informe-fin-etapa-2)
+- condición: G-01 condiciones abiertas de puertas anteriores: autorizar-etapa 2026-11-27 (verificarlas y registrar estado.py cumplir-condiciones, o traspasarlas como recomendación)
+- condición: E-05 revisiones de calidad sin cerrar: Q-001
+- condición: E-10 gate de preparación de BMAD en CONCERNS (2026-11-26: NFR-3 sin prueba de carga planificada)
 ```
 
-## Paso 11 · Cambio de rumbo: bmad-correct-course agrega FR-13 → verificar → issue → cambio con costo y cargo → traspaso → línea base 1.1
+## Paso 5 · Cambio de rumbo: bmad-correct-course agrega FR-13 → verificar → issue → cambio con costo y cargo → traspaso → línea base 1.1
 ```
 $ python3 $BMAD --proyecto gestion verificar
 - [desvio] bmad-prd: contenido distinto de la línea base aprobada → tratar como solicitud de cambio (pm-issues-cambios) salvo elaboración progresiva declarada · agregados ['FR-13'] · retirados []
@@ -608,7 +618,7 @@ ok
 
 ```
 $ python3 $BMAD --proyecto gestion handoff --cambio C-001
-Traspaso emitido → gestion/02-planificacion/especificacion/handoff-bmad-2026-10-17-C-001.md (cambio C-001 · 10 prioridades cambiadas)
+Traspaso emitido → gestion/02-planificacion/especificacion/handoff-bmad-2026-10-20-C-001.md (cambio C-001 · 10 prioridades cambiadas)
 ```
 
 ```
@@ -636,12 +646,12 @@ $ (el PO completa las columnas de gobierno de la historia nueva 2-4: Should, 8 p
 ```
 
 ```
-$ python3 $BMAD --proyecto gestion linea-base prd --version 1.1 --por "Ejecutivo: Laura Méndez"
+$ python3 $BMAD --proyecto gestion linea-base prd --version 1.1 --por "Ejecutivo: Laura Méndez" --fecha 2027-01-20
 Línea base bmad-prd v1.1 registrada · sha 203d33cb9e51 · copia congelada en gestion/00-direccion/historial/bmad-prd-v1.1
 ```
 
 ```
-$ python3 $BMAD --proyecto gestion linea-base epicas --version 1.1 --por "Ejecutivo: Laura Méndez"
+$ python3 $BMAD --proyecto gestion linea-base epicas --version 1.1 --por "Ejecutivo: Laura Méndez" --fecha 2027-01-20
 Línea base bmad-epicas v1.1 registrada · sha 360c24ddcd9c · copia congelada en gestion/00-direccion/historial/bmad-epicas-v1.1
 ```
 
@@ -675,7 +685,20 @@ Sanidad de 'Portal de autoservicio para socios' (entrega/CS): 0 ERROR · 1 AVISO
         → especificacion.py indice o sanidad.py --reparar.
 ```
 
-## Paso 12 · Calidad a volumen al acercarse el fin del Release 1: terminados sin revisión, registro en lote, retrospectiva y lecciones
+```
+$ python3 $BMAD --proyecto gestion avance --corte 2027-01-20
+Historias 11 · backlog 8 · ready-for-dev 0 · in-progress 0 · review 1 · done 2 · épicas terminadas 0/3 · 17.1 % (puntos) → gestion/03-control/reportes/avance-bmad.csv
+```
+
+## Paso 6 · Calidad a volumen al acercarse el fin del Release 1: terminados sin revisión, registro en lote, retrospectiva y lecciones
+```
+$ python3 $EST/estado.py --proyecto gestion contexto --corte 2027-02-26
+pm-method · contexto derivado de estado.json y los registros al 2027-02-26 (es el estado vigente; una nota de memoria que diga otra cosa está desactualizada):
+Abiertos: revisiones de calidad 1.
+Condiciones abiertas de puertas: autorizar-etapa (2026-11-27).
+Próxima puerta: autorizar-etapa (detalle: puertas.py verificar autorizar-etapa).
+```
+
 ```
 $ python3 $BMAD --proyecto gestion backlog
 backlog.csv: 0 nuevas, 11 actualizadas, 0 retiradas en BMAD. Columnas derivadas (criterios_aceptacion, descripcion, estado, origen, refs, tipo, titulo) se sobrescriben; las de gobierno (prioridad, moscow, estimacion, iteracion, release, producto_pbs) no se tocan.
@@ -699,6 +722,11 @@ Sanidad de 'Portal de autoservicio para socios' (entrega/CS): 0 ERROR · 7 AVISO
         → especificacion.py indice o sanidad.py --reparar.
   INFO  TOL-03 Último corte de EVM guardado el 2027-01-08 (más de 31 días).
         → evm.py … --guardar en cada período de informe.
+```
+
+```
+$ (foto de calidad «26/2 · antes del lote» para g4-calidad-entregas.png: historias done en backlog.csv contra historias con revisión aprobada en calidad.csv)
+terminadas 7 · con revisión aprobada 2 · sin revisión aprobada 5
 ```
 
 ```
@@ -739,6 +767,11 @@ Sanidad de 'Portal de autoservicio para socios' (entrega/CS): 0 ERROR · 2 AVISO
 ```
 
 ```
+$ (foto de calidad «26/2 · después del lote» para g4-calidad-entregas.png: historias done en backlog.csv contra historias con revisión aprobada en calidad.csv)
+terminadas 7 · con revisión aprobada 7 · sin revisión aprobada 0
+```
+
+```
 $ python3 $EST/registro.py --proyecto gestion agregar lecciones --campo "etapa=2" --campo "categoria=especificacion" --campo "situacion=FR-13 entró al PRD por correct-course sin pasar por la autoridad de cambio" --campo "efecto=sanidad ESP-10 bloqueó la puerta hasta tramitar C-001" --campo "recomendacion=toda Sprint Change Proposal se presenta primero como issue" --campo "prioridad=alta" --campo "responsable_seguimiento=Martín Suárez"
 L-001
 ```
@@ -748,7 +781,81 @@ $ python3 $EST/registro.py --proyecto gestion agregar lecciones --campo "etapa=2
 L-002
 ```
 
-## Paso 13 · Fin de la etapa 2 (Release 1): prueba de carga NFR-3, condición cumplida, business case 1.1 y puerta autorizar-etapa (Release 2)
+## Paso 6b · El recorrido de la socia sobre lo entregado: mapa de UJ-1 desde BMAD, dolores con tratamiento (MAP-03)
+```
+$ python3 $BMAD --proyecto gestion recorridos --id UJ-1
+UJ-1 Marta consulta su saldo y baja una constancia desde el celular (_bmad-output/planning-artifacts/prds/prd-portal-socios-2026-10-17/prd.md:35)
+  persona: Marta, socia de 58 años, comerciante, usa el celular a diario pero evita los trámites digitales complejos. Necesita una constancia de saldos para un trámite bancario.
+  entrada: ya registrada, abre el portal desde el navegador del celular.
+  recorrido: ingresa con sus credenciales, ve el resumen de cuentas de ahorro y préstamos, elige "Constancias" y selecciona "Constancia de saldos".
+  climax: el PDF se descarga en segundos con la fecha y los saldos vigentes.
+  resolucion: Marta adjunta el PDF a su trámite sin pisar la sucursal.
+  caso_limite: si olvidó su contraseña, usa la recuperación de acceso con verificación y vuelve al punto donde estaba.
+  FR: FR-1, FR-2, FR-5 · por sección: FR-3, FR-4 · KPI: SM-1, SM-2, SM-5, SM-6 · contrapesos: SM-C2
+```
+
+```
+$ python3 $PLUGIN/skills/pm-mapas-estrategicos/scripts/mapas.py --proyecto gestion recorrido semilla --uj UJ-1 --fecha 2027-02-26
+Semilla 02-planificacion/mapas/recorrido-uj-1.json desde bmad: 3 etapa(s), 6 paso(s); emociones y fuentes [por confirmar] · KPI SM-1, SM-2, SM-5, SM-6
+Siguiente: completar con evidencia, 'validar' y 'render'. El modelo propone; la persona confirma.
+```
+
+```
+$ (pm-mapas-estrategicos completa la semilla con lo observado en la revisión del Release 1; Sofía Ramírez (product owner) confirma → gestion/02-planificacion/mapas/recorrido-uj-1.json)
+Recorrido · P1 Ingresa con sus credenciales · -1 (observación: revisión del Release 1 con seis socios (25/2): dos pidieron ayuda en el primer ingreso) · dolor: El primer ingreso con segundo factor la frena y pide ayuda (usabilidad) → Alta asistida en sucursal y por teléfono al salir a producción
+Recorrido · P2 Ve el resumen de cuentas de ahorro y préstamos · -1 (observación: revisión del Release 1 con seis socios (25/2): el resumen tarda en aparecer y no hay indicador de carga) · dolor: Espera el resumen sin saber si cargó (rendimiento) → Respuesta en menos de 3 s con carga real (NFR-3)
+Recorrido · P3 Elige "Constancias" · 0 (observación: revisión del Release 1 con seis socios (25/2)) · refs FR-5
+Recorrido · P4 Selecciona "Constancia de saldos" · +1 (observación: revisión del Release 1 con seis socios (25/2)) · refs FR-5
+Clímax · P5 El PDF se descarga en segundos con la fecha y los saldos vigentes · +2 (observación: revisión del Release 1 con seis socios (25/2): la constancia se descargó en el primer intento) · refs FR-5
+Resolución · P6 Marta adjunta el PDF a su trámite sin pisar la sucursal · +1 (supuesto declarado: lo confirma la revisión de beneficios (B-01, S-1))
+```
+
+```
+$ python3 $PLUGIN/skills/pm-mapas-estrategicos/scripts/mapas.py --proyecto gestion recorrido validar uj-1
+recorrido-uj-1.json: 0 error(es) · 0 aviso(s)
+```
+
+```
+$ python3 $PLUGIN/skills/pm-mapas-estrategicos/scripts/mapas.py --proyecto gestion controles
+AVISO MAP-03 recorrido-uj-1.json P1 «Ingresa con sus credenciales»: dolor sin tratamiento (requisito, historia, riesgo, issue, cambio, decisión, supuesto o revisión de calidad)
+AVISO MAP-03 recorrido-uj-1.json P2 «Ve el resumen de cuentas de ahorro y préstamos»: dolor sin tratamiento (requisito, historia, riesgo, issue, cambio, decisión, supuesto o revisión de calidad)
+2 aviso(s) de la familia MAP
+```
+
+```
+$ python3 $PLUGIN/skills/pm-mapas-estrategicos/scripts/mapas.py --proyecto gestion recorrido candidatos uj-1
+P1 [requisito] Alta asistida en sucursal y por teléfono al salir a producción · 02-planificacion/mapas/recorrido-uj-1.json#P1
+P2 [requisito] Respuesta en menos de 3 s con carga real (NFR-3) · 02-planificacion/mapas/recorrido-uj-1.json#P2
+2 candidato(s); se registran solo tras la evaluación humana.
+```
+
+```
+$ python3 $EST/registro.py --proyecto gestion agregar riesgos --campo "fecha_identificacion=2027-02-26" --campo "autor=Martín Suárez" --campo "categoria=comercial" --campo "causa=El primer ingreso con segundo factor frena a socios que evitan los trámites digitales (recorrido UJ-1, paso P1)" --campo "evento=La adopción del portal queda por debajo de la meta" --campo "efecto=B-02 adopción (KR-1.1, 30 % de socios activos) fuera de la tolerancia de beneficios" --campo "tipo=amenaza" --campo "probabilidad=3" --campo "impacto=3" --campo "proximidad=mediano-plazo" --campo "respuesta=reducir" --campo "acciones=alta asistida en sucursal y por teléfono durante los primeros 60 días de operación (servicios al socio)" --campo "propietario=Sofía Ramírez" --campo "fecha_revision=2027-06-30"
+R-001
+```
+
+```
+$ python3 $PLUGIN/skills/pm-mapas-estrategicos/scripts/mapas.py --proyecto gestion vincular uj-1 P1 --refs R-001
+recorrido-uj-1.json P1: refs = R-001
+```
+
+```
+$ python3 $PLUGIN/skills/pm-mapas-estrategicos/scripts/mapas.py --proyecto gestion vincular uj-1 P2 --refs NFR-3,Q-001
+recorrido-uj-1.json P2: refs = NFR-3, Q-001
+```
+
+```
+$ python3 $PLUGIN/skills/pm-mapas-estrategicos/scripts/mapas.py --proyecto gestion recorrido render uj-1 --png no
+Vistas: 02-planificacion/visuales/recorrido-uj-1.md, 02-planificacion/visuales/recorrido-uj-1.html
+Registrar (si es nuevo): estado.py --proyecto gestion artefacto mapa-recorrido-uj-1 --ruta 02-planificacion/visuales/recorrido-uj-1.md --estado borrador
+```
+
+```
+$ python3 $PLUGIN/skills/pm-mapas-estrategicos/scripts/mapas.py --proyecto gestion controles
+0 aviso(s) de la familia MAP
+```
+
+## Paso 7 · Fin de la etapa 2 (Release 1): prueba de carga NFR-3, condición cumplida, business case 1.1 y puerta autorizar-etapa (Release 2)
 ```
 $ python3 $EST/registro.py --proyecto gestion actualizar calidad Q-001 --campo "resultado=aprobado" --campo "estado=completada" --campo "fecha_real=2027-03-02" --campo "notas=p95 2,4 s con 400 sesiones concurrentes (meta menor a 3 s)"
 ok
@@ -822,14 +929,14 @@ $ (pm-caso-de-negocio, modo mantener → gestion/00-direccion/business-case.md)
 B-01 desvío de consultas (SM-2); B-02 adopción (SM-1); B-03 eficiencia de préstamos (SM-3).
 Costos: AC 83.500 contra PV 82.000; EAC 135.688 contra BAC 130.000 (124.000 + 6.000 de C-001, cargado al presupuesto de cambio): +4,4 %, dentro de ±8 %.
 Beneficios: sin medición todavía (primera revisión 30/6/2027 según el enfoque de beneficios); FR-13 (C-001) refuerza B-01.
-Riesgos: sin riesgos altos abiertos; NFR-3 verificada con prueba de carga.
+Riesgos: sin riesgos altos abiertos; NFR-3 verificada con prueba de carga; R-001 (medio) amenaza B-02 adopción, con respuesta del negocio (alta asistida).
 Veredicto: sigue deseable, viable y alcanzable → continuar con la etapa 3.
 ```
 
 ```
 $ python3 $EST/puertas.py --proyecto gestion verificar autorizar-etapa
 Puerta autorizar-etapa: 0 bloqueo(s) · 1 condición(es) · 0 aviso(s)
-  condición condiciones abiertas de puertas anteriores: autorizar-etapa 2026-11-27 (verificarlas y registrar estado.py cumplir-condiciones, o traspasarlas como recomendación)
+  condición G-01 condiciones abiertas de puertas anteriores: autorizar-etapa 2026-11-27 (verificarlas y registrar estado.py cumplir-condiciones, o traspasarlas como recomendación)
   → aprobado posible
 ```
 
@@ -851,7 +958,13 @@ ok
 
 ```
 $ (pm-visuales arma el tablero con la receta de references/guia.md §3 → gestion/03-control/reportes/2027-03-05-tablero-avance.html)
-riesgos abiertos 0 · issues 0 · acciones 0 · iteraciones 2
+riesgos abiertos 1 · issues 0 · acciones 0 · iteraciones 2
+```
+
+```
+$ python3 $PLUGIN/skills/pm-mapas-estrategicos/scripts/mapas.py --proyecto gestion tablero --insertar gestion/03-control/reportes/2027-03-05-tablero-avance.html
+Tablero de mapas: 1 mapa(s) dibujado(s) (recorrido-uj-1.json) · 0 aviso(s) MAP · 3 vínculo(s) citado(s)
+Escrito: 03-control/reportes/2027-03-05-tablero-avance.html
 ```
 
 ```
@@ -883,35 +996,74 @@ Copia congelada / frozen copy: 00-direccion/historial/business-case-v1.1.md
 ok
 ```
 
-## Paso 14 · Release 2, aceptación, traspaso a operación, business case confirmado y puerta autorizar-cierre
-```
-$ python3 $BMAD --proyecto gestion avance --corte 2027-05-12
-Historias 11 · backlog 0 · ready-for-dev 0 · in-progress 0 · review 0 · done 11 · épicas terminadas 3/3 · 100.0 % (puntos) → gestion/03-control/reportes/avance-bmad.csv
-```
-
+## Paso 8 · Release 2: revisiones en lote con un rechazo tratado (QUA-01 y QUA-03) y valor ganado final
 ```
 $ python3 $BMAD --proyecto gestion backlog
 backlog.csv: 0 nuevas, 11 actualizadas, 0 retiradas en BMAD. Columnas derivadas (criterios_aceptacion, descripcion, estado, origen, refs, tipo, titulo) se sobrescriben; las de gobierno (prioridad, moscow, estimacion, iteracion, release, producto_pbs) no se tocan.
 ```
 
 ```
-$ python3 $EST/registro.py --proyecto gestion agregar calidad --campo "producto=Release 2 · historia 2-1 Solicitud guiada de préstamo simple" --campo "metodo_verificacion=prueba" --campo "criterios=criterios de aceptación de la historia 2-1 (epics.md)" --campo "responsable_productor=Lucía Benítez" --campo "revisores=Andrea Costa" --campo "aprobador=Sofía Ramírez" --campo "fecha_prevista=2027-05-11" --campo "fecha_real=2027-05-11" --campo "resultado=aprobado" --campo "estado=completada"
+$ python3 $EST/registro.py --proyecto gestion agregar calidad --campo "producto=Release 2 · historia 2-1 Solicitud guiada de préstamo simple" --campo "metodo_verificacion=prueba" --campo "criterios=criterios de aceptación de la historia 2-1 (epics.md)" --campo "responsable_productor=Lucía Benítez" --campo "revisores=Andrea Costa" --campo "aprobador=Sofía Ramírez" --campo "fecha_prevista=2027-05-06" --campo "fecha_real=2027-05-06" --campo "resultado=aprobado" --campo "estado=completada"
 Q-009
 ```
 
 ```
-$ python3 $EST/registro.py --proyecto gestion agregar calidad --campo "producto=Release 2 · historia 2-2 Seguimiento de solicitudes y respuesta a pedidos de información" --campo "metodo_verificacion=prueba" --campo "criterios=criterios de aceptación de la historia 2-2 (epics.md)" --campo "responsable_productor=Lucía Benítez" --campo "revisores=Andrea Costa" --campo "aprobador=Sofía Ramírez" --campo "fecha_prevista=2027-05-11" --campo "fecha_real=2027-05-11" --campo "resultado=aprobado" --campo "estado=completada"
+$ python3 $EST/registro.py --proyecto gestion agregar calidad --campo "producto=Release 2 · historia 2-2 Seguimiento de solicitudes y respuesta a pedidos de información" --campo "metodo_verificacion=prueba" --campo "criterios=criterios de aceptación de la historia 2-2 (epics.md)" --campo "responsable_productor=Lucía Benítez" --campo "revisores=Andrea Costa" --campo "aprobador=Sofía Ramírez" --campo "fecha_prevista=2027-05-06" --campo "fecha_real=2027-05-06" --campo "resultado=aprobado" --campo "estado=completada"
 Q-010
 ```
 
 ```
-$ python3 $EST/registro.py --proyecto gestion agregar calidad --campo "producto=Release 2 · historia 2-3 Actualización de datos de contacto con verificación" --campo "metodo_verificacion=prueba" --campo "criterios=criterios de aceptación de la historia 2-3 (epics.md)" --campo "responsable_productor=Lucía Benítez" --campo "revisores=Andrea Costa" --campo "aprobador=Sofía Ramírez" --campo "fecha_prevista=2027-05-11" --campo "fecha_real=2027-05-11" --campo "resultado=aprobado" --campo "estado=completada"
+$ python3 $EST/registro.py --proyecto gestion agregar calidad --campo "producto=Release 2 · historia 2-3 Actualización de datos de contacto con verificación" --campo "metodo_verificacion=prueba" --campo "criterios=criterios de aceptación de la historia 2-3 (epics.md)" --campo "responsable_productor=Lucía Benítez" --campo "revisores=Andrea Costa" --campo "aprobador=Sofía Ramírez" --campo "fecha_prevista=2027-05-06" --campo "fecha_real=2027-05-06" --campo "resultado=aprobado" --campo "estado=completada"
 Q-011
 ```
 
 ```
-$ python3 $EST/registro.py --proyecto gestion agregar calidad --campo "producto=Release 2 · historia 2-4 Pago de cuotas con débito en cuenta" --campo "metodo_verificacion=prueba" --campo "criterios=criterios de aceptación de la historia 2-4 (epics.md)" --campo "responsable_productor=Lucía Benítez" --campo "revisores=Andrea Costa" --campo "aprobador=Sofía Ramírez" --campo "fecha_prevista=2027-05-11" --campo "fecha_real=2027-05-11" --campo "resultado=aprobado" --campo "estado=completada"
+$ python3 $EST/registro.py --proyecto gestion agregar calidad --campo "producto=Release 2 · historia 2-4 Pago de cuotas con débito en cuenta" --campo "metodo_verificacion=prueba" --campo "criterios=criterios de aceptación de la historia 2-4 (epics.md)" --campo "responsable_productor=Lucía Benítez" --campo "revisores=Andrea Costa" --campo "aprobador=Sofía Ramírez" --campo "fecha_prevista=2027-05-06" --campo "fecha_real=2027-05-06" --campo "resultado=rechazado" --campo "estado=completada" --campo "notas=falta la notificación al socio después del débito (criterio de aceptación de FR-13)"
 Q-012
+```
+
+```
+$ python3 $EST/sanidad.py --proyecto gestion --rapido --corte 2027-05-07
+Sanidad de 'Portal de autoservicio para socios' (entrega/CS): 0 ERROR · 2 AVISO · 3 INFO
+  AVISO QUA-01 2-4-pago-de-cuotas-con-débito-en-cuenta: terminado con revisión Q-012 sin aprobar.
+        → Completar la revisión o reabrir el elemento.
+  AVISO QUA-03 Revisión Q-012 rechazada sin issue, acción o cambio que la trate.
+        → pm-issues-cambios (fuera de especificación) o una acción correctiva que cite el Q-###.
+  INFO  CAM-03 Presupuesto de cambio: 6.000 de 15.000 (40 %).
+  INFO  ESP-02 El índice de especificación está desactualizado (se reconstruye solo al consultarlo).
+        → especificacion.py indice o sanidad.py --reparar.
+  INFO  TOL-03 Último corte de EVM guardado el 2027-03-05 (más de 31 días).
+        → evm.py … --guardar en cada período de informe.
+```
+
+```
+$ (foto de calidad «7/5 · Release 2, un rechazo» para g4-calidad-entregas.png: historias done en backlog.csv contra historias con revisión aprobada en calidad.csv)
+terminadas 11 · con revisión aprobada 10 · sin revisión aprobada 1
+```
+
+```
+$ python3 $EST/registro.py --proyecto gestion agregar issues --campo "fecha=2027-05-07" --campo "tipo=fuera-especificacion" --campo "titulo=Historia 2-4 rechazada en Q-012: falta la notificación del débito" --campo "descripcion=La revisión Q-012 rechazó la historia 2-4 (FR-13): el débito se hace pero el socio no recibe la notificación" --campo "prioridad=alta" --campo "severidad=mayor" --campo "responsable=Lucía Benítez"
+I-002
+```
+
+```
+$ python3 $EST/registro.py --proyecto gestion actualizar issues I-002 --campo "estado=en-accion" --campo "decision=corregir dentro del Release 2, sin costo ni cambio de alcance" --campo "decidido_por=Autoridad de cambio: Sofía Ramírez"
+ok
+```
+
+```
+$ python3 $EST/registro.py --proyecto gestion agregar calidad --campo "producto=Release 2 · historia 2-4 Pago de cuotas con débito en cuenta" --campo "metodo_verificacion=prueba" --campo "criterios=criterios de aceptación de la historia 2-4 (epics.md)" --campo "responsable_productor=Lucía Benítez" --campo "revisores=Andrea Costa" --campo "aprobador=Sofía Ramírez" --campo "fecha_prevista=2027-05-11" --campo "fecha_real=2027-05-11" --campo "resultado=aprobado" --campo "estado=completada" --campo "notas=nueva revisión después de corregir lo observado en Q-012 (I-002): notificación verificada"
+Q-013
+```
+
+```
+$ python3 $EST/registro.py --proyecto gestion actualizar issues I-002 --campo "estado=cerrado" --campo "fecha_cierre=2027-05-11" --campo "notas=corregido; Q-013 aprobada"
+ok
+```
+
+```
+$ python3 $BMAD --proyecto gestion avance --corte 2027-05-12
+Historias 11 · backlog 0 · ready-for-dev 0 · in-progress 0 · review 0 · done 11 · épicas terminadas 3/3 · 100.0 % (puntos) → gestion/03-control/reportes/avance-bmad.csv
 ```
 
 ```
@@ -945,12 +1097,16 @@ excepcion_prevista     False
 
 ```
 $ python3 $EST/sanidad.py --proyecto gestion --rapido --corte 2027-05-12
-Sanidad de 'Portal de autoservicio para socios' (entrega/CS): 0 ERROR · 0 AVISO · 2 INFO
+Sanidad de 'Portal de autoservicio para socios' (entrega/CS): 0 ERROR · 0 AVISO · 1 INFO
   INFO  CAM-03 Presupuesto de cambio: 6.000 de 15.000 (40 %).
-  INFO  ESP-02 El índice de especificación está desactualizado (se reconstruye solo al consultarlo).
-        → especificacion.py indice o sanidad.py --reparar.
 ```
 
+```
+$ (foto de calidad «12/5 · fin del Release 2» para g4-calidad-entregas.png: historias done en backlog.csv contra historias con revisión aprobada en calidad.csv)
+terminadas 11 · con revisión aprobada 11 · sin revisión aprobada 0
+```
+
+## Paso 9 · Aceptación, traspaso a operación, business case confirmado y puerta autorizar-cierre
 ```
 $ python3 $EST/especificacion.py --proyecto gestion listar requisitos --cobertura sin-cobertura
 
@@ -991,7 +1147,7 @@ $ (pm-cierre-proyecto, templates/handover.md → gestion/04-cierre/handover.md)
 # Transferencia a operación y mantenimiento v1.0
 Productos: portal del socio y consola de operador (13 FR, 11 historias; líneas base PRD y épicas 1.1), aceptados en registro-aceptacion v1.0.
 Propietario receptor: usuaria sénior Sofía Ramírez (servicios al socio); mantenimiento: equipo de Lucía Benítez durante 90 días de garantía.
-Evidencia de calidad: 12 revisiones aprobadas en calidad.csv (una por historia y la prueba de carga NFR-3).
+Evidencia de calidad: 13 revisiones en calidad.csv: 12 aprobadas (una por historia y la prueba de carga NFR-3) y 1 rechazada (Q-012, tratada en I-002 y aprobada en Q-013).
 Pendientes: observación menor de Q-008 en el backlog de mantenimiento. Costos de operación: desde el 15/5/2027, a cargo del negocio.
 5. Confirmación del receptor: Sofía Ramírez, 2027-05-12.
 ```
@@ -1018,6 +1174,15 @@ ok
 ```
 
 ```
+$ (pm-cierre-proyecto, templates/recomendaciones-seguimiento.md → gestion/04-cierre/recomendaciones-seguimiento.md)
+# Recomendaciones de acciones de seguimiento v1.0
+| Origen | Recomendación | Responsable | Cuándo |
+|---|---|---|---|
+| R-001 adopción (recorrido UJ-1, P1) | sostener la alta asistida en sucursal y por teléfono; revisar el riesgo con los datos de adopción | Sofía Ramírez (servicios al socio) | revisión de beneficios del 30/6/2027 |
+| Q-008 observación menor | filtro de la bandeja de la consola: ajustar en el backlog de mantenimiento | Lucía Benítez (garantía de 90 días) | antes del 15/8/2027 |
+```
+
+```
 $ python3 $EST/estado.py --proyecto gestion artefacto plan-revision-beneficios --ruta 04-cierre/plan-revision-beneficios.md --estado en-revision
 ok
 ```
@@ -1026,11 +1191,12 @@ ok
 $ (pm-cierre-proyecto, templates/plan-revision-beneficios.md → gestion/04-cierre/plan-revision-beneficios.md)
 # Plan de revisión de beneficios v1.0
 Responsable de las revisiones: el negocio (usuaria sénior Sofía Ramírez), con financiación de servicios al socio; el proyecto no las ejecuta.
-| Revisión | Fecha | Qué se mide | Fuente |
-|---|---|---|---|
-| 1 | 2027-06-30 | B-01, B-02, B-03 y S-1 contra línea base | okr.csv (KR-1.1 a KR-1.3) y SM-1 a SM-3 del PRD |
-| 2 | 2027-12-31 | metas finales y contramétricas SM-C1, SM-C2 | ídem |
-Desvío mayor que la tolerancia de beneficios (-10 % sobre la trayectoria) → informe a la ejecutiva (Laura Méndez).
+Línea base de las mediciones: check-in del 2027-05-15 (entrada en operación) en okr_checkins.csv.
+| Revisión | Fecha | Qué se mide | Criterio | Fuente |
+|---|---|---|---|---|
+| 1 (intermedia) | 2027-06-30 | B-01, B-02, B-03 y S-1 | salud contra la trayectoria (okr.py): en-riesgo o desviado → informe | okr_checkins.csv (KR-1.1 a KR-1.3) y SM-1 a SM-3 del PRD |
+| 2 (final) | 2027-12-31 | metas finales y contramétricas SM-C1, SM-C2 | avance hacia la meta (puntuación de okr.py) menor que 0,90 = fuera de la tolerancia de beneficios (-10 %) → informe | ídem |
+Informe de desvío: a la ejecutiva (Laura Méndez), que decide con el negocio la acción correctiva.
 ```
 
 ```
@@ -1075,7 +1241,7 @@ Se emite solo después de la puerta autorizar-cierre.
 ```
 $ python3 $EST/puertas.py --proyecto gestion verificar autorizar-cierre
 Puerta autorizar-cierre: 1 bloqueo(s) · 0 condición(es) · 0 aviso(s)
-  BLOQUEO   falta la lista de control de la junta: puertas.py --proyecto <dir> lista autorizar-cierre y confirmarla (puertas.py confirmar …)
+  BLOQUEO   L-01 falta la lista de control de la junta: puertas.py --proyecto <dir> lista autorizar-cierre y confirmarla (puertas.py confirmar …)
   → 'aprobado' no se registra: corregir, o decisión 'condicionado' (o --forzar) de la junta
 ```
 
@@ -1120,14 +1286,22 @@ ok
 ```
 
 ```
-$ python3 $PAQ --proyecto gestion cierre
-Escrito gestion/exportados/2026-10-17-paquete-cierre-v1-BORRADOR.zip
-En borrador: business-case-original (sin-estado)
+$ python3 $PAQ --proyecto gestion cierre --extra gestion/00-direccion/historial/bmad-prd-v1.1/prd.md _bmad-output/planning-artifacts/prds/prd-portal-socios-2026-10-17/prd.md
+Escrito gestion/exportados/2026-10-20-paquete-cierre-v1.zip
+Excluidos por estar fuera del proyecto (usar --permitir-externos para incluirlos) / outside the project, excluded: extra: _bmad-output/planning-artifacts/prds/prd-portal-socios-2026-10-17/prd.md
+```
+
+```
+$ (MANIFIESTO.md dentro del ZIP: estado del paquete, filas de --extra y nota de excluidos)
+**ESTADO DEL PAQUETE / PACKAGE STATUS:** COMPLETO PARA LA PUERTA / READY FOR THE GATE (fuentes aprobadas o en revisión)
+| prd.md | 00-direccion/historial/bmad-prd-v1.1/prd.md | extra |  | sin-estado | opcional |  |
+| (extra) | — | extra |  | EXCLUIDO: fuera del proyecto / outside the project (_bmad-output/planning-artifacts/prds/prd-portal-socios-2026-10-17/prd.md) | opcional |  |
+> **Excluidos por estar fuera de la carpeta del proyecto / excluded (outside the project folder):** extra: _bmad-output/planning-artifacts/prds/prd-portal-socios-2026-10-17/prd.md. Para incluirlos, revisar las rutas y volver a generar con `--permitir-externos`.
 ```
 
 ```
 $ python3 $EST/exportar.py xlsx --proyecto gestion
-Escrito gestion/exportados/2026-10-17-registros.xlsx
+Escrito gestion/exportados/2026-10-20-registros.xlsx
 ```
 
 ```
@@ -1137,24 +1311,79 @@ Autorizado: sí
 Roles: ejecutivo=Laura Méndez; usuario_senior=Sofía Ramírez; proveedor_senior=Diego Ferreira; gestor_proyecto=Martín Suárez; aseguramiento=Andrea Costa; autoridad_cambio=Sofía Ramírez; product_owner=Sofía Ramírez; jefes_equipo=Lucía Benítez
 Tolerancias: proyecto: tiempo=±3 semanas, costo=±8 %, alcance=Must sin tolerancia, calidad=NFR sin tolerancia; cada historia terminada con revisión aprobada, beneficios=-10 %, riesgo=ningún riesgo alto sin respuesta, sostenibilidad=-10 % sobre las metas del enfoque de sostenibilidad | etapa: tiempo=±10 %, costo=±10 %
 Presupuestos: cambio=15000, limite_autoridad_cambio=8000
-Artefactos: 24 (11 aprobados)
+Artefactos: 25 (11 aprobados)
 Última puerta: autorizar-cierre · aprobado · 2027-05-14 · Ejecutivo: Laura Méndez
 Fase: cerrado · Proceso: CP · Etapa 3: Release 2 · Enfoque: hibrido
 Proyecto cerrado. Pendiente fuera del proyecto: revisiones de beneficios según el plan (responsable: usuario sénior / capa de negocio).
 ```
 
-## Paso 15 · Después del proyecto: primera revisión de beneficios del negocio (30/6/2027)
+## Paso 10 · Después del proyecto: primera revisión de beneficios del negocio (30/6/2027)
 ```
-$ (Sofía Ramírez, por el negocio, carga las mediciones del 30/6 en okr.csv: KR-1.1 9 %, KR-1.2 4.600 consultas, KR-1.3 70 horas)
+$ python3 $OKR gestion/00-direccion/okr.csv --checkin KR-1.1 --valor 0 --fecha 2027-05-15 --autor "Usuario sénior: Sofía Ramírez" --nota "línea base al entrar en operación"
+Check-in KR-1.1 2027-05-15 = 0 → <repo>/gestion/00-direccion/okr_checkins.csv
+```
 
+```
+$ python3 $OKR gestion/00-direccion/okr.csv --checkin KR-1.2 --valor 5000 --fecha 2027-05-15 --autor "Usuario sénior: Sofía Ramírez" --nota "línea base al entrar en operación"
+Check-in KR-1.2 2027-05-15 = 5000 → <repo>/gestion/00-direccion/okr_checkins.csv
+```
+
+```
+$ python3 $OKR gestion/00-direccion/okr.csv --checkin KR-1.3 --valor 96 --fecha 2027-05-15 --autor "Usuario sénior: Sofía Ramírez" --nota "línea base al entrar en operación"
+Check-in KR-1.3 2027-05-15 = 96 → <repo>/gestion/00-direccion/okr_checkins.csv
+```
+
+```
+$ python3 $OKR gestion/00-direccion/okr.csv --checkin KR-1.1 --valor 9 --fecha 2027-06-30 --confianza 6 --autor "Usuario sénior: Sofía Ramírez" --nota "revisión 1 del plan de revisión de beneficios"
+Check-in KR-1.1 2027-06-30 = 9 → <repo>/gestion/00-direccion/okr_checkins.csv
+```
+
+```
+$ python3 $OKR gestion/00-direccion/okr.csv --checkin KR-1.2 --valor 4600 --fecha 2027-06-30 --confianza 6 --autor "Usuario sénior: Sofía Ramírez" --nota "revisión 1 del plan de revisión de beneficios"
+Check-in KR-1.2 2027-06-30 = 4600 → <repo>/gestion/00-direccion/okr_checkins.csv
+```
+
+```
+$ python3 $OKR gestion/00-direccion/okr.csv --checkin KR-1.3 --valor 70 --fecha 2027-06-30 --confianza 6 --autor "Usuario sénior: Sofía Ramírez" --nota "revisión 1 del plan de revisión de beneficios"
+Check-in KR-1.3 2027-06-30 = 70 → <repo>/gestion/00-direccion/okr_checkins.csv
 ```
 
 ```
 $ python3 $OKR gestion/00-direccion/okr.csv --corte 2027-06-30 --markdown gestion/03-control/reportes/2027-06-30-okr.md
-O-1 Los socios resuelven sus gestiones simples sin ir a la sucursal → 0.37 (rojo)
-   KR-1.1 30 % de socios activos registrados [9/30 %] → 0.30 (rojo) · B-02; SM-1 · Usuario sénior: Sofía Ramírez
-   KR-1.2 Bajar 30 % las consultas de saldo por canales tradicionales [4600/3500 consultas] → 0.27 (rojo) · B-01; SM-2 · Usuario sénior: Sofía Ramírez
-   KR-1.3 Responder préstamos simples en menos de 48 h hábiles [70/48 horas] → 0.54 (ambar) · B-03; SM-3 · Usuario sénior: Sofía Ramírez
+O-1 Los socios resuelven sus gestiones simples sin ir a la sucursal → 0.37 (rojo) · aspiracional
+   KR-1.1 30 % de socios activos registrados [9/30 %] → 0.30 (rojo) · B-02; SM-1 · Usuario sénior: Sofía Ramírez · de-a · salud en-camino (esperado 0.20) · confianza 6 (ambar)
+   KR-1.2 Bajar 30 % las consultas de saldo por canales tradicionales [4600/3500 consultas] → 0.27 (rojo) · B-01; SM-2 · Usuario sénior: Sofía Ramírez · de-a · salud en-camino (esperado 0.20) · confianza 6 (ambar)
+   KR-1.3 Responder préstamos simples en menos de 48 h hábiles [70/48 horas] → 0.54 (ambar) · B-03; SM-3 · Usuario sénior: Sofía Ramírez · de-a · salud en-camino (esperado 0.20) · confianza 6 (ambar)
 Tabla escrita en gestion/03-control/reportes/2027-06-30-okr.md
+```
+
+## Paso 11 · Después del proyecto: revisión final de beneficios (31/12/2027) y desvío fuera de tolerancia
+```
+$ python3 $OKR gestion/00-direccion/okr.csv --checkin KR-1.1 --valor 25 --fecha 2027-12-31 --confianza 7 --autor "Usuario sénior: Sofía Ramírez" --nota "revisión 2 (final) del plan de revisión de beneficios"
+Check-in KR-1.1 2027-12-31 = 25 → <repo>/gestion/00-direccion/okr_checkins.csv
+```
+
+```
+$ python3 $OKR gestion/00-direccion/okr.csv --checkin KR-1.2 --valor 3600 --fecha 2027-12-31 --confianza 7 --autor "Usuario sénior: Sofía Ramírez" --nota "revisión 2 (final) del plan de revisión de beneficios"
+Check-in KR-1.2 2027-12-31 = 3600 → <repo>/gestion/00-direccion/okr_checkins.csv
+```
+
+```
+$ python3 $OKR gestion/00-direccion/okr.csv --checkin KR-1.3 --valor 50 --fecha 2027-12-31 --confianza 7 --autor "Usuario sénior: Sofía Ramírez" --nota "revisión 2 (final) del plan de revisión de beneficios"
+Check-in KR-1.3 2027-12-31 = 50 → <repo>/gestion/00-direccion/okr_checkins.csv
+```
+
+```
+$ python3 $OKR gestion/00-direccion/okr.csv --corte 2027-12-31 --markdown gestion/03-control/reportes/2027-12-31-okr.md
+O-1 Los socios resuelven sus gestiones simples sin ir a la sucursal → 0.91 (verde) · aspiracional
+   KR-1.1 30 % de socios activos registrados [25/30 %] → 0.83 (verde) · B-02; SM-1 · Usuario sénior: Sofía Ramírez · de-a · salud en-riesgo (esperado 1.00) · confianza 7 (verde)
+   KR-1.2 Bajar 30 % las consultas de saldo por canales tradicionales [3600/3500 consultas] → 0.93 (verde) · B-01; SM-2 · Usuario sénior: Sofía Ramírez · de-a · salud en-camino (esperado 1.00) · confianza 7 (verde)
+   KR-1.3 Responder préstamos simples en menos de 48 h hábiles [50/48 horas] → 0.96 (verde) · B-03; SM-3 · Usuario sénior: Sofía Ramírez · de-a · salud en-camino (esperado 1.00) · confianza 7 (verde)
+Tabla escrita en gestion/03-control/reportes/2027-12-31-okr.md
+```
+
+```
+$ python3 $EST/registro.py --proyecto gestion agregar decisiones --campo "fecha=2028-01-10" --campo "decision=Revisión final de beneficios: KR-1.1 83 % de avance hacia la meta; KR-1.2 93 % de avance hacia la meta; KR-1.3 96 % de avance hacia la meta. Fuera de la tolerancia de beneficios (-10 %): KR-1.1. Causa a investigar primero: R-001 (primer ingreso con segundo factor, recorrido UJ-1 P1). Se informa a la ejecutiva Laura Méndez, que decide con el negocio la acción correctiva" --campo "decidido_por=Usuario sénior: Sofía Ramírez" --campo "nivel=capa-negocio" --campo "artefactos_afectados=04-cierre/plan-revision-beneficios.md; 03-control/reportes/2027-12-31-okr.md"
+D-029
 ```
 

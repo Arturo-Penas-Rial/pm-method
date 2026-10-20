@@ -22,11 +22,11 @@ Cuando `enfoque_entrega` es `agil` y el proyecto es chico o mediano:
 - Una sola confirmación humana (paso 5) y luego la puerta `autorizar-inicio`.
 
 ## 3. Selección del enfoque de entrega
-- Aplicar la tabla de nueve criterios agrupados en entregable, proyecto y organización (PMBOK §4.4.4): escala 1 = favorece predictivo, 5 = favorece adaptativo. Mostrar la puntuación por criterio y la lectura (predictivo / híbrido / adaptativo).
+- Aplicar la tabla de decisión de nueve criterios de `pm-knowledge/references/pmbok8-estandar-principios-ciclos.md` §4.4.4 (elaboración propia a partir de los factores de entregable, proyecto y organización del Estándar PMBOK 8, §4.4.1–4.4.3): cada criterio se puntúa 1 (favorece predictivo), 2 (híbrido) o 3 (adaptativo); la suma va de 9 a 27. Lectura: ≤ 13 → predictivo (evaluar incremental si hay valor en entregas parciales); 14–21 → híbrido; ≥ 22 → adaptativo. Mostrar la puntuación por criterio, la suma y la lectura; la puntuación orienta la conversación y no sustituye el juicio ni el acuerdo con el ejecutivo.
 - Entregables que puntúan distinto → híbrido por construcción: cada entregable clave lleva su vía en el brief y en el roadmap.
 - El marco sigue siendo el ciclo de vida por etapas de PRINCE2: el enfoque se elige para el trabajo dentro de las etapas (paquetes de trabajo iterativos, sprints, releases).
 - La decisión se revisa en cada puerta de etapa; el roadmap lo indica como revisión programada.
-- Registro: `estado.py set enfoque_entrega=predictivo|agil|hibrido` + fila en `decisiones.csv` (nivel `gestor` o `junta` según quién confirmó).
+- Registro: `estado.py set enfoque_entrega=predictivo|agil|hibrido --por "Rol: Nombre" [--nivel gestor|junta] [--fecha AAAA-MM-DD]`; con `--por`, el cambio queda anotado en `decisiones.csv` ("enfoque de entrega: anterior → nuevo", nivel `gestor` por defecto). El nivel `junta` (o `ejecutivo`) lo registra pm-director.
 
 ## 4. Variante BMAD (`estado.json.integraciones.especificacion = bmad`)
 ### 4.1 Qué es dueño de qué (SPEC §1.13)
@@ -79,3 +79,26 @@ Variante BMAD: el equipo ya tiene `brief.md` de BMAD (status `draft`). El projec
 
 ## 8. Columnas del registro de lecciones
 `id`, `fecha`, `etapa` (stage), `categoria` (category), `situacion` (situation), `efecto` (effect), `recomendacion` (recommendation), `prioridad` (priority), `responsable_seguimiento` (follow-up owner), `estado` (status), `notas` (notes).
+
+## 9. Validar antes de invertir: supuestos como hipótesis
+- **Cuándo:** la idea tiene incertidumbre alta (producto nuevo, usuarios nuevos, tecnología o proveedor no probados) o
+  la junta duda. Se hace en la puesta en marcha y en la iniciación; es trabajo de la etapa 1 (paquetes de trabajo cortos).
+- **Cómo:** listar los supuestos que sostienen la idea en tres familias (deseabilidad, viabilidad, factibilidad);
+  calificar cada uno por `criticidad` (cuánto cambia el business case si es falso) y `certeza` (cuánta evidencia hay
+  hoy); priorizar el cuadrante criticidad alta + certeza baja; para cada uno, el experimento más barato que dé evidencia,
+  el criterio decidido de antemano (qué resultado cambiaría la decisión) y la fecha límite.
+- **Registro:** `registro.py agregar supuestos --campo supuesto_o_restriccion=… --campo tipo=supuesto --campo categoria=deseabilidad|viabilidad|factibilidad --campo criticidad=alta --campo certeza=baja --campo experimento=… --campo criterio=… --campo fecha_limite=AAAA-MM-DD --campo responsable=…`;
+  al cerrar el experimento: `actualizar supuestos S-… --campo validado=si|no --campo estado=validado|invalidado --campo fecha_validacion=… --campo evidencia=…`.
+- **Controles:** sanidad SUP-01 (crítico sin experimento o sin fecha), SUP-02 (fecha vencida sin resultado), SUP-03
+  (invalidado sin issue, cambio, riesgo o decisión que trate su efecto); puerta `autorizar-proyecto` con condición
+  P-11 si quedan supuestos críticos sin validar. La junta puede aceptarlos de forma explícita: una decisión de nivel
+  `junta` (o `ejecutivo`, o `capa-negocio`) en `decisiones.csv` que cite el id y diga que se acepta (verbo "aceptar" o
+  "accept"; "aceptación" no cuenta), por ejemplo `registro.py agregar decisiones --campo decision="La junta acepta S-003
+  sin validar: la prueba técnica se hace en la etapa 1" --campo decidido_por="Ejecutiva: …" --campo nivel=junta`
+  (lo registra pm-director). Con esa decisión, P-11 baja de condición a aviso para ese supuesto y cita la D-###; la
+  sanidad SUP lo sigue mostrando hasta que se valide.
+- **Vista para la junta:** `templates/hipotesis-y-experimentos.md` (supuestos, experimentos, resultados y
+  recomendación de seguir, ajustar o abandonar). Un supuesto que no se puede validar a tiempo pasa a `pm-riesgos`.
+- **Con BMAD:** los supuestos y preguntas abiertas del brief, el PRFAQ o la investigación de BMAD son la fuente
+  (`riesgos.py candidatos` los lista como clase supuesto o pregunta); pm-method no escribe en BMAD.
+

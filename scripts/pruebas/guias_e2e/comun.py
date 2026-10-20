@@ -25,13 +25,14 @@ def act(repo, registro, id_, **campos):
 def puerta(repo, tipo, por, fecha, extra="", decision="aprobado", lista=True):
     run(E(f'puertas.py --proyecto {G} verificar {tipo}'), repo, ok=(0, 1, 2))
     if lista:
-        run(E(f'puertas.py --proyecto {G} lista {tipo}'), repo, mostrar=False)
-        run(E(f'puertas.py --proyecto {G} confirmar {tipo} --por "{por}"'), repo)
+        run(E(f'puertas.py --proyecto {G} lista {tipo} --fecha {fecha}'), repo, mostrar=False)
+        run(E(f'puertas.py --proyecto {G} confirmar {tipo} --por "{por}" --fecha {fecha}'), repo)
     return run(E(f'estado.py --proyecto {G} puerta {tipo} --decision {decision} --por "{por}" --fecha {fecha} {extra}'), repo)
 
-def base_su(repo):
-    """Proyecto creado, BMAD detectado, roles y tolerancias (equivale a los pasos de puesta en marcha)."""
-    run(E(f'nuevo_proyecto.py --ruta {G} --nombre "Portal de autoservicio para socios" --idioma es --enfoque hibrido --ejecutivo "Laura Méndez" --gestor "Martín Suárez"'), repo)
+def base_su(repo, fecha):
+    """Proyecto creado, BMAD detectado, roles y tolerancias (equivale a los pasos de puesta en marcha).
+    `fecha` es la fecha de creación del proyecto (nuevo_proyecto.py --fecha): estado.json no depende del día de la corrida."""
+    run(E(f'nuevo_proyecto.py --ruta {G} --nombre "Portal de autoservicio para socios" --idioma es --enfoque hibrido --ejecutivo "Laura Méndez" --gestor "Martín Suárez" --fecha {fecha}'), repo)
     run(f'python3 {BMAD} --proyecto {G} detectar', repo, mostrar=False)
     run(f'python3 {BMAD} --proyecto {G} requisitos', repo, mostrar=False)
     run(E(f'estado.py --proyecto {G} rol usuario_senior="Sofía Ramírez" proveedor_senior="Diego Ferreira" product_owner="Sofía Ramírez" autoridad_cambio="Sofía Ramírez" aseguramiento="Andrea Costa" jefes_equipo="Lucía Benítez"'), repo, mostrar=False)
@@ -61,8 +62,32 @@ def reg_json(repo, *a):
     r = subprocess.run(["python3", f"{EST}/registro.py", "--proyecto", G, *a, "--json"], cwd=repo, capture_output=True, text=True, check=True)
     return _j.loads(r.stdout)
 
-def tablero(repo, corte, desde, hasta, proximo, objetivos, hitos, decisiones, iteraciones, comentario, fuentes, salida_png=None, actor=None, fecha_fija="", fecha_pronostico=""):
-    """Receta de pm-visuales/references/guia.md §3: arma el JSON y reemplaza el bloque datos-tablero."""
+MAPAS = f"{RAIZ}/skills/pm-mapas-estrategicos/scripts/mapas.py"
+
+def captura_seccion(html, png, selector, ancho=1280, alto=720, escala=1.5):
+    """Recorte 16:9 (para diapositivas) que empieza en la sección indicada de una página HTML."""
+    try:
+        from playwright.sync_api import sync_playwright
+        with sync_playwright() as p:
+            b = p.chromium.launch(); pg = b.new_page(viewport={"width": ancho, "height": 900}, device_scale_factor=escala)
+            pg.goto("file://" + html); pg.wait_for_timeout(600)
+            y = pg.evaluate(f"document.querySelector({json.dumps(selector)}).getBoundingClientRect().top + window.scrollY")
+            completa = pg.screenshot(full_page=True); b.close()
+        # se recorta la captura de página completa (la misma que da las capturas deterministas de los tableros)
+        import io
+        from PIL import Image
+        im = Image.open(io.BytesIO(completa)); alto_px = round(alto * escala)
+        y0 = max(0, min(round((y - 8) * escala), im.height - alto_px))
+        im.crop((0, y0, round(ancho * escala), y0 + alto_px)).save(png)
+        return True
+    except Exception as x:
+        print("captura omitida:", x); return False
+
+def tablero(repo, corte, desde, hasta, proximo, objetivos, hitos, decisiones, iteraciones, comentario, fuentes, salida_png=None, actor=None, fecha_fija="", fecha_pronostico="",
+            mapas=False, salida_mapas_png=None):
+    """Receta de pm-visuales/references/guia.md §3: arma el JSON y reemplaza el bloque datos-tablero. Con mapas=True,
+    pm-mapas-estrategicos completa la sección opcional «Mapas estratégicos» (mapas.py tablero --insertar) y, con
+    salida_mapas_png, se guarda además un recorte 16:9 que empieza en esa sección."""
     import json as _j, pathlib
     e = _j.load(open(os.path.join(repo, G, "estado.json"), encoding="utf-8"))
     datos = {"proyecto": e["proyecto"], "etapa": e["etapa_actual"]["nombre"], "enfoque_entrega": e["enfoque_entrega"],
@@ -81,6 +106,8 @@ def tablero(repo, corte, desde, hasta, proximo, objetivos, hitos, decisiones, it
     escribir(repo, rel, html)
     run(E(f'estado.py --proyecto {G} artefacto tablero-avance --ruta {rel} --estado en-revision'), repo, mostrar=False)
     LOG.append((f"(pm-visuales arma el tablero con la receta de references/guia.md §3 → gestion/{rel})", f"riesgos abiertos {len(datos['riesgos'])} · issues {len(datos['issues'])} · acciones {len(datos['acciones'])} · iteraciones {len(iteraciones)}"))
+    if mapas:
+        run(f'python3 {MAPAS} --proyecto {G} tablero --insertar {G}/{rel}', repo)
     if salida_png:
         try:
             from playwright.sync_api import sync_playwright
@@ -90,6 +117,7 @@ def tablero(repo, corte, desde, hasta, proximo, objetivos, hitos, decisiones, it
             b = p.chromium.launch(); pg = b.new_page(viewport={"width": 1280, "height": 900}, device_scale_factor=1.5)
             url = "file://" + os.path.join(repo, G, rel) + (f"?actor={actor}" if actor else "")
             pg.goto(url); pg.wait_for_timeout(600); pg.screenshot(path=salida_png, full_page=True); b.close()
+        if mapas and salida_mapas_png: captura_seccion(os.path.join(repo, G, rel), salida_mapas_png, "#s-mapas")
     return os.path.join(repo, G, rel)
 
 

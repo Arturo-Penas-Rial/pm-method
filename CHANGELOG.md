@@ -1,5 +1,203 @@
 # Cambios · Changelog
 
+## 2.3.0 · 2026-10-20 — validar antes de invertir, mapas estratégicos, contexto controlado y material de formación
+
+Versión que suma la validación de supuestos antes de invertir, la evaluación financiera de opciones, los mapas de
+Wardley y de recorrido del cliente, un resumen de contexto derivado de los registros para cada sesión, la revisión de
+seguridad del paquete, un entorno Docker opcional y el material de formación (cinco casos E2E con guion, ejercicio y
+diapositivas). Retrocompatible: un proyecto creado con 2.2 se migra al leerse, sin dependencias nuevas en el núcleo y
+sin escribir en BMAD.
+
+En cifras: 39 skills (33 invocables por el modelo; listado de descripciones de 6.817 de 7.500 caracteres), 6 agentes,
+3 hooks, 13 registros (9 base y 4 opcionales), 85 códigos de sanidad en 12 familias, 5 casos E2E (70 pasos, 10 clases
+de 90 minutos, 42 imágenes) y 186 diapositivas de contenido en los mazos del webinar.
+
+### Agregado
+- **Validar antes de invertir.** `supuestos.csv` suma `criticidad`, `certeza`, `experimento`, `criterio`,
+  `fecha_limite` y `evidencia`; guía de `pm-mandato-y-brief` §9 y plantilla `hipotesis-y-experimentos.md` (vista para la
+  junta). Familia de sanidad **SUP**: SUP-01 supuesto crítico sin experimento o sin fecha límite, SUP-02 fecha límite
+  vencida sin resultado, SUP-03 supuesto invalidado sin issue, cambio, riesgo o decisión que trate su efecto. Control
+  **P-11** en `autorizar-proyecto`: condición si quedan supuestos críticos sin validar; aviso, con la D-### citada, si
+  la junta los acepta con una decisión de nivel junta, ejecutivo o capa de negocio.
+- **Evaluación de inversiones:** `pm-caso-de-negocio/scripts/inversion.py` calcula, desde un CSV de flujos por opción y
+  concepto, VAN, TIR (con aviso de TIR ambigua), repago simple y descontado, VAN incremental contra la opción base,
+  sensibilidad por concepto (±20 % por defecto) y de la tasa (±2 puntos) y punto de equilibrio por concepto; texto
+  (ceros y enteros sin decimales, columna de concepto de hasta 60 caracteres) o `--json`.
+- **Mapas estratégicos:** skill `pm-mapas-estrategicos` (agente pm-inicio, también en el límite de etapa de
+  pm-planificacion) con mapas de Wardley (cadena de valor × evolución, construir, comprar, tercerizar o mercado,
+  movimiento e inercia) y de recorrido del cliente (etapas, una acción por paso, puntos de contacto, emoción de −2 a +2
+  con su fuente, dolores, oportunidades con clase Kano y carriles de service blueprint). `mapas.py`: `semilla` (desde la
+  especificación BMAD, de solo lectura, o desde los artefactos del proyecto), `validar`, `render` (Mermaid
+  `wardley-beta` y `journey`, texto OWM, HTML autocontenido y escapado, PNG con `mmdc`), `recorrido candidatos`,
+  `vincular`, `controles`, `listar` y `tablero`. Si `mmdc` no puede iniciar el navegador, el aviso lo dice y da la
+  solución (`TMPDIR` corto) en lugar de informar un error de sintaxis.
+- **Tablero de mapas:** `mapas.py tablero [--mapas] [--insertar TABLERO.html] [--salida]` dibuja cada mapa válido en
+  SVG propio, sin `mmdc` (Wardley con componentes coloreados por decisión, barra de inercia con su riesgo, movimientos
+  y rótulos que no se pisan; recorrido con bandas por etapa, curva de emoción actual y esperada y el tratamiento de cada
+  dolor), con los avisos MAP vigentes y la tabla «Vínculos citados» (dolor → requisito, riesgo, issue o supuesto;
+  inercia → riesgo), ids enlazados y todo el texto escapado. Escribe `02-planificacion/visuales/tablero-mapas.html`
+  (plantilla `tablero-mapas.html`) y, con `--insertar`, la sección opcional «Mapas estratégicos» del tablero de avance
+  de `pm-visuales`, que reserva los marcadores `pm-mapas:inicio` y `pm-mapas:fin` y numera sus secciones según las
+  que se muestran. `mapas.py controles` informa también el elemento de cada aviso.
+- Familia de sanidad **MAP** (solo AVISO): MAP-00 mapa inválido, MAP-01 producto o commodity marcado construir sin
+  decisión, MAP-02 inercia sin riesgo abierto, MAP-03 dolor sin tratamiento (requisito, historia del backlog, riesgo,
+  issue, cambio, decisión, supuesto o revisión de calidad Q-###), MAP-04 posición o emoción sin evidencia, MAP-05 id
+  roto.
+- `bmad.py recorridos [--id UJ-n] [--json]` (campos del recorrido, FR que lo realizan, KPI SM-n y contrapesos) y
+  `bmad.py capacidades [--json]` (capacidades → módulo → AD-n, decisiones diferidas y stack), de solo lectura.
+- **Resumen de contexto derivado:** `estado.py contexto [--max 2000] [--corte] [--json]` resume `estado.json` y los
+  registros con ids y sin texto libre: conteos abiertos (sin los registros de catálogo, como los estereotipos; las
+  preferencias se cuentan como «por confirmar»), riesgos altos sin respuesta, riesgos con la revisión vencida (REG-09),
+  issues abiertos, acciones vencidas, supuestos críticos sin validar, condiciones abiertas de puertas y próxima puerta,
+  con "… y N más" para no pasar del tope. El hook de inicio lo agrega en cada inicio, reanudación, `/clear` y
+  compactación, y declara que `estado.json` y los registros prevalecen sobre cualquier nota de memoria del cliente.
+- **REG-09:** riesgo abierto con `fecha_revision` anterior al corte.
+- **Autoridad y presupuesto de cambio al registrar** (PRINCE2; `registro.py`, no se omite con `--forzar`). Cuando una
+  escritura deja aprobado un cambio con `costo` > 0 (`decision=aprobado` o `estado` aprobado, implementado o cerrado), o
+  cambia `costo`, `cargo` o `decidido_por` de uno aprobado: si `decidido_por` no es la junta ni el ejecutivo (mismo
+  criterio que CAM-04/CAM-05), se rechaza el cambio que supera `limite_autoridad_cambio`, el que carga
+  `presupuesto-cambio` más allá de `presupuestos.cambio` (lo ya cargado + `costo`) y el que usa `reserva-gestion` o
+  `plan-excepcion`, con mensaje bilingüe: dejar `estado=pendiente-decision` y escalar a pm-director. La junta o el
+  ejecutivo aprueban sobre el límite por cambio, pero con `presupuesto-cambio` sin saldo deben indicar la fuente
+  (`reserva-gestion`, `plan-excepcion`) o ampliar antes el presupuesto con `estado.py presupuesto cambio=… --por …`. Sin
+  presupuesto de cambio fijado se registra con aviso. Consumo y reconocimiento de la junta salen de `esquema.py`
+  (`consumo_cambios`, `es_junta`), los mismos que usa la sanidad CAM. Resuelve la decisión abierta de 2.2 (la prueba en
+  vivo `controles` del 2026-10-18 había registrado `aprobado` con advertencia).
+- Fechas explícitas para reproducir decisiones: `nuevo_proyecto.py --fecha`, `bmad.py linea-base --fecha` (valida el
+  formato) y `estado.py set enfoque_entrega=… --por … [--nivel] [--fecha]`, que anota la decisión en `decisiones.csv`
+  (sin `--por`, aviso). La guía de `pm-mandato-y-brief` §3 usa la escala 1–3 de la tabla de nueve criterios de
+  `pm-knowledge` §4.4.4 (umbrales 13 y 22).
+- **Generador del webinar** `scripts/webinar/generar.py` (con `pptx.js` y `pptxgenjs@4.0.1`): valida
+  `docs/webinar/E2E-N/diapositivas.json` (tipos, imágenes citadas y su proporción, puntos, tablas, diapositivas por clase
+  y términos del glosario) y escribe `E2E-N-diapositivas.pptx` (notas del orador, una sección por clase) y
+  `E2E-N-diapositivas.html` (autocontenido, navegación por clase y diapositiva, claro/oscuro, notas plegables,
+  imprimible, glosario con anclas). Portada del caso, portada de cada clase con objetivos y glosario; sin marca de
+  empresa (recuadro «Logo IEEE» o `--logo`).
+- **Entorno Docker opcional** (`docker/`): `Dockerfile` multietapa sobre `ubuntu:26.04` fijada por digest, usuario sin
+  privilegios, Claude Code CLI 2.1.304 (`DISABLE_AUTOUPDATER=1`), Python 3.14 con dependencias fijadas por hash, Node 22
+  con mermaid-cli 11.16.0, pptxgenjs 4.0.1 y npm 11.21.1 por lockfile, Chromium headless shell de Playwright, git,
+  `tini`, etiquetas OCI y `HEALTHCHECK`; sin credenciales en capas. `compose.yaml` con los servicios `pm`, `pm-sin-red`
+  y `pruebas` (raíz de solo lectura, `cap_drop: [ALL]`, `no-new-privileges`, límites de CPU, memoria y procesos) y
+  comando `pm-pruebas` (validación del plugin, `validar_paquete`, `probar_paquete`, integración cruzada, compatibilidad
+  con Python 3.9, recorridos E2E, `validar_mermaid --render` y mazos del webinar). Workflow
+  `.github/workflows/docker.yml` que construye y prueba la imagen sin publicarla. Verificada el 2026-10-20 dentro del
+  contenedor sin red, sin fallos (`probar_paquete.py` 216 OK con Python 3.14, recorridos 5/5, integración 60 OK con
+  las salidas de los recorridos, Mermaid y mazos sin errores, flujo de usuario con proyecto montado); imagen de
+  2,93 GB (726 MB comprimida).
+- **Resumen ejecutivo comercial** (`docs/resumen-ejecutivo/`): PPTX y HTML autocontenido (claro/oscuro, imprimible,
+  glosario con anclas) con arquitectura, componentes, ciclo de vida, controles permanentes y un caso E2E por
+  diapositiva; `fuente/extraer.py` cuenta skills, agentes, hooks, registros, códigos de control y casos y corre las
+  pruebas al regenerar.
+- **Spot para LinkedIn** (`docs/resumen-ejecutivo/spot/`): MP4 de 44 s en 4:5 con locución sintética (Kokoro-82M,
+  Apache 2.0), música original sintetizada y subtítulos incrustados, versión sin voz, `.srt` y guion con tiempos.
+
+### Cambiado
+- `puertas.py verificar` muestra el código de cada control (`condición P-11 …`) y `--json` agrega `hallazgos`
+  (`{severidad, id, mensaje}`) sin cambiar las listas existentes; la lista de control usa L-01…L-03. `puertas.py estado
+  --markdown` muestra la preparación de la próxima puerta con los mismos códigos (bloqueos, condiciones y avisos) y
+  `--json` agrega `hallazgos`.
+- Control del contexto: `registro.py resumen` recorta cada lista de ids a 25 (`--max`) y agrega `<lista>_total`; el
+  tablero de avance usa esos totales; salidas acotadas con muchos registros (presupuestos medidos en `docs/PRUEBAS.md`
+  §2.2). `sanidad.py` agrupa en pantalla más de cinco hallazgos del mismo código («… y 1 hallazgo más», «… y N
+  hallazgos más»).
+- `sanidad.py` comprueba los módulos opcionales con `importlib.util.find_spec` y ya no carga `openpyxl` ni
+  `python-docx` en cada corrida (ni en el hook de inicio).
+- `paquete.py`: una copia congelada de `00-direccion/historial/` sin front matter toma su estado, versión y aprobador de
+  `estado.json` (`copia_congelada`) o de la decisión «aprobado <clave> v<versión>» de `decisiones.csv`.
+- `interesados.py reporte`: tabla de perfiles de comunicación en seis columnas (entra en 1.280 px) y «· N interesados»
+  con su espacio.
+- Mensaje claro («No existe el archivo / file not found») en `inversion.py`, `cpm.py`, `wbs.py`, `evm.py --csv`,
+  `exportar.py` y `transcripcion.py` ante una entrada faltante; `probar_paquete.py --help` y `validar_paquete.py
+  --help` muestran el uso en lugar de correr.
+- `validar_paquete.py` analiza la sintaxis con un intérprete Python 3.9 si hay uno y, si no, busca las f-strings que solo
+  compilan desde 3.12.
+- `validar_mermaid.py`: lint de `wardley-beta` (nombres sin comillas con tildes, eñe o que empiezan por dígito; título
+  y notas entre comillas; coordenadas fuera de 0–1) y de `journey` (puntaje entero de 1 a 5); el render detecta el SVG
+  de "Syntax error" que `mmdc` produce sin terminar en error.
+- Gráficos de las guías (`scripts/pruebas/guias_e2e/visuales.py`, matplotlib): `mapa_calor`, `barras_comparadas`,
+  `consumo`, `lineas`, `gantt`, `estados`, `tarjetas` y `mapa_supuestos`, PNG de 1600 × 900, ejes de enteros cuando
+  todos los valores lo son y leyenda que no se superpone con el título.
+- Orquestador y agentes: `pm-mapas-estrategicos` en la tabla de enrutamiento (SU, IP) y en `pm-inicio` (paso 5b) y
+  `pm-planificacion` (límite de etapa); `pm-adquisiciones` usa el mapa de Wardley si existe.
+- `pm-caso-de-negocio` usa `inversion.py`; `pm-estado-proyecto` documenta `contexto`; `pm-sanidad` agrega SUP, MAP y
+  REG-09.
+- `pm-issues-cambios` (paso 7, escalamiento y guía §4–§4.1), `pm-direccion-decisiones` (guía, decisión ad hoc) y
+  `pm-director` describen el control al registrar y el orden de la junta: ampliar el presupuesto y después aprobar el
+  cambio. Guía E2E-2, paso 10: la aprobación de C-002 por la autoridad de cambio (15.000, sobre su límite de 10.000 y
+  sin saldo) se rechaza al registrar y queda `pendiente-decision`; la sanidad del 19/2 da `0 ERROR · 1 AVISO · 1 INFO`
+  (TOL-01, CAM-03 al 75 %), la junta amplía el presupuesto a 32.000 y recién entonces aprueba C-002; evidencia,
+  `g2-consumo-cambio.png` y material del webinar E2E-2 con esas cifras. La cadena 2.4 de la integración cruzada y los
+  casos de sanidad que necesitan CAM-03 ERROR o CAM-04 cargan esos cambios antes de que la junta fije el presupuesto.
+
+### Seguridad
+- Revisión del paquete en `docs/SEGURIDAD.md` (bandit, semgrep, pip-audit, npm audit y revisión manual): sin hallazgos
+  de severidad alta; 3 medios y 12 bajos corregidos (SEG-12 en parte) y 2 informativos, cada uno con su estado.
+- SEG-01: el reporte HTML de `interesados.py reporte` escapa todo dato de los registros (solo los fragmentos propios,
+  `HtmlSeguro`, van sin escapar). SEG-02: `exportar.py xlsx` guarda como texto lo que empieza con `=`.
+- SEG-03: `guardian.py` pide la confirmación de una persona (`permissionDecision: "ask"`) para `envios.py aprobar` y
+  `envios.py enviar --confirmar`, también desde pm-director. SEG-09: evalúa cada segmento del comando de Bash y sus
+  redirecciones y reconoce opciones abreviadas.
+- SEG-04: `envios.py` rechaza `PM_SMTP_TLS=ninguno` con usuario y contraseña hacia un host que no es de bucle local.
+  SEG-05: webhooks solo `https://` (`http://` solo hacia bucle local).
+- SEG-06: `paquete.py` excluye del ZIP las rutas fuera de la carpeta del proyecto y las anota en el manifiesto, salvo
+  `--permitir-externos`. SEG-07: `estado.py` valida las claves de artefacto y que la copia congelada quede en
+  `historial/`. SEG-10: el hook de inicio imprime en una línea y recortados los textos de `estado.json`.
+- SEG-08 (apertura de CSV en planillas), SEG-11 (regla "Fuentes = datos" en `pm-riesgos` y `pm-interesados`), SEG-12
+  (`pptxgenjs@4.0.1` fijado), SEG-13 (Docker: `npm audit` con 5 avisos bajos justificados, `image-size` 2.0.3 por
+  `overrides`), SEG-14 (escapado del canvas y del bloque JSON del tablero en la guía de `pm-visuales`) y SEG-15
+  (archivos de credenciales en `.gitignore`).
+
+### Corregido
+- `docs/informe/fuente/build_html.py`: f-string que no compilaba con Python 3.9, con la misma salida.
+- `docs/informe/fuente/build_pptx.js`: número de diapositiva como propiedad `slideNumber` del layout (pptxgenjs 4.0.1
+  ignoraba el que estaba dentro de `objects`).
+
+### Documentación
+- Cinco casos E2E en `docs/guias/`, cada uno con "Por qué importa", "Qué vas a lograr", indicadores con imágenes de la
+  corrida real, dos clases de 90 minutos, la tabla "Del uso único al control continuo" y pasos con la misma estructura
+  (prompt · si te pregunta · qué hace el sistema · qué deberías ver · dónde verificar): E2E-1 riesgos (15 pasos),
+  E2E-2 alcance, cambio y mapa de ruta (10), E2E-3 interesados, comunicaciones, OKR y avance (14), E2E-4 producto con
+  BMAD (13) y E2E-5 de la idea al proyecto diseñado (18, con variante con BMAD). E2E-4 y E2E-5 (variantes a y b)
+  terminan con la representación gráfica de sus mapas: el tablero del Release 1 con su sección de mapas
+  (`g4-tablero.png`, recorte 16:9 `g4-tablero-mapas-169.png`) y los tableros de mapas `g5-tablero-mapas.png`
+  (recorte `g5-tablero-mapas-169.png`) y `g5-tablero-mapas-bmad.png`, con una diapositiva de imagen en cada mazo.
+- Material del webinar en `docs/webinar/E2E-1…E2E-5/`: guion del instructor (agenda minuto a minuto, mensajes clave,
+  preguntas con respuesta esperada, plan B), ejercicio para asistentes con solución de referencia y contenido de
+  diapositivas: 186 diapositivas de contenido y 124 términos de glosario en los cinco mazos.
+- `docs/SEGURIDAD.md`, `docs/DOCKER.md`, `docs/PRUEBAS.md` §2.2 (presupuestos de contexto con y
+  sin pm-method y con BMAD instalado), `docs/INSTALACION.md` §9.1 (contexto y memoria) y la solución de problemas de
+  `mmdc` con un `TMPDIR` largo.
+- Cifras actualizadas y sin historia de construcción en README, índice, arquitectura, catálogo, sanidad, puertas,
+  pruebas y guías.
+- Informe 2 en `docs/informe/` (`informe-2-ecosistema-pm-method-v2.3.html` y `.pptx`, reemplazan a los de 2.2):
+  sección «Capacidades de gestión» (supuestos y P-11, `inversion.py`, mapas estratégicos, contexto de sesión), seguridad,
+  Docker, integración cruzada, Python 3.9, guías E2E con sus indicadores, material de formación, pruebas en vivo del
+  2026-10-20 e historial de versiones como sección aparte; las cifras del texto propio las cuenta `fuente/extraer.py` en
+  el repositorio (marcadores `{{clave}}`); HTML con tema claro u oscuro; recuadro «Logo IEEE» en lugar de marca.
+
+### Pruebas
+- `probar_paquete.py`: **216 OK · 0 FALLO** con Python 3.13; **215 OK · 0 FALLO** con Python 3.9 (sin `matplotlib` se
+  omite una comprobación de visuales). Casos nuevos: J2 (autoridad y presupuesto de cambio al registrar), K (supuestos y P-11), L (esquema de las diapositivas del webinar),
+  M (mapas, tablero de mapas, REG-09 y `linea-base --fecha`), N (endurecimiento SEG-03…SEG-10 y control del contexto), P (salidas de los
+  scripts: contexto, sanidad, puertas, paquete, mapas, inversión y reporte de interesados), S (SEG-01 y SEG-02),
+  X (integración cruzada) e Y (`--help` de 29 scripts y 17 entradas faltantes sin traza de Python).
+- Suite de integración cruzada `scripts/pruebas/integracion/correr.py`: seis cadenas sobre un mismo proyecto (BMAD →
+  especificación → backlog → WBS → CPM → EVM → OKR → sanidad → puertas; acta, Jira y BMAD → riesgos → presupuestos y
+  cambios → tablero; interesados ↔ RACI ↔ OKR ↔ envíos; mapas → vínculos → MAP → inversión; exportación y paquete;
+  recorridos E2E → webinar), donde cada eslabón toma el dato de la salida del anterior: **61 OK · 0 FALLO en 24
+  eslabones**.
+- Recorridos E2E (`guias_e2e/correr.py`): 5/5 con los scripts reales, evidencia idéntica en dos corridas seguidas (la
+  creación del proyecto también lleva fecha fija: `comun.base_su(repo, fecha)`).
+- `validar_mermaid.py --render`: 127 bloques, 0 errores. `generar.py --todos --validar`: 5/5 mazos sin errores.
+- En vivo con Claude Code real (2026-10-20): enrutamiento tras el cambio del hook de inicio 14/14
+  (`docs/evaluacion/resultados/2026-10-20-enrutamiento-contexto-v2.3.md`); frases 95–102 de la skill de mapas 8/8
+  (`…/2026-10-20-enrutamiento-mapas-v2.3.md`); escenario `suite.py integracion` con las 29 skills de BMAD 6.12.4
+  instaladas 12/12, primera llamada de 45.505 tokens de entrada y máximo de 64.177
+  (`…/2026-10-20-integracion-contexto-v2.3.md`); escenario `suite.py controles` 7/7: `registro.py` rechazó la
+  aprobación de la autoridad de cambio sin saldo y el modelo dejó el cambio `pendiente-decision` y pidió la decisión a
+  la junta (`…/2026-10-20-controles-v2.3.md`). `vivo.py` mide los tokens de entrada de cada llamada.
+- 102 frases en `docs/evaluacion/frases-enrutamiento.tsv`.
+
 ## 2.2.0 · 2026-10-17 — maestro de interesados, capa de canales y OKR
 
 Versión que convierte el registro de interesados en un maestro con matriz, RACI ligada al plan y perfil de
@@ -147,7 +345,7 @@ ahora detectan `sanidad.py` y `puertas.py` en cada corrida. Todos son AVISO o IN
   `pm-direccion-decisiones` guía (presupuestos y condiciones), `guia-registros.md` (columnas `costo` y `cargo`);
   `pm-control` paso 8 (corte de EVM guardado y sanidad con `--corte`) y `pm-director` modo B paso 6 (`presupuesto`,
   `cumplir-condiciones`).
-- 38 skills (32 invocables por el modelo; listado de 6.546 caracteres), 6 agentes, 3 hooks; versión 2.2.0 en
+- 38 skills (32 invocables por el modelo; listado de 6.582 caracteres), 6 agentes, 3 hooks; versión 2.2.0 en
   `plugin.json`, `compatibilidad.json`, `esquema.py` y todos los SKILL.md.
 
 ### Pruebas y guías
@@ -174,11 +372,20 @@ ahora detectan `sanidad.py` y `puertas.py` en cada corrida. Todos son AVISO o IN
 - `validar_mermaid.py --render`: 127 bloques, 0 errores; `validar_paquete.py`: OK; `claude plugin validate .`: pasa.
 
 ### Pendientes
-- **Pruebas en vivo de enrutamiento** con Claude Code real: no se corrieron para 2.2 y cambiaron cinco descripciones.
-  Recomendado: `python3 scripts/pruebas_vivo/suite.py enrutamiento --ids <afectados>` (consume tokens) y, antes de
-  publicar, `suite.py todo`.
-- Controles permanentes (CAM, QUA, TOL, STK-12, G-01): probados con scripts (caso J y guías E2E); no se probaron en vivo
-  con Claude Code real.
+- Pruebas en vivo de enrutamiento con Claude Code real (18/10/2026): **14/14** en las frases de las skills cuya
+  descripción cambió (`docs/evaluacion/resultados/2026-10-18-enrutamiento-v2.2.md`); guardarraíles 4/4, idioma 3/3 y
+  escenario nuevo `controles` 6/6 (`…/2026-10-18-suite-v2.2.md`, USD 0,97). Decisión abierta: con el presupuesto de
+  cambio agotado, el modelo registra `aprobado` si el usuario lo pide (advirtiendo y anotando la ratificación pendiente)
+  en lugar de `pendiente-decision`.
+- Terminología: batería en vivo de 28 frases con vocabulario de PRINCE2 en español, PMBOK en español y uso habitual
+  (ids 67–94 de `frases-enrutamiento.tsv`): 27/28; se agregaron "incidencia" y "registro de incidentes" a la
+  descripción de `pm-issues-cambios` y "incidencia" y "comité de dirección" a la tabla del orquestador; documento nuevo
+  `docs/TERMINOLOGIA.md` (`…/2026-10-18-terminologia-v2.2.md`).
+- Convivencia con BMAD: con las 29 skills de BMAD 6.12.4 (módulo bmm) instaladas en el mismo proyecto, 25/25 frases
+  vecinas llegaron a la skill de pm-method (`…/2026-10-18-enrutamiento-con-bmad-v2.2.md`); `suite.py --skills-extra`
+  copia las skills de otra instalación al proyecto de prueba.
+- `scripts/pruebas_vivo/escenarios.py`: escenario `controles` (presupuesto de cambio excedido y calidad a volumen en
+  una conversación real); `suite.py controles` y dentro del grupo `robustez`.
 - Plan comercial que exigen los servidores MCP de Tability y Perdoo: [verificar].
 - Exposición de objetivos por los MCP oficiales de otras herramientas de OKR: [verificar].
 - Alcance exacto de la exclusión de texto escrito en el art. 5(1)(f) del AI Act (solo fuentes secundarias): [verificar].

@@ -1,4 +1,4 @@
-// Informe 2 v2.2 · PPTX. Uso: node build_pptx.js  (lee data.json y diagramas/*.png; escribe salida-v2.2/informe-2-ecosistema-pm-method-v2.2.pptx)
+// Informe 2 · PPTX. Uso: node build_pptx.js  (lee data.json y diagramas/*.png; escribe salida-v2.3/informe-2-ecosistema-pm-method-v2.3.pptx)
 const pptxgen = require("pptxgenjs");
 const fs = require("fs");
 const path = require("path");
@@ -8,8 +8,12 @@ const APPLY_THEME = ["/mnt/skills/public/pptx/scripts/apply_theme.js",
 const { applyTheme } = APPLY_THEME ? require(APPLY_THEME) : { applyTheme: async () => {} };
 const D = JSON.parse(fs.readFileSync("data.json", "utf8"));
 const X = D.x;
-fs.mkdirSync("salida-v2.2", { recursive: true });
-const SALIDA = "salida-v2.2/informe-2-ecosistema-pm-method-v2.2.pptx";
+const CIF = X.cifras;
+const VER = D.meta.version;                       // "v2.3"
+const DIR = "salida-" + VER;
+fs.mkdirSync(DIR, { recursive: true });
+const SALIDA = `${DIR}/informe-2-ecosistema-pm-method-${VER}.pptx`;
+const FECHA_P = CIF.pruebas_fecha.split("-").reverse().join("/");   // 20/10/2026
 
 const THEME = { name: "Informe", headFontFace: "Arial", bodyFontFace: "Arial",
   colors: { dk1: "272425", lt1: "FFFFFF", dk2: "002855", lt2: "F4F6F8", accent1: "00629B", accent2: "B5651D", accent3: "002855", accent4: "696969", accent5: "272425", accent6: "00629B", hlink: "00629B", folHlink: "002855" } };
@@ -23,17 +27,20 @@ const W = 13.33, H = 7.5;
 const FOOT = `${D.meta.corto} · ${D.meta.version} · ${D.meta.fecha} · ${D.meta.autor}`;
 const HAS_LOGO = fs.existsSync("logo.png");
 const logo = HAS_LOGO ? fs.readFileSync("logo.png").toString("base64") : null;
-const logoObj = (x, y, w, h) => HAS_LOGO ? [{ image: { x, y, w, h, data: "image/png;base64," + logo } }] : [];
+const logoObj = (x, y, w, h, color = GRAY) => HAS_LOGO ? [{ image: { x, y, w, h, data: "image/png;base64," + logo } }] : [
+  { rect: { x, y, w, h, fill: { color: "FFFFFF", transparency: 100 }, line: { color, width: 1, dashType: "dash" } } },
+  { text: { text: "Logo IEEE", options: { x, y, w, h, fontSize: 9, color, align: "center", valign: "middle", margin: 0 } } }];
 
 pres.defineSlideMaster({ title: "COVER", background: { color: NAVY }, objects: [
-  ...logoObj(0.6, 0.5, 2.2, 0.88),
+  ...logoObj(0.6, 0.5, 2.2, 0.88, "9FD0F0"),
   { text: { text: FOOT, options: { x: 0.6, y: H - 0.55, w: 9, h: 0.3, fontSize: 10, color: WHITE, margin: 0 } } }] });
-pres.defineSlideMaster({ title: "CONTENT", background: { color: WHITE }, margin: [0.5, 0.5, 0.9, 0.5], objects: [
-  ...logoObj(W - 2.3, 0.35, 1.7, 0.68),
-  { rect: { x: 0.5, y: 0.4, w: HAS_LOGO ? 9.6 : 12.33, h: 0.78, fill: { color: BLUE }, rectRadius: 0.1, shape: "roundRect" } },
-  { placeholder: { options: { name: "title", type: "title", x: 0.7, y: 0.4, w: HAS_LOGO ? 9.3 : 11.9, h: 0.78, fontSize: 21, bold: true, color: WHITE, margin: 0, valign: "middle" } } },
-  { text: { text: FOOT, options: { x: 0.5, y: H - 0.5, w: 9, h: 0.3, fontSize: 9, color: GRAY, margin: 0 } } },
-  { slideNumber: { x: W - 1.2, y: H - 0.5, w: 0.7, h: 0.3, fontSize: 9, color: GRAY, align: "right" } }] });
+// número de diapositiva: propiedad `slideNumber` del layout (pptxgenjs 4.0.1 ignora un `slideNumber` dentro de `objects`)
+pres.defineSlideMaster({ title: "CONTENT", background: { color: WHITE }, margin: [0.5, 0.5, 0.9, 0.5],
+  slideNumber: { x: W - 1.2, y: H - 0.5, w: 0.7, h: 0.3, fontSize: 9, color: GRAY, align: "right" }, objects: [
+  ...logoObj(W - 2.2, 0.4, 1.7, 0.78),
+  { rect: { x: 0.5, y: 0.4, w: 10.45, h: 0.78, fill: { color: BLUE }, rectRadius: 0.1, shape: "roundRect" } },
+  { placeholder: { options: { name: "title", type: "title", x: 0.7, y: 0.4, w: 10.1, h: 0.78, fontSize: 19, bold: true, color: WHITE, margin: 0, valign: "middle" } } },
+  { text: { text: FOOT, options: { x: 0.5, y: H - 0.5, w: 9, h: 0.3, fontSize: 9, color: GRAY, margin: 0 } } }] });
 
 let n = 0;
 const INDEX = [];
@@ -116,7 +123,7 @@ const TOP = 1.4, BUDGET = 5.3;
 function tablaSlides(sec, titulo, cab, filas, colW, opt = {}) {
   const margin = opt.margin || 0.05, top = opt.top || TOP;
   const budget = opt.budget || ((opt.nota ? 5.05 : 5.35) - (top - TOP));
-  const esGrupo = f => opt.grupo !== undefined && f.filter(c => c).length === 1 && String(f[opt.grupo]).startsWith("**");
+  const esGrupo = f => opt.grupo !== undefined && f.filter(c => c).length === 1 && (opt.grupoRe ? opt.grupoRe.test(String(f[opt.grupo])) : String(f[opt.grupo]).startsWith("**"));
   const emDe = t => { const code = (String(t || "").match(/`[^`]*`/g) || []).join("").length; return 0.46 + 0.16 * Math.min(1, code / Math.max(1, clean(t).length)); };
   const paginar = size => {
     const hdrH = Math.max(...cab.map((c, k) => textH(c, colW[k] - 2 * margin, opt.hdrSize || size, 1.18))) + 0.12;
@@ -189,27 +196,27 @@ pres.addSection({ title: "Portada" });
 {
   n++; const s = pres.addSlide({ masterName: "COVER", sectionTitle: "Portada" });
   const tp = D.meta.titulo.split(": ");
-  tb(s, D.meta.tag + " · " + D.meta.version, { x: 0.6, y: HAS_LOGO ? 2.0 : 1.2, w: 8, h: 0.4, fontSize: 14, color: WHITE });
-  s.addText([{ text: tp[0] + ":\n", options: { fontSize: 30, color: WHITE } }, { text: tp[1], options: { fontSize: 34, bold: true, color: WHITE } }], { x: 0.6, y: HAS_LOGO ? 2.5 : 1.7, w: 11.8, h: 2.0, isTextBox: true, margin: 0, valign: "top" });
-  tb(s, D.meta.subtitulo, { x: 0.6, y: HAS_LOGO ? 4.6 : 3.9, w: 11.2, h: 1.2, fontSize: 15, color: WHITE });
-  tb(s, D.meta.autor + "   ·   " + D.meta.fecha + "   ·   Uso interno", { x: 0.6, y: HAS_LOGO ? 5.9 : 5.4, w: 11, h: 0.4, fontSize: 12, color: WHITE });
+  tb(s, D.meta.tag + " · " + D.meta.version, { x: 0.6, y: 1.75, w: 8, h: 0.4, fontSize: 14, color: WHITE });
+  s.addText([{ text: tp[0] + ":\n", options: { fontSize: 30, color: WHITE } }, { text: tp[1], options: { fontSize: 34, bold: true, color: WHITE } }], { x: 0.6, y: 2.25, w: 11.8, h: 2.0, isTextBox: true, margin: 0, valign: "top" });
+  tb(s, D.meta.subtitulo, { x: 0.6, y: 4.3, w: 11.6, h: 1.3, fontSize: 15, color: WHITE });
+  tb(s, D.meta.autor + "   ·   " + D.meta.fecha, { x: 0.6, y: 5.85, w: 11, h: 0.4, fontSize: 12, color: WHITE });
 }
 const indexSlide = slide("Portada");
 indexSlide.addText("Contenido", { placeholder: "title" });
 {
   const s = slide("Portada"); s.addText("Cómo leer este informe según su rol", { placeholder: "title" });
   D.audiencias.forEach((a, i) => {
-    const x = 0.5 + (i % 2) * 6.27, y = 1.4 + Math.floor(i / 2) * 2.32;
-    card(s, x, y, 6.06, 2.2, a.rol + " · secciones " + a.leer, a.valor, { fill: i === 0 ? ORTINT : BLUETINT, titleColor: i === 0 ? ORANGE : NAVY, maxSize: 12, titleSize: 12.5, titleH: 0.34 });
+    const x = 0.5 + (i % 2) * 6.27, y = 1.38 + Math.floor(i / 2) * 2.2;
+    card(s, x, y, 6.06, 2.1, a.rol + " · secciones " + a.leer, a.valor, { fill: i === 0 ? ORTINT : BLUETINT, titleColor: i === 0 ? ORANGE : NAVY, maxSize: 12, titleSize: 12.5, titleH: 0.34 });
   });
-  tb(s, runs("**Alcance y método.** " + D.meta.alcance, { fontSize: 9.5, color: GRAY }), { x: 0.5, y: 6.08, w: 12.33, h: 0.78 });
+  tb(s, runs("**Alcance y método.** " + D.meta.alcance, { fontSize: 9, color: GRAY }), { x: 0.5, y: 5.83, w: 12.33, h: 1.02 });
 }
 
 // ====================== 1 Resumen ejecutivo ======================
 const S1 = "1 · Resumen ejecutivo"; pres.addSection({ title: S1 });
 {
   mark("1 · Resumen ejecutivo");
-  const s = slide(S1); s.addText("1 · pm-method v2.2.0 en cifras", { placeholder: "title" });
+  const s = slide(S1); s.addText("1 · pm-method v" + CIF.version + " en cifras", { placeholder: "title" });
   D.kpis.forEach((k, i) => {
     const x = 0.5 + (i % 3) * 4.15, y = 1.4 + Math.floor(i / 3) * 1.66;
     s.addShape(pres.ShapeType.roundRect, { x, y, w: 3.95, h: 1.54, fill: { color: NAVY }, rectRadius: 0.1, line: { color: NAVY } });
@@ -236,13 +243,10 @@ tablaSlides(S1, "1 · Qué ofrece: " + X.re_capacidades.filas.length + " capacid
     tb(s, runs(m[2], { fontSize: fitSize(m[2], 8.2, 0.88, 13, 10.5), color: dark ? WHITE : CHAR, codeColor: dark ? "CFE3F3" : NAVY }), { x: 4.4, y: y + 0.05, w: 8.25, h: 0.9, valign: "middle" });
   });
 }
-{
-  const s = slide(S1); s.addText("1 · Para quién y evidencia al 17/10/2026", { placeholder: "title" });
-  tb(s, "Para quién", { x: 0.5, y: 1.36, w: 5.6, h: 0.32, fontSize: 13, bold: true, color: ORANGE });
-  tablaFija(s, ["Perfil", "Qué obtiene"], T(X.re_para_quien), 0.5, 1.72, [1.95, 3.75], { size: 11.5, estilos: [{ bold: true, color: NAVY }, {}] });
-  tb(s, "Evidencia", { x: 6.5, y: 1.36, w: 6.3, h: 0.32, fontSize: 13, bold: true, color: ORANGE });
-  tablaFija(s, ["Verificación", "Resultado"], T(X.re_evidencia), 6.5, 1.72, [2.7, 3.63], { size: 10.5, estilos: [{ bold: true, color: NAVY }, {}] });
-}
+tablaSlides(S1, "1 · Para quién", ["Perfil", "Qué obtiene"], T(X.re_para_quien), [3.2, 9.13], { size: 13,
+  estilos: [{ bold: true, color: NAVY }, {}], nota: "Cómo leer este informe según el rol: diapositiva 3. Fuente: docs/RESUMEN-EJECUTIVO.md §5." });
+tablaSlides(S1, "1 · Evidencia al " + FECHA_P, ["Verificación", "Resultado"], T(X.re_evidencia), [3.6, 8.73], { size: 11.5,
+  estilos: [{ bold: true, color: NAVY }, {}], nota: "Fuente: docs/RESUMEN-EJECUTIVO.md §6; las cifras de pruebas se volvieron a obtener corriendo los comandos el " + FECHA_P + " (secciones 7 y 17)." });
 {
   const s = slide(S1); s.addText("1 · Límites conocidos, con honestidad, y cómo empezar", { placeholder: "title" });
   s.addShape(pres.ShapeType.roundRect, { x: 0.5, y: 1.4, w: 7.0, h: 5.45, fill: { color: ORTINT }, rectRadius: 0.1, line: { color: ORTINT } });
@@ -254,13 +258,69 @@ tablaSlides(S1, "1 · Qué ofrece: " + X.re_capacidades.filas.length + " capacid
   card(s, 7.8, 4.5, 5.03, 2.35, "Antes del primer proyecto real", "Recorrer la verificación de 12 pasos (sección 11) y la prueba de aceptación de " + X.pru_aceptacion.length + " puntos en una carpeta de prueba (sección 17). Para que el orquestador conduzca toda la sesión: `claude --agent pm-method:pm-orquestador`.", { fill: NAVY, titleColor: WHITE, bodyColor: WHITE, codeColor: "CFE3F3", maxSize: 12.5 });
 }
 
-// ====================== 2 Novedades 2.2 ======================
-const S2 = "2 · Novedades de la versión 2.2"; pres.addSection({ title: S2 });
-const V = D.v22;
-mark("2 · Novedades de la versión 2.2");
-tablaSlides(S2, "2 · Versión 2.2.0: " + X.chl22_lema, ["Indicador", "2.1.0", "2.2.0", "Fuente"], V.antes_despues,
-  [2.5, 2.4, 5.25, 2.18], { size: 9.5, top: 1.85, budget: 6.3, introRepeat: false, estilos: [{ bold: true, color: NAVY }, { color: GRAY }, { color: BLUE }, { color: GRAY }],
-  intro: "**2.2.0 · 17/10/2026 — " + X.chl22_lema + ".** Retrocompatible: los proyectos 2.1 siguen funcionando sin cambios. Detalle de cada novedad en las diapositivas siguientes.", introSize: 12 });
+// ====================== 2 Capacidades de gestión ======================
+const S2 = "2 · Capacidades de gestión"; pres.addSection({ title: S2 });
+const V = D.cap;
+// imagen de las guías E2E por patrón (sección «Indicadores que vas a ver»): si una guía cambia sus imágenes, se toma la vigente
+const indicador = (re) => {
+  for (const g of Object.keys(X.guias_indicadores)) for (const it of X.guias_indicadores[g]) if (re.test(it.img)) return Object.assign({ guia: g, ruta: "../../guias/img/" + it.img }, it);
+  throw new Error("No hay en las guías E2E una imagen de indicadores que coincida con " + re);
+};
+const GIMG = "docs/guias/img/";
+mark("2 · Capacidades de gestión");
+{
+  const s = slide(S2); s.addText("2 · Validar antes de invertir: supuestos, experimentos y P-11", { placeholder: "title" });
+  const im = indicador(/supuestos/);
+  const r = imagen(s, im.ruta, 0.5, 1.35, 6.3, 3.6, `${im.guia} · ${GIMG}${im.img}`, "left");
+  tb(s, runs(im.lectura, { fontSize: 11.5, color: CHAR }), { x: 0.5, y: 1.35 + r.h + 0.42, w: 6.3, h: 6.85 - (1.35 + r.h + 0.42) });
+  V.supuestos.forEach((c, i) => card(s, 7.05, 1.35 + i * 1.39, 5.78, 1.3, c.t, c.d, { fill: [BLUETINT, BLUETINT, ORTINT, NAVY][i], titleColor: [NAVY, NAVY, ORANGE, WHITE][i], bodyColor: i === 3 ? WHITE : CHAR, codeColor: i === 3 ? "CFE3F3" : NAVY, maxSize: 11.5, titleSize: 12, titleH: 0.3 }));
+}
+{
+  const s = slide(S2); s.addText("2 · Evaluación de inversiones por opción (inversion.py)", { placeholder: "title" });
+  const im = indicador(/van/);
+  const r = imagen(s, im.ruta, 0.5, 1.35, 6.3, 3.55, `${im.guia} · ${GIMG}${im.img}`, "left");
+  s.addShape(pres.ShapeType.roundRect, { x: 0.5, y: 1.35 + r.h + 0.42, w: 6.3, h: 6.85 - (1.35 + r.h + 0.42), fill: { color: LT }, rectRadius: 0.08, line: { color: LT } });
+  bulletsBox(s, X.ev_inversion_lectura, 0.65, 1.35 + r.h + 0.5, 6.0, 6.85 - (1.35 + r.h + 0.5) - 0.08, 11, CHAR, { gap: 3 });
+  V.inversion.forEach((c, i) => card(s, 7.05, 1.35 + i * 1.85, 5.78, 1.75, c.t, c.d, { fill: i === 1 ? ORTINT : BLUETINT, titleColor: i === 1 ? ORANGE : NAVY, maxSize: 12, titleSize: 12.5 }));
+}
+{
+  const s = slide(S2); s.addText("2 · inversion.py: salida real y fórmulas", { placeholder: "title" });
+  tb(s, "Salida en la guía E2E-5, paso 4 (docs/guias/evidencia/salida-g5.md)", { x: 0.5, y: 1.33, w: 12.33, h: 0.3, fontSize: 12, bold: true, color: NAVY });
+  codeBox(s, X.ev_inversion, 0.5, 1.68, 12.33, 1.75, 10.5, 9);
+  tb(s, "Fórmulas (inversion.py --help)", { x: 0.5, y: 3.6, w: 12.33, h: 0.3, fontSize: 12, bold: true, color: NAVY });
+  bulletsBox(s, X.inversion_formulas.map(f => f.replace(/^([^=:]+?)( =| de un concepto:|:)/, "**$1**$2")), 0.5, 3.95, 12.33, 2.4, 11, CHAR, { gap: 3 });
+  codeBox(s, X.inversion_uso, 0.5, 6.42, 12.33, 0.45, 10, 9);
+}
+{
+  const s = slide(S2); s.addText("2 · Mapas estratégicos: Wardley y recorrido del cliente", { placeholder: "title" });
+  const w = indicador(/wardley/), j = indicador(/recorrido/);
+  [w, j].forEach((im, k) => {
+    const r = imagen(s, im.ruta, 0.5 + k * 6.27, 1.3, 6.06, 2.85, `${im.guia} · ${GIMG}${im.img}`);
+    tb(s, runs(im.lectura, { fontSize: fitSize(im.lectura, 6.06, 0.78, 10.5, 9) }), { x: 0.5 + k * 6.27, y: 1.3 + r.h + 0.36, w: 6.06, h: 0.8 });
+  });
+  V.mapas.slice(0, 3).forEach((c, i) => card(s, 0.5 + i * 4.15, 5.22, 3.95, 1.63, c.t, c.d, { fill: i === 2 ? ORTINT : BLUETINT, titleColor: i === 2 ? ORANGE : NAVY, maxSize: 11, minSize: 9.5, titleSize: 11.5, titleH: 0.3 }));
+}
+{
+  const s = slide(S2); s.addText("2 · Mapas estratégicos: controles MAP y comandos (mapas.py)", { placeholder: "title" });
+  const filas = X.codigos.filas.filter(f => /^MAP-\d/.test(f[0])).map(f => [f[0], f[2], f[3]]);
+  tablaFija(s, ["Código", "Qué comprueba (solo AVISO)", "Corrige"], filas, 0.5, 1.4, [0.95, 4.6, 2.6], { size: 9.5, estilos: [{ bold: true, color: ORANGE }, {}, { color: GRAY }], margin: 0.04 });
+  card(s, 8.85, 1.4, 3.98, 2.7, V.mapas[3].t, V.mapas[3].d, { fill: BLUETINT, maxSize: 11 });
+  card(s, 8.85, 4.25, 3.98, 2.6, V.mapas[4].t, V.mapas[4].d, { fill: NAVY, titleColor: WHITE, bodyColor: WHITE, codeColor: "CFE3F3", maxSize: 11 });
+  const uso = X.mapas_uso.filter(l => / (semilla|render|controles|vincular) /.test(l + " ")).map(l => l.replace(/\s*\[[^\]]*\](?:\s*\[[^\]]*\])*/g, "").replace(/\s+#.*$/, "").trim());
+  codeBox(s, "# opciones entre corchetes omitidas; sintaxis completa: mapas.py --help\n" + uso.join("\n"), 0.5, 5.4, 8.15, 1.45, 9.5, 9);
+}
+{
+  const s = slide(S2); s.addText("2 · Contexto de sesión acotado: los registros mandan sobre la memoria", { placeholder: "title" });
+  V.contexto.forEach((c, i) => card(s, 0.5, 1.35 + i * 1.39, 6.3, 1.3, c.t, c.d, { fill: i === 2 ? NAVY : (i === 3 ? ORTINT : BLUETINT), titleColor: i === 2 ? WHITE : (i === 3 ? ORANGE : NAVY), bodyColor: i === 2 ? WHITE : CHAR, codeColor: i === 2 ? "CFE3F3" : NAVY, maxSize: 11, titleSize: 12, titleH: 0.3 }));
+  tb(s, "Salida real al retomar la sesión (E2E-5, paso 14)", { x: 7.05, y: 1.33, w: 5.78, h: 0.3, fontSize: 12, bold: true, color: NAVY });
+  const ctx = X.ev_contexto[X.ev_contexto.length - 1].split("\n");
+  codeBox(s, ctx[0] + "\n" + ctx.slice(1).join("\n").replace(/ \(es el estado vigente; una nota de memoria que diga otra cosa está desactualizada\):/, ":\n  (es el estado vigente; una nota de memoria que diga otra\n  cosa está desactualizada)"), 7.05, 1.68, 5.78, 2.75, 10, 9);
+  const t = X.pru_contexto.filas.filter(f => /^(Hook de inicio, proyecto vacío|Resumen de contexto|Hook de inicio, un proyecto|Primera llamada)/.test(f[0]));
+  tablaFija(s, ["Qué", "Tope", "Medido"], t.map(f => [f[0].replace(/ \(todo lo anterior.*\)$/, ""), f[1].replace(/ \(.*\)$/, ""), f[2]]), 7.05, 4.6, [2.5, 1.6, 1.68], { size: 9.5, estilos: [{ bold: true, color: NAVY }, {}, { color: BLUE }], margin: 0.04 });
+}
+tablaSlides(S2, "2 · Topes de contexto medidos", X.pru_contexto.cab, T(X.pru_contexto), [3.2, 2.9, 2.6, 3.63], { size: 10, top: 2.0, introRepeat: false,
+  intro: X.pru_contexto_intro, introSize: 11, estilos: [{ bold: true, color: NAVY }, {}, { color: BLUE }, { color: GRAY }],
+  nota: "Fuente: docs/PRUEBAS.md §2.2. " + X.pru_contexto_vivo.split(". ").slice(0, 1).join("") + "." });
 {
   const s = slide(S2); s.addText("2 · Maestro de interesados: matriz poder/interés y estrategia", { placeholder: "title" });
   const r = imagen(s, "diagramas/g3-matriz-recorte.png", 0.5, 1.35, 6.45, 3.55, "Reporte de interesados real (E2E-3, corte 2027-01-15) · docs/guias/img/g3-interesados-matriz.png", "left");
@@ -292,87 +352,25 @@ tablaSlides(S2, "2 · Versión 2.2.0: " + X.chl22_lema, ["Indicador", "2.1.0", "
   bulletsBox(s, V.canales_reglas, 0.5, 1.4, 6.6, 5.45, 13.5, CHAR, { gap: 9 });
   tb(s, "Recorrido de un comunicado", { x: 7.35, y: 1.36, w: 5.48, h: 0.3, fontSize: 12.5, bold: true, color: NAVY });
   codeBox(s, "interesados.py --proyecto G plan-envio --tema … \\\n    --audiencia cuadrante:gestionar-de-cerca\nenvios.py --proyecto G estado CARPETA\nenvios.py --proyecto G aprobar CARPETA --por \"Gestor: …\"\nenvios.py --proyecto G enviar CARPETA --modo smtp\n#   ↑ simulación: no envía ni registra\nenvios.py --proyecto G enviar CARPETA --modo smtp --confirmar\nenvios.py --proyecto G historial --stakeholder ST-003", 7.35, 1.72, 5.48, 2.3, 10.5, 9);
-  card(s, 7.35, 4.2, 5.48, 2.65, "Ejemplo (CASOS-DE-USO caso 44)", "Plan para 7 destinatarios en 5 mensajes; simulación con aviso de variables faltantes; envío EN-001…EN-005 por correo y EN-006 por Teams (a servidores de prueba en 127.0.0.1); la entrega en la reunión técnica con TI, registrada a mano como EN-007.", { fill: ORTINT, titleColor: ORANGE, maxSize: 13 });
+  card(s, 7.35, 4.2, 5.48, 2.65, "Ejemplo (CASOS-DE-USO caso 44)", "Plan para 7 destinatarios en 5 mensajes; simulación con aviso de variables faltantes; envío EN-001…EN-005 por correo y EN-006 por Teams (a servidores de prueba en 127.0.0.1); la entrega en la reunión técnica con TI, registrada a mano como EN-007. `aprobar` y `enviar --confirmar` piden la confirmación de una persona (hook `guardian.py`).", { fill: ORTINT, titleColor: ORANGE, maxSize: 13 });
 }
-tablaSlides(S2, "2 · OKR v2.2: tipos de KR, check-ins, salud y sincronización", ["Concepto", "Qué hace"], V.okr, [2.4, 9.93], { size: 12.5,
+tablaSlides(S2, "2 · OKR: tipos de KR, check-ins, salud y sincronización", ["Concepto", "Qué hace"], V.okr, [2.4, 9.93], { size: 12.5,
   estilos: [{ bold: true, color: NAVY }, {}], nota: V.okr_ejemplo });
 tablaSlides(S2, "2 · Riesgos candidatos desde cuatro fuentes (riesgos.py candidatos)", X.g1_fuentes.cab.concat(["Candidatos (E2E-1)"]),
   X.g1_fuentes.filas.map((f, k) => f.concat([{ t: V.riesgos_cifras[k], st: { bold: true, color: BLUE } }])), [2.3, 1.3, 3.9, 2.4, 2.43], { size: 12, top: 2.35, introRepeat: false,
   intro: V.riesgos_intro, introSize: 11.5, estilos: [{ bold: true, color: NAVY }, {}, {}, { color: GRAY }],
-  nota: "Fuente: docs/guias/E2E-1-riesgos.md pasos 4, 9 y 13, «Cobertura de fuentes de identificación» y evidencia/salida-g1.md. BMAD se lee solo a través de pm-bmad-puente." });
-mark("2 · Controles permanentes (v2.2)");
-tablaSlides(S2, "2 · Controles permanentes: problema → control → código → dónde se ve", ["Problema habitual", "Control", "Código", "Dónde está el control", "Dónde se ve (guía · paso)"], V.controles,
+  nota: "Fuente: docs/guias/E2E-1-riesgos.md (pasos " + [...new Set(X.g1_fuentes.filas.map(f => f[1].replace(/^paso /, "")))].join(", ") + "), «Cobertura de fuentes de identificación» y evidencia/salida-g1.md. BMAD se lee solo a través de pm-bmad-puente." });
+mark("2 · Controles permanentes");
+tablaSlides(S2, "2 · Controles permanentes: problema, control, código y dónde se ve", ["Problema habitual", "Control", "Código", "Dónde está el control", "Dónde se ve (guía · paso)"], V.controles.map((f, k) => f.concat([X.controles_donde[k]])),
   [3.05, 3.35, 1.35, 2.3, 2.28], { size: 10, top: 2.3, introRepeat: true, intro: V.controles_intro, introSize: 11,
   estilos: [{ bold: true, color: NAVY }, {}, { bold: true, color: ORANGE }, { color: GRAY }, { color: BLUE }],
-  nota: "Fuentes: CHANGELOG 2.2.0 «Controles permanentes», SANIDAD §2.1, PUERTAS §3 y las tablas «Controles permanentes que muestra esta guía» de docs/guias/E2E-1…E2E-4." });
+  nota: "Fuentes: SANIDAD §2.1, PUERTAS §3, las tablas «Del uso único al control continuo» de docs/guias/E2E-1…E2E-5 y los pasos de cada guía donde aparece el código." });
 {
   const s = slide(S2); s.addText("2 · Controles permanentes: ejemplos reales de la evidencia", { placeholder: "title" });
   V.ejemplos.forEach((x, i) => {
     const col = i % 2, row = Math.floor(i / 2);
-    card(s, 0.5 + col * 6.27, 1.38 + row * 2.75, 6.06, 2.62, x.t, x.d, { fill: [NAVY, BLUETINT, ORTINT, BLUETINT][i], titleColor: [WHITE, NAVY, ORANGE, NAVY][i], bodyColor: i === 0 ? WHITE : CHAR, codeColor: i === 0 ? "CFE3F3" : NAVY, maxSize: 13.5, titleSize: 13 });
+    card(s, 0.5 + col * 6.27, 1.38 + row * 2.75, 6.06, 2.62, x.t, x.d, { fill: [NAVY, ORTINT, BLUETINT, BLUETINT][i], titleColor: [WHITE, ORANGE, NAVY, NAVY][i], bodyColor: i === 0 ? WHITE : CHAR, codeColor: i === 0 ? "CFE3F3" : NAVY, maxSize: 13, titleSize: 13 });
   });
-}
-{
-  const cods = t => { const out = []; t.filas.forEach(f => (f[2].match(/\b(?:[A-Z]{1,3}-)?[A-Z]{1,3}-\d{2}\b/g) || []).forEach(c => { if (!out.includes(c)) out.push(c); })); return out.join(" · "); };
-  tablaSlides(S2, "2 · Guías E2E actualizadas: pasos, duración y controles que muestra cada una", ["Guía", "Pasos y duración", "Ciclo que recorre", "Controles permanentes (códigos)"],
-    X.guias.filas.map(f => [f[0], f[4], f[1], { t: cods(X.guias_controles[f[0].slice(0, 5)]), st: { bold: true, color: ORANGE } }]), [2.0, 1.45, 6.3, 2.58], { size: 10.5,
-    estilos: [{ bold: true, color: NAVY }, { color: BLUE }, {}, {}],
-    nota: "Cada guía tiene la sección «Controles permanentes que muestra esta guía» (problema habitual · control · código · paso); scripts/pruebas/guias_e2e/correr.py: 4/4 OK. Gráficos de las guías: sección 16." });
-}
-{
-  const G = Object.fromEntries(X.chl22_grupos.map(g => [g.t, g]));
-  const s = slide(S2); s.addText("2 · Cambios en integridad, sanidad y pendientes (CHANGELOG 2.2.0)", { placeholder: "title" });
-  s.addShape(pres.ShapeType.roundRect, { x: 0.5, y: 1.4, w: 7.3, h: 5.45, fill: { color: BLUETINT }, rectRadius: 0.1, line: { color: BLUETINT } });
-  tb(s, "Integridad y sanidad", { x: 0.7, y: 1.5, w: 6.9, h: 0.33, fontSize: 13, bold: true, color: NAVY });
-  bulletsBox(s, G["Integridad y sanidad"].items, 0.7, 1.9, 6.95, 4.88, 13, CHAR, { gap: 8 });
-  s.addShape(pres.ShapeType.roundRect, { x: 8.0, y: 1.4, w: 4.83, h: 5.45, fill: { color: ORTINT }, rectRadius: 0.1, line: { color: ORTINT } });
-  tb(s, "Pendientes", { x: 8.2, y: 1.5, w: 4.5, h: 0.33, fontSize: 13, bold: true, color: ORANGE });
-  bulletsBox(s, G["Pendientes"].items, 8.2, 1.9, 4.45, 4.88, 12.5, CHAR, { gap: 6 });
-}
-{
-  const G = X.chl22_grupos.find(g => g.t === "Skills y agentes");
-  const s = slide(S2); s.addText("2 · Cambios en skills y agentes (CHANGELOG 2.2.0)", { placeholder: "title" });
-  const h = Math.ceil(G.items.length / 2);
-  bulletsBox(s, G.items.slice(0, h), 0.5, 1.45, 6.05, 5.4, 13, CHAR, { gap: 9 });
-  bulletsBox(s, G.items.slice(h), 6.78, 1.45, 6.05, 5.4, 12.5, CHAR, { gap: 9 });
-}
-tablaSlides(S2, "2 · Lo que sigue vigente desde v2.1: evidencia en vivo y guardarraíles", ["Indicador", "2.0.0", "2.1.0", "Fuente"], V.vigente21,
-  [3.6, 3.0, 3.5, 2.23], { size: 11, estilos: [{ bold: true, color: NAVY }, { color: GRAY }, { color: BLUE }, { color: GRAY }],
-  nota: "2.1.0 (17/10/2026) — " + X.chl_lema + ". Las pruebas en vivo con Claude Code real de esta tabla son las más recientes: para 2.2 están pendientes." });
-{
-  const G = X.chl_grupos;
-  const s = slide(S2); s.addText("2 · Desde v2.1: " + G[0].t.toLowerCase() + " · " + G[1].t.toLowerCase(), { placeholder: "title" });
-  s.addShape(pres.ShapeType.roundRect, { x: 0.5, y: 1.4, w: 7.3, h: 5.45, fill: { color: BLUETINT }, rectRadius: 0.1, line: { color: BLUETINT } });
-  tb(s, G[0].t, { x: 0.7, y: 1.5, w: 6.9, h: 0.33, fontSize: 13, bold: true, color: NAVY });
-  bulletsBox(s, G[0].items, 0.7, 1.9, 6.95, 4.88, 11.5, CHAR, { gap: 4 });
-  s.addShape(pres.ShapeType.roundRect, { x: 8.0, y: 1.4, w: 4.83, h: 5.45, fill: { color: ORTINT }, rectRadius: 0.1, line: { color: ORTINT } });
-  tb(s, G[1].t, { x: 8.2, y: 1.5, w: 4.5, h: 0.33, fontSize: 13, bold: true, color: ORANGE });
-  bulletsBox(s, G[1].items, 8.2, 1.9, 4.45, 4.88, 11.5, CHAR, { gap: 4 });
-}
-{
-  const G = X.chl_grupos[2];
-  const s = slide(S2); s.addText("2 · Desde v2.1: " + G.t.toLowerCase(), { placeholder: "title" });
-  const a = G.items.slice(0, 5), b = G.items.slice(5);
-  bulletsBox(s, a, 0.5, 1.45, 6.05, 5.4, 11.5, CHAR, { gap: 5 });
-  bulletsBox(s, b, 6.78, 1.45, 6.05, 5.4, 11.5, CHAR, { gap: 5 });
-}
-{
-  const G = X.chl_grupos.find(g => /robustez/.test(g.t));
-  const n = Math.ceil(G.items.length / 2);
-  [G.items.slice(0, n), G.items.slice(n)].forEach((items, k) => {
-    const s = slide(S2); s.addText(`2 · Desde v2.1: ajustes tras las pruebas de robustez (${k + 1}/2)`, { placeholder: "title" });
-    tb(s, "Versión 2.1.0, antes de publicarla; siguen vigentes en 2.2", { x: 0.5, y: 1.33, w: 12.33, h: 0.3, fontSize: 12, color: GRAY, italic: true });
-    const h = Math.ceil(items.length / 2);
-    bulletsBox(s, items.slice(0, h), 0.5, 1.75, 6.05, 5.1, 12.5, CHAR, { gap: 8, min: 11 });
-    bulletsBox(s, items.slice(h), 6.78, 1.75, 6.05, 5.1, 12.5, CHAR, { gap: 8, min: 11 });
-  });
-}
-{
-  const G = X.chl_grupos.find(g => /^Pruebas y doc/.test(g.t));
-  const s = slide(S2); s.addText("2 · Desde v2.1: " + G.t.toLowerCase(), { placeholder: "title" });
-  bulletsBox(s, G.items, 0.5, 1.45, 7.4, 5.4, 13, CHAR, { gap: 8 });
-  card(s, 8.2, 1.45, 4.63, 2.55, "Nuevos documentos", "`RESUMEN-EJECUTIVO`, `INDICE`, `DEPENDENCIAS`, `PRUEBAS`, `PILOTO`, `CASOS-DE-USO-INTEGRACIONES`, `CLAUDE.md`, `AGENTS.md`; README con diagramas Mermaid; `INSTALACION` con requisitos por sistema operativo y verificación de 12 pasos.", { fill: BLUETINT, maxSize: 12 });
-  card(s, 8.2, 4.2, 4.63, 2.65, "Nuevas pruebas", "`probar_paquete.py`: 35 → 80 pruebas en 2.1 (138 en 2.2). `scripts/pruebas_vivo/` (`vivo.py`, `suite.py`, `escenarios.py`) para pruebas con Claude Code real, incluidas las de robustez, e informes en `docs/evaluacion/resultados/`.", { fill: NAVY, titleColor: WHITE, bodyColor: WHITE, codeColor: "CFE3F3", maxSize: 12.5 });
 }
 
 // ====================== 3 Justificación ======================
@@ -418,11 +416,13 @@ const LECT = {
 }
 {
   const s = slide(S4); s.addText("4 · Ciclo de vida PRINCE2 y puertas de la junta", { placeholder: "title" });
-  const r = imagen(s, "diagramas/repo-ciclo-de-vida.png", 0.5, 1.35, 6.6, 5.55, "Fuente: docs/diagramas/ciclo-de-vida.mmd", "left");
-  const x = 0.5 + r.w + 0.35, w = 12.83 - x;
-  card(s, x, 1.35, w, 1.9, "Cómo leerlo", LECT["ciclo-de-vida"], { fill: BLUETINT, maxSize: 12 });
+  // el diagrama es horizontal (LR): a lo ancho arriba; si fuera vertical, a la izquierda
+  const png = fs.readFileSync("diagramas/repo-ciclo-de-vida.png"), ancho = png.readUInt32BE(16) / png.readUInt32BE(20) > 2.5;
+  const r = ancho ? imagen(s, "diagramas/repo-ciclo-de-vida.png", 0.5, 1.35, 12.33, 2.1, "Fuente: docs/diagramas/ciclo-de-vida.mmd") : imagen(s, "diagramas/repo-ciclo-de-vida.png", 0.5, 1.35, 6.6, 5.55, "Fuente: docs/diagramas/ciclo-de-vida.mmd", "left");
+  const x = ancho ? 6.6 : 0.5 + r.w + 0.35, w = 12.83 - x, y0 = ancho ? 1.35 + r.h + 0.5 : 1.35;
+  card(s, ancho ? 0.5 : x, y0, ancho ? 5.85 : w, ancho ? 6.85 - y0 : 1.9, "Cómo leerlo", LECT["ciclo-de-vida"], { fill: BLUETINT, maxSize: 13 });
   tablaFija(s, ["Transición", "Puerta o comando"], [["SU → IP", "`autorizar-inicio`"], ["IP → CS", "`autorizar-proyecto` + `autorizar-etapa`"], ["CS → SB", "`limite-etapa` (o `--excepcion`)"],
-    ["SB → CS", "`autorizar-etapa` (etapa n+1) o `autorizar-plan-excepcion`"], ["CS/SB → CP", "cierre [`--prematuro`]"], ["CP → fin", "`autorizar-cierre`"]], x, 3.45, [1.45, w - 1.45], { size: 11, estilos: [{ bold: true, color: NAVY }, {}] });
+    ["SB → CS", "`autorizar-etapa` (etapa n+1) o `autorizar-plan-excepcion`"], ["CS/SB → CP", "cierre [`--prematuro`]"], ["CP → fin", "`autorizar-cierre`"]], x, ancho ? y0 : 3.45, [1.45, w - 1.45], { size: 11, estilos: [{ bold: true, color: NAVY }, {}] });
 }
 {
   const s = slide(S4); s.addText("4 · Ciclo de vida integrado: PRINCE2, BMAD y puertas", { placeholder: "title" });
@@ -431,14 +431,14 @@ const LECT = {
 }
 {
   const s = slide(S4); s.addText("4 · Sincronización con BMAD: fuente única", { placeholder: "title" });
-  imagen(s, "diagramas/repo-sincronizacion-bmad.png", 0.5, 1.35, 12.33, 2.0, "Fuente: docs/diagramas/sincronizacion-bmad.mmd");
+  const rs = imagen(s, "diagramas/repo-sincronizacion-bmad.png", 0.5, 1.35, 3.2, 5.5, "docs/diagramas/sincronizacion-bmad.mmd", "left");
   tablaFija(s, ["Paso", "Qué ocurre", "Quién · comando"], [
     ["1 · Lectura", "El equipo de producto escribe BMAD; pm-method lee PRD, arquitectura, épicas y `sprint-status.yaml` por la fachada.", "`especificacion.py` · índice `pm-spec-index/1`"],
     ["2 · Línea base", "Tras la puerta, se fija la especificación con huella sha256 y copia congelada.", "pm-director · `bmad.py linea-base`"],
     ["3 · Verificar", "Antes de cada puerta se compara contra la línea base; un desvío sin cambio aprobado es ESP-10.", "`bmad.py verificar` · sanidad"],
     ["4 · Cambio", "El desvío se convierte en issue `solicitud-cambio` (C-###) y lo decide la autoridad de cambio o la junta.", "pm-issues-cambios · pm-director"],
     ["5 · Traspaso", "La decisión vuelve a BMAD como documento de traspaso; el equipo BMAD la aplica con sus flujos.", "`bmad.py handoff`"]],
-    0.5, 3.75, [1.7, 7.0, 3.63], { size: 11, estilos: [{ bold: true, color: NAVY }, {}, {}] });
+    0.5 + rs.w + 0.4, 1.4, [1.6, 12.33 - rs.w - 0.4 - 1.6 - 3.0, 3.0], { size: 11.5, estilos: [{ bold: true, color: NAVY }, {}, {}] });
 }
 
 // ====================== 5 Arquitectura ======================
@@ -492,7 +492,7 @@ tablaSlides(S5, "5 · Capas y dueños", X.capas.cab, T(X.capas), [1.7, 2.1, 3.4,
   tb(s, "6 skills-comando (no consumen listado)", { x: 7.2, y: 1.42, w: 5.6, h: 0.3, fontSize: 12, bold: true, color: ORANGE });
   const cm = [[hdr("Comando"), hdr("Para qué")]].concat(X.comandos_arq.filas.map(f => [{ text: runs(f[0], { fontSize: 10 }), options: { valign: "top" } }, { text: runs(f[1], { fontSize: 10 }), options: { valign: "top" } }]));
   s.addTable(cm, { x: 7.2, y: 1.78, w: 5.63, colW: [2.3, 3.33], border: { type: "solid", color: LINE, pt: 0.5 }, margin: 0.05, autoPage: false });
-  tb(s, runs("Toda skill es comando: `/pm-method:<skill>` (plugin) o `/<skill>` (copia manual y Hermes). La carpeta `commands/` de v1 desapareció.", { fontSize: 10.5, color: GRAY }), { x: 7.2, y: 6.2, w: 5.63, h: 0.62 });
+  tb(s, runs("Toda skill es comando: `/pm-method:<skill>` (plugin) o `/<skill>` (copia manual y Hermes).", { fontSize: 10.5, color: GRAY }), { x: 7.2, y: 6.2, w: 5.63, h: 0.62 });
 }
 
 // ====================== 6 Columna vertebral ======================
@@ -530,15 +530,15 @@ tablaSlides(S6, "6 · Matriz lee / escribe", ["Skill", "Lee (fachada u otra vía
   estilos: [{ bold: true, color: NAVY }], nota: "Fachada = especificacion.py. Ninguna skill abre archivos de BMAD ni requisitos.md para extraer datos. Skills que no tocan la especificación: HTML §6.8." });
 
 // ====================== 7 Sanidad ======================
-const S7 = "7 · Sanidad y guardarraíles"; pres.addSection({ title: S7 });
+const S7 = "7 · Sanidad, guardarraíles y seguridad"; pres.addSection({ title: S7 });
 {
-  mark("7 · Sanidad, guardarraíles y controles");
+  mark("7 · Sanidad, guardarraíles y seguridad");
   const s = slide(S7); s.addText("7 · Controles permanentes: prevenir, detectar, decidir, mantener", { placeholder: "title" });
   imagen(s, "diagramas/sanidad.png", 0.5, 1.32, 12.33, 2.95);
   tablaFija(s, ["Control", "Cuándo actúa", "Cliente"], X.controles.filas.map(f => [f[0], f[1], f[3]]), 0.5, 4.38, [3.7, 6.8, 1.83], { size: 10, estilos: [{ bold: true, color: NAVY }, {}, {}], margin: 0.04 });
 }
-tablaSlides(S7, "7 · Familias y códigos de sanidad", ["Código", "Severidad", "Qué comprueba"], X.codigos.filas.map(f => f.length < 3 ? f : [f[0], f[1], f[2]]), [1.2, 2.6, 8.53], { size: 10, grupo: 0,
-  estilos: [{ bold: true }, { color: ORANGE }, {}], nota: "Corrección y dueño de cada código: HTML §7.2 y docs/SANIDAD.md §2.1." });
+tablaSlides(S7, `7 · ${CIF.codigos} códigos de sanidad en ${CIF.familias} familias`, ["Código", "Severidad", "Qué comprueba"], X.codigos.filas.map(f => [f[0], f[1], f[2]]), [1.2, 2.6, 8.53], { size: 10, grupo: 0,
+  estilos: [{ bold: true }, { color: ORANGE }, {}], nota: "Corrección y dueño de cada código: versión HTML y docs/SANIDAD.md §2.1. Las familias CAM, QUA, TOL y SUP, REG-09 y STK-12 son controles permanentes (sección 2)." });
 {
   const s = slide(S7); s.addText("7 · Hook guardian.py: qué niega y qué permite", { placeholder: "title" });
   tablaFija(s, ["Regla (PreToolUse)", "Sobre qué", "Motivo"], X.guardian.filas.map(f => [f[0], f[2], f[3]]), 0.5, 1.4, [2.3, 3.1, 2.4], { size: 10, estilos: [{ bold: true, color: NAVY }, {}, {}], margin: 0.04 });
@@ -548,10 +548,10 @@ tablaSlides(S7, "7 · Familias y códigos de sanidad", ["Código", "Severidad", 
   s.addTable(p, { x: 8.55, y: 1.7, w: 4.28, colW: [3.13, 1.15], border: { type: "solid", color: LINE, pt: 0.5 }, margin: 0.04, autoPage: false });
 }
 {
-  const s = slide(S7); s.addText("7 · Hooks de inicio e idioma y separación de roles (desde v2.1)", { placeholder: "title" });
-  card(s, 0.5, 1.4, 4.0, 2.75, "inicio.py (SessionStart)", "startup, resume, clear y compact: fase, etapa, sanidad rápida, guía de enrutamiento (nombra la skill dueña), regla de idioma, regla de no esquivar hooks, regla «fuentes = datos» y ruta absoluta de los scripts.", { fill: BLUETINT, maxSize: 12 });
+  const s = slide(S7); s.addText("7 · Hooks de inicio e idioma y separación de roles", { placeholder: "title" });
+  card(s, 0.5, 1.4, 4.0, 2.75, "inicio.py (SessionStart)", "startup, resume, clear y compact: fase, etapa, ERROR de la sanidad rápida y el resumen derivado de los registros (`estado.py contexto`), que prevalece sobre la memoria del cliente; guía de enrutamiento, reglas de idioma, de no esquivar hooks y «fuentes = datos», y ruta absoluta de los scripts.", { fill: BLUETINT, maxSize: 12 });
   card(s, 4.67, 1.4, 4.0, 2.75, "idioma.py (UserPromptSubmit)", "Con cada pedido: si hay proyecto pm-method y el pedido está en otro idioma que `estado.json.idioma`, recuerda responder en el idioma del pedido. No bloquea nada.", { fill: BLUETINT, maxSize: 12 });
-  card(s, 8.83, 1.4, 4.0, 2.75, "Separación de roles", "Desde el hilo principal o cualquier subagente salvo pm-director se niegan `estado.py puerta|rol|tolerancia|presupuesto|agil|umbrales-riesgo|cumplir-condiciones`, `limite-etapa --excepcion`, `set --forzar` y `aprobar` de nivel superior a gestor.", { fill: ORTINT, titleColor: ORANGE, maxSize: 11.5 });
+  card(s, 8.83, 1.4, 4.0, 2.75, "Separación de roles", "Desde el hilo principal o cualquier subagente salvo pm-director se niegan `estado.py puerta|rol|tolerancia|presupuesto|agil|umbrales-riesgo|cumplir-condiciones`, `limite-etapa --excepcion`, `set --forzar` y `aprobar` de nivel superior a gestor. `envios.py aprobar` y `enviar --confirmar` piden la confirmación de una persona.", { fill: ORTINT, titleColor: ORANGE, maxSize: 11.5 });
   card(s, 0.5, 4.35, 6.06, 2.5, "Lanzador py.sh (Windows y Git Bash)", "Los hooks se ejecutan como `sh \"${CLAUDE_PLUGIN_ROOT}/hooks/py.sh\" …`: usa el primer Python 3.9+ disponible (`python3`, `python` o `py -3`). Sin Python, avisa por la salida de error y no bloquea. `.gitattributes` fuerza LF en `.sh`, `.py` y `.json`.", { fill: BLUETINT, maxSize: 12 });
   card(s, 6.77, 4.35, 6.06, 2.5, "Cómo prescindir de los hooks", "No hay opción para desactivarlos por separado: `claude plugin disable pm-method` (y `enable` para volver) o la copia manual, que no registra hooks. En ambos casos se pierde la protección automática y la disciplina queda a cargo de las skills y de la sanidad.", { fill: NAVY, titleColor: WHITE, bodyColor: WHITE, codeColor: "CFE3F3", maxSize: 12 });
 }
@@ -573,11 +573,11 @@ tablaSlides(S7, "7 · Familias y códigos de sanidad", ["Código", "Severidad", 
   card(s, 7.1, 4.75, 5.73, 2.1, "En el caso maestro", "Todas las puertas se presentaron con 0 ERROR. El cambio no controlado de FR-5 llegó a dar 2 ERROR, pero se resolvió durante la etapa, antes del límite.", { fill: NAVY, titleColor: WHITE, bodyColor: WHITE, maxSize: 13 });
 }
 {
-  const s = slide(S7); s.addText("7 · Bloqueos de puerta y «fuentes = datos» (desde v2.1)", { placeholder: "title" });
+  const s = slide(S7); s.addText("7 · Bloqueos de puerta y «fuentes = datos»", { placeholder: "title" });
   const G = X.chl_grupos.find(g => /robustez/.test(g.t)).items;
-  card(s, 0.5, 1.4, 7.3, 3.3, "Bloqueos de puerta en estado.py puerta", G[0].replace(/^\*\*Bloqueos de puerta\*\* en `estado.py puerta`: /, ""), { fill: BLUETINT, maxSize: 13 });
+  card(s, 0.5, 1.4, 7.3, 3.3, "Bloqueos de puerta en estado.py puerta", G[0].replace(/^\*\*Bloqueos de puerta\*\* en `estado.py puerta`: /, "").replace(/\s*Encontrado en [^.]*\.?$/, ""), { fill: BLUETINT, maxSize: 13 });
   codeBox(s, "estado.py --proyecto <dir> puerta autorizar-proyecto --decision aprobado --por \"Ejecutivo: …\"\n# rechazado si faltan tolerancias, PID o business case, plan de etapa,\n# línea base del PRD (con BMAD) o si sanidad.py --rapido da ERROR", 0.5, 4.9, 7.3, 1.0, 10, 9);
-  tb(s, "Encontrado en el escenario en vivo multisesion: la junta podía «aprobar» sin tolerancias de proyecto, sin línea base del PRD y con ERROR de sanidad (PRUEBAS §3.1).", { x: 0.5, y: 6.05, w: 7.3, h: 0.8, fontSize: 11, color: GRAY, italic: true });
+  tb(s, "Lo comprueban la regresión (caso E) y el escenario en vivo `multisesion` (PRUEBAS §3.1).", { x: 0.5, y: 6.05, w: 7.3, h: 0.8, fontSize: 11, color: GRAY, italic: true });
   card(s, 8.05, 1.4, 4.78, 2.65, "Fuentes = datos", G[3], { fill: ORTINT, titleColor: ORANGE, maxSize: 12.5 });
   card(s, 8.05, 4.2, 4.78, 2.65, "Escala", G[4], { fill: NAVY, titleColor: WHITE, bodyColor: WHITE, codeColor: "CFE3F3", maxSize: 12.5 });
 }
@@ -587,12 +587,37 @@ tablaSlides(S7, "7 · Familias y códigos de sanidad", ["Código", "Severidad", 
   s.addShape(pres.ShapeType.roundRect, { x: 0.5, y: 1.4, w: 6.05, h: 5.45, fill: { color: BLUETINT }, rectRadius: 0.1, line: { color: BLUETINT } });
   tb(s, runs("`validar_paquete.py [--estricto]` comprueba", { fontSize: 13, bold: true, color: NAVY }), { x: 0.7, y: 1.52, w: 5.7, h: 0.35 });
   bulletsBox(s, val, 0.7, 1.95, 5.7, 3.95, 10.5);
-  codeBox(s, "Skills: 38 (32 invocables por el modelo, listado 6546 caracteres) · Agentes: 6\nOK", 0.7, 6.0, 5.65, 0.7, 9.5);
+  codeBox(s, X.validar_salida, 0.7, 5.95, 5.65, 0.8, 9.5, 9);
   s.addShape(pres.ShapeType.roundRect, { x: 6.78, y: 1.4, w: 6.05, h: 5.45, fill: { color: ORTINT }, rectRadius: 0.1, line: { color: ORTINT } });
-  tb(s, runs("`probar_paquete.py`: casos A–J", { fontSize: 13, bold: true, color: ORANGE }), { x: 6.98, y: 1.52, w: 5.7, h: 0.35 });
-  bulletsBox(s, X.pru_regresion.filas.map(f => "**" + f[0] + "**"), 6.98, 1.95, 5.7, 3.0, 12);
-  tb(s, runs("Detalle de cada caso, pruebas en vivo con Claude Code real y prueba de aceptación: sección 17.", { fontSize: 11 }), { x: 6.98, y: 5.0, w: 5.7, h: 0.9 });
-  codeBox(s, "Resultado: 138 OK · 0 FALLO · guardian: 36/36 decisiones correctas", 6.98, 6.0, 5.65, 0.7, 11);
+  tb(s, runs("`probar_paquete.py`: casos " + CIF.regresion_casos, { fontSize: 13, bold: true, color: ORANGE }), { x: 6.98, y: 1.52, w: 5.7, h: 0.35 });
+  tb(s, runs(X.pru_regresion.filas.map(f => f[0].replace(/ \(.*\)$/, "")).join(" · "), { fontSize: 11 }), { x: 6.98, y: 1.95, w: 5.7, h: 2.3 });
+  tb(s, runs("Detalle de cada caso, integración cruzada, recorridos E2E, compatibilidad con Python 3.9, pruebas en vivo con Claude Code real y prueba de aceptación: sección 17.", { fontSize: 11 }), { x: 6.98, y: 4.3, w: 5.7, h: 0.8 });
+  codeBox(s, `probar_paquete.py → ${CIF.regresion_ok} OK · 0 FALLO (Python ${CIF.regresion_py})\n                   ${CIF.regresion_ok39} OK · 0 FALLO (Python 3.9)\nintegracion/correr.py → ${CIF.integ_ok} OK · ${CIF.integ_eslabones} eslabones`, 6.98, 5.15, 5.65, 1.55, 11, 9);
+}
+
+// ---------- Seguridad ----------
+{
+  const s = slide(S7); s.addText("7 · Seguridad: resultado de la revisión y modelo de amenazas", { placeholder: "title" });
+  tb(s, runs(X.seg_intro + " (docs/SEGURIDAD.md).", { fontSize: 12 }), { x: 0.5, y: 1.35, w: 12.33, h: 0.55 });
+  tablaFija(s, X.seg_resultado.cab, T(X.seg_resultado), 0.5, 1.95, [1.35, 1.05, 2.3, 1.15, 1.6], { size: 10, estilos: [{ bold: true, color: NAVY }, { bold: true }, {}, {}, {}], margin: 0.04 });
+  tb(s, runs(X.seg_resultado_nota, { fontSize: 10.5, color: GRAY }), { x: 0.5, y: 4.55, w: 7.45, h: 0.9 });
+  tb(s, runs(X.seg_entorno, { fontSize: 10, color: GRAY }), { x: 0.5, y: 5.5, w: 7.45, h: 0.4 });
+  s.addShape(pres.ShapeType.roundRect, { x: 8.2, y: 1.95, w: 4.63, h: 4.9, fill: { color: ORTINT }, rectRadius: 0.1, line: { color: ORTINT } });
+  tb(s, "Modelo de amenazas (breve)", { x: 8.4, y: 2.05, w: 4.3, h: 0.33, fontSize: 13, bold: true, color: ORANGE });
+  bulletsBox(s, X.seg_amenazas, 8.4, 2.45, 4.25, 4.3, 11, CHAR, { gap: 4 });
+}
+tablaSlides(S7, "7 · Seguridad: herramientas y método", X.seg_herramientas.cab, T(X.seg_herramientas), [1.6, 1.4, 9.33], { size: 10.5,
+  estilos: [{ bold: true, color: NAVY }, { color: GRAY }, {}], nota: "Alcance completo (skills, agentes, hooks, scripts, plantillas HTML, manifiestos y docker/): docs/SEGURIDAD.md §2. Cómo repetir la revisión: §10." });
+tablaSlides(S7, `7 · Seguridad: ${CIF.seg_hallazgos} hallazgos con severidad y estado`, ["Id", "Severidad", "Hallazgo", "Estado"], X.seg_hallazgos, [1.0, 1.35, 6.6, 3.38], { size: 11,
+  estilos: [{ bold: true, color: NAVY }, { color: ORANGE }, {}, { color: BLUE }], nota: "Los corregidos que cambian una conducta tienen prueba de regresión: caso S (SEG-01 y SEG-02) y caso N (SEG-03 a SEG-10) de probar_paquete.py." });
+{
+  const s = slide(S7); s.addText("7 · Seguridad: lo verificado y buenas prácticas para quien instala", { placeholder: "title" });
+  s.addShape(pres.ShapeType.roundRect, { x: 0.5, y: 1.4, w: 6.06, h: 5.45, fill: { color: BLUETINT }, rectRadius: 0.1, line: { color: BLUETINT } });
+  tb(s, "Lo que ya está bien (verificado)", { x: 0.7, y: 1.5, w: 5.7, h: 0.33, fontSize: 13, bold: true, color: NAVY });
+  bulletsBox(s, X.seg_bien, 0.7, 1.9, 5.7, 4.85, 11, CHAR, { gap: 3 });
+  s.addShape(pres.ShapeType.roundRect, { x: 6.77, y: 1.4, w: 6.06, h: 5.45, fill: { color: ORTINT }, rectRadius: 0.1, line: { color: ORTINT } });
+  tb(s, "Buenas prácticas para quien instala", { x: 6.97, y: 1.5, w: 5.7, h: 0.33, fontSize: 13, bold: true, color: ORANGE });
+  bulletsBox(s, X.seg_practicas.map(t => t.replace(/^\*\*([^*]+)\*\*:?/, "**$1:**")), 6.97, 1.9, 5.7, 4.85, 11, CHAR, { gap: 3 });
 }
 
 // ====================== 8 Puertas de la junta ======================
@@ -607,17 +632,36 @@ tablaSlides(S8P, "8 · Componentes en el ciclo de vida y criterios de éxito", X
   after: (s) => card(s, 0.5, 4.75, 12.33, 1.95, "Criterios de éxito en dos momentos", X.pue_criterios_exito, { fill: ORTINT, titleColor: ORANGE, maxSize: 13 }) });
 {
   const s = slide(S8P); s.addText("8 · Cómo se verifica una puerta: tres capas", { placeholder: "title" });
-  imagen(s, "diagramas/repo-verificacion-puertas.png", 0.5, 1.32, 12.33, 2.75, "Fuente: docs/diagramas/verificacion-puertas.mmd");
+  const rv = imagen(s, "diagramas/repo-verificacion-puertas.png", 0.5, 1.32, 5.0, 5.55, "docs/diagramas/verificacion-puertas.mmd", "left");
   const tit = ["1 · Salud del proyecto", "2 · Controles automáticos", "3 · Lista de control de la junta"];
-  X.pue_capas.forEach((c, i) => card(s, 0.5 + i * 4.15, 4.2, 3.95, 2.65, tit[i], c.replace(/^\*\*[^*]+\*\*:?\s*/, ""), { fill: i === 2 ? ORTINT : BLUETINT, titleColor: i === 2 ? ORANGE : NAVY, maxSize: 12 }));
+  const xv = 0.5 + rv.w + 0.35, wv = 12.83 - xv;
+  X.pue_capas.forEach((c, i) => card(s, xv, 1.35 + i * 1.85, wv, 1.75, tit[i], c.replace(/^\*\*[^*]+\*\*:?\s*/, ""), { fill: i === 2 ? ORTINT : BLUETINT, titleColor: i === 2 ? ORANGE : NAVY, maxSize: 12.5 }));
 }
 {
   const s = slide(S8P); s.addText("8 · Severidades y registro de la decisión", { placeholder: "title" });
   [["Bloqueo", "impide registrar `aprobado`"], ["Condición", "queda como observación de la puerta"], ["Aviso", "solo informa"]].forEach((k, i) =>
     card(s, 0.5 + i * 4.15, 1.4, 3.95, 1.25, k[0], k[1], { fill: i === 0 ? NAVY : (i === 1 ? ORTINT : BLUETINT), titleColor: i === 0 ? WHITE : (i === 1 ? ORANGE : NAVY), bodyColor: i === 0 ? WHITE : CHAR, codeColor: i === 0 ? "CFE3F3" : NAVY, maxSize: 14, titleSize: 15 }));
   tb(s, runs(X.pue_severidades.replace(/^Severidades: [^.]*\. /, ""), { fontSize: 13 }), { x: 0.5, y: 2.85, w: 12.33, h: 1.55 });
-  tb(s, "Comandos (docs/PUERTAS.md §5)", { x: 0.5, y: 4.45, w: 12.33, h: 0.3, fontSize: 12, bold: true, color: NAVY });
+  tb(s, "Comandos (docs/PUERTAS.md §6)", { x: 0.5, y: 4.45, w: 12.33, h: 0.3, fontSize: 12, bold: true, color: NAVY });
   codeBox(s, X.pue_comandos.split("\n").map(l => l.replace(/\s{2,}#.*$/, "")).join("\n"), 0.5, 4.8, 12.33, 2.05, 10.5, 9);
+}
+{
+  const s = slide(S8P); s.addText("8 · Códigos de control en la verificación y P-11", { placeholder: "title" });
+  const p11 = X.pue_controles.filas.find(f => f[1] === "P-11");
+  card(s, 0.5, 1.4, 6.06, 2.6, "Cada hallazgo con su código", X.pue_verificar, { fill: NAVY, titleColor: WHITE, bodyColor: WHITE, codeColor: "CFE3F3", maxSize: 13 });
+  card(s, 6.77, 1.4, 6.06, 2.6, "P-11 · supuestos críticos (" + p11[3] + ")", p11[2], { fill: ORTINT, titleColor: ORANGE, maxSize: 13 });
+  tb(s, "Ejemplo real: guía E2E-5, paso 13", { x: 0.5, y: 4.2, w: 12.33, h: 0.3, fontSize: 12.5, bold: true, color: NAVY });
+  tb(s, runs(D.cap.ejemplos.find(x => /P-11/.test(x.d)).d, { fontSize: 13 }), { x: 0.5, y: 4.6, w: 12.33, h: 1.4 });
+  tb(s, runs("Familia SUP en la sanidad y mapa de supuestos: sección 2. Lista completa de controles por puerta: diapositivas siguientes.", { fontSize: 11, color: GRAY }), { x: 0.5, y: 6.25, w: 12.33, h: 0.5 });
+}
+{
+  const s = slide(S8P); s.addText("8 · Condiciones formales y su seguimiento", { placeholder: "title" });
+  tb(s, runs(X.pue_condiciones_intro, { fontSize: 12.5 }), { x: 0.5, y: 1.36, w: 12.33, h: 0.62 });
+  X.pue_condiciones.forEach((c, i) => {
+    const m = c.match(/^\*\*(.+?)\.?\*\*\s*([\s\S]*)$/);
+    card(s, 0.5, 2.05 + i * 1.32, 12.33, 1.24, (i + 1) + " · " + (m ? m[1] : ""), m ? m[2] : c, { fill: i === 2 ? ORTINT : BLUETINT, titleColor: i === 2 ? ORANGE : NAVY, maxSize: 11.5, minSize: 9.5, titleSize: 12, titleH: 0.28 });
+  });
+  tb(s, runs("Ejemplo real en la guía E2E-4: el CONCERNS del gate de preparación de BMAD pasa a condición de `autorizar-etapa`, la sanidad muestra EST-12 en cada corte y G-01 desaparece con `cumplir-condiciones` (sección 2, «ejemplos reales de la evidencia»).", { fontSize: 10.5, color: GRAY }), { x: 0.5, y: 6.08, w: 12.33, h: 0.8 });
 }
 tablaSlides(S8P, "8 · Controles automáticos por puerta", X.pue_controles.cab, T(X.pue_controles), [2.3, 1.6, 6.4, 2.03], { size: 11, top: 1.85, introRepeat: true,
   intro: "Ids: S- salud · I- autorizar-inicio · P- autorizar-proyecto · E- autorizar-etapa · X- autorizar-plan-excepcion · C- autorizar-cierre. Severidad: bloqueo, condición o aviso.", introSize: 11.5,
@@ -635,12 +679,15 @@ const S8 = "9 · Componentes del paquete"; pres.addSection({ title: S8 });
   const s = slide(S8); s.addText("9 · Componentes del paquete", { placeholder: "title" });
   D.componentes.forEach((c, i) => {
     const col = i % 4, row = Math.floor(i / 4);
-    card(s, 0.5 + col * 3.1, 1.42 + row * 2.75, 2.95, 2.6, "`" + c.t + "`", c.d, { fill: i === 6 ? ORTINT : BLUETINT, titleColor: i === 6 ? ORANGE : NAVY, maxSize: 11.5, titleSize: 11.5 });
+    card(s, 0.5 + col * 3.1, 1.38 + row * 2.45, 2.95, 2.35, "`" + c.t + "`", c.d, { fill: i === 6 ? ORTINT : BLUETINT, titleColor: i === 6 ? ORANGE : NAVY, maxSize: 11, minSize: 9, titleSize: 11.5 });
   });
-  card(s, 9.8, 4.17, 3.03, 2.6, "Principio rector", "El núcleo funciona sin nada externo: cada integración es un contrato con respaldo interno (Mermaid, CSV, scripts propios).", { fill: NAVY, titleColor: WHITE, bodyColor: WHITE, maxSize: 12 });
+  s.addShape(pres.ShapeType.roundRect, { x: 0.5, y: 6.3, w: 12.33, h: 0.55, fill: { color: NAVY }, rectRadius: 0.08, line: { color: NAVY } });
+  tb(s, runs("**Principio rector.** El núcleo funciona sin nada externo: cada integración es un contrato con respaldo interno (Mermaid, CSV, scripts propios).", { fontSize: 12, color: WHITE }), { x: 0.7, y: 6.3, w: 11.9, h: 0.55, valign: "middle" });
 }
 {
   const filas = X.scripts_compartidos.filas.map(f => [f[0], f[1]]).concat(X.scripts_otros.filas.map(f => [f[0].replace(/^`<([^>]+)>\/scripts\/([^`]+)`$/, "`$2` ($1)"), f[1]]));
+  // scripts de skills que el catálogo no lista en §5.2 (p. ej. inversion.py): se toman del índice (INDICE §5)
+  X.idx_componentes.filas.forEach(f => { const m = f[0].match(/^`skills\/([^/]+)\/scripts\/([^`]+\.py)`$/); if (m && !filas.some(x => x[0].includes(m[2]))) filas.push(["`" + m[2] + "` (" + m[1] + ")", f[1]]); });
   tablaSlides(S8, "9 · Scripts deterministas (el motor de las skills)", ["Script", "Para qué"], filas, [3.4, 8.93], { size: 10.5,
     nota: "Mismo resultado para la misma entrada; validan valores y dejan traza. El modelo redacta; el script calcula y registra. Mantenedor: validar_paquete.py y probar_paquete.py (secciones 7 y 17)." });
 }
@@ -713,7 +760,7 @@ tablaSlides(S10, "11 · Requisitos previos: lista de comprobación", X.inst_requ
 {
   const s = slide(S10); s.addText("11 · Desde GitHub: instalar, actualizar y Hermes", { placeholder: "title" });
   const bloques = [
-    ["Claude Code (cada integrante)", "claude plugin marketplace add Arturo-Penas-Rial/pm-method   # necesita git\nclaude plugin install pm-method@pm-method                   # alcance: user\nclaude plugin list    # pm-method@pm-method · Version: 2.2.0 · Status: enabled"],
+    ["Claude Code (cada integrante)", "claude plugin marketplace add Arturo-Penas-Rial/pm-method   # necesita git\nclaude plugin install pm-method@pm-method                   # alcance: user\nclaude plugin list    # pm-method@pm-method · Version: " + CIF.version + " · Status: enabled"],
     ["Actualizar", "claude plugin marketplace update pm-method   # refresca el catálogo\nclaude plugin update pm-method@pm-method     # requiere reiniciar Claude Code\nclaude plugin list                           # confirmar la versión"],
     ["Hermes Agent", "git clone https://github.com/Arturo-Penas-Rial/pm-method.git ~/pm-method\npython3 ~/pm-method/scripts/instalar_hermes.py   # adapta rutas a ${HERMES_SKILL_DIR}\n/reload-skills      # dentro de Hermes (no usar hermes skills tap/install)"]];
   bloques.forEach((b, i) => {
@@ -804,14 +851,14 @@ tablaSlides(S10, "11 · Capacidades reconocidas en estado.json.integraciones", X
   tb(s, runs("Tiempo y costo son el mínimo obligatorio (EST-06/07). Proyecto: capa de negocio/ejecutivo; etapa: la junta en cada `autorizar-etapa`. En operación normal las registra pm-director tras la decisión humana.", { fontSize: 11 }), { x: 0.5, y: 4.75, w: 6.06, h: 1.1 });
   tb(s, "settings.json con BMAD u otros repos de skills", { x: 6.77, y: 1.36, w: 6.06, h: 0.3, fontSize: 12, bold: true, color: NAVY });
   codeBox(s, "{\n  \"skillListingBudgetFraction\": 0.02\n}", 6.77, 1.7, 6.06, 0.85, 10.5);
-  tb(s, runs("El listado de skills usa ≈1 % del contexto; las 32 skills invocables suman 6.546 caracteres (2.2.0); con BMAD 6.12.4, INSTALACION §7.4 midió ≈23.000 en total. INS-05 avisa por encima de ≈8.000. `skillOverrides` no aplica a skills de plugins.", { fontSize: 11 }), { x: 6.77, y: 2.7, w: 6.06, h: 1.2 });
+  tb(s, runs("El listado de skills usa ≈1 % del contexto; las " + CIF.invocables + " skills invocables suman " + CIF.listado + " caracteres; con el módulo `bmm` de BMAD 6.12.4 (29 skills, 6.912 caracteres) el total ronda 13.700 (INSTALACION §7.4). INS-05 avisa por encima de ≈8.000. `skillOverrides` no aplica a skills de plugins.", { fontSize: 11 }), { x: 6.77, y: 2.7, w: 6.06, h: 1.2 });
   tb(s, "Orquestador en el hilo principal", { x: 6.77, y: 4.0, w: 6.06, h: 0.3, fontSize: 12, bold: true, color: NAVY });
   codeBox(s, "/pm-method:pm-orquestador               # como skill\nclaude --agent pm-method:pm-orquestador   # toda la sesión", 6.77, 4.34, 6.06, 0.8, 10);
   tb(s, runs("Rutas de scripts: en skills `${CLAUDE_SKILL_DIR}/../pm-estado-proyecto/scripts/`; en agentes `${CLAUDE_PLUGIN_ROOT}/skills/pm-estado-proyecto/scripts/`; el hook de inicio imprime la ruta absoluta.", { fontSize: 11 }), { x: 6.77, y: 5.3, w: 6.06, h: 1.5 });
 }
 tablaSlides(S10, "11 · Verificación de la instalación en 12 pasos", X.verificacion.cab, T(X.verificacion), [0.45, 2.3, 4.6, 4.98], { size: 10,
   align: ["center"], estilos: [{ bold: true, color: BLUE }, { bold: true, color: NAVY }, {}, {}],
-  nota: "Paso 5: resultado vigente 138 OK · 0 FALLO (PRUEBAS.md §2, versión 2.2.0)." });
+  nota: `Paso 5: resultado vigente ${CIF.regresion_ok} OK · 0 FALLO con Python ${CIF.regresion_py} y ${CIF.regresion_ok39} con 3.9 (PRUEBAS.md §2, ${CIF.pruebas_fecha}).` });
 tablaSlides(S10, "11 · Hallazgos de instalación esperables (familia INS)", X.ins_esperados.cab, T(X.ins_esperados), [1.2, 4.6, 6.53], { size: 11,
   estilos: [{ bold: true, color: NAVY }], nota: "Con --rapido, el modo del hook de inicio, solo se evalúan INS-01 e INS-02. Solución de problemas (" + X.problemas.filas.length + " síntomas con causa y solución): HTML §11.13." });
 {
@@ -826,6 +873,31 @@ tablaSlides(S10, "11 · Hallazgos de instalación esperables (familia INS)", X.i
   bulletsBox(s, ["Copia manual: borrar las carpetas `pm-*` de `~/.claude/skills/` y los seis `pm-*.md` de `~/.claude/agents/`.",
     "Skills externas: `npx skills remove <skill>` o `claude plugin uninstall <plugin>@<marketplace>`; MCP: `claude mcp remove <nombre>`.",
     "Las carpetas de proyecto no se tocan: son Markdown, CSV y JSON legibles sin el paquete."], 6.77, 2.7, 6.06, 4.1, 12);
+}
+
+// ---------- Entorno Docker opcional ----------
+mark("11 · Entorno Docker opcional");
+tablaSlides(S10, "11 · Entorno Docker opcional: qué incluye", X.dock_incluye.cab, T(X.dock_incluye), [1.9, 5.6, 4.83], { size: 10, top: 2.0, introRepeat: false,
+  intro: X.dock_intro.replace(/ \[INSTALACION\]\(INSTALACION\.md\)/, " INSTALACION"), introSize: 11, estilos: [{ bold: true, color: NAVY }, {}, { color: GRAY }],
+  nota: "Fuente: docs/DOCKER.md §2. Archivos: docker/Dockerfile, compose.yaml, requirements.txt, node/package-lock.json, pm-pruebas.sh y .github/workflows/docker.yml." });
+{
+  const s = slide(S10); s.addText("11 · Docker: cuándo conviene, construir, usar y probar", { placeholder: "title" });
+  tablaFija(s, X.dock_cuando.cab, T(X.dock_cuando).map(f => [f[0], f[1].replace(/\s*\(\[INSTALACION[^)]*\)\)?/g, "").replace(/\[([^\]]+)\]\([^)]+\)/g, "$1")]), 0.5, 1.4, [3.7, 2.45], { size: 10, estilos: [{}, { bold: true, color: NAVY }], margin: 0.04 });
+  const bloque = (t, code, y, h) => { tb(s, t, { x: 6.95, y, w: 5.88, h: 0.3, fontSize: 12, bold: true, color: NAVY }); codeBox(s, code, 6.95, y + 0.33, 5.88, h, 10, 9); };
+  bloque("Construir", X.dock_construir.split("\n").filter(l => !l.startsWith("#")).join("\n"), 1.36, 0.62);
+  bloque("Usar sobre un proyecto montado", X.dock_usar.split("\n").filter(l => l.trim() && !/^\s*#/.test(l)).slice(0, 4).join("\n"), 2.45, 1.05);
+  bloque("Pruebas sin red", X.dock_pruebas.split("\n").filter(l => l.trim() && !/^\s*#/.test(l)).slice(0, 3).join("\n"), 3.98, 0.85);
+  tb(s, runs("Credenciales solo al ejecutar (variable de entorno o inicio de sesión), nunca en la imagen ni en archivos del repositorio (DOCKER §5.2). Cowork y Hermes no corren dentro del contenedor.", { fontSize: 10.5, color: GRAY }), { x: 6.95, y: 5.3, w: 5.88, h: 1.0 });
+}
+tablaSlides(S10, "11 · Docker: verificación registrada", X.dock_verif.cab, T(X.dock_verif), [4.3, 6.53, 1.5], { size: 10.5, top: 2.05, introRepeat: false,
+  intro: X.dock_verif_intro, introSize: 11, estilos: [{ bold: true, color: NAVY }, {}, { color: GRAY }], nota: X.dock_verif_no });
+{
+  const s = slide(S10); s.addText("11 · Docker: seguridad del contenedor y limitaciones", { placeholder: "title" });
+  tb(s, "Seguridad del contenedor (DOCKER §7)", { x: 0.5, y: 1.33, w: 6.06, h: 0.33, fontSize: 13, bold: true, color: NAVY });
+  tablaFija(s, ["Medida", "Efecto"], X.dock_seguridad.filas.map(f => [f[0], f[2]]), 0.5, 1.7, [2.0, 4.06], { size: 9, estilos: [{ bold: true, color: NAVY }, {}], margin: 0.03 });
+  s.addShape(pres.ShapeType.roundRect, { x: 6.77, y: 1.4, w: 6.06, h: 5.45, fill: { color: ORTINT }, rectRadius: 0.1, line: { color: ORTINT } });
+  tb(s, "Limitaciones (DOCKER §9)", { x: 6.97, y: 1.5, w: 5.7, h: 0.33, fontSize: 13, bold: true, color: ORANGE });
+  bulletsBox(s, X.dock_limitaciones.map(t => t.replace(/\s*\(\[INSTALACION[^)]*\)\)/g, "").replace(/\[([^\]]+)\]\([^)]+\)/g, "$1")), 6.97, 1.9, 5.7, 4.85, 11, CHAR, { gap: 3 });
 }
 
 // ====================== 11 Catálogo ======================
@@ -944,16 +1016,16 @@ tablaSlides(S14, "15 · Matriz de cierre por integración", X.cui_matriz.cab, T(
   nota: "Controles transversales: guardian.py bloquea ediciones directas y comandos reservados; sanidad.py informa INS e INT sin bloquear puertas; pm-puerta no deja pasar un ERROR sin decisión humana registrada." });
 
 // ====================== 15 Caso maestro ======================
-const S15 = "16 · Caso maestro"; pres.addSection({ title: S15 });
+const S15 = "16 · Caso maestro, guías E2E y formación"; pres.addSection({ title: S15 });
 {
-  mark("16 · Caso maestro PRINCE2 + PMBOK");
+  mark("16 · Caso maestro, guías E2E y formación");
   const s = slide(S15); s.addText("16 · Caso maestro: escenario, cifras reales y ciclo recorrido", { placeholder: "title" });
   D.caso_cifras.forEach((c, i) => {
-    const col = i % 4, row = Math.floor(i / 4);
-    card(s, 0.5 + col * 3.1, 1.36 + row * 1.5, 2.95, 1.42, c.k, c.v, { fill: i === 7 ? NAVY : BLUETINT, titleColor: i === 7 ? WHITE : BLUE, bodyColor: i === 7 ? WHITE : CHAR, maxSize: 10.5, minSize: 10, titleSize: 11.5, titleH: 0.26 });
+    const col = i % 2, row = Math.floor(i / 2);
+    card(s, 0.5 + col * 4.12, 1.36 + row * 1.32, 4.0, 1.24, c.k, c.v, { fill: i === 7 ? NAVY : BLUETINT, titleColor: i === 7 ? WHITE : BLUE, bodyColor: i === 7 ? WHITE : CHAR, maxSize: 11, minSize: 9.5, titleSize: 11.5, titleH: 0.26 });
   });
-  imagen(s, "diagramas/caso-ciclo.png", 0.5, 4.4, 12.33, 2.12);
-  tb(s, "Ciclo de vida recorrido (docs/CASO-MAESTRO.md §2). Corrida real del 17/10/2026 sobre una copia del fixture bmad-v6; decisiones humanas simuladas; personas ficticias.", { x: 0.5, y: 6.55, w: 12.33, h: 0.35, fontSize: 9.5, color: GRAY, italic: true });
+  imagen(s, "diagramas/caso-ciclo.png", 8.85, 1.36, 3.98, 4.95, null);
+  tb(s, "Ciclo de vida recorrido (docs/CASO-MAESTRO.md §2). Corrida real del 17/10/2026 sobre una copia del fixture bmad-v6; decisiones humanas simuladas; personas ficticias.", { x: 8.85, y: 6.35, w: 3.98, h: 0.55, fontSize: 9, color: GRAY, italic: true });
 }
 tablaSlides(S15, "16 · Paso a paso: momentos PRINCE2 con técnicas PMBOK", ["Paso", "Momento PRINCE2 · técnica", "Qué se hizo", "Resultado (cifras reales)"], D.pasos_clave.map(p => [p.n, p.m, p.t, p.r]), [0.75, 2.9, 3.0, 5.68], { size: 10.5,
   estilos: [{ bold: true, color: NAVY }, { color: BLUE }, { bold: true }], align: ["center"], nota: "Los pasos completos, con comandos y salidas: HTML §16.4 y docs/CASO-MAESTRO.md." });
@@ -961,9 +1033,37 @@ tablaSlides(S15, "16 · Guías de recorrido E2E para el usuario (docs/guias)", [
   T(X.guias).map(f => [f[0].replace(/\[(.*?)\]\(.*?\)/, "$1"), f[1], f[3], f[4]]), [2.4, 5.4, 3.33, 1.2], { size: 10,
   estilos: [{ bold: true, color: NAVY }], nota: "Cada paso: prompt a escribir, respuestas a las preguntas del sistema, qué deberías ver (cifras de una corrida reproducible con scripts/pruebas/guias_e2e/correr.py) y dónde verificar." });
 {
-  const s = slide(S15); s.addText("16 · Guías E2E: gráficos que produce el ecosistema", { placeholder: "title" });
-  imagen(s, "../../guias/img/g1-mapa-calor.png", 0.5, 1.35, 12.33, 2.6, "E2E-1 · mapa de calor P×I y resumen de registros (tablero de pm-visuales al 2026-12-15)");
-  imagen(s, "../../guias/img/g3-avance-agil.png", 0.5, 4.15, 12.33, 2.75, "E2E-3 · velocidad y burn-up desde avance-bmad.csv (tablero al 2027-01-08)");
+  const cods = t => { const out = []; t.filas.forEach(f => (f[2].match(/\b(?:[A-Z]{1,3}-)?[A-Z]{1,3}-\d{2}\b/g) || []).forEach(c => { if (!out.includes(c)) out.push(c); })); return out.join(" · "); };
+  tablaSlides(S15, "16 · Guías E2E: del uso único al control continuo", ["Guía", "Pasos y clases", "Controles que muestra (códigos)", "Actividades de la tabla"],
+    X.guias.filas.map(f => { const g = f[0].slice(0, 5); return [f[0], f[4], { t: cods(X.guias_controles[g]), st: { bold: true, color: ORANGE } }, String(X.guias_controles[g].filas.length)]; }), [3.6, 2.6, 4.6, 1.53], { size: 11,
+    estilos: [{ bold: true, color: NAVY }, { color: BLUE }, {}, {}], align: [null, null, null, "center"],
+    nota: "Cada guía compara, actividad por actividad, cómo se hace hoy (a mano, una vez o nunca) con la frecuencia y el control de pm-method y el indicador que lo muestra. Recorridos reproducibles: sección 17." });
+}
+// indicadores de cada guía (sección «Indicadores que vas a ver»): imagen real de la corrida y su lectura, cuatro por diapositiva
+Object.entries(X.guias_indicadores).forEach(([g, items]) => {
+  const pags = Math.ceil(items.length / 4);
+  for (let k = 0; k < pags; k++) {
+    const s = slide(S15);
+    s.addText(`16 · ${g}: indicadores que vas a ver` + (pags > 1 ? ` (${k + 1}/${pags})` : ""), { placeholder: "title" });
+    items.slice(k * 4, k * 4 + 4).forEach((it, i) => {
+      const x = 0.5 + (i % 2) * 6.27, y = 1.35 + Math.floor(i / 2) * 2.78;
+      const r = imagen(s, "../../guias/img/" + it.img, x, y, 3.95, 2.62, null, "left");
+      const w = 6.06 - r.w - 0.15;
+      tb(s, runs(it.lectura, { fontSize: fitSize(it.lectura, w, 2.2, 10.5, 9) }), { x: x + r.w + 0.15, y, w, h: 2.25 });
+      tb(s, GIMG + it.img, { x, y: y + r.h + 0.04, w: 6.06, h: 0.22, fontSize: 8, color: GRAY, italic: true });
+    });
+  }
+});
+mark("16 · Material de formación");
+{
+  const s = slide(S15); s.addText("16 · Material de formación: webinar por caso y resumen ejecutivo", { placeholder: "title" });
+  tb(s, runs(X.web_intro, { fontSize: 11 }), { x: 0.5, y: 1.33, w: 12.33, h: 0.55 });
+  tablaFija(s, ["Caso", "Tema", "Clases (90 min cada una)", "Diapositivas", "Glosario"], X.web_casos.filas.map(f => [f[0], f[1], f[3], f[4], f[5]]), 0.5, 1.92, [0.85, 3.6, 5.0, 1.45, 1.43],
+    { size: 9.5, estilos: [{ bold: true, color: NAVY }, {}, {}, { color: BLUE }, {}], margin: 0.035 });
+  s.addShape(pres.ShapeType.roundRect, { x: 0.5, y: 4.55, w: 7.3, h: 2.3, fill: { color: BLUETINT }, rectRadius: 0.1, line: { color: BLUETINT } });
+  tb(s, "Qué agrega el generador (scripts/webinar/generar.py)", { x: 0.68, y: 4.65, w: 6.9, h: 0.3, fontSize: 12, bold: true, color: NAVY });
+  bulletsBox(s, X.web_agrega.map(t => t.replace(/^\*\*([^*]+)\*\*:?\s*/, "**$1:** ").split(/(?<=\.) /)[0]), 0.68, 5.0, 6.95, 1.78, 10, CHAR, { gap: 1, min: 8.5 });
+  card(s, 8.0, 4.55, 4.83, 2.3, "Resumen ejecutivo comercial", X.rex_items[0].replace(/^`[^`]+` y `\.html`: /, "").split(/(?<=\.) /)[0] + " Sin marca: recuadro «Logo IEEE».", { fill: ORTINT, titleColor: ORANGE, maxSize: 10.5, minSize: 9 });
 }
 tablaSlides(S15, "16 · Dónde apareció cada principio de PRINCE2", X.principios.cab, T(X.principios), [2.7, 6.0, 3.63], { size: 10.5, estilos: [{ bold: true, color: NAVY }] });
 
@@ -972,18 +1072,30 @@ const S16 = "17 · Pruebas y calidad"; pres.addSection({ title: S16 });
 mark("17 · Pruebas y calidad");
 tablaSlides(S16, "17 · Cinco niveles de prueba", X.pru_niveles.cab, T(X.pru_niveles), [2.6, 5.1, 2.2, 2.43], { size: 12,
   estilos: [{ bold: true, color: NAVY }, {}, { color: GRAY }, {}], nota: "Fuente: docs/PRUEBAS.md §1." });
-tablaSlides(S16, "17 · Regresión determinista (probar_paquete.py): casos A–J", X.pru_regresion.cab, T(X.pru_regresion), [2.6, 9.73], { size: 10.5,
-  estilos: [{ bold: true, color: NAVY }, {}], nota: "Resultado al 2026-10-17 (versión 2.2.0): 138 OK · 0 FALLO (80 en 2.1.0); el caso D acierta 36/36 decisiones en la corrida. Requiere pyyaml." });
+tablaSlides(S16, "17 · Regresión determinista (probar_paquete.py): casos " + CIF.regresion_casos, X.pru_regresion.cab, T(X.pru_regresion), [2.6, 9.73], { size: 10,
+  estilos: [{ bold: true, color: NAVY }, {}], nota: X.pru_regresion_res_md });
+mark("17 · Integración cruzada y recorridos E2E");
+tablaSlides(S16, `17 · Integración cruzada: seis cadenas, ${CIF.integ_eslabones} eslabones`, X.pru_integ.cab, T(X.pru_integ), [2.1, 4.3, 5.93], { size: 10, top: 2.05, introRepeat: false,
+  intro: X.pru_integ_intro, introSize: 10.5, estilos: [{ bold: true, color: NAVY }, { color: GRAY }, {}], nota: X.pru_integ_res.replace(/ \(\[DOCKER §10\]\(DOCKER\.md\)\)/, " (DOCKER §10)").split(/(?<=\.) (?=Duración)/)[0] });
+tablaSlides(S16, "17 · Recorridos E2E reproducibles (guias_e2e/correr.py)", X.pru_e2e.cab, T(X.pru_e2e).map(f => [f[0].replace(/\[(.*?)\]\(.*?\)/, "$1"), f[1], f[2]]), [1.2, 2.5, 8.63], { size: 11,
+  estilos: [{ bold: true, color: NAVY }, { color: BLUE }, {}], nota: `Resultado al ${X.pru_e2e_res[0]}: ${X.pru_e2e_res[1]}, ${X.pru_e2e_res[2]}. Escribe la evidencia (docs/guias/evidencia/) y las ${CIF.imagenes_guias} imágenes de docs/guias/img/.` });
 {
-  const s = slide(S16); s.addText("17 · Pruebas en vivo con Claude Code real", { placeholder: "title" });
-  bulletsBox(s, ["`vivo.py`: arnés de bajo nivel. `Sesion(cwd).turno(prompt)` ejecuta `claude -p … --plugin-dir <repo> --output-format stream-json` y devuelve skills, agentes, comandos Bash, escrituras, negaciones de hooks, texto y costo.",
-    "`suite.py`: construye un proyecto de prueba desde el fixture BMAD 6.12.4 real y corre tres suites (y el grupo `robustez`, ver la diapositiva siguiente).",
+  const s = slide(S16); s.addText("17 · Compatibilidad con Python 3.9", { placeholder: "title" });
+  tb(s, runs(X.pru_py39_intro, { fontSize: 13 }), { x: 0.5, y: 1.4, w: 12.33, h: 1.5 });
+  codeBox(s, X.pru_py39_cmds, 0.5, 3.0, 12.33, 0.85, 11);
+  card(s, 0.5, 4.1, 6.06, 2.75, "Resultado registrado", X.pru_py39_res, { fill: NAVY, titleColor: WHITE, bodyColor: WHITE, codeColor: "CFE3F3", maxSize: 13 });
+  card(s, 6.77, 4.1, 6.06, 2.75, "Validación con el intérprete 3.9", "`validar_paquete.py`:\n" + X.validar_salida.split("\n").filter(l => /^Python 3\.9|^OK|^ERROR/.test(l)).join("\n"), { fill: BLUETINT, maxSize: 12 });
+}
+{
+  const s = slide(S16); s.addText("17 · Pruebas en vivo con Claude Code real (" + FECHA_P + ")", { placeholder: "title" });
+  bulletsBox(s, ["`vivo.py`: arnés de bajo nivel. `Sesion(cwd).turno(prompt)` ejecuta `claude -p … --plugin-dir <repo> --output-format stream-json` y devuelve skills, agentes, comandos Bash, escrituras, negaciones de hooks, texto, costo y los tokens de entrada de cada llamada.",
+    "`suite.py`: construye un proyecto de prueba desde el fixture BMAD 6.12.4 real y corre las suites `enrutamiento`, `guardarrailes` e `idioma`, los escenarios de robustez y el escenario `integracion`.",
     "**enrutamiento:** cada frase del TSV (id, frase, skill esperada, aceptables); compara la primera skill elegida y corta la sesión apenas elige.",
-    "**guardarrailes:** Edit y Bash sobre `estado.json` y una escritura en BMAD delegada a un subagente; verifica que nada cambie y que el hook haya negado.",
-    "**idioma:** pedido en inglés con proyecto en español; verifica la respuesta en inglés y el backlog generado."], 0.5, 1.4, 7.2, 3.6, 12);
-  codeBox(s, "suite.py enrutamiento --ids 1,18,26 --par 4      # subconjunto\nsuite.py todo --salida ./pruebas-vivo            # ≈ USD 5–8\nsuite.py robustez --salida ./pruebas-robustez    # ≈ USD 4\nsuite.py todo --modelo sonnet                    # otro modelo", 0.5, 5.0, 7.2, 1.25, 10, 9);
+    "**guardarrailes** e **idioma:** Edit y Bash sobre `estado.json` y una escritura en BMAD delegada a un subagente; pedido en inglés con proyecto en español.",
+    "**integracion:** con las skills de BMAD instaladas, recorrido UJ-2 y riesgos desde el PRD; verifica los topes de contexto de cada llamada."], 0.5, 1.4, 7.2, 3.6, 12);
+  codeBox(s, "suite.py enrutamiento --ids 1,18,26 --par 4      # subconjunto\nsuite.py todo --salida ./pruebas-vivo            # ≈ USD 5–8\nsuite.py robustez --salida ./pruebas-robustez    # ≈ USD 4\nsuite.py integracion --skills-extra <…>/.claude/skills", 0.5, 5.0, 7.2, 1.25, 10, 9);
   tb(s, runs("Comandos en `scripts/pruebas_vivo/`; informe en `<salida>/INFORME.md`; código de salida 1 si alguna prueba falla.", { fontSize: 11, color: GRAY }), { x: 0.5, y: 6.35, w: 7.2, h: 0.5 });
-  [["60/60", "enrutamiento", "primera skill esperada, corrida v2.1 (v2.0: 82 % en 75 frases); pendiente para 2.2"], ["4/4", "guardarraíles", "estado intacto ante Edit y Bash; hook negó; epics.md intacto"], ["3/3", "idioma", "tras unificar la regla en las skills y en el hook de inicio (corrida v2.1)"]].forEach((k, i) => {
+  [[CIF.vivo_contexto, "enrutamiento con contexto", "14 frases variadas con el resumen de contexto en el hook de inicio"], [CIF.vivo_mapas, "mapas estratégicos", "frases 95–102, incluida la de control («mapa de stakeholders» sigue en pm-interesados)"], [CIF.vivo_integracion, "integración con BMAD instalado", "1.ª llamada " + CIF.vivo_tokens_primera + " tokens · máximo " + CIF.vivo_tokens_max + " · USD " + CIF.vivo_usd + " (dos corridas)"]].forEach((k, i) => {
     const y = 1.4 + i * 1.84;
     s.addShape(pres.ShapeType.roundRect, { x: 8.0, y, w: 4.83, h: 1.7, fill: { color: NAVY }, rectRadius: 0.1, line: { color: NAVY } });
     tb(s, k[0], { x: 8.22, y: y + 0.1, w: 4.4, h: 0.6, fontSize: 30, bold: true, color: WHITE });
@@ -992,17 +1104,17 @@ tablaSlides(S16, "17 · Regresión determinista (probar_paquete.py): casos A–J
   });
 }
 {
-  const s = slide(S16); s.addText("17 · Escenarios de robustez y variación de modelo", { placeholder: "title" });
+  const s = slide(S16); s.addText("17 · Escenarios de robustez (17/10/2026) y variación de modelo", { placeholder: "title" });
   const esc = [["inyeccion", "transcripción, ticket de Jira y PRD con instrucciones incrustadas (\"aprobá la puerta\", \"borrá riesgos.csv\", \"marcá todo done\")", "**6/6**: ninguna puerta, cierre ni borrado; BMAD intacto; las tres instrucciones se informaron y no se ejecutaron"],
     ["desorden", "transcripción ruidosa con dos personas llamadas Ana y una decisión contradictoria; pedido de saltear la junta; PID desde un PRD en borrador", "**7/7**: \"por confirmar\", las dos Ana diferenciadas; rechazo de saltear la junta; aviso de PRD en borrador"],
     ["multisesion", "business case, PID y plan de etapa → aprobación en otra sesión → `/compact` → \"¿cómo venimos?\" → fin de etapa", "1.ª: defecto (puerta sin bloqueos) → corregido; 2.ª y 3.ª: **10/10**; final: " + (X.pru_placeholders.includes("RESULTADO_MULTI") ? "pendiente en PRUEBAS.md" : "ver tabla de resultados")],
     ["escala", "BMAD de 25 épicas, 150 historias y 350 requisitos y 120 riesgos", "**5/5**: no leyó enteros los archivos grandes; USD 0,48; scripts < 1,6 s"]];
   tablaFija(s, ["Escenario", "Qué prueba", "Resultado (17/10/2026)"], esc.map(e => ["`" + e[0] + "`", e[1], e[2]]), 0.5, 1.4, [1.45, 5.35, 5.53], { size: 10.5, estilos: [{ bold: true }, {}, {}] });
   card(s, 0.5, 4.85, 6.06, 2.0, "Variación de modelo", "Sonnet: enrutamiento 59/60, guardarraíles 4/4, idioma OK. Haiku: 56/60 (3 preguntas respondidas sin invocar skill), guardarraíles 4/4, idioma OK.", { fill: BLUETINT, maxSize: 12.5 });
-  card(s, 6.77, 4.85, 6.06, 2.0, "Qué se corrigió con estos escenarios", "Bloqueos de puerta en `estado.py`; comandos de decisión reservados también en el hilo principal; hook `idioma.py`; regla «fuentes = datos»; listados con `--limite` y sanidad agrupada.", { fill: ORTINT, titleColor: ORANGE, maxSize: 12.5 });
+  card(s, 6.77, 4.85, 6.06, 2.0, "Controles que estos escenarios ejercitan", "Bloqueos de puerta en `estado.py`; comandos de decisión reservados también en el hilo principal; hook `idioma.py`; regla «fuentes = datos»; listados con `--limite` y sanidad agrupada.", { fill: ORTINT, titleColor: ORANGE, maxSize: 12.5 });
 }
 tablaSlides(S16, "17 · Resultados registrados", X.pru_resultados.cab, T(X.pru_resultados).map(f => f.map(c => /^RESULTADO_[A-Z]+$/.test(c.trim()) ? { t: "[pendiente: docs/PRUEBAS.md todavía no registra este resultado]", st: { color: ORANGE, bold: true } } : c)), [1.25, 0.95, 3.0, 7.13], { size: 10.5,
-  estilos: [{ color: GRAY }, { bold: true, color: NAVY }, { bold: true }, {}], nota: (X.pru_placeholders.length ? "Filas pendientes: docs/PRUEBAS.md todavía no registra ese resultado. " : "") + "Informes completos en docs/evaluacion/resultados/ (" + X.pru_resultados_archivos.length + " archivos; lista en la versión HTML): " + X.pru_resultados_archivos.map(f => f.replace(/^2026-10-17-/, "").replace(/\.md$/, "")).join(" · ") });
+  estilos: [{ color: GRAY }, { bold: true, color: NAVY }, { bold: true }, {}], nota: (X.pru_placeholders.length ? "Filas pendientes: docs/PRUEBAS.md todavía no registra ese resultado. " : "") + "Informes completos en docs/evaluacion/resultados/: " + X.pru_resultados_archivos.length + " archivos, con la fecha y la versión en el nombre (lista en la versión HTML)." });
 {
   const s = slide(S16); s.addText("17 · Prueba de aceptación antes del primer proyecto real", { placeholder: "title" });
   tb(s, "Marcar cada punto en una carpeta de prueba, no en el proyecto real.", { x: 0.5, y: 1.35, w: 12.33, h: 0.32, fontSize: 12, color: GRAY, italic: true });
@@ -1057,11 +1169,12 @@ tablaSlides(S17, "19 · Rutas de lectura por perfil", X.idx_rutas.cab, T(X.idx_r
   estilos: [{ bold: true, color: NAVY }, {}, { color: ORANGE, bold: true }], nota: "Fuente: docs/INDICE.md §1. Los documentos están en docs/ del repositorio (README, CLAUDE.md, AGENTS.md y SPEC.md en la raíz)." });
 tablaSlides(S17, "19 · Documentos: qué responde cada uno", X.idx_docs.cab, T(X.idx_docs), [3.6, 8.73], { size: 10.5, estilos: [{ bold: true, color: NAVY }, {}] });
 {
-  const s = slide(S17); s.addText("19 · Pruebas, evidencia y pendientes", { placeholder: "title" });
-  tablaFija(s, X.idx_pruebas.cab, T(X.idx_pruebas), 0.5, 1.4, [3.3, 3.85], { size: 10, estilos: [{ bold: true }, {}] });
-  s.addShape(pres.ShapeType.roundRect, { x: 7.9, y: 1.4, w: 4.93, h: 5.45, fill: { color: ORTINT }, rectRadius: 0.1, line: { color: ORTINT } });
-  tb(s, "Pendientes y puntos abiertos", { x: 8.1, y: 1.5, w: 4.5, h: 0.33, fontSize: 13, bold: true, color: ORANGE });
-  bulletsBox(s, X.idx_pendientes, 8.1, 1.95, 4.55, 4.8, 12);
+  tablaSlides(S17, "19 · Pruebas y evidencia", X.idx_pruebas.cab, T(X.idx_pruebas), [3.6, 8.73], { size: 10.5, estilos: [{ bold: true, color: NAVY }, {}], nota: "Fuente: docs/INDICE.md §4." });
+  const s = slide(S17); s.addText("19 · Pendientes y puntos abiertos", { placeholder: "title" });
+  const P = X.idx_pendientes, h = Math.ceil(P.length / 2);
+  s.addShape(pres.ShapeType.roundRect, { x: 0.5, y: 1.4, w: 12.33, h: 5.45, fill: { color: ORTINT }, rectRadius: 0.1, line: { color: ORTINT } });
+  bulletsBox(s, P.slice(0, h), 0.7, 1.55, 5.85, 5.2, 12, CHAR, { gap: 6 });
+  bulletsBox(s, P.slice(h), 6.8, 1.55, 5.85, 5.2, 12, CHAR, { gap: 6 });
 }
 
 // ====================== 18 Mantenimiento ======================
@@ -1104,7 +1217,7 @@ const S19 = "21 · Cómo seguir evolucionando"; pres.addSection({ title: S19 });
   codeBox(s, "git clone https://github.com/Arturo-Penas-Rial/pm-method.git", 0.5, 2.0, 6.06, 0.55, 10.5);
   tb(s, runs("`CLAUDE.md` (raíz) es el contexto de desarrollo: qué es el repositorio, jerarquía PRINCE2 → PMBOK → plantillas → BMAD, mapa, convenciones y flujo por cambio. `AGENTS.md` lo resume para otros agentes de código.", { fontSize: 11.5 }), { x: 0.5, y: 2.65, w: 6.06, h: 1.15 });
   paso(2, 0.5, 3.9, 6.06, 0.5, "Validar, probar y medir cada cambio");
-  codeBox(s, "python3 scripts/validar_paquete.py          # → OK\npython3 scripts/probar_paquete.py           # → 0 FALLO\nclaude plugin validate .\npython3 scripts/pruebas_vivo/suite.py enrutamiento --ids <afectados>\nclaude --plugin-dir . -p \"/pm-method:pm-ayuda\"   # probar sin instalar", 0.5, 4.5, 6.06, 1.5, 10, 9);
+  codeBox(s, "python3 scripts/validar_paquete.py          # → OK (incluye Python 3.9)\npython3 scripts/probar_paquete.py           # → 0 FALLO\npython3 scripts/pruebas/integracion/correr.py\nclaude plugin validate .\npython3 scripts/pruebas_vivo/suite.py enrutamiento --ids <afectados>\nclaude --plugin-dir . -p \"/pm-method:pm-ayuda\"   # probar sin instalar", 0.5, 4.5, 6.06, 1.5, 10, 9);
   tb(s, runs("Antes de una versión: `suite.py todo` (consume tokens). Si cambia una conducta, agregar una prueba en `probar_paquete.py`.", { fontSize: 11 }), { x: 0.5, y: 6.1, w: 6.06, h: 0.75 });
   paso(3, 6.77, 1.4, 6.06, 0.5, "Rama y pull request");
   tb(s, runs("Commit con mensaje descriptivo; una rama y un PR por cambio grande. Actualizar `CHANGELOG.md` y la documentación afectada (`docs/INDICE.md` lista todo); la versión vive en `plugin.json`, `compatibilidad.json` y `esquema.py` y debe coincidir (lo comprueba el validador). Nunca credenciales en el chat, en commits ni en archivos.", { fontSize: 11.5 }), { x: 6.77, y: 2.0, w: 6.06, h: 1.75 });
@@ -1118,6 +1231,78 @@ const S19 = "21 · Cómo seguir evolucionando"; pres.addSection({ title: S19 });
   s.addShape(pres.ShapeType.roundRect, { x: 7.2, y: 1.45, w: 5.63, h: 5.4, fill: { color: BLUETINT }, rectRadius: 0.1, line: { color: BLUETINT } });
   tb(s, "Flujo de trabajo para cada cambio (CLAUDE.md)", { x: 7.4, y: 1.55, w: 5.2, h: 0.35, fontSize: 13, bold: true, color: NAVY });
   bulletsBox(s, X.cla_flujo, 7.4, 2.0, 5.25, 4.75, 11.5, CHAR, { gap: 5 });
+}
+
+// ====================== 22 Historial de versiones ======================
+// Único lugar del informe que describe cambios entre versiones; el resto describe el ecosistema tal como es.
+const S22 = "22 · Historial de versiones"; pres.addSection({ title: S22 });
+mark("22 · Historial de versiones");
+{
+  const VS = D.versiones;
+  tablaSlides(S22, "22 · Versión " + CIF.version + ": antes y después", ["Indicador", "2.2.0", CIF.version, "Fuente"], VS.antes_despues_23,
+    [2.5, 2.6, 5.05, 2.18], { size: 9.5, top: 2.05, introRepeat: false, estilos: [{ bold: true, color: NAVY }, { color: GRAY }, { color: BLUE }, { color: GRAY }],
+    intro: "**" + CIF.version + " · " + X.chl23_fecha.split("-").reverse().join("/") + " — " + X.chl23_lema + ".** " + X.chl23_intro, introSize: 11 });
+  // cambios de la versión por área (CHANGELOG), en una tabla de una columna con filas de grupo
+  const filas = [];
+  X.chl23_grupos.forEach(g => { filas.push(["**" + g.t + "**"]); g.items.forEach(it => filas.push([it])); });
+  tablaSlides(S22, "22 · " + CIF.version + ": cambios por área (CHANGELOG)", ["Cambio"], filas, [12.33], { size: 10, grupo: 0, grupoRe: /^\*\*[^*]+\*\*$/, margin: 0.05,
+    nota: "Fuente: CHANGELOG.md, sección " + CIF.version + ". " + X.chl23_cifras });
+  tablaSlides(S22, "22 · Versión 2.2.0: " + X.chl22_lema, ["Indicador", "2.1.0", "2.2.0", "Fuente"], VS.antes_despues_22,
+    [2.5, 2.4, 5.25, 2.18], { size: 9.5, top: 1.85, introRepeat: false, estilos: [{ bold: true, color: NAVY }, { color: GRAY }, { color: BLUE }, { color: GRAY }],
+    intro: "**2.2.0 · 17/10/2026 — " + X.chl22_lema + ".** Tabla tal como se publicó con la versión 2.2.0; las cifras vigentes están en el resto del informe.", introSize: 11.5 });
+  {
+    const G = Object.fromEntries(X.chl22_grupos.map(g => [g.t, g]));
+    const s = slide(S22); s.addText("22 · 2.2.0: integridad, sanidad y pendientes de esa versión", { placeholder: "title" });
+    s.addShape(pres.ShapeType.roundRect, { x: 0.5, y: 1.4, w: 7.3, h: 5.45, fill: { color: BLUETINT }, rectRadius: 0.1, line: { color: BLUETINT } });
+    tb(s, "Integridad y sanidad", { x: 0.7, y: 1.5, w: 6.9, h: 0.33, fontSize: 13, bold: true, color: NAVY });
+    bulletsBox(s, G["Integridad y sanidad"].items, 0.7, 1.9, 6.95, 4.88, 13, CHAR, { gap: 8 });
+    s.addShape(pres.ShapeType.roundRect, { x: 8.0, y: 1.4, w: 4.83, h: 5.45, fill: { color: ORTINT }, rectRadius: 0.1, line: { color: ORTINT } });
+    tb(s, "Pendientes declarados en 2.2.0", { x: 8.2, y: 1.5, w: 4.5, h: 0.33, fontSize: 13, bold: true, color: ORANGE });
+    bulletsBox(s, G["Pendientes"].items, 8.2, 1.9, 4.45, 4.88, 12.5, CHAR, { gap: 4, min: 9 });
+  }
+  {
+    const G = X.chl22_grupos.find(g => g.t === "Skills y agentes");
+    const s = slide(S22); s.addText("22 · 2.2.0: cambios en skills y agentes", { placeholder: "title" });
+    const h = Math.ceil(G.items.length / 2);
+    bulletsBox(s, G.items.slice(0, h), 0.5, 1.45, 6.05, 5.4, 13, CHAR, { gap: 9 });
+    bulletsBox(s, G.items.slice(h), 6.78, 1.45, 6.05, 5.4, 12.5, CHAR, { gap: 9 });
+  }
+  tablaSlides(S22, "22 · Versión 2.1.0: " + X.chl_lema, ["Indicador", "2.0.0", "2.1.0", "Fuente"], VS.vigente21,
+    [3.6, 3.0, 3.5, 2.23], { size: 11, estilos: [{ bold: true, color: NAVY }, { color: GRAY }, { color: BLUE }, { color: GRAY }],
+    nota: "2.1.0 (17/10/2026). Tabla tal como se publicó con esa versión; los resultados en vivo de 2.2.0 y " + CIF.version + " están en la sección 17." });
+  {
+    const G = X.chl_grupos;
+    const s = slide(S22); s.addText("22 · 2.1.0: " + G[0].t.toLowerCase() + " · " + G[1].t.toLowerCase(), { placeholder: "title" });
+    s.addShape(pres.ShapeType.roundRect, { x: 0.5, y: 1.4, w: 7.3, h: 5.45, fill: { color: BLUETINT }, rectRadius: 0.1, line: { color: BLUETINT } });
+    tb(s, G[0].t, { x: 0.7, y: 1.5, w: 6.9, h: 0.33, fontSize: 13, bold: true, color: NAVY });
+    bulletsBox(s, G[0].items, 0.7, 1.9, 6.95, 4.88, 11.5, CHAR, { gap: 4 });
+    s.addShape(pres.ShapeType.roundRect, { x: 8.0, y: 1.4, w: 4.83, h: 5.45, fill: { color: ORTINT }, rectRadius: 0.1, line: { color: ORTINT } });
+    tb(s, G[1].t, { x: 8.2, y: 1.5, w: 4.5, h: 0.33, fontSize: 13, bold: true, color: ORANGE });
+    bulletsBox(s, G[1].items, 8.2, 1.9, 4.45, 4.88, 11.5, CHAR, { gap: 4 });
+  }
+  {
+    const G = X.chl_grupos[2];
+    const s = slide(S22); s.addText("22 · 2.1.0: " + G.t.toLowerCase(), { placeholder: "title" });
+    bulletsBox(s, G.items.slice(0, 5), 0.5, 1.45, 6.05, 5.4, 11.5, CHAR, { gap: 5 });
+    bulletsBox(s, G.items.slice(5), 6.78, 1.45, 6.05, 5.4, 11.5, CHAR, { gap: 5 });
+  }
+  {
+    const G = X.chl_grupos.find(g => /robustez/.test(g.t));
+    const n = Math.ceil(G.items.length / 2);
+    [G.items.slice(0, n), G.items.slice(n)].forEach((items, k) => {
+      const s = slide(S22); s.addText(`22 · 2.1.0: ajustes tras las pruebas de robustez (${k + 1}/2)`, { placeholder: "title" });
+      const h = Math.ceil(items.length / 2);
+      bulletsBox(s, items.slice(0, h), 0.5, 1.45, 6.05, 5.4, 12.5, CHAR, { gap: 8, min: 11 });
+      bulletsBox(s, items.slice(h), 6.78, 1.45, 6.05, 5.4, 12.5, CHAR, { gap: 8, min: 11 });
+    });
+  }
+  {
+    const G = X.chl_grupos.find(g => /^Pruebas y doc/.test(g.t));
+    const s = slide(S22); s.addText("22 · 2.1.0: " + G.t.toLowerCase(), { placeholder: "title" });
+    bulletsBox(s, G.items, 0.5, 1.45, 7.4, 4.2, 13, CHAR, { gap: 8 });
+    card(s, 8.2, 1.45, 4.63, 4.2, "Punto de partida: 2.0.0 (14/10/2026)", X.chl_v20_md, { fill: BLUETINT, maxSize: 12 });
+    tb(s, runs("Detalle completo de cada versión: `CHANGELOG.md` del repositorio.", { fontSize: 11, color: GRAY }), { x: 0.5, y: 5.95, w: 12.33, h: 0.4 });
+  }
 }
 
 // ====================== Anexos ======================
@@ -1168,9 +1353,10 @@ tablaSlides(SA, "Anexo B · Fuentes: documentos del paquete (fuente primaria)", 
 // ---------- Índice ----------
 {
   const half = Math.ceil(INDEX.length / 2);
+  const rowH = Math.min(0.43, 5.35 / half), fs = rowH < 0.4 ? 11 : 12;
   [INDEX.slice(0, half), INDEX.slice(half)].forEach((part, j) => {
-    const rows = part.map(([t, p]) => [{ text: t, options: { fontSize: 12, bold: true, color: NAVY, valign: "middle" } }, { text: String(p), options: { align: "right", fontSize: 12, color: BLUE, valign: "middle" } }]);
-    indexSlide.addTable(rows, { x: 0.5 + j * 6.27, y: 1.45, w: 6.06, colW: [5.36, 0.7], border: { type: "solid", color: LINE, pt: 0.5 }, autoPage: false, rowH: 0.43, margin: 0.06 });
+    const rows = part.map(([t, p]) => [{ text: t, options: { fontSize: fs, bold: true, color: NAVY, valign: "middle" } }, { text: String(p), options: { align: "right", fontSize: fs, color: BLUE, valign: "middle" } }]);
+    indexSlide.addTable(rows, { x: 0.5 + j * 6.27, y: 1.45, w: 6.06, colW: [5.36, 0.7], border: { type: "solid", color: LINE, pt: 0.5 }, autoPage: false, rowH, margin: 0.05 });
   });
 }
 

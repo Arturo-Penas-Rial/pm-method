@@ -66,8 +66,12 @@ REGISTROS = {
     "supuestos": {
         "prefijo": "S", "estado_inicial": "abierto",
         "columnas": ["id", "fecha", "autor", "supuesto_o_restriccion", "tipo", "categoria", "validado",
-                     "fecha_validacion", "responsable", "estado", "notas"],
+                     "fecha_validacion", "responsable", "estado", "notas",
+                     "criticidad", "certeza", "experimento", "criterio", "fecha_limite", "evidencia"],
+        # criticidad: cuánto afecta al caso si resulta falso; certeza: cuánta evidencia hay hoy. Un supuesto de
+        # criticidad alta y certeza baja es una hipótesis a validar antes de invertir (experimento + criterio + fecha).
         "valores": {"tipo": ["supuesto", "restriccion"], "validado": ["", "si", "no", "pendiente"],
+                    "criticidad": ["", "alta", "media", "baja"], "certeza": ["", "alta", "media", "baja"],
                     "estado": ["abierto", "validado", "invalidado", "transferido", "cerrado"]},
         "abiertos": ["abierto"],
     },
@@ -90,7 +94,7 @@ REGISTROS = {
                     "nivel_compromiso_deseado": ["", "lider", "partidario", "neutral", "resistente", "desconocedor"],
                     "confidencial": ["", "si", "no"]},
     },
-    # ---- maestro de interesados (v2.2, dueña pm-interesados). "opcional": se crean al primer uso, no en proyectos nuevos.
+    # ---- maestro de interesados (dueña pm-interesados). "opcional": se crean al primer uso, no en proyectos nuevos.
     "estereotipos": {
         "prefijo": "ET", "estado_inicial": "activo", "opcional": True,
         "columnas": ["id", "nombre", "descripcion", "cuadrante", "canal", "formato", "nivel_detalle", "frecuencia",
@@ -105,6 +109,8 @@ REGISTROS = {
                     "estilo_decision": ["", "datos", "consenso", "rapido", "delegado"],
                     "estado": ["activo", "retirado"]},
         "abiertos": ["activo"],
+        # catálogo: "activo" no es trabajo pendiente; estado.py contexto no lo cuenta entre los abiertos
+        "catalogo": True,
     },
     "preferencias": {
         "prefijo": "PF", "estado_inicial": "propuesta", "opcional": True, "refs": {"stakeholder_id": "stakeholders"},
@@ -187,7 +193,7 @@ UMBRAL_RIESGO_ALTO = 15   # 15–25 alto
 UMBRAL_RIESGO_MEDIO = 6   # 6–12 medio; 1–5 bajo
 
 # ---------------------------------------------------------------- estado.json
-VERSION_PAQUETE = "2.2.0"          # debe coincidir con .claude-plugin/plugin.json y compatibilidad.json
+VERSION_PAQUETE = "2.3.0"          # debe coincidir con .claude-plugin/plugin.json y compatibilidad.json
 FASES = ["pre-proyecto", "inicio", "entrega", "cierre", "cerrado"]
 PROCESOS = ["SU", "IP", "CS", "SB", "CP"]          # DP y MP son continuos (junta y equipos), no "estado actual"
 DIMENSIONES_TOLERANCIA = ["tiempo", "costo", "alcance", "calidad", "beneficios", "riesgo", "sostenibilidad"]
@@ -198,6 +204,37 @@ DECISIONES_PUERTA = ["aprobado", "condicionado", "rechazado", "pendiente"]
 # presupuestos que fija la junta (montos en la moneda del proyecto): presupuesto de cambio, reserva de riesgo (contingencia),
 # reserva de gestión y límite por cambio que puede aprobar la autoridad de cambio delegada (PRINCE2: issues y planes).
 CLAVES_PRESUPUESTO = ["cambio", "riesgo", "gestion", "limite_autoridad_cambio"]
+# cargos que consumen un presupuesto fijado por la junta (clave en `presupuestos`); lo usan sanidad (CAM-03) y registro.py
+CARGO_PRESUPUESTO = {"presupuesto-cambio": "cambio", "reserva-riesgo": "riesgo"}
+CAMBIO_VIGENTE = ("aprobado", "implementado", "cerrado")
+
+
+def monto(v):
+    """Monto de un registro o de `presupuestos` como número (None si está vacío o no es número)."""
+    try: return float(str(v or "").strip().replace(",", "."))
+    except ValueError: return None
+
+
+def es_junta(e, quien):
+    """¿`decidido_por` es la junta o el ejecutivo? Se reconoce por "ejecutiv", "junta", "board", "executive" o el nombre
+    del ejecutivo de `estado.json.roles` (criterio común de sanidad CAM-04/CAM-05 y de registro.py)."""
+    q = (quien or "").lower(); ej = (e.get("roles", {}).get("ejecutivo") or "").lower()
+    return any(x in q for x in ("ejecutiv", "junta", "board", "executive")) or (bool(ej) and ej in q)
+
+
+def cambio_vigente(f):
+    """Un cambio cuenta contra los presupuestos si está aprobado, implementado o cerrado, o tiene decision=aprobado."""
+    return f.get("estado") in CAMBIO_VIGENTE or f.get("decision") == "aprobado"
+
+
+def consumo_cambios(filas, excluir=None):
+    """Consumo por cargo (presupuesto-cambio, reserva-riesgo) de los cambios vigentes, sin el id `excluir`."""
+    consumo = {c: 0.0 for c in CARGO_PRESUPUESTO}
+    for f in filas:
+        if f.get("id") == excluir or not cambio_vigente(f): continue
+        c = monto(f.get("costo"))
+        if c is not None and f.get("cargo") in consumo: consumo[f["cargo"]] += c
+    return consumo
 ESTADOS_ARTEFACTO = ["borrador", "en-revision", "aprobado", "obsoleto"]
 
 

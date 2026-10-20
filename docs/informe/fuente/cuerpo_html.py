@@ -3,7 +3,7 @@ import base64 as _b64
 def img64(rel):
     return "data:image/png;base64," + _b64.b64encode(open(rel, "rb").read()).decode()
 
-# Cuerpo del Informe 2 v2.2 (lo ejecuta build_html.py con exec, comparte sus funciones y variables).
+# Cuerpo del Informe 2 (lo ejecuta build_html.py con exec, comparte sus funciones y variables).
 # Las subsecciones se escriben como <h3>¶Título</h3>: sec() les antepone "<n>.<k> · ".
 
 def vin(items, clase=""):
@@ -38,57 +38,70 @@ s1 = sec("resumen", "1", "Resumen ejecutivo",
          + "<h3>¶Valor diferencial</h3>" + valor
          + "<h3>¶Para quién</h3>" + T(X["re_para_quien"], "", ["28%", ""])
          + "<h4>Cómo leer este informe según su rol</h4>" + lectores
-         + "<h3>¶Evidencia al 17/10/2026</h3>" + T(X["re_evidencia"], "", ["42%", ""])
+         + "<h3>¶Evidencia al " + "/".join(reversed(X["cifras"]["pruebas_fecha"].split("-"))) + "</h3>" + T(X["re_evidencia"], "", ["42%", ""])
          + "<h3>¶Límites conocidos, con honestidad</h3>" + vin(X["re_limites"])
          + "<h3>¶Cómo empezar</h3>" + md(X["re_empezar_md"]) + "<p>En este informe: guía completa en la sección 11 y prueba de aceptación en la sección 17.</p>",
          "todas las audiencias")
 
-# ---------- 2 · Novedades 2.2 ----------
-V = D["v22"]
-CH22 = {g["t"]: g for g in X["chl22_grupos"]}
-antes_despues = tabla_html(["Indicador", "2.1.0", "2.2.0", "Fuente"], V["antes_despues"], "", ["24%", "20%", "36%", ""])
-vigente21 = tabla_html(["Indicador", "2.0.0", "2.1.0", "Fuente"], V["vigente21"], "", ["30%", "22%", "26%", ""])
-grupos21 = "".join(f"<div class='callout {'orange' if i % 2 else 'blue'}'><h4>{e(g['t'])}</h4>{vin(g['items'])}</div>" for i, g in enumerate(X["chl_grupos"]))
-grupos22 = "".join(f"<details><summary>{e(g['t'])} ({len(g['items'])})</summary>{('<p>' + inl(g['intro']) + '</p>') if g['intro'] else ''}{vin(g['items'])}</details>" for g in X["chl22_grupos"])
+# ---------- 2 · Capacidades de gestión ----------
+V = D["cap"]
+CIF = X["cifras"]
+FECHA_P = "/".join(reversed(CIF["pruebas_fecha"].split("-")))
+
+
+def indicador(patron):
+    """Imagen de la sección «Indicadores que vas a ver» de las guías E2E cuyo nombre coincide con el patrón."""
+    for g, items in X["guias_indicadores"].items():
+        for it in items:
+            if re.search(patron, it["img"]):
+                return dict(it, guia=g)
+    raise KeyError(f"ninguna imagen de indicadores coincide con {patron}")
+
+
+def fig_guia(it, ancho="1000px"):
+    return (f"<figure style='margin:16px auto;max-width:{ancho}'><img class='captura' src='{img64('../../guias/img/' + it['img'])}' alt='{e(it['alt'])}'>"
+            f"<figcaption>{e(it['guia'])} · {inl(it['lectura'])} · <code>docs/guias/img/{e(it['img'])}</code></figcaption></figure>")
+
+
 cuadrantes = tabla_html(["Cuadrante", "Poder · interés", "Estrategia", "Comunicación por defecto (canal · formato · detalle · frecuencia)"],
                         [[f"**{c[0]}**", c[1], c[2], c[3]] for c in V["cuadrantes"]], "", ["17%", "12%", "", "30%"])
 rf = X["g1_fuentes"]
 riesgos_tab = tabla_html(rf["cab"] + ["Candidatos en la corrida de referencia"], [f + [V["riesgos_cifras"][k]] for k, f in enumerate(rf["filas"])], "", ["16%", "10%", "", "18%", "18%"])
-controles_tab = tabla_html(["Problema habitual", "Control", "Código", "Dónde está el control", "Dónde se ve (guía · paso)"], V["controles"], "dec", ["24%", "27%", "10%", "18%", ""])
+controles_tab = tabla_html(["Problema habitual", "Control", "Código", "Dónde está el control", "Dónde se ve (guía · paso)"],
+                           [f + [X["controles_donde"][k]] for k, f in enumerate(V["controles"])], "dec", ["24%", "27%", "10%", "18%", ""])
 ejemplos = "<div class='cards'>" + "".join(f"<article class='card'><h4>{inl(x['t'])}</h4><p>{inl(x['d'])}</p></article>" for x in V["ejemplos"]) + "</div>"
-def _codigos(t):
-    cods = []
-    for f in t["filas"]:
-        for c in re.findall(r"\b(?:[A-Z]{1,3}-)?[A-Z]{1,3}-\d{2}\b", f[2]):
-            if c not in cods: cods.append(c)
-    return " · ".join(cods)
-guias_v22 = tabla_html(["Guía", "Pasos y duración", "Controles permanentes que muestra (códigos)", "Filas de su tabla de controles"],
-                       [[f"**{f[0]}**", f[4], _codigos(X["guias_controles"][f[0][:5]]), str(len(X["guias_controles"][f[0][:5]]["filas"]))] for f in X["guias"]["filas"]], "", ["26%", "16%", "", "12%"])
-img_matriz = "<figure style='margin:16px auto;max-width:1000px'><img src='" + img64("../../guias/img/g3-interesados-matriz.png") + "' style='width:100%;border:1px solid var(--line);border-radius:10px' alt='Matriz poder/interés y estrategias del reporte de interesados'><figcaption>Reporte de interesados (E2E-3, corte 2027-01-15): matriz poder/interés y estrategia por cuadrante · docs/guias/img/g3-interesados-matriz.png</figcaption></figure>"
-img_raci = "<figure style='margin:16px auto;max-width:1000px'><img src='" + img64("../../guias/img/g3-interesados-raci-perfiles.png") + "' style='width:100%;border:1px solid var(--line);border-radius:10px' alt='RACI y perfiles de comunicación del reporte de interesados'><figcaption>Mismo reporte: RACI (letra y color) y perfiles de comunicación con la procedencia de cada valor · docs/guias/img/g3-interesados-raci-perfiles.png</figcaption></figure>"
-s2 = sec("novedades", "2", "Novedades de la versión 2.2",
-         f"<p class='intro'><b>2.2.0 · 17/10/2026 — {e(X['chl22_lema'])}.</b> {inl(X['chl22_intro'])}</p><p>{inl(V['intro_mapa'])}</p>"
-         + "<h3>¶Antes y después: 2.1.0 → 2.2.0</h3>" + antes_despues
-         + "<h3>¶Maestro de interesados (pm-interesados)</h3><p>El registro de interesados pasa a ser un <b>maestro</b>: una sola fuente de personas con matriz poder/interés, estrategia por cuadrante, perfil de comunicación por persona y una RACI ligada al plan (fuentes: CHANGELOG 2.2.0 «Interesados», CASOS-DE-USO casos 38–43 y 46, <code>skills/pm-interesados/references/guia.md</code>).</p>"
+img_matriz = "<figure style='margin:16px auto;max-width:1000px'><img class='captura' src='" + img64("../../guias/img/g3-interesados-matriz.png") + "' alt='Matriz poder/interés y estrategias del reporte de interesados'><figcaption>Reporte de interesados (E2E-3, corte 2027-01-15): matriz poder/interés y estrategia por cuadrante · docs/guias/img/g3-interesados-matriz.png</figcaption></figure>"
+img_raci = "<figure style='margin:16px auto;max-width:1000px'><img class='captura' src='" + img64("../../guias/img/g3-interesados-raci-perfiles.png") + "' alt='RACI y perfiles de comunicación del reporte de interesados'><figcaption>Mismo reporte: RACI (letra y color) y perfiles de comunicación con la procedencia de cada valor · docs/guias/img/g3-interesados-raci-perfiles.png</figcaption></figure>"
+map_tab = tabla_html(["Código", "Severidad", "Qué comprueba", "Corrige"], [f for f in X["codigos"]["filas"] if re.match(r"^MAP-\d", f[0])], "codigos", ["10%", "10%", "", "30%"])
+ctx_tab = T(X["pru_contexto"], "", ["24%", "22%", "18%", ""])
+s2 = sec("capacidades", "2", "Capacidades de gestión",
+         f"<p class='intro'>{inl(V['intro'])}</p>"
+         + "<h3>¶Validar antes de invertir: supuestos, experimentos y P-11</h3>" + layers(V["supuestos"]) + fig_guia(indicador(r"supuestos"))
+         + "<h3>¶Evaluación de inversiones por opción (<code>inversion.py</code>)</h3>" + layers(V["inversion"])
+         + fig_guia(indicador(r"van")) + "<h4>Salida real en la guía E2E-5, paso 4</h4>" + pre(X["ev_inversion"]) + vin(X["ev_inversion_lectura"])
+         + "<h4>Fórmulas (<code>inversion.py --help</code>)</h4>" + vin(X["inversion_formulas"]) + pre(X["inversion_uso"])
+         + "<h3>¶Mapas estratégicos: Wardley y recorrido del cliente</h3>" + layers(V["mapas"])
+         + "<div class='two'>" + fig_guia(indicador(r"wardley"), "100%") + fig_guia(indicador(r"recorrido"), "100%") + "</div>"
+         + "<h4>Familia MAP de la sanidad</h4>" + map_tab
+         + f"<h4>Comandos (<code>mapas.py --help</code>)</h4><p class='src'>Fuente de verdad: {inl(X['mapas_fuente'])}</p>" + pre("\n".join(X["mapas_uso"]))
+         + "<h3>¶Contexto de sesión acotado: los registros mandan sobre la memoria</h3>" + layers(V["contexto"])
+         + "<h4>Salidas reales de <code>estado.py contexto</code> (guía E2E-5, pasos 7 y 14)</h4>" + "".join(pre(c) for c in X["ev_contexto"])
+         + f"<h4>Topes de contexto medidos</h4><p>{inl(X['pru_contexto_intro'])}</p>" + ctx_tab + f"<p class='src'>{inl(X['pru_contexto_vivo'])}</p>"
+         + "<h4>Memoria del cliente y estado del proyecto (INSTALACION §9.1)</h4>" + md(X["memoria_md"])
+         + "<h3>¶Maestro de interesados (pm-interesados)</h3><p>El registro de interesados es un <b>maestro</b>: una sola fuente de personas con matriz poder/interés, estrategia por cuadrante, perfil de comunicación por persona y una RACI ligada al plan (fuentes: CASOS-DE-USO casos 38–43 y 46, <code>skills/pm-interesados/references/guia.md</code>).</p>"
          + "<h4>Matriz poder/interés y estrategia por cuadrante</h4><p>Poder (eje vertical): autoridad real, control de recursos, capacidad de aprobar presupuestos o vetar decisiones. Interés (eje horizontal): involucramiento, preocupación o impacto. Un valor «medio» se ubica del lado alto y se marca como frontera (<code>--medio bajo</code> invierte la convención).</p>" + cuadrantes
          + layers(V["interesados_puntos"]) + img_matriz + img_raci
-         + "<h3>¶Capa de canales (envios.py)</h3><p>Una sola vía de salida para cualquier comunicación a interesados —comunicados personalizados, informes, actas, recordatorios, convocatorias, decisiones de puerta y check-ins de OKR—, con <code>skills/pm-integraciones/scripts/envios.py</code> (subcomandos <code>nuevo</code>, <code>estado</code>, <code>aprobar</code>, <code>enviar</code>, <code>preparar-mcp</code>, <code>registrar</code>, <code>historial</code> y <code>verificar</code>). Los borradores salen de <code>interesados.py plan-envio</code> con el perfil de cada destinatario (fuentes: INTEGRACIONES §3.2, CHANGELOG «Capa de canales», INSTALACION §0.7).</p>"
+         + "<h3>¶Capa de canales (envios.py)</h3><p>Una sola vía de salida para cualquier comunicación a interesados —comunicados personalizados, informes, actas, recordatorios, convocatorias, decisiones de puerta y check-ins de OKR—, con <code>skills/pm-integraciones/scripts/envios.py</code> (subcomandos <code>nuevo</code>, <code>estado</code>, <code>aprobar</code>, <code>enviar</code>, <code>preparar-mcp</code>, <code>registrar</code>, <code>historial</code> y <code>verificar</code>). Los borradores salen de <code>interesados.py plan-envio</code> con el perfil de cada destinatario; <code>aprobar</code> y <code>enviar --confirmar</code> piden la confirmación de una persona (hook <code>guardian.py</code>). Fuentes: INTEGRACIONES §3.2 e INSTALACION §0.7.</p>"
          + "<h4>Modos</h4>" + T(X["canales_modos"], "dec", ["13%", "10%", "28%", "", "15%"]) + diag("canales")
          + "<h4>Reglas</h4>" + vin(V["canales_reglas"])
          + "<details><summary>Paso a paso con los comandos (INTEGRACIONES §3.2)</summary>" + T(X["canales_pasos"], "dec", ["12%", "44%", ""]) + "</details>"
-         + "<h3>¶OKR v2.2</h3><p><code>okr.py</code> suma tipos de KR, compromiso, peso, iniciativas, check-ins y salud, y prepara la sincronización con Tability o Perdoo (fuentes: CHANGELOG «OKR», <code>skills/pm-okr</code>, CASOS-DE-USO caso 45).</p>"
+         + "<h3>¶OKR ligados a beneficios</h3><p><code>okr.py</code> maneja tipos de KR, compromiso, peso, iniciativas, check-ins y salud, y prepara la sincronización con Tability o Perdoo (fuentes: <code>skills/pm-okr</code>, CASOS-DE-USO caso 45).</p>"
          + tabla_html(["Concepto", "Qué hace"], [[f"**{o[0]}**", o[1]] for o in V["okr"]], "", ["20%", ""]) + f"<div class='callout blue'><p>{inl(V['okr_ejemplo'])}</p></div>"
-         + f"<h3>¶Identificación de riesgos desde cuatro fuentes</h3><p>{inl(V['riesgos_intro'])} BMAD se lee solo a través de pm-bmad-puente. Cifras de la guía E2E-1 (pasos 4, 9 y 13) y su evidencia <code>docs/guias/evidencia/salida-g1.md</code>.</p>" + riesgos_tab
+         + f"<h3>¶Identificación de riesgos desde cuatro fuentes</h3><p>{inl(V['riesgos_intro'])} BMAD se lee solo a través de pm-bmad-puente. Cifras de la guía E2E-1 (pasos {', '.join(dict.fromkeys(f[1].replace('paso ', '') for f in rf['filas']))}) y su evidencia <code>docs/guias/evidencia/salida-g1.md</code>.</p>" + riesgos_tab
          + f"<h3 id='controles-permanentes'>¶Controles permanentes</h3><p class='intro'>{inl(V['controles_intro'])}</p>" + controles_tab
-         + "<p class='src'>Fuentes: CHANGELOG 2.2.0 «Controles permanentes», SANIDAD §2.1, PUERTAS §3, las tablas «Controles permanentes que muestra esta guía» de docs/guias/E2E-1…E2E-4 y <code>skills/pm-estado-proyecto/scripts/sanidad.py</code>, <code>puertas.py</code>, <code>estado.py</code>, <code>evm.py</code> y <code>skills/pm-interesados/scripts/interesados.py</code>. Presupuestos: <code>estado.py presupuesto cambio|riesgo|gestion|limite_autoridad_cambio=&lt;monto&gt; --por …</code>, reservado a pm-director por el hook. <code>sanidad.py --corte AAAA-MM-DD</code> hace reproducibles los controles con vencimiento.</p>"
+         + "<p class='src'>Fuentes: SANIDAD §2.1, PUERTAS §3, las tablas «Del uso único al control continuo» de docs/guias/E2E-1…E2E-5 y <code>skills/pm-estado-proyecto/scripts/sanidad.py</code>, <code>puertas.py</code>, <code>estado.py</code>, <code>evm.py</code>, <code>skills/pm-interesados/scripts/interesados.py</code> y <code>skills/pm-mapas-estrategicos/scripts/mapas.py</code>. Presupuestos: <code>estado.py presupuesto cambio|riesgo|gestion|limite_autoridad_cambio=&lt;monto&gt; --por …</code>, reservado a pm-director por el hook. <code>sanidad.py --corte AAAA-MM-DD</code> hace reproducibles los controles con vencimiento.</p>"
          + "<h4>Ejemplos reales de la evidencia</h4>" + ejemplos
-         + "<details><summary>Diagrama: gestión por excepción en la guía E2E-2 (paso 10)</summary>" + diag("excepcion").replace('<div class="diag-in">', '<div class="diag-in" style="max-width:520px;margin:0 auto">') + "</details>"
-         + "<h3>¶Guías E2E actualizadas</h3><p>Las cuatro guías de <code>docs/guias/</code> muestran los controles permanentes, cada una con la sección «Controles permanentes que muestra esta guía» (problema habitual · control · código · paso). La corrida de referencia (<code>scripts/pruebas/guias_e2e/correr.py</code>) da 4/4 OK; la guía completa y sus gráficos están en la sección 16.</p>" + guias_v22
-         + "<h3>¶Cambios por área (CHANGELOG 2.2.0)</h3>" + grupos22
-         + f"<div class='callout orange'><p>{inl(V['pendientes'])}</p></div>"
-         + "<h3>¶Lo que sigue vigente desde 2.1.0</h3><p>2.1.0 (17/10/2026, «" + e(X["chl_lema"]) + "») dejó la base que 2.2 conserva: hooks con Bash y comandos de decisión reservados, bloqueos de puerta, regla «fuentes = datos», idioma unificado y la evidencia de las pruebas en vivo (la más reciente con Claude Code real).</p>" + vigente21
-         + "<details><summary>Cambios de 2.1.0 por área</summary>" + grupos21 + "</details>"
-         + f"<p class='src'>Punto de partida 2.0.0 (14/10/2026): {inl(X['chl_v20_md'])}</p>",
+         + "<details><summary>Diagrama: gestión por excepción en la guía E2E-2 (paso 10)</summary>" + diag("excepcion").replace('<div class="diag-in">', '<div class="diag-in" style="max-width:520px;margin:0 auto">') + "</details>",
          "todas las audiencias")
 
 # ---------- 3 · Justificación ----------
@@ -130,7 +143,7 @@ s5 = sec("arquitectura", "5", "Arquitectura",
          + "<h3>¶Herramientas y MCP heredados</h3><ul>" + "".join(f"<li>{inl(x)}</li>" for x in D["arq_herramientas"]) + "</ul>"
          + "<h4>Correspondencia en Hermes Agent</h4>" + T(X["hermes_equivalencias"], "", ["28%", ""])
          + "<h3>¶Carga progresiva del contexto</h3>" + T(X["carga"]) + "<ul>" + "".join(f"<li>{inl(x)}</li>" for x in D["carga_cifras"]) + "</ul>"
-         + "<h3>¶Comandos</h3><p>Toda skill es invocable como comando (<code>/pm-method:&lt;skill&gt;</code> en el plugin; <code>/&lt;skill&gt;</code> en copia manual y Hermes). Seis skills-comando llevan <code>disable-model-invocation: true</code>: el modelo no las activa solo y no consumen presupuesto del listado. La carpeta <code>commands/</code> de v1 desapareció.</p>"
+         + "<h3>¶Comandos</h3><p>Toda skill es invocable como comando (<code>/pm-method:&lt;skill&gt;</code> en el plugin; <code>/&lt;skill&gt;</code> en copia manual y Hermes). Seis skills-comando llevan <code>disable-model-invocation: true</code>: el modelo no las activa solo y no consumen presupuesto del listado.</p>"
          + T(X["comandos_arq"], "", ["34%", ""]),
          "mantenedor técnico, PMO")
 
@@ -151,18 +164,24 @@ s6 = sec("columna", "6", "Columna vertebral BMAD ↔ PRINCE2",
          "PMO, mantenedor técnico")
 
 # ---------- 7 · Sanidad ----------
-s7 = sec("sanidad", "7", "Sanidad, guardarraíles y controles permanentes",
+s7 = sec("sanidad", "7", "Sanidad, guardarraíles y seguridad",
          f"<p class='intro'>{inl(D['san_intro'])}</p>" + diag("sanidad") + T(X["controles"], "", ["22%", "20%", "", "12%"])
          + "<h3>¶<code>sanidad.py</code></h3>" + pre(D["san_cmds"]) + "<ul>" + "".join(f"<li>{inl(x)}</li>" for x in D["san_puntos"]) + "</ul>"
-         + "<h3>¶Familias y códigos</h3>" + T(X["codigos"], "codigos", ["10%", "14%", "", "30%"], 0)
-         + "<h3>¶Hooks (Claude Code, plugin)</h3><p><code>hooks/hooks.json</code> declara los tres hooks (PreToolUse, SessionStart y UserPromptSubmit), que se lanzan con <code>sh \"${CLAUDE_PLUGIN_ROOT}/hooks/py.sh\" …</code>. Corren también dentro de los subagentes; la entrada trae <code>agent_type</code>, y así el guardián distingue a un subagente pm-* del hilo principal, que sí puede escribir en BMAD porque así trabajan los flujos del propio BMAD. Desde v2.1 el guardián también analiza los comandos Bash y niega los subcomandos de decisión reservados a pm-director, también en el hilo principal. El hook de inicio aplica la regla «fuentes = datos»: las instrucciones incrustadas en transcripciones, tickets o BMAD se informan y no se ejecutan.</p>"
+         + f"<h3>¶Familias y códigos</h3><p>{CIF['codigos']} códigos en {CIF['familias']} familias ({e(CIF['familias_lista'])}).</p>" + T(X["codigos"], "codigos", ["10%", "14%", "", "30%"], 0)
+         + "<h3>¶Hooks (Claude Code, plugin)</h3><p><code>hooks/hooks.json</code> declara los tres hooks (PreToolUse, SessionStart y UserPromptSubmit), que se lanzan con <code>sh \"${CLAUDE_PLUGIN_ROOT}/hooks/py.sh\" …</code>. Corren también dentro de los subagentes; la entrada trae <code>agent_type</code>, y así el guardián distingue a un subagente pm-* del hilo principal, que sí puede escribir en BMAD porque así trabajan los flujos del propio BMAD. El guardián también analiza cada segmento de los comandos Bash, niega los subcomandos de decisión reservados a pm-director (también en el hilo principal) y pide la confirmación de una persona para <code>envios.py aprobar</code> y <code>enviar --confirmar</code>. El hook de inicio agrega el resumen de contexto derivado de los registros (<code>estado.py contexto</code>), declara que los registros prevalecen sobre la memoria del cliente y aplica la regla «fuentes = datos»: las instrucciones incrustadas en transcripciones, tickets o BMAD se informan y no se ejecutan.</p>"
          + T(X["guardian"], "", ["20%", "20%", "", ""]) + "<h4>Resultados de la corrida del caso maestro</h4>" + T(X["guardian_pruebas"], "", ["62%", ""])
          + "<h3>¶Regla de puerta</h3>" + md(X["regla_puerta_md"])
          + "<h4>Cómo evolucionó un ERROR real (FR-5 agregado al PRD sin control)</h4>" + T(X["evolucion_error"], "", ["60%", ""])
          + "<h3>¶Validador del paquete</h3>" + md(X["validador_md"])
-         + "<h3>¶Pruebas de regresión</h3>" + md(X["pruebas_md"]) + "<p>Detalle de los casos A–J de la versión 2.2, de las pruebas en vivo y de la lista de aceptación: sección 17.</p>"
+         + "<h3>¶Pruebas de regresión</h3>" + md(X["pruebas_md"]) + "<p>Detalle de los casos " + e(X["cifras"]["regresion_casos"]) + ", de la integración cruzada, de las pruebas en vivo y de la lista de aceptación: sección 17.</p>"
          + "<h3>¶Hermes Agent (sin hooks)</h3>" + md(X["hermes_sin_hooks_md"])
-         + "<h3>¶Controles permanentes de la versión 2.2</h3><p>Las familias CAM (cambios contra los presupuestos de la junta), QUA (calidad a volumen), TOL (pronóstico de EVM contra tolerancias) y STK-12 (cadencia de contacto), junto con G-01 y P-04 en la verificación de puertas, convierten en controles de cada corrida lo que antes se revisaba a mano, tarde o nunca. Tabla problema → control → código → dónde se ve, y ejemplos reales de las guías: <a href='#controles-permanentes'>sección 2, «Controles permanentes»</a>.</p>",
+         + "<h3>¶Controles permanentes</h3><p>Las familias CAM (cambios contra los presupuestos de la junta), QUA (calidad a volumen), TOL (pronóstico de EVM contra tolerancias) y SUP (supuestos críticos), REG-09 (revisión de riesgos vencida) y STK-12 (cadencia de contacto), junto con G-01, P-04 y P-11 en la verificación de puertas, convierten en controles de cada corrida lo que en la práctica se revisa a mano, tarde o nunca. Tabla problema → control → código → dónde se ve, y ejemplos reales de las guías: <a href='#controles-permanentes'>sección 2, «Controles permanentes»</a>.</p>"
+         + f"<h3>¶Seguridad del paquete</h3><p>{inl(X['seg_intro'])} Fuente: <code>docs/SEGURIDAD.md</code>.</p>" + T(X["seg_resultado"], "", ["16%", "12%", "28%", "16%", ""]) + f"<p>{inl(X['seg_resultado_nota'])}</p>"
+         + "<h4>Alcance</h4>" + T(X["seg_alcance"], "", ["32%", ""]) + "<h4>Método y herramientas</h4>" + f"<p class='src'>{inl(X['seg_entorno'])}</p>" + T(X["seg_herramientas"], "", ["16%", "12%", ""])
+         + "<h4>Modelo de amenazas</h4>" + vin(X["seg_amenazas"])
+         + "<h4>Hallazgos con severidad y estado</h4>" + tabla_html(["Id", "Severidad", "Hallazgo", "Estado"], X["seg_hallazgos"], "", ["9%", "11%", "", "28%"])
+         + "<div class='two'><div class='callout blue'><h4>Lo que ya está bien (verificado)</h4>" + vin(X["seg_bien"]) + "</div><div class='callout orange'><h4>Buenas prácticas para quien instala</h4><ol>" + "".join(f"<li>{inl(x)}</li>" for x in X["seg_practicas"]) + "</ol></div></div>"
+         + "<h4>Cómo repetir la revisión</h4>" + pre(X["seg_repetir"]),
          "PMO, mantenedor técnico, patrocinador (regla de puerta)")
 
 # ---------- 8 · Puertas de la junta ----------
@@ -176,6 +195,9 @@ s8p = sec("puertas", "8", "Puertas de la junta: verificación y registro",
           + f"<h3>¶{e(X['pue_bmad_titulo'])}</h3>" + T(X["pue_bmad"], "dec", ["22%", "38%", ""]) + f"<p>{inl(X['pue_bmad_nota'])}</p>"
           + f"<h3>¶Las puertas como insumo de los informes</h3><p>{inl(X['pue_informes_intro'])}</p>" + T(X["pue_informes"], "", ["24%", "42%", ""])
           + f"<h3>¶Severidades y registro de la decisión</h3><div class='callout navy'><p>{inl(X['pue_severidades'])}</p></div>"
+          + f"<h3>¶Códigos de control en la verificación</h3><p>{inl(X['pue_verificar'])}</p>"
+          + f"<h3>¶Condiciones formales y su seguimiento</h3><p>{inl(X['pue_condiciones_intro'])}</p><ol>" + "".join(f"<li>{inl(c)}</li>" for c in X["pue_condiciones"]) + "</ol>"
+          + "<p class='src'>Ejemplo en la guía E2E-4: el CONCERNS del gate de preparación de BMAD pasa a condición de <code>autorizar-etapa</code>, la sanidad muestra EST-12 en cada corte y G-01 desaparece con <code>cumplir-condiciones</code> (sección 2, «Ejemplos reales de la evidencia»).</p>"
           + "<h3>¶Comandos</h3>" + pre(X["pue_comandos"]),
           "patrocinador, PMO, mantenedor técnico")
 
@@ -261,11 +283,18 @@ s10 = sec("instalacion", "11", "Guía de instalación y configuración",
           + "<h4>Crear un proyecto e idioma</h4>" + md(X["config_proyecto_md"]) + "<h4>Umbrales de riesgo y tolerancias</h4>" + md(X["config_tolerancias_md"])
           + "<h4>Settings recomendados en Claude Code</h4>" + md(X["config_settings_md"]) + "<h4>Orquestador en el hilo principal</h4>" + md(X["config_orq_md"])
           + "<h4>Primer uso</h4>" + pre(D["inst_inicio"])
-          + "<h3>¶Verificación de la instalación (12 pasos)</h3>" + T(X["verificacion"], "", ["4%", "18%", "34%", ""]) + "<p class='src'>Paso 5: resultado vigente 138 OK · 0 FALLO (PRUEBAS.md §2, versión 2.2.0).</p>"
+          + "<h3>¶Verificación de la instalación (12 pasos)</h3>" + T(X["verificacion"], "", ["4%", "18%", "34%", ""]) + "<p class='src'>Paso 5: resultado vigente " + str(CIF['regresion_ok']) + " OK · 0 FALLO con Python " + CIF['regresion_py'] + " y " + str(CIF['regresion_ok39']) + " con 3.9 (PRUEBAS.md §2).</p>"
           + "<h4>Hallazgos de instalación esperables (familia INS)</h4>" + T(X["ins_esperados"], "", ["10%", "34%", ""])
           + "<h3>¶Hooks instalados</h3>" + md(X["hooks_md_md"])
           + "<h3>¶Actualización, migración y desinstalación</h3>" + md(X["actualizacion_md"]) + md(X["desinstalacion_md"])
-          + "<h3>¶Solución de problemas</h3>" + T(X["problemas"], "", ["28%", "26%", ""]),
+          + "<h3>¶Solución de problemas</h3>" + T(X["problemas"], "", ["28%", "26%", ""])
+          + f"<h3 id='docker'>¶Entorno Docker opcional</h3><p>{inl(X['dock_intro'])}</p><p class='src'>Fuente: <code>docs/DOCKER.md</code>.</p>"
+          + "<h4>Cuándo conviene</h4>" + T(X["dock_cuando"], "", ["60%", ""]) + "<h4>Qué incluye</h4>" + T(X["dock_incluye"], "", ["16%", "", "34%"])
+          + "<h4>Archivos</h4>" + T(X["dock_archivos"], "", ["34%", ""])
+          + "<h4>Construir, usar y probar</h4>" + pre(X["dock_construir"]) + pre(X["dock_usar"]) + pre(X["dock_pruebas"])
+          + "<h4>Seguridad del contenedor</h4>" + T(X["dock_seguridad"], "", ["24%", "26%", ""])
+          + f"<h4>Verificación registrada</h4><p>{inl(X['dock_verif_intro'])}</p>" + T(X["dock_verif"], "", ["38%", "", "10%"]) + f"<p class='src'>{inl(X['dock_verif_no'])}</p>"
+          + "<h4>Limitaciones</h4>" + vin(X["dock_limitaciones"]),
           "PM no programador, mantenedor técnico")
 
 # ---------- 11 · Catálogo ----------
@@ -284,7 +313,7 @@ for g in X["catalogo"]:
     com = "".join(f'<div class="callout blue"><p><b>{inl(c["t"].split(chr(10))[0])}.</b> {inl(" ".join(c["t"].split(chr(10))[1:]) + " " + c["md"])}</p></div>' for c in g["comandos"])
     grupos_html += f'<h3 id="cat-{g["id"]}">¶{e(g["titulo"])} — {len(g["skills"])} skills</h3><div class="cards">' + "".join(ficha_skill(s) for s in g["skills"]) + "</div>" + com
 s11 = sec("catalogo", "12", "Catálogo de agentes y skills",
-          "<p class='intro'>6 agentes y " + str(len(X['skills_dirs'])) + " skills: " + str(X['catalogo_total']) + " que el modelo activa por su descripción y 6 comandos de uso humano. Cada ficha sale de <code>docs/CATALOGO.md</code> (que a su vez resume el frontmatter y el cuerpo de cada SKILL.md); el tema del que es dueña cada skill sale de <code>docs/colisiones.md</code>. Desde v2.1 todas las skills comparten la regla de idioma: responder en el idioma del usuario y escribir los artefactos en <code>estado.json.idioma</code>.</p>"
+          "<p class='intro'>6 agentes y " + str(len(X['skills_dirs'])) + " skills: " + str(X['catalogo_total']) + " que el modelo activa por su descripción y 6 comandos de uso humano. Cada ficha sale de <code>docs/CATALOGO.md</code> (que a su vez resume el frontmatter y el cuerpo de cada SKILL.md); el tema del que es dueña cada skill sale de <code>docs/colisiones.md</code>. Todas las skills comparten la regla de idioma: responder en el idioma del usuario y escribir los artefactos en <code>estado.json.idioma</code>.</p>"
           + "<h3>¶Agentes</h3>" + T(X["agentes"], "", ["14%", "18%", "", "14%", "18%"])
           + "<div class='cards'>" + "".join(ficha_agente(n, c) for n, c in X["fichas_agentes"].items()) + "</div>"
           + "<h3>¶Comandos de uso humano</h3>" + T(X["comandos"], "", ["10%", "18%", "", "18%", "10%"])
@@ -326,7 +355,7 @@ for c in X["casos"]:
         detalle += f"<h4 class='parte'>{e(parte)}</h4>"
     detalle += caso_html(c)
 s13 = sec("casos", "14", "Casos de uso: un ejemplo por skill",
-          "<p class='intro'>" + str(len(X['casos'])) + " ejemplos trabajados: uno por cada una de las " + str(len(X['skills_dirs'])) + " skills, incluidos los seis comandos, y los casos de la parte 6 (v2.2: interesados, canales, OKR, riesgos y controles permanentes), sobre un mismo proyecto de muestra para que los casos se encadenen de principio a fin. Las cifras coinciden con lo que devolvieron los scripts en la prueba; las personas y la cooperativa son ficticias y las respuestas humanas, simuladas. Regla transversal: cuando un subagente necesita una decisión la devuelve en su bloque de retorno; el orquestador la presenta a la persona con el rol que decide y, con la respuesta explícita, invoca a pm-director.</p>"
+          "<p class='intro'>" + str(len(X['casos'])) + " ejemplos trabajados: uno por cada una de las " + str(len(X['skills_dirs'])) + " skills, incluidos los seis comandos, y los casos transversales de la parte 6 (interesados, canales, OKR, riesgos, controles permanentes y mapas estratégicos), sobre un mismo proyecto de muestra para que los casos se encadenen de principio a fin. Las cifras coinciden con lo que devolvieron los scripts en la prueba; las personas y la cooperativa son ficticias y las respuestas humanas, simuladas. Regla transversal: cuando un subagente necesita una decisión la devuelve en su bloque de retorno; el orquestador la presenta a la persona con el rol que decide y, con la respuesta explícita, invoca a pm-director.</p>"
           + "<h3>¶Proyecto de muestra</h3>" + T(X["muestra"], "", ["28%", ""])
           + f"<h3>¶Resumen de los {len(X['casos'])} casos</h3>" + resumen_casos
           + "<h3>¶Detalle de cada caso</h3>" + detalle
@@ -372,17 +401,22 @@ for p in X["pasos"]:
     filas = "".join(f"<dt>{e(k)}</dt><dd>{inl(v)}</dd>" for k, v in c.items())
     extra = f"<details><summary>Comandos y salidas</summary>{md(p['resto_md'])}</details>" if p["resto_md"] else ""
     pasos_html += f'<article class="card caso"><h4><span class="num">{p["n"]}</span> {inl(p["titulo"])}</h4><dl>{filas}</dl>{extra}</article>'
-s15 = sec("caso-maestro", "16", "Caso maestro: PRINCE2 como método, PMBOK como cómo",
+s15 = sec("caso-maestro", "16", "Caso maestro, guías E2E y formación",
           "<p class='intro'>Un proyecto completo, del mandato a la revisión de beneficios, corrido el 17/10/2026 con los scripts del paquete sobre una copia del fixture <code>bmad-v6</code>. Cada paso muestra el momento PRINCE2, la técnica del PMBOK que lo resuelve, quién decide, el comando y lo que devolvió. Las decisiones humanas están simuladas.</p>"
           + "<h3>¶Escenario</h3>" + T(X["escenario"], "", ["30%", ""])
           + "<h3>¶Cifras clave</h3>" + layers([{"t": c["k"], "d": c["v"]} for c in D["caso_cifras"]])
           + diag("caso-ciclo")
           + "<h3>¶Pasos clave</h3>" + pasos_clave
           + "<h3>¶Paso a paso completo</h3>" + pasos_html + diag("caso-wbs")
-          + "<h3>¶Guías de recorrido de punta a punta para el usuario</h3><p>Cuatro guías en <code>docs/guias/</code> escritas como prompts del usuario: qué escribir, qué responder cuando el sistema pregunta, qué deberías ver (con cifras de una corrida de referencia reproducible con <code>scripts/pruebas/guias_e2e/correr.py</code>) y dónde verificar cada registro. Cada una termina con un reporte de ejemplo y representaciones gráficas.</p>"
+          + "<h3>¶Guías de recorrido de punta a punta para el usuario</h3><p>" + str(CIF['guias']) + " guías (" + str(CIF['pasos']) + " pasos) en <code>docs/guias/</code> escritas como prompts del usuario: qué escribir, qué responder cuando el sistema pregunta, qué deberías ver (con cifras de una corrida de referencia reproducible con <code>scripts/pruebas/guias_e2e/correr.py</code>) y dónde verificar cada registro. Cada una termina con un reporte de ejemplo y representaciones gráficas.</p>"
           + T(X["guias"], "", ["20%", "", "", "", "9%"]) + "<h4>Cómo leer cada paso</h4>" + T(X["guias_leer"], "", ["22%", ""])
-          + "<div class='two'><figure><img src='" + img64("../../guias/img/g1-mapa-calor.png") + "' style='width:100%' alt='Mapa de calor de riesgos'><figcaption>E2E-1 · mapa de calor P×I y resumen de registros (tablero al 2026-12-15)</figcaption></figure>"
-          + "<figure><img src='" + img64("../../guias/img/g3-avance-agil.png") + "' style='width:100%' alt='Avance ágil'><figcaption>E2E-3 · velocidad y burn-up desde avance-bmad.csv (tablero al 2027-01-08)</figcaption></figure></div>"
+          + "<h4>Del uso único al control continuo</h4><p>Cada guía compara, actividad por actividad, cómo se hace hoy (a mano, una vez o nunca) con la frecuencia y el control de pm-method y el indicador que lo muestra.</p>"
+          + "".join(f"<details><summary>{e(g)} · {e(X['guias_titulos'][g])} ({len(t['filas'])} actividades)</summary>" + T(t, "dec") + "</details>" for g, t in X["guias_controles"].items())
+          + "<h4>Indicadores que vas a ver (imágenes de la corrida real)</h4>"
+          + "".join(f"<h4 class='parte'>{e(g)} · {e(X['guias_titulos'][g])}</h4><div class='galeria'>" + "".join(f"<figure><img class='captura' src='{img64('../../guias/img/' + it['img'])}' alt='{e(it['alt'])}' loading='lazy'><figcaption>{inl(it['lectura'])} · <code>{e(it['img'])}</code></figcaption></figure>" for it in its) + "</div>" for g, its in X["guias_indicadores"].items())
+          + f"<h3>¶Material de formación: webinar y resumen ejecutivo</h3><p>{inl(X['web_intro'])}</p>" + T(X["web_casos"], "", ["8%", "22%", "18%", "", "10%", "10%"])
+          + f"<p class='src'>{inl(X['web_casos_nota'])}</p><h4>Qué agrega el generador</h4>" + vin(X["web_agrega"]) + pre(X["web_estructura"])
+          + "<h4>Resumen ejecutivo comercial</h4>" + vin(X["rex_items"]) + pre(X["rex_regenerar"])
           + "<h3>¶Dónde apareció cada principio de PRINCE2</h3>" + T(X["principios"], "", ["20%", "", "28%"])
           + "<h3>¶Lecciones del caso</h3>" + md(X["lecciones_caso_md"])
           + "<h3>¶Integridad al final</h3>" + md(X["integridad_md"]),
@@ -391,12 +425,15 @@ s15 = sec("caso-maestro", "16", "Caso maestro: PRINCE2 como método, PMBOK como 
 # ---------- 16 · Pruebas y calidad ----------
 acept = "<ol class='check'>" + "".join(f"<li>☐ {inl(x)}</li>" for x in X["pru_aceptacion"]) + "</ol>"
 s16 = sec("pruebas", "17", "Pruebas y calidad",
-          "<p class='intro'>Cómo se verifica el ecosistema, qué cubre cada prueba, qué resultados quedaron registrados y cómo hacer la prueba de aceptación antes de usarlo en un proyecto real (<code>docs/PRUEBAS.md</code>). La regresión del 17/10/2026 (versión 2.2.0) da <b>138 OK · 0 FALLO</b> (80 en 2.1.0) y el caso D acierta <b>36/36</b> decisiones del hook. Las pruebas en vivo con Claude Code real son de la versión 2.1; para 2.2 están pendientes.</p>"
+          "<p class='intro'>Cómo se verifica el ecosistema, qué cubre cada prueba, qué resultados quedaron registrados y cómo hacer la prueba de aceptación antes de usarlo en un proyecto real (<code>docs/PRUEBAS.md</code>). La regresión da <b>" + str(CIF['regresion_ok']) + " OK · 0 FALLO</b> con Python " + CIF['regresion_py'] + " (" + str(CIF['regresion_ok39']) + " con 3.9) y la integración cruzada <b>" + str(CIF['integ_ok']) + " OK · 0 FALLO</b> en " + str(CIF['integ_eslabones']) + " eslabones (" + e(FECHA_P) + "). Las pruebas en vivo con Claude Code real de esa fecha cubren el enrutamiento (" + CIF['vivo_contexto'] + " y " + CIF['vivo_mapas'] + ") y la integración con BMAD instalado (" + CIF['vivo_integracion'] + "); los escenarios de robustez son del 17/10/2026.</p>"
           + "<h3>¶Niveles de prueba</h3>" + T(X["pru_niveles"], "", ["20%", "38%", "16%", ""])
-          + "<h3>¶Regresión determinista: casos A–J</h3>" + T(X["pru_regresion"], "", ["22%", ""]) + md(X["pru_regresion_res_md"])
+          + "<h3>¶Regresión determinista: casos " + e(CIF["regresion_casos"]) + "</h3>" + T(X["pru_regresion"], "", ["22%", ""]) + md(X["pru_regresion_res_md"])
+          + f"<h3>¶Integración cruzada</h3><p>{inl(X['pru_integ_intro'])}</p>" + T(X["pru_integ"], "", ["16%", "30%", ""]) + pre(X["pru_integ_cmds"]) + f"<p>{inl(X['pru_integ_res'])}</p>"
+          + "<h3>¶Recorridos E2E reproducibles</h3>" + T(X["pru_e2e"], "", ["10%", "22%", ""]) + f"<p>Resultado al {e(X['pru_e2e_res'][0])}: <b>{e(X['pru_e2e_res'][1])}</b>, {e(X['pru_e2e_res'][2])}.</p>"
+          + f"<h3>¶Compatibilidad con Python 3.9</h3><p>{inl(X['pru_py39_intro'])}</p>" + pre(X["pru_py39_cmds"]) + f"<p>{inl(X['pru_py39_res'])}</p>" + pre(X["validar_salida"])
           + "<h3>¶Pruebas en vivo con Claude Code real</h3>" + md(X["pru_vivo_md"])
           + "<h3>¶Resultados registrados</h3>" + T(X["pru_resultados"], "", ["11%", "8%", "24%", ""]) + md(X["pru_resultados_nota_md"]) + ("<p class='src'>Filas marcadas como pendientes: el documento fuente todavía tiene el marcador sin el resultado.</p>" if X["pru_placeholders"] else "")
-          + "<details><summary>Enrutamiento v2.1, primera corrida: las 60 frases y la skill elegida (59/60; la corrida final dio 60/60)</summary>" + T(X["pru_suite_enrut"], "", ["5%", "", "22%", "22%", "8%"]) + "</details>"
+          + "<details><summary>Batería base de enrutamiento (2026-10-17, versión 2.1.0, primera corrida): las 60 frases y la skill elegida (59/60; la corrida final dio 60/60)</summary>" + T(X["pru_suite_enrut"], "", ["5%", "", "22%", "22%", "8%"]) + "</details>"
           + "<h4>Antecedente: evaluación ciega de las descripciones (v2.0, docs/ARQUITECTURA.md §8.3)</h4>" + T(X["evaluacion"]) + f"<p>El conjunto de frases creció de 52 a {X['frases_eval']} y ahora se corre en vivo con <code>suite.py</code>.</p>"
           + "<h3>¶Casos de uso documentados (pruebas manuales guiadas)</h3>" + T(X["pru_casos"], "", ["34%", ""])
           + "<h3>¶Prueba de aceptación antes del primer proyecto real</h3><p>Marcar cada punto en una carpeta de prueba, no en el proyecto real.</p>" + acept + md(X["pru_aceptacion_nota_md"]),
@@ -450,6 +487,26 @@ s19 = sec("evolucionar", "21", "Cómo seguir evolucionando el ecosistema",
           + "</div>",
           "mantenedor técnico")
 
+# ---------- 22 · Historial de versiones ----------
+# Único lugar del informe que describe cambios entre versiones; el resto describe el ecosistema tal como es.
+VS = D["versiones"]
+grupos23 = "".join(f"<details{' open' if i == 0 else ''}><summary>{e(g['t'])} ({len(g['items'])})</summary>{vin(g['items'])}</details>" for i, g in enumerate(X["chl23_grupos"]))
+grupos22 = "".join(f"<details><summary>{e(g['t'])} ({len(g['items'])})</summary>{('<p>' + inl(g['intro']) + '</p>') if g['intro'] else ''}{vin(g['items'])}</details>" for g in X["chl22_grupos"])
+grupos21 = "".join(f"<details><summary>{e(g['t'])} ({len(g['items'])})</summary>{vin(g['items'])}</details>" for g in X["chl_grupos"])
+s22 = sec("versiones", "22", "Historial de versiones",
+          "<p class='intro'>Esta sección es el único lugar del informe que describe cambios entre versiones; el resto describe el ecosistema tal como es en la versión " + e(CIF["version"]) + ". Detalle completo: <code>CHANGELOG.md</code>.</p>"
+          + f"<h3>¶{e(CIF['version'])} · {e(FECHA_P)} — {e(X['chl23_lema'])}</h3><p>{inl(X['chl23_intro'])}</p><p class='src'>{inl(X['chl23_cifras'])}</p>"
+          + tabla_html(["Indicador", "2.2.0", CIF["version"], "Fuente"], VS["antes_despues_23"], "", ["22%", "22%", "36%", ""])
+          + "<h4>Cambios por área</h4>" + grupos23
+          + f"<h3>¶2.2.0 · 17/10/2026 — {e(X['chl22_lema'])}</h3><p>{inl(X['chl22_intro'])}</p><p class='src'>Tabla tal como se publicó con la versión 2.2.0.</p>"
+          + tabla_html(["Indicador", "2.1.0", "2.2.0", "Fuente"], VS["antes_despues_22"], "", ["24%", "20%", "36%", ""])
+          + "<h4>Cambios por área</h4>" + grupos22
+          + f"<h3>¶2.1.0 · 17/10/2026 — {e(X['chl_lema'])}</h3><p>{inl(X['chl_intro'])}</p><p class='src'>Tabla tal como se publicó con la versión 2.1.0.</p>"
+          + tabla_html(["Indicador", "2.0.0", "2.1.0", "Fuente"], VS["vigente21"], "", ["30%", "22%", "26%", ""])
+          + "<h4>Cambios por área</h4>" + grupos21
+          + f"<h3>¶2.0.0 · 14/10/2026</h3><p>{inl(X['chl_v20_md'])}</p>",
+          "mantenedor técnico, PMO")
+
 # ---------- Anexos ----------
 glos = tabla_html(["Término", "Definición"], [[f"**{g['t']}**", g["d"]] for g in sorted(D["glosario"], key=lambda g: unicodedata.normalize("NFD", g["t"].lower().lstrip("${.[")).encode("ascii", "ignore"))], "", ["24%", ""])
 anA = sec("anexo-a", "", f"Anexo A · Glosario ({len(D['glosario'])} términos)", glos)
@@ -466,4 +523,4 @@ anC = sec("anexo-c", "", "Anexo C · Estructura de carpetas",
           + "<p>Nombres en <code>kebab-case</code>, con prefijo de fecha cuando hay secuencia. Todo artefacto Markdown lleva frontmatter con <code>tipo</code>, <code>proyecto</code>, <code>version</code>, <code>fecha</code>, <code>autor</code>, <code>estado</code>, <code>aprobado_por</code> e <code>idioma</code>. Con BMAD, la carpeta del proyecto va fuera de <code>_bmad/</code>, <code>_bmad-output/</code> y <code>.bmad-core/</code> (por ejemplo, <code>repositorio/gestion/</code>).</p>"
           + "<h3>C.3 · Ciclo de vida (fuente Mermaid de docs/diagramas/ciclo-de-vida.mmd; diagrama en la sección 4)</h3>" + pre(X["ciclo_vida_txt"]) + "</div></div>")
 
-cuerpo = s1 + s2 + s3 + s4 + s5 + s6 + s7 + s8p + s8 + s9 + s10 + s11 + s12 + s13 + s14 + s15 + s16 + s17p + s17 + s18 + s19 + anA + anB + anC
+cuerpo = s1 + s2 + s3 + s4 + s5 + s6 + s7 + s8p + s8 + s9 + s10 + s11 + s12 + s13 + s14 + s15 + s16 + s17p + s17 + s18 + s19 + s22 + anA + anB + anC

@@ -1,4 +1,4 @@
-# Integraciones · pm-method 2.2.0
+# Integraciones · pm-method 2.3.0
 
 Qué necesita pm-method para funcionar, con qué herramientas externas puede integrarse, qué se decidió incorporar (y
 qué no) y cómo agregar una integración nueva sin romper el ecosistema.
@@ -16,7 +16,7 @@ Fuente: `compatibilidad.json`.
 | Tipo | Dependencia | Uso | Si falta |
 |---|---|---|---|
 | Obligatoria | Python ≥ 3.9 | todos los scripts | no hay ejecución |
-| Obligatoria | — (`dependencias.obligatorias` vacío) | el núcleo usa solo la biblioteca estándar; también la capa de canales de v2.2 (`smtplib`, `email`, `urllib`) | — |
+| Obligatoria | — (`dependencias.obligatorias` vacío) | el núcleo usa solo la biblioteca estándar; también la capa de canales (`smtplib`, `email`, `urllib`) | — |
 | Recomendada | `pyyaml` | leer la configuración de BMAD y `sprint-status.yaml` | el puente BMAD no funciona; sanidad INS-01 |
 | Recomendada | `python-docx` | exportar `.docx`, leer actas `.docx` | sin exportación Word; INS-01 |
 | Recomendada | `openpyxl` | exportar `.xlsx` | sin exportación Excel; INS-01 |
@@ -42,8 +42,8 @@ Los candidatos provienen de un informe previo de relevamiento; la valoración en
 | Granola / Fireflies / Zoom / minutes (MCP) + transcripciones VTT/SRT | ★★★★ | **Fuente de transcripciones** vía MCP o archivo | `pm-reuniones` (`transcripcion.py`) | La transcripción es un insumo; el valor está en el acta y en los registros. Archivo local siempre disponible como respaldo. Zoom MCP: obtención de transcripciones **no confirmada** |
 | meeting-analyzer | ★★★★ | **No incorporado** | `pm-reuniones` | Se aplican reglas de privacidad propias: clima del equipo solo agregado, con consentimiento y anonimizado; sin perfiles emocionales individuales |
 | Tability MCP | ★★★ | **Opcional** para OKR | `pm-okr` | Lectura de progreso a instantánea; escritura solo con confirmación. No existe un formato estándar de OKR, por eso el registro propio es `okr.csv` |
-| Perdoo MCP (v2.2) | — (no estaba en el informe) | **Opcional** para OKR, igual que Tability | `pm-okr` (vía `pm-integraciones`) | Servidor MCP oficial (`https://mcp.perdoo.com`, OAuth o clave de API) con `update_goal_progress`; `okr.py --propuesta-sync perdoo` prepara los check-ins sin publicar y `--marcar-publicado` registra el id externo |
-| Capa de canales propia: SMTP, webhooks de Slack y Teams, `.eml` (v2.2) | — (decisión propia) | **Integrada** en `pm-integraciones` (`envios.py`), sin dependencias nuevas | `pm-integraciones`; la usan `pm-comunicacion-stakeholders`, `pm-reuniones`, `pm-okr` y `pm-interesados` (`plan-envio`) | Una sola vía de salida para cualquier comunicación a interesados, con aprobación humana, destinos tomados del maestro de interesados y registro de cada envío (`envios.csv`). Funciona sin conectores (SMTP, webhooks, `.eml`) y también con un conector MCP de correo o chat (`preparar-mcp` + `registrar`) |
+| Perdoo MCP | — (no estaba en el informe) | **Opcional** para OKR, igual que Tability | `pm-okr` (vía `pm-integraciones`) | Servidor MCP oficial (`https://mcp.perdoo.com`, OAuth o clave de API) con `update_goal_progress`; `okr.py --propuesta-sync perdoo` prepara los check-ins sin publicar y `--marcar-publicado` registra el id externo |
+| Capa de canales propia: SMTP, webhooks de Slack y Teams, `.eml` | — (decisión propia) | **Integrada** en `pm-integraciones` (`envios.py`), sin dependencias nuevas | `pm-integraciones`; la usan `pm-comunicacion-stakeholders`, `pm-reuniones`, `pm-okr` y `pm-interesados` (`plan-envio`) | Una sola vía de salida para cualquier comunicación a interesados, con aprobación humana, destinos tomados del maestro de interesados y registro de cada envío (`envios.csv`). Funciona sin conectores (SMTP, webhooks, `.eml`) y también con un conector MCP de correo o chat (`preparar-mcp` + `registrar`) |
 | Operately / okr-writer | ★★★★ | **No incorporados** | `pm-okr` (`okr.py`) | Operately es una aplicación sin MCP; okr-writer, una skill externa. Se optó por OKR propio en CSV con vínculo a beneficios (B-n) y métricas de éxito (SM-n) |
 | utf8proj + MPXJ | ★★★★ | utf8proj **descartado**; exportador MSPDI **propio**, validado con MPXJ; MPXJ **opcional** para `.mpp` | `pm-cronograma-estimacion` (`cpm.py --mspdi`) | utf8proj es inmaduro (v0.10.0, pre-1.0, 6 estrellas). MSPDI es un formato XML abierto (solo `UID` obligatorio en Task); el exportador propio evita la dependencia y se validó leyéndolo con MPXJ (PyPI `mpxj` 16.10.0, LGPL, requiere Java) |
 | knowledge-work-plugins status-report / dashboards | ★★★★ | **No incorporado** | — | Duplica `pm-progreso-reportes` y `pm-visuales`, y generaría dos dueños para el mismo informe |
@@ -54,7 +54,7 @@ Referencias consultadas al 2026-10-17 que condicionan las decisiones: el servido
 marcado como legado (se recomienda Work IQ); el Slack MCP oficial (`https://mcp.slack.com/mcp`) está restringido a apps
 publicadas o internas; Atlassian Rovo MCP Server requiere obtener el `cloudId` con `getAccessibleAtlassianResources`
 antes de usar herramientas como `searchJiraIssuesUsingJql` o `createJiraIssue`; Operately es Apache-2.0 sin MCP;
-minutes es MIT (`minutes-mcp`); phuryn/pm-skills (MIT, brainstorm-okrs) se relevó como referencia. Para OKR (v2.2):
+minutes es MIT (`minutes-mcp`); phuryn/pm-skills (MIT, brainstorm-okrs) se relevó como referencia. Para OKR:
 Tability (`https://mcp.tability.app/mcp`) y Perdoo (`https://mcp.perdoo.com`) tienen MCP oficial; Viva Goals se
 retiró el 31/12/2025; Atlassian Goals y Asana Goals no estaban expuestos por sus MCP oficiales **[verificar]**. Fuentes en
 [DEPENDENCIAS.md §7.5](DEPENDENCIAS.md).
@@ -76,7 +76,7 @@ Cada integración se declara en `estado.json.integraciones` (`estado.py integrac
 | Tracker | `tracker=jira\|linear\|github\|azure-devops` | `pm-integraciones` | consultas de lectura; vista previa para escrituras | instantánea `03-control/fuentes/<sistema>-AAAA-MM-DD.<ext>`; propuestas de cambio a registros | registros CSV (`backlog.csv`, `acciones.csv`) |
 | Documentación | `docs=confluence\|notion\|sharepoint` | `pm-integraciones` | lectura de páginas; publicación con confirmación | instantánea o página publicada (id anotado) | Markdown local |
 | Chat | `chat=slack\|teams` | `pm-integraciones`, `pm-comunicacion-stakeholders` | mensaje con vista previa; para interesados, mensajes aprobados de la capa de canales (§3.2) | id externo en `envios.csv` (columna `referencia`) y `diario.md` | webhook de Slack o Teams (`envios.py`); si no hay, borrador para copiar |
-| Correo (v2.2) | `correo=ninguno\|smtp\|gmail\|outlook\|eml` (`gmail`/`outlook` = conector MCP de la organización; `smtp`/`eml` = capa de canales sin conector) | `pm-integraciones` (capa de canales), `pm-comunicacion-stakeholders` | mensajes `.md` aprobados en `03-control/comunicaciones/<fecha>-<tema>/` | `03-control/registros/envios.csv` (EN-###) y `diario.md` | `.eml` para enviar desde el cliente de correo; o borrador para copiar |
+| Correo | `correo=ninguno\|smtp\|gmail\|outlook\|eml` (`gmail`/`outlook` = conector MCP de la organización; `smtp`/`eml` = capa de canales sin conector) | `pm-integraciones` (capa de canales), `pm-comunicacion-stakeholders` | mensajes `.md` aprobados en `03-control/comunicaciones/<fecha>-<tema>/` | `03-control/registros/envios.csv` (EN-###) y `diario.md` | `.eml` para enviar desde el cliente de correo; o borrador para copiar |
 | Reuniones | `reuniones=manual\|archivo\|granola\|fireflies\|zoom\|minutes\|teams` | `pm-reuniones` | transcripción por MCP o archivo `.vtt`/`.srt`/`.txt`/`.docx` | `03-control/reuniones/` (transcripción normalizada y acta); registros solo tras confirmación de quien presidió | texto pegado o archivo |
 | OKR | `okr=archivo\|tability\|perdoo` | `pm-okr` | progreso leído vía `pm-integraciones`; check-ins sin publicar de `okr.py --propuesta-sync tability\|perdoo` | `03-control/fuentes/<tability\|perdoo>-AAAA-MM-DD.csv`; check-ins en `00-direccion/okr_checkins.csv` (solo se agregan) con `publicado_en` y `ref_externa` tras `okr.py --marcar-publicado KR@FECHA --destino … --ref …` | `okr.csv` y `okr_checkins.csv` mantenidos con `okr.py --checkin` |
 
@@ -102,10 +102,10 @@ sobre un proyecto de prueba con `wbs.csv`, roles, brief, presupuesto y highlight
 | docx/xlsx/pptx | `npx skills add anthropics/skills -s docx xlsx pptx` | "Exportá el presupuesto a Excel y el highlight a Word"; "Exportá el highlight a PowerPoint" | **Funciona.** pm-exportar → Skills `xlsx` y `docx` (`.xlsx` con fórmulas recalculadas sin errores y hoja Notas; `.docx` con encabezado BORRADOR); para `.pptx` siguió la skill leyendo su `SKILL.md` (pptxgenjs, 5 diapositivas con BORRADOR). Todo en `exportados/` |
 | Respaldo (sin ninguna skill externa; `HOME` aislado) | ninguna | los mismos pedidos | **Funciona.** Mermaid (`organigrama.md`, `wbs.md`) o plantilla `canvas-arranque.html` para el one-pager; `exportar.py` (Excel desde `linea-base-costo.csv`, Word con banda BORRADOR); nota en `diario.md` con la causa |
 
-Antes de estos ajustes (contrato solo declarativo) la delegación era errática: archify sí, diagram-design y
+En una primera corrida con el contrato solo declarativo, la delegación fue errática: archify sí, diagram-design y
 visual-explainer no (Mermaid o HTML a mano), y las skills de Office tampoco (scripts y planilla improvisada).
 
-### 3.2 Capa de canales: envío a interesados (`envios.py`, v2.2)
+### 3.2 Capa de canales: envío a interesados (`envios.py`)
 
 Una sola vía de salida para **cualquier** comunicación a interesados: comunicados personalizados, informes (highlight,
 fin de etapa), actas y recordatorios de acciones, convocatorias, decisiones de puerta y check-ins de OKR. Script:
@@ -187,7 +187,7 @@ Controles adicionales:
 - **`pm-puerta` / `pm-director`**: ninguna puerta con ERROR sin decisión humana registrada como condición.
 - **`compatibilidad.json`**: declara versiones probadas de BMAD (4.x, 6.11, 6.12), integraciones externas opcionales y
   comportamiento por cliente.
-- **`scripts/probar_paquete.py`**: regresión de punta a punta (138 pruebas: BMAD v6, v6.12.4 real, v4, nativo, hook guardian, ciclo de puertas, regresiones y, desde 2.2, el caso H con maestro de interesados, capa de canales contra servidores SMTP y HTTP locales y OKR, el caso I con candidatos de riesgo desde BMAD, transcripciones, una instantánea de Jira y artefactos, y el caso J con los controles permanentes).
+- **`scripts/probar_paquete.py`**: regresión de punta a punta (216 pruebas: BMAD v6, v6.12.4 real, v4, nativo, hook guardian, ciclo de puertas, regresiones, el caso H con maestro de interesados, capa de canales contra servidores SMTP y HTTP locales y OKR, el caso I con candidatos de riesgo desde BMAD, transcripciones, una instantánea de Jira y artefactos, el caso J con los controles permanentes y el caso X con la integración cruzada; detalle en [PRUEBAS §2](PRUEBAS.md)).
 
 Observación: INT-01 valida también `diagramas` (acepta listas de valores conocidos), `cronograma` y `export`; la instalación de las skills externas la controla INS-03.
 

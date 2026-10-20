@@ -1,7 +1,7 @@
 ---
 name: pm-acta-constitucion
 description: "Acta de constitución y PID ensamblado (controles, adaptación, consistencia). Usar: acta de constitución, PID, project charter, autorizar proyecto. No: enfoques de gestión→pm-enfoques-gestion."
-version: 2.2.0
+version: 2.3.0
 author: pm-method
 license: MIT
 metadata:

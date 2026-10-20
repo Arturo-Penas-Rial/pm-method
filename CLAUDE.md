@@ -3,7 +3,7 @@
 Este repositorio **es** el plugin pm-method (no un proyecto que lo usa). Leer esto antes de cambiar algo.
 
 ## Qué es
-Plugin de Claude Code (también Cowork y Hermes) con 6 agentes, 38 skills y 3 hooks para gestión de proyectos (versión 2.2.0).
+Plugin de Claude Code (también Cowork y Hermes) con 6 agentes, 39 skills y 3 hooks para gestión de proyectos (versión 2.3.0).
 Jerarquía fija, no negociable:
 1. **PRINCE2 7** = método y ciclo de vida; **siempre manda**.
 2. **PMBOK 8** = solo el "cómo" (técnicas) o vacíos de PRINCE2.
@@ -29,8 +29,22 @@ Bilingüe ES/EN: responder en el idioma del usuario; artefactos en `estado.json.
   interesados (matriz, estereotipos, preferencias, perfil, RACI, integridad, reporte, plan de envío; `sanidad.py` lo usa
   para la familia STK). `skills/pm-integraciones/scripts/envios.py` capa de canales (SMTP, webhooks de Slack o Teams,
   `.eml`, MCP; credenciales solo por variables de entorno). `skills/pm-okr/scripts/okr.py` OKR y check-ins.
+  `skills/pm-caso-de-negocio/scripts/inversion.py` VAN, TIR, repago, sensibilidad y equilibrio por opción.
+  `skills/pm-mapas-estrategicos/scripts/mapas.py` mapas de Wardley y de recorrido (familia MAP de la sanidad).
+  `skills/pm-riesgos/scripts/riesgos.py` riesgos candidatos desde BMAD, transcripciones, tracker y artefactos.
 - `hooks/` guardian.py, inicio.py, idioma.py, py.sh, hooks.json.
-- `scripts/validar_paquete.py`, `scripts/probar_paquete.py`, `scripts/validar_mermaid.py`, `scripts/pruebas/fixtures/`, `scripts/pruebas/guias_e2e/` (recorridos de `docs/guias/`), `scripts/pruebas_vivo/`.
+- `scripts/validar_paquete.py`, `scripts/probar_paquete.py`, `scripts/validar_mermaid.py`, `scripts/instalar_hermes.py`.
+- `scripts/pruebas/fixtures/` (BMAD v6 sintético, 6.12.4 real, v4), `scripts/pruebas/guias_e2e/` (recorridos de
+  `docs/guias/`: `g1.py`…`g5.py`, `comun.py`, `visuales.py` y `correr.py`), `scripts/pruebas/integracion/` (suite de
+  integración cruzada, `correr.py`), `scripts/pruebas_vivo/` (Claude Code real; consume tokens).
+- `scripts/webinar/` generador de diapositivas del webinar (`generar.py` y `pptx.js`: PPTX y HTML desde
+  `docs/webinar/E2E-N/diapositivas.json`).
+- `docker/` entorno Docker opcional (`Dockerfile`, `compose.yaml`, `requirements.txt` y `node/` con versiones fijadas,
+  `pm-pruebas.sh`); documentado en `docs/DOCKER.md`.
+- `docs/guias/` cinco casos E2E con `evidencia/` e `img/` (salen de `guias_e2e/correr.py`; nunca dejar PNG ni carpetas
+  temporales fuera de `img/`); `docs/webinar/E2E-N/` guion, ejercicio y diapositivas por caso;
+  `docs/resumen-ejecutivo/` y `docs/informe/` presentaciones con su generador en `fuente/`; `docs/evaluacion/`
+  frases de enrutamiento y resultados en vivo.
 - `SPEC.md` convenciones canónicas (claves de artefactos, registros, niveles de decisión, presupuestos).
 - Registros: 9 base y 4 **opcionales** que se crean al primer uso (`estereotipos` ET, `preferencias` PF, `raci` RC,
   `envios` EN), con claves foráneas, unicidad y "uno por" declarados en `esquema.py` (`opcional`, `refs`, `unico`,
@@ -49,8 +63,11 @@ Bilingüe ES/EN: responder en el idioma del usuario; artefactos en `estado.json.
 ## Flujo de trabajo para cada cambio
 1. Leer la sección relevante (`grep -n`), no archivos enteros.
 2. Cambiar el código y, si cambia una conducta, agregar una prueba en `scripts/probar_paquete.py`.
-3. `python3 scripts/validar_paquete.py` → OK; `python3 scripts/probar_paquete.py` → 0 FALLO; `claude plugin validate .`;
-   si se tocó un diagrama: `python3 scripts/validar_mermaid.py --render` (y revisar legibilidad con `--png DIR`).
+3. `python3 scripts/validar_paquete.py` → OK; `python3 scripts/probar_paquete.py` → 0 FALLO (también con Python 3.9,
+   `docs/PRUEBAS.md` §2.4); `python3 scripts/pruebas/integracion/correr.py`; `claude plugin validate .`;
+   si se tocó un diagrama: `python3 scripts/validar_mermaid.py --render` (y revisar legibilidad con `--png DIR`); si
+   cambió una salida que muestran las guías: `scripts/pruebas/guias_e2e/correr.py --salida <tmp>` dos veces, y copiar la
+   evidencia y las imágenes que cambien a `docs/guias/` (y las cifras a guías y `docs/webinar/`).
 4. Si cambian descripciones, agentes, hooks o el texto de inicio: `python3 scripts/pruebas_vivo/suite.py enrutamiento
    --ids <afectados>` (consume tokens) y, antes de una versión, `suite.py todo`.
 5. Actualizar `CHANGELOG.md`, la documentación afectada (`docs/INDICE.md` lista todo) y, si corresponde, la versión en

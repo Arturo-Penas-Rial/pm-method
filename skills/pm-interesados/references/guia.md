@@ -1,6 +1,6 @@
 # Guía de pm-interesados · Stakeholder master guide
 
-Referencia de la skill `pm-interesados` (v2.2). Script: `interesados.py` (esta skill) y, para enviar, `envios.py`
+Referencia de la skill `pm-interesados`. Script: `interesados.py` (esta skill) y, para enviar, `envios.py`
 (`pm-integraciones`). Todo lo que sigue usa el maestro único `03-control/registros/stakeholders.csv`.
 
 ## 1. Matriz poder/interés y estrategia por cuadrante
@@ -214,7 +214,7 @@ opción el reporte no contiene valoraciones. Funciona en modo claro y oscuro y n
 
 ## 11. Columnas (ES → EN)
 
-- `stakeholders.csv` (v2.2 agrega al final): `estereotipo` (stereotype id), `correo` (e-mail), `usuario_chat` (Slack/Teams
+- `stakeholders.csv` (columnas finales): `estereotipo` (stereotype id), `correo` (e-mail), `usuario_chat` (Slack/Teams
   user id, p. ej. U0123ABCD para mencionar en Slack).
 - `estereotipos.csv`: id, nombre (name), descripcion, cuadrante (quadrant), canal (channel), formato (format),
   nivel_detalle (detail level), frecuencia (frequency), idioma (language), registro (tone), horario (hours),

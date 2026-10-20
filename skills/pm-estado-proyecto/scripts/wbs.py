@@ -12,11 +12,12 @@ Uso / Usage:
                  [--diccionario 02-planificacion/diccionario-wbs-esqueleto.md] [--json] [--profundidad 3]
 """
 IDIOMA = 'es'
-import argparse, csv, json, sys, re
+import argparse, csv, json, os, sys, re
 
 def clave(c): return [int(x) if x.isdigit() else x for x in c.split(".")]
 
 def cargar(p):
+    if not os.path.isfile(p): sys.exit(f"No existe el archivo / file not found: {p}")
     filas = list(csv.DictReader(open(p, encoding="utf-8")))
     nodos, errores, avisos = {}, [], []
     for r in filas:

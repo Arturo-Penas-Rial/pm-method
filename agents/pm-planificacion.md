@@ -13,7 +13,7 @@ Scripts (`${CLAUDE_PLUGIN_ROOT}/skills/<skill>/scripts/`; manual/Hermes: `~/.cla
 
 
 ## Reglas operativas comunes (v2.1)
-- **Rutas**: los scripts están en `${CLAUDE_PLUGIN_ROOT}/skills/pm-estado-proyecto/scripts/` (estado.py, registro.py, especificacion.py, sanidad.py, wbs.py, cpm.py, evm.py, exportar.py), `${CLAUDE_PLUGIN_ROOT}/skills/pm-bmad-puente/scripts/bmad.py`, `${CLAUDE_PLUGIN_ROOT}/skills/pm-exportar/scripts/paquete.py`, `${CLAUDE_PLUGIN_ROOT}/skills/pm-okr/scripts/okr.py`, `${CLAUDE_PLUGIN_ROOT}/skills/pm-reuniones/scripts/transcripcion.py`, `${CLAUDE_PLUGIN_ROOT}/skills/pm-interesados/scripts/interesados.py` y `${CLAUDE_PLUGIN_ROOT}/skills/pm-integraciones/scripts/envios.py`. Nunca buscarlos con `find`; si la variable no aparece expandida (instalación manual o Hermes), usar la carpeta de skills instalada que indicó el aviso de inicio de sesión.
+- **Rutas**: los scripts están en `${CLAUDE_PLUGIN_ROOT}/skills/pm-estado-proyecto/scripts/` (estado.py, registro.py, especificacion.py, sanidad.py, wbs.py, cpm.py, evm.py, exportar.py), `${CLAUDE_PLUGIN_ROOT}/skills/pm-bmad-puente/scripts/bmad.py`, `${CLAUDE_PLUGIN_ROOT}/skills/pm-exportar/scripts/paquete.py`, `${CLAUDE_PLUGIN_ROOT}/skills/pm-okr/scripts/okr.py`, `${CLAUDE_PLUGIN_ROOT}/skills/pm-reuniones/scripts/transcripcion.py`, `${CLAUDE_PLUGIN_ROOT}/skills/pm-interesados/scripts/interesados.py`, `${CLAUDE_PLUGIN_ROOT}/skills/pm-integraciones/scripts/envios.py` y `${CLAUDE_PLUGIN_ROOT}/skills/pm-mapas-estrategicos/scripts/mapas.py`. Nunca buscarlos con `find`; si la variable no aparece expandida (instalación manual o Hermes), usar la carpeta de skills instalada que indicó el aviso de inicio de sesión.
 - **Escrituras de gobierno solo por script**: `estado.json` con estado.py, registros CSV con registro.py, especificación con bmad.py. Nunca `sed -i`, redirecciones ni ediciones manuales sobre esos archivos ni sobre `00-direccion/historial/` (el hook las bloquea).
 - **Idioma**: responder en el idioma del usuario; los artefactos en el idioma de `estado.json`.
 - **Contexto mínimo**: leer el SKILL.md que corresponde y, de `references/guia.md` o de las plantillas, solo la sección citada (buscar el encabezado con `grep -n`), no archivos completos.
@@ -26,6 +26,7 @@ Scripts (`${CLAUDE_PLUGIN_ROOT}/skills/<skill>/scripts/`; manual/Hermes: `~/.cla
 3. `pm-planificacion-por-productos` — descripción del producto del proyecto, PBS/WBS (`wbs.py`), descripciones de producto, alcance; requisitos solo si no hay BMAD.
 4. `pm-adquisiciones` — make-or-buy y estrategia para paquetes de proveedor.
 5. `pm-riesgos` — riesgos del plan (dependencias, supuestos de estimación, EMV para contingencia).
+5b. `pm-mapas-estrategicos` — en el límite de etapa, revisar el mapa de Wardley y el recorrido (movimientos, decisiones, dolores tratados) contra el plan de la etapa siguiente.
 6. `pm-cronograma-estimacion` — estimación (análoga, paramétrica, PERT, puntos), dependencias, camino crítico (`cpm.py`, MSPDI si se pide), hitos.
 7. `pm-costos-presupuesto` — costeo ascendente, contingencia una vez, BAC sin reserva de gestión, línea base por período.
 8. `pm-agil-hibrido` — si es ágil o híbrido: backlog MoSCoW, release plan, DoD/DoR.

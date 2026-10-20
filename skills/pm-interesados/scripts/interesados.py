@@ -648,7 +648,7 @@ th{color:var(--ink-2);font-weight:600;background:var(--surface-2)}td.c{text-alig
 .grid4{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:12px}.card{background:var(--surface-2);border-radius:8px;padding:12px 14px;border-left:4px solid var(--q4)}
 .card h3{margin:0 0 4px;font-size:15px}.card p{margin:4px 0;color:var(--ink-2);font-size:13.5px}.chips{margin-top:6px;font-size:13px}
 .sev{font-weight:700}.sev.ERROR{color:var(--critical)}.sev.AVISO{color:var(--warning)}.sev.INFO{color:var(--ink-2)}.ok{color:var(--good);font-weight:700}
-svg text{fill:var(--ink)}svg .muted{fill:var(--ink-2)}.fuente{color:var(--muted);font-size:12px}
+svg text{fill:var(--ink)}svg .muted{fill:var(--ink-2)}.fuente{color:var(--muted);font-size:12px}.dim{color:var(--ink-2);font-size:12px}
 footer{margin-top:40px;color:var(--muted);font-size:12px}
 """
 
@@ -680,10 +680,15 @@ def svg_matriz(cuads, medio):
     o.append(f'<text x="{L + 4}" y="{T + PH + 18}" font-size="11" class="muted">{t("bajo", "low")}</text><text x="{L + PW - 4}" y="{T + PH + 18}" font-size="11" text-anchor="end" class="muted">{t("alto", "high")}</text>')
     o.append("</svg></div>"); return "".join(o)
 
+class HtmlSeguro(str):
+    """Fragmento HTML armado por este script (no por datos de los registros): tabla() lo inserta sin escapar."""
+
 def tabla(cab, filas, clases=None):
+    # Todo valor se escapa salvo los fragmentos marcados como HtmlSeguro: un dato de un registro que empiece con "<"
+    # (nombre, expectativas, asunto, descripción…) no debe convertirse en HTML activo (XSS en el reporte).
     o = ['<div class="scroll"><table><thead><tr>' + "".join(f"<th>{html.escape(str(c))}</th>" for c in cab) + "</tr></thead><tbody>"]
     for i, f in enumerate(filas):
-        o.append("<tr>" + "".join(f'<td{(" class=" + chr(34) + clases[i][j] + chr(34)) if clases and clases[i][j] else ""}>{c if str(c).startswith("<") else html.escape(str(c))}</td>' for j, c in enumerate(f)) + "</tr>")
+        o.append("<tr>" + "".join(f'<td{(" class=" + chr(34) + html.escape(clases[i][j]) + chr(34)) if clases and clases[i][j] else ""}>{c if isinstance(c, HtmlSeguro) else html.escape(str(c))}</td>' for j, c in enumerate(f)) + "</tr>")
     return "".join(o) + "</tbody></table></div>"
 
 def reporte(proyecto, salida_html=None, salida_md=None, corte=None, restringido=False, medio="alto"):
@@ -694,7 +699,7 @@ def reporte(proyecto, salida_html=None, salida_md=None, corte=None, restringido=
     perfiles = [perfil(proyecto, s, corte, medio, cache) for s in sts]
     titulo = t("Interesados: matriz poder/interés, RACI y perfiles de comunicación", "Stakeholders: power/interest grid, RACI and communication profiles")
     H = [f'<!doctype html><html lang="{IDIOMA}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>{html.escape(titulo)}</title><style>{CSS}</style></head><body><main>']
-    H.append(f"<h1>{html.escape(titulo)}</h1><p class='sub'>{html.escape(e.get('proyecto', ''))} · {t('corte', 'cut-off')} {corte} · {len(sts)} {t('interesados', 'stakeholders')}"
+    H.append(f"<h1>{html.escape(titulo)}</h1><p class='sub'>{html.escape(e.get('proyecto', ''))} · {t('corte', 'cut-off')} {html.escape(corte)} · {len(sts)} {t('interesados', 'stakeholders')}"
              + (f" · <span class='restr'>{t('Circulación restringida: incluye valoraciones', 'Restricted: includes assessments')}</span>" if restringido else "") + "</p>")
     # 1 matriz
     H.append(f"<h2>1. {t('Matriz poder/interés', 'Power/interest grid')}</h2><p class='sub'>{t('Poder: autoridad real, control de recursos, capacidad de aprobar presupuestos o vetar decisiones. Interés: grado de involucramiento, preocupación o impacto que el proyecto genera en el actor.', 'Power: real authority, control of resources, ability to approve budgets or veto decisions. Interest: degree of involvement, concern or impact.')} "
@@ -726,13 +731,22 @@ def reporte(proyecto, salida_html=None, salida_md=None, corte=None, restringido=
     # 4 perfiles
     H.append(f"<h2>4. {t('Perfiles de comunicación (resueltos)', 'Communication profiles (resolved)')}</h2><p class='sub'>{t('Precedencia: cuadrante → idioma del proyecto → estereotipo → matriz de comunicaciones → preferencias confirmadas vigentes. Entre paréntesis, la procedencia.', 'Precedence: quadrant → project language → stereotype → communications matrix → confirmed current preferences.')}</p>")
     filas = []
+    # Seis columnas con dos o tres líneas por celda (dimensión: valor y procedencia) para que la tabla entre en 1.280 px.
     for p in perfiles:
-        d = p["dimensiones"]; f = lambda k: (f"{d[k]['valor']} <span class='fuente'>({html.escape(d[k]['fuente'])})</span>" if d[k]["valor"] else "—")
-        filas.append([p["id"] + " " + p["nombre"], ESTRATEGIA.get(p["cuadrante"], {}).get("nombre", ("—", "—"))[IDIOMA == "en"], p["estereotipo"] or "—",
-                      "<span>" + f("canal") + "</span>", "<span>" + f("formato") + "</span>", "<span>" + f("nivel_detalle") + "</span>", "<span>" + f("frecuencia") + "</span>",
-                      "<span>" + f("idioma") + "</span>", d["horario"]["valor"] or "—", d["evitar"]["valor"] or "—",
-                      ", ".join(p["pendientes"]) or "—", ", ".join(p["vencidas"]) or "—"])
-    H.append(tabla([t("Interesado", "Stakeholder"), t("Cuadrante", "Quadrant"), t("Estereotipo", "Stereotype"), "Canal", "Formato", t("Nivel", "Level"), t("Frecuencia", "Frequency"), t("Idioma", "Language"), t("Horario", "Hours"), t("Evitar", "Avoid"), t("Propuestas", "Proposed"), t("Vencidas", "Expired")], filas))
+        d = p["dimensiones"]
+        def f(k, etq):
+            v = d[k]["valor"]
+            return (f"<span class='dim'>{html.escape(etq)}</span> " + (f"{html.escape(str(v))} <span class='fuente'>({html.escape(d[k]['fuente'])})</span>" if v else "—")) if k in d else ""
+        celda = lambda *xs: HtmlSeguro("<br>".join(x for x in xs if x))
+        texto = lambda etq, v: f"<span class='dim'>{html.escape(etq)}</span> {html.escape(str(v or '—'))}"
+        filas.append([p["id"] + " " + p["nombre"],
+                      celda(html.escape(ESTRATEGIA.get(p["cuadrante"], {}).get("nombre", ("—", "—"))[IDIOMA == "en"]), texto(t("estereotipo", "stereotype"), p["estereotipo"])),
+                      celda(f("canal", t("canal", "channel")), f("frecuencia", t("frecuencia", "frequency"))),
+                      celda(f("formato", t("formato", "format")), f("nivel_detalle", t("nivel", "level"))),
+                      celda(f("idioma", t("idioma", "language")), texto(t("horario", "hours"), d["horario"]["valor"]) + " · " + texto(t("evitar", "avoid"), d["evitar"]["valor"])),
+                      celda(texto(t("propuestas", "proposed"), ", ".join(p["pendientes"])) + " · " + texto(t("vencidas", "expired"), ", ".join(p["vencidas"])))])
+    H.append(tabla([t("Interesado", "Stakeholder"), t("Cuadrante y estereotipo", "Quadrant and stereotype"), t("Canal y frecuencia", "Channel and frequency"),
+                    t("Formato y nivel", "Format and level"), t("Idioma, horario, evitar", "Language, hours, avoid"), t("Preferencias", "Preferences")], filas))
     if restringido:
         H.append(f"<h3>{t('Valoraciones (restringido)', 'Assessments (restricted)')}</h3>")
         H.append(tabla(["ID", t("Nombre", "Name"), t("Actitud", "Attitude"), t("Compromiso actual", "Current engagement"), t("Deseado", "Desired"), t("Expectativas", "Expectations")],
@@ -760,7 +774,7 @@ def reporte(proyecto, salida_html=None, salida_md=None, corte=None, restringido=
                    [[f["id"], f.get("fecha", ""), f.get("stakeholder_id", ""), f.get("canal", ""), f.get("modo", ""), f.get("asunto", ""), f.get("estado", "")] for f in env[-30:]]) if env else f"<p class='sub'>{t('Sin envíos registrados.', 'No deliveries recorded.')}</p>")
     # 8 integridad
     H.append(f"<h2>8. {t('Integridad y calidad de los datos', 'Data integrity and quality')}</h2>")
-    H.append(tabla([t("Severidad", "Severity"), t("Código", "Code"), t("Hallazgo", "Finding")], [[f"<span class='sev {s}'>{s}</span>", c, m] for s, c, m in integ]) if integ else f"<p class='ok'>✓ {t('Sin hallazgos', 'No findings')}</p>")
+    H.append(tabla([t("Severidad", "Severity"), t("Código", "Code"), t("Hallazgo", "Finding")], [[HtmlSeguro(f"<span class='sev {html.escape(s)}'>{html.escape(s)}</span>"), c, m] for s, c, m in integ]) if integ else f"<p class='ok'>✓ {t('Sin hallazgos', 'No findings')}</p>")
     H.append(f"<footer>{t('Generado por pm-method · interesados.py. Fuente única: 03-control/registros/stakeholders.csv, raci.csv, estereotipos.csv, preferencias.csv, envios.csv. No contiene inferencias de emociones ni de personalidad.', 'Generated by pm-method · interesados.py. No emotion or personality inference.')}</footer></main></body></html>")
     if salida_html:
         os.makedirs(os.path.dirname(salida_html) or ".", exist_ok=True); open(salida_html, "w", encoding="utf-8").write("".join(H))

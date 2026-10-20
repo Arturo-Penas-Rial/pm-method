@@ -1,0 +1,594 @@
+{
+ "caso": "E2E-4",
+ "titulo": "Producto con BMAD gobernado con PRINCE2",
+ "subtitulo": "Del done al beneficio medido: condiciones, cambios, calidad a volumen, recorrido del cliente, cierre y beneficios",
+ "clases": [
+  {
+   "numero": 1,
+   "titulo": "Gobernar la construcción con BMAD",
+   "duracion_min": 90,
+   "objetivos": [
+    "Separar especificación (BMAD) y gobierno (pm-method)",
+    "Convertir un CONCERNS en condición formal con seguimiento",
+    "Controlar un cambio con costo y presupuesto de la junta",
+    "Guardar y vigilar el valor ganado"
+   ],
+   "diapositivas": [
+    {
+     "tipo": "gancho",
+     "titulo": "¿Cuántas condiciones de tus actas se verificaron?",
+     "puntos": [
+      "\"Aprobado con condiciones\" suele quedar en el acta",
+      "Nadie vuelve a mirarla hasta que el problema aparece",
+      "Hoy: la condición como registro con dueño y bloqueo"
+     ],
+     "nota": "Pedí a la audiencia que piense en la última puerta o comité aprobado con condiciones. ¿Quién verificó que se cumplieron y dónde quedó escrito? Esa es la pregunta que responde la clase."
+    },
+    {
+     "tipo": "imagen",
+     "titulo": "Adónde llegamos: cierre sin condiciones abiertas",
+     "imagen": "docs/guias/img/g4-cierre.png",
+     "nota": "Este es el tablero de la puerta de cierre del caso: 11 de 11 historias con revisión aprobada, CPI 0,977, 40 % del presupuesto de cambio y 0 condiciones abiertas. Hoy vemos cómo se construye la mitad de este resultado."
+    },
+    {
+     "tipo": "contenido",
+     "titulo": "Dos capas: BMAD especifica, pm-method gobierna",
+     "puntos": [
+      "BMAD: brief, PRD, arquitectura, épicas e historias",
+      "pm-method lee por la fachada y no copia",
+      "Decisiones de vuelta por traspaso (handoff)",
+      "Nada se escribe en _bmad-output/",
+      "PRINCE2 7 manda; PMBOK 8 aporta técnicas"
+     ],
+     "nota": "La regla de oro: una sola fuente por dato. El PRD vive en BMAD; pm-method fija líneas base, detecta desvíos y devuelve decisiones. Así no hay dos versiones de la especificación."
+    },
+    {
+     "tipo": "tabla",
+     "titulo": "Paso 1 en resumen: lo que queda listo",
+     "subtitulo": "La idea y el diseño, a fondo en E2E-5",
+     "tabla": {
+      "cab": [
+       "Sub-paso",
+       "Qué se hace",
+       "Qué se ve"
+      ],
+      "filas": [
+       [
+        "1a",
+        "Proyecto y detección de BMAD",
+        "6.12.4 · soportada"
+       ],
+       [
+        "1d",
+        "Requisitos desde el PRD",
+        "42 identificadores"
+       ],
+       [
+        "1e",
+        "WBS y trazabilidad",
+        "18 requisitos trazados"
+       ],
+       [
+        "1f",
+        "Backlog con gobierno",
+        "68 puntos: R1 47 y R2 21"
+       ],
+       [
+        "1g",
+        "Enfoques y presupuesto de cambio",
+        "15.000 · límite 8.000"
+       ],
+       [
+        "1g",
+        "Puerta y líneas base 1.0",
+        "PRD sha bc048f7f59a3"
+       ]
+      ]
+     },
+     "nota": "No repetimos el diseño: E2E-5 lo cubre. Lo importante es qué quedó listo para ejecutar: backlog con columnas de gobierno, enfoque de calidad, enfoque de beneficios, presupuesto de cambio y líneas base."
+    },
+    {
+     "tipo": "tabla",
+     "titulo": "Del uso único al control continuo",
+     "tabla": {
+      "cab": [
+       "Actividad",
+       "Hoy",
+       "Con pm-method",
+       "Control"
+      ],
+      "filas": [
+       [
+        "Condición de puerta",
+        "queda en el acta",
+        "aviso en cada sanidad y bloqueo del cierre",
+        "EST-12 · G-01"
+       ],
+       [
+        "Cambio y su costo",
+        "contra la contingencia",
+        "costo y cargo contra el presupuesto",
+        "CAM-01 · CAM-03"
+       ],
+       [
+        "Cambios en el PRD",
+        "se ven en la demo",
+        "contra la línea base en cada sanidad",
+        "ESP-10 · ESP-03"
+       ],
+       [
+        "Valor ganado",
+        "para el informe",
+        "corte guardado y vigilado",
+        "TOL-03"
+       ]
+      ]
+     },
+     "nota": "Cada fila es algo que en la práctica se hace una vez o nunca. La columna Control dice qué código lo detecta sin que nadie tenga que acordarse."
+    },
+    {
+     "tipo": "seccion",
+     "titulo": "Demostración: pasos 2 a 5",
+     "subtitulo": "Construcción del Release 1",
+     "nota": "Vamos en vivo con los prompts de la guía; si algo falla, seguimos con la evidencia ya corrida."
+    },
+    {
+     "tipo": "demo",
+     "titulo": "Paso 2 · El CONCERNS pasa a condición formal",
+     "prompt": "El gate de preparación de BMAD dio CONCERNS el 26/11 (lo informa Diego Ferreira, arquitecto): NFR-3 sin prueba de carga planificada. Registralo, armá el plan de la etapa 2 con tolerancias de ±10 % en tiempo y costo y preparame la puerta. Si se condiciona, planificá la prueba de carga como revisión de calidad para el 19/2 y mostrame cómo queda el seguimiento.",
+     "puntos": [
+      "Verificación: L-01 y E-10",
+      "Decisión: condicionado",
+      "Q-001 planificada para el 19/2",
+      "Sanidad: EST-12 recuerda la condición"
+     ],
+     "nota": "Mostrá la línea 'Condiciones agregadas desde la verificación'. La condición no depende de la memoria de nadie: aparece en cada sanidad hasta que alguien con rol la cumpla."
+    },
+    {
+     "tipo": "demo",
+     "titulo": "Paso 3 · Sprint como paquete de trabajo",
+     "prompt": "Traé el avance de BMAD al 23/12 y sincronizá el backlog. Lucía (jefa de equipo) informa que la 1.1 y la 1.2 pasaron sus pruebas el 21 y el 22/12 (revisó Andrea, aprobó Sofía): registrá las revisiones y armá su informe de punto de control. Si la sanidad no marca historias terminadas sin revisión, aceptá el paquete.",
+     "puntos": [
+      "Checkpoint: completados solo con revisión",
+      "Q-002 y Q-003 aprobadas",
+      "Sanidad sin QUA-01",
+      "Aceptación del gestor: D-015"
+     ],
+     "nota": "El informe de punto de control cuenta como completado solo lo que tiene revisión aprobada. La 1.3 está en review y no cuenta. El gestor acepta el paquete después de mirar la sanidad."
+    },
+    {
+     "tipo": "demo",
+     "titulo": "Paso 4 · Valor ganado con corte guardado",
+     "prompt": "Highlight del sprint 2 al 8/1: PV 41.000, EV 38.000, AC 40.500, BAC 124.000; leelo en modo ágil con 20 % de alcance Should/Could y guardá el corte. Incluí las puertas y sus condiciones.",
+     "puntos": [
+      "SPI 0,927 · CPI 0,938",
+      "Alcance no entregable 6,2 %: verde",
+      "Corte guardado y vigilado",
+      "Próxima puerta: G-01, E-05 y E-10"
+     ],
+     "nota": "El valor no está en el cálculo sino en que el corte queda guardado: la sanidad avisa si el pronóstico sale de tolerancia o si el último corte tiene más de 31 días. Las tres condiciones de la próxima puerta son G-01, E-05 y E-10; puertas.py verificar las muestra con su código."
+    },
+    {
+     "tipo": "demo",
+     "titulo": "Paso 5 · Cambio de rumbo con presupuesto",
+     "prompt": "Verificá la especificación contra la línea base y corré la sanidad al 12/1. Si hay cambios no controlados, registrá el issue y la solicitud de cambio con su impacto (historia nueva de 8 puntos, un sprint más en la etapa 3, costo USD 6.000 contra el presupuesto de cambio, refuerza B-01) y pedile la decisión a Sofía. Si se aprueba, emití el traspaso para el equipo BMAD.",
+     "puntos": [
+      "BMAD agrega FR-13 al PRD",
+      "Sanidad: 2 ERROR (ESP-10, ESP-03)",
+      "I-001 y C-001 con costo 6.000",
+      "Traspaso al equipo BMAD"
+     ],
+     "nota": "El cambio entró por correct-course sin pasar por la autoridad de cambio. La sanidad lo detecta como ERROR y bloquea la próxima puerta hasta tramitarlo."
+    },
+    {
+     "tipo": "contenido",
+     "titulo": "El cambio, en números",
+     "puntos": [
+      "C-001: costo 6.000, cargo presupuesto de cambio",
+      "Consumo: 6.000 de 15.000 (40 %)",
+      "Líneas base PRD y épicas 1.1",
+      "Verificación final: sin desvíos",
+      "Lección L-001: correct-course entra como issue"
+     ],
+     "nota": "CAM-03 informa el consumo en cada sanidad. Si un cambio superara el límite de USD 8.000 de Sofía, CAM-04 avisaría que debe decidir la junta."
+    },
+    {
+     "tipo": "imagen",
+     "titulo": "C-001 sumó 8 puntos y aun así se terminó a tiempo",
+     "imagen": "docs/guias/img/g4-burnup.png",
+     "nota": "El alcance pasa de 68 a 76 puntos el 20/1. La curva completa la cerramos en la clase 2: los 76 puntos quedan terminados el 12/5, antes del fin previsto."
+    },
+    {
+     "tipo": "pregunta",
+     "titulo": "¿Quién decide?",
+     "pregunta": "Sofía aprobó C-001 por USD 6.000. ¿Podía? ¿Y si hubiera costado USD 9.000?",
+     "nota": "Respuesta esperada: sí, su límite como autoridad de cambio es USD 8.000 por cambio. Con 9.000 decide la junta; CAM-04 lo avisaría si lo decidiera ella."
+    },
+    {
+     "tipo": "contenido",
+     "titulo": "Mensajes clave de la clase 1",
+     "puntos": [
+      "Una sola fuente por dato: BMAD",
+      "La condición es un registro con dueño",
+      "Sin monto no hay cambio controlado",
+      "El valor ganado se guarda y se vigila"
+     ],
+     "nota": "Repasá los cuatro mensajes y conectalos con la tabla del uso único al control continuo."
+    },
+    {
+     "tipo": "ejercicio",
+     "titulo": "Ejercicio · Parte A",
+     "subtitulo": "10 minutos",
+     "puntos": [
+      "A1: una condición de tu proyecto",
+      "Quién la verifica y con qué evidencia",
+      "A2: presupuesto y límite de cambio",
+      "Autoevaluación con la lista"
+     ],
+     "nota": "Hoja en docs/webinar/E2E-4/ejercicio.md. Al final mostrá la solución de referencia con la condición de NFR-3 y C-001."
+    },
+    {
+     "tipo": "cierre",
+     "titulo": "Próxima clase: calidad, cierre y beneficios",
+     "puntos": [
+      "Cada entrega con su registro de calidad",
+      "Un rechazo tratado con traza",
+      "Beneficios medidos después del cierre"
+     ],
+     "nota": "Adelantá la pregunta de la clase 2: ¿done es lo mismo que aceptado? Mostrá de pasada el gráfico de calidad por entrega."
+    }
+   ]
+  },
+  {
+   "numero": 2,
+   "titulo": "Calidad a volumen, recorrido, cierre y beneficios",
+   "duracion_min": 90,
+   "objetivos": [
+    "Registrar la calidad por entrega y tratar un rechazo con traza",
+    "Dar a cada dolor del recorrido un tratamiento con id",
+    "Cerrar con traspaso a operación y sin condiciones abiertas",
+    "Leer beneficios con puntaje, salud y tolerancia"
+   ],
+   "diapositivas": [
+    {
+     "tipo": "gancho",
+     "titulo": "Done no es aceptado",
+     "puntos": [
+      "La 2-4 pasó la revisión de código",
+      "La revisión contra criterios la rechazó",
+      "¿Dónde quedaría ese rechazo en tu proyecto?"
+     ],
+     "nota": "BMAD marcó la historia como terminada; la usuaria la rechazó porque faltaba la notificación del débito. En muchos equipos eso se corrige de palabra y no queda traza."
+    },
+    {
+     "tipo": "contenido",
+     "titulo": "Al abrir la sesión el 26/2",
+     "subtitulo": "Lo que el hook de inicio le muestra al gestor",
+     "puntos": [
+      "Abiertos: revisiones de calidad 1",
+      "Condiciones abiertas: autorizar-etapa (27/11)",
+      "Próxima puerta: autorizar-etapa",
+      "Derivado de estado.json y los registros",
+      "Los registros mandan sobre la memoria"
+     ],
+     "nota": "Pasaron seis semanas desde el cambio. Antes de pedir nada, el gestor ve un resumen derivado de los registros (estado.py contexto). Si una nota de la conversación anterior dice otra cosa, vale este resumen."
+    },
+    {
+     "tipo": "indicadores",
+     "titulo": "Ninguna entrega pasó la puerta con historias sin revisión",
+     "imagen": "docs/guias/img/g4-calidad-entregas.png",
+     "nota": "Cinco cortes: el 26/2 había 5 de 7 historias sin revisión y el 7/5 una rechazada. Las dos brechas se cerraron antes de la puerta siguiente."
+    },
+    {
+     "tipo": "contenido",
+     "titulo": "Calidad por entrega: el registro de calidad",
+     "puntos": [
+      "Una revisión por historia que la cita",
+      "QUA-01: terminado sin revisión aprobada",
+      "QUA-02: revisión vencida",
+      "QUA-03: rechazo sin tratamiento",
+      "Registro en lote por entrega"
+     ],
+     "nota": "El registro de calidad (quality register) nace con el enfoque de calidad. La sanidad cruza el backlog con calidad.csv en cada corrida: no hace falta acordarse de revisar."
+    },
+    {
+     "tipo": "contenido",
+     "titulo": "Recorrido del cliente: cada dolor con tratamiento",
+     "puntos": [
+      "Acciones, emoción (−2 a +2) con fuente y dolores",
+      "Carriles: lo que ve, lo que no ve, soporte",
+      "Parte del recorrido UJ-1 del PRD de BMAD",
+      "Tratamiento: requisito, historia, riesgo, issue, decisión…",
+      "MAP-03: dolor sin tratamiento, en cada sanidad"
+     ],
+     "nota": "El mapa de recorrido (customer journey map) mira lo entregado desde la persona, no historia por historia. La semilla sale de BMAD; la emoción de cada paso lleva su fuente, y cada dolor necesita un id que lo trate."
+    },
+    {
+     "tipo": "contenido",
+     "titulo": "Beneficios: puntaje, salud y tolerancia",
+     "puntos": [
+      "Puntaje: avance hacia la meta (0 a 1)",
+      "Salud: puntaje contra la trayectoria",
+      "Tolerancia: cuánto desvío se admite",
+      "Los mide el negocio, no el proyecto"
+     ],
+     "nota": "Tres lecturas distintas del mismo dato. Confundirlas lleva a falsas alarmas o a desvíos que nadie ve."
+    },
+    {
+     "tipo": "tabla",
+     "titulo": "Del uso único al control continuo",
+     "tabla": {
+      "cab": [
+       "Actividad",
+       "Hoy",
+       "Con pm-method",
+       "Control"
+      ],
+      "filas": [
+       [
+        "Calidad de cada historia",
+        "al final o nunca",
+        "en cada sanidad, por entrega",
+        "QUA-01"
+       ],
+       [
+        "Rechazo de calidad",
+        "se corrige de palabra",
+        "issue que cita el Q-###",
+        "QUA-03"
+       ],
+       [
+        "Revisión prometida",
+        "se recuerda vencida",
+        "fecha prevista vigilada",
+        "QUA-02"
+       ],
+       [
+        "Recorrido del cliente",
+        "taller de diseño, una vez",
+        "mapa sobre cada entrega",
+        "MAP-03"
+       ],
+       [
+        "Medir beneficios",
+        "nadie tras el cierre",
+        "plan, check-ins y criterio",
+        "P-04 · okr.py"
+       ]
+      ]
+     },
+     "nota": "Las tres primeras filas son calidad a volumen; el recorrido mira lo entregado desde la persona; la última es la responsabilidad de los beneficios, que se exige desde la puerta de proyecto con P-04."
+    },
+    {
+     "tipo": "seccion",
+     "titulo": "Demostración: pasos 6 a 11",
+     "subtitulo": "Release 1, Release 2, cierre y después",
+     "nota": "Pasos 6, 6b, 7 y 8 en vivo; el 9 con la evidencia; el 10 en vivo y el 11 con la evidencia."
+    },
+    {
+     "tipo": "demo",
+     "titulo": "Paso 6 · Calidad a volumen en el Release 1",
+     "prompt": "Al 26/2 el equipo terminó las historias 1.3, 1.4, 3.1, 3.2 y 3.3. Sincronizá el backlog y corré la sanidad: ¿qué historias terminadas no tienen revisión de calidad y qué revisiones vencieron?",
+     "puntos": [
+      "Sanidad: 0 ERROR · 7 AVISO · 3 INFO",
+      "Cinco QUA-01 y QUA-02 de Q-001",
+      "Lote Q-004 a Q-008",
+      "Después: 0 ERROR · 2 AVISO · 2 INFO"
+     ],
+     "nota": "Mostrá los cinco QUA-01, uno por historia. Después del registro en lote desaparecen y quedan QUA-02 y EST-12, que se resuelven en el paso 7."
+    },
+    {
+     "tipo": "demo",
+     "titulo": "Paso 6b · El recorrido de la socia",
+     "prompt": "Armá el mapa de recorrido de UJ-1 desde la especificación de BMAD, con lo que vimos en la revisión del Release 1 con seis socios el 25/2: dos pidieron ayuda en el primer ingreso con segundo factor; el resumen de cuentas tarda en aparecer y no hay indicador de carga; la constancia se descargó en el primer intento. Decime qué dolores quedan sin tratamiento.",
+     "puntos": [
+      "Semilla desde bmad.py recorridos: 6 pasos",
+      "Dos MAP-03: ingreso y resumen",
+      "P2 → NFR-3 y Q-001 (la condición)",
+      "P1 → R-001, riesgo para B-02",
+      "0 avisos de la familia MAP"
+     ],
+     "nota": "El sistema propone tratar los dos dolores como requisitos; la persona decide. El resumen ya lo cubre NFR-3 con su prueba de carga. El primer ingreso no justifica alcance nuevo a una etapa del cierre, pero amenaza la adopción: se registra R-001 con respuesta del negocio."
+    },
+    {
+     "tipo": "demo",
+     "titulo": "Paso 7 · Condición cumplida y puerta de la etapa 3",
+     "prompt": "La prueba de carga de NFR-3 se hizo el 2/3: p95 2,4 s con 400 sesiones concurrentes (meta menor a 3 s); aprobada. El gate de preparación de BMAD dio PASS el 3/3. Terminamos el Release 1: traé el avance al 5/3, abrí el límite de etapa, calculá el valor ganado (PV 82.000, EV 80.000, AC 83.500, BAC 130.000) y guardá el corte, actualizá el business case con reales y pronóstico, armá el informe de fin de etapa, el plan de la etapa 3 y el tablero con el recorrido de la socia, y preparame la puerta.",
+     "puntos": [
+      "Q-001: p95 2,4 s, aprobada",
+      "Antes: G-01 en la verificación",
+      "cumplir-condiciones por la ejecutiva",
+      "Después: 0 bloqueos · 0 condiciones"
+     ],
+     "nota": "La condición no se cierra sola aunque la prueba esté aprobada: alguien con rol lo verifica y queda en decisiones.csv. El tablero del Release 1 suma la sección de mapas estratégicos: es la diapositiva siguiente."
+    },
+    {
+     "tipo": "imagen",
+     "titulo": "El recorrido de la socia, en el tablero del Release 1",
+     "imagen": "docs/guias/img/g4-tablero-mapas-169.png",
+     "nota": "Es la sección Mapas estratégicos del tablero del 5/3, que escribe mapas.py tablero --insertar. La curva baja en el ingreso y en el resumen (−1) y sube hasta el clímax (+2). Debajo de cada dolor, su tratamiento: R-001; NFR-3 y Q-001, enlazados a la tabla de vínculos con estado y responsable. Avisos MAP vigentes: 0. Guardá R-001: vuelve en la revisión final de beneficios. El mapa con todos sus carriles está en la guía, paso 6b (g4-recorrido.png)."
+    },
+    {
+     "tipo": "demo",
+     "titulo": "Paso 8 · Release 2 con un rechazo",
+     "prompt": "Release 2 terminado en BMAD. Sincronizá el backlog y registrá las revisiones del 6/5: 2.1, 2.2 y 2.3 aprobadas; la 2.4 rechazada porque falta la notificación al socio después del débito (criterio de aceptación de FR-13). Corré la sanidad al 7/5.",
+     "puntos": [
+      "QUA-01: 2-4 con Q-012 sin aprobar",
+      "QUA-03: rechazo sin tratamiento",
+      "I-002: corregir sin costo (Sofía)",
+      "Q-013 aprobada el 11/5",
+      "Sanidad del 12/5: 0 AVISO"
+     ],
+     "nota": "La sanidad marca el mismo problema desde dos ángulos: la historia y el rechazo. Con I-002 y la nueva revisión Q-013, la sanidad del 12/5 queda con 0 AVISO. El handover lo cuenta tal cual: 13 revisiones, 12 aprobadas y una rechazada tratada."
+    },
+    {
+     "tipo": "imagen",
+     "titulo": "Paso 9 · La puerta de cierre en una página",
+     "imagen": "docs/guias/img/g4-cierre.png",
+     "nota": "Verificación de cierre solo con L-01, la lista de la junta: sin G-01 ni C-03, porque R-001 pasó al negocio en las recomendaciones de seguimiento. El paquete sale completo, con la línea base del PRD y sin el PRD vivo de BMAD, que queda anotado como excluido. D-027 traspasa los beneficios al negocio."
+    },
+    {
+     "tipo": "demo",
+     "titulo": "Paso 10 · Primera revisión de beneficios (30/6)",
+     "prompt": "Soy Sofía Ramírez, de servicios al socio. Registrá como check-in la línea base al entrar en operación (15/5: KR-1.1 0 %, KR-1.2 5.000 consultas, KR-1.3 96 horas) y la primera revisión al 30/6 (KR-1.1 9 %, KR-1.2 4.600, KR-1.3 70 horas; confianza 6). Puntuá los OKR y decime si vamos en camino.",
+     "puntos": [
+      "Check-ins: línea base 15/5 y 30/6",
+      "O-1 0,37 en rojo",
+      "Van 46 de 230 días: esperado 0,20",
+      "Los tres KR en camino: sin informe"
+     ],
+     "nota": "Si miráramos solo el semáforo del OKR, alguien declararía fracasado el portal a seis semanas de salir. Comparado con la trayectoria, va en camino. Los check-ins solo se agregan: queda la historia de cada medición."
+    },
+    {
+     "tipo": "imagen",
+     "titulo": "31/12: B-02 adopción queda fuera de la tolerancia",
+     "imagen": "docs/guias/img/g4-beneficios.png",
+     "nota": "Revisión final: B-02 llega a 83 % de la meta, por debajo del 90 % que admite la tolerancia de −10 %. B-01 (93 %) y B-03 (96 %) quedan dentro. D-029 informa a la ejecutiva y dice por dónde empezar: R-001, el dolor del primer ingreso que dejó el mapa del paso 6b."
+    },
+    {
+     "tipo": "pregunta",
+     "titulo": "¿Todo bien?",
+     "pregunta": "Al 31/12 el objetivo O-1 sale 0,91 en verde. ¿Está todo bien?",
+     "nota": "Respuesta esperada: no. El promedio esconde que B-02 adopción quedó en 0,83, fuera de la tolerancia. Por eso el criterio del plan se aplica beneficio por beneficio."
+    },
+    {
+     "tipo": "contenido",
+     "titulo": "Mensajes clave de la clase 2",
+     "puntos": [
+      "Calidad registrada por entrega",
+      "Ningún rechazo sin issue que lo cite",
+      "Cada dolor del recorrido con un id",
+      "Beneficios: los mide el negocio",
+      "Rojo no es desvío; verde no es éxito"
+     ],
+     "nota": "Cerrá con la idea central: lo que en la práctica se hace una vez o nunca se controla en cada sanidad o en cada revisión."
+    },
+    {
+     "tipo": "ejercicio",
+     "titulo": "Ejercicio · Parte B",
+     "subtitulo": "10 minutos",
+     "puntos": [
+      "B1: calidad de tu última entrega",
+      "B2: un dolor del recorrido y su tratamiento",
+      "B3: plan de revisión de dos beneficios",
+      "Autoevaluación con la lista"
+     ],
+     "nota": "Hoja en docs/webinar/E2E-4/ejercicio.md. La solución de referencia usa el recorrido de UJ-1 y los beneficios B-02 y B-01 del caso."
+    },
+    {
+     "tipo": "cierre",
+     "titulo": "Cómo sigue",
+     "puntos": [
+      "Antes: E2E-5, de la idea al proyecto",
+      "E2E-1: riesgos a fondo",
+      "E2E-2: alcance, cambios y excepción",
+      "E2E-3: interesados, OKR y avance"
+     ],
+     "nota": "E2E-4 arranca donde termina E2E-5. Para profundizar en riesgos, la ruta de excepción o los informes a interesados, seguir con E2E-1, E2E-2 y E2E-3."
+    }
+   ]
+  }
+ ],
+ "glosario": [
+  {
+   "termino": "BMAD",
+   "definicion": "Método de especificación y construcción con agentes; en pm-method es la fuente única de la especificación, de solo lectura."
+  },
+  {
+   "termino": "Fachada de especificación",
+   "definicion": "Lectura de BMAD que hace pm-method (bmad.py, especificacion.py) sin copiar ni modificar los artefactos."
+  },
+  {
+   "termino": "Traspaso (handoff)",
+   "definicion": "Documento que emite pm-method con una decisión (por ejemplo, un cambio aprobado) para que el equipo BMAD la aplique."
+  },
+  {
+   "termino": "Línea base",
+   "definicion": "Versión aprobada y congelada de un artefacto (PRD, épicas) contra la que se detectan desvíos."
+  },
+  {
+   "termino": "Gate de preparación",
+   "definicion": "Revisión de BMAD antes de construir (implementation readiness): PASS, CONCERNS o FAIL."
+  },
+  {
+   "termino": "Condición formal",
+   "definicion": "Requisito que la junta impone al autorizar una puerta; se sigue con EST-12 y G-01 hasta cumplir-condiciones."
+  },
+  {
+   "termino": "Puerta",
+   "definicion": "Punto de decisión de la junta (autorizar-inicio, -proyecto, -etapa, -cierre) con verificación en tres capas."
+  },
+  {
+   "termino": "Paquete de trabajo (work package)",
+   "definicion": "Unidad de trabajo autorizada por el gestor; aquí, un sprint con sus historias y definición de terminado."
+  },
+  {
+   "termino": "Informe de punto de control (checkpoint report)",
+   "definicion": "Informe del equipo sobre un paquete; solo cuenta como completados los productos con revisión aprobada."
+  },
+  {
+   "termino": "Informe de aspectos destacados (highlight report)",
+   "definicion": "Informe periódico del gestor a la junta, con avance, valor ganado y puertas."
+  },
+  {
+   "termino": "Valor ganado (EVM)",
+   "definicion": "Técnica que compara lo planificado (PV), lo ganado (EV) y lo gastado (AC); da SPI, CPI y EAC."
+  },
+  {
+   "termino": "Presupuesto de cambio",
+   "definicion": "Monto que la junta reserva para cambios aprobados; su consumo lo informa CAM-03."
+  },
+  {
+   "termino": "Autoridad de cambio (change authority)",
+   "definicion": "Rol con autoridad delegada para aprobar cambios hasta un límite por cambio."
+  },
+  {
+   "termino": "Registro de calidad (quality register)",
+   "definicion": "calidad.csv: una revisión por producto con criterios, responsables, resultado y fechas."
+  },
+  {
+   "termino": "Calidad a volumen",
+   "definicion": "Control de que cada historia terminada tenga su revisión aprobada, en cada entrega (QUA-01, QUA-02, QUA-03)."
+  },
+  {
+   "termino": "Fuera de especificación (off-specification)",
+   "definicion": "Producto que no cumple su especificación; se trata como issue."
+  },
+  {
+   "termino": "Sanidad",
+   "definicion": "Comprobación automática del proyecto (sanidad.py) con hallazgos ERROR, AVISO e INFO por código."
+  },
+  {
+   "termino": "Traspaso a operación (handover)",
+   "definicion": "Entrega formal del producto a quien lo opera, con evidencia de calidad y pendientes."
+  },
+  {
+   "termino": "Mapa de recorrido del cliente (customer journey map)",
+   "definicion": "Acciones de una persona paso a paso, con su emoción (−2 a +2) y su fuente, dolores y oportunidades; cada dolor necesita un tratamiento (MAP-03)."
+  },
+  {
+   "termino": "Service blueprint",
+   "definicion": "Carriles del recorrido: lo que la persona ve (frontstage), lo que no ve (backstage) y los procesos de soporte."
+  },
+  {
+   "termino": "Enfoque de beneficios",
+   "definicion": "Cómo, cuándo y quién mide cada beneficio, incluso después del proyecto; lo exige P-04."
+  },
+  {
+   "termino": "Plan de revisión de beneficios (benefits review plan)",
+   "definicion": "Revisiones posteriores al cierre, a cargo del negocio, con criterio de desvío."
+  },
+  {
+   "termino": "Check-in de OKR",
+   "definicion": "Medición fechada de un KR que solo se agrega (okr_checkins.csv) y deja historia."
+  },
+  {
+   "termino": "Salud del KR",
+   "definicion": "Puntaje comparado con el avance esperado entre el primer check-in y la fecha meta: en camino, en riesgo o desviado."
+  },
+  {
+   "termino": "Tolerancia de beneficios",
+   "definicion": "Desvío admitido sobre la meta de un beneficio; en el caso, −10 % (avance menor que 0,90 = fuera)."
+  }
+ ]
+}

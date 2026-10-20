@@ -2,7 +2,7 @@ flowchart TB
     ORQ["pm-orquestador<br/>(hilo principal)"]
     ORQ --> DIR & INI & PLA & CON & CIE
     DIR["pm-director · DP"] --- sd["pm-direccion-decisiones<br/>pm-caso-de-negocio<br/>pm-okr<br/>pm-exportar"]
-    INI["pm-inicio · SU/IP"] --- si["pm-mandato-y-brief<br/>pm-organizacion-roles<br/>pm-interesados<br/>pm-enfoques-gestion<br/>pm-acta-constitucion<br/>pm-caso-de-negocio<br/>pm-okr<br/>pm-riesgos"]
+    INI["pm-inicio · SU/IP"] --- si["pm-mandato-y-brief<br/>pm-organizacion-roles<br/>pm-interesados<br/>pm-enfoques-gestion<br/>pm-acta-constitucion<br/>pm-caso-de-negocio<br/>pm-okr<br/>pm-riesgos<br/>pm-mapas-estrategicos"]
     PLA["pm-planificacion · IP/SB"] --- sp["pm-planificacion-por-productos<br/>pm-cronograma-estimacion<br/>pm-costos-presupuesto<br/>pm-plan-etapa-y-limites<br/>pm-agil-hibrido<br/>pm-adquisiciones"]
     CON["pm-control · CS/MP"] --- sc["pm-paquetes-trabajo<br/>pm-registros<br/>pm-riesgos<br/>pm-issues-cambios<br/>pm-progreso-reportes<br/>pm-calidad<br/>pm-reuniones<br/>pm-interesados<br/>pm-visuales<br/>pm-integraciones"]
     CIE["pm-cierre · CP"] --- se["pm-cierre-proyecto<br/>pm-lecciones-aprendidas"]

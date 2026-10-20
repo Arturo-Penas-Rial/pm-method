@@ -1,0 +1,42 @@
+{
+  "_ayuda": "Ejemplo comentado del esquema pm-recorrido/1 (proyecto ficticio). Copiar a 02-planificacion/mapas/recorrido-<slug>.json o generar con 'mapas.py … recorrido semilla'. Claves con '_' = comentarios. Una acción por paso; emoción entera de −2 a +2 con su fuente (entrevista, métrica, observación o supuesto declarado). Mapear primero el recorrido actual (as-is), no el producto imaginado.",
+  "esquema": "pm-recorrido/1",
+  "titulo": "Comerciante que habilita su local",
+  "persona": "Comerciante con un local nuevo de bajo riesgo; hace el trámite por primera vez",
+  "trabajo": "Abrir el local cuanto antes sin errores en el trámite",
+  "disparador": "Firmó el alquiler y necesita la habilitación para abrir",
+  "escenario": "actual",
+  "exito": "Recibe la habilitación sin volver a la ventanilla",
+  "fecha_corte": "2027-03-01",
+  "estado": "borrador",
+  "fuentes": ["03-control/reuniones/2027-02-20-transcripcion-entrevistas.md"],
+  "refs": [],
+  "kpi": [],
+  "contrapesos": [],
+  "etapas": [
+    {"id": "E1", "nombre": "Informarse", "pasos": [
+      {"id": "P1", "accion": "Busca los requisitos en el sitio", "punto_contacto": "Sitio web", "canal": "web",
+       "emocion": -1, "fuente_emocion": "entrevista 3: «la lista de papeles no coincide con lo que piden en la ventanilla»",
+       "dolor": "Requisitos desactualizados en el sitio", "tipo_causa": "proceso-interno",
+       "oportunidad": "Lista única de requisitos generada desde las reglas del trámite", "kano": "obligatorio", "refs": ["REQ-002"],
+       "emocion_objetivo": 1,
+       "frontstage": "Página de requisitos", "backstage": "Cada oficina mantiene su propia lista", "soporte": "Gestor de contenidos",
+       "_ayuda": "refs: ids que tratan el dolor (REQ/FR/NFR, R-, I-, D-, S-, C-). Un dolor sin tratamiento dispara MAP-03. frontstage/backstage/soporte: carriles del service blueprint."}
+    ]},
+    {"id": "E2", "nombre": "Presentar", "pasos": [
+      {"id": "P2", "accion": "Entrega los papeles en la ventanilla", "punto_contacto": "Ventanilla", "canal": "presencial",
+       "emocion": -2, "fuente_emocion": "métrica: 2,4 visitas por trámite en promedio (registro de atención 2026)",
+       "dolor": "Vuelve porque falta un papel", "tipo_causa": "proceso-interno",
+       "oportunidad": "Validar los adjuntos antes de enviar", "kano": "desempeno", "refs": ["R-001"], "emocion_objetivo": 1},
+      {"id": "P3", "accion": "Paga la tasa", "punto_contacto": "Caja", "canal": "presencial",
+       "emocion": 0, "fuente_emocion": "supuesto declarado: sin datos de espera en caja", "dolor": "", "tipo_causa": "",
+       "oportunidad": "", "kano": "", "refs": []}
+    ]},
+    {"id": "E3", "nombre": "Esperar la resolución", "pasos": [
+      {"id": "P4", "accion": "Recibe la habilitación por correo", "punto_contacto": "Correo", "canal": "correo",
+       "emocion": 2, "fuente_emocion": "encuesta posterior al trámite (n = 40)", "dolor": "", "tipo_causa": "",
+       "oportunidad": "", "kano": "", "refs": []}
+    ]}
+  ],
+  "variantes": [{"descripcion": "Local con riesgo alto: requiere inspección previa (fuera de este recorrido)"}]
+}

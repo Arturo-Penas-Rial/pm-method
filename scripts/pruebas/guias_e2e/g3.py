@@ -2,35 +2,99 @@
 y su envío por la capa de canales, OKR con check-ins y salud, y reporte de avance (scripts reales + tablero)."""
 from comun import *
 import glob
+import visuales as VIS
 repo = proyecto("portal-socios"); print("REPO", repo)
 OUT = os.environ.get("GUIAS_SALIDA", os.getcwd())
 P = lambda t: print(f"\n######## {t}\n") or LOG.append((f"## {t}", ""))
 I = lambda sub: f'python3 {IN} --proyecto {G} {sub}'
 V = lambda sub: f'python3 {EV} --proyecto {G} {sub}'
 
-def puerta_f(repo, tipo, por, fecha, extra="", decision="aprobado"):
-    """Como comun.puerta, con --fecha en la lista y su confirmación (archivo de verificación con la fecha del paso, no la de la corrida)."""
-    run(E(f'puertas.py --proyecto {G} verificar {tipo}'), repo, ok=(0, 1, 2))
-    run(E(f'puertas.py --proyecto {G} lista {tipo} --fecha {fecha}'), repo, mostrar=False)
-    run(E(f'puertas.py --proyecto {G} confirmar {tipo} --por "{por}" --fecha {fecha}'), repo)
-    return run(E(f'estado.py --proyecto {G} puerta {tipo} --decision {decision} --por "{por}" --fecha {fecha} {extra}'), repo)
+def guardian(cmds):
+    """Lo que decide el hook PreToolUse guardian.py ante cada comando de Bash (lo que ve la persona en el pedido de permiso)."""
+    out = []
+    for cmd, agente in cmds:
+        r = subprocess.run(["python3", f"{RAIZ}/hooks/guardian.py"], input=json.dumps({"tool_name": "Bash", "tool_input": {"command": cmd}, "agent_type": agente}),
+                           capture_output=True, text=True)
+        d = json.loads(r.stdout)["hookSpecificOutput"] if r.stdout.strip() else None
+        vis = cmd.replace(EV, "$EV").replace(repo, "<repo>")
+        out.append(f"[{agente or 'hilo principal'}] {vis}\n   → " + (f"{d['permissionDecision']}: {d['permissionDecisionReason']}" if d else "sin decisión del hook (corre sin pedido de permiso adicional)"))
+    LOG.append(("(hook guardian.py: decisión ante cada comando, tal como la recibe Claude Code)", "\n".join(out)))
+
+# ---------------------------------------------------------------- datos para los gráficos del webinar (siempre leídos de la corrida)
+NIV = ["desconocedor", "resistente", "neutral", "partidario", "lider"]
+FOTO = {}     # compromiso actual y deseado del maestro en cada revisión (fecha → {id: (nombre, actual, deseado)})
+SALUD = {}    # okr.py --json en cada check-in (fecha → salida)
+CORTO = {"Área de TI del núcleo operativo": "TI del núcleo", "Sindicato de operadores": "Sindicato", "Socios usuarios piloto": "Socios piloto",
+         "Unidad de cumplimiento": "Cumplimiento", "Consejo directivo": "Consejo directivo"}
+def corto(n): return CORTO.get(n, n)
+def brecha(a, d): return max(0, NIV.index(d) - NIV.index(a)) if a in NIV and d in NIV else 0
+def foto_compromiso(fecha):
+    FOTO[fecha] = {x["id"]: (x["nombre"], x.get("nivel_compromiso_actual", ""), x.get("nivel_compromiso_deseado", "")) for x in reg_json(repo, "listar", "stakeholders")}
+def matriz_compromiso(fecha):
+    """Matriz de evaluación del compromiso (A = actual, D = deseado) leída de stakeholders.csv, al registro de la evidencia."""
+    filas = ["| Interesado | " + " | ".join(NIV) + " | Brecha |", "|---|" + "---|" * (len(NIV) + 1)]
+    for sid, (nom, a_, d_) in FOTO[fecha].items():
+        celdas = [("A=D" if (n == a_ and n == d_) else "A" if n == a_ else "D" if n == d_ else "") for n in NIV]
+        br = brecha(a_, d_)
+        filas.append(f"| {sid} {nom} | " + " | ".join(celdas) + f" | {'+' + str(br) if br > 0 else '—'} |")
+    LOG.append((f"(matriz de evaluación del compromiso al {fecha}, leída de stakeholders.csv: A = actual, D = deseado)", "\n".join(filas)))
+def okr_json(po, fecha):
+    """Puntaje, avance esperado y salud de cada KR al corte (okr.py --json), con un resumen en la evidencia."""
+    r = subprocess.run(["python3", OKR, po, "--corte", fecha, "--json"], cwd=repo, capture_output=True, text=True, check=True)
+    d = json.loads(r.stdout); SALUD[fecha] = d
+    krs = [k for o in d["objetivos"] for k in o["krs"]]
+    fmt = lambda v: "—" if v is None else VIS.miles(v, 2)
+    LOG.append((f"$OKR {po} --corte {fecha} --json   # resumen: puntaje (esperado) salud",
+                " · ".join(f"{o['id']} {fmt(o['puntuacion'])}" for o in d["objetivos"]) + "\n" +
+                "\n".join(f"{k['id']} {fmt(k['puntuacion'])} (esperado {fmt(k['esperado'])}) {k['salud']}" for k in krs)))
+    return d
+DIAS_FREC = {"diaria": 1, "semanal": 7, "quincenal": 14, "mensual": 31, "trimestral": 92}   # los de interesados.py (STK-12)
+def cadencia_filas(corte):
+    """Para cada interesado vigilado por STK-12: días desde su último contacto enviado y máximo (frecuencia × 1,5)."""
+    perf = json.loads(subprocess.run(["python3", IN, "--proyecto", G, "perfil", "todos", "--corte", corte, "--json"], cwd=repo, capture_output=True, text=True, check=True).stdout)
+    envs = [e for e in reg_json(repo, "listar", "envios") if e.get("estado") == "enviado" and e.get("fecha") and e["fecha"] <= corte]
+    inicio = min(e["fecha"] for e in envs); ult = {}
+    for e in envs: ult[e["stakeholder_id"]] = max(ult.get(e["stakeholder_id"], ""), e["fecha"])
+    import datetime as _d
+    filas = []
+    for p in perf:
+        fr = p["dimensiones"]["frecuencia"]["valor"]
+        if p["cuadrante"] not in ("gestionar-de-cerca", "mantener-satisfecho", "mantener-informado") or fr not in DIAS_FREC: continue
+        lim = round(DIAS_FREC[fr] * 1.5)
+        gap = (_d.date.fromisoformat(corte) - _d.date.fromisoformat(ult.get(p["id"]) or inicio)).days
+        filas.append((p["id"], p["nombre"], fr, gap, lim))
+    return filas
+
+def captura_secciones(html, cortes, ancho=1280):
+    """Capturas del reporte HTML de interesados por secciones: (png, h2 desde o None = inicio de la página, h2 hasta)."""
+    try:
+        from playwright.sync_api import sync_playwright
+    except ImportError:
+        print("AVISO: playwright no está instalado; se omiten las capturas del reporte de interesados"); return
+    with sync_playwright() as p:
+        b = p.chromium.launch(); pg = b.new_page(viewport={"width": ancho, "height": 900}); pg.goto("file://" + html); pg.wait_for_timeout(300)
+        y = lambda t: pg.locator("h2", has_text=t).first.bounding_box()["y"]
+        for png, desde, hasta in cortes:
+            y0 = 0 if desde is None else y(desde) - 24
+            pg.screenshot(path=os.path.join(OUT, png), full_page=True, clip={"x": 0, "y": y0, "width": ancho, "height": y(hasta) - 28 - y0})
+        b.close()
 
 def hasta_etapa2_f(repo):
     """Como comun.hasta_etapa2, sin reescribir el business case (el del paso 6, con B-01…B-03) y con fechas deterministas."""
     for c, r in (("mandato", "00-direccion/mandato.md"), ("project-brief", "01-inicio/project-brief.md"),
                  ("business-case-esquematico", "00-direccion/business-case-esquematico.md"), ("plan-etapa-1", "02-planificacion/plan-etapa-1.md")):
         art(repo, c, r)
-    puerta_f(repo, "autorizar-inicio", "Ejecutivo: Laura Méndez", "2026-10-30", "--fin 2026-11-27")
+    puerta(repo, "autorizar-inicio", "Ejecutivo: Laura Méndez", "2026-10-30", "--fin 2026-11-27")
     art(repo, "pid", "00-direccion/pid.md"); art(repo, "plan-proyecto", "02-planificacion/plan-proyecto.md")
     run(E(f'estado.py --proyecto {G} tolerancia --nivel proyecto "tiempo=±3 semanas" "costo=±8 %" "alcance=Must sin tolerancia" "riesgo=ningún riesgo alto sin respuesta" "beneficios=-10 %"'), repo, mostrar=False)
-    puerta_f(repo, "autorizar-proyecto", "Ejecutivo: Laura Méndez", "2026-11-27")
+    puerta(repo, "autorizar-proyecto", "Ejecutivo: Laura Méndez", "2026-11-27")
     run(f'python3 {BMAD} --proyecto {G} linea-base prd --version 1.0 --por "Ejecutivo: Laura Méndez"', repo, mostrar=False)
     run(E(f'puertas.py --proyecto {G} preparacion-bmad --resultado CONCERNS --por "Arquitecto: Diego Ferreira" --fecha 2026-11-26 --nota "NFR-3 sin prueba de carga planificada"'), repo, mostrar=False)
     art(repo, "plan-etapa-2", "02-planificacion/plan-etapa-2.md")
-    puerta_f(repo, "autorizar-etapa", "Ejecutivo: Laura Méndez", "2026-11-27", '--etapa-nombre "Release 1" --fin 2027-03-05 --tol "tiempo=+2 semanas" "costo=±10 %"', decision="condicionado")
+    puerta(repo, "autorizar-etapa", "Ejecutivo: Laura Méndez", "2026-11-27", '--etapa-nombre "Release 1" --fin 2027-03-05 --tol "tiempo=+2 semanas" "costo=±10 %"', decision="condicionado")
 
 P("Paso 1 · Proyecto y junta")
-base_su(repo)
+base_su(repo, "2026-10-26")
 
 P("Paso 2 · Identificar y valorar a los interesados (maestro único)")
 ST = {}
@@ -48,6 +112,7 @@ for n, ro, rp, pod, inte, act_, des, canal, frec, resp, conf, correo, chat in [
     ST[n] = reg(repo, "stakeholders", nombre=n, rol_organizacion=ro, rol_proyecto=rp, poder=pod, interes=inte, actitud=act_, nivel_compromiso_actual=act_,
                 nivel_compromiso_deseado=des, canal=canal, frecuencia=frec, responsable_relacion=resp, confidencial=conf, correo=correo, usuario_chat=chat)
 run(E(f'registro.py --proyecto {G} listar stakeholders'), repo)
+foto_compromiso("2026-11-02")   # punto de partida de la brecha de compromiso (pasos 13 y 14)
 
 P("Paso 3 · Matriz poder/interés y estrategia por cuadrante")
 run(I("matriz"), repo)
@@ -235,32 +300,141 @@ estados({"1-1-alta-y-acceso-del-socio-con-segundo-factor": "done"})
 review(1, "2026-12-11", "1-1")
 run(f'python3 {BMAD} --proyecto {G} avance --corte 2026-12-11', repo)
 checkins("2026-12-11", (("KR-1.1", 1, 7), ("KR-1.2", 4950, 6), ("KR-2.1", 92, 4), ("KR-2.2", 64, 6)))
+okr_json(po, "2026-12-11")
 estados({"1-2-recuperación-de-acceso": "done", "3-1-acceso-y-roles-de-la-consola-de-operador": "done"})
 review(2, "2026-12-23", "1-2 e historia 3-1")
 run(f'python3 {BMAD} --proyecto {G} avance --corte 2026-12-23', repo)
 escribir(repo, "00-direccion/okr.csv", open(os.path.join(repo, po), encoding="utf-8").read().replace("3-1-acceso-y-roles-de-la-consola-de-operador,,,,,1,,,,,activo,", "3-1-acceso-y-roles-de-la-consola-de-operador,,,,,1,,,,,completada,"))
 checkins("2026-12-23", (("KR-1.1", 2, 7), ("KR-1.2", 4900, 6), ("KR-2.1", 88, 4), ("KR-2.2", 68, 6)))
+okr_json(po, "2026-12-23")
 estados({"1-3-consulta-de-saldos-de-ahorro-y-préstamos": "done", "3-2-bandeja-única-de-solicitudes": "in-progress"})
 review(3, "2027-01-08", "1-3")
 run(f'python3 {BMAD} --proyecto {G} avance --corte 2027-01-08', repo)
 checkins("2027-01-08", (("KR-1.1", 3, 7), ("KR-1.2", 4800, 6), ("KR-2.1", 80, 5), ("KR-2.2", 72, 6)))
+okr_json(po, "2027-01-08")
+# Gráfico: margen de cada KR frente a su avance esperado en cada check-in (la salud de okr.py: «en riesgo» por debajo de −10 pp).
+# KR-2.1 (mantener-bajo) no entra: no tiene avance parcial, sigue «en riesgo» hasta cumplirse.
+fechas_ck = sorted(SALUD)
+krs_graf = ["KR-1.1", "KR-1.2", "KR-2.2", "KR-2.3"]
+kr_de = lambda f, i: next(k for o in SALUD[f]["objetivos"] for k in o["krs"] if k["id"] == i)
+margen = [[round(100 * (kr_de(f, i)["puntuacion"] - kr_de(f, i)["esperado"])) for f in fechas_ck] for i in krs_graf]
+MES = {"01": "ene", "02": "feb", "03": "mar", "11": "nov", "12": "dic"}
+x_ck = [f"{f[8:]}-{MES[f[5:7]]}" for f in fechas_ck]
+ult = {i: kr_de(fechas_ck[-1], i) for i in krs_graf}
+bajo = [i for i in krs_graf if ult[i]["salud"] != "en-camino"]
+VIS.lineas(x_ck, margen, os.path.join(OUT, "g3-okr-salud.png"),
+           (f"Al {int(fechas_ck[-1][8:])}/{int(fechas_ck[-1][5:7])}, la bandeja (KR-2.3) cae a «{ult['KR-2.3']['salud'].replace('-', ' ')}»: "
+            f"{str(margen[3][-1]).replace('-', '−')} pp del avance esperado" if bajo == ["KR-2.3"]
+            else f"KR bajo el umbral al {fechas_ck[-1]}: {', '.join(bajo) or 'ninguno'}"),
+           "Puntaje logrado menos avance esperado, en puntos porcentuales (pp). KR-2.1 (mantener-bajo) no tiene avance parcial y no se grafica.",
+           "okr.py --corte <check-in> --json (okr.csv + okr_checkins.csv)", nombres=krs_graf, unidad=" pp", ylim0=False,
+           referencia=(-10, "−10 pp: «en riesgo»"))
+LOG.append(("(gráfico g3-okr-salud.png: margen frente al avance esperado, en pp)", "\n".join(f"{i}: " + " · ".join(f"{x} {v:+d}" for x, v in zip(x_ck, s)) for i, s in zip(krs_graf, margen))))
 print(open(os.path.join(repo, G, "03-control/reportes/avance-bmad.csv"), encoding="utf-8").read())
 act(repo, "acciones", A["boletin"], estado="completada", fecha_cierre="2026-11-28")
 R1 = reg(repo, "riesgos", fecha_identificacion="2026-12-20", autor="Martín Suárez", categoria="organizacional", causa="Baja respuesta del panel de socios a las encuestas", evento="No se puede medir la satisfacción (SM-5) en el piloto", efecto="KR sin línea base confiable", tipo="amenaza", probabilidad=3, impacto=3, impacto_monetario=4000, respuesta="reducir", acciones="incentivo de participación y encuesta corta", propietario="Sofía Ramírez", ejecutor="Martín Suárez", estado="en-seguimiento", notas=f"interesado {ST['Socios usuarios piloto']}")
 run(E(f'registro.py --proyecto {G} resumen --corte 2027-01-08'), repo)
 
 P("Paso 10 · Highlight report con puertas, OKR al corte (salud y check-ins), sincronización con Tability y tablero por actor")
+# Lo que ve el gestor al retomar el proyecto el 8/1 (después de las fiestas): el hook de inicio agrega este resumen derivado de los
+# registros a cada sesión; aquí con --corte para que la evidencia no dependa del día de la corrida.
+run(E(f'estado.py --proyecto {G} contexto --corte 2027-01-08'), repo)
 run(f'python3 {OKR} {po} --corte 2027-01-08 --markdown {G}/03-control/reportes/2027-01-08-okr.md', repo)
 run(f'python3 {OKR} {po} --propuesta-sync tability', repo)
 run(f'python3 {OKR} {po} --marcar-publicado KR-1.1@2027-01-08 --destino tability --ref checkin-ejemplo-1', repo)
-run(E(f'puertas.py --proyecto {G} estado --markdown'), repo)
-BEN = "B-01 4.000 y B-02 25 % en meta (R1 +1 semana, antes de medir); B-03 48 h solo con la bandeja (KR-2.3 en riesgo; hoy 80 h sin bandeja)"
-escribir(repo, "03-control/reportes/2027-01-08-highlight-report.md", "# Highlight report · 2027-01-08\n\n| Objetivo | Pronóstico | Tolerancia | Estado |\n|---|---|---|---|\n"
-         f"| Beneficios | {BEN} | −10 % por beneficio (B-03 ≤ 52,8 h), enfoque de beneficios | ámbar |\n\n"
-         "OKR (complementan los beneficios): O-1 0,11 · O-2 0,24.\n")
-art(repo, "highlight-2027-01-08", "03-control/reportes/2027-01-08-highlight-report.md")
+PU = run(E(f'puertas.py --proyecto {G} estado --markdown'), repo)
+# Highlight report desde el dato: pm-progreso-reportes llena la plantilla (variante mínima) con las salidas de los scripts, sin
+# tipear cifras: evm.py (corte guardado), okr.py --json, registro.py resumen --json, puertas.py estado y avance-bmad.csv.
+# Solo el pronóstico de beneficios y de alcance es juicio del gestor (se marca como tal) y cita las cifras en que se apoya.
+FC, DESDE = "2027-01-08", "2026-12-24"
+EVMJ = json.load(open(os.path.join(repo, G, f"03-control/reportes/evm-{FC}.json"), encoding="utf-8"))
+RES = reg_json(repo, "resumen", "--corte", FC)
+OKF = SALUD[FC]; KRS = {k["id"]: k for o in OKF["objetivos"] for k in o["krs"]}
+CAL = [q for q in reg_json(repo, "listar", "calidad") if q.get("estado") == "completada" and q.get("resultado", "").startswith("aprobado")]
 av = list(csv.DictReader(open(os.path.join(repo, G, "03-control/reportes/avance-bmad.csv"), encoding="utf-8")))
 LOG.append(("(columnas de avance-bmad.csv)", ", ".join(av[0].keys())))
+m2 = lambda v, d=0: VIS.miles(v, d)
+RAG = {"verde": "verde", "ambar": "ámbar", "rojo": "rojo"}
+r_t, r_c = RAG[EVMJ["semaforo_cronograma"]], RAG[EVMJ["semaforo_costo"]]
+r_r = "rojo" if (RES["riesgos"]["sin_respuesta"] or RES["riesgos"]["sin_propietario"]) and RES["riesgos"]["altos_abiertos"] else ("ámbar" if RES["riesgos"]["altos_abiertos"] else "verde")
+en_riesgo = [k for k in KRS if KRS[k]["salud"] in ("en-riesgo", "desviado")]
+r_b = "ámbar" if "KR-2.3" in en_riesgo else "verde"
+general = next((x for x in ("rojo", "ámbar") if x in (r_t, r_c, r_r, r_b)), "verde")
+BEN = (f"B-01 4.000 y B-02 25 % en meta (R1 +1 semana, antes de medir); B-03 48 h solo con la bandeja "
+       f"(KR-2.3 {KRS['KR-2.3']['salud'].replace('-', ' ')}; hoy {KRS['KR-2.1']['actual']} h sin bandeja)")
+venc = RES["acciones"]["vencidas"]
+hist = [q["producto"].split(": ", 1)[1] for q in CAL if q.get("fecha_real", "") >= DESDE]   # aceptadas en el período
+ult_av = av[-1]; ant_av = ([f for f in av if f["fecha"] < DESDE] or [{"puntos_terminados": "0"}])[-1]
+burn = "\n".join(f"| {f['fecha']} | {m2(float(f['puntos_total']))} | {m2(float(f['puntos_terminados']))} | {m2(float(f['puntos_terminados']) - (float(av[i-1]['puntos_terminados']) if i else 0))} | {f['pct_terminado'].replace('.', ',')} % |" for i, f in enumerate(av))
+H = f"""---
+tipo: highlight-report
+proyecto: "Portal de autoservicio para socios"
+fecha: "{FC}"
+autor: "Martín Suárez"
+estado: borrador
+variante: minima
+fuentes: "evm-{FC}.json · okr.py --corte {FC} --json · registro.py resumen --corte {FC} --json · puertas.py estado --markdown · avance-bmad.csv"
+---
+
+# Informe de aspectos destacados (highlight report) · {FC}
+
+**Etapa:** Release 1 · **Período:** {DESDE} – {FC} · **Variante:** mínima · **Audiencia:** junta del proyecto
+
+## 1. Resumen ejecutivo
+Estado general **{general}**. Tiempo y costo en {r_t if r_t == r_c else r_t + ' y ' + r_c}, dentro de la tolerancia de etapa de {m2(EVMJ['tol_costo_pct'])} %: SPI {m2(EVMJ['SPI'], 3)}, CPI {m2(EVMJ['CPI'], 3)},
+EAC USD {m2(EVMJ['EAC'])} (+{m2(EVMJ['sobrecosto_pct'], 1)} %); excepción prevista: {'sí' if EVMJ['excepcion_prevista'] else 'no'}. Beneficios en {r_b}: la bandeja (KR-2.3) está
+{KRS['KR-2.3']['salud'].replace('-', ' ')}. Decisión que se pide: aprobar USD 4.000 de contingencia para el incentivo del panel (R-001) antes del 2027-01-22.
+
+## 2. Semáforo por objetivo
+| Objetivo | Estado | Cifra y umbral | Fuente |
+|---|---|---|---|
+| Tiempo | {r_t} | SPI {m2(EVMJ['SPI'], 3)}; desvío de {m2(EVMJ['SV_pct_del_PV'], 1)} % del PV contra una tolerancia de {m2(EVMJ['tol_plazo_pct'])} % (ámbar = 50–100 %) | evm-{FC}.json |
+| Costo | {r_c} | CPI {m2(EVMJ['CPI'], 3)}; EAC USD {m2(EVMJ['EAC'])}, sobrecosto de {m2(EVMJ['sobrecosto_pct'], 1)} % contra {m2(EVMJ['tol_costo_pct'])} % | evm-{FC}.json |
+| Alcance | verde | Must completos en R1 (pronóstico del gestor sobre el burn-up: {m2(float(ult_av['puntos_terminados']))} de {m2(float(ult_av['puntos_total']))} puntos) | avance-bmad.csv |
+| Calidad | verde | {RES['calidad']['por_estado'].get('completada', 0)} revisiones completadas y aprobadas, {RES['calidad']['abiertos']} abiertas | registro.py resumen |
+| Beneficios | {r_b} | {BEN} (pronóstico del gestor contra la tolerancia de −10 %; B-03 ≤ 52,8 h) | enfoque de beneficios · okr.py |
+| Riesgo | {r_r} | {RES['riesgos']['abiertos']} riesgo(s) abierto(s), {RES['riesgos']['altos_abiertos']} alto(s), {len(RES['riesgos']['sin_respuesta'])} sin respuesta, {len(RES['riesgos']['sin_propietario'])} sin propietario | registro.py resumen |
+| Sostenibilidad | [por confirmar] | sin medida definida en el enfoque | — |
+
+## 4. Este período
+**Historias aceptadas en el período (calidad aprobada):** {'; '.join(hist) or 'ninguna'} ({len(CAL)} revisiones aprobadas en la etapa) · **Puntos terminados:** {m2(float(ult_av['puntos_terminados']))} de {m2(float(ult_av['puntos_total']))} ({ult_av['pct_terminado'].replace('.', ',')} %), {m2(float(ult_av['puntos_terminados']) - float(ant_av['puntos_terminados']))} en el período.
+**Compromisos vencidos:** {'; '.join(venc) or 'ninguno'}.
+
+## 5. Próximo período
+Historias en curso: {ult_av['in-progress']} (avance-bmad.csv) · KR-2.3 (bandeja): {KRS['KR-2.3']['actual']} completadas; hito al {next(r['fecha_meta'] for r in csv.DictReader(open(os.path.join(repo, po), encoding='utf-8')) if r['id'] == 'KR-2.3')} (okr.csv).
+
+## 6. Decisiones que necesita la junta
+{PU.split(chr(10), 1)[1].strip() if PU.startswith('###') else PU}
+
+| Decisión | Contexto | Fecha límite |
+|---|---|---|
+| Aprobar USD 4.000 de contingencia para el incentivo del panel | respuesta a {RES['riesgos']['top'][0] if RES['riesgos']['top'] else 'R-001'} | 2027-01-22 |
+
+## 7b. Avance ágil (burn-up)
+| Corte | Alcance total (pts) | Terminado acumulado (pts) | Velocidad (pts) | % terminado |
+|---|---|---|---|---|
+{burn}
+
+## 10. Registros
+Riesgos abiertos {RES['riesgos']['abiertos']} · altos {RES['riesgos']['altos_abiertos']} · issues abiertos {RES['issues']['abiertos']} · acciones abiertas {RES['acciones']['abiertos']} · vencidas {len(venc)} · cambios {RES['cambios']['total']}.
+
+## OKR (complementan los beneficios)
+{' · '.join(f"{o['id']} {m2(o['puntuacion'], 2)}" for o in OKF['objetivos'])}. KR: {' · '.join(f"{k} {m2(v['puntuacion'], 2)} ({v['salud'].replace('-', ' ')})" for k, v in KRS.items())}.
+"""
+escribir(repo, f"03-control/reportes/{FC}-highlight-report.md", H)
+art(repo, f"highlight-{FC}", f"03-control/reportes/{FC}-highlight-report.md")
+LOG.append((f"(highlight armado desde el dato → gestion/03-control/reportes/{FC}-highlight-report.md)", H.strip()))
+VIS.tarjetas([
+    (m2(EVMJ["SPI"], 3), "SPI · plazo", f"desvío {m2(EVMJ['SV_pct_del_PV'], 1)} % de {m2(EVMJ['tol_plazo_pct'])} % de tolerancia", "atencion" if r_t == "ámbar" else "bien" if r_t == "verde" else "critico"),
+    (m2(EVMJ["CPI"], 3), "CPI · costo", f"EAC USD {m2(EVMJ['EAC'])} (+{m2(EVMJ['sobrecosto_pct'], 1)} %)", "atencion" if r_c == "ámbar" else "bien" if r_c == "verde" else "critico"),
+    (f"{m2(float(ult_av['puntos_terminados']))} de {m2(float(ult_av['puntos_total']))}", "Puntos terminados (BMAD)", f"{ult_av['pct_terminado'].replace('.', ',')} % del backlog; {len(CAL)} revisiones de calidad aprobadas", None),
+    (" · ".join(m2(o["puntuacion"], 2) for o in OKF["objetivos"]), "OKR O-1 · O-2", f"en riesgo: {', '.join(en_riesgo)}; el resto en camino", None),
+    (str(len(venc)), "Compromisos vencidos", "; ".join(v.split(" 20")[0] + " (" + v.rsplit(" ", 1)[1] + ")" for v in venc) or "ninguno", "serio" if venc else "bien"),
+    (str(RES["riesgos"]["altos_abiertos"]), "Riesgos altos abiertos", "; ".join(re.sub(r"^(R-\d+) \((\d+), (\w+)\).*", r"\1 abierto, P×I \2 (\3)", x) for x in RES["riesgos"]["top"]) or "sin riesgos abiertos", "bien" if not RES["riesgos"]["altos_abiertos"] else "critico")],
+    os.path.join(OUT, "g3-highlight-indicadores.png"),
+    f"Highlight al 8/1: {general} dentro de tolerancia, {len(venc)} compromiso" + (" vencido" if len(venc) == 1 else "s vencidos"),
+    f"Período {DESDE} – {FC}. Cada cifra sale de un script; ninguna se tipea en el informe.",
+    f"evm-{FC}.json · avance-bmad.csv · okr.py --json · registro.py resumen --json (corte {FC})")
 it = []
 for i, f in enumerate(av, 1):
     it.append({"nombre": f"Sprint {i}", "planificado": 8, "terminado": 0, "alcance_total": float(f.get("puntos_total") or 0), "terminado_acumulado": float(f.get("puntos_terminados") or 0)})
@@ -282,7 +456,13 @@ tablero(repo, "2027-01-08", "2026-12-24", "2027-01-08", "2027-01-22", obj, hit,
 tablero(repo, "2027-01-08", "2026-12-24", "2027-01-08", "2027-01-22", obj, hit, [], it, "Vista por actor", "idem",
         salida_png=os.path.join(OUT, "g3-tablero-actor.png"), actor="Sofía Ramírez")
 # La junta revisa la condición de autorizar-etapa (CONCERNS de BMAD): la prueba de carga de NFR-3 ya está planificada → condición cumplida (EST-12 / G-01).
+run(E(f'puertas.py --proyecto {G} verificar autorizar-etapa'), repo, ok=(0, 1, 2))   # la próxima puerta muestra G-01 mientras la condición siga abierta
 run(E(f'estado.py --proyecto {G} cumplir-condiciones autorizar-etapa --fecha 2027-01-08 --por "Ejecutiva: Laura Méndez" --nota "prueba de carga de NFR-3 planificada en el sprint 5 (plan de la etapa 2, Lucía Benítez)"'), repo)
+
+VJ = json.loads(subprocess.run(["python3", f"{EST}/puertas.py", "--proyecto", G, "verificar", "autorizar-etapa", "--json"], cwd=repo, capture_output=True, text=True).stdout)
+LOG.append((f"python3 $EST/puertas.py --proyecto {G} verificar autorizar-etapa --json   # resumen de 'hallazgos' (severidad, id) tras cumplir-condiciones",
+            "\n".join(f"{h['severidad']} {h['id']}" for h in VJ["hallazgos"]) + f"\nG-01 presente: {'sí' if any(h['id'] == 'G-01' for h in VJ['hallazgos']) else 'no'}"))
+assert not any(h["id"] == "G-01" for h in VJ["hallazgos"]), "G-01 debería desaparecer tras cumplir-condiciones"
 
 P("Paso 11 · Comunicación personalizada por perfil y envío por la capa de canales")
 escribir(repo, "03-control/reportes/2027-01-15-comunicado-consejo.md", "# Avance del Portal de autoservicio al 8 de enero\n\n"
@@ -307,6 +487,21 @@ for m in sorted(glob.glob(os.path.join(repo, C, "mensaje-*.md"))):
     clave = ("sindicato" if f"para: {ST['Sindicato de operadores']}" in t else "reunion" if "canal: reunion" in t else
              "datos" if "formato: datos" in t else "lista" if "formato: lista" in t else "ejecutivo")
     open(m, "w", encoding="utf-8").write(t.split("-->", 1)[0] + "-->\n\n" + textos[clave] + "\n")
+# Cadena de reporte (regla 12 de pm-progreso-reportes: mismas cifras en highlight, tablero y comunicados): toda cifra decimal o con
+# separador de miles del comunicado base y de cada borrador debe figurar en el highlight armado desde el dato (paso 10).
+CIFRA = re.compile(r"\d{1,3}(?:\.\d{3})+|\d+,\d+")
+revisar = [("comunicado base", open(os.path.join(repo, G, "03-control/reportes/2027-01-15-comunicado-consejo.md"), encoding="utf-8").read())]
+revisar += [(os.path.basename(m), open(m, encoding="utf-8").read().split("-->", 1)[1]) for m in sorted(glob.glob(os.path.join(repo, C, "mensaje-*.md")))]
+lineas_c, sin_respaldo = [], []
+for nombre, txt in revisar:
+    cs = sorted(set(CIFRA.findall(txt)), key=lambda c: (len(c), c)); sin = [c for c in cs if c not in H]
+    lineas_c.append(f"{nombre}: {len(cs)} cifra(s) {('(' + ', '.join(cs) + ')') if cs else ''} · sin respaldo en el highlight: {', '.join(sin) or 'ninguna'}")
+    sin_respaldo += sin
+LOG.append(("(cadena de reporte: cifras del comunicado y de los borradores contra el highlight del 2027-01-08)", "\n".join(lineas_c)))
+if sin_respaldo: print("FALLO cadena de reporte: cifras sin respaldo", sin_respaldo); sys.exit(1)
+# Confirmación humana obligatoria: el hook guardian.py pide permiso para aprobar y para el envío real, también desde pm-director.
+guardian([(V(f'aprobar {C} --por "Gestor: Martín Suárez"'), ""), (V(f"enviar {C} --modo smtp"), ""),
+          (V(f"enviar {C} --modo smtp --confirmar"), ""), (V(f'aprobar {C} --por "Gestor: Martín Suárez"'), "pm-method:pm-director")])
 run(V(f'aprobar {C} --por "Gestor: Martín Suárez"'), repo)
 run(V(f"enviar {C} --modo smtp"), repo)
 s1, s2, rec, envp = servidores_prueba()
@@ -321,11 +516,13 @@ act(repo, "acciones", A["consejo"], estado="completada", fecha_cierre="2027-01-1
 act(repo, "acciones", A["proto"], estado="completada", fecha_cierre="2027-01-14", notas="prototipo con métricas de equipo presentado a los operadores (vencida desde el 11/12, informada en el highlight)")
 act(repo, "stakeholders", ST["Socios usuarios piloto"], nivel_compromiso_actual="partidario", notas="78 % de respuesta al boletín 2")
 run(E(f'registro.py --proyecto {G} listar acciones'), repo)
+foto_compromiso("2027-01-15")
 
 P("Paso 12 · Reporte de interesados, vínculos en el ecosistema e integridad")
 run(I(f"reporte --html {G}/03-control/reportes/2027-01-15-interesados.html --markdown {G}/03-control/reportes/2027-01-15-interesados.md --corte 2027-01-15"), repo)
 art(repo, "reporte-interesados", "03-control/reportes/2027-01-15-interesados.html", estado="borrador")
-captura_html(os.path.join(repo, G, "03-control/reportes/2027-01-15-interesados.html"), os.path.join(OUT, "g3-interesados.png"))
+captura_secciones(os.path.join(repo, G, "03-control/reportes/2027-01-15-interesados.html"),
+                  [("g3-interesados-matriz.png", None, "3. Matriz RACI"), ("g3-interesados-raci-perfiles.png", "3. Matriz RACI", "5. Estereotipos")])
 run(I(f'perfil todos --corte 2027-01-15'), repo)
 run(I(f'vinculos {ST["Sofía Ramírez"]}'), repo)
 run(I("integridad --corte 2027-01-15"), repo)
@@ -334,8 +531,20 @@ run(E(f'sanidad.py --proyecto {G} --rapido --corte 2027-01-15'), repo, ok=(0, 1,
 run(E(f'exportar.py xlsx --proyecto {G} --salida {G}/exportados/2027-01-15-registros.xlsx'), repo, ok=(0, 1))
 P("Paso 13 · Compromiso sostenido: cadencia de contacto (STK-12), acción correctiva y reevaluación del compromiso")
 CO = "2027-02-05"
-run(I(f"integridad --corte {CO}"), repo)
+det = run(I(f"integridad --corte {CO}"), repo)
 run(E(f'sanidad.py --proyecto {G} --rapido --corte {CO}'), repo, ok=(0, 1, 2))
+# Gráfico de la detección: días desde el último contacto como % del máximo de STK-12, para cada interesado vigilado.
+cad = cadencia_filas(CO)
+fuera = [x for x in cad if x[3] > x[4]]
+assert sorted(x[0] for x in fuera) == sorted(re.findall(r"STK-12: (ST-\d{3})", det)), "el gráfico no coincide con STK-12"
+def est_cad(g, l): return ("critico", "✖ fuera de cadencia") if g > l else ("atencion", "▲ en el límite") if g >= 0.8 * l else ("bien", "✔ en cadencia")
+items_cad = [(f"{sid} {corto(nom)} · {fr}", round(100 * g / l), est_cad(g, l)[0], f"{g} de {l} días · {est_cad(g, l)[1]}")
+             for sid, nom, fr, g, l in sorted(cad, key=lambda x: (-x[3] / x[4], x[0]))]
+VIS.estados(items_cad, os.path.join(OUT, "g3-cadencia-stk12.png"),
+            f"Al {int(CO[8:])}/{int(CO[5:7])}, {len(fuera)} de {len(cad)} interesados vigilados están fuera de su cadencia",
+            "Días desde el último contacto registrado en envios.csv, como % del máximo (frecuencia × 1,5). 100 % = límite de STK-12.",
+            f"interesados.py integridad --corte {CO} (STK-12) · envios.csv · perfil de cada interesado", maximo=200, decimales=0, sufijo=" %")
+LOG.append((f"(gráfico g3-cadencia-stk12.png: días desde el último contacto y máximo al {CO})", "\n".join(f"{sid} {nom} ({fr}): {g} de {l} días" for sid, nom, fr, g, l in cad)))
 # Acción correctiva 1: la reunión técnica con TI se retoma y se registra como envío manual, con la retroalimentación.
 reg(repo, "envios", fecha=CO, stakeholder_id=ST["Área de TI del núcleo operativo"], canal="reunion", modo="manual", estado="enviado", proposito="otro",
     asunto="Reunión técnica: integración con el núcleo (NFR-6) y prueba de carga (NFR-3)", referencia="acta 2027-02-05 reunión técnica", confirmado_por="Jefa de equipo: Lucía Benítez",
@@ -352,18 +561,74 @@ for n in ("Martín Suárez", "Lucía Benítez"):
 act(repo, "stakeholders", ST["Área de TI del núcleo operativo"], nivel_compromiso_actual="resistente",
     notas=f"2027-02-05: molestia por falta de contacto (STK-12, 18 días sin reunión); ver {A['ti']}")
 act(repo, "stakeholders", ST["Sindicato de operadores"], notas="2027-02-05: sin objeciones al comunicado del 15/1 (métricas de equipo, D-006); se mantiene neutral = deseado")
-NIV = ["desconocedor", "resistente", "neutral", "partidario", "lider"]
-sts = reg_json(repo, "listar", "stakeholders")
-filas = ["| Interesado | " + " | ".join(NIV) + " | Brecha |", "|---|" + "---|" * (len(NIV) + 1)]
-for x in sts:
-    a_, d_ = x.get("nivel_compromiso_actual", ""), x.get("nivel_compromiso_deseado", "")
-    celdas = [("A=D" if (n == a_ and n == d_) else "A" if n == a_ else "D" if n == d_ else "") for n in NIV]
-    br = NIV.index(d_) - NIV.index(a_) if a_ in NIV and d_ in NIV else 0
-    filas.append(f"| {x['id']} {x['nombre']} | " + " | ".join(celdas) + f" | {'+' + str(br) if br > 0 else '—'} |")
-LOG.append((f"(matriz de evaluación del compromiso al {CO}, leída de stakeholders.csv: A = actual, D = deseado)", "\n".join(filas)))
+foto_compromiso(CO)
+matriz_compromiso(CO)
 run(I(f"integridad --corte {CO}"), repo)
 run(E(f'sanidad.py --proyecto {G} --rapido --corte {CO}'), repo, ok=(0, 1, 2))
 run(I(f'vinculos {ST["Área de TI del núcleo operativo"]}'), repo)
+
+P("Paso 14 · Revisión periódica del compromiso: la cadencia y la brecha se miden en cada período")
+# 5/2 (tras la corrección): el comunicado quincenal a quienes estaban en el límite sale por la capa de canales, según el perfil de cada uno.
+base14 = "03-control/reportes/2027-02-05-resumen-quincenal.md"
+escribir(repo, base14, "# Resumen quincenal al 5 de febrero\n\nReunión técnica semanal con TI retomada (A-005) y frecuencia de contacto revisada tras el control de cadencia (STK-12).\n")
+art(repo, "resumen-quincenal-2027-02-05", base14)
+dest14 = ",".join(ST[n] for n in ("Laura Méndez", "Sofía Ramírez", "Sindicato de operadores"))
+run(I(f'plan-envio --tema "Resumen quincenal al 5 de febrero" --audiencia "{dest14}" --proposito informe --base {G}/{base14} --agrupar --fecha {CO}'), repo)
+C14 = os.path.relpath(sorted(glob.glob(os.path.join(repo, G, f"03-control/comunicaciones/{CO}-*")))[0], repo)
+textos14 = {
+  "ejecutivo": "Resumen quincenal al 5/2. Sin decisiones nuevas para la junta. El control de cadencia detectó 18 días sin reunión técnica con TI: "
+               "se retomó hoy, con acta el mismo día (acción A-005, Lucía Benítez, 12/2).",
+  "datos":     "Cadencia al 5/2: TI 18 días sin reunión (máximo 10) → reunión retomada hoy y A-005; checkpoint semanal registrado; "
+               "frecuencia de Lucía corregida de diaria a semanal. Brecha de compromiso: TI pasó de neutral a resistente (deseado: partidario).",
+  "sindicato": "Resumen quincenal: lo acordado en el taller se mantiene (métricas de equipo, D-006). El próximo resumen sale en dos semanas.",
+}
+for m in sorted(glob.glob(os.path.join(repo, C14, "mensaje-*.md"))):
+    t = open(m, encoding="utf-8").read()
+    clave = "sindicato" if f"para: {ST['Sindicato de operadores']}" in t else "datos" if "canal: teams" in t else "ejecutivo"
+    open(m, "w", encoding="utf-8").write(t.split("-->", 1)[0] + "-->\n\n" + textos14[clave] + "\n")
+run(V(f'aprobar {C14} --por "Gestor: Martín Suárez"'), repo)
+s1, s2, rec, envp = servidores_prueba()
+run_env(V(f"enviar {C14} --modo smtp --confirmar --fecha {CO}"), repo, envp)
+run_env(V(f"enviar {C14} --modo teams-webhook --confirmar --fecha {CO}"), repo, envp)
+LOG.append(("(lo que recibieron los servidores de prueba de 127.0.0.1)", json.dumps({"correos": [m["rcpt"] for m in rec["smtp"]], "teams": len([h for h in rec["http"] if h["ruta"] == "/teams"])}, ensure_ascii=False)))
+for x in (s1, s2): x.shutdown()
+# 12/2: segunda reunión técnica (con acta el mismo día), A-005 cumplida y checkpoint semanal.
+TI = ST["Área de TI del núcleo operativo"]
+reg(repo, "envios", fecha="2027-02-12", stakeholder_id=TI, canal="reunion", modo="manual", estado="enviado", proposito="otro",
+    asunto="Reunión técnica semanal: ambiente de prueba de carga (NFR-3)", referencia="acta 2027-02-12 reunión técnica", confirmado_por="Jefa de equipo: Lucía Benítez",
+    notas="retroalimentación: el acta llegó el mismo día; TI confirma el ambiente de carga para el sprint 5 y pide seguir con el aviso previo de cambios en el padrón.")
+act(repo, "acciones", A["ti"], estado="completada", fecha_cierre="2027-02-12", notas="reunión semanal retomada (5/2 y 12/2) con acta el mismo día")
+for n in ("Martín Suárez", "Lucía Benítez"):
+    reg(repo, "envios", fecha="2027-02-12", stakeholder_id=ST[n], canal="reunion", modo="manual", estado="enviado", proposito="informe",
+        asunto="Checkpoint semanal del 2027-02-12 (Lucía Benítez → Martín Suárez)", referencia="checkpoint-report 2027-02-12", confirmado_por="Gestor: Martín Suárez")
+# 19/2: tercera reunión técnica y revisión periódica (cadencia, integridad, sanidad y brecha de compromiso).
+CO2 = "2027-02-19"
+reg(repo, "envios", fecha=CO2, stakeholder_id=TI, canal="reunion", modo="manual", estado="enviado", proposito="otro",
+    asunto="Reunión técnica semanal: integración con el núcleo (NFR-6)", referencia="acta 2027-02-19 reunión técnica", confirmado_por="Jefa de equipo: Lucía Benítez",
+    notas="retroalimentación: sin cambios sorpresivos en el padrón; TI vuelve a participar en la planificación del sprint y propone revisar juntos la consulta al padrón.")
+act(repo, "stakeholders", TI, nivel_compromiso_actual="neutral",
+    notas=f"2027-02-19: tres reuniones semanales con acta (5/2, 12/2 y 19/2) y {A['ti']} cumplida; el deseado sigue en partidario")
+run(I(f"integridad --corte {CO2}"), repo)
+run(E(f'sanidad.py --proyecto {G} --rapido --corte {CO2}'), repo, ok=(0, 1, 2))
+foto_compromiso(CO2)
+matriz_compromiso(CO2)
+# Evolución de la brecha por interesado en cada revisión (fotos tomadas durante la corrida).
+revs = sorted(FOTO)
+con_brecha = [sid for sid in FOTO[revs[0]] if any(brecha(*FOTO[r][sid][1:]) for r in revs)]
+tot = {r: sum(brecha(*FOTO[r][sid][1:]) for sid in FOTO[r]) for r in revs}
+evol = ["| Interesado | " + " | ".join(revs) + " |", "|---|" + "---|" * len(revs)]
+evol += [f"| {sid} {FOTO[revs[0]][sid][0]} | " + " | ".join(f"{FOTO[r][sid][1]} → {FOTO[r][sid][2]} ({'+' + str(brecha(*FOTO[r][sid][1:])) if brecha(*FOTO[r][sid][1:]) else '0'})" for r in revs) + " |" for sid in con_brecha]
+evol += ["| **Brecha total (niveles)** | " + " | ".join(f"**{tot[r]}**" for r in revs) + " |"]
+LOG.append(("(evolución de la brecha de compromiso en cada revisión: actual → deseado (brecha), leída de stakeholders.csv)", "\n".join(evol)))
+graf = [revs[0], CO, CO2]
+assert [brecha(*FOTO[r][TI][1:]) for r in graf] == [1, 2, 1], "el título del gráfico de brecha ya no describe los datos"
+fecha_c = lambda r: f"{int(r[8:])}/{int(r[5:7])}"
+VIS.barras_comparadas([f"{sid} {corto(FOTO[revs[0]][sid][0])}" for sid in con_brecha], [[brecha(*FOTO[r][sid][1:]) for sid in con_brecha] for r in graf],
+                      os.path.join(OUT, "g3-brecha-compromiso.png"),
+                      f"La brecha baja de {tot[graf[0]]} a {tot[CO2]} niveles; TI cayó sin su reunión y repunta",
+                      "Niveles entre el compromiso actual y el deseado: desconocedor → resistente → neutral → partidario → líder.",
+                      "stakeholders.csv (nivel_compromiso_actual y nivel_compromiso_deseado) en cada revisión",
+                      nombres=[f"Inicio {fecha_c(graf[0])}", f"{fecha_c(CO)} (STK-12)", f"{fecha_c(CO2)} (revisión)"])
 with open(sys.argv[1] if len(sys.argv) > 1 else "salida-g3.md", "w", encoding="utf-8") as f:
     for c, o in LOG:
         f.write((c + "\n" if c.startswith("## ") else f"```\n$ {c}\n{o}\n```\n\n"))

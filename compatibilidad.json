@@ -1,10 +1,10 @@
 {
   "paquete": "pm-method",
-  "version": "2.2.0",
+  "version": "2.3.0",
   "spec": "SPEC.md v2 (§0, §1.10–§1.17)",
   "esquemas": {
     "estado.json": "v2 (migración automática desde v1)",
-    "registros": "esquema.py v2.2 (13 registros: 9 base + estereotipos, preferencias, raci y envios, que se crean al primer uso)",
+    "registros": "esquema.py v2.3 (13 registros: 9 base + estereotipos, preferencias, raci y envios, que se crean al primer uso)",
     "indice_especificacion": "pm-spec-index/1"
   },
   "bmad": {

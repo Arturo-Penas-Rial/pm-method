@@ -1,0 +1,38 @@
+{
+  "_ayuda": "Ejemplo comentado del esquema pm-mapa-wardley/1 (proyecto ficticio). Copiar a 02-planificacion/mapas/wardley-<slug>.json o generar con 'mapas.py … wardley semilla'. Las claves que empiezan con '_' son comentarios: el script las ignora. Ejes 0–1: visibilidad (1 = lo que el usuario ve) y evolución (0 génesis · 0,25 a medida · 0,50 producto · 0,75 commodity). Cada posición lleva evidencia con su fuente; sin fuente queda '[por confirmar]' y la sanidad avisa (MAP-04).",
+  "esquema": "pm-mapa-wardley/1",
+  "titulo": "Habilitación comercial en línea",
+  "pregunta_estrategica": "¿Qué partes del trámite construimos, cuáles compramos y con qué enfoque se entrega cada una?",
+  "alcance": "Trámite de habilitación de comercios de bajo riesgo; excluye inspecciones",
+  "fecha_corte": "2027-03-01",
+  "estado": "borrador",
+  "fuentes": ["00-direccion/mandato.md", "03-control/registros/supuestos.csv"],
+  "anclas": [
+    {"id": "A1", "nombre": "Comerciante", "visibilidad": 0.95, "evolucion": 0.55, "refs": [],
+     "_ayuda": "Ancla: usuario o necesidad en la parte superior; da sentido a la cadena de valor."}
+  ],
+  "componentes": [
+    {"id": "C1", "nombre": "Formulario guiado del trámite", "visibilidad": 0.80, "evolucion": 0.35, "etapa": "a-medida",
+     "evidencia": "Reglas propias de la intendencia; no hay oferta de mercado que las cubra (relevamiento del brief, §3)",
+     "refs": ["REQ-001"], "decision": "construir", "inercia": false, "nota": "",
+     "_ayuda": "decision: construir | comprar | tercerizar | mercado | vacío. Un componente en producto o commodity marcado 'construir' necesita una decisión registrada (MAP-01)."},
+    {"id": "C2", "nombre": "Pago en línea", "visibilidad": 0.60, "evolucion": 0.80, "etapa": "commodity",
+     "evidencia": "Pasarela de pagos ya contratada por la intendencia (contrato vigente)", "refs": [], "decision": "comprar", "inercia": false, "nota": ""},
+    {"id": "C3", "nombre": "Expediente electrónico", "visibilidad": 0.40, "evolucion": 0.60, "etapa": "producto",
+     "evidencia": "Sistema en uso desde hace diez años; cambiar su interfaz requiere al proveedor (lección L-004)",
+     "refs": ["R-002"], "decision": "", "inercia": true, "nota": "",
+     "_ayuda": "inercia: true marca resistencia a evolucionar (legado, contrato, hábito). Sin un riesgo abierto citado en refs, la sanidad avisa (MAP-02)."},
+    {"id": "C4", "nombre": "Correo y notificaciones", "visibilidad": 0.30, "evolucion": 0.88, "etapa": "commodity",
+     "evidencia": "Servicio de envío estándar con varios proveedores", "refs": [], "decision": "tercerizar", "inercia": false, "nota": ""}
+  ],
+  "enlaces": [
+    {"de": "A1", "a": "C1"}, {"de": "C1", "a": "C2"}, {"de": "C1", "a": "C3"}, {"de": "C1", "a": "C4"}
+  ],
+  "movimientos": [
+    {"componente": "C1", "hacia": 0.55, "motivo": "Cuando otras intendencias adopten el mismo trámite, se vuelve producto",
+     "_ayuda": "Movimiento previsto (evolve): siempre hacia la derecha; la evolución no es un cronograma."}
+  ],
+  "notas": [
+    {"texto": "La integración con el expediente fija el ritmo del proyecto", "visibilidad": 0.22, "evolucion": 0.40}
+  ]
+}

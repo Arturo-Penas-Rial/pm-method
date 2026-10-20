@@ -1,0 +1,680 @@
+{
+ "_nota": "Texto propio del resumen ejecutivo. Sin cifras escritas a mano: las cifras van como {clave} y las completa extraer.py con lo que cuenta en el repositorio (ver datos.json → n). Los códigos de control citados se validan contra los scripts.",
+ "orden_agentes": [
+  "pm-orquestador",
+  "pm-director",
+  "pm-inicio",
+  "pm-planificacion",
+  "pm-control",
+  "pm-cierre"
+ ],
+ "familias_sanidad": [
+  "INS",
+  "EST",
+  "ART",
+  "REG",
+  "CAM",
+  "QUA",
+  "TOL",
+  "SUP",
+  "ESP",
+  "STK",
+  "MAP",
+  "INT"
+ ],
+ "familias_sin_nombre": {
+  "SUP": "supuestos"
+ },
+ "casos": {
+  "E2E-1": {
+   "imagen": "g1-consumo-reserva.png",
+   "indicadores": [
+    "g1-mapa-inherente-residual.png",
+    "g1-consumo-reserva.png",
+    "g1-tarjetas-etapa.png"
+   ]
+  },
+  "E2E-2": {
+   "imagen": "g2-consumo-cambio.png",
+   "indicadores": [
+    "g2-consumo-cambio.png",
+    "g2-alcance-evm.png",
+    "g2-indicadores.png"
+   ]
+  },
+  "E2E-3": {
+   "imagen": "g3-cadencia-stk12.png",
+   "indicadores": [
+    "g3-highlight-indicadores.png",
+    "g3-cadencia-stk12.png",
+    "g3-brecha-compromiso.png"
+   ]
+  },
+  "E2E-4": {
+   "imagen": "g4-calidad-entregas.png",
+   "indicadores": [
+    "g4-calidad-entregas.png",
+    "g4-cierre.png",
+    "g4-beneficios.png"
+   ]
+  },
+  "E2E-5": {
+   "imagen": "g5-van-opciones.png",
+   "indicadores": [
+    "g5-mapa-supuestos.png",
+    "g5-van-opciones.png",
+    "g5-presupuesto.png"
+   ]
+  }
+ },
+ "perfiles": [
+  {
+   "fila": "PMO / CoE de IA",
+   "titulo": "PMO y centros de excelencia",
+   "empieza": "guía E2E-2: cambio y gestión por excepción"
+  },
+  {
+   "fila": "Gestor de proyectos",
+   "titulo": "Gestores de proyecto",
+   "empieza": "guía E2E-1: riesgos de punta a punta"
+  },
+  {
+   "fila": "Ejecutivo y junta",
+   "titulo": "Líderes de negocio y junta",
+   "empieza": "guía E2E-5: de la idea al proyecto"
+  },
+  {
+   "fila": "Product owner / equipo ágil",
+   "titulo": "Equipos de producto con BMAD",
+   "empieza": "guía E2E-4: producto con BMAD"
+  }
+ ],
+ "glosario": [
+  {
+   "termino": "PRINCE2 7",
+   "formas": [
+    "PRINCE2 7",
+    "PRINCE2"
+   ],
+   "definicion": "Método de gestión de proyectos por etapas. En pm-method define el ciclo de vida, los roles, las tolerancias y las puertas, y siempre manda."
+  },
+  {
+   "termino": "PMBOK 8",
+   "formas": [
+    "PMBOK 8",
+    "PMBOK"
+   ],
+   "definicion": "Guía de fundamentos de la dirección de proyectos. En pm-method aporta solo técnicas (valor ganado, camino crítico, PERT, P×I) dentro de PRINCE2."
+  },
+  {
+   "termino": "BMAD",
+   "formas": [
+    "BMAD"
+   ]
+  },
+  {
+   "termino": "Skill",
+   "formas": [
+    "skills",
+    "skill"
+   ],
+   "definicion": "Paquete de instrucciones, plantillas y scripts que Claude Code activa por su descripción o que la persona invoca como comando."
+  },
+  {
+   "termino": "Agente y subagente",
+   "formas": [
+    "subagentes",
+    "agentes"
+   ],
+   "definicion": "Instancia del modelo con un rol. El orquestador conversa con la persona y delega en subagentes de fase, que trabajan con contexto aislado y no deciden."
+  },
+  {
+   "termino": "Hook",
+   "formas": [
+    "hooks"
+   ],
+   "definicion": "Script que Claude Code ejecuta ante un evento (inicio de sesión, pedido, uso de una herramienta). En pm-method protege los datos de gobierno y agrega contexto."
+  },
+  {
+   "termino": "MCP",
+   "formas": [
+    "MCP"
+   ],
+   "definicion": "Model Context Protocol: estándar para conectar el modelo con herramientas externas como trackers, chat, correo, transcripciones u OKR."
+  },
+  {
+   "termino": "Junta del proyecto (project board)",
+   "formas": [
+    "junta"
+   ]
+  },
+  {
+   "termino": "Puerta",
+   "formas": [
+    "puertas",
+    "puerta"
+   ]
+  },
+  {
+   "termino": "Tolerancia",
+   "formas": [
+    "tolerancias",
+    "tolerancia"
+   ]
+  },
+  {
+   "termino": "Gestión por excepción",
+   "formas": [
+    "gestión por excepción"
+   ]
+  },
+  {
+   "termino": "Sanidad",
+   "formas": [
+    "sanidad"
+   ]
+  },
+  {
+   "termino": "Condición formal",
+   "formas": [
+    "condición formal",
+    "condiciones"
+   ]
+  },
+  {
+   "termino": "Presupuesto de cambio",
+   "formas": [
+    "presupuesto de cambio"
+   ]
+  },
+  {
+   "termino": "Valor ganado (EVM)",
+   "formas": [
+    "valor ganado",
+    "EVM"
+   ]
+  },
+  {
+   "termino": "Matriz RACI",
+   "formas": [
+    "RACI"
+   ]
+  },
+  {
+   "termino": "OKR",
+   "formas": [
+    "OKR"
+   ]
+  },
+  {
+   "termino": "Fachada de especificación",
+   "formas": [
+    "fachada"
+   ]
+  }
+ ],
+ "ciclo": [
+  {
+   "codigo": "SU",
+   "procesos": [
+    "SU"
+   ],
+   "nombre": "Puesta en marcha",
+   "etapa": "etapa 0 · pre-proyecto",
+   "agentes": [
+    "pm-inicio"
+   ],
+   "produce": "mandato · project brief · caso de negocio esquemático"
+  },
+  {
+   "codigo": "IP",
+   "procesos": [
+    "IP"
+   ],
+   "nombre": "Iniciación",
+   "etapa": "etapa 1",
+   "agentes": [
+    "pm-inicio",
+    "pm-planificacion"
+   ],
+   "produce": "PID · business case · planes · presupuestos de la junta",
+   "skills_de": [
+    "pm-inicio"
+   ]
+  },
+  {
+   "codigo": "CS · MP",
+   "procesos": [
+    "CS",
+    "MP"
+   ],
+   "nombre": "Control y entrega",
+   "etapa": "etapas 2 … n",
+   "agentes": [
+    "pm-control"
+   ],
+   "produce": "paquetes · highlight · registros · valor ganado"
+  },
+  {
+   "codigo": "SB",
+   "procesos": [
+    "SB"
+   ],
+   "nombre": "Límite de etapa",
+   "etapa": "fin de cada etapa",
+   "agentes": [
+    "pm-planificacion"
+   ],
+   "produce": "informe de fin de etapa · plan de la siguiente"
+  },
+  {
+   "codigo": "CP",
+   "procesos": [
+    "CP"
+   ],
+   "nombre": "Cierre",
+   "etapa": "última etapa",
+   "agentes": [
+    "pm-cierre"
+   ],
+   "produce": "aceptación · lecciones · revisión de beneficios"
+  }
+ ],
+ "textos": {
+  "pie": "pm-method {version} · Resumen ejecutivo",
+  "portada": {
+   "kicker": "Resumen ejecutivo · pm-method {version}",
+   "titulo": "Gestión de proyectos con IA, con método, gobierno y controles permanentes",
+   "subtitulo": "Un plugin para Claude Code y Cowork. PRINCE2 7 manda, PMBOK 8 aporta las técnicas y BMAD es la especificación del producto, de solo lectura.",
+   "cifras": [
+    [
+     "{agentes}",
+     "agentes"
+    ],
+    [
+     "{skills}",
+     "skills"
+    ],
+    [
+     "{hooks}",
+     "hooks"
+    ],
+    [
+     "{codigos}",
+     "controles automáticos"
+    ],
+    [
+     "{casos}",
+     "casos de punta a punta"
+    ]
+   ],
+   "en": "EN: AI-assisted project management with a real method, governance and permanent controls, as a Claude Code and Cowork plugin."
+  },
+  "problema": {
+   "titulo": "Lo que hoy se controla a mano, una sola vez o nunca, pasa a ser un control permanente",
+   "col_hoy": "Lo habitual",
+   "col_pm": "Con pm-method",
+   "filas": [
+    [
+     "El registro de riesgos se arma en un taller y se congela",
+     "Riesgos altos sin respuesta y revisiones vencidas aparecen en cada sesión",
+     "REG-06 · REG-09"
+    ],
+    [
+     "Los cambios se aprueban uno a uno y nadie suma lo comprometido",
+     "Cada cambio se carga contra el presupuesto de la junta; excedido, bloquea la puerta",
+     "CAM-03 · CAM-04"
+    ],
+    [
+     "«Aprobado con condiciones» queda en el acta y se olvida",
+     "La condición se sigue hasta que alguien con rol la cierra; abierta, bloquea el cierre",
+     "EST-12 · G-01"
+    ],
+    [
+     "La calidad se revisa al final, si se revisa",
+     "Cada historia terminada necesita su revisión aprobada, en cada entrega",
+     "QUA-01 · QUA-02"
+    ],
+    [
+     "El pronóstico de valor ganado no se vuelve a mirar",
+     "Un pronóstico fuera de tolerancia sin excepción abierta genera aviso",
+     "TOL-01"
+    ],
+    [
+     "El plan de comunicaciones promete una frecuencia que nadie verifica",
+     "La cadencia de contacto de cada interesado clave queda vigilada",
+     "STK-12"
+    ]
+   ],
+   "en": "EN: what is usually checked by hand, once or never becomes a permanent control that runs in every session."
+  },
+  "perfiles": {
+   "titulo": "PMO, gestores, negocio y producto trabajan sobre la misma fuente de verdad",
+   "obtiene": "Qué obtiene",
+   "empieza": "Para empezar",
+   "en": "EN: one source of truth for PMOs, project managers, business leaders and product teams using BMAD."
+  },
+  "que_es": {
+   "titulo": "Un plugin de Claude Code y Cowork con una jerarquía fija: PRINCE2 7 siempre manda",
+   "jerarquia": "Jerarquía de fuentes",
+   "kpis": [
+    [
+     "{agentes}",
+     "agentes",
+     "un orquestador y {subagentes} subagentes de fase"
+    ],
+    [
+     "{skills}",
+     "skills",
+     "{invocables} que el modelo activa y {comandos} comandos"
+    ],
+    [
+     "{hooks}",
+     "hooks",
+     "{hooks_nombres}"
+    ],
+    [
+     "{registros}",
+     "registros CSV",
+     "{registros_base} base y {registros_opc} que se crean al primer uso"
+    ],
+    [
+     "{puertas}",
+     "tipos de puerta",
+     "decisiones de la junta, verificadas antes"
+    ],
+    [
+     "{codigos}",
+     "controles",
+     "{codigos_sanidad} de sanidad y {codigos_puerta} de puerta"
+    ]
+   ],
+   "nota": "Bilingüe ES/EN. Licencia {licencia}. La fuente de verdad es una carpeta de Markdown, CSV y JSON que se versiona con git y se lee sin pm-method.",
+   "en": "EN: a Claude Code and Cowork plugin with a fixed hierarchy: PRINCE2 7 always leads, PMBOK 8 supplies techniques, BMAD is read-only."
+  },
+  "arquitectura": {
+   "titulo": "Las personas deciden, los agentes preparan y los scripts escriben y verifican",
+   "puntos": [
+    [
+     "Decisiones humanas",
+     "Solo pm-director registra decisiones de la junta, siempre después de una respuesta con nombre y rol; un hook lo hace cumplir."
+    ],
+    [
+     "Datos íntegros",
+     "estado.json y los registros cambian solo por scripts que validan; las ediciones directas se bloquean."
+    ],
+    [
+     "Especificación sin copias",
+     "BMAD se lee por una fachada y nunca se escribe; los desvíos contra la línea base se detectan."
+    ]
+   ],
+   "en": "EN: people decide, agents prepare, scripts write and verify."
+  },
+  "componentes": {
+   "titulo": "{agentes} agentes y {skills} skills, cada una con un dueño en el ciclo de vida",
+   "comando": "comando",
+   "nota": "Agente dueño según el campo metadata.pm-method.agente de cada SKILL.md. Los comandos (/pm-method:…) los invoca la persona; las demás skills las activa el modelo por su descripción.",
+   "roles": {
+    "pm-orquestador": "Conversa, pregunta, delega y presenta las decisiones",
+    "pm-director": "Único que registra las decisiones de la junta",
+    "pm-inicio": "Del mandato al proyecto autorizado",
+    "pm-planificacion": "Productos, estimación, cronograma y costo",
+    "pm-control": "Mantiene la etapa dentro de tolerancias",
+    "pm-cierre": "Cierre ordenado, planificado o prematuro"
+   },
+   "en": "EN: agents and skills, each with an owner in the life cycle."
+  },
+  "ciclo": {
+   "titulo": "Cada transición del ciclo PRINCE2 pasa por una puerta que decide la junta",
+   "direccion": "DP · Dirección: la junta decide en cada puerta; pm-director prepara la solicitud y registra la decisión",
+   "excepcion": "Pronóstico fuera de tolerancia → informe de excepción → autorizar-plan-excepcion",
+   "antes": "Antes de cada puerta: sanidad, lista de control de la junta y, con BMAD, verificación de la especificación. Un ERROR abierto bloquea la decisión salvo que la junta lo acepte como condición.",
+   "en": "EN: every PRINCE2 transition goes through a board gate, verified before the decision."
+  },
+  "controles": {
+   "titulo": "{codigos} controles automáticos vigilan lo que nadie revisa a mano",
+   "grafico": "Códigos de control por familia de sanidad",
+   "leyenda_perm": "control permanente",
+   "leyenda_otro": "otras familias",
+   "puerta": "Además, {codigos_puerta} controles de puerta (P y G) verifican cada decisión de la junta.",
+   "ejemplos_titulo": "Lo que detectaron en los casos E2E",
+   "ejemplos": [
+    {
+     "codigo": "CAM-03",
+     "caso": "E2E-2",
+     "imagen": "g2-consumo-cambio.png"
+    },
+    {
+     "codigo": "CAM-03",
+     "caso": "E2E-1",
+     "imagen": "g1-consumo-reserva.png"
+    },
+    {
+     "codigo": "STK-12",
+     "caso": "E2E-3",
+     "imagen": "g3-cadencia-stk12.png"
+    },
+    {
+     "codigo": "QUA-01",
+     "caso": "E2E-4",
+     "imagen": "g4-calidad-entregas.png"
+    }
+   ],
+   "en": "EN: automatic controls watch what nobody checks by hand."
+  },
+  "integraciones": {
+   "titulo": "Se conecta con las herramientas que ya usa la organización, sin atarse a ninguna",
+   "centro": "pm-method",
+   "centro_sub": "gobierno sobre la carpeta del proyecto",
+   "nodos": [
+    {
+     "nombre": "BMAD",
+     "clave": "especificacion",
+     "texto": "Especificación de solo lectura: PRD, arquitectura, épicas, historias y estado del sprint, sin copias."
+    },
+    {
+     "nombre": "Trackers",
+     "clave": "tracker",
+     "texto": "Instantáneas fechadas, avance y riesgos candidatos desde los tickets."
+    },
+    {
+     "nombre": "Transcripciones",
+     "clave": "reuniones",
+     "texto": "Actas con acciones, riesgos, decisiones y preferencias declaradas, confirmadas por una persona."
+    },
+    {
+     "nombre": "Correo, Slack y Teams",
+     "clave": "canales",
+     "texto": "Capa de canales: envía solo mensajes aprobados, simula por defecto y registra cada envío."
+    },
+    {
+     "nombre": "OKR",
+     "clave": "okr",
+     "texto": "Resultados clave ligados a los beneficios del business case, con check-ins y salud."
+    },
+    {
+     "nombre": "Mapas de Wardley y recorrido",
+     "clave": "mapas",
+     "texto": "Qué construir, comprar o tercerizar y la experiencia del usuario paso a paso, con controles."
+    }
+   ],
+   "nombres": {
+    "jira": "Jira",
+    "linear": "Linear",
+    "github": "GitHub",
+    "azure-devops": "Azure DevOps",
+    "granola": "Granola",
+    "fireflies": "Fireflies",
+    "zoom": "Zoom",
+    "minutes": "minutes",
+    "teams": "Teams",
+    "archivo": "archivo",
+    "slack": "Slack",
+    "smtp": "SMTP",
+    "gmail": "Gmail",
+    "outlook": "Outlook",
+    "eml": ".eml",
+    "tability": "Tability",
+    "perdoo": "Perdoo",
+    "bmad": "BMAD"
+   },
+   "mapas": "Mermaid wardley-beta y journey · OWM · HTML",
+   "nota": "Conexión por MCP genérico: nada viene predefinido. Sin MCP, pm-method trabaja con archivos; sin BMAD, con su propia especificación.",
+   "en": "EN: open integrations through generic MCP; nothing is hard-wired to a vendor.",
+   "bmad": "versiones probadas: {bmad_probado}"
+  },
+  "catalogo": {
+   "titulo": "{casos} casos de punta a punta, cada uno con su módulo de capacitación",
+   "cab": [
+    "Caso",
+    "Qué recorre",
+    "Pasos",
+    "Clases",
+    "Minutos",
+    "Diapositivas",
+    "Glosario"
+   ],
+   "material": "Material por caso: guía paso a paso por prompts, guion del instructor minuto a minuto, ejercicio con solución de referencia y diapositivas PPTX y HTML que regenera un script.",
+   "induccion": "Inducción sugerida: instalar → recorrer una guía sobre la copia del proyecto de prueba con BMAD real → dictar su clase → piloto en paralelo con un proyecto real.",
+   "recorre": {
+    "E2E-1": "Riesgos desde cuatro fuentes, respuestas costeadas, reserva vigilada y escalamiento a la junta",
+    "E2E-2": "Alcance por productos, estimación, priorización, cambio con presupuesto y excepción",
+    "E2E-3": "Interesados, preferencias, RACI, OKR, highlight desde el dato y envío por canales",
+    "E2E-4": "Producto con BMAD: condiciones formales, calidad a volumen, cierre y beneficios",
+    "E2E-5": "De la idea al proyecto diseñado: supuestos, opciones con VAN, enfoque y mapas"
+   },
+   "en": "EN: end-to-end cases, each one also a training module."
+  },
+  "casos": {
+   "E2E-1": {
+    "titulo": "E2E-1 · Riesgos: el registro trabaja solo entre revisiones",
+    "problema": "El registro de riesgos nace en un taller y se congela. Las respuestas no se costean y la reserva se usa como bolsa general.",
+    "muestra": [
+     "Riesgos candidatos desde BMAD, transcripciones, Jira y artefactos, con cita de origen",
+     "Respuestas justificadas por su costo frente a la reducción del valor monetario esperado",
+     "Reserva de riesgo vigilada como presupuesto vivo de la junta"
+    ]
+   },
+   "E2E-2": {
+    "titulo": "E2E-2 · Alcance y cambio: el desvío se ve el mismo día, no al cerrar la etapa",
+    "problema": "El alcance se define bien una vez y se controla mal después. Los cambios se aprueban «porque son razonables» y nadie suma lo comprometido.",
+    "muestra": [
+     "Alcance por productos trazado a requisitos e historias",
+     "Presupuesto y límite de la autoridad de cambio registrados por la junta",
+     "Excepción completa: detectada, informada, replanificada y autorizada"
+    ]
+   },
+   "E2E-3": {
+    "titulo": "E2E-3 · Interesados y OKR: el compromiso se mide en cada período",
+    "problema": "El mapa de interesados se arma una vez, el highlight se copia a mano y los OKR se miran al final.",
+    "muestra": [
+     "Maestro único de interesados: matriz, preferencias con cita y RACI",
+     "Highlight armado desde el dato y enviado por la capa de canales",
+     "Cadencia de contacto y brecha de compromiso como control permanente"
+    ]
+   },
+   "E2E-4": {
+    "titulo": "E2E-4 · Producto con BMAD: calidad a volumen y beneficios medidos después del cierre",
+    "problema": "Con decenas de historias terminadas nadie verifica cada revisión, las condiciones de la junta se olvidan y los beneficios no se miden.",
+    "muestra": [
+     "El CONCERNS del gate de BMAD se vuelve una condición formal que bloquea el cierre",
+     "Cada historia terminada con su revisión de calidad, incluido un rechazo",
+     "Beneficios medidos después del cierre contra trayectoria y tolerancia"
+    ]
+   },
+   "E2E-5": {
+    "titulo": "E2E-5 · De la idea al proyecto: los supuestos se validan antes de invertir",
+    "problema": "El caso de negocio se escribe una vez, con el supuesto más optimista, y el enfoque de entrega se elige por costumbre.",
+    "muestra": [
+     "Mapa de supuestos y experimentos baratos antes de comprometer dinero",
+     "Opciones comparadas con VAN y enfoque de entrega elegido con criterios",
+     "Mapa de Wardley y recorrido del paciente para decidir qué construir"
+    ]
+   },
+   "rotulos": {
+    "problema": "El problema",
+    "muestra": "Qué muestra",
+    "indicadores": "Indicadores de la corrida de referencia",
+    "ficha": "[pasos] pasos · [clases] clases de webinar · guía [archivo]"
+   },
+   "en": "EN: real figures from the reproducible reference run of each guide."
+  },
+  "calidad": {
+   "titulo": "La confianza se demuestra: pruebas reproducibles, pruebas en vivo y revisión de seguridad",
+   "kpis": [
+    [
+     "{pruebas_ok}",
+     "pruebas de regresión OK",
+     "{pruebas_fallo} FALLO · {pruebas_casos} casos"
+    ],
+    [
+     "{e2e_ok}/{e2e_total}",
+     "recorridos E2E",
+     "reproducen las guías con los scripts reales"
+    ],
+    [
+     "{mermaid}",
+     "diagramas Mermaid",
+     "{mermaid_errores} errores de lint"
+    ],
+    [
+     "{frases}",
+     "frases de enrutamiento",
+     "para pruebas en vivo con Claude Code real"
+    ]
+   ],
+   "vivo": "Pruebas en vivo con Claude Code real",
+   "seguridad": "Revisión de seguridad",
+   "docker": "Contenedor Docker endurecido",
+   "nota": "Los límites conocidos están declarados en docs/RESUMEN-EJECUTIVO.md §7: el enrutamiento en lenguaje natural es probabilístico, y los conectores MCP de terceros no se probaron en vivo.",
+   "en": "EN: trust is shown, not claimed: reproducible tests, live tests and a security review.",
+   "docker_medidas": [
+    "Usuario sin privilegios",
+    "Raíz de solo lectura",
+    "Sin capacidades de Linux",
+    "Sin escalada de privilegios",
+    "Sin secretos en capas",
+    "Dependencias verificadas"
+   ]
+  },
+  "empezar": {
+   "titulo": "Dos formas de empezar: instalación manual o contenedor Docker aislado",
+   "manual": "Instalación manual (Claude Code y Cowork)",
+   "docker": "Docker (probar sin instalar nada en el equipo)",
+   "docker_pasos": [
+    "Construir la imagen",
+    "Trabajar sobre un proyecto montado",
+    "Correr todas las pruebas sin red"
+   ],
+   "luego": "Luego, en una sesión",
+   "siguiente": "Siguiente paso: recorrer una guía E2E sobre la copia del proyecto de prueba (docs/guias/README.md) y planificar un piloto en paralelo (docs/PILOTO.md).",
+   "en": "EN: two ways to start: manual install or an isolated Docker container."
+  },
+  "glosario": {
+   "titulo": "Glosario breve",
+   "en": "EN: short glossary; full terminology in docs/TERMINOLOGIA.md."
+  }
+ },
+ "arquitectura_mmd": "flowchart LR\n    U([\"Personas<br/>gestor · junta · product owner\"])\n    subgraph HP[\"Hilo principal\"]\n        O[\"pm-orquestador<br/>conversa, pregunta y delega\"]\n    end\n    subgraph SA[\"{subagentes} subagentes · contexto aislado\"]\n        D[\"pm-director<br/>único que registra<br/>decisiones de la junta\"]\n        F[\"pm-inicio · pm-planificacion<br/>pm-control · pm-cierre\"]\n    end\n    S[\"{invocables} skills + {comandos} comandos<br/>PRINCE2 7 manda<br/>PMBOK 8 aporta técnicas\"]\n    B[(\"BMAD<br/>especificación<br/>solo lectura\")]\n    M[\"MCP y capa de canales<br/>trackers · transcripciones<br/>correo · Slack · Teams · OKR\"]\n    P[(\"Carpeta del proyecto<br/>estado.json · {registros} registros CSV<br/>artefactos Markdown\")]\n    H[\"{hooks} hooks<br/>{hooks_nombres}\"]\n    C[\"sanidad.py<br/>{codigos_sanidad} controles\"]\n    U <--> O\n    O --> D\n    O --> F\n    D --> S\n    F --> S\n    S -->|\"fachada de lectura\"| B\n    S -->|\"solo lo aprobado\"| M\n    S -->|\"estado.py · registro.py\"| P\n    H -.->|\"bloquea ediciones directas\"| P\n    C -.->|\"verifica en cada sesión y puerta\"| P\n    classDef gente fill:#FBF1E6,stroke:#B5651D,color:#272425\n    classDef dato fill:#E9F1F8,stroke:#002855,color:#272425\n    classDef guarda fill:#F4F6F8,stroke:#696969,color:#272425,stroke-dasharray:4 3\n    class U gente\n    class P,B dato\n    class H,C guarda\n",
+ "mermaid_config": {
+  "theme": "base",
+  "themeVariables": {
+   "fontFamily": "Arial, Helvetica, sans-serif",
+   "fontSize": "17px",
+   "primaryColor": "#FFFFFF",
+   "primaryBorderColor": "#00629B",
+   "primaryTextColor": "#272425",
+   "lineColor": "#696969",
+   "clusterBkg": "#F4F6F8",
+   "clusterBorder": "#C9D3DD",
+   "edgeLabelBackground": "#FFFFFF",
+   "tertiaryColor": "#F4F6F8"
+  },
+  "flowchart": {
+   "curve": "basis",
+   "nodeSpacing": 34,
+   "rankSpacing": 46,
+   "htmlLabels": true
+  }
+ }
+}

@@ -1,7 +1,7 @@
 ---
 name: pm-plan-etapa-y-limites
 description: "Planes de proyecto, etapa y excepción; fin de etapa. Usar: plan de etapa, fin de etapa, stage plan, end stage report. No: cronograma→pm-cronograma-estimacion; costos→pm-costos-presupuesto."
-version: 2.2.0
+version: 2.3.0
 author: pm-method
 license: MIT
 metadata:

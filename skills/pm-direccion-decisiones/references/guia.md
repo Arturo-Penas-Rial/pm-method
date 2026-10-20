@@ -45,7 +45,7 @@ la marca resuelta. `rechazado` no avanza: la junta pide replanificar o el cierre
 5. Al cerrar la excepción, al menos una lección en `lecciones.csv` (`pm-lecciones-aprendidas`).
 
 ## 5. Dirección ad hoc
-1. Clasificar: consejo informal (`diario.md`), issue escalado (fuera de especificación → rechazo o concesión; solicitud de cambio → verificar autoridad de cambio y presupuesto), cambio del entorno o del mandato.
+1. Clasificar: consejo informal (`diario.md`), issue escalado (fuera de especificación → rechazo o concesión; solicitud de cambio → verificar autoridad de cambio y presupuesto; si la junta lo aprueba sin saldo, indica la fuente: `cargo=reserva-gestion`, `cargo=plan-excepcion` o ampliar antes el presupuesto con `estado.py presupuesto cambio=<monto> --por …`, porque `registro.py` rechaza `presupuesto-cambio` sin saldo también para la junta; guía de `pm-issues-cambios` §4.1), cambio del entorno o del mandato.
 2. Cambio del mandato: dos vías, ambas cuantificadas: solicitud de cambio (replanificar con evaluación de impacto de `pm-issues-cambios`) o cerrar prematuramente y arrancar un proyecto nuevo.
 3. Nota de decisión de una página (`templates/solicitud-puerta.md` versión mínima, `AAAA-MM-DD-solicitud-decision-ad-hoc.md`), decisión humana y registro con `estado.py puerta decision-ad-hoc` (junta) o `registro.py agregar decisiones --campo nivel=autoridad-cambio` (no es puerta).
 4. Con BMAD: un desvío detectado por `bmad.py verificar` o una Sprint Change Proposal llega como issue `solicitud-cambio`; el "sí" dado dentro del flujo correct-course de BMAD no sustituye la decisión de la autoridad de cambio PRINCE2.

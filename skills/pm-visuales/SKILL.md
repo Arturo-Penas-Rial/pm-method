@@ -1,7 +1,7 @@
 ---
 name: pm-visuales
 description: "Diagramas y tablero de avance HTML. Usar: organigrama, mapa de stakeholders, diagrama de la WBS, roadmap visual, one-pager, tablero, dashboard, vista por actor. No: Gantt→pm-cronograma-estimacion; contenido del informe→pm-progreso-reportes."
-version: 2.2.0
+version: 2.3.0
 author: pm-method
 license: MIT
 metadata:
@@ -48,7 +48,7 @@ Etiquetas en el idioma del proyecto (`estado.json.idioma`); los HTML con cabecer
 4. **Generar** con la plantilla o el script (contenido por visual en guía §2):
    - WBS: `python3 ${CLAUDE_SKILL_DIR}/../pm-estado-proyecto/scripts/wbs.py 02-planificacion/wbs.csv --mermaid 02-planificacion/visuales/wbs.md` (árbol Mermaid validado; `--profundidad` para recortar).
    - Gantt: `cpm.py --mermaid`; roadmap con puertas como hitos; canvas con `templates/canvas-arranque.html`.
-   - Tablero: `templates/tablero-avance.html`, armando el bloque JSON `datos-tablero` (script y campos en guía §3): semáforo de siete objetivos (verde ≤ 50 % de la tolerancia, ámbar 50–100 %, rojo fuera), hitos, decisiones, mapa de calor P×I, riesgos e issues, sección ágil (velocidad y burn-up), acciones por actor y **Vista por actor**.
+   - Tablero: `templates/tablero-avance.html`, armando el bloque JSON `datos-tablero` (script y campos en guía §3): semáforo de siete objetivos (verde ≤ 50 % de la tolerancia, ámbar 50–100 %, rojo fuera), hitos, decisiones, mapa de calor P×I, riesgos e issues, sección ágil (velocidad y burn-up), acciones por actor y **Vista por actor**. Con mapas en `02-planificacion/mapas/`, sección **Mapas estratégicos**: `${CLAUDE_SKILL_DIR}/../pm-mapas-estrategicos/scripts/mapas.py --proyecto <dir> tablero --insertar <tablero>` (guía §3).
 5. **Vista por actor.** Selector sobre acciones abiertas (`D.acciones`), riesgos por propietario (`D.riesgos`) e issues por responsable (`D.issues`); abre filtrada con `?actor=<Nombre>` (guía §4).
 6. **Datos de trackers.** El tablero puede alimentarse con instantáneas fechadas de `pm-integraciones` (avance de ítems, bloqueos), citadas en `fuentes`; riesgos, issues y acciones siguen saliendo de los registros (guía §5).
 7. **Legibilidad**: título bilingüe, leyenda, fecha de corte, fuente; ≤ ~40 nodos (guía §7).
@@ -89,7 +89,7 @@ Etiquetas en el idioma del proyecto (`estado.json.idioma`); los HTML con cabecer
 ## Calidad
 - [ ] Nodos con origen identificable; título bilingüe, leyenda, fecha de corte, fuente, BORRADOR si corresponde.
 - [ ] Organigrama con tres intereses; PBS sin actividades; roadmap con puertas; Gantt con camino crítico si viene de `cpm.py`.
-- [ ] Tablero: JSON válido; semáforo 50 %/100 %; umbrales en el pie; vencidas resaltadas; sección ágil si aplica; vista por actor completa; instantáneas citadas.
+- [ ] Tablero: JSON válido; semáforo 50 %/100 %; umbrales en el pie; vencidas resaltadas; sección ágil si aplica; vista por actor completa; mapas si existen; instantáneas citadas.
 - [ ] Salida externa verificada por su motor (guía §1.4), junto a su Mermaid; HTML interno sin conexión e imprimible en A4.
 - [ ] Visuales con datos de personas marcados como restringidos.
 

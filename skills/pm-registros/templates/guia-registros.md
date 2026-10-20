@@ -20,11 +20,16 @@ idioma: "{{idioma}}"
 **Autoridad de cambio / Change authority:** {{autoridad_cambio}}
 *Rol o persona a quien la junta delegó decisiones de cambio; copiar de `estado.json.roles.autoridad_cambio`.*
 
-Convenciones comunes a todos los CSV: codificación UTF-8, separador coma, fechas ISO `AAAA-MM-DD`, valores de enumeración en minúsculas sin acentos, `id` secuencial con prefijo fijo que nunca se reutiliza, `estado` nunca se borra (se cierra). Los valores se guardan en español; al registrar se aceptan alias en inglés (`threat`, `opportunity`, `open`, `closed`, `high`, `medium`, `low`, `avoid`, `reduce`, `change-request`, `off-specification`…) que `registro.py` convierte al valor canónico. / Values are stored in Spanish; English aliases are accepted on input. Los prefijos de id son: R (riesgos), I (issues), C (cambios), D (decisiones), S (supuestos), L (lecciones), ST (stakeholders), Q (calidad), A (acciones) y, desde v2.2, ET (estereotipos), PF (preferencias), RC (raci), EN (envios); estos cuatro se crean al primer uso. `X-###` no es un registro: es el id de un informe de excepción (documento en `03-control/reportes/`).
+Convenciones comunes a todos los CSV: codificación UTF-8, separador coma, fechas ISO `AAAA-MM-DD`, valores de enumeración en minúsculas sin acentos, `id` secuencial con prefijo fijo que nunca se reutiliza, `estado` nunca se borra (se cierra). Los valores se guardan en español; al registrar se aceptan alias en inglés (`threat`, `opportunity`, `open`, `closed`, `high`, `medium`, `low`, `avoid`, `reduce`, `change-request`, `off-specification`…) que `registro.py` convierte al valor canónico. / Values are stored in Spanish; English aliases are accepted on input. Los prefijos de id son: R (riesgos), I (issues), C (cambios), D (decisiones), S (supuestos), L (lecciones), ST (stakeholders), Q (calidad), A (acciones) y los opcionales ET (estereotipos), PF (preferencias), RC (raci), EN (envios); estos cuatro se crean al primer uso. `X-###` no es un registro: es el id de un informe de excepción (documento en `03-control/reportes/`).
 
 **Fuente única del esquema / Single source of schema:** `${CLAUDE_SKILL_DIR}/../pm-estado-proyecto/scripts/esquema.py`. Esta guía documenta exactamente las mismas columnas, en el mismo orden, y los mismos valores permitidos; si cambia una, cambian las dos. Para consultar el esquema vigente desde la consola: `python3 ${CLAUDE_SKILL_DIR}/../pm-estado-proyecto/scripts/registro.py --proyecto <dir> esquema <registro>`.
 
-**Validación / Validation:** `registro.py agregar` y `actualizar` rechazan valores fuera de la lista "Valores permitidos" y, en riesgos, probabilidades e impactos que no sean enteros 1–5; también rechazan columnas inexistentes y, desde v2.2, referencias a interesados o estereotipos inexistentes, filas RACI duplicadas (elemento + interesado) y un segundo `A` en el mismo elemento. `--forzar` registra igual, solo con motivo anotado en `notas`. Las columnas marcadas "libre" no se validan (los valores listados son sugerencias). Si un CSV de una versión anterior no tiene una columna nueva, el script la agrega al final sin perder filas.
+**Validación / Validation:** `registro.py agregar` y `actualizar` rechazan valores fuera de la lista "Valores permitidos" y, en riesgos, probabilidades e impactos que no sean enteros 1–5; también rechazan columnas inexistentes, referencias a interesados o estereotipos inexistentes, filas RACI duplicadas (elemento + interesado) y un segundo `A` en el mismo elemento. `--forzar` registra igual, solo con motivo anotado en `notas`. Las columnas marcadas "libre" no se validan (los valores listados son sugerencias). Si un CSV de una versión anterior no tiene una columna nueva, el script la agrega al final sin perder filas.
+
+**Abrir los CSV en una planilla / Opening in a spreadsheet:** los registros guardan el texto tal como llega (de
+transcripciones, Jira o BMAD); un valor que empieza con `=`, `+`, `-` o `@` se interpretaría como fórmula si el CSV se
+abre con doble clic en Excel o LibreOffice. Para revisarlos en una planilla, usar `exportar.py xlsx` (guarda esas
+celdas como texto) o importar el CSV con todas las columnas como texto.
 
 **Estado inicial / Initial state** (lo pone `registro.py agregar` si no se indica): riesgos `abierto`, issues `abierto`, cambios `abierto`, supuestos `abierto`, lecciones `registrada`, calidad `planificada`, acciones `abierta`, estereotipos `activo`, preferencias `propuesta`, envios `pendiente`; decisiones, stakeholders y raci no tienen columna `estado`.
 
@@ -103,8 +108,8 @@ Convenciones comunes a todos los CSV: codificación UTF-8, separador coma, fecha
 | fecha_decision | Cuándo | Decision date | ISO |
 | estado | Situación | Status | `abierto`, `en-evaluacion`, `pendiente-decision`, `aprobado`, `rechazado`, `diferido`, `implementado`, `cerrado` |
 | notas | `origen I-###`, versión nueva de línea base, fecha de reevaluación si diferido | Notes | texto |
-| costo | Monto que consume el cambio (v2.2) | Cost | número sin moneda ni separador de miles (`9000`); se valida como numérico |
-| cargo | Contra qué presupuesto se paga (v2.2) | Charged to | vacío o `presupuesto-cambio`, `reserva-riesgo`, `reserva-gestion`, `plan-excepcion`, `sin-costo` |
+| costo | Monto que consume el cambio | Cost | número sin moneda ni separador de miles (`9000`); se valida como numérico |
+| cargo | Contra qué presupuesto se paga | Charged to | vacío o `presupuesto-cambio`, `reserva-riesgo`, `reserva-gestion`, `plan-excepcion`, `sin-costo` |
 
 *Control permanente / Standing control:* en los cambios aprobados, implementados o cerrados, la sanidad exige `costo` y `cargo` cuando hay impacto de costo (CAM-01), que un cargo a `reserva-riesgo` cite el R-### que responde (CAM-02), suma el consumo contra `estado.json.presupuestos` (CAM-03: INFO < 80 %, AVISO ≥ 80 %, ERROR > 100 %) y avisa si un costo supera `limite_autoridad_cambio` o usa `reserva-gestion` sin que decida la junta o el ejecutivo (CAM-04, CAM-05; se reconoce en `decidido_por` por "ejecutiv", "junta", "board", "executive" o el nombre del ejecutivo). Ejemplo: `registro.py agregar cambios --campo titulo=… --campo impacto_costo="+USD 9.000" --campo costo=9000 --campo cargo=presupuesto-cambio`.
 
@@ -140,6 +145,19 @@ Convenciones comunes a todos los CSV: codificación UTF-8, separador coma, fecha
 | responsable | Quien valida | Owner | nombre o rol |
 | estado | Situación | Status | `abierto`, `validado`, `invalidado`, `transferido`, `cerrado` |
 | notas | `→ R-###` / `→ I-###` si transferido; documento de origen | Notes | texto |
+| criticidad | Cuánto cambia el business case si resulta falso | Criticality | vacío o `alta`, `media`, `baja` |
+| certeza | Cuánta evidencia hay hoy | Certainty | vacío o `alta`, `media`, `baja` |
+| experimento | Cómo se valida, lo más barato que dé evidencia | Experiment | texto |
+| criterio | Resultado decidido de antemano para seguir, ajustar o abandonar | Decision criterion | texto |
+| fecha_limite | Fecha límite para tener el resultado | Deadline | ISO |
+| evidencia | Resultado obtenido y su fuente | Evidence | texto |
+
+*Control permanente / Standing control:* los supuestos de `criticidad=alta` abiertos son hipótesis a validar antes de
+invertir. Sanidad SUP-01 (sin experimento o sin fecha límite), SUP-02 (fecha límite vencida al corte sin resultado),
+SUP-03 (invalidado sin issue, cambio, riesgo o decisión que trate su efecto); la puerta `autorizar-proyecto` lleva la
+condición P-11 mientras queden críticos sin validar; un supuesto que la junta acepta sin validar mediante una decisión
+de nivel `junta` (o `ejecutivo`, o `capa-negocio`) que cite su id y diga que lo acepta baja a aviso P-11. Vista para la
+junta: `pm-mandato-y-brief/templates/hipotesis-y-experimentos.md`.
 
 ## 6. lecciones.csv · Lessons log
 
@@ -176,11 +194,11 @@ Convenciones comunes a todos los CSV: codificación UTF-8, separador coma, fecha
 | responsable_relacion | Quien gestiona la relación | Relationship owner | nombre o rol |
 | confidencial | La fila contiene valoraciones sensibles | Confidential | vacío, `si`, `no`; `si` = circulación restringida (no se exporta en la versión pública) |
 | notas | Observaciones | Notes | texto |
-| estereotipo | Estereotipo asignado (v2.2) | Stereotype | vacío o `ET-###` existente en `estereotipos.csv` (se valida) |
-| correo | Correo para la capa de canales (v2.2) | E-mail | texto `nombre@dominio` |
-| usuario_chat | Usuario de Slack o Teams (v2.2) | Chat user | texto (en Slack, id `U…`/`W…` para mencionar) |
+| estereotipo | Estereotipo asignado | Stereotype | vacío o `ET-###` existente en `estereotipos.csv` (se valida) |
+| correo | Correo para la capa de canales | E-mail | texto `nombre@dominio` |
+| usuario_chat | Usuario de Slack o Teams | Chat user | texto (en Slack, id `U…`/`W…` para mencionar) |
 
-### 7.1 estereotipos.csv · Stereotypes (v2.2, se crea al primer uso; dueña `pm-interesados`)
+### 7.1 estereotipos.csv · Stereotypes (se crea al primer uso; dueña `pm-interesados`)
 | Columna | Significado ES | Meaning EN | Valores permitidos / formato |
 |---|---|---|---|
 | id | Identificador | Id | `ET-###` |
@@ -199,7 +217,7 @@ Convenciones comunes a todos los CSV: codificación UTF-8, separador coma, fecha
 | estado | Estado | Status | `activo`, `retirado` |
 | notas | Observaciones | Notes | texto |
 
-### 7.2 preferencias.csv · Preferences (v2.2; dueña `pm-interesados`)
+### 7.2 preferencias.csv · Preferences (opcional; dueña `pm-interesados`)
 | Columna | Significado ES | Meaning EN | Valores permitidos / formato |
 |---|---|---|---|
 | id | Identificador | Id | `PF-###` |
@@ -215,7 +233,7 @@ Convenciones comunes a todos los CSV: codificación UTF-8, separador coma, fecha
 | confirmado_por | Quién confirmó o rechazó | Confirmed by | "Rol: Nombre" |
 | notas | Observaciones | Notes | texto |
 
-### 7.3 raci.csv · RACI (v2.2; dueña `pm-interesados`)
+### 7.3 raci.csv · RACI (opcional; dueña `pm-interesados`)
 | Columna | Significado ES | Meaning EN | Valores permitidos / formato |
 |---|---|---|---|
 | id | Identificador | Id | `RC-###` |
@@ -226,7 +244,7 @@ Convenciones comunes a todos los CSV: codificación UTF-8, separador coma, fecha
 | rol | Rol | Role | `R`, `A`, `C`, `I`; una fila por elemento + interesado y un solo `A` por elemento (se valida) |
 | notas | Observaciones | Notes | texto |
 
-### 7.4 envios.csv · Deliveries (v2.2; dueña `pm-integraciones`, lo escribe `envios.py`)
+### 7.4 envios.csv · Deliveries (opcional; dueña `pm-integraciones`, lo escribe `envios.py`)
 | Columna | Significado ES | Meaning EN | Valores permitidos / formato |
 |---|---|---|---|
 | id | Identificador | Id | `EN-###` |

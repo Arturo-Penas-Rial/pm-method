@@ -11,9 +11,10 @@ Uso / Usage:
   sanidad.py --proyecto ./gestion --corte 2027-01-15   # fecha de corte de los controles con vencimiento
 Salida: hallazgos ERROR / AVISO / INFO con código, mensaje y cómo corregir. Código de salida 1 si hay ERROR.
 Familias: INS instalación · EST estado y puertas · ART artefactos · REG registros · ESP especificación/BMAD · INT integraciones ·
-  CAM cambios y presupuestos · QUA calidad · TOL pronóstico contra tolerancias · STK maestro de interesados.
+  CAM cambios y presupuestos · QUA calidad · TOL pronóstico contra tolerancias · SUP supuestos críticos · STK interesados ·
+  MAP mapas de Wardley y de recorrido (solo avisos).
 """
-import argparse, csv, datetime, glob, json, os, re, sys
+import argparse, csv, datetime, glob, importlib.util, json, os, re, sys
 AQUI = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, AQUI)
 import esquema as E
@@ -147,8 +148,8 @@ def chk_externas(proyecto, e):
 
 def chk_instalacion(proyecto, e, rapido):
     for mod, uso in (("yaml", "leer BMAD y sprint-status"), ("docx", "exportar .docx / actas .docx"), ("openpyxl", "exportar .xlsx")):
-        try: __import__(mod)
-        except ImportError: add("AVISO", "INS-01", f"Falta el módulo Python '{mod}' ({uso}).", f"pip install {'pyyaml' if mod == 'yaml' else ('python-docx' if mod == 'docx' else mod)}")
+        # find_spec comprueba que el módulo está instalado sin importarlo (importar openpyxl o docx tarda segundos)
+        if importlib.util.find_spec(mod) is None: add("AVISO", "INS-01", f"Falta el módulo Python '{mod}' ({uso}).", f"pip install {'pyyaml' if mod == 'yaml' else ('python-docx' if mod == 'docx' else mod)}")
     vp = e.get("version_paquete")
     if vp and vp != E.VERSION_PAQUETE:
         add("AVISO", "INS-02", f"El proyecto fue creado con pm-method {vp} y el instalado es {E.VERSION_PAQUETE}.", "Revisar notas de versión; estado.json se migra al leerse y la versión se actualiza en la próxima escritura con estado.py.")
@@ -265,6 +266,10 @@ def chk_registros(proyecto, e, reparar, corte=None):
     for f in filas_por.get("acciones", []):
         if f.get("estado") in ("abierta", "en-curso") and f.get("fecha_compromiso") and f["fecha_compromiso"] < hoy:
             add("AVISO", "REG-07", f"Acción vencida {f['id']} ({f.get('responsable','sin responsable')}, {f['fecha_compromiso']}).", "Recordatorio o replanificación.")
+    for f in filas_por.get("riesgos", []):
+        if f.get("estado") in E.REGISTROS["riesgos"]["abiertos"] and f.get("fecha_revision") and f["fecha_revision"] < hoy:
+            add("AVISO", "REG-09", f"Riesgo {f['id']} abierto con la revisión vencida ({f['fecha_revision']}; propietario: {f.get('propietario') or 'sin propietario'}).",
+                "Revisarlo con el propietario (pm-riesgos) y actualizar estado, evaluación y fecha_revision (registro.py actualizar riesgos R-… --campo fecha_revision=…).")
     # referencias cruzadas entre registros (R-, I-, C-, D-, S-, L-, ST-, Q-, A-, ET-, PF-, RC-, EN-)
     for reg, filas in filas_por.items():
         for f in filas:
@@ -275,22 +280,14 @@ def chk_registros(proyecto, e, reparar, corte=None):
 
 # ------------------------------------------------------------------ controles permanentes: CAM cambios y presupuestos ·
 # QUA calidad a volumen · TOL pronóstico contra tolerancias (lo que en la práctica se revisa a mano, tarde o nunca)
-def _num(v):
-    try: return float(str(v or "").strip().replace(",", "."))
-    except ValueError: return None
-
+_num = E.monto
 def _m(x): return f"{x:,.0f}".replace(",", ".")   # miles con punto (salida en español)
-
-def _es_junta(e, quien):
-    q = (quien or "").lower(); ej = (e.get("roles", {}).get("ejecutivo") or "").lower()
-    return any(x in q for x in ("ejecutiv", "junta", "board", "executive")) or (bool(ej) and ej in q)
+_es_junta = E.es_junta
 
 def chk_cambios(proyecto, e, filas_por):
     pres = e.get("presupuestos", {}) or {}
-    consumo = {"presupuesto-cambio": 0.0, "reserva-riesgo": 0.0}
-    vigentes = ("aprobado", "implementado", "cerrado")
     for f in filas_por.get("cambios", []):
-        if f.get("estado") not in vigentes and f.get("decision") != "aprobado": continue
+        if not E.cambio_vigente(f): continue
         costo = _num(f.get("costo")); cargo = f.get("cargo", "")
         if costo is None:
             if re.search(r"\d", f.get("impacto_costo", "") or "") and not cargo:
@@ -306,7 +303,7 @@ def chk_cambios(proyecto, e, filas_por):
         lim = _num(pres.get("limite_autoridad_cambio"))
         if lim is not None and costo > lim and not _es_junta(e, f.get("decidido_por")):
             add("AVISO", "CAM-04", f"Cambio {f['id']} ({_m(costo)}) supera el límite de la autoridad de cambio ({_m(lim)}) y lo decidió '{f.get('decidido_por')}'.", "Escalar a la junta y registrar su decisión (decision-ad-hoc), o ajustar el límite delegado.")
-        if cargo in consumo: consumo[cargo] += costo
+    consumo = E.consumo_cambios(filas_por.get("cambios", []))   # misma regla que registro.py al aprobar
     for cargo, clave, nombre in (("presupuesto-cambio", "cambio", "presupuesto de cambio"), ("reserva-riesgo", "riesgo", "reserva de riesgo")):
         usado = consumo[cargo]; tope = _num(pres.get(clave))
         if not usado: continue
@@ -318,6 +315,20 @@ def chk_cambios(proyecto, e, filas_por):
             add("AVISO", "CAM-03", f"{nombre.capitalize()} al {100 * usado / tope:.0f} % ({_m(usado)} de {_m(tope)}).", "Avisar a la junta antes de aprobar más cambios.")
         else:
             add("INFO", "CAM-03", f"{nombre.capitalize()}: {_m(usado)} de {_m(tope)} ({100 * usado / tope:.0f} %).")
+
+def chk_supuestos(proyecto, e, filas_por, corte):
+    """SUP: supuestos críticos tratados como hipótesis (validar antes de invertir)."""
+    sup = filas_por.get("supuestos", [])
+    citado = " ".join(" ".join(str(v) for v in f.values()) for reg in ("issues", "cambios", "decisiones", "riesgos") for f in filas_por.get(reg, []))
+    for f in sup:
+        abierto = f.get("estado") == "abierto" and f.get("validado") != "si"
+        if abierto and f.get("criticidad") == "alta" and (not f.get("experimento") or not f.get("fecha_limite")):
+            add("AVISO", "SUP-01", f"Supuesto crítico {f['id']} sin {'experimento' if not f.get('experimento') else 'fecha límite'} para validarlo: «{(f.get('supuesto_o_restriccion') or '')[:70]}».",
+                "Definir cómo se valida (experimento), el criterio para seguir y la fecha límite (registro.py actualizar supuestos S-…).")
+        if abierto and f.get("fecha_limite") and f["fecha_limite"] < corte:
+            add("AVISO", "SUP-02", f"Supuesto {f['id']} con fecha límite {f['fecha_limite']} vencida y sin validar.", "Registrar la evidencia y el resultado (validado=si|no) o replanificar con la junta.")
+        if (f.get("validado") == "no" or f.get("estado") == "invalidado") and not re.search(rf"\b{re.escape(f['id'])}\b", citado):
+            add("AVISO", "SUP-03", f"Supuesto {f['id']} invalidado sin issue, cambio, riesgo o decisión que trate su efecto.", "Revisar el business case y registrar la decisión (pm-caso-de-negocio, pm-direccion-decisiones).")
 
 TERMINADO = {"done", "terminado", "terminada", "hecho", "hecha", "completado", "completada", "cerrado", "cerrada", "aceptado", "aceptada"}
 
@@ -399,7 +410,7 @@ def chk_especificacion(proyecto, e, filas_por, reparar, rapido):
             v = r.get("vinculo", "")
             revisar(f"okr {r.get('id')}", v)
             for b in re.findall(r"\bB-?\d+\b", v):
-                if bc and not re.search(rf"\b{re.escape(b)}\b|\bB-0*{re.sub(r'\D', '', b)}\b", bc): add("AVISO", "ESP-05", f"okr {r.get('id')} cita el beneficio {b}, que no aparece en el business case.", "Alinear con pm-caso-de-negocio.")
+                if bc and not re.search(r"\b" + re.escape(b) + r"\b|\bB-0*" + re.sub(r"\D", "", b) + r"\b", bc): add("AVISO", "ESP-05", f"okr {r.get('id')} cita el beneficio {b}, que no aparece en el business case.", "Alinear con pm-caso-de-negocio.")
     if not bm: return
     sys.path.insert(0, os.path.normpath(os.path.join(AQUI, "..", "..", "pm-bmad-puente", "scripts")))
     import bmad as B
@@ -479,6 +490,17 @@ ARREGLO_STK = {
     "STK-12": "Contactarlo según su perfil (envios.py o registrar la reunión o llamada: registro.py agregar envios --campo canal=reunion --campo modo=manual --campo estado=enviado …) o revisar la frecuencia acordada.",
 }
 
+def chk_mapas(proyecto):
+    """MAP: mapas de Wardley y de recorrido (pm-mapas-estrategicos). Solo avisos: los mapas son apoyo, no productos obligatorios."""
+    if not glob.glob(os.path.join(proyecto, "02-planificacion", "mapas", "*.json")): return
+    d = os.path.normpath(os.path.join(AQUI, "..", "..", "pm-mapas-estrategicos", "scripts"))
+    try:
+        sys.path.insert(0, d); import mapas as MP
+        MP.IDIOMA = E.idioma_de(proyecto)
+        for sev, cod, msg, arreglo in MP.controles(proyecto): add(sev, cod, msg, arreglo)
+    except BaseException as x:
+        add("AVISO", "MAP-00", f"No se pudieron verificar los mapas: {x}", "Revisar que pm-mapas-estrategicos esté instalada junto a pm-estado-proyecto.")
+
 def chk_interesados(proyecto, corte=None):
     hay = any(os.path.exists(E.ruta_registro(proyecto, r)) for r in ("estereotipos", "preferencias", "raci", "envios"))
     if not hay: return     # sin maestro extendido: nada que verificar (compatibilidad con proyectos 2.1)
@@ -502,7 +524,9 @@ def main():
     filas = chk_registros(a.proyecto, e, a.reparar, corte)
     chk_especificacion(a.proyecto, e, filas, a.reparar, a.rapido)
     chk_cambios(a.proyecto, e, filas); chk_calidad(a.proyecto, e, filas, corte); chk_tolerancias(a.proyecto, e, corte)
+    chk_supuestos(a.proyecto, e, filas, corte)
     chk_interesados(a.proyecto, corte)
+    chk_mapas(a.proyecto)
     if not a.rapido: chk_integraciones(a.proyecto, e)
     orden = {"ERROR": 0, "AVISO": 1, "INFO": 2}
     H.sort(key=lambda h: (orden[h["severidad"]], h["codigo"]))
@@ -515,7 +539,9 @@ def main():
         for (sev, cod), hs in por_cod.items():   # en pantalla, más de 5 hallazgos del mismo código se agrupan (el --informe y --json los listan todos)
             mostrar = hs if len(hs) <= 5 else hs[:5]
             for h in mostrar: print(f"  {sev:5s} {cod} {h['mensaje']}" + (f"\n        → {h['arreglo']}" if h["arreglo"] and h is mostrar[-1] else ""))
-            if len(hs) > 5: print(f"  {sev:5s} {cod} … y {len(hs) - 5} hallazgos más con el mismo código {cod} y la misma corrección (lista completa: sanidad.py --json o --informe)")
+            if len(hs) > 5:
+                n = len(hs) - 5; masc = "hallazgo más" if n == 1 else "hallazgos más"
+                print(f"  {sev:5s} {cod} … y {n} {masc} con el mismo código {cod} y la misma corrección (lista completa: sanidad.py --json o --informe)")
     if a.informe:
         p = os.path.join(a.proyecto, "03-control", "reportes", f"{datetime.date.today().isoformat()}-sanidad.md")
         L = ["---", "tipo: informe-sanidad", f"fecha: {datetime.date.today().isoformat()}", "estado: borrador", "---", "",

@@ -50,7 +50,7 @@ Un rojo guardado con `--guardar` que no se trata aparece como TOL-01 en cada san
 Riesgos: un riesgo alto sin respuesta o sin propietario rompe la línea de tolerancia por defecto (SPEC §1.10.9) → rojo. Usar `registro.py resumen --corte <fecha del informe>` para que las acciones vencidas coincidan con el tablero.
 
 ## 9. Highlight: variantes, orden y resumen de registros
-- `registro.py --proyecto <dir> resumen --json`: por registro `abiertos`, `por_estado`; riesgos `altos_abiertos` (P×I ≥ 15), `sin_respuesta`, `sin_propietario`, `top`; issues `sin_responsable`; acciones `vencidas`, `abiertas_por_responsable`. Usar los campos tal cual.
+- `registro.py --proyecto <dir> resumen --json`: por registro `abiertos`, `por_estado`; riesgos `altos_abiertos` (P×I ≥ 15), `sin_respuesta`, `sin_propietario`, `top`; issues `sin_responsable`; acciones `vencidas`, `abiertas_por_responsable`. Usar los campos tal cual; las listas de ids traen a lo sumo 25 elementos y el conteo completo va en `<lista>_total` (`sin_respuesta_total`, `vencidas_total`…): para cantidades, usar siempre `_total`.
 - **Mínima (una página)**: secciones `[mín]` — resumen, semáforo de los siete objetivos, logros y próximo período, decisiones pedidas, top riesgos/issues/acciones vencidas y, en ágil, bloque burn-up. Proyectos pequeños, perfil ágil mínimo o cadencia semanal.
 - **Completa (doce secciones)**: con EVM, proveedores, varias audiencias o ámbar/rojo. Orden: identificación y período → semáforo de los siete objetivos (vs. anterior) → logros → previsto → decisiones pendientes de la junta → issues y riesgos críticos → comentario del gestor con "ruta hacia verde" → finanzas → hitos → lecciones. Anexar valor ganado y variaciones si se usan.
 - Siempre: hecho vs. pronóstico; RFC y fuera de especificación del período aunque sea "ninguna"; nivel de logros y paquetes, no tareas; sostenibilidad integrada; no contradecir registros (corregir primero el registro).
@@ -58,7 +58,7 @@ Riesgos: un riesgo alto sin respuesta o sin propietario rompe la línea de toler
 - Audiencias (con `pm-comunicacion-stakeholders`): junta → decisiones, desvíos, finanzas, excepciones; equipo → bloqueos, prioridades, acciones; cliente/usuario sénior → hitos, productos entregados, riesgos que le afectan, cambios aprobados. Mismas cifras, distinta selección.
 
 
-**Puertas como insumo del informe.** `puertas.py estado --markdown` aporta: cada puerta con su decisión, quién decidió, condiciones (abiertas o cumplidas), observaciones de la verificación (p. ej. gate de BMAD en CONCERNS) y si fue forzada; y la preparación de la próxima puerta (bloqueos y condiciones). En el highlight va en §6; una condición abierta vencida o una puerta forzada se informa como riesgo o issue; en el tablero y en "¿cómo venimos?" se muestra la línea de `estado.py resumen` (última y próxima puerta).
+**Puertas como insumo del informe.** `puertas.py estado --markdown` aporta: cada puerta con su decisión, quién decidió, condiciones (abiertas o cumplidas), observaciones de la verificación (p. ej. gate de BMAD en CONCERNS) y si fue forzada; y la preparación de la próxima puerta (bloqueos, condiciones y avisos, cada uno con su código de control, los mismos de `puertas.py verificar`). En el highlight va en §6; una condición abierta vencida o una puerta forzada se informa como riesgo o issue; en el tablero y en "¿cómo venimos?" se muestra la línea de `estado.py resumen` (última y próxima puerta).
 ## 10. Adaptación según enfoque de entrega
 | Aspecto | Predictivo | Ágil | Híbrido |
 |---|---|---|---|

@@ -1,0 +1,28 @@
+pm-method · spot para LinkedIn · guion de locución con tiempos
+Duración total: 44.4 s · 1080×1350 · español (es-419), tono claro y seguro, ritmo ágil.
+Para grabar con voz propia: decir cada frase dentro de su ventana (inicio → fin de voz); la música y los
+cuadros ya están sincronizados con esas ventanas. Pronunciación: pm-method «pi em método», BMAD «bi-mad».
+
+[0:00.00 – 0:03.34] escena «gancho» · voz 0:00.10 → 0:03.04 (2.9 s)
+    ¿Quién aprobó este cambio? ¿Cuánto queda de la reserva?
+
+[0:03.34 – 0:08.16] escena «giro» · voz 0:03.49 → 0:07.86 (4.4 s)
+    Lo que hoy se controla a mano, una vez o nunca, pasa a ser un control permanente.
+
+[0:08.16 – 0:14.21] escena «jerarquia» · voz 0:08.31 → 0:13.91 (5.6 s)
+    Un plugin para Claude Code: PRINCE2 manda, PMBOK aporta técnicas y BMAD es la especificación.
+
+[0:14.21 – 0:19.63] escena «gobierno» · voz 0:14.36 → 0:19.33 (5.0 s)
+    El modelo prepara, la persona decide, y cada puerta queda registrada y verificada.
+
+[0:19.63 – 0:26.61] escena «controles» · voz 0:19.78 → 0:26.31 (6.5 s)
+    85 controles en 12 familias vigilan presupuesto de cambio, tolerancias y riesgos en cada sesión.
+
+[0:26.61 – 0:33.00] escena «estrategia» · voz 0:26.76 → 0:32.70 (5.9 s)
+    Mapas de Wardley y de recorrido del cliente, opciones con VAN y conexión con BMAD, Jira, Slack y Teams.
+
+[0:33.00 – 0:39.94] escena «prueba» · voz 0:33.15 → 0:39.64 (6.5 s)
+    6 agentes, 39 skills, más de 200 pruebas automáticas y 5 casos completos con webinar.
+
+[0:39.94 – 0:44.45] escena «cierre» · voz 0:40.09 → 0:42.55 (2.5 s)
+    pm-method: código abierto, en GitHub.

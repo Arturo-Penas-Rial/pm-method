@@ -1,7 +1,7 @@
 ---
 name: pm-costos-presupuesto
 description: "Costeo y presupuesto: reservas, BAC, línea base PV, curva S. Usar: costear, presupuesto, BAC, contingencia, reserva de gestión, budget, cost baseline. No: business case→pm-caso-de-negocio."
-version: 2.2.0
+version: 2.3.0
 author: pm-method
 license: MIT
 metadata:

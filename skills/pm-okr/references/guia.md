@@ -54,9 +54,9 @@ Antipatrones y su corrección:
 - **Check-ins** (`okr_checkins.csv`, junto a `okr.csv`): `okr.py <csv> --checkin KR-1.1 --valor 900 --confianza 7 --nota … --autor ST-001 [--fecha …]`. Solo se agregan (uno por KR y fecha); el `actual` usado es el último check-in con fecha ≤ corte y, si no hay, la columna `actual`. La tabla Markdown incluye el historial.
 - **Historia de los KR de hito**: las iniciativas guardan su estado actual, no su historia; al puntuar un corte pasado se usa el estado de hoy. Para la tendencia de un hito, registrar check-ins con el % de avance o leer la tendencia en los cortes ya publicados.
 - **Cascada**: `padre_id` de un objetivo apunta a otro `O-n` (o a un `OBJ-n` del business case); la salida ordena padres antes que hijos (↳).
-- **Avisos de calidad** además de los de v2.1: enunciado que empieza con verbo de actividad (realizar, ayudar, analizar…), responsable fuera del maestro, `tipo_kr`/`compromiso`/`peso` inválidos, iniciativa sin KR o sin vínculo a épica, historia o paquete, KR de hito sin iniciativas, check-in de un KR inexistente y todos los KR aspiracionales en 1,0 al cierre (metas posiblemente poco ambiciosas).
+- **Avisos de calidad** además de los de vínculo: enunciado que empieza con verbo de actividad (realizar, ayudar, analizar…), responsable fuera del maestro, `tipo_kr`/`compromiso`/`peso` inválidos, iniciativa sin KR o sin vínculo a épica, historia o paquete, KR de hito sin iniciativas, check-in de un KR inexistente y todos los KR aspiracionales en 1,0 al cierre (metas posiblemente poco ambiciosas).
 - Este semáforo no sustituye al de tolerancias de `evm.py`: uno mide resultados de negocio; el otro, desempeño del plan. `--json` alimenta el tablero de `pm-visuales`.
-- Con `okr.csv` de v2.1 (sin columnas nuevas ni check-ins) la salida es idéntica a la de v2.1.
+- Las columnas opcionales y los check-ins no son obligatorios: un `okr.csv` con solo las columnas base es válido.
 
 ## §5. Cadencia de revisión
 | Momento | Qué se hace | Quién | Dónde queda |

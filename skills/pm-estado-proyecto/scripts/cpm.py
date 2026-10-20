@@ -12,9 +12,10 @@ Uso / Usage:
 Salida: ES, EF, LS, LF, holgura total y libre, camino crítico, carga por recurso (días asignados), Gantt Mermaid.
 Limitación: sin nivelación de recursos; para FS/SS/FF/SF, calendarios y nivelación exportar MSPDI (--mspdi) y completar en MS Project o ProjectLibre (ver pm-cronograma-estimacion).
 """
-import argparse, csv, json, sys, datetime, re, math
+import argparse, csv, json, os, sys, datetime, re, math
 
 def cargar(p):
+    if not os.path.isfile(p): sys.exit(f"No existe el archivo / file not found: {p}")
     filas = list(csv.DictReader(open(p, encoding="utf-8")))
     ids = {r["id"].strip() for r in filas}
     acts = {}

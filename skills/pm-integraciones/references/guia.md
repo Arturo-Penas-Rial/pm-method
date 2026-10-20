@@ -38,7 +38,7 @@ CSV con cabecera y columnas normalizadas; primera línea comentada no permitida 
 - **Recordatorio de acciones vencidas**: por responsable, lista de A-### con fecha; tono neutro; sin juicios sobre personas.
 - **Convocatoria a puerta**: decisión requerida, documentos del paquete, fecha límite.
 
-## 5. Capacidad `correo` y `okr` (v2.2)
+## 5. Capacidad `correo` y `okr`
 - `estado.json.integraciones.correo`: `ninguno | smtp | gmail | outlook | eml` (`gmail`/`outlook` = conector MCP de la organización; `smtp` y `eml` = capa de canales sin conector). `integraciones.okr`: `archivo | tability | perdoo`.
 - Tability y Perdoo tienen servidor MCP oficial (`https://mcp.tability.app/mcp`, `https://mcp.perdoo.com`); la sincronización la propone `okr.py --propuesta-sync` (ver `pm-okr` guía §6).
 
@@ -49,17 +49,17 @@ Una sola vía de salida para **cualquier** comunicación a interesados: comunica
 |---|---|---|
 | Crear | `interesados.py plan-envio --tema … --audiencia …` o `envios.py nuevo --origen <archivo> --audiencia … --asunto … --proposito …` | un `.md` por destinatario (o grupo) con el perfil en el frontmatter; audiencia inválida = nada se crea |
 | Ver | `envios.py estado <carpeta>` | marca los mensajes sin redactar |
-| Aprobar | `envios.py aprobar <carpeta> --por "Gestor: Nombre"` | acto humano; rechaza borradores sin redactar o con destinatarios inexistentes |
+| Aprobar | `envios.py aprobar <carpeta> --por "Gestor: Nombre"` | acto humano; rechaza borradores sin redactar o con destinatarios inexistentes; el hook pide confirmación a la persona (Claude Code muestra el pedido de permiso) |
 | Simular | `envios.py enviar <carpeta> --modo …` | por defecto; muestra destinatario, asunto y comienzo del texto; avisa variables faltantes |
-| Enviar | `… --confirmar` | solo mensajes aprobados del canal del modo; registra `envios.csv` (EN-###) y `diario.md`; código de salida 2 si hubo fallos |
+| Enviar | `… --confirmar` | solo mensajes aprobados del canal del modo; el hook pide confirmación a la persona; registra `envios.csv` (EN-###) y `diario.md`; código de salida 2 si hubo fallos |
 | MCP | `envios.py preparar-mcp <carpeta>` → herramienta conectada → `envios.py registrar <carpeta> --mensaje … --modo mcp --referencia …` | vista previa y confirmación antes de usar la herramienta |
 | Historial | `envios.py historial [--stakeholder ST-…]` | — |
 
-Modos y variables de entorno (credenciales nunca en archivos, commits ni chat; ver `docs/INSTALACION.md` §0.7):
+Modos y variables de entorno (credenciales nunca en archivos, commits ni chat; ver `docs/INSTALACION.md` §0.7). Las URL de webhook deben ser `https://` (`http://` solo hacia 127.0.0.1 o localhost, para pruebas):
 
 | Modo | Variables | Notas |
 |---|---|---|
-| `smtp` | `PM_SMTP_HOST`, `PM_SMTP_REMITENTE` (obligatorias); `PM_SMTP_PUERTO` (587), `PM_SMTP_TLS` (`starttls` defecto, `ssl`, `ninguno`), `PM_SMTP_USUARIO`, `PM_SMTP_CLAVE` | un correo por destinatario; referencia = Message-ID |
+| `smtp` | `PM_SMTP_HOST`, `PM_SMTP_REMITENTE` (obligatorias); `PM_SMTP_PUERTO` (587), `PM_SMTP_TLS` (`starttls` defecto, `ssl`, `ninguno`), `PM_SMTP_USUARIO`, `PM_SMTP_CLAVE` | un correo por destinatario; referencia = Message-ID; `ninguno` solo hacia bucle local o sin credenciales (con aviso) |
 | `eml` | — | archivos `.eml` (cabecera `X-Unsent: 1`) para abrir y enviar desde el cliente; luego `registrar --modo eml` |
 | `slack-webhook` | `PM_SLACK_WEBHOOK_URL` | JSON `{"text": …}`; menciona `<@ID>` si `usuario_chat` es un id de Slack (U…/W…); publica en el canal del webhook |
 | `teams-webhook` | `PM_TEAMS_WEBHOOK_URL` | flujo de Workflows de Teams ("When a Teams webhook request is received"): mensaje con tarjeta adaptable (`type: message`, `attachments` con `contentType: application/vnd.microsoft.card.adaptive`); límite 28 KB según la documentación de Microsoft (https://learn.microsoft.com/en-us/microsoftteams/platform/webhooks-and-connectors/how-to/add-incoming-webhook) |

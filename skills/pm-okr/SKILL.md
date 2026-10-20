@@ -1,7 +1,7 @@
 ---
 name: pm-okr
 description: "OKR del proyecto ligados a beneficios (B-n) y métricas (SM-n): tipos de KR, check-ins, salud, cascada, Tability o Perdoo. Usar: OKR, key results, check-in, puntuar OKR. No: beneficios o business case→pm-caso-de-negocio."
-version: 2.2.0
+version: 2.3.0
 author: pm-method
 license: MIT
 metadata:
@@ -25,7 +25,7 @@ metadata:
 - EN: prepare the OKR view for a stage boundary or a post-project benefits review.
 
 ## Idioma
-**Idioma · Language:** responder siempre en el idioma en que escribe el usuario (English request → English reply); los artefactos van en `estado.json.idioma` salvo que el usuario pida otro. La plantilla usa etiquetas bilingües y `idioma: "{{idioma}}"`. Cabecera de `okr.csv` en snake_case: `id` (id), `tipo` (type: objetivo|kr), `objetivo_id` (parent objective), `enunciado` (statement), `metrica` (metric), `linea_base` (baseline), `meta` (target), `actual` (current), `unidad` (unit), `responsable` (owner), `fecha_meta` (due date), `vinculo` (link: B-n, SM-n, OBJ-n), `confianza` (confidence 1–10), `notas` (notes). Opcionales v2.2: `tipo_kr` (de-a, mantener-sobre, mantener-bajo, binario, hito), `compromiso` (aspiracional, comprometido), `peso`, `padre_id` (cascada), `nivel`, `ciclo`, `fecha_inicio`, `estado`, `ref_externa`; `tipo=iniciativa` (IN-n) para el trabajo que mueve un KR. Check-ins en `okr_checkins.csv`.
+**Idioma · Language:** responder siempre en el idioma en que escribe el usuario (English request → English reply); los artefactos van en `estado.json.idioma` salvo que el usuario pida otro. La plantilla usa etiquetas bilingües y `idioma: "{{idioma}}"`. Cabecera de `okr.csv` en snake_case: `id` (id), `tipo` (type: objetivo|kr), `objetivo_id` (parent objective), `enunciado` (statement), `metrica` (metric), `linea_base` (baseline), `meta` (target), `actual` (current), `unidad` (unit), `responsable` (owner), `fecha_meta` (due date), `vinculo` (link: B-n, SM-n, OBJ-n), `confianza` (confidence 1–10), `notas` (notes). Opcionales: `tipo_kr` (de-a, mantener-sobre, mantener-bajo, binario, hito), `compromiso` (aspiracional, comprometido), `peso`, `padre_id` (cascada), `nivel`, `ciclo`, `fecha_inicio`, `estado`, `ref_externa`; `tipo=iniciativa` (IN-n) para el trabajo que mueve un KR. Check-ins en `okr_checkins.csv`.
 
 ## Conocimiento
 - `references/guia.md` (este skill): §1 ubicación en PRINCE2, §2 redacción, §3 vínculos sin duplicar, §4 puntuación, §5 cadencia de revisión, §6 Tability, §7 BMAD, §8 casos borde.

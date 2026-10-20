@@ -13,11 +13,11 @@ Claude Code decide qué skill activar leyendo solo el `name` y la `description` 
 - "No:" es la pista de alcance (scope clue): nombra la colisión más probable y a qué skill corresponde.
 - Los seis comandos (`pm-ayuda`, `pm-nuevo`, `pm-estado`, `pm-reporte`, `pm-puerta`, `pm-sync`) llevan `disable-model-invocation: true`: no compiten en el enrutamiento ni consumen presupuesto, y no tienen pista "No:".
 
-**Presupuesto medido.** Las 32 descripciones invocables suman 6.546 caracteres (2.2.0) (`validar_paquete.py`; el límite del paquete es 7.500, SPEC §3). Si conviven muchos plugins y el listado se recorta, se puede subir la fracción con `"skillListingBudgetFraction": 0.02` en `settings.json`. `skillOverrides` (`on | name-only | user-invocable-only | off`) no se aplica a skills de plugins.
+**Presupuesto medido.** Las 33 descripciones invocables suman 6.817 caracteres (`validar_paquete.py`; el límite del paquete es 7.500, SPEC §3). Si conviven muchos plugins y el listado se recorta, se puede subir la fracción con `"skillListingBudgetFraction": 0.02` en `settings.json`. `skillOverrides` (`on | name-only | user-invocable-only | off`) no se aplica a skills de plugins.
 
 ## 2. Matriz de dueños
 
-Basada en la matriz del refactor v2, con las filas de las skills nuevas (pm-bmad-puente, pm-integraciones, pm-okr, pm-reuniones, pm-sanidad y, desde 2.2, pm-interesados) completadas según sus SKILL.md.
+Una fila por tema con su skill dueña (incluidas pm-bmad-puente, pm-integraciones, pm-okr, pm-reuniones, pm-sanidad, pm-interesados y pm-mapas-estrategicos) completadas según sus SKILL.md.
 
 | Tema | Dueña | Vecinas que NO deben activarse (→ dueña de lo vecino) |
 |---|---|---|
@@ -28,6 +28,7 @@ Basada en la matriz del refactor v2, con las filas de las skills nuevas (pm-bmad
 | Issues, cambios, concesiones e informe de excepción (plantilla única) | pm-issues-cambios | pronóstico o semáforo → pm-progreso-reportes |
 | Informes de avance, EVM, semáforos, detección de excepción | pm-progreso-reportes | tablero o gráficos → pm-visuales |
 | Tablero, diagramas, canvas, vista por actor | pm-visuales | contenido del informe → pm-progreso-reportes; Gantt → pm-cronograma-estimacion |
+| Mapas de Wardley y de recorrido del cliente (con carriles de service blueprint) y su familia de controles MAP | pm-mapas-estrategicos | diagramas de gestión → pm-visuales; análisis de hacer o comprar → pm-adquisiciones; requisitos → pm-planificacion-por-productos o BMAD |
 | Plan de proyecto, de etapa y de excepción; fin de etapa | pm-plan-etapa-y-limites | cálculo de cronograma → pm-cronograma-estimacion; costos → pm-costos-presupuesto |
 | Estimación, cronograma, CPM, Gantt, MSPDI | pm-cronograma-estimacion | presupuesto → pm-costos-presupuesto |
 | Costeo, presupuesto, reservas, BAC, línea base PV | pm-costos-presupuesto | business case → pm-caso-de-negocio |
@@ -78,9 +79,10 @@ Basada en la matriz del refactor v2, con las filas de las skills nuevas (pm-bmad
 | pm-exportar | exportar a Word, Excel, PowerPoint, paquete de puerta, gate package | tablero→pm-visuales; informe→pm-progreso-reportes | "Armá el tablero de avance con semáforos" → pm-visuales |
 | pm-integraciones | sincronizar Jira, publicar en Slack/Teams, enviar correo, sync | BMAD→pm-bmad-puente; transcripciones→pm-reuniones | "Sincronizá con BMAD" → pm-bmad-puente; "procesá la grabación del comité" → pm-reuniones |
 | pm-interesados | interesados, stakeholders, RACI, poder/interés, preferencias | enviar comunicados→pm-comunicacion-stakeholders | "Mandale el informe de avance por correo a la junta" → pm-comunicacion-stakeholders |
-| pm-issues-cambios | issue, solicitud de cambio, change request, off-spec, concesión, desvío del PRD | pronóstico o semáforo→pm-progreso-reportes | "¿Cómo viene el CPI de la etapa y qué semáforo le toca?" → pm-progreso-reportes |
+| pm-issues-cambios | issue, incidencia, registro de incidentes, solicitud de cambio, change request, off-spec, concesión, desvío del PRD | pronóstico o semáforo→pm-progreso-reportes | "¿Cómo viene el CPI de la etapa y qué semáforo le toca?" → pm-progreso-reportes |
 | pm-knowledge | qué es, quién aprueba, qué campos, fórmula, glosario, what is | producir artefactos→pm-orquestador | "Armame el plan de la etapa 3" → pm-plan-etapa-y-limites (vía pm-orquestador) |
 | pm-lecciones-aprendidas | lección aprendida, lessons learned, lessons report, retro de etapa | retro de sprint→pm-agil-hibrido | "Hagamos la retro del sprint 7" → pm-agil-hibrido |
+| pm-mapas-estrategicos | mapa de Wardley, evolución de componentes, customer journey, puntos de dolor | diagramas de gestión→pm-visuales | "Dibujame el organigrama del proyecto" → pm-visuales |
 | pm-mandato-y-brief | mandato, brief, arrancar, kick-off, canvas, visión, mandate, start up | business case→pm-caso-de-negocio | "Calculá NPV y payback de la opción elegida" → pm-caso-de-negocio |
 | pm-okr | OKR, key results, check-in, puntuar OKR | beneficios o business case→pm-caso-de-negocio | "Calculá el VAN y el payback del proyecto" → pm-caso-de-negocio |
 | pm-organizacion-roles | junta, roles, descripción de rol, team charter, mapear roles ágiles o BMAD | interesados o RACI→pm-interesados; plan de comunicación→pm-comunicacion-stakeholders | "Prepará el mensaje para el comité y la matriz de comunicaciones" → pm-comunicacion-stakeholders |
@@ -115,9 +117,9 @@ Basada en la matriz del refactor v2, con las filas de las skills nuevas (pm-bmad
 | pm-estado-proyecto · pm-direccion-decisiones | La segunda prepara la decisión de la junta; la primera solo registra mecánicamente lo que una persona ya decidió (y lo ejecuta pm-director). |
 | pm-knowledge · pm-orquestador | Preguntar ("¿qué es…?", "¿quién aprueba…?") → pm-knowledge; hacer algo → pm-orquestador, que enruta a la skill de fase. |
 
-### 4.1 Interesados, roles, comunicación y canales (2.2)
+### 4.1 Interesados, roles, comunicación y canales
 
-Desde 2.2 el tema "interesados" se reparte entre cuatro skills. Regla corta: **quiénes son y qué responsabilidad tienen
+El tema "interesados" se reparte entre cuatro skills. Regla corta: **quiénes son y qué responsabilidad tienen
 → pm-interesados; cómo está organizada la gestión → pm-organizacion-roles; qué se les dice → pm-comunicacion-stakeholders;
 por dónde sale el mensaje y su registro → pm-integraciones.**
 
@@ -140,13 +142,13 @@ por dónde sale el mensaje y su registro → pm-integraciones.**
 **Frontera más delicada.** "Enviar a interesados" aparece en las descripciones de pm-comunicacion-stakeholders y
 pm-integraciones (y el orquestador anota "envío: pm-integraciones" en su fila de comunicación). Si hay que redactar o
 adaptar el mensaje, la dueña es pm-comunicacion-stakeholders; si el mensaje ya existe y está aprobado, o la pregunta es
-sobre el canal, el envío o su registro, es pm-integraciones. Esta frontera todavía no se midió en vivo (ver §5.1).
+sobre el canal, el envío o su registro, es pm-integraciones. En vivo, «Publicá el resumen semanal en el canal de Teams» llegó a pm-integraciones y «Mandale un correo a los stakeholders con el estado» y «Send the approved status update to the steering committee by email» a pm-comunicacion-stakeholders (frases 17, 51 y 64, ver §5.1).
 
 ## 5. Evaluación de enrutamiento
 
 ### 5.1 Método
-- **Conjunto de prueba:** `docs/evaluacion/frases-enrutamiento.tsv`, 52 frases con tres columnas sin cabecera: `id`, frase tal como la escribiría un usuario, skill esperada. Frases 1–38 y 49–52 en español rioplatense (42); frases 39–48 en inglés (10).
-- **Pendiente 2.2:** las descripciones de pm-interesados (nueva), pm-organizacion-roles, pm-comunicacion-stakeholders, pm-integraciones y pm-okr cambiaron y la evaluación en vivo no se repitió (`python3 scripts/pruebas_vivo/suite.py enrutamiento --ids <afectados>`, consume tokens). Además, el conjunto todavía asigna a pm-organizacion-roles las frases 1 ("análisis de interesados con poder e interés") y 40 ("stakeholder engagement plan"), que desde 2.2 corresponden a pm-interesados, y no tiene frases propias de pm-interesados ni de la capa de canales: conviene corregirlo antes de correr la suite.
+- **Conjunto de prueba:** `docs/evaluacion/frases-enrutamiento.tsv`, sin cabecera: `id`, frase tal como la escribiría un usuario, skill esperada y, en algunas, skills aceptables (102 frases; la evaluación ciega de §5.2 usó las 52 primeras). Frases 1–38 y 49–52 en español rioplatense (42); frases 39–48 en inglés (10).
+- **Repetición en vivo con Claude Code real:** las frases de pm-interesados, pm-organizacion-roles, pm-comunicacion-stakeholders, pm-integraciones y pm-okr (1, 2, 12, 16, 17, 40, 46, 51 y 61–66) dieron 14/14 el 18/10/2026 (`docs/evaluacion/resultados/2026-10-18-enrutamiento-v2.2.md`); las frases 1 y 40 esperan `pm-interesados` y las 61–66 cubren RACI, preferencias, envío por canales, check-ins de OKR y riesgos candidatos.
 - **Cobertura (v2.0, 31 invocables):** 30 de las 31 skills invocables tienen al menos una frase. Más frases en los temas con vecinos fuertes: pm-reuniones 4; pm-progreso-reportes, pm-cronograma-estimacion y pm-bmad-puente 3 cada una; la mayoría del resto 2 o 1. **pm-sanidad no tiene frases** (se agregó después de armar el conjunto).
 - **Evaluación ciega:** el modelo evaluador recibe solo el listado `- <name>: <description>` de las skills invocables (lo mismo que ve Claude Code para decidir) y las frases sin la columna esperada. Para cada frase debe nombrar una única skill. Las respuestas se comparan con la tercera columna.
 - **Qué mide y qué no:** mide si las descripciones bastan para separar vecinos. No mide el efecto del contexto de la conversación, de skills de otros plugins ni del recorte del listado si se agota el presupuesto.

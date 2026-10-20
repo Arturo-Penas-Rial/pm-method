@@ -1,8 +1,8 @@
-# Casos de uso de pm-method 2.2.0 · Worked examples
+# Casos de uso de pm-method 2.3.0 · Worked examples
 
-Un ejemplo trabajado por cada una de las 38 skills, incluidos los seis comandos, sobre un mismo proyecto de muestra para que los casos se encadenen de principio a fin. La parte 6 (casos 38 a 48) reúne lo nuevo de la versión 2.2: el maestro de interesados (`pm-interesados`), la comunicación personalizada enviada por la capa de canales, los OKR con check-ins, los riesgos candidatos desde cuatro fuentes y los controles permanentes (caso 48). Al final hay tres variantes cortas: predictivo sin BMAD, ágil en inglés y un proyecto con Jira y Teams conectados.
+Un ejemplo trabajado por cada una de las 39 skills, incluidos los seis comandos, sobre un mismo proyecto de muestra para que los casos se encadenen de principio a fin. La parte 6 (casos 38 a 49) reúne las capacidades transversales: el maestro de interesados (`pm-interesados`), la comunicación personalizada enviada por la capa de canales, los OKR con check-ins, los riesgos candidatos desde cuatro fuentes, los controles permanentes (caso 48) y los mapas de Wardley y de recorrido del cliente (caso 49). Al final hay tres variantes cortas: predictivo sin BMAD, ágil en inglés y un proyecto con Jira y Teams conectados.
 
-Los datos del proyecto de muestra (personas, montos, fechas, ids) siguen el caso de punta a punta con el que se probó la versión 2: las cifras de los ejemplos coinciden con lo que devolvieron los scripts en esa prueba. Los casos de la parte 6 usan, en cambio, la corrida de referencia de la guía [E2E-3](guias/E2E-3-interesados-okr-avance.md) (mismo portal y mismas personas, con diez interesados ST-001…ST-010): sus ids y cifras salen de [salida-g3.md](guias/evidencia/salida-g3.md) y no continúan la numeración de las partes 1 a 5 (el caso 48 toma además salidas de las guías E2E-2 y E2E-4, cada una con su propia carpeta y numeración). Las personas y la cooperativa son ficticias. Las respuestas humanas son simuladas.
+Los datos del proyecto de muestra (personas, montos, fechas, ids) siguen el caso de punta a punta con el que se probó la versión 2: las cifras de los ejemplos coinciden con lo que devolvieron los scripts en esa prueba. Los casos de la parte 6 usan, en cambio, la corrida de referencia de la guía [E2E-3](guias/E2E-3-interesados-okr-avance.md) (mismo portal y mismas personas, con diez interesados ST-001…ST-010): sus ids y cifras salen de [salida-g3.md](guias/evidencia/salida-g3.md) y no continúan la numeración de las partes 1 a 5 (el caso 48 toma además salidas de las guías E2E-2 y E2E-4, y el caso 49, de la variante con BMAD de la guía E2E-5, cada una con su propia carpeta y numeración). Las personas y la cooperativa son ficticias. Las respuestas humanas son simuladas.
 
 ## Proyecto de muestra
 
@@ -31,9 +31,9 @@ B="$PM/pm-bmad-puente/scripts/bmad.py"
 X="$PM/pm-exportar/scripts/paquete.py"
 O="$PM/pm-okr/scripts/okr.py"
 T="$PM/pm-reuniones/scripts/transcripcion.py"
-I="$PM/pm-interesados/scripts/interesados.py"   # maestro de interesados (v2.2)
-V="$PM/pm-integraciones/scripts/envios.py"      # capa de canales (v2.2)
-R="$PM/pm-riesgos/scripts/riesgos.py"           # riesgos candidatos desde cuatro fuentes (v2.2)
+I="$PM/pm-interesados/scripts/interesados.py"   # maestro de interesados
+V="$PM/pm-integraciones/scripts/envios.py"      # capa de canales
+R="$PM/pm-riesgos/scripts/riesgos.py"           # riesgos candidatos desde cuatro fuentes
 ```
 
 Los scripts que reciben la carpeta (incluidos `interesados.py` y `envios.py`) usan `--proyecto gestion` y resuelven las rutas internas contra ella. Los que reciben un archivo (`wbs.py`, `cpm.py`, `okr.py`, `transcripcion.py`) llevan la ruta desde la raíz del repositorio.
@@ -137,7 +137,7 @@ Regla que atraviesa todos los casos: cuando un subagente necesita una decisión,
 - **Respuestas del usuario:**
   1. Laura Méndez, ejecutiva: "Confirmo el diseño de la junta y los nombramientos."
   2. Martín Suárez, gestor: "Revisé las actitudes de los interesados; guardalas así."
-- **Quién:** orquestador → `pm-inicio` → `pm-organizacion-roles` (junta, roles, descripciones de rol, team charter). Desde la versión 2.2 los interesados y la RACI son de `pm-interesados` (maestro de interesados), que el mismo subagente invoca a continuación (casos 38 a 43).
+- **Quién:** orquestador → `pm-inicio` → `pm-organizacion-roles` (junta, roles, descripciones de rol, team charter). Los interesados y la RACI son de `pm-interesados` (maestro de interesados), que el mismo subagente invoca a continuación (casos 38 a 43).
 - **Qué pregunta o verifica:** un solo ejecutivo distinto del gestor; los tres intereses en la junta; aseguramiento fuera del gestor, los equipos y el soporte; sin responsabilidades huérfanas. Mapea roles ágiles y BMAD (el PM de BMAD no es el gestor del proyecto; la PO es la usuaria sénior). Detecta que el rol de soporte no tiene titular y lo deja `[por confirmar]`. Para los interesados, `pm-interesados` pide poder e interés de cada uno (sin ellos no se ubican en la matriz: aviso STK-01) y deja las valoraciones como de circulación restringida.
 - **Comandos:** los ejecuta el sistema; el usuario no los escribe. Se corren después de la confirmación de la ejecutiva.
   ```bash
@@ -156,7 +156,7 @@ Regla que atraviesa todos los casos: cuando un subagente necesita una decisión,
   - Cadencia de 14 días: dato del proyecto (sprints de 14 días). Velocidad de referencia 30: no figura en el prompt; el usuario la informa al orquestador **[verificar]** (el caso no dice de dónde sale).
 - **Salidas (qué queda y dónde verificarlo):**
   - `gestion/00-direccion/estructura-organizativa.md` (organigrama Mermaid), de `pm-organizacion-roles`.
-  - `gestion/01-inicio/analisis-stakeholders.md` (circulación restringida) y `gestion/02-planificacion/plan-compromiso-stakeholders.md` (cuatro brechas con acción): sus plantillas pasaron a `pm-interesados` en la versión 2.2.
+  - `gestion/01-inicio/analisis-stakeholders.md` (circulación restringida) y `gestion/02-planificacion/plan-compromiso-stakeholders.md` (cuatro brechas con acción): sus plantillas son de `pm-interesados`.
   - `gestion/03-control/registros/stakeholders.csv` con seis interesados (ST-004 con `confidencial=si`); `interesados.py matriz` muestra en la respuesta el cuadrante de cada uno con su estrategia (ejemplo completo en el caso 38).
   - `gestion/estado.json`: `roles` con los nombramientos (el rol de soporte queda `[por confirmar]`) y `agil.cadencia_iteracion_dias` = 14, `agil.velocidad_referencia` = 30; la decisión de la ejecutiva, nivel `junta`, en `gestion/03-control/registros/decisiones.csv`.
   - Cómo verificarlo: abrir los tres Markdown (el análisis es de circulación restringida); abrir `stakeholders.csv` en un editor o Excel; o escribir "Mostrame la junta y los roles registrados".
@@ -221,7 +221,7 @@ Regla que atraviesa todos los casos: cuando un subagente necesita una decisión,
   - `gestion/00-direccion/okr.md` (`en-revision`; `artefactos.okr`, que pasa a `aprobado` con `aprobado_por` "Ejecutivo: Laura Méndez" tras la aceptación).
   - `gestion/03-control/reportes/2026-10-17-okr.md`: tabla puntuada. Sin avisos de vínculo; los tres KR salen en rojo porque todavía no hay medición, y el informe lo aclara.
   - Cómo verificarlo: abrir `okr.csv` en un editor o Excel y la tabla puntuada; mirar `artefactos.okr` en `gestion/estado.json`.
-  - Desde la versión 2.2 este `okr.csv` sigue valiendo tal cual (sin columnas nuevas la salida es idéntica a la de 2.1); los tipos de KR, el compromiso, el peso, las iniciativas, los check-ins y la salud son opcionales (caso 45).
+  - Este `okr.csv` mínimo es válido tal cual; los tipos de KR, el compromiso, el peso, las iniciativas, los check-ins y la salud son opcionales (caso 45).
 - **Decisión humana:** la ejecutiva acepta objetivo y KR; con su respuesta, pm-director ejecuta `estado.py aprobar okr --por "Ejecutivo: Laura Méndez"`.
 
 ### 9. `pm-riesgos` — riesgos iniciales
@@ -540,7 +540,7 @@ Regla que atraviesa todos los casos: cuando un subagente necesita una decisión,
 - **Entradas (qué aporta el usuario y cómo):** lo que dice el prompt (sin tracker ni chat; transcripciones por archivo) y las herramientas MCP presentes en la sesión (ninguna de tracker, chat ni docs).
 - **Salidas (qué queda y dónde verificarlo):**
   - `gestion/estado.json` → `integraciones`: `tracker` = `ninguno`, `chat` = `ninguno`, `docs` = `ninguno`, `reuniones` = `archivo`, `okr` = `archivo`.
-  - Una nota en `gestion/03-control/registros/diario.md`. Las alternativas son el `backlog.csv`, la transcripción por archivo, borradores de mensajes para copiar y `okr.csv`. Desde la versión 2.2, sin ningún conector igual se puede enviar a los interesados por la capa de canales: correo SMTP propio, webhooks de Slack o Teams, o archivos `.eml` sin configuración (caso 44 y [CASOS-DE-USO-INTEGRACIONES caso 8](CASOS-DE-USO-INTEGRACIONES.md)).
+  - Una nota en `gestion/03-control/registros/diario.md`. Las alternativas son el `backlog.csv`, la transcripción por archivo, borradores de mensajes para copiar y `okr.csv`. Sin ningún conector igual se puede enviar a los interesados por la capa de canales: correo SMTP propio, webhooks de Slack o Teams, o archivos `.eml` sin configuración (caso 44 y [CASOS-DE-USO-INTEGRACIONES caso 8](CASOS-DE-USO-INTEGRACIONES.md)).
   - Cómo verificarlo: abrir `gestion/estado.json` y `diario.md`; o escribir "¿Qué integraciones tiene el proyecto?".
 - **Decisión humana:** ninguna. La skill sugiere conectar un tracker si el equipo lo usa, sin bloquear el trabajo (ver variante C).
 
@@ -595,7 +595,7 @@ Regla que atraviesa todos los casos: cuando un subagente necesita una decisión,
   - Transcripción normalizada `gestion/03-control/reuniones/2026-12-03-checkpoint-sprint3-transcripcion.md` (9 intervenciones, 3 hablantes).
   - Acta `gestion/03-control/reuniones/2026-12-03-acta-checkpoint-sprint3.md`.
   - Tras confirmar: D-026 en `gestion/03-control/registros/decisiones.csv`; A-001 (Lucía, 2026-12-11) y A-002 (Sofía, 2026-12-09) en `gestion/03-control/registros/acciones.csv`; R-006 (P4 × I3 = 12, EMV 8.400) en `gestion/03-control/registros/riesgos.csv`; I-002 (`problema-preocupacion`) en `gestion/03-control/registros/issues.csv`.
-  - Opcional desde la versión 2.2: distribuir el acta confirmada a los participantes por la capa de canales (`envios.py nuevo --origen <acta> --proposito acta`, con aprobación y `--confirmar`; caso 44) y proponer las preferencias de comunicación que alguien declaró en primera persona durante la reunión (`interesados.py proponer`; caso 41).
+  - Opcional: distribuir el acta confirmada a los participantes por la capa de canales (`envios.py nuevo --origen <acta> --proposito acta`, con aprobación y `--confirmar`; caso 44) y proponer las preferencias de comunicación que alguien declaró en primera persona durante la reunión (`interesados.py proponer`; caso 41).
   - Cómo verificarlo: abrir el acta; abrir los CSV en un editor o Excel; o escribir "Mostrame las acciones abiertas".
 - **Decisión humana:** Martín, que presidió, confirma el acta y la lista de cargas. Nada entra a los registros antes.
 
@@ -686,7 +686,7 @@ Regla que atraviesa todos los casos: cuando un subagente necesita una decisión,
   - `gestion/03-control/reportes/2026-12-10-tablero-avance.html` (`borrador`; `artefactos.tablero-avance`): 2 acciones, 6 riesgos, 1 issue. Con `?actor=Sofía Ramírez` muestra A-002 vencida y los riesgos R-003, R-004 y R-006 de los que es propietaria.
   - Sin chat conectado, el texto con los enlaces para pegar queda en la respuesta.
   - Cómo verificarlo: abrir el HTML en el navegador, con y sin `?actor=…` al final de la dirección.
-- **Decisión humana:** el gestor confirma antes de compartirlo. Sin chat conectado, se entrega el texto con los enlaces para pegar; desde la versión 2.2 también puede salir por la capa de canales (webhook de Slack o Teams, o correo) con aprobación del gestor y `--confirmar` (caso 44).
+- **Decisión humana:** el gestor confirma antes de compartirlo. Sin chat conectado, se entrega el texto con los enlaces para pegar; también puede salir por la capa de canales (webhook de Slack o Teams, o correo) con aprobación del gestor y `--confirmar` (caso 44).
 
 ### 29. `/pm-estado` — dónde estamos
 - **Prompt del usuario:** "¿Dónde estamos y qué sigue?"
@@ -903,7 +903,7 @@ Regla que atraviesa todos los casos: cuando un subagente necesita una decisión,
 
 ---
 
-## Parte 6 · Maestro de interesados, comunicación por canales, OKR, identificación de riesgos y controles permanentes (v2.2, transversal)
+## Parte 6 · Maestro de interesados, comunicación por canales, OKR, identificación de riesgos, controles permanentes y mapas (transversal)
 
 Estos casos atraviesan el ciclo: el maestro de interesados se arma en SU e IP, se mantiene en cada etapa (CS) y se revisa en cada límite (SB). Los datos son los de la corrida de referencia de la guía [E2E-3](guias/E2E-3-interesados-okr-avance.md) (evidencia en [salida-g3.md](guias/evidencia/salida-g3.md)): diez interesados ST-001…ST-010, entre ellos Laura Méndez (ST-001), el Consejo directivo (ST-002), Sofía Ramírez (ST-003), el Sindicato de operadores (ST-004, confidencial), los socios piloto (ST-005), TI del núcleo (ST-006), la Unidad de cumplimiento (ST-007), Diego Ferreira (ST-008), Martín Suárez (ST-009) y Lucía Benítez (ST-010). Donde un caso muestra una salida que no está en esa evidencia, se aclara que viene de una corrida complementaria del 2026-10-17 sobre la misma carpeta, con los scripts del paquete. El maestro (`stakeholders.csv`) es la única fuente de personas: OKR, RACI, preferencias, envíos y registros lo citan por `ST-###` o por el nombre exacto. Nada de esto es asesoramiento jurídico; los límites de privacidad están en la guía de `pm-interesados` §10.
 
@@ -1146,7 +1146,7 @@ Estos casos atraviesan el ciclo: el maestro de interesados se arma en SU e IP, s
   - Cómo verificarlo: abrir la carpeta `gestion/03-control/comunicaciones/2027-01-15-avance-del-portal-al-8-de-enero/` (borradores aprobados y `plan-envio.csv`); abrir `gestion/03-control/registros/envios.csv` (EN-001…EN-007, con `confirmado_por`) y `diario.md`; escribir "¿Qué le enviamos al sindicato y cuándo?".
 - **Decisión humana:** el gestor aprueba los borradores (acto humano con nombre y rol) y confirma el envío; sin `--confirmar` no sale nada. Un envío fallido deja código de salida 2 y aviso STK-07 hasta que se reintenta.
 
-### 45. `pm-okr` — OKR v2.2: tipos de KR, check-ins, salud y propuesta de sincronización con Tability
+### 45. `pm-okr` — OKR: tipos de KR, check-ins, salud y propuesta de sincronización con Tability
 - **Prompt del usuario:**
   1. "Definí los OKR del proyecto ligados al business case (B-01, B-02, B-03) y a las métricas de éxito del PRD. Laura es la dueña de los objetivos y Sofía de los KR. Ciclo 2027, desde el 2/11. O-1 aspiracional (KR-1.1 30 % de socios registrados, pesa el doble, en Tability es kr-registro-portal; KR-1.2 bajar de 5.000 a 3.500 consultas); O-2 comprometido (KR-2.1 mantener la respuesta por debajo de 48 h; KR-2.2 más del 90 % de solicitudes completas; KR-2.3 la bandeja en producción para el 12/3 con las iniciativas de las historias 3-1, 3-2 y 3-3). Calculá el puntaje al 20/11."
   2. "Check-ins de Sofía: 11/12 KR-1.1 1 % (confianza 7), KR-1.2 4.950 (6), KR-2.1 92 h (4), KR-2.2 64 % (6); 23/12 …; 8/1 3 %, 4.800, 80 h (5), 72 %."
@@ -1225,12 +1225,12 @@ Estos casos atraviesan el ciclo: el maestro de interesados se arma en SU e IP, s
 ### 48. `pm-sanidad` y `pm-direccion-decisiones` — controles permanentes: presupuesto de cambio, excepción, calidad a volumen, condiciones de puertas y cadencia de contacto
 - **Prompt del usuario:** "Hacé el control del período al 19 de febrero, con la sanidad a esa fecha: ¿cuánto queda del presupuesto de cambio, el pronóstico sigue dentro de la tolerancia, hay historias terminadas sin revisión de calidad, quedan condiciones de la junta abiertas y estamos hablando con cada interesado con la frecuencia que prometimos?"
 - **Respuestas del usuario:**
-  1. Laura Méndez, ejecutiva (ante el presupuesto de cambio excedido y el pronóstico fuera de tolerancia): "Pido un plan de excepción para la etapa 2; C-002 queda sujeto a ese plan." Con el plan presentado: "Amplío el presupuesto de cambio a 32.000 y ratifico C-002 con el plan de excepción X-001."
+  1. Laura Méndez, ejecutiva (ante C-002, que supera el límite y el saldo de la autoridad de cambio, y el pronóstico fuera de tolerancia): "Pido un plan de excepción para la etapa 2; C-002 queda sujeto a ese plan." Con el plan presentado: "Amplío el presupuesto de cambio a 32.000 y apruebo C-002 con el plan de excepción X-001."
   2. Sofía Ramírez, usuaria sénior (ante las historias `done` sin revisión): "Las cinco se revisaron el 25 de febrero contra sus criterios de aceptación; la 3-3 tiene una observación menor que va al backlog."
   3. Laura Méndez, ejecutiva (condición de la puerta de la etapa 2): "La prueba de carga se aprobó el 2 de marzo y el gate de BMAD quedó en PASS el 3: doy por cumplida la condición."
   4. Martín Suárez, gestor (ante la cadencia de contacto): "Retomamos la reunión técnica semanal con TI; para Lucía, el compromiso de contacto es el checkpoint semanal, no la daily."
 - **Quién:** orquestador → `pm-control` → `pm-sanidad` (`sanidad.py --corte`), `pm-progreso-reportes` (`evm.py --guardar`), `pm-issues-cambios` (costo y cargo de cada cambio, informe de excepción), `pm-calidad` (revisiones en lote), `pm-interesados` (STK-12); `pm-director` registra presupuestos, decisiones, la excepción, el cumplimiento de condiciones y las puertas.
-- **Qué pregunta o verifica:** lo que en la práctica se revisa a mano, tarde o nunca, y aquí corre en cada sanidad: consumo del presupuesto de cambio y de la reserva de riesgo contra lo que fijó la junta (CAM-03; > 100 % es ERROR y bloquea puertas) y cambios sobre el límite de la autoridad delegada (CAM-04); el último corte de EVM guardado contra las tolerancias (TOL-01 si pronostica excepción y no hay excepción abierta); cada historia terminada de `backlog.csv` contra `calidad.csv` (QUA-01) y revisiones vencidas (QUA-02); condiciones abiertas de puertas (EST-12 y, en la verificación de la puerta siguiente, G-01, que bloquea el cierre); y, para los cuadrantes gestionar de cerca, mantener satisfecho y mantener informado, el último contacto registrado contra la frecuencia del perfil (STK-12, tolerancia 1,5 ×). Pregunta quién decide cada corrección: lo que excede la autoridad delegada va a la junta.
+- **Qué pregunta o verifica:** lo que en la práctica se revisa a mano, tarde o nunca, y aquí corre en cada sanidad: consumo del presupuesto de cambio y de la reserva de riesgo contra lo que fijó la junta (CAM-03; > 100 % es ERROR y bloquea puertas) y cambios sobre el límite de la autoridad delegada (CAM-04), que además `registro.py` no deja registrar como aprobados (sin saldo o sobre el límite, el cambio queda `pendiente-decision` para la junta); el último corte de EVM guardado contra las tolerancias (TOL-01 si pronostica excepción y no hay excepción abierta); cada historia terminada de `backlog.csv` contra `calidad.csv` (QUA-01) y revisiones vencidas (QUA-02); condiciones abiertas de puertas (EST-12 y, en la verificación de la puerta siguiente, G-01, que bloquea el cierre); y, para los cuadrantes gestionar de cerca, mantener satisfecho y mantener informado, el último contacto registrado contra la frecuencia del perfil (STK-12, tolerancia 1,5 ×). Pregunta quién decide cada corrección: lo que excede la autoridad delegada va a la junta.
 - **Comandos:** los ejecuta el sistema; el usuario no los escribe. Cada bloque viene de la corrida de referencia de una guía distinta, con su propia carpeta: E2E-2 ([salida-g2.md](guias/evidencia/salida-g2.md)), E2E-4 ([salida-g4.md](guias/evidencia/salida-g4.md)) y E2E-3 ([salida-g3.md](guias/evidencia/salida-g3.md)).
   ```bash
   # E2E-2, pasos 5 y 10: presupuesto de cambio, cambio con costo y cargo, corte de EVM y sanidad a la fecha de corte
@@ -1238,6 +1238,8 @@ Estos casos atraviesan el ciclo: el maestro de interesados se arma en SU e IP, s
       --por "Ejecutiva: Laura Méndez" --fecha 2026-11-27                                   # pm-director
   python3 $E/registro.py --proyecto gestion agregar cambios --campo "titulo=Consentimiento informado y registro de accesos consultable por el socio" \
       --campo "impacto_costo=+USD 15.000" --campo "costo=15000" --campo "cargo=presupuesto-cambio" ...
+  python3 $E/registro.py --proyecto gestion actualizar cambios C-002 --campo "decision=aprobado" --campo "estado=aprobado" \
+      --campo "decidido_por=Autoridad de cambio: Sofía Ramírez" ...                        # rechazado: queda pendiente-decision
   python3 $E/evm.py --pv 75000 --ev 60000 --ac 77000 --bac 133000 --modo agil --pct-no-must 20 \
       --proyecto gestion --guardar --corte 2027-02-19
   python3 $E/sanidad.py --proyecto gestion --rapido --corte 2027-02-19
@@ -1247,6 +1249,8 @@ Estos casos atraviesan el ciclo: el maestro de interesados se arma en SU e IP, s
   python3 $E/estado.py --proyecto gestion cumplir-condiciones decision-ad-hoc --fecha 2027-02-24 \
       --por "Ejecutiva: Laura Méndez" --nota "plan de excepción X-001 presentado; C-002 se decide con él"    # pm-director
   python3 $E/estado.py --proyecto gestion presupuesto cambio=32000 --por "Ejecutiva: Laura Méndez" --fecha 2027-02-26   # pm-director
+  python3 $E/registro.py --proyecto gestion actualizar cambios C-002 --campo "decision=aprobado" --campo "estado=aprobado" \
+      --campo "decidido_por=Junta: Laura Méndez (ejecutiva) · plan de excepción X-001" ...
   python3 $E/puertas.py --proyecto gestion verificar autorizar-plan-excepcion
   # E2E-4, pasos 8, 12 y 13: condición formal, calidad a volumen y cumplimiento
   python3 $E/estado.py --proyecto gestion puerta autorizar-etapa --decision condicionado --por "Ejecutivo: Laura Méndez" \
@@ -1268,20 +1272,45 @@ Estos casos atraviesan el ciclo: el maestro de interesados se arma en SU e IP, s
   (Los `...` abrevian campos descriptivos que están completos en la evidencia; sintaxis en [CATALOGO §5](CATALOGO.md).)
 - **Entradas (qué aporta el usuario y cómo):** las decisiones de la junta en el prompt o respondiendo al orquestador (montos sin moneda ni separador de miles); el costo y el cargo de cada cambio; los valores de EVM del período; las revisiones de calidad realizadas; las reuniones y llamadas mantenidas, que se registran como envío manual.
 - **Salidas (qué queda y dónde verificarlo):**
-  - Sanidad del 2027-02-19 en la guía E2E-2 (salida real):
+  - Aprobación de C-002 por la autoridad de cambio y sanidad del 2027-02-19 en la guía E2E-2 (salida real):
     ```text
-    Sanidad de 'Portal de autoservicio para socios' (entrega/CS): 1 ERROR · 2 AVISO · 0 INFO
-      ERROR CAM-03 Presupuesto de cambio excedido: 24.000 de 12.000 (200 %).
-      AVISO CAM-04 Cambio C-002 (15.000) supera el límite de la autoridad de cambio (10.000) y lo decidió 'Autoridad de cambio: Sofía Ramírez'.
+    Control de cambios (PRINCE2, autoridad y presupuesto de cambio; no se omite con --forzar):
+      - C-002: costo 15.000 supera el límite de la autoridad de cambio (10.000).
+      - C-002: el presupuesto de cambio no alcanza: 9.000 ya cargados + 15.000 = 24.000 de 12.000 fijados por la junta.
+      → 'Autoridad de cambio: Sofía Ramírez' no es la junta ni el ejecutivo. Dejar estado=pendiente-decision (sin decision=aprobado) y escalar a pm-director: decide la junta o el ejecutivo.
+    Sanidad de 'Portal de autoservicio para socios' (entrega/CS): 0 ERROR · 1 AVISO · 1 INFO
       AVISO TOL-01 El EVM del 2027-02-19 pronostica salir de la tolerancia (costo=n/a-agil, cronograma=n/a-agil, alcance=rojo) y no hay excepción abierta.
+      INFO  CAM-03 Presupuesto de cambio: 9.000 de 12.000 (75 %).
     ```
-    `evm.py` deja `Guardado: 03-control/reportes/evm-2027-02-19.json` (`semaforo_alcance rojo`, `excepcion_prevista True`). Con el ERROR, `puertas.py verificar autorizar-plan-excepcion` muestra `BLOQUEO sanidad CAM-03: Presupuesto de cambio excedido: 24.000 de 12.000 (200 %).`; tras la ampliación a 32.000 queda solo el bloqueo de la lista de control, que la ejecutiva confirma, y la puerta se registra. La sanidad del 2027-02-26: `0 ERROR · 1 AVISO · 1 INFO` con `INFO CAM-03 Presupuesto de cambio: 24.000 de 32.000 (75 %).` y `estado.py resumen` muestra `Presupuestos: cambio=32000, limite_autoridad_cambio=10000`.
+    `evm.py` deja `Guardado: 03-control/reportes/evm-2027-02-19.json` (`semaforo_alcance rojo`, `excepcion_prevista True`). C-002 queda `pendiente-decision` y no consume presupuesto; `puertas.py verificar autorizar-plan-excepcion` muestra solo el bloqueo de la lista de control (L-01). La junta amplía el presupuesto a 32.000, aprueba C-002 (sin la ampliación, `registro.py` también le pediría la fuente: `reserva-gestion`, `plan-excepcion` o ampliar), confirma la lista y la puerta se registra. La sanidad del 2027-02-26: `0 ERROR · 1 AVISO · 1 INFO` con `INFO CAM-03 Presupuesto de cambio: 24.000 de 32.000 (75 %).` y `estado.py resumen` muestra `Presupuestos: cambio=32000, limite_autoridad_cambio=10000`.
   - Sanidad del 2027-02-26 en la guía E2E-4 (salida real, extracto): `0 ERROR · 7 AVISO · 3 INFO`, con `AVISO EST-12 Condiciones abiertas de autorizar-etapa: gate de preparación de BMAD en CONCERNS (2026-11-26: NFR-3 sin prueba de carga planificada).`, cinco `AVISO QUA-01` (por ejemplo, `1-3-consulta-de-saldos-de-ahorro-y-préstamos: terminado sin revisión de calidad registrada.`) y `AVISO QUA-02 Revisión de calidad vencida Q-001 (NFR-3 prueba de carga (consultas de saldos y préstamos), prevista 2027-02-19).` Con las revisiones Q-004…Q-008 registradas: `0 ERROR · 2 AVISO · 2 INFO` (quedan EST-12 y QUA-02). La condición había nacido sola al registrar la puerta: `Condiciones agregadas desde la verificación: gate de preparación de BMAD en CONCERNS (2026-11-26: NFR-3 sin prueba de carga planificada)`. Antes de cumplirla, `puertas.py verificar autorizar-etapa` muestra `condición condiciones abiertas de puertas anteriores: autorizar-etapa 2026-11-27 (…)` (G-01); después, la sanidad del 2027-03-05 queda en `0 ERROR · 0 AVISO · 1 INFO`.
   - Integridad del 2027-02-05 en la guía E2E-3 (salida real): `AVISO STK-12: ST-006 Área de TI del núcleo operativo (gestionar-de-cerca, frecuencia semanal): último contacto registrado el 2027-01-18, hace 18 días (máximo 10)`, y lo mismo para ST-009 (sin contacto desde 2027-01-15, 21 días; máximo 10) y ST-010 (frecuencia diaria; máximo 2). Con la reunión EN-008, los checkpoints EN-009 y EN-010, la acción A-005 y la frecuencia de ST-010 corregida a semanal: `Integridad referencial y calidad del maestro: sin hallazgos.`
   - Dónde verificar: `estado.json` → `presupuestos` y `puertas[]` (`condiciones`, `condiciones_cumplidas`, `condiciones_verificadas_por`, `condiciones_nota`); `cambios.csv` (columnas `costo` y `cargo`); `03-control/reportes/evm-<corte>.json`; `calidad.csv`; `envios.csv`; `decisiones.csv` (presupuestos, decisión ad hoc y cumplimiento de condiciones). Prompts: "¿Cuánto queda del presupuesto de cambio?", "¿Qué condiciones de la junta siguen abiertas?", "¿A quién no contactamos con la frecuencia acordada?".
-- **Decisión humana:** la junta (Laura Méndez) decide la excepción, amplía el presupuesto, ratifica el cambio que superó el límite delegado y da por cumplidas las condiciones; pm-director registra cada decisión con `estado.py` (el hook impide que otro agente ejecute `presupuesto`, `cumplir-condiciones`, `puerta` o `limite-etapa --excepcion`). Sofía Ramírez aprueba las revisiones de calidad; el gestor decide la acción correctiva con TI y corrige la frecuencia. Ningún control decide: detecta, explica el arreglo y señala quién decide.
+- **Decisión humana:** la junta (Laura Méndez) decide la excepción, amplía el presupuesto, aprueba el cambio que superaba el límite delegado y da por cumplidas las condiciones; pm-director registra cada decisión con `estado.py` (el hook impide que otro agente ejecute `presupuesto`, `cumplir-condiciones`, `puerta` o `limite-etapa --excepcion`). Sofía Ramírez aprueba las revisiones de calidad; el gestor decide la acción correctiva con TI y corrige la frecuencia. Ningún control decide: detecta, explica el arreglo y señala quién decide.
 
 ---
+
+### 49. `pm-mapas-estrategicos` — recorrido del socio y mapa de valor del portal desde la especificación
+- **Prompt del usuario:** "Con la especificación de BMAD, armá el recorrido de UJ-2 (Diego pide un préstamo) con lo que hace la operadora como carril interno, y un mapa de valor del portal: qué construye el equipo, qué se compra o terceriza y dónde está la inercia. Mostrame qué controles fallan."
+- **Quién:** orquestador → `pm-inicio` → `pm-mapas-estrategicos`; BMAD solo a través de `pm-bmad-puente` (`bmad.py recorridos` y `capacidades`, de solo lectura); los candidatos aceptados se registran con `pm-registros`, `pm-riesgos` y `pm-direccion-decisiones` según su nivel.
+- **Qué pregunta o verifica:** la pregunta estratégica del mapa y la persona del recorrido; que cada posición tenga etapa y evidencia y cada emoción su fuente; una acción por paso; que las inercias tengan riesgo, los componentes en producto o commodity marcados construir tengan decisión y los dolores tengan tratamiento (familia MAP de la sanidad).
+- **Comandos:** los ejecuta el sistema; el usuario no los escribe.
+  ```bash
+  python3 $B --proyecto gestion recorridos --id UJ-2
+  python3 $M --proyecto gestion recorrido semilla --uj UJ-2 --backstage UJ-3 --fecha 2026-10-29
+  python3 $M --proyecto gestion wardley semilla --slug portal --titulo "Portal de socios · qué construir y qué comprar" --pregunta "…" --fecha 2026-10-29
+  python3 $M --proyecto gestion recorrido render uj-2 && python3 $M --proyecto gestion wardley render portal
+  python3 $M --proyecto gestion controles
+  python3 $M --proyecto gestion vincular portal C11 --refs R-001
+  ```
+  (`$M` = `…/pm-mapas-estrategicos/scripts/mapas.py`; sintaxis completa en [CATALOGO §5.2](CATALOGO.md).)
+- **Entradas (qué aporta el usuario y cómo):** la confirmación de las posiciones, las emociones y sus fuentes, y las decisiones de construir o comprar; BMAD ya está en el repositorio.
+- **Salidas (qué queda y dónde verificarlo):**
+  - Salida real ([salida-g5.md](guias/evidencia/salida-g5.md), paso 17): UJ-2 realizado por FR-6 y FR-7, KPI SM-3 y SM-5, contrapeso SM-C1; semilla del recorrido con 9 pasos y del mapa con 3 anclas, 15 componentes y 6 enlaces (quedan 9 componentes).
+  - `controles`: MAP-01 (notificaciones en producto marcada construir sin decisión), MAP-02 (núcleo operativo con inercia), MAP-03 y MAP-04 (paso P6 sin tratamiento ni fuente); tras S-004, D-001, R-001 y los vínculos, "0 aviso(s) de la familia MAP".
+  - Fuente en `gestion/02-planificacion/mapas/*.json`; vistas `wardley-portal.md` y `.owm`, `recorrido-uj-2.md` y `.html` en `02-planificacion/visuales/`; artefactos `mapa-wardley-portal` y `mapa-recorrido-uj-2` en revisión.
+  - Cómo verificarlo: abrir el HTML del recorrido y escribir "¿Qué dolores del socio no tienen tratamiento?".
+- **Decisión humana:** el gestor confirma posiciones, emociones y decisiones de construir o comprar; el riesgo de la inercia queda con su propietario; los mapas siguen en borrador hasta que los confirma el dueño de la decisión.
 
 ## Variantes
 

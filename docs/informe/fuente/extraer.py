@@ -3,8 +3,11 @@
 Fuente única: la raíz del repositorio pm-method (por defecto ../../.. desde esta carpeta; README, SPEC, compatibilidad.json, docs/, agents/).
 Salida: data.json = narrativa.json (texto propio del informe) + estructuras extraídas literalmente.
 Volver a ejecutar cuando cambie el paquete:  python3 extraer.py && python3 build_html.py && node build_pptx.js
+Las cifras del paquete (skills, agentes, hooks, registros, códigos de sanidad, guías, pasos, diapositivas del webinar…)
+se cuentan en el repositorio y quedan en data.json["x"]["cifras"]; el texto propio de narrativa.json las cita con
+marcadores {{clave}} que se completan aquí (un marcador desconocido detiene la extracción).
 """
-import json, re, pathlib, subprocess, os
+import json, re, pathlib, subprocess, os, sys
 
 BASE = pathlib.Path(os.environ.get("PM_METHOD", pathlib.Path(__file__).resolve().parents[3]))
 AQUI = pathlib.Path(__file__).resolve().parent
@@ -163,6 +166,20 @@ X["mapeo_ciclo_md"] = re.search(r"- \*\*Mapeo de ciclo de vida\*\*: (.*?)\n\n", 
 # Sanidad
 X["controles"] = tabla(SAN, r"^1\. Resumen de los controles")
 X["codigos"] = tabla(SAN, r"^2\.1 Familias")
+_fam = []
+for _f in X["codigos"]["filas"]:
+    if _f[0].startswith("**") and not _f[1].strip() and "·" in _f[0]:   # fila de familia: "**CAM · …**" (con nota opcional)
+        _fam.append(re.match(r"\*\*([A-Z]+) ·", _f[0]).group(1))
+        nota = " ".join(c for c in _f[1:] if c.strip())
+        _f[:] = [_f[0] + (" — " + nota if nota else "")] + [""] * (len(_f) - 1)
+def _n_codigos(c):
+    c = c.replace("*", "").strip()
+    m = re.match(r"^([A-Z]+)-(\d+)\s*(?:…|\.\.\.|/)\s*(?:[A-Z]+-)?(\d+)$", c)
+    return int(m.group(3)) - int(m.group(2)) + 1 if m else (1 if re.match(r"^[A-Z]+-\d+$", c) else 0)
+_cods = [f for f in X["codigos"]["filas"] if f[1].strip()]
+X["codigos_familias"] = _fam
+X["codigos_n"] = sum(_n_codigos(f[0]) for f in _cods)
+assert all(_n_codigos(f[0]) for f in _cods), [f[0] for f in _cods if not _n_codigos(f[0])]
 X["guardian"] = tabla(SAN, r"^3\.1 `guardian\.py`", 0)
 X["guardian_pruebas"] = tabla(SAN, r"^3\.1 `guardian\.py`", 1)
 X["evolucion_error"] = tabla(SAN, r"^2\.2 Ejemplos")
@@ -289,9 +306,14 @@ X["pue_componentes"] = tabla(PUE, r"^1\. Ciclo de vida integrado")
 _s2 = seccion(PUE, r"^2\. Cómo se verifica").split("```")[-1].strip()
 X["pue_capas_intro"] = _s2.split("\n\n")[0].replace("\n", " ")
 X["pue_capas"] = [re.sub(r"^\d+\.\s*", "", b).replace("\n   ", " ").strip() for b in re.split(r"\n(?=\d+\. )", _s2.split("\n\n")[1])]
-X["pue_severidades"] = _s2.split("\n\n")[2].replace("\n", " ")
+X["pue_verificar"] = next(b for b in _s2.split("\n\n") if b.startswith("`puertas.py verificar")).replace("\n", " ")
+X["pue_severidades"] = next(b for b in _s2.split("\n\n") if b.startswith("Severidades:")).replace("\n", " ")
+_cf = seccion(PUE, r"^3\.1 Condiciones formales").strip()
+X["pue_condiciones_intro"] = _cf.split("\n\n")[0].replace("\n", " ")
+X["pue_condiciones"] = [re.sub(r"^\d+\.\s*", "", b).replace("\n   ", " ").strip() for b in re.split(r"\n(?=\d+\. )", _cf.split("\n\n")[1])]
+X["pue_condiciones_ejemplo"] = _cf.split("\n\n")[-1].replace("\n", " ")
 X["pue_controles"] = tabla(PUE, r"^3\. Controles automáticos")
-X["pue_criterios_exito"] = seccion(PUE, r"^3\. Controles automáticos").strip().split("\n\n")[-1].replace("\n", " ")
+X["pue_criterios_exito"] = next(b for b in seccion(PUE, r"^3\. Controles automáticos").strip().split("\n\n") if b.startswith("Los criterios de éxito")).replace("\n", " ")
 X["pue_bmad"] = tabla(PUE, r"^4\. Controles de BMAD")
 X["pue_bmad_titulo"] = re.search(r"^## 4\. (.+)$", PUE, re.M).group(1)
 X["pue_bmad_nota"] = seccion(PUE, r"^4\. Controles de BMAD").strip().split("\n\n")[-1].replace("\n", " ")
@@ -363,17 +385,204 @@ for m in re.finditer(r"^### (.+)$", s22, re.M):
     nov22.append({"t": m.group(1), "intro": intro.replace("\n", " "), "items": items})
 X["chl22_grupos"] = nov22
 
-# Guías E2E v2.2: tabla "Controles permanentes que muestra esta guía" de cada guía y fuentes de identificación (E2E-1)
+# Guías E2E: tabla "Del uso único al control continuo" de cada guía, pasos (con 5b, 6b y los de la variante, sin contar
+# el paso 0 de preparación) y fuentes de identificación (E2E-1)
 GUIAS_E2E = {"E2E-1": "docs/guias/E2E-1-riesgos.md", "E2E-2": "docs/guias/E2E-2-alcance-roadmap.md",
-             "E2E-3": "docs/guias/E2E-3-interesados-okr-avance.md", "E2E-4": "docs/guias/E2E-4-producto-bmad.md"}
+             "E2E-3": "docs/guias/E2E-3-interesados-okr-avance.md", "E2E-4": "docs/guias/E2E-4-producto-bmad.md",
+             "E2E-5": "docs/guias/E2E-5-idea-a-proyecto.md"}
 X["guias_controles"] = {}
 X["guias_pasos"] = {}
 for g, ruta in GUIAS_E2E.items():
     txt = leer(ruta)
-    resto = txt[txt.index("Controles permanentes que muestra esta guía"):]
-    X["guias_controles"][g] = tablas(resto)[0]
-    X["guias_pasos"][g] = len(re.findall(r"^## Paso (\d+) · ", txt, re.M)) - (1 if re.search(r"^## Paso 0 · ", txt, re.M) else 0)
+    X["guias_controles"][g] = tabla(txt, r"^Del uso único al control continuo")
+    X["guias_pasos"][g] = len(re.findall(r"^#{2,3} Paso (\d+[a-z]?) · ", txt, re.M))
 X["g1_fuentes"] = tabla(leer(GUIAS_E2E["E2E-1"]), r"^Cobertura de fuentes")
+
+# Guías E2E: indicadores (imagen + lectura), clases y pasos con los códigos que muestran
+X["guias_indicadores"], X["guias_clases"], X["guias_codigos_pasos"], X["guias_titulos"] = {}, {}, {}, {}
+for g, ruta in GUIAS_E2E.items():
+    txt = leer(ruta)
+    X["guias_titulos"][g] = re.match(r"^# Guía E2E-\d · (.+)$", txt.split("\n")[0]).group(1)
+    ind = seccion(txt, r"^Indicadores que vas a ver")
+    X["guias_indicadores"][g] = [{"img": m.group(2), "alt": m.group(1), "lectura": m.group(3).replace("\n", " ").strip()}
+                                 for m in re.finditer(r"!\[([^\]]*)\]\(img/([^)]+\.png)\)\n(.*?)(?=\n\n|\n!\[|\Z)", ind, re.S)]
+    faltan = [it["img"] for it in X["guias_indicadores"][g] if not (BASE / "docs/guias/img" / it["img"]).exists()]
+    if faltan:   # una guía que cita una imagen todavía no generada: se omite con aviso (volver a extraer cuando exista)
+        print(f"AVISO: {g} cita imágenes que no están en docs/guias/img/: {', '.join(faltan)} (se omiten)", file=sys.stderr)
+        X["guias_indicadores"][g] = [it for it in X["guias_indicadores"][g] if it["img"] not in faltan]
+    X["guias_clases"][g] = tabla(txt, r"^Clases")
+    # en qué pasos aparece cada código de control (para la tabla «dónde se ve»)
+    pasos_cod = {}
+    for m in re.finditer(r"^#{2,3} Paso (\d+[a-z]?) · .*$", txt, re.M):
+        fin = re.search(r"^#{2,3} (?:Paso \d|Reporte|Representaciones|Lista de|Siguiente|Qué cambia|Variante)", txt[m.end():], re.M)
+        cuerpo = txt[m.end(): m.end() + fin.start()] if fin else txt[m.end():]
+        for c in set(re.findall(r"\b(?:S-)?(?:[A-Z]{3}-\d{2}|[GPEIXCL]-\d{2})\b", cuerpo)):
+            pasos_cod.setdefault(c, []).append(m.group(1))
+    X["guias_codigos_pasos"][g] = pasos_cod
+X["guias_imagenes"] = sorted({f for t in GUIAS_E2E.values() for f in re.findall(r"img/([a-z0-9-]+\.png)", leer(t))})
+X["guias_evidencia"] = re.search(r"Escribe `salida-g1\.md` … `salida-g(\d)\.md` \(cada comando con su salida\) y las (\d+) imágenes", GUI).groups()
+
+# Salidas reales de la evidencia (E2E-5): inversion.py y estado.py contexto
+_g5 = leer("docs/guias/evidencia/salida-g5.md")
+_blq = re.findall(r"```\n(\$ [^\n]*\n.*?)```", _g5, re.S)
+_inv = next(b for b in _blq if "inversion.py" in b.split("\n")[0] and "flujos-opciones.csv" in b.split("\n")[0])
+X["ev_inversion"] = "\n".join(_inv.split("\n")[:8]).replace("$PLUGIN/skills/pm-caso-de-negocio/scripts/", "")
+X["ev_inversion_lectura"] = next(b for b in _blq if b.startswith("$ (lectura de pm-caso-de-negocio, de inversion.py --json)") and "159.213" in b).strip().split("\n")[1:]
+X["ev_contexto"] = [b.strip().replace("$EST/", "") for b in _blq if " contexto --corte " in b.split("\n")[0]]
+
+# Mapas e inversión: ayuda real de los scripts (verificada al extraer)
+def ayuda(rel):
+    r = subprocess.run([sys.executable, str(BASE / rel), "--help"], capture_output=True, text=True, timeout=60)
+    assert r.returncode == 0, (rel, r.stderr)
+    return r.stdout
+_inv_help = ayuda("skills/pm-caso-de-negocio/scripts/inversion.py")
+X["inversion_formulas"] = [re.sub(r"\s+", " ", b.replace("\n", " ")).strip() for b in re.split(r"\n- ", _inv_help.split("Fórmulas")[1].split("Uso / Usage")[0])[1:]]
+X["inversion_uso"] = re.search(r"Uso / Usage:\n\s*(.+)", _inv_help).group(1).strip()
+_map_help = ayuda("skills/pm-mapas-estrategicos/scripts/mapas.py")
+_mu = []
+for l in _map_help.split("Uso / Usage (--proyecto va ANTES del tipo de mapa):")[1].split("'semilla'")[0].strip().split("\n"):
+    if l.strip().startswith("mapas.py"):
+        _mu.append(l.strip())
+    elif l.strip() and _mu:
+        _mu[-1] += " " + l.strip()
+X["mapas_uso"] = [re.sub(r"\s{2,}", " ", x) for x in _mu]
+X["mapas_fuente"] = re.sub(r"\s+", " ", _map_help.split("Fuente de verdad:")[1].split("Uso / Usage")[0]).strip()
+
+# CHANGELOG 2.3.0: lema, introducción, cifras y grupos
+s23 = seccion(CHL, r"^2\.3\.0")
+X["chl23_lema"] = re.search(r"2\.3\.0 · (\S+) — (.+)", CHL).group(2)
+X["chl23_fecha"] = re.search(r"2\.3\.0 · (\S+) — ", CHL).group(1)
+X["chl23_intro"] = s23.strip().split("\n\n")[0].replace("\n", " ")
+X["chl23_cifras"] = s23.strip().split("\n\n")[1].replace("\n", " ")
+nov23 = []
+for m in re.finditer(r"^### (.+)$", s23, re.M):
+    b = seccion(s23, "^" + re.escape(m.group(1)) + "$").strip()
+    nov23.append({"t": m.group(1), "items": [re.sub(r"^- ", "", x).replace("\n  ", " ").strip() for x in re.split(r"\n(?=- )", b) if x.startswith("- ")]})
+X["chl23_grupos"] = nov23
+
+# Seguridad (docs/SEGURIDAD.md)
+SEG = leer("docs/SEGURIDAD.md")
+X["seg_titulo"] = SEG.split("\n")[0].lstrip("# ").strip()
+X["seg_intro"] = SEG.split("\n\n")[1].replace("\n", " ").strip()
+X["seg_resultado"] = tabla(SEG, r"^1\. Resultado")
+X["seg_resultado_nota"] = seccion(SEG, r"^1\. Resultado").strip().split("\n\n")[-1].replace("\n", " ")
+X["seg_alcance"] = tabla(SEG, r"^2\. Alcance")
+X["seg_herramientas"] = tabla(SEG, r"^3\. Método")
+X["seg_entorno"] = [l for l in seccion(SEG, r"^3\. Método").split("\n") if l.startswith("Entorno:")][0]
+X["seg_amenazas"] = [re.sub(r"^- ", "", b).replace("\n  ", " ").strip() for b in re.split(r"\n(?=- )", seccion(SEG, r"^4\. Modelo").strip())]
+X["seg_hallazgos"] = []
+for sev in ("Media", "Baja", "Informativa"):
+    for m in re.finditer(r"^\*\*(SEG-\d+) · (.+?) · (.+?)\*\*$", seccion(SEG, r"^" + sev), re.M):
+        X["seg_hallazgos"].append([m.group(1), sev.replace("Informativa", "Informativa"), m.group(2), m.group(3)])
+X["seg_bien"] = [re.sub(r"^- ", "", b).replace("\n  ", " ").strip() for b in re.split(r"\n(?=- )", seccion(SEG, r"^7\. Lo que ya está bien").strip())]
+X["seg_practicas"] = [re.sub(r"^\d+\.\s*", "", b).replace("\n   ", " ").strip() for b in re.split(r"\n(?=\d+\. )", seccion(SEG, r"^8\. Buenas prácticas").strip())]
+X["seg_repetir"] = re.search(r"```bash\n(.*?)```", seccion(SEG, r"^10\. Cómo repetir"), re.S).group(1).rstrip()
+assert len(X["seg_hallazgos"]) == 17, len(X["seg_hallazgos"])
+
+# Docker (docs/DOCKER.md)
+DOC = leer("docs/DOCKER.md")
+X["dock_intro"] = DOC.split("\n\n")[1].replace("\n", " ").strip()
+X["dock_cuando"] = tabla(DOC, r"^1\. Cuándo conviene")
+X["dock_incluye"] = tabla(DOC, r"^2\. Qué incluye", 0)
+X["dock_archivos"] = tabla(DOC, r"^2\. Qué incluye", 1)
+X["dock_construir"] = re.search(r"```bash\n(.*?)```", seccion(DOC, r"^4\. Construir"), re.S).group(1).rstrip()
+X["dock_usar"] = re.search(r"```bash\n(.*?)```", seccion(DOC, r"^5\.1 Abrir una shell"), re.S).group(1).rstrip()
+X["dock_pruebas"] = re.search(r"```bash\n(.*?)```", seccion(DOC, r"^5\.5 Pruebas"), re.S).group(1).rstrip()
+_v = seccion(DOC, r"^10\. Verificación registrada").strip()
+X["dock_verif_intro"] = _v.split("\n\n")[0].replace("\n", " ")
+X["dock_verif"] = tablas(_v)[0]
+X["dock_verif_no"] = _v.split("\n\n")[-1].replace("\n", " ")
+X["dock_seguridad"] = tabla(DOC, r"^7\. Seguridad del contenedor")
+X["dock_limitaciones"] = [re.sub(r"^- ", "", b.split("\n\n")[0]).replace("\n  ", " ").strip() for b in re.split(r"\n(?=- )", seccion(DOC, r"^9\. Limitaciones").strip()) if b.startswith("- ")]
+
+# Pruebas: recorridos E2E, contexto, integración cruzada y Python 3.9
+X["pru_e2e"] = tabla(PRU, r"^2\.1 Recorridos E2E")
+X["pru_e2e_res"] = re.search(r"Resultado al\s+(\d{4}-\d{2}-\d{2}): \*\*(.+?)\*\*,? (.+?)\.", seccion(PRU, r"^2\.1 Recorridos E2E").replace("\n", " ")).groups()
+X["pru_contexto"] = tabla(PRU, r"^2\.2 Control del contexto")
+X["pru_contexto_intro"] = seccion(PRU, r"^2\.2 Control del contexto").strip().split("\n\n")[0].replace("\n", " ")
+X["pru_contexto_vivo"] = [b for b in seccion(PRU, r"^2\.2 Control del contexto").strip().split("\n\n") if b.startswith("En vivo")][0].replace("\n", " ")
+_i = seccion(PRU, r"^2\.3 Integración cruzada").strip()
+X["pru_integ_intro"] = _i.split("\n\n")[0].replace("\n", " ")
+X["pru_integ"] = tabla(PRU, r"^2\.3 Integración cruzada")
+X["pru_integ_res"] = [b for b in _i.split("\n\n") if b.startswith("Resultado al")][0].replace("\n", " ")
+X["pru_integ_cmds"] = re.search(r"```bash\n(.*?)```", _i, re.S).group(1).rstrip()
+_p9 = seccion(PRU, r"^2\.4 Compatibilidad").strip()
+X["pru_py39_intro"] = _p9.split("\n\n")[0].replace("\n", " ")
+X["pru_py39_cmds"] = re.search(r"```bash\n(.*?)```", _p9, re.S).group(1).rstrip()
+X["pru_py39_res"] = _p9.split("\n\n")[-1].replace("\n", " ")
+X["pru_vivo_repetir"] = seccion(PRU, r"^3\.2 Cuándo repetir").strip().split("\n\n")[-1].replace("\n", " ")
+
+# Webinar y resumen ejecutivo
+WEB = leer("docs/webinar/README.md")
+X["web_intro"] = WEB.split("\n\n")[1].replace("\n", " ").strip()
+X["web_casos"] = tabla(WEB, r"^Casos")
+X["web_casos_nota"] = seccion(WEB, r"^Casos").strip().split("\n\n")[-1].replace("\n", " ")
+X["web_agrega"] = [re.sub(r"^- ", "", b.split("\n\n")[0]).replace("\n  ", " ").strip() for b in re.split(r"\n(?=- )", seccion(WEB, r"^Qué agrega el generador").strip()) if b.startswith("- ")]
+X["web_estructura"] = re.search(r"```text\n(.*?)```", seccion(WEB, r"^Estructura de carpetas"), re.S).group(1).rstrip()
+REX = leer("docs/resumen-ejecutivo/README.md")
+X["rex_items"] = [re.sub(r"^- ", "", b).replace("\n  ", " ").strip() for b in re.split(r"\n(?=- )", REX.split("\n## ")[0].split("\n", 1)[1].strip()) if b.startswith("- ")]
+X["rex_regenerar"] = re.search(r"```bash\n(.*?)```", REX, re.S).group(1).rstrip()
+
+# Terminología y memoria del cliente
+TER = leer("docs/TERMINOLOGIA.md")
+X["ter_intro"] = TER.split("\n\n")[1].replace("\n", " ").strip()
+X["ter_verificacion"] = seccion(TER, r"^Cómo se verificó").strip().replace("\n", " ")
+X["ter_filas"] = sum(len(tablas(seccion(TER, "^" + t))[0]["filas"]) for t in ("Gobierno", "Arranque", "Control", "Cierre"))
+X["memoria_md"] = seccion(INST, r"^9\.1 Memoria").split("**Cómo prescindir")[0].strip()
+
+# Cifras contadas en el repositorio (fuente única de los números del texto propio)
+sys.path.insert(0, str(BASE / "skills/pm-estado-proyecto/scripts"))
+import esquema as _esq
+_skills = sorted(p for p in (BASE / "skills").iterdir() if (p / "SKILL.md").exists())
+_comando = [p.name for p in _skills if re.search(r"^disable-model-invocation:\s*true", (p / "SKILL.md").read_text(encoding="utf-8"), re.M)]
+_hooks = json.loads(leer("hooks/hooks.json"))["hooks"]
+_web = []
+for d in sorted((BASE / "docs/webinar").glob("E2E-*/diapositivas.json")):
+    j = json.loads(d.read_text(encoding="utf-8"))
+    _web.append({"caso": j["caso"], "clases": len(j["clases"]), "diapositivas": sum(len(c["diapositivas"]) for c in j["clases"]), "glosario": len(j.get("glosario", []))})
+_tot_web = [f for f in X["web_casos"]["filas"] if f[0].startswith("**Total")][0]
+assert int(re.sub(r"\D", "", _tot_web[4])) == sum(w["diapositivas"] for w in _web) and int(re.sub(r"\D", "", _tot_web[5])) == sum(w["glosario"] for w in _web), ("webinar: README y diapositivas.json no coinciden", _tot_web, _web)
+_vp = subprocess.run([sys.executable, str(BASE / "scripts/validar_paquete.py")], capture_output=True, text=True, timeout=600)
+_m = re.search(r"Skills: (\d+) \((\d+) invocables por el modelo, listado (\d+) caracteres\) · Agentes: (\d+)", _vp.stdout)
+assert _m, _vp.stdout + _vp.stderr
+if _vp.returncode != 0:   # las cifras salen igual; el aviso recuerda volver a validar antes de publicar
+    print("AVISO: validar_paquete.py no dio OK:\n" + "\n".join(l for l in _vp.stdout.splitlines() if l.startswith(("ERROR", "AVISO"))), file=sys.stderr)
+CIF = {
+    "version": COMPAT["version"], "skills": len(_skills), "invocables": len(_skills) - len(_comando), "comandos": len(_comando),
+    "agentes": len(list((BASE / "agents").glob("*.md"))), "hooks": len(_hooks), "hooks_eventos": " · ".join(_hooks),
+    "registros": len(_esq.REGISTROS), "registros_base": sum(1 for r in _esq.REGISTROS.values() if not r.get("opcional")),
+    "registros_opcionales": sum(1 for r in _esq.REGISTROS.values() if r.get("opcional")),
+    "codigos": X["codigos_n"], "familias": len(X["codigos_familias"]), "familias_lista": ", ".join(X["codigos_familias"]),
+    "guias": len(GUIAS_E2E), "pasos": sum(X["guias_pasos"].values()), "pasos_lista": ", ".join(str(v) for v in X["guias_pasos"].values()),
+    "imagenes_guias": len(X["guias_imagenes"]),
+    "frases": sum(1 for l in leer("docs/evaluacion/frases-enrutamiento.tsv").splitlines() if l.strip()), "web_clases": sum(w["clases"] for w in _web), "web_diapositivas": sum(w["diapositivas"] for w in _web),
+    "web_glosario": sum(w["glosario"] for w in _web), "seg_hallazgos": len(X["seg_hallazgos"]),
+    "listado": format(int(_m.group(3)), ",").replace(",", "."), "validar_skills": int(_m.group(1)), "validar_invocables": int(_m.group(2)),
+    "validar_py39": ("verificado con intérprete 3.9" if "intérprete" in _vp.stdout else "análisis de f-strings"),
+}
+assert CIF["validar_skills"] == CIF["skills"] and CIF["validar_invocables"] == CIF["invocables"], CIF
+assert CIF["guias_evidencia"] if False else int(X["guias_evidencia"][1]) == CIF["imagenes_guias"], ("guías: README dice", X["guias_evidencia"], "las guías citan", CIF["imagenes_guias"])
+_rr = re.search(r"Resultado al (\d{4}-\d{2}-\d{2}) \(versión ([\d.]+), casos ([^)]+)\): \*\*(\d+) OK · 0 FALLO\*\* con Python ([\d.]+); con Python 3\.9, \*\*(\d+) OK · 0 FALLO\*\*", X["pru_regresion_res_md"])
+_ri = re.search(r"\*\*(\d+) OK · 0 FALLO en (\d+) eslabones\*\*", X["pru_integ_res"])
+_rm = re.search(r"`validar_mermaid\.py --render`: (\d+) bloques, 0 errores", CHL)
+assert _rr and _ri and _rm, "no se encontraron los resultados de pruebas en PRUEBAS.md / CHANGELOG"
+CIF.update({"pruebas_fecha": _rr.group(1), "regresion_casos": _rr.group(3), "regresion_ok": int(_rr.group(4)), "regresion_py": _rr.group(5),
+            "regresion_ok39": int(_rr.group(6)), "integ_ok": int(_ri.group(1)), "integ_eslabones": int(_ri.group(2)), "mermaid_bloques": int(_rm.group(1))})
+_tam = sorted(((len((p / "SKILL.md").read_bytes()), len((p / "SKILL.md").read_text(encoding="utf-8").splitlines()), p.name) for p in _skills), reverse=True)
+CIF.update({"skill_max_bytes": format(_tam[0][0], ",").replace(",", "."), "skill_max_nombre": _tam[0][2],
+            "skill_max_lineas": max(t[1] for t in _tam), "knowledge_refs": len(list((BASE / "skills/pm-knowledge/references").iterdir()))})
+# pruebas en vivo del 2026-10-20 (PRUEBAS §3.1)
+_viv = {f[2]: f[3] for f in X["pru_resultados"]["filas"] if f[0] == "2026-10-20"}
+_v1 = next(v for k, v in _viv.items() if "resumen de contexto" in k)
+_v2 = next(v for k, v in _viv.items() if "95–102" in k)
+_v3 = next(v for k, v in _viv.items() if "integracion" in k)
+CIF.update({"vivo_contexto": re.match(r"(\d+/\d+)", _v1).group(1), "vivo_mapas": re.match(r"(\d+/\d+)", _v2).group(1),
+            "vivo_integracion": re.match(r"\*\*(\d+/\d+)\*\*", _v3).group(1),
+            "vivo_tokens_primera": re.search(r"primera llamada ([\d.]+) tokens", _v3).group(1), "vivo_tokens_max": re.search(r"máximo ([\d.]+)", _v3).group(1),
+            "vivo_usd": re.search(r"USD ([\d,]+) en total", _v3).group(1)})
+X["validar_salida"] = "\n".join(re.sub(r"con intérprete \S+", "con intérprete 3.9", l) for l in _vp.stdout.splitlines() if l.startswith(("Skills:", "Python 3.9:", "OK", "ERROR")))
+X["cifras"] = CIF
+X["web_por_caso"] = _web
 
 # Capa de canales (INTEGRACIONES §3.2)
 X["canales_modos"] = tabla(INTG, r"^3\.2 Capa de canales", 0)
@@ -453,6 +662,7 @@ for l_m in re.finditer(r"^(## Parte .*|### (\d+)\. `([^`]+)`((?: y `[^`]+`)*) �
                   "comandos": m.group(1).rstrip() if m else "", "comandos_txt": "" if m else com,
                   "artefacto": campos.get("Salidas (qué queda y dónde verificarlo)", campos.get("Artefacto", "")), "decision": campos.get("Decisión humana", "")})
 X["casos"] = casos
+X["cifras"]["casos_uso"] = len(casos)
 X["muestra"] = tabla(CU, r"^Proyecto de muestra")
 X["variante_a"] = {"intro": seccion(CU, r"^Variante A").split("\n\n")[0].strip() if False else seccion(CU, r"^Variante A").strip().split("\n")[0],
                    "tabla": tabla(CU, r"^Variante A")}
@@ -520,7 +730,8 @@ cfg.write_text(json.dumps({"theme": "base", "themeVariables": {
     "flowchart": {"htmlLabels": True, "curve": "basis"}, "sequence": {"useMaxWidth": True}}), encoding="utf-8")
 diagramas = []
 codigo_estados = bloques_mermaid(SYNC)[2].replace("stateDiagram-v2", "stateDiagram-v2\n  direction LR", 1)
-(DG / "sync-estados-lr.mmd").write_text(codigo_estados, encoding="utf-8")
+if not (DG / "sync-estados-lr.mmd").exists() or (DG / "sync-estados-lr.mmd").read_text(encoding="utf-8") != codigo_estados:
+    (DG / "sync-estados-lr.mmd").write_text(codigo_estados, encoding="utf-8")
 fuentes_mmd += [("sync-estados-lr", None, None, "Ciclo de vida de una línea base (horizontal)", "sincronizacion.md §6")]
 # v2.2: flujo de la capa de canales y gestión por excepción de la guía E2E-2 (paso 10), tal cual
 fuentes_mmd += [("canales", "docs/INTEGRACIONES.md", 0, "Capa de canales: crear, redactar, aprobar, simular, enviar y registrar", "INTEGRACIONES.md §3.2")]
@@ -537,8 +748,8 @@ for clave, archivo, k, titulo, origen in fuentes_mmd:
         # En sequenceDiagram ';' separa sentencias: se escapa en el texto de los mensajes (solo para renderizar)
         codigo = "\n".join(re.sub(r"^(\s*[^:]+:)(.*)$", lambda m: m.group(1) + m.group(2).replace(";", "#59;"), l) if "->>" in l or "-->>" in l else l
                            for l in codigo.split("\n"))
-    if archivo is not None:
-        (DG / f"{clave}.mmd").write_text(codigo, encoding="utf-8")
+    if archivo is not None and (not (DG / f"{clave}.mmd").exists() or (DG / f"{clave}.mmd").read_text(encoding="utf-8") != codigo):
+        (DG / f"{clave}.mmd").write_text(codigo, encoding="utf-8")   # solo si cambió: así no se vuelve a dibujar
     for ext, extra in (("svg", ["-I", f"svg-{clave}"]), ("png", ["-s", "3", "-b", "white"])):
         salida = DG / f"{clave}.{ext}"
         if not salida.exists() or salida.stat().st_mtime < (DG / f"{clave}.mmd").stat().st_mtime:
@@ -562,12 +773,13 @@ for clave, titulo in diagramas_repo:
     png = DG / f"repo-{clave}.png"
     mmd = BASE / "docs/diagramas" / f"{clave}.mmd"
     if not png.exists() or png.stat().st_mtime < mmd.stat().st_mtime:
-        subprocess.run([MMDC] + (["-p", PUPPETEER] if PUPPETEER else []) + ["-i", str(mmd), "-o", str(png), "-w", "1600", "-b", "white"], check=True, capture_output=True)
+        subprocess.run([MMDC] + (["-p", PUPPETEER] if PUPPETEER else []) + ["-i", str(mmd), "-o", str(png), "-s", "3", "-b", "white"], check=True, capture_output=True)
     diagramas.append({"id": f"repo-{clave}", "titulo": titulo, "origen": f"docs/diagramas/{clave}.mmd · .svg"})
     X.setdefault("diagramas_repo_mmd", {})[clave] = mmd.read_text(encoding="utf-8").rstrip()
 # Variante horizontal del ciclo integrado para diapositivas 16:9 (mismo contenido; solo cambia la orientación)
 _lr = (BASE / "docs/diagramas/ciclo-prince2-bmad.mmd").read_text(encoding="utf-8").replace("flowchart TB", "flowchart LR", 1).replace("direction LR", "direction TB")
-(DG / "repo-ciclo-prince2-bmad-lr.mmd").write_text(_lr, encoding="utf-8")
+if not (DG / "repo-ciclo-prince2-bmad-lr.mmd").exists() or (DG / "repo-ciclo-prince2-bmad-lr.mmd").read_text(encoding="utf-8") != _lr:
+    (DG / "repo-ciclo-prince2-bmad-lr.mmd").write_text(_lr, encoding="utf-8")
 _png = DG / "repo-ciclo-prince2-bmad-lr.png"
 if not _png.exists() or _png.stat().st_mtime < (DG / "repo-ciclo-prince2-bmad-lr.mmd").stat().st_mtime:
     subprocess.run([MMDC] + (["-p", PUPPETEER] if PUPPETEER else []) + ["-i", str(DG / "repo-ciclo-prince2-bmad-lr.mmd"), "-o", str(_png), "-w", "2400", "-b", "white"], check=True, capture_output=True)
@@ -582,7 +794,36 @@ for origen, caja, destino in [("g3-interesados-matriz.png", (60, 225, 1045, 695)
                               ("g3-interesados-raci-perfiles.png", (55, 30, 1225, 555), "g3-raci-recorte.png")]:
     Image.open(BASE / "docs/guias/img" / origen).crop(caja).save(DG / destino)
 
+def _completar(v):
+    if isinstance(v, str):
+        def rep(m):
+            k = m.group(1)
+            if k not in X["cifras"]:
+                raise KeyError(f"narrativa.json cita {{{{{k}}}}}, que no está en las cifras extraídas")
+            return str(X["cifras"][k])
+        return re.sub(r"\{\{([a-z_0-9]+)\}\}", rep, v)
+    if isinstance(v, list):
+        return [_completar(x) for x in v]
+    if isinstance(v, dict):
+        return {k: _completar(x) for k, x in v.items()}
+    return v
+D = _completar(D)
+def _donde(codigos):
+    partes = []
+    cods = re.findall(r"\b(?:[A-Z]{3}-\d{2}|[GPEXC]-\d{2})\b", codigos)
+    for g, mapa in X["guias_codigos_pasos"].items():
+        pasos = []
+        for c in cods:
+            for pz in mapa.get(c, []) + mapa.get("S-" + c, []):
+                if pz not in pasos:
+                    pasos.append(pz)
+        if pasos:
+            pasos.sort(key=lambda z: (int(re.match(r"\d+", z).group()), z))
+            partes.append(f"{g} {'paso' if len(pasos) == 1 else 'pasos'} {', '.join(pasos)}")
+    return " · ".join(partes) or "— (no aparece en los pasos de las guías)"
+X["controles_donde"] = [_donde(f[2]) for f in D["cap"]["controles"]]
 D["x"] = X
 (AQUI / "data.json").write_text(json.dumps(D, ensure_ascii=False, indent=1), encoding="utf-8")
-print("data.json ok · skills en catálogo:", X["catalogo_total"], "· casos:", len(casos), "· pasos:", len(pasos),
-      "· filas RACI:", len(X["raci"]["filas"]), "· códigos:", len(X["codigos"]["filas"]))
+print("data.json ok · skills en catálogo:", X["catalogo_total"], "· casos:", len(casos), "· pasos del caso maestro:", len(pasos),
+      "· filas RACI:", len(X["raci"]["filas"]), "· códigos de sanidad:", X["codigos_n"], "en", len(X["codigos_familias"]), "familias")
+print("cifras:", json.dumps(X["cifras"], ensure_ascii=False))

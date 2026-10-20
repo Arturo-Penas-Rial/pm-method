@@ -107,6 +107,7 @@ def main():
     a.idioma = a.idioma or "es"
     filas = []
     if a.csv:
+        if not os.path.isfile(a.csv): sys.exit(f"No existe el archivo / file not found: {a.csv}")
         for row in csv.DictReader(open(a.csv, encoding="utf-8")):
             tiene = lambda *ns: any(n in row for n in ns)
             if not (tiene("pv", "pv_acumulado") and tiene("ev", "ev_acumulado") and tiene("ac", "ac_acumulado")):

@@ -1,4 +1,4 @@
-# Arquitectura · pm-method 2.2.0
+# Arquitectura · pm-method 2.3.0
 
 Este documento explica cómo está construido pm-method y por qué: las capas y su precedencia, el reparto entre agente
 orquestador y subagentes, las herramientas que usan las skills, los comandos, la carga progresiva del contexto y el
@@ -9,7 +9,7 @@ resume y se justifica.
 
 ## 1. Visión general
 
-pm-method es un paquete de **38 skills** (32 que el modelo activa por su descripción y 6 comandos de uso humano), **6
+pm-method es un paquete de **39 skills** (33 que el modelo activa por su descripción y 6 comandos de uso humano), **6
 agentes** (un orquestador para el hilo principal y 5 subagentes de fase) y **3 hooks** (protección de datos y sanidad
 al inicio de sesión). Su fuente de verdad es una carpeta de proyecto en Markdown, CSV y `estado.json`.
 
@@ -69,7 +69,7 @@ flowchart TB
 | **Técnicas** | PMBOK 8, aplicado dentro de PRINCE2 | cómo estimar, programar, costear, medir, analizar | procedimientos de las skills y `pm-knowledge/references/` | por sección, a demanda |
 | **Especificación** (opcional) | BMAD | brief de producto, PRD (FR/NFR/UJ/SM), arquitectura (AD), UX, épicas, historias, estado del sprint | `_bmad-output/` (v6) o `docs/` (v4) | solo lectura: `bmad.py` como proveedor, `especificacion.py` como fachada |
 | **Integración** (opcional) | MCP que conecte el usuario | fuentes y canales: tracker, docs, chat, correo, calendario, transcripciones, OKR (Tability, Perdoo) | herramientas de la sesión; instantáneas en `03-control/fuentes/` | `pm-integraciones` |
-| **Capa de canales** (opcional, 2.2) | `pm-integraciones` | envío de comunicados aprobados por correo SMTP, webhooks de Slack o Teams, `.eml` o MCP conectados; simulación por defecto | mensajes en `03-control/comunicaciones/<fecha>-<tema>/`; registro en `envios.csv` y `diario.md`; credenciales solo en variables de entorno | `envios.py` |
+| **Capa de canales** (opcional) | `pm-integraciones` | envío de comunicados aprobados por correo SMTP, webhooks de Slack o Teams, `.eml` o MCP conectados; simulación por defecto | mensajes en `03-control/comunicaciones/<fecha>-<tema>/`; registro en `envios.csv` y `diario.md`; credenciales solo en variables de entorno | `envios.py` |
 | **Persistencia** | `pm-estado-proyecto` | fuente de verdad del gobierno | carpeta del proyecto; `exportados/` solo copias | `estado.py`, `registro.py`, `nuevo_proyecto.py` |
 
 Una cuarta fuente, el libro de plantillas, no es una capa de ejecución sino la biblioteca de artefactos: campos y
@@ -227,7 +227,7 @@ transcripción…) y `pm-integraciones` las resuelve con los MCP presentes en la
 | `pm-puerta <tipo> [carpeta]` | prepara una puerta: productos requeridos, sanidad, verificación BMAD, solicitud de decisión |
 | `pm-sync [bmad\|tracker\|okr]` | sincroniza BMAD e instantáneas de tracker y OKR; escribe afuera solo con confirmación |
 
-La carpeta `commands/` de v1 desapareció: es un formato heredado y los comandos son ahora skills.
+El paquete no usa la carpeta `commands/` (formato heredado): los comandos son skills.
 
 ---
 
@@ -239,15 +239,25 @@ La carpeta `commands/` de v1 desapareció: es un formato heredado y los comandos
 | 2 | cuerpo de `SKILL.md` | al activarse la skill | ≤ 12.000 caracteres y ≤ 200 líneas (≈3,5 k tokens) |
 | 3 | `references/`, `templates/`, `scripts/` | solo cuando un paso lo pide | sin límite fijo; se consultan por sección |
 
-Cifras reales de v2 (medidas con `scripts/validar_paquete.py` y sobre los archivos):
-- Listado del nivel 1: **6.546 caracteres** para las 32 skills invocables por el modelo (2.2.0) (las 6 skills-comando no
+Cifras medidas con `scripts/validar_paquete.py` y sobre los archivos (2026-10-20):
+- Listado del nivel 1: **6.817 caracteres** para las 33 skills invocables por el modelo (las 6 skills-comando no
   cuentan).
 - El presupuesto del listado de skills en Claude Code es **≈1 % de la ventana de contexto**; si se instalan BMAD u otros
   repos, puede ampliarse con `"skillListingBudgetFraction": 0.02` en `settings.json`. `skillOverrides` no aplica a skills
   de plugins. La sanidad avisa (INS-05) cuando las descripciones visibles superan ≈8.000 caracteres.
-- Nivel 2: el `SKILL.md` más largo (`pm-orquestador`) ronda 12,1 k bytes y ninguno supera 124 líneas; el validador
+- Nivel 2: el `SKILL.md` más largo (`pm-riesgos`) tiene 12.493 bytes y ninguno supera 124 líneas; el validador
   tolera hasta 12.500 bytes para absorber la diferencia entre bytes y caracteres acentuados.
-- Tras compactar, Claude Code conserva hasta 5.000 tokens por skill, por eso el nivel 2 se mantiene por debajo.
+- Tras compactar, Claude Code conserva hasta 5.000 tokens por skill, por eso el nivel 2 se mantiene por debajo. El
+  listado de skills (nivel 1) no se vuelve a inyectar tras compactar; por eso el hook `inicio.py` corre también con el
+  disparador `compact` y repone el estado del proyecto, el resumen derivado y las reglas de enrutamiento.
+- Texto que agrega el hook de inicio: por proyecto, una línea de estado y el resumen de contexto derivado de
+  `estado.py contexto` (≤ 2.000 caracteres con un proyecto, ≤ 4.500 repartidos entre tres), más ≈ 1.300 caracteres de
+  reglas comunes. Claude Code admite hasta 10.000 caracteres por hook (si se excede, guarda el texto en un archivo y
+  pasa solo una vista previa de 2.000); pm-method se mantiene por debajo de 8.000 aun con tres proyectos grandes.
+- Salidas de los scripts más usados con muchos registros: `registro.py resumen` recorta cada lista de ids a 25 y da el
+  conteo completo en `<lista>_total`; `registro.py listar` muestra 60 filas por defecto (`--limite`); `sanidad.py`
+  muestra 5 hallazgos por código y "… y N hallazgos más" ("… y 1 hallazgo más" si queda uno) (la lista completa queda en `--json` y `--informe`, que son
+  para scripts e informes, no para leer enteros). Los presupuestos y su prueba están en `docs/PRUEBAS.md`.
 - El conocimiento destilado de las fuentes (`pm-knowledge/references/`, 8 archivos) se consulta por encabezado con
   `grep`, nunca entero.
 
@@ -303,15 +313,19 @@ la descripción local u ocultar la externa con `skillOverrides`.
 ## 9. Persistencia y controles
 
 - **Persistencia:** solo `estado.py` (y `nuevo_proyecto.py`, `bmad.py`) escriben `estado.json`; solo `registro.py`
-  escribe los 9 registros base (R, I, C, D, S, L, ST, Q, A) y los 4 opcionales de 2.2 (ET, PF, RC, EN, creados al
-  primer uso) validando claves foráneas, unicidad y un solo A por elemento RACI. `estado.json` y los registros migran
-  solos al leerse (migración no destructiva desde 2.1).
+  escribe los 9 registros base (R, I, C, D, S, L, ST, Q, A) y los 4 opcionales (ET, PF, RC, EN, creados al primer uso)
+  validando claves foráneas, unicidad y un solo A por elemento RACI. `estado.json` y los registros de proyectos creados
+  con versiones anteriores migran solos al leerse (migración no destructiva).
+- **Memoria del cliente:** `estado.json`, los registros y los artefactos aprobados son la memoria de largo plazo del
+  proyecto y prevalecen sobre la memoria de Claude Code o de Hermes; el hook de inicio lo declara y repone, en cada
+  sesión, un resumen derivado de esos archivos (no guardado: se calcula cada vez). Ver `docs/INSTALACION.md` §9.1.
 - **Sincronización con la especificación:** fuente única + fachada de lectura (`especificacion.py`) + traspaso de
   decisiones (`bmad.py handoff`). Ver `docs/sincronizacion.md`.
-- **Controles permanentes:** `sanidad.py` (incluidas la familia STK: STK-00…STK-12, con la cadencia de contacto, y las
-  familias CAM de cambios contra presupuestos, QUA de calidad a volumen y TOL de pronóstico contra tolerancias), hooks
+- **Controles permanentes:** `sanidad.py` (85 códigos en 12 familias, incluidas STK, con la cadencia de contacto, CAM de
+  cambios contra presupuestos, QUA de calidad a volumen, TOL de pronóstico contra tolerancias, SUP de supuestos críticos
+  y MAP de mapas estratégicos, más REG-09 de revisión de riesgos vencida), hooks
   `PreToolUse` y `SessionStart`, regla de puerta en `pm-puerta` y `pm-director` (avisos P-09 y P-10 sobre interesados y
-  RACI en `autorizar-proyecto`; condiciones formales con seguimiento por EST-12 y G-01 hasta `cumplir-condiciones`), esquemas versionados, `validar_paquete.py` y `probar_paquete.py`. Ver `docs/SANIDAD.md`.
+  RACI y P-11 sobre supuestos críticos en `autorizar-proyecto`; condiciones formales con seguimiento por EST-12 y G-01 hasta `cumplir-condiciones`), esquemas versionados, `validar_paquete.py` y `probar_paquete.py`. Ver `docs/SANIDAD.md`.
 
 ---
 

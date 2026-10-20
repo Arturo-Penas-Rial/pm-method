@@ -1,7 +1,7 @@
 ---
 name: pm-issues-cambios
-description: "Issues, control de cambios e informe de excepción. Usar: issue, solicitud de cambio, change request, off-spec, concesión, desvío del PRD. No: pronóstico o semáforo→pm-progreso-reportes."
-version: 2.2.0
+description: "Issues, control de cambios e informe de excepción. Usar: issue, incidencia, registro de incidentes, solicitud de cambio, change request, off-spec, concesión, desvío del PRD. No: pronóstico o semáforo→pm-progreso-reportes."
+version: 2.3.0
 author: pm-method
 license: MIT
 metadata:
@@ -47,7 +47,7 @@ metadata:
 4. **Evaluar impacto integrado** sobre los siete objetivos, tolerancias, business case y otros productos; ruta crítica analizada; variación relativa; pronóstico vs. tolerancia (guía §3).
 5. **Documentar** (rutas en la tabla de artefactos). Si requiere análisis: `templates/informe-issue.md`. Solicitud de cambio: `templates/solicitud-cambio.md` + fila en `cambios.csv` (`notas=origen I-###`, ids afectados, `costo` y `cargo`: guía §4.1); issue en `pendiente-cambio`.
 6. **Recomendar** al menos dos opciones (incluida no hacer nada), con financiación del cambio o concesión/corrección del fuera de especificación (guía §3).
-7. **PUERTA HUMANA — Autoridad.** Determinar quién decide con la tabla (guía §4). El agente nunca decide: pide la decisión al PO, gestor, autoridad de cambio o junta. Sin umbral o presupuesto suficiente, subir de nivel; si el pronóstico sale de tolerancia → paso 10.
+7. **PUERTA HUMANA — Autoridad.** Determinar quién decide con la tabla (guía §4). El agente nunca decide: pide la decisión al PO, gestor, autoridad de cambio o junta. Sin umbral o saldo, `registro.py` rechaza la aprobación delegada: `pendiente-decision` y subir de nivel (guía §4.1); si el pronóstico sale de tolerancia → paso 10.
 8. **Registrar la decisión** en `issues.csv`/`cambios.csv` (`decidido_por`) y `decisiones.csv` con nivel; si decidió la junta, la puerta la registra `pm-director` y aquí se copia el `D-###` (guía §5).
 9. **Implementar y sincronizar** en la misma operación: registro de cambios, nueva versión del artefacto (`estado.py artefacto` + `aprobar` tras el acto humano), descripción de producto, plan; riesgos nuevos a `pm-riesgos`; acción correctiva vía `pm-paquetes-trabajo`. **Si afecta la especificación**: con BMAD, traspaso inverso `python3 ${CLAUDE_SKILL_DIR}/../pm-bmad-puente/scripts/bmad.py --proyecto <dir> handoff --cambio C-###` (sin BMAD, `requisitos.md` lo actualiza `pm-planificacion-por-productos`); tras la confirmación del equipo BMAD, `bmad.py verificar` limpio y pedir a `pm-director` la nueva línea base (versión mayor; guía §8).
 10. **Excepción.** Pronóstico fuera de tolerancia sin corrección posible dentro de la autoridad del gestor: aviso temprano + `templates/informe-excepcion.md`, `en-revision`, issue `escalado`; entregar a `pm-director`. **Ninguna puerta se registra aquí** (guía §6).
@@ -92,7 +92,7 @@ metadata:
 
 ## Escalamiento y excepciones
 - Pronóstico fuera de tolerancia de etapa → aviso temprano + `X-###` → `pm-director`; de proyecto → capa de negocio vía `pm-director`.
-- Cambio fuera del umbral o presupuesto de la autoridad de cambio → `cambios.csv.estado=pendiente-decision` → `pm-director`.
+- Cambio fuera del umbral o presupuesto de la autoridad de cambio → `cambios.csv.estado=pendiente-decision` → `pm-director`; la junta aprueba indicando la fuente (`reserva-gestion`, `plan-excepcion` o el presupuesto ya ampliado).
 - Issue contractual → `pm-adquisiciones`.
 - Desvío BMAD rechazado → el equipo BMAD revierte (`verificar` limpio); aprobado → paso 9.
 - Como subagente (pm-control): decisiones de autoridad en el bloque de retorno (SPEC §1.11), no se preguntan.

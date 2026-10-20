@@ -1,4 +1,4 @@
-# Casos de uso de integraciones · pm-method 2.2.0
+# Casos de uso de integraciones · pm-method 2.3.0
 
 Casos trabajados para cada repositorio o integración externa que pm-method incorpora, con más detalle en diseño visual,
 informes, planificación, OKR y canales de envío a interesados (correo, Teams, Slack, `.eml`). Cada caso dice en qué
@@ -13,7 +13,7 @@ outputs, controls and limits.
 Regla de evidencia de este documento. Las salidas de scripts que se muestran son reales y están recortadas: se
 obtuvieron el 2026-10-17 corriendo los scripts del paquete sobre un proyecto temporal (ver "Proyecto de prueba"). Lo
 que se dice de las skills externas en sesiones de Claude Code sale de `docs/INTEGRACIONES.md` §3.1 y de los registros
-de esas sesiones (A0–G1). Los casos 8 y 9 (v2.2) usan la corrida de referencia de la guía E2E-3
+de esas sesiones (A0–G1). Los casos 8 y 9 usan la corrida de referencia de la guía E2E-3
 (`docs/guias/evidencia/salida-g3.md`) y una corrida complementaria del mismo día sobre esa carpeta; el correo y los
 webhooks se probaron contra servidores de prueba en 127.0.0.1, no contra servicios reales. Lo que no se pudo verificar
 se marca **[sin verificar en vivo]** o **[verificar]**. Los nombres de personas y la cooperativa son ficticios, igual
@@ -329,7 +329,7 @@ script redacta el informe: los scripts dan las cifras y la skill completa la pla
   → EAC 147.677, `semaforo_costo rojo`, `semaforo_cronograma ambar`.
 - **Salidas (qué queda y dónde verificarlo):** `03-control/reportes/2026-12-18-highlight-report.md` desde `templates/highlight-report.md`, registrado con `estado.py artefacto highlight-2026-12-18 --estado borrador`; checkpoint en `templates/checkpoint-report.md`. Dónde verificarlo: abrí `gestion/03-control/reportes/2026-12-18-highlight-report.md`; la clave `highlight-2026-12-18` figura en `gestion/estado.json` → `artefactos` (`borrador` hasta la confirmación; al aprobarse, una fila `aprobado highlight-2026-12-18 …` en `gestion/03-control/registros/decisiones.csv`); los conteos deben coincidir con `/pm-method:pm-estado` y la serie con `progreso.csv` abierto en Excel.
 - **Controles:** conteos idénticos a `registro.py resumen`; ningún verde con un pronóstico en rojo; sanidad EST-06/07 exige tolerancias de tiempo y costo.
-- **Límites:** desde v2.1 `VAC_pct` tiene el signo de VAC y el desvío previsto contra BAC va en `sobrecosto_pct`; `base_semaforo` declara la base de cada semáforo (`costo:tolerancia;cronograma:indice-0.95-0.85` si solo se pasa `--tol-costo`). Una tolerancia en semanas ("±2 semanas") no la lee `--proyecto`: el script avisa y hay que convertirla y pasarla con `--tol-plazo`. (Salida del bloque re-ejecutada con v2.1.)
+- **Límites:** `VAC_pct` tiene el signo de VAC y el desvío previsto contra BAC va en `sobrecosto_pct`; `base_semaforo` declara la base de cada semáforo (`costo:tolerancia;cronograma:indice-0.95-0.85` si solo se pasa `--tol-costo`). Una tolerancia en semanas ("±2 semanas") no la lee `--proyecto`: el script avisa y hay que convertirla y pasarla con `--tol-plazo`. (Salida del bloque re-ejecutada con la versión 2.1.0.)
 
 ### 2.2 Informe de excepción
 
@@ -410,7 +410,7 @@ script redacta el informe: los scripts dan las cifras y la skill completa la pla
   issues, lecciones, riesgos, stakeholders, supuestos).
 - **Salidas (qué queda y dónde verificarlo):** `exportados/AAAA-MM-DD-<tipo>-v<n>[-BORRADOR].<ext>`; nunca fuente de verdad. Dónde verificarlo: abrí los archivos de `gestion/exportados/` en Word, Excel o PowerPoint (el encabezado "BORRADOR / DRAFT" aparece si la fuente no está aprobada); el exportado queda anotado en `gestion/03-control/registros/diario.md` y, si se registra, como `exportado-<tipo>` en `gestion/estado.json` (tabla de pm-exportar).
 - **Controles:** INS-03 informa con qué nombre invocar cada skill (en este entorno: `anthropic-skills:docx`, `:xlsx`, `:pptx`, sincronizadas de claude.ai); INS-01 si faltan `python-docx` u `openpyxl`; nota en `diario.md` cuando se usa el respaldo (F2 la dejó; F1 no, y lo ofreció como pendiente).
-- **Límites:** `exportar.py xlsx` solo convierte CSV; el presupuesto en Markdown se exporta desde `linea-base-costo.csv`, sin las tablas de `presupuesto.md` (lo informaron F1 y F2). Si se le pasa un `.md`, desde v2.1 el script lo rechaza con un mensaje (antes creaba una hoja con el texto crudo). La hoja `stakeholders` va siempre en el libro de registros: quitarla si la audiencia es externa.
+- **Límites:** `exportar.py xlsx` solo convierte CSV; el presupuesto en Markdown se exporta desde `linea-base-costo.csv`, sin las tablas de `presupuesto.md` (lo informaron F1 y F2). Si se le pasa un `.md`, el script lo rechaza con un mensaje. La hoja `stakeholders` va siempre en el libro de registros: quitarla si la audiencia es externa.
 
 ---
 
@@ -461,7 +461,7 @@ Todo en IP (plan de proyecto y plan de la primera etapa de entrega) y en cada SB
   Validación leyendo el XML con MPXJ 16.10 (`UniversalProjectReader`): `tareas: 13 formato: MSPDI`, tareas resumen por
   código WBS (2, 3, 4, 5, 6), críticas marcadas, vínculo A07→A08 con `LinkLag` 9600 (lag `+2` días).
 - **Salidas (qué queda y dónde verificarlo):** `02-planificacion/cronograma.xml` (copia en `exportados/` cuando se entrega), `gantt.md`; ejemplos reales en `docs/ejemplos/integraciones/`. Dónde verificarlo: abrí `gestion/02-planificacion/cronograma.xml` en MS Project o ProjectLibre (13 tareas, críticas marcadas; en la prueba se leyó con MPXJ, la apertura en MS Project **[verificar]**) y `gestion/02-planificacion/gantt.md` con vista previa de Mermaid; la ruta queda en la clave `cronograma` de `gestion/estado.json`.
-- **Límites:** solo fin-a-comienzo, calendario L–V 8 h sin feriados (el 25/12 y el 1/1 cuentan como laborables) y sin nivelación. El paquete 1.1 de la WBS no tiene actividad, así que no aparece en el MSPDI. Observado en la prueba con v2.0 y corregido en v2.1: una tarea resumen que solo contiene un hito salía con `Finish` anterior a `Start` (ahora `Finish` = `Start`; prueba de regresión en `probar_paquete.py`, caso F). El título del Gantt Mermaid toma `--titulo`.
+- **Límites:** solo fin-a-comienzo, calendario L–V 8 h sin feriados (el 25/12 y el 1/1 cuentan como laborables) y sin nivelación. El paquete 1.1 de la WBS no tiene actividad, así que no aparece en el MSPDI. Una tarea resumen que solo contiene un hito sale con `Finish` = `Start` (prueba de regresión en `probar_paquete.py`, caso F). El título del Gantt Mermaid toma `--titulo`.
 
 ### 3.3 Presupuesto y costeo
 
@@ -527,14 +527,14 @@ Todo en IP (plan de proyecto y plan de la primera etapa de entrega) y en cada SB
      KR-1.3 Satisfacción posterior a la gestión [-/4 puntos] → - (sin-dato) · SM-5 · Sofía Ramírez
   ```
   Con Tability conectado, pm-integraciones guarda `03-control/fuentes/tability-AAAA-MM-DD.csv` con columnas
-  `clave,tipo,titulo,actual,meta,actualizado,url`; desde v2.2 cada valor leído se registra como check-in
+  `clave,tipo,titulo,actual,meta,actualizado,url`; cada valor leído se registra como check-in
   (`okr.py … --checkin KR-… --valor … --fuente tability`) en lugar de sobrescribir `actual`, y el KR se vincula con su
   par por la columna `ref_externa` (`tability:<id>`). Publicar en Tability (escritura) va por `--propuesta-sync` y
   `--marcar-publicado` (caso 9.1). `/pm-method:pm-sync okr` repite la lectura. **[sin verificar en vivo]**: no hubo
   servidor Tability conectado; en la prueba solo se creó la instantánea a mano para verificar su nombre.
 - **Salidas (qué queda y dónde verificarlo):** `00-direccion/okr.csv`, `00-direccion/okr.md` (narrativa), `03-control/reportes/<fecha>-okr.md` (ejemplo en `docs/ejemplos/integraciones/okr-puntuado.md`); visual opcional con visual-explainer (caso 1.3). Dónde verificarlo: abrí `gestion/00-direccion/okr.csv` en Excel (columna `vinculo` con OBJ-1, SM-1, SM-2, SM-5) y `gestion/03-control/reportes/2026-12-18-okr.md`; tras la aceptación, `okr` figura `aprobado` en `gestion/estado.json` → `artefactos` y hay una fila `aprobado okr …` en `gestion/03-control/registros/decisiones.csv`; `/pm-method:pm-sanidad` no debe mostrar ESP-04 ni ESP-05.
 - **Controles:** la sanidad valida la existencia del vínculo: con un KR que cita `SM-99` salió `ERROR ESP-04 okr KR-1.4 cita SM-99, que no existe en la especificación vigente (bmad)`; un `B-n` ausente del business case da `AVISO ESP-05`. Un KR rojo que amenaza un beneficio pasa a riesgo o issue y, fuera de la tolerancia de beneficios, a excepción.
-- **Límites:** los umbrales 0,7/0,4 son convención OKR, no PRINCE2 ni PMBOK; se declaran en el informe (desde v2.2, los KR comprometidos usan 1,0/0,7). `okr.py` solo comprueba el formato del vínculo, no su existencia (eso lo hace `sanidad.py`); desde v2.1 acepta `SM-C1` (métricas de contrapeso del PRD 6.12.4). Escritura en Tability nunca sin confirmación. El plan comercial de Tability que habilita el servidor MCP **[verificar]**.
+- **Límites:** los umbrales 0,7/0,4 son convención OKR, no PRINCE2 ni PMBOK; se declaran en el informe (los KR comprometidos usan 1,0/0,7). `okr.py` solo comprueba el formato del vínculo, no su existencia (eso lo hace `sanidad.py`); acepta `SM-C1` (métricas de contrapeso del PRD 6.12.4). Escritura en Tability nunca sin confirmación. El plan comercial de Tability que habilita el servidor MCP **[verificar]**.
 
 ---
 
@@ -588,7 +588,7 @@ Todo en IP (plan de proyecto y plan de la primera etapa de entrega) y en cada SB
 - **Momento PRINCE2:** CS/MP en cada período (`/pm-method:pm-sync tracker`); IP para registrar capacidades (`pm-inicio`, paso 15). El gestor confirma cada lote de escrituras externas.
 - **Dueña y agente:** `pm-integraciones`, desde `pm-control` (paso 2 del bucle) o `pm-inicio`.
 - **Externa:** capacidades genéricas, **sin conector predefinido** ni `.mcp.json` en el paquete. Notas relevadas al 2026-10-17 (INTEGRACIONES §2): Atlassian Rovo MCP Server requiere obtener el `cloudId` con `getAccessibleAtlassianResources` antes de herramientas como `searchJiraIssuesUsingJql` o `createJiraIssue`; el Slack MCP oficial (`https://mcp.slack.com/mcp`) está restringido a apps publicadas o internas; el servidor "Teams (preview)" de Microsoft figura como legado (se recomienda Work IQ). La skill siempre lee la descripción real de las herramientas presentes en la sesión.
-- **Respaldo:** registros CSV (`backlog.csv`, `acciones.csv`), Markdown local y borradores de mensaje para copiar. Para publicar en Teams o Slack sin servidor MCP, o para escribir a interesados del maestro, desde v2.2 está la capa de canales (webhooks, correo o `.eml`; caso 8).
+- **Respaldo:** registros CSV (`backlog.csv`, `acciones.csv`), Markdown local y borradores de mensaje para copiar. Para publicar en Teams o Slack sin servidor MCP, o para escribir a interesados del maestro, está la capa de canales (webhooks, correo o `.eml`; caso 8).
 - **Frases:** "Traé los tickets abiertos de Jira del sprint actual" (#16); "Publicá el resumen semanal en el canal de Teams" (#17). EN: "Sync Jira and post the highlight to the project Slack channel."
 - **Pasos:** los ejecuta el sistema; el usuario no los escribe.
   ```bash
@@ -606,9 +606,9 @@ Todo en IP (plan de proyecto y plan de la primera etapa de entrega) y en cada SB
   ```
 - **Salidas (qué queda y dónde verificarlo):** `03-control/fuentes/jira-2026-12-18.csv`, propuestas de cambio a registros y anotaciones de publicación en `diario.md`. El tablero (caso 1.4) cita la instantánea como fuente y usa su fecha de corte. Dónde verificarlo: abrí `gestion/03-control/fuentes/jira-2026-12-18.csv` en Excel (columnas `clave,tipo,titulo,estado,asignado,sprint,puntos,actualizado,url`); en `gestion/estado.json` → `integraciones`: `tracker` = `jira`, `docs` = `confluence`, `chat` = `teams`; las propuestas aceptadas aparecen en `gestion/03-control/registros/acciones.csv` o `issues.csv` con `jira:<clave>` en `notas`; el id de cada publicación, en `gestion/03-control/registros/diario.md`; `/pm-method:pm-sanidad` sin INT-02.
 - **Controles:** INT-01…04; columnas de gobierno (`moscow`, `release`, `producto_pbs`, `prioridad`) solo de pm-method; en un subagente, toda escritura vuelve como "decisión humana requerida"; si una herramienta falla dos veces, alternativa local.
-- **Límites:** **documentado sin prueba en vivo** (no hubo servidores conectados); la instantánea de la prueba se escribió a mano para verificar los controles. `estado.py integracion` guarda un valor desconocido pero avisa en el momento (y la sanidad lo marca, INT-01). Desde v2.1 el hook impide modificar una instantánea existente de `03-control/fuentes/` (se crea una nueva con fecha). INT-03 (más de 14 días) no avisa si la fecha del nombre es futura.
+- **Límites:** **documentado sin prueba en vivo** (no hubo servidores conectados); la instantánea de la prueba se escribió a mano para verificar los controles. `estado.py integracion` guarda un valor desconocido pero avisa en el momento (y la sanidad lo marca, INT-01). El hook impide modificar una instantánea existente de `03-control/fuentes/` (se crea una nueva con fecha). INT-03 (más de 14 días) no avisa si la fecha del nombre es futura.
 
-### 6.1 De la instantánea de Jira a riesgos e issues (v2.2)
+### 6.1 De la instantánea de Jira a riesgos e issues
 
 - **Prompt del usuario:** "Traé la instantánea de Jira del sprint y decime qué incidencias son riesgos o issues."
 - **Objetivo:** que las incidencias emergentes alimenten la gestión de riesgos: lo ya ocurrido se trata como issue (con
@@ -685,14 +685,14 @@ Todo en IP (plan de proyecto y plan de la primera etapa de entrega) y en cada SB
   ```
   Tras cargar las estimaciones de gobierno, `avance --json` pasó a `"puntos_total": 24.0`, `"base_pct": "puntos"` (una fila por fecha).
 - **Salidas (qué queda y dónde verificarlo):** derivados en `02-planificacion/especificacion/` (`inventario-bmad.json`, `requisitos-bmad.csv`, `matriz-trazabilidad-bmad.csv`, `spec-index.json`, `handoff-bmad-<fecha>-<…>.md`), columnas derivadas de `backlog.csv`, `03-control/reportes/avance-bmad.csv`, línea base en `00-direccion/historial/bmad-prd-v1.0/`. Dónde verificarlo: abrí `gestion/02-planificacion/especificacion/matriz-trazabilidad-bmad.csv` y `gestion/02-planificacion/backlog.csv` en Excel (10 historias); la línea base es la clave `bmad-prd` de `gestion/estado.json` → `artefactos`, la carpeta `gestion/00-direccion/historial/bmad-prd-v1.0/` y una fila `línea base bmad-prd v1.0 …` en `gestion/03-control/registros/decisiones.csv`; `/pm-method:pm-estado` muestra el avance BMAD y `/pm-method:pm-sync bmad` corre `verificar` ("Sin desvíos…"); `_bmad-output/` no cambia.
-- **Controles:** hook: los derivados (`requisitos-bmad.csv`, `avance-bmad.csv`, …) no se editan ("es un derivado regenerable") y un subagente pm-* que escriba en `_bmad-output/` recibe "los agentes de gestión no escriben en carpetas de BMAD. Usar bmad.py handoff …"; el hilo principal sí puede (los flujos de BMAD escriben ahí). Sanidad ESP-01…15: `AVISO ESP-13 Traspaso a BMAD sin confirmar` hasta que el equipo BMAD marque `estado: aplicado`; ESP-10 si el PRD cambia sin solicitud de cambio (lo cubre `probar_paquete.py`, 138 OK en la versión 2.2.0).
-- **Límites:** en el formato 6.12.4 las historias no citan el FR, así que la traza es por épica y la columna `refs` de cada historia trae todos los FR de su épica. Desde v2.1 la `descripcion` derivada del backlog es el primer párrafo completo de la historia ("As a socio, I want…, So that…"). `bmad-spec` (`specs/spec-<slug>/SPEC.md`) no se traza. Fuera del rango probado, modo degradado con aviso.
+- **Controles:** hook: los derivados (`requisitos-bmad.csv`, `avance-bmad.csv`, …) no se editan ("es un derivado regenerable") y un subagente pm-* que escriba en `_bmad-output/` recibe "los agentes de gestión no escriben en carpetas de BMAD. Usar bmad.py handoff …"; el hilo principal sí puede (los flujos de BMAD escriben ahí). Sanidad ESP-01…15: `AVISO ESP-13 Traspaso a BMAD sin confirmar` hasta que el equipo BMAD marque `estado: aplicado`; ESP-10 si el PRD cambia sin solicitud de cambio (lo cubre `probar_paquete.py`, caso A).
+- **Límites:** en el formato 6.12.4 las historias no citan el FR, así que la traza es por épica y la columna `refs` de cada historia trae todos los FR de su épica. La `descripcion` derivada del backlog es el primer párrafo completo de la historia ("As a socio, I want…, So that…"). `bmad-spec` (`specs/spec-<slug>/SPEC.md`) no se traza. Fuera del rango probado, modo degradado con aviso.
 
 ---
 
 ## Caso 8 · Capa de canales: correo SMTP, conector de correo, Teams, Slack y .eml
 
-Contrato común (v2.2; guía de `pm-integraciones` §6 y de `pm-comunicacion-stakeholders` §6): una sola vía de salida
+Contrato común (guía de `pm-integraciones` §6 y de `pm-comunicacion-stakeholders` §6): una sola vía de salida
 para cualquier comunicación a interesados del maestro (`stakeholders.csv`): comunicados personalizados, informes,
 actas, recordatorios de acciones, convocatorias, decisiones de puerta y check-ins de OKR. Cada mensaje es un `.md` con
 frontmatter (`para`, `canal`, `destino`, `formato`, `nivel_detalle`, `idioma`, `registro`, `horario`, `asunto`,

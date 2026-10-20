@@ -1,0 +1,43 @@
+# Construye la imagen del entorno Docker opcional (docs/DOCKER.md) y corre las pruebas gratuitas dentro del
+# contenedor, sin red. No publica la imagen en ningún registro ni usa secretos.
+name: docker
+
+on:
+  pull_request:
+    paths: ["docker/**", ".dockerignore", "scripts/**", "skills/**", "hooks/**", "agents/**", "docs/**", ".claude-plugin/**", ".github/workflows/docker.yml"]
+  push:
+    branches: [main]
+    paths: ["docker/**", ".dockerignore", "scripts/**", "skills/**", "hooks/**", "agents/**", "docs/**", ".claude-plugin/**", ".github/workflows/docker.yml"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: docker-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  construir-y-probar:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - name: Obtener el repositorio
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          persist-credentials: false
+
+      - name: Construir la imagen
+        run: docker compose -f docker/compose.yaml build pm
+
+      - name: Tamaño de la imagen
+        run: docker image ls pm-method:2.3.0
+
+      - name: Pruebas dentro del contenedor (sin red)
+        run: |
+          mkdir -p "$RUNNER_TEMP/pruebas" && chmod 0777 "$RUNNER_TEMP/pruebas"
+          docker compose -f docker/compose.yaml run --rm -v "$RUNNER_TEMP/pruebas:/salida" pruebas pm-pruebas --salida /salida
+
+      - name: Registros de las pruebas si algo falla
+        if: failure()
+        run: tail -n 60 "$RUNNER_TEMP"/pruebas/*.log || true

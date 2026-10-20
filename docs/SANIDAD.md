@@ -1,6 +1,6 @@
 # Sanidad y controles permanentes
 
-pm-method trabaja con datos repartidos en varios lugares: `estado.json`, nueve registros CSV base (más cuatro opcionales del maestro de interesados desde 2.2), documentos Markdown, derivados de la especificación, copias congeladas y, opcionalmente, las carpetas de BMAD. Los controles de este documento evitan que esos datos se contradigan y, cuando igual pasa, lo detectan antes de que llegue a una decisión de la junta.
+pm-method trabaja con datos repartidos en varios lugares: `estado.json`, nueve registros CSV base (más cuatro opcionales del maestro de interesados, que se crean al primer uso), documentos Markdown, derivados de la especificación, copias congeladas y, opcionalmente, las carpetas de BMAD. Los controles de este documento evitan que esos datos se contradigan y, cuando igual pasa, lo detectan antes de que llegue a una decisión de la junta.
 
 La referencia normativa es `SPEC.md` §1.17. Las salidas citadas son reales y salen de la corrida del [caso maestro](CASO-MAESTRO.md) del 2026-10-17.
 
@@ -10,9 +10,10 @@ La referencia normativa es `SPEC.md` §1.17. Las salidas citadas son reales y sa
 
 | Control | Cuándo actúa | Qué asegura | Cliente |
 |---|---|---|---|
-| `sanidad.py` (skill `pm-sanidad`) | al abrir sesión (modo rápido), antes de cada puerta, después de sincronizar, al actualizar pm-method o BMAD | coherencia de estado y puertas, roles, artefactos, registros, controles permanentes (cambios contra presupuestos, calidad a volumen, pronóstico contra tolerancias, cadencia de contacto con interesados), maestro de interesados, ids entre capas, cobertura, líneas base frente a la especificación, traspasos pendientes, integraciones, instalación | todos |
-| Hook `PreToolUse` (`hooks/guardian.py`) | en cada Write/Edit/MultiEdit/NotebookEdit y Bash | `estado.json` solo por script; registros solo por `registro.py`; derivados, copias congeladas e instantáneas no editables; subagentes pm-* sin escritura en BMAD ni comandos reservados a pm-director | Claude Code (plugin) |
-| Hook `SessionStart` (`hooks/inicio.py`) | al abrir, retomar, limpiar o compactar la sesión | agrega al contexto la fase, la etapa y los ERROR de sanidad | Claude Code (plugin) |
+| `sanidad.py` (skill `pm-sanidad`) | al abrir sesión (modo rápido), antes de cada puerta, después de sincronizar, al actualizar pm-method o BMAD | coherencia de estado y puertas, roles, artefactos, registros, controles permanentes (cambios contra presupuestos, calidad a volumen, pronóstico contra tolerancias, supuestos críticos, revisión de riesgos vencida, cadencia de contacto con interesados), maestro de interesados, mapas de Wardley y de recorrido, ids entre capas, cobertura, líneas base frente a la especificación, traspasos pendientes, integraciones, instalación | todos |
+| Hook `PreToolUse` (`hooks/guardian.py`) | en cada Write/Edit/MultiEdit/NotebookEdit y Bash | `estado.json` solo por script; registros solo por `registro.py`; derivados, copias congeladas e instantáneas no editables; subagentes pm-* sin escritura en BMAD ni comandos reservados a pm-director; confirmación de una persona para aprobar y enviar comunicaciones | Claude Code (plugin) |
+| Hook `SessionStart` (`hooks/inicio.py`) | al abrir, retomar, limpiar o compactar la sesión | agrega al contexto la fase, la etapa, los ERROR de sanidad y el resumen derivado de `estado.json` y los registros (`estado.py contexto`), que prevalece sobre las notas de memoria | Claude Code (plugin) |
+| Control de cambios (`registro.py`) | al dejar aprobado un cambio con `costo` > 0 (`decision=aprobado` o `estado` aprobado, implementado o cerrado), o al cambiar `costo`, `cargo` o `decidido_por` de uno aprobado | PRINCE2: si `decidido_por` no es la junta ni el ejecutivo (mismo criterio que CAM-04/CAM-05), rechaza el cambio que supera `limite_autoridad_cambio`, el que carga `presupuesto-cambio` más allá de `presupuestos.cambio` (lo ya cargado + `costo`) y el que usa `reserva-gestion` o `plan-excepcion`: queda `pendiente-decision` y se escala a pm-director. La junta o el ejecutivo aprueban sobre el límite, pero sin saldo deben indicar la fuente (`reserva-gestion`, `plan-excepcion`) o ampliar antes el presupuesto (`estado.py presupuesto cambio=… --por …`). Sin presupuesto de cambio fijado, registra con aviso. No se omite con `--forzar` | todos |
 | Regla de puerta (`pm-puerta`, `pm-director`) | antes de presentar una puerta | ninguna puerta con ERROR abierto, salvo que la junta lo acepte como condición registrada | todos |
 | Esquemas versionados | al leer | `estado.json` y registros migran solos; contrato `pm-spec-index/1`; `compatibilidad.json` | todos |
 | `scripts/validar_paquete.py` | después de cualquier cambio del paquete | estructura, tamaños, descripciones, referencias, agentes, orquestación, hooks, versiones, compilación | mantenedor |
@@ -25,7 +26,7 @@ flowchart TB
     S[estado.py / registro.py<br/>validan valores y transiciones]
   end
   subgraph Detectar
-    SA[sanidad.py<br/>INS · EST · ART · REG · CAM · QUA · TOL<br/>ESP · STK · INT]
+    SA[sanidad.py<br/>INS · EST · ART · REG · CAM · QUA · TOL<br/>ESP · STK · MAP · INT]
     V[bmad.py verificar]
     I[inicio.py<br/>resumen al abrir sesión]
   end
@@ -60,7 +61,7 @@ python3 <pm-estado-proyecto>/scripts/sanidad.py --proyecto <dir> --rapido --cort
 
 - **Salida:** una línea de resumen y una lista de hallazgos `ERROR`, `AVISO` o `INFO`, cada uno con su código, el mensaje y cómo corregirlo (`→`). **Código de salida 1 si hay algún ERROR**; eso permite usarlo en scripts y en la regla de puerta.
 - **`--rapido`:** omite el inventario de skills instaladas (INS-03…06) y las integraciones (INT). Sin BMAD, también omite las comprobaciones de especificación después del índice.
-- **`--corte AAAA-MM-DD`:** fecha de corte de los controles con vencimiento (por defecto, hoy): acciones vencidas (REG-07), revisiones de calidad vencidas (QUA-02), cortes de EVM que se toman en cuenta (TOL, solo los de fecha ≤ corte) y cadencia de contacto (STK-12). Usar la misma fecha que el informe o el tablero, para que el resultado sea reproducible.
+- **`--corte AAAA-MM-DD`:** fecha de corte de los controles con vencimiento (por defecto, hoy): acciones vencidas (REG-07), riesgos con la revisión vencida (REG-09), revisiones de calidad vencidas (QUA-02), cortes de EVM que se toman en cuenta (TOL, solo los de fecha ≤ corte) y cadencia de contacto (STK-12). Usar la misma fecha que el informe o el tablero, para que el resultado sea reproducible.
 - **`--reparar`:** solo hace dos cosas: crea o completa las columnas de los registros según el esquema v2 y reconstruye el índice de especificación. **Nunca** copia datos de negocio de un lado a otro: señala al dueño (SPEC §1.16).
 
 ### 2.1 Familias y códigos
@@ -93,21 +94,27 @@ python3 <pm-estado-proyecto>/scripts/sanidad.py --proyecto <dir> --rapido --cort
 | REG-03…05 | ERROR | ids `<prefijo>-###` válidos y únicos; valores dentro del esquema; P e I entre 1 y 5 | `registro.py` |
 | REG-06 | AVISO | riesgo alto abierto sin respuesta o sin propietario | `pm-riesgos` |
 | REG-07 | AVISO | acción vencida | recordatorio o replanificación |
-| REG-08 | AVISO | referencias entre registros (R-, I-, C-, D-, S-, L-, ST-, Q-, A- y, desde 2.2, ET-, PF-, RC-, EN-) que existen | corregir el id |
-| **CAM · cambios contra presupuestos (v2.2, control permanente)** | | se evalúa sobre los cambios con `estado` aprobado, implementado o cerrado, o con `decision=aprobado`; los presupuestos los fija la junta con `estado.py presupuesto` (`estado.json` → `presupuestos`) | |
+| REG-08 | AVISO | referencias entre registros (R-, I-, C-, D-, S-, L-, ST-, Q-, A-, ET-, PF-, RC-, EN-) que existen | corregir el id |
+| REG-09 | AVISO | riesgo abierto (`abierto`, `en-seguimiento`, `escalado`) con `fecha_revision` anterior a la fecha de corte (`--corte`, por defecto hoy) | revisarlo con el propietario (`pm-riesgos`) y actualizar estado, evaluación y `fecha_revision` |
+| **CAM · cambios contra presupuestos (control permanente)** | | se evalúa sobre los cambios con `estado` aprobado, implementado o cerrado, o con `decision=aprobado`; los presupuestos los fija la junta con `estado.py presupuesto` (`estado.json` → `presupuestos`) | |
 | CAM-01 | AVISO | cambio con impacto de costo (cifra en `impacto_costo`) sin `costo` ni `cargo`, o con `costo` > 0 sin `cargo` | `registro.py actualizar cambios C-… --campo costo=<monto> --campo cargo=presupuesto-cambio\|reserva-riesgo\|reserva-gestion\|plan-excepcion` |
 | CAM-02 | AVISO | `cargo=reserva-riesgo` sin citar un R-### en `descripcion`, `justificacion`, `impacto_riesgo` o `notas` | citar el riesgo que responde; si no responde a un riesgo, presupuesto de cambio o junta |
 | CAM-03 | INFO / AVISO / **ERROR** | consumo del presupuesto de cambio (`cargo=presupuesto-cambio` contra `presupuestos.cambio`) y de la reserva de riesgo (`reserva-riesgo` contra `presupuestos.riesgo`): INFO < 80 %, AVISO ≥ 80 %, **ERROR > 100 %** (bloquea puertas como S-CAM-03); AVISO si se cargó sin presupuesto fijado | avisar a la junta; excedido: informe de excepción o ampliación (`estado.py presupuesto … --por`, pm-director) |
 | CAM-04 | AVISO | `costo` > `limite_autoridad_cambio` y `decidido_por` no es la junta ni el ejecutivo (se reconoce por "ejecutiv", "junta", "board", "executive" o el nombre del ejecutivo) | escalar a la junta y registrar su decisión (`decision-ad-hoc`), o ajustar el límite delegado |
 | CAM-05 | AVISO | `cargo=reserva-gestion` no decidido por la junta o el ejecutivo | solo la junta libera la reserva de gestión (pm-director) |
-| **QUA · calidad a volumen (v2.2, control permanente)** | | | |
+| | | **Al registrar (`registro.py`):** la autoridad delegada no puede dejar aprobado un cambio que CAM-03 (ERROR), CAM-04 o CAM-05 marcarían, ni uno con `plan-excepcion`; la junta o el ejecutivo, sin saldo, deben indicar la fuente. Regla completa en §1 | |
+| **QUA · calidad a volumen (control permanente)** | | | |
 | QUA-01 | AVISO | cada elemento de `02-planificacion/backlog.csv` en estado terminado (`done`, terminado, hecho, completado, cerrado, aceptado) sin una revisión de `calidad.csv` que lo cite (por id completo o por la clave corta `N-M`, p. ej. "historia 1-3") en estado `completada` con resultado `aprobado` o `aprobado-con-observaciones` | `pm-calidad`: registrar la revisión (también en lote) o reabrir el elemento |
 | QUA-02 | AVISO | revisión `planificada` o `en-curso` con `fecha_prevista` anterior al corte | realizarla o replanificarla |
 | QUA-03 | AVISO | revisión con resultado `rechazado` sin issue, acción o cambio que cite su Q-### | `pm-issues-cambios` (fuera de especificación) o acción correctiva |
-| **TOL · pronóstico contra tolerancias (v2.2, control permanente)** | | lee el último corte guardado con `evm.py … --proyecto <dir> --guardar --corte AAAA-MM-DD` (`03-control/reportes/evm-<corte>.json`, fecha ≤ corte) | |
+| **TOL · pronóstico contra tolerancias (control permanente)** | | lee el último corte guardado con `evm.py … --proyecto <dir> --guardar --corte AAAA-MM-DD` (`03-control/reportes/evm-<corte>.json`, fecha ≤ corte) | |
 | TOL-01 | AVISO | el último corte pronostica excepción (`excepcion_prevista`) y no hay `excepcion_abierta` ni puerta `autorizar-plan-excepcion` posterior a ese corte | `pm-progreso-reportes`: informe de excepción; pm-director: `estado.py limite-etapa --excepcion X-###` y puerta `autorizar-plan-excepcion` |
 | TOL-02 | INFO | el último corte está en ámbar (50–100 % de la tolerancia) | anticipar acciones correctivas y reportarlo en el highlight |
 | TOL-03 | INFO | etapa de entrega sin corte de EVM guardado, o con el último de más de 31 días | `evm.py … --guardar --corte …` en cada período de informe |
+| **SUP · supuestos críticos (control permanente)** | | se evalúa sobre `supuestos.csv` (columnas `criticidad`, `certeza`, `experimento`, `criterio`, `fecha_limite`, `evidencia`); método en la guía de `pm-mandato-y-brief` §9 | |
+| SUP-01 | AVISO | supuesto abierto y sin validar, de criticidad alta, sin `experimento` o sin `fecha_limite` para validarlo | definir el experimento, el criterio para seguir y la fecha límite (`registro.py actualizar supuestos S-…`) |
+| SUP-02 | AVISO | supuesto abierto y sin validar con `fecha_limite` anterior al corte | registrar la evidencia y el resultado (`validado=si\|no`) o replanificar con la junta |
+| SUP-03 | AVISO | supuesto invalidado (`validado=no` o estado `invalidado`) que ningún issue, cambio, riesgo o decisión cita | revisar el business case y registrar la decisión (`pm-caso-de-negocio`, `pm-direccion-decisiones`) |
 | **ESP · especificación y BMAD** | | | |
 | ESP-01 | ERROR | la especificación se puede leer | `bmad.py detectar` |
 | ESP-02 | INFO | índice vigente | `especificacion.py indice` o `--reparar` |
@@ -128,7 +135,7 @@ python3 <pm-estado-proyecto>/scripts/sanidad.py --proyecto <dir> --rapido --cort
 | INT-01 | AVISO | valores conocidos en `integraciones.*` | corregir o mapear en `pm-integraciones` |
 | INT-02 / 03 | AVISO | tracker declarado con instantáneas en `03-control/fuentes/`, de menos de 14 días | `pm-integraciones` |
 | INT-04 | AVISO | instantáneas con fecha en el nombre (`<sistema>-AAAA-MM-DD.<ext>`) | renombrar |
-| **STK · maestro de interesados (v2.2)** | | se evalúa solo si existe alguno de `estereotipos.csv`, `preferencias.csv`, `raci.csv` o `envios.csv` (proyectos 2.1 sin ellos: nada que verificar); también en `--rapido`. Lo calcula `interesados.py integridad` | |
+| **STK · maestro de interesados** | | se evalúa solo si existe alguno de `estereotipos.csv`, `preferencias.csv`, `raci.csv` o `envios.csv` (sin ellos, nada que verificar); también en `--rapido`. Lo calcula `interesados.py integridad` | |
 | STK-00 | AVISO | no se pudo verificar el maestro (por ejemplo, falta `pm-interesados` junto a `pm-estado-proyecto`) | reinstalar el paquete completo |
 | STK-01 | AVISO | interesado sin poder o interés: no se puede ubicar en la matriz | `registro.py actualizar stakeholders ST-… --campo poder=… --campo interes=…` |
 | STK-02 | AVISO | RACI: elemento sin A, con más de un A, o la misma persona dos veces en el elemento | `registro.py actualizar raci RC-… --campo rol=…` |
@@ -142,8 +149,15 @@ python3 <pm-estado-proyecto>/scripts/sanidad.py --proyecto <dir> --rapido --cort
 | STK-10 | AVISO | nombre repetido en el maestro | unificar o diferenciar |
 | STK-11 | AVISO / INFO | AVISO: elemento RACI sin R; INFO: sobre-consulta (más de 3 C), concentración (una persona es A en más del 40 % de los elementos, con al menos 5), A con poder bajo | revisar la RACI |
 | STK-12 | AVISO | compromiso sostenido (control permanente): interesado de los cuadrantes gestionar de cerca, mantener satisfecho o mantener informado cuyo último envío `enviado` en `envios.csv` (correo, chat, reunión o llamada registrada) supera 1,5 × la frecuencia de su perfil (diaria 1, semanal 7, quincenal 14, mensual 31, trimestral 92 días); sin envío propio, cuenta desde el primer envío del proyecto. Solo corre si el proyecto registra envíos; usa la fecha de `--corte` | contactarlo según su perfil (`envios.py`, o registrar la reunión o llamada con `registro.py agregar envios --campo canal=reunion\|llamada --campo modo=manual --campo estado=enviado …`) o revisar la frecuencia acordada |
+| **MAP · mapas de Wardley y de recorrido (solo AVISO)** | | corre si hay JSON en `02-planificacion/mapas/` (`pm-mapas-estrategicos`, `mapas.py controles`); los mapas son apoyo, no productos obligatorios, y no entran en la verificación de puertas | |
+| MAP-00 | AVISO | mapa ilegible o con errores de validación (posiciones o emociones sin completar, rangos, ids, ciclos) | `mapas.py … validar` |
+| MAP-01 | AVISO | componente en producto o commodity marcado `construir` sin una decisión `D-…` registrada y citada | registrar la decisión y vincularla, o cambiar a comprar o tercerizar (`pm-adquisiciones`) |
+| MAP-02 | AVISO | componente con inercia sin un riesgo abierto `R-…` citado | registrar el riesgo (`pm-riesgos`) y `mapas.py … vincular <mapa> <id> --refs R-…` |
+| MAP-03 | AVISO | dolor del recorrido sin tratamiento: ningún requisito (REQ, FR, NFR), historia del backlog, riesgo, issue, decisión, supuesto, cambio o revisión de calidad (Q) existente citado | tratarlo (candidatos: `mapas.py … recorrido candidatos`) y vincular el id |
+| MAP-04 | AVISO | posición de un componente sin evidencia o emoción de un paso sin fuente (`[por confirmar]` o vacía) | citar la fuente o declarar el supuesto |
+| MAP-05 | AVISO | id citado en un mapa que no existe en los registros o en la especificación (incluye ids retirados del PRD) | corregir la referencia o crear el elemento |
 
-Dueños de la corrección por familia: INS → usuario o mantenedor; EST y ART → pm-director; REG → `pm-registros`, `pm-riesgos`, `pm-issues-cambios`; CAM → `pm-issues-cambios` (presupuestos, CAM-03 excedido, CAM-04 y CAM-05 → pm-director); QUA → `pm-calidad`; TOL → `pm-progreso-reportes` (excepción → pm-director); ESP → `pm-bmad-puente`, `pm-planificacion-por-productos`, `pm-issues-cambios`; STK → `pm-interesados` (STK-07 → `pm-integraciones`; STK-08 → `pm-okr`); INT → `pm-integraciones`. El detalle de causas típicas está en `skills/pm-sanidad/references/guia.md`.
+Dueños de la corrección por familia: INS → usuario o mantenedor; EST y ART → pm-director; REG → `pm-registros`, `pm-riesgos`, `pm-issues-cambios`; CAM → `pm-issues-cambios` (presupuestos, CAM-03 excedido, CAM-04 y CAM-05 → pm-director); QUA → `pm-calidad`; TOL → `pm-progreso-reportes` (excepción → pm-director); ESP → `pm-bmad-puente`, `pm-planificacion-por-productos`, `pm-issues-cambios`; STK → `pm-interesados` (STK-07 → `pm-integraciones`; STK-08 → `pm-okr`); MAP → `pm-mapas-estrategicos` (MAP-01 → `pm-adquisiciones`; MAP-02 → `pm-riesgos`); INT → `pm-integraciones`. El detalle de causas típicas está en `skills/pm-sanidad/references/guia.md`.
 
 ### 2.2 Ejemplos reales
 
@@ -193,22 +207,29 @@ ERROR ESP-10 Cambio no controlado: bmad-epicas difiere de la línea base v1.1 (i
 - `ART-02` apareció porque un acta se registró como aprobada con `artefacto --estado aprobado` en lugar de `aprobar`. Se corrigió con `estado.py aprobar … --por`.
 - El último `ESP-10` era elaboración progresiva. Lo resolvió la autoridad de cambio con I-003 y la línea base de épicas v1.2.
 
-**Controles permanentes (corridas de referencia de las guías E2E, versión 2.2).** Gestión por excepción en la guía
-[E2E-2](guias/E2E-2-alcance-roadmap.md), paso 10 ([salida-g2.md](guias/evidencia/salida-g2.md)): un cambio regulatorio
-de 15.000 aprobado por la autoridad de cambio, con el presupuesto de cambio en 12.000 y su límite en 10.000, y un corte
-de EVM ágil guardado que pronostica salir de la tolerancia de alcance:
+**Controles permanentes (corridas de referencia de las guías E2E).** Gestión por excepción en la guía
+[E2E-2](guias/E2E-2-alcance-roadmap.md), paso 10 ([salida-g2.md](guias/evidencia/salida-g2.md)): la autoridad de cambio
+quiere aprobar un cambio regulatorio de 15.000, con el presupuesto de cambio en 12.000 (9.000 ya cargados) y su límite
+en 10.000, y un corte de EVM ágil guardado pronostica salir de la tolerancia de alcance. `registro.py` no registra la
+aprobación (C-002 queda `pendiente-decision`) y la sanidad marca la excepción prevista:
 
 ```text
+$ registro.py --proyecto gestion actualizar cambios C-002 --campo "decision=aprobado" --campo "estado=aprobado" --campo "decidido_por=Autoridad de cambio: Sofía Ramírez" …
+Control de cambios (PRINCE2, autoridad y presupuesto de cambio; no se omite con --forzar):
+  - C-002: costo 15.000 supera el límite de la autoridad de cambio (10.000).
+  - C-002: el presupuesto de cambio no alcanza: 9.000 ya cargados + 15.000 = 24.000 de 12.000 fijados por la junta.
+  → 'Autoridad de cambio: Sofía Ramírez' no es la junta ni el ejecutivo. Dejar estado=pendiente-decision (sin decision=aprobado) y escalar a pm-director: decide la junta o el ejecutivo.
 $ sanidad.py --proyecto gestion --rapido --corte 2027-02-19
-Sanidad de 'Portal de autoservicio para socios' (entrega/CS): 1 ERROR · 2 AVISO · 0 INFO
-  ERROR CAM-03 Presupuesto de cambio excedido: 24.000 de 12.000 (200 %).
-  AVISO CAM-04 Cambio C-002 (15.000) supera el límite de la autoridad de cambio (10.000) y lo decidió 'Autoridad de cambio: Sofía Ramírez'.
+Sanidad de 'Portal de autoservicio para socios' (entrega/CS): 0 ERROR · 1 AVISO · 1 INFO
   AVISO TOL-01 El EVM del 2027-02-19 pronostica salir de la tolerancia (costo=n/a-agil, cronograma=n/a-agil, alcance=rojo) y no hay excepción abierta.
+  INFO  CAM-03 Presupuesto de cambio: 9.000 de 12.000 (75 %).
 ```
 
-Tras el informe de excepción, la ampliación del presupuesto de cambio a 32.000 por la ejecutiva, la ratificación de
-C-002 por la junta y la puerta `autorizar-plan-excepcion`, la sanidad del 2027-02-26 queda en `0 ERROR` con
-`INFO CAM-03 Presupuesto de cambio: 24.000 de 32.000 (75 %)`. En la guía [E2E-4](guias/E2E-4-producto-bmad.md), paso 12,
+Tras el informe de excepción, la ampliación del presupuesto de cambio a 32.000 por la ejecutiva, la aprobación de
+C-002 por la junta (con saldo, después de la ampliación) y la puerta `autorizar-plan-excepcion`, la sanidad del
+2027-02-26 queda en `0 ERROR` con `INFO CAM-03 Presupuesto de cambio: 24.000 de 32.000 (75 %)`. CAM-03 ERROR y CAM-04
+siguen siendo necesarios para los datos que `registro.py` no controla: cambios aprobados antes de que la junta fijara el
+presupuesto o el límite, o un presupuesto que la junta reduce después (caso J de `probar_paquete.py`; la regla al registrar, caso J2). En la guía [E2E-4](guias/E2E-4-producto-bmad.md), paso 12,
 la sanidad del 2027-02-26 da cinco `AVISO QUA-01` (historias `done` sin revisión de calidad) y un `AVISO QUA-02` (la
 prueba de carga NFR-3 que era condición de la puerta, vencida); en la [E2E-3](guias/E2E-3-interesados-okr-avance.md),
 paso 13, tres `AVISO STK-12` al 2027-02-05 (por ejemplo, TI del núcleo: último contacto hace 18 días, máximo 10).
@@ -224,7 +245,7 @@ paso 13, tres `AVISO STK-12` al 2027-02-05 (por ejemplo, TI del núcleo: último
 | Regla | Herramientas | Sobre qué | Motivo |
 |---|---|---|---|
 | `estado.json` no se edita | Write/Edit/MultiEdit/NotebookEdit y Bash (`sed -i`, `>`/`>>`, `tee`, `cp`/`mv`/`rm`, `open(...,'w')`, `json.dump`) | `<proyecto>/estado.json` | solo `estado.py`, `nuevo_proyecto.py` o `bmad.py`; mantiene puertas, migración y decisiones |
-| Registros solo por script | ídem | los CSV de `03-control/registros/`: los 9 base y, desde 2.2, `estereotipos.csv`, `preferencias.csv`, `raci.csv` y `envios.csv` | `registro.py` valida ids, valores y referencias (incluidas claves foráneas, RACI única y un solo A por elemento); `interesados.py` y `envios.py` también están permitidos |
+| Registros solo por script | ídem | los CSV de `03-control/registros/`: los 9 base y los opcionales `estereotipos.csv`, `preferencias.csv`, `raci.csv` y `envios.csv` | `registro.py` valida ids, valores y referencias (incluidas claves foráneas, RACI única y un solo A por elemento); `interesados.py` y `envios.py` también están permitidos |
 | Derivados no editables | ídem | `spec-index.json`, `requisitos-bmad.csv`, `matriz-trazabilidad-bmad.csv`, `inventario-bmad.json`, `avance-bmad.csv` | se regeneran |
 | Copias congeladas | ídem | `00-direccion/historial/` | se crea una versión nueva |
 | Instantáneas inmutables | ídem (solo si el archivo ya existe) | `03-control/fuentes/` | se crea una instantánea nueva con fecha |
@@ -284,7 +305,7 @@ python3 <pm-estado-proyecto>/scripts/estado.py --proyecto <dir> puerta autorizar
 
 `condicionado` avanza como aprobado y deja `EST-12` abierto hasta `estado.py cumplir-condiciones <tipo> [--fecha] [--por] [--nota]`. Con `condicionado`, los hallazgos de tipo condición de la verificación (por ejemplo, el CONCERNS del gate de preparación de BMAD, P-04 o P-06) pasan solos a condiciones formales de la puerta; mientras sigan abiertas, la verificación de las puertas siguientes muestra **G-01** (condición; **bloqueo** en `autorizar-cierre`). Detalle en [PUERTAS.md](PUERTAS.md). Un `CAM-03` excedido es ERROR y bloquea la puerta como cualquier otro. Los hallazgos `INS` no bloquean puertas, pero se informan. Un `STK-03` de severidad ERROR sí bloquea, como cualquier ERROR.
 
-La verificación de puerta (`puertas.py`) distingue `bloqueo`, `condicion` y `aviso`. Desde 2.2, `autorizar-proyecto` suma dos **avisos que no bloquean**:
+La verificación de puerta (`puertas.py`) distingue `bloqueo`, `condicion` y `aviso`, cada uno con su código de control. Sobre interesados, `autorizar-proyecto` suma dos **avisos que no bloquean**:
 
 | Código | Cuándo | Qué hacer |
 |---|---|---|
@@ -298,9 +319,9 @@ En el caso maestro, todas las puertas se presentaron con 0 ERROR. El cambio no c
 ## 5. Esquemas versionados y manifiesto de compatibilidad
 
 - **`estado.json` v2:** los proyectos creados con versiones anteriores se migran solos al leerse (`esquema.cargar_estado`). `version_paquete` queda registrada y `INS-02` avisa si difiere de la instalada.
-- **Registros (`esquema.py` v2.2, 13 registros: 9 base + 4 opcionales que se crean al primer uso):** columnas, prefijos, valores permitidos y, desde 2.2, claves foráneas (`refs`), unicidad (`unico`) y un solo A por elemento RACI (`uno_por`) en un solo lugar, documentados igual en `pm-registros/templates/guia-registros.md`. Cualquier `registro.py` o `sanidad.py --reparar` agrega las columnas faltantes.
+- **Registros (`esquema.py`, 13 registros: 9 base + 4 opcionales que se crean al primer uso):** columnas, prefijos, valores permitidos, claves foráneas (`refs`), unicidad (`unico`) y un solo A por elemento RACI (`uno_por`) en un solo lugar, documentados igual en `pm-registros/templates/guia-registros.md`. Cualquier `registro.py` o `sanidad.py --reparar` agrega las columnas faltantes.
 - **Contrato `pm-spec-index/1`:** lo producen el proveedor BMAD y el nativo; si cambia el esquema, la fachada reconstruye el índice (ver [sincronizacion.md](sincronizacion.md) §4.2).
-- **`compatibilidad.json`:** versión del paquete (2.2.0, alineada con `.claude-plugin/plugin.json` y `esquema.py`; `validar_paquete.py` lo comprueba), esquemas, **versiones de BMAD probadas** (4.x con `docs/` y `.bmad-core`, 6.11, 6.12; relevado bmad-method 6.12.4 del 2026-10-14), conducta fuera de rango (modo degradado con aviso: correr `probar_paquete.py` y revisar el inventario antes de la siguiente puerta), Python ≥ 3.9, dependencias recomendadas y opcionales, y la conducta por cliente (Claude Code con hooks; Cowork como plugin; Hermes sin hooks).
+- **`compatibilidad.json`:** versión del paquete (2.3.0, alineada con `.claude-plugin/plugin.json` y `esquema.py`; `validar_paquete.py` lo comprueba), esquemas, **versiones de BMAD probadas** (4.x con `docs/` y `.bmad-core`, 6.11, 6.12; relevado bmad-method 6.12.4 del 2026-10-14), conducta fuera de rango (modo degradado con aviso: correr `probar_paquete.py` y revisar el inventario antes de la siguiente puerta), Python ≥ 3.9, dependencias recomendadas y opcionales, y la conducta por cliente (Claude Code con hooks; Cowork como plugin; Hermes sin hooks).
 
 ---
 
@@ -323,7 +344,7 @@ Comprueba:
 Con `--estricto`, los avisos también hacen fallar la validación. Salida actual:
 
 ```text
-Skills: 38 (32 invocables por el modelo, listado 6546 caracteres) · Agentes: 6
+Skills: 39 (33 invocables por el modelo, listado 6817 caracteres) · Agentes: 6
 OK
 ```
 
@@ -343,10 +364,14 @@ Crea proyectos temporales y recorre los casos con los scripts reales (principale
   - cinco casos del guardián; hook de inicio; límite de etapa, cierre y paquete de cierre.
 - **Caso B, BMAD v4:** detección del layout `docs/` y `.bmad-core`, fachada (3 ids, 2 historias) y avance.
 - **Caso C, sin BMAD:** fachada nativa (REQ-002 sin cobertura), sanidad con REQ-099 inexistente (ESP-04), EVM en modo ágil sin falsa excepción.
-- **Caso H, maestro de interesados, capa de canales y OKR (v2.2):** registros opcionales que no se crean en un proyecto nuevo; rechazos de `registro.py` (RACI con interesado inexistente, segundo A, fila duplicada, estereotipo inexistente); STK-09/STK-11 desde el maestro; STK-04 y ERROR STK-03 que hace fallar la sanidad; aviso P-09 de puerta sin bloquear (detalle en [PRUEBAS.md §2](PRUEBAS.md)).
-- **Caso J, controles permanentes (v2.2):** presupuestos de la junta (monto no numérico rechazado, comando reservado a pm-director por el hook), `costo` numérico en `cambios.csv`, CAM-01…04 con el ERROR CAM-03 al 110 % que bloquea la puerta, P-04 con criterios solo en OKR, condiciones formales desde la verificación, G-01 y `cumplir-condiciones`, QUA-01…03 a una fecha de corte, `evm.py --guardar` con TOL-01 sobre el último corte y STK-12 por cuadrante y frecuencia.
+- **Caso H, maestro de interesados, capa de canales y OKR:** registros opcionales que no se crean en un proyecto nuevo; rechazos de `registro.py` (RACI con interesado inexistente, segundo A, fila duplicada, estereotipo inexistente); STK-09/STK-11 desde el maestro; STK-04 y ERROR STK-03 que hace fallar la sanidad; aviso P-09 de puerta sin bloquear (detalle en [PRUEBAS.md §2](PRUEBAS.md)).
+- **Caso J, controles permanentes:** presupuestos de la junta (monto no numérico rechazado, comando reservado a pm-director por el hook), `costo` numérico en `cambios.csv`, CAM-01…04 con el ERROR CAM-03 al 110 % que bloquea la puerta, P-04 con criterios solo en OKR, condiciones formales desde la verificación, G-01 y `cumplir-condiciones`, QUA-01…03 a una fecha de corte, `evm.py --guardar` con TOL-01 sobre el último corte y STK-12 por cuadrante y frecuencia.
+- **Caso K, validar antes de invertir:** SUP-01, SUP-02 y SUP-03 a una fecha de corte, P-11 como condición de `autorizar-proyecto` y su desaparición al validar o tratar los supuestos.
+- **Caso M, mapas estratégicos:** `bmad.py recorridos` y `capacidades` sobre el fixture real (solo lectura, BMAD sin cambios), semillas con y sin BMAD, errores de `validar` (rangos, ids, ciclos, movimiento hacia la izquierda, etapa incoherente, emoción y dos acciones en un paso), MAP-01…05 que aparecen y desaparecen al registrar y vincular, REG-09 a una fecha de corte, HTML escapado ante un nombre con `<script>`, Mermaid que pasa el lint y `mmdc` dibuja, aprobación conservada al regenerar y `bmad.py linea-base --fecha`.
 
-Resultado actual: **138 OK · 0 FALLO** (los casos D a J figuran en [PRUEBAS.md §2](PRUEBAS.md)).
+- **Caso P, salidas de los scripts:** contexto de sesión sin los registros de catálogo y con REG-09, agrupación «… y 1 hallazgo más» de la sanidad, códigos de control en `puertas.py estado --markdown`, estado de una copia congelada sin front matter en `paquete.py` y MAP-03 con una historia o una revisión Q-###.
+
+Resultado al 2026-10-20: **216 OK · 0 FALLO** con Python 3.13 (215 con 3.9); todos los casos figuran en [PRUEBAS.md §2](PRUEBAS.md).
 
 Para adoptar una versión nueva de BMAD, se agrega un fixture con artefactos reales de esa versión en `scripts/pruebas/fixtures/`, se ajusta el caso correspondiente y, si pasa, se actualiza `compatibilidad.json.bmad.probado`.
 

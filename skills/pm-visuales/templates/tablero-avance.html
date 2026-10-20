@@ -26,6 +26,10 @@ CÓMO SE INYECTAN LOS DATOS / HOW DATA ARE INJECTED
     - backlog / informe con bloque burn-up ........... agil.iteraciones (solo enfoque agil o hibrido)
     - avance-bmad.csv (bmad.py avance) o instantánea de tracker en 03-control/fuentes/ (vía pm-integraciones) ... agil.iteraciones, citados en "fuentes"
   La "Vista por actor" (sección 5b, selector o ?actor=Nombre en la URL) usa D.acciones, D.riesgos y D.issues; no requiere campos extra.
+  Sección opcional "Mapas estratégicos" (mapas de Wardley y recorridos del cliente dibujados en SVG, avisos MAP vigentes y
+  vínculos dolor → tratamiento e inercia → riesgo): no va en el JSON; la escribe, ya escapada, el comando
+  "mapas.py --proyecto DIR tablero --insertar RUTA-DE-ESTE-TABLERO" de pm-mapas-estrategicos entre los marcadores
+  pm-mapas:inicio y pm-mapas:fin. Sin mapas, los marcadores quedan vacíos y la sección no aparece; los títulos se numeran solos.
   y reemplaza el contenido del bloque JSON. No editar el HTML a mano; los valores que falten van como "[por confirmar]".
   Valores de rag: verde | ambar | rojo | na. Umbrales de riesgo por defecto: alto >= 15, medio 6–12, bajo <= 5.
 -->
@@ -160,6 +164,9 @@ CÓMO SE INYECTAN LOS DATOS / HOW DATA ARE INJECTED
   <thead><tr><th>Registro / Register</th><th>Id</th><th>Compromiso / Commitment</th><th>Fecha / Date</th><th>Estado / Status</th></tr></thead>
   <tbody id="vista-actor"></tbody>
 </table></div>
+
+<!-- pm-mapas:inicio · sección opcional Mapas estratégicos: la escribe mapas.py tablero con insertar; vacía = sin sección -->
+<!-- pm-mapas:fin -->
 
 <h2 id="t-comentario">6. Comentario del gestor / Project manager's comment</h2>
 <p id="comentario"></p>
@@ -323,14 +330,19 @@ CÓMO SE INYECTAN LOS DATOS / HOW DATA ARE INJECTED
 
   var R = (D.resumen_registros || {});
   var rr = R.riesgos || {}, ri = R.issues || {}, ra = R.acciones || {};
-  function lista(v) { return Array.isArray(v) ? (v.length ? v.length + " (" + v.join(", ") + ")" : "0") : txt(v); }
+  // registro.py resumen recorta cada lista a 25 ids y da el conteo completo en <lista>_total
+  function lista(v, total) {
+    if (!Array.isArray(v)) return txt(v);
+    var n = (typeof total === "number") ? total : v.length;
+    return n ? n + " (" + v.join(", ") + (n > v.length ? " …" : "") + ")" : "0";
+  }
   var gRes = document.getElementById("resumen-riesgos");
   [["Riesgos abiertos / Open risks", txt(rr.abiertos)],
    ["Altos abiertos / Open high", txt(rr.altos_abiertos)],
-   ["Sin respuesta / No response", lista(rr.sin_respuesta)],
-   ["Sin propietario / No owner", lista(rr.sin_propietario)],
+   ["Sin respuesta / No response", lista(rr.sin_respuesta, rr.sin_respuesta_total)],
+   ["Sin propietario / No owner", lista(rr.sin_propietario, rr.sin_propietario_total)],
    ["Issues abiertos / Open issues", txt(ri.abiertos)],
-   ["Acciones vencidas / Overdue actions", lista(ra.vencidas)]].forEach(function (k) {
+   ["Acciones vencidas / Overdue actions", lista(ra.vencidas, ra.vencidas_total)]].forEach(function (k) {
     gRes.appendChild(el("div", { "class": "kpi" }, [el("div", { "class": "lbl" }, k[0]), el("div", { "class": "val" }, k[1])]));
   });
 
@@ -353,8 +365,6 @@ CÓMO SE INYECTAN LOS DATOS / HOW DATA ARE INJECTED
   var secAgil = document.getElementById("s-agil");
   if (!esAgil) {
     secAgil.style.display = "none";
-    document.getElementById("t-acciones").textContent = "4. Acciones por actor / Actions by actor";
-    document.getElementById("t-comentario").textContent = "5. Comentario del gestor / Project manager's comment";
   } else {
     var ventana = num(A.ventana_velocidad) || 3;
     var ult = its.slice(-ventana).map(function (x) { return num(x.terminado) || 0; });
@@ -499,6 +509,14 @@ CÓMO SE INYECTAN LOS DATOS / HOW DATA ARE INJECTED
   set("f-fuentes", D.fuentes);
   set("f-generado", D.fecha_generacion);
   set("f-confirmado", D.confirmado_por);
+
+  // ---------------------------------------------------------------- numeración de las secciones visibles
+  // (la sección ágil se oculta sin iteraciones y la de mapas estratégicos es opcional)
+  var nSec = 0;
+  Array.prototype.forEach.call(document.querySelectorAll("main h2"), function (h) {
+    if (!h.offsetParent) return;
+    nSec++; h.textContent = nSec + ". " + h.textContent.replace(/^\d+\.\s*/, "");
+  });
 })();
 </script>
 </body>

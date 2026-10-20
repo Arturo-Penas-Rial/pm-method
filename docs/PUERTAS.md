@@ -1,4 +1,4 @@
-# Puertas de la junta: verificación y registro · pm-method 2.2.0
+# Puertas de la junta: verificación y registro · pm-method 2.3.0
 
 Qué se verifica en cada puerta PRINCE2, cómo se integran los controles propios de BMAD y cómo queda registrada la
 decisión. EN: *board gates — health, automatic PRINCE2/BMAD checks, board checklist and decision record.*
@@ -76,6 +76,11 @@ Tres capas, para toda puerta de la junta salvo `decision-ad-hoc`:
    riesgos, lecciones) que confirma una persona con rol (`puertas.py confirmar <puerta> --por "Rol: Nombre"`, ítems que
    no se cumplen con `--no`, no aplicables con `--na`). Nunca la marca el modelo por su cuenta.
 
+`puertas.py verificar <puerta>` muestra cada hallazgo con su severidad y su código de control
+(`condición P-11 supuestos críticos sin validar: S-001…`); con `--json` devuelve las listas de mensajes `bloqueos`,
+`condiciones` y `avisos` (sin cambios para los consumidores existentes) y además `hallazgos`, una lista de
+`{severidad, id, mensaje}`.
+
 Severidades: **bloqueo** (impide registrar `aprobado`), **condición** (queda como observación de la puerta; con
 `condicionado`, pasa a condición formal) y **aviso**. Con bloqueos la junta puede corregir y volver, registrar
 `condicionado` (los bloqueos pasan a condiciones) o forzar con constancia (`--forzar`). Toda decisión queda en `estado.json` (con el resultado de la verificación) y en
@@ -86,8 +91,8 @@ Severidades: **bloqueo** (impide registrar `aprobado`), **condición** (queda co
 
 | Puerta | Id | Control | Severidad |
 |---|---|---|---|
-| todas | S-… | `sanidad.py --rapido` sin ERROR | bloqueo |
-| todas | — | lista de control de la junta generada y confirmada, sin ítems "no cumple" | bloqueo |
+| todas | S-… | `sanidad.py --rapido` sin ERROR (el id es `S-` + el código de sanidad, p. ej. `S-CAM-03`; como `registro.py` no deja aprobar un cambio sin saldo ni fuera de la autoridad delegada, S-CAM-03 aparece con cambios aprobados antes de que la junta fijara el presupuesto o con un presupuesto reducido después: [SANIDAD §1](SANIDAD.md)) | bloqueo |
+| todas | L-01 · L-02 · L-03 | lista de control de la junta generada (L-01), sin ítems "no cumple" (L-02) y confirmada (L-03) | bloqueo |
 | autorizar-proyecto · autorizar-etapa · autorizar-plan-excepcion · autorizar-cierre | G-01 | condiciones abiertas de puertas anteriores (de `condicionado`, o de `aprobado` con `--condiciones`, p. ej. `decision-ad-hoc`) | condición; **bloqueo en autorizar-cierre** |
 | autorizar-inicio | I-01 · I-02 | project brief registrado · ejecutivo designado | bloqueo |
 | autorizar-inicio | I-03 | plan de la etapa de iniciación | condición |
@@ -95,6 +100,8 @@ Severidades: **bloqueo** (impide registrar `aprobado`), **condición** (queda co
 | autorizar-proyecto | P-03 | tolerancias de proyecto de tiempo y costo | bloqueo |
 | autorizar-proyecto | P-04 | criterios de éxito definidos: sin ninguno (beneficios B-n, métricas SM-n, enfoque de beneficios u OKR) es condición; **solo en OKR** (hay artefacto `okr`, pero el business case no menciona beneficios —ni B-n, ni SM-n, ni la palabra «beneficio»— y no hay artefacto `enfoque-beneficios*`) también es condición; con beneficios en el business case pero sin enfoque de beneficios, aviso | condición / aviso |
 | autorizar-proyecto | P-05 · P-06 | junta completa (usuario y proveedor sénior) · plan de proyecto | condición |
+| autorizar-proyecto | P-09 · P-10 | interesados ubicados en la matriz poder/interés · matriz RACI (`raci.csv` o artefacto `matriz-raci`) | aviso |
+| autorizar-proyecto | P-11 | supuestos críticos (`criticidad=alta`) abiertos y sin validar; el que la junta acepta sin validar con una decisión de nivel `junta`, `ejecutivo` o `capa-negocio` que cita su id y dice que lo acepta ("aceptar"/"accept"; "aceptación" no cuenta) pasa a aviso y cita la D-### | condición / aviso |
 | autorizar-proyecto | P-07 | **BMAD:** PRD en `status: final` | bloqueo |
 | autorizar-proyecto | P-08 | **BMAD:** arquitectura en `final` (en iniciación alcanza con que permita estimar) | condición |
 | autorizar-etapa | E-01 · E-02 | plan de la etapa a autorizar · tolerancias de etapa | bloqueo |
@@ -116,7 +123,7 @@ plantilla de `pm-caso-de-negocio`).
 
 ### 3.1 Condiciones formales y su seguimiento (control permanente)
 
-En la práctica, las condiciones de una puerta quedan en el acta y nadie vuelve a mirarlas. Desde 2.2 tienen
+En la práctica, las condiciones de una puerta quedan en el acta y nadie vuelve a mirarlas. En pm-method tienen
 seguimiento automático hasta que alguien con rol verifica que se cumplieron:
 
 1. **Origen.** Al registrar `estado.py puerta <tipo> --decision condicionado`, los bloqueos y también los hallazgos de
@@ -125,7 +132,7 @@ seguimiento automático hasta que alguien con rol verifica que se cumplieron:
    suyas con `--condiciones`; una decisión `aprobado` con `--condiciones` (p. ej. `decision-ad-hoc`) también queda con
    condiciones abiertas.
 2. **Seguimiento.** Mientras estén abiertas: sanidad `EST-12` (AVISO en cada corrida, también en el hook de inicio),
-   `estado.py resumen` ("Condiciones abiertas: …"), `puertas.py estado` y **G-01** en la verificación de la puerta
+   `estado.py resumen` ("Condiciones abiertas: …"), el resumen de contexto del inicio de sesión (`estado.py contexto`), `puertas.py estado` y **G-01** en la verificación de la puerta
    siguiente (condición; en `autorizar-cierre`, **bloqueo**: no se cierra un proyecto con condiciones sin verificar; o
    se cumplen o se traspasan como recomendación de seguimiento). G-01 no se vuelve a copiar como condición nueva.
 3. **Cierre.** pm-director registra el cumplimiento:
@@ -156,7 +163,7 @@ Los controles y decisiones de las puertas alimentan el seguimiento:
 
 | Informe | Qué toma de las puertas | Cómo |
 |---|---|---|
-| Highlight report (`pm-progreso-reportes`) | decisiones registradas, condiciones abiertas (y cumplidas, con fecha), observaciones de la verificación (p. ej. gate de BMAD en CONCERNS), puertas forzadas y bloqueos de la próxima puerta | `puertas.py estado --markdown` → §6 de la plantilla |
+| Highlight report (`pm-progreso-reportes`) | decisiones registradas, condiciones abiertas (y cumplidas, con fecha), observaciones de la verificación (p. ej. gate de BMAD en CONCERNS), puertas forzadas y bloqueos, condiciones y avisos de la próxima puerta, cada uno con su código de control | `puertas.py estado --markdown` → §6 de la plantilla |
 | Informe de fin de etapa (`pm-plan-etapa-y-limites`) | verificación de la próxima puerta y condiciones de las anteriores | `puertas.py verificar <puerta>` y `estado --markdown` → §6 |
 | "¿Cómo venimos?" / `/pm-estado` (`pm-orquestador`) | última puerta y próxima puerta con su cantidad de bloqueos | `estado.py resumen` |
 | Riesgos e issues | una condición abierta vencida o una puerta forzada se registra como riesgo o issue | `pm-riesgos` / `pm-issues-cambios` |
@@ -166,7 +173,7 @@ Los controles y decisiones de las puertas alimentan el seguimiento:
 
 ```bash
 P=--proyecto ./gestion; S=<ruta a pm-estado-proyecto/scripts>
-python3 $S/puertas.py $P verificar autorizar-etapa            # bloqueos, condiciones y avisos (no escribe nada)
+python3 $S/puertas.py $P verificar autorizar-etapa            # bloqueos, condiciones y avisos con su código (no escribe nada; --json agrega hallazgos)
 python3 $S/puertas.py $P estado --markdown                    # insumo de informes: puertas, condiciones, próxima puerta
 python3 $S/puertas.py $P lista autorizar-etapa                # genera 00-direccion/decisiones/<fecha>-verificacion-autorizar-etapa.md
 python3 $S/puertas.py $P preparacion-bmad --resultado CONCERNS --por "Arquitecto: Luis" --fecha 2026-11-26 --nota "falta UX de la bandeja"   # pm-director; --fecha también fecha la decisión

@@ -1,4 +1,4 @@
-# Instalación y configuración · pm-method 2.2.0
+# Instalación y configuración · pm-method 2.3.0
 
 Guía para instalar, configurar, verificar, actualizar y desinstalar el paquete de agentes y skills **pm-method** en
 Claude Code, Cowork y Hermes Agent, y para instalar y conectar de punta a punta sus dependencias: Python y sus paquetes,
@@ -53,7 +53,7 @@ actualizaciones con dos comandos.
 ### 0.2 Publicar el repositorio (lo hace el responsable del paquete)
 ```bash
 # en la carpeta del paquete
-git init && git add . && git commit -m "pm-method 2.2.0"
+git init && git add . && git commit -m "pm-method 2.3.0"
 gh auth login                       # inicia sesión en el navegador
 gh repo create <usuario>/pm-method --public --source . --push
 ```
@@ -66,7 +66,7 @@ que muestra `claude plugin list` y la que usa `claude plugin update` para decidi
 ```bash
 claude plugin marketplace add Arturo-Penas-Rial/pm-method   # acepta owner/repo de GitHub; necesita git
 claude plugin install pm-method@pm-method                   # alcance por defecto: user
-claude plugin list                                          # pm-method@pm-method · Version: 2.2.0 · Status: enabled
+claude plugin list                                          # pm-method@pm-method · Version: 2.3.0 · Status: enabled
 ```
 - Dentro de una sesión: `/plugin marketplace add Arturo-Penas-Rial/pm-method` y `/plugin install pm-method@pm-method`.
 - Alcances: `claude plugin marketplace add … --scope user|project|local` (por defecto `user`) y
@@ -91,8 +91,8 @@ Si `update` responde que ya está en la última versión, el repositorio publica
 ### 0.5 Hermes Agent
 ```bash
 git clone https://github.com/Arturo-Penas-Rial/pm-method.git ~/pm-method
-python3 ~/pm-method/scripts/instalar_hermes.py        # → ~/.hermes/skills/pm-method/ (38 skills adaptadas)
-hermes skills list | grep -c "pm-"                    # → 38
+python3 ~/pm-method/scripts/instalar_hermes.py        # → ~/.hermes/skills/pm-method/ (39 skills adaptadas)
+hermes skills list | grep -c "pm-"                    # → 39 (§3: [verificar] dentro de Hermes)
 ```
 Dentro de Hermes: `/reload-skills` (o reiniciar) y probar `/pm-ayuda`. Detalle, agentes y límites: §3.
 No usar `hermes skills tap add` ni `hermes skills install` con este repositorio: instalan las skills tal cual, con rutas
@@ -104,7 +104,7 @@ Seguir §8.
 ### 0.7 Claves de API y credenciales: cuáles, dónde y cómo
 
 **pm-method no necesita ninguna clave propia.** Sus scripts son Python local y no llaman a servicios externos, con una
-sola excepción opcional: la **capa de canales** (`envios.py`, v2.2), que envía comunicaciones aprobadas por correo SMTP
+sola excepción opcional: la **capa de canales** (`envios.py`), que envía comunicaciones aprobadas por correo SMTP
 o por webhooks de Slack o Teams **solo si definís sus variables de entorno** (ver "Capa de canales" más abajo); sin
 ellas, genera archivos `.eml` o deja el envío a un conector MCP. Las credenciales las necesitan solo cuatro cosas: el
 **cliente** que ejecuta el modelo (Claude Code o Hermes), los **servidores MCP** de la organización (Jira, Slack,
@@ -166,7 +166,7 @@ chmod 600 ~/.hermes/.env                       # recomendado
 Proveedores con OAuth (por ejemplo `hermes auth add nous`) no usan clave escrita. La tabla completa de proveedores y
 variables está en la documentación de Hermes (*Providers*).
 
-#### Capa de canales: envío a interesados por correo, Slack o Teams (opcional, v2.2)
+#### Capa de canales: envío a interesados por correo, Slack o Teams (opcional)
 
 `skills/pm-integraciones/scripts/envios.py` envía comunicaciones **ya aprobadas** a los interesados del maestro
 (`stakeholders.csv`). Usa solo la biblioteca estándar de Python y lee las credenciales **únicamente de variables de
@@ -243,7 +243,7 @@ espacio de trabajo]**. Cada webhook publica en un solo canal. La URL va en `PM_S
 credencial. `envios.py` menciona a la persona (`<@ID>`) solo si su `usuario_chat` en `stakeholders.csv` es un id de
 usuario de Slack (empieza con `U` o `W`).
 
-#### Conectores OKR: Tability y Perdoo (opcional, v2.2)
+#### Conectores OKR: Tability y Perdoo (opcional)
 
 Ambos publican un servidor MCP remoto oficial (verificado el 2026-10-17 en su documentación). Se agregan como cualquier
 MCP remoto (§6) y se autentican en una sesión con `/mcp`:
@@ -386,7 +386,7 @@ Origen, licencia y versión probada de cada uno: [DEPENDENCIAS.md](DEPENDENCIAS.
 ### 2.1 Como plugin desde el marketplace local
 
 Alternativa a §0 cuando se trabaja con una copia local (por ejemplo, el mantenedor). La carpeta del paquete es a la vez
-un plugin (`.claude-plugin/plugin.json`, nombre `pm-method`, versión 2.2.0) y un marketplace local
+un plugin (`.claude-plugin/plugin.json`, nombre `pm-method`, versión 2.3.0) y un marketplace local
 (`.claude-plugin/marketplace.json`, nombre `pm-method`). Junto con §0, es la única modalidad que activa los **hooks** de
 protección y de sanidad (§9).
 
@@ -404,7 +404,7 @@ O dentro de una sesión de Claude Code:
 ```
 
 Qué queda disponible:
-- 38 skills, invocables como `/pm-method:<skill>` (32 que el modelo puede activar solo y 6 comandos de uso humano).
+- 39 skills, invocables como `/pm-method:<skill>` (33 que el modelo puede activar solo y 6 comandos de uso humano).
 - 6 agentes: `pm-method:pm-orquestador` (para el hilo principal) y los subagentes de fase `pm-method:pm-director`,
   `pm-method:pm-inicio`, `pm-method:pm-planificacion`, `pm-method:pm-control`, `pm-method:pm-cierre`.
 - Hooks `PreToolUse` (`hooks/guardian.py`) y `SessionStart` (`hooks/inicio.py`), declarados en `hooks/hooks.json`.
@@ -439,15 +439,15 @@ de `~/.claude/skills/` no son una vía de instalación para Cowork.
 ## 3. Instalación en Hermes Agent
 
 **Compatibilidad (verificada el 2026-10-17 con Hermes Agent `8ce2a4f`, 2026.9.24):** Hermes lee skills `SKILL.md` y
-las ofrece como comandos `/nombre`; la instalación con `scripts/instalar_hermes.py` dejó visibles las 37 skills de la versión 2.1.0 en
-`hermes skills list` (la 2.2.0 agrega `pm-interesados`: 38; el script copia todas las carpetas de `skills/`, pero esa
-cifra no se volvió a comprobar dentro de Hermes **[verificar]**), y la sustitución de `${HERMES_SKILL_DIR}` de Hermes resolvió las rutas de los scripts a archivos
+las ofrece como comandos `/nombre`; la instalación con `scripts/instalar_hermes.py` dejó visibles en
+`hermes skills list` todas las skills que había en `skills/` el día de la prueba (el script copia todas las carpetas de
+`skills/`; las 39 actuales no se volvieron a contar dentro de Hermes **[verificar]**), y la sustitución de `${HERMES_SKILL_DIR}` de Hermes resolvió las rutas de los scripts a archivos
 existentes. **No se probó una conversación completa con un modelo dentro de Hermes** (no había proveedor configurado en el
 entorno de prueba) **[verificar en el primer uso]**.
 
 | Capacidad | Claude Code (plugin) | Hermes |
 |---|---|---|
-| 38 skills y comandos `/…` | sí (`/pm-method:<skill>`) | sí (`/<skill>`) |
+| 39 skills y comandos `/…` | sí (`/pm-method:<skill>`) | sí (`/<skill>`) |
 | Scripts (estado, registros, BMAD, sanidad, EVM, CPM…) | sí | sí (mismos scripts Python) |
 | Subagentes de fase y orquestador como agente | sí | no: los agentes se usan como persona/personalidad; las skills corren en el mismo hilo |
 | Hooks (guardian, inicio, idioma) | sí | no: la protección de `estado.json` y registros queda en las reglas de las skills y en la sanidad (`/pm-sanidad`, `/pm-puerta`) |
@@ -629,7 +629,7 @@ Valores reconocidos por la sanidad (lista de **INT-01** en `sanidad.py`; valores
 | `tracker` | `ninguno`, `jira`, `linear`, `github`, `azure-devops` | `ninguno` | Atlassian Rovo MCP Server |
 | `docs` | `ninguno`, `confluence`, `notion`, `sharepoint` | `ninguno` | Atlassian Rovo (Confluence) |
 | `chat` | `ninguno`, `slack`, `teams` | `ninguno` | Slack MCP oficial; Teams/Work IQ |
-| `correo` (v2.2) | `ninguno`, `smtp`, `gmail`, `outlook`, `eml` | `ninguno` | `gmail`/`outlook`: conector de la organización **[verificar]**; `smtp`/`eml`: capa de canales sin conector (§0.7) |
+| `correo` | `ninguno`, `smtp`, `gmail`, `outlook`, `eml` | `ninguno` | `gmail`/`outlook`: conector de la organización **[verificar]**; `smtp`/`eml`: capa de canales sin conector (§0.7) |
 | `reuniones` | `manual`, `archivo`, `granola`, `fireflies`, `zoom`, `minutes`, `teams` | `manual` | Granola, Fireflies, Zoom, minutes-mcp |
 | `okr` | `archivo`, `tability`, `perdoo` | `archivo` | Tability MCP, Perdoo MCP (§0.7) |
 | `especificacion` | `ninguna`, `bmad` | `ninguna` | — (lo fija `bmad.py detectar`, §4.2) |
@@ -742,10 +742,11 @@ directo sirve para la carga inicial o una corrección. Tiempo y costo son el mí
 
 ### 7.4 Settings recomendados en Claude Code
 
-El listado de descripciones de skills de Claude Code tiene un presupuesto de ≈1 % de la ventana de contexto. Las 32
-skills de pm-method que el modelo puede activar suman ≈6.500 caracteres (6.546 según `validar_paquete.py` en la
-versión 2.2.0); con BMAD u otros repositorios de skills en la misma sesión el total puede superar el presupuesto (en la
-prueba con BMAD 6.12.4 instalado, ≈23.000 caracteres) y el listado se recorta. En ese caso, en `settings.json`:
+El listado de descripciones de skills de Claude Code tiene un presupuesto de ≈1 % de la ventana de contexto. Las 33
+skills de pm-method que el modelo puede activar suman 6.817 caracteres según `validar_paquete.py`; con BMAD u otros repositorios de skills en la misma sesión el total puede superar el presupuesto (en la
+prueba con BMAD 6.12.4 instalado, ≈23.000 caracteres) y el listado se recorta. Con solo el módulo `bmm` de BMAD 6.12.4
+(29 skills, 6.912 caracteres) el total ronda 13.700 y el enrutamiento en vivo dio 25/25 en las frases vecinas
+(`docs/evaluacion/resultados/2026-10-18-enrutamiento-con-bmad-v2.2.md`). Si se recorta, en `settings.json`:
 
 ```json
 {
@@ -777,11 +778,11 @@ Secuencia final, en este orden. `<raíz>` es la carpeta del paquete: un clon del
 
 | # | Paso | Comando | Resultado esperado |
 |---|---|---|---|
-| 1 | Plugin instalado y versión | `claude plugin list` | `pm-method@pm-method` · `Version: 2.2.0` · `Status: enabled` |
+| 1 | Plugin instalado y versión | `claude plugin list` | `pm-method@pm-method` · `Version: 2.3.0` · `Status: enabled` |
 | 2 | Manifiestos | `claude plugin validate <raíz>` | `Validation passed` |
 | 3 | Python y paquetes | `python3 --version` y `python3 -c "import yaml, docx, openpyxl; print('ok')"` | 3.9 o superior; `ok` |
-| 4 | Estructura del paquete | `python3 <raíz>/scripts/validar_paquete.py` | `Skills: 38 (32 invocables por el modelo, listado <n> caracteres) · Agentes: 6` y `OK` |
-| 5 | Regresión de punta a punta (requiere PyYAML; trabaja en una carpeta temporal) | `python3 <raíz>/scripts/probar_paquete.py` | `Resultado: <n> OK · 0 FALLO` (138 OK en la corrida del 2026-10-17, versión 2.2.0) |
+| 4 | Estructura del paquete | `python3 <raíz>/scripts/validar_paquete.py` | `Skills: 39 (33 invocables por el modelo, listado <n> caracteres) · Agentes: 6` y `OK` |
+| 5 | Regresión de punta a punta (requiere PyYAML; trabaja en una carpeta temporal) | `python3 <raíz>/scripts/probar_paquete.py` | `Resultado: <n> OK · 0 FALLO` (216 OK en la corrida del 2026-10-20, versión 2.3.0) |
 | 6 | Skills visibles | `/pm-method:pm-ayuda` en una sesión | tabla "qué escribir", catálogo de skills y comandos |
 | 7 | Proyecto de prueba | `nuevo_proyecto.py --ruta <tmp>/prueba --nombre "Prueba"` y `estado.py --proyecto <tmp>/prueba siguiente` | carpeta creada y siguiente paso del método |
 | 8 | BMAD (si se instaló) | `bmad.py --proyecto ./gestion detectar` | layout `v6`, `version` 6.12.x, `soporte: soportada` |
@@ -808,8 +809,8 @@ evalúan INS-01 e INS-02):
 
 | Hook | Disparo | Qué hace |
 |---|---|---|
-| `PreToolUse` → `hooks/guardian.py` | cada `Write`, `Edit`, `MultiEdit`, `NotebookEdit` y `Bash` | niega (`permissionDecision: "deny"`) con el motivo: modificar `estado.json` sin `estado.py`, `nuevo_proyecto.py` o `bmad.py`; los registros CSV de `03-control/registros/` (los 9 base y, desde 2.2, `estereotipos.csv`, `preferencias.csv`, `raci.csv` y `envios.csv`) sin `registro.py` (o `interesados.py` / `envios.py`, que también figuran entre los scripts permitidos); los derivados de especificación (`spec-index.json`, `requisitos-bmad.csv`, `matriz-trazabilidad-bmad.csv`, `inventario-bmad.json`, `avance-bmad.csv`), las copias congeladas de `00-direccion/historial/` o una instantánea existente de `03-control/fuentes/` — tanto con Write/Edit como con Bash (`sed -i`, `>`/`>>`, `tee`, `cp`/`mv`/`rm`, Python en línea); que un subagente `pm-*` escriba en `_bmad/`, `_bmad-output/` o `.bmad-core/`; y que el hilo principal o un subagente distinto de pm-director ejecute `estado.py puerta|rol|tolerancia|agil|umbrales-riesgo|cumplir-condiciones`, `limite-etapa --excepcion`, `set --forzar` o `aprobar` de nivel superior a gestor |
-| `SessionStart` → `hooks/inicio.py` | `startup`, `resume`, `clear`, `compact` | si hay un `estado.json` a ≤ 2 niveles de la carpeta de trabajo (hasta 3 proyectos), agrega al contexto fase, proceso, etapa, el resultado de `sanidad.py --rapido` con los primeros ERROR, una guía de enrutamiento y la ruta absoluta de los scripts |
+| `PreToolUse` → `hooks/guardian.py` | cada `Write`, `Edit`, `MultiEdit`, `NotebookEdit` y `Bash` | niega (`permissionDecision: "deny"`) con el motivo: modificar `estado.json` sin `estado.py`, `nuevo_proyecto.py` o `bmad.py`; los registros CSV de `03-control/registros/` (los 9 base y los opcionales `estereotipos.csv`, `preferencias.csv`, `raci.csv` y `envios.csv`) sin `registro.py` (o `interesados.py` / `envios.py`, que también figuran entre los scripts permitidos); los derivados de especificación (`spec-index.json`, `requisitos-bmad.csv`, `matriz-trazabilidad-bmad.csv`, `inventario-bmad.json`, `avance-bmad.csv`), las copias congeladas de `00-direccion/historial/` o una instantánea existente de `03-control/fuentes/` — tanto con Write/Edit como con Bash (`sed -i`, `>`/`>>`, `tee`, `cp`/`mv`/`rm`, Python en línea); que un subagente `pm-*` escriba en `_bmad/`, `_bmad-output/` o `.bmad-core/`; y que el hilo principal o un subagente distinto de pm-director ejecute `estado.py puerta|rol|tolerancia|agil|umbrales-riesgo|cumplir-condiciones`, `limite-etapa --excepcion`, `set --forzar` o `aprobar`/`set` con `--nivel` superior a gestor. El comando de Bash se evalúa por segmento (`;`, `&&`, `\|\|`, `\|`, `&`, saltos de línea): solo el segmento que ejecuta un script del paquete queda exento, y ni ese puede redirigir su salida a un archivo protegido. Además pide confirmación (`permissionDecision: "ask"`) para `envios.py aprobar` y `envios.py enviar … --confirmar`, también desde pm-director |
+| `SessionStart` → `hooks/inicio.py` | `startup`, `resume`, `clear`, `compact` | si hay un `estado.json` a ≤ 2 niveles de la carpeta de trabajo (hasta 3 proyectos), agrega al contexto, por proyecto, fase, proceso, etapa y el resultado de `sanidad.py --rapido` con los primeros ERROR, más el **resumen de contexto derivado** de `estado.py contexto` (conteos abiertos sin los registros de catálogo, riesgos altos sin respuesta, riesgos con la revisión vencida, issues abiertos, acciones vencidas, supuestos críticos sin validar, condiciones abiertas y próxima puerta, con ids; ≤ 2.000 caracteres con un proyecto); y, una vez, una guía de enrutamiento, la precedencia de los registros sobre la memoria del cliente y la ruta absoluta de los scripts |
 | `UserPromptSubmit` → `hooks/idioma.py` | cada pedido del usuario | si hay proyecto pm-method y el pedido está en otro idioma que `estado.json.idioma` (español/inglés), agrega al contexto la instrucción de responder en el idioma del pedido; no bloquea nada |
 
 Comportamiento relevante:
@@ -820,7 +821,30 @@ Comportamiento relevante:
   esos nombres o si un subagente `pm-*` intenta un comando reservado.
 - El hilo principal **sí** puede escribir en carpetas de BMAD (los flujos propios de BMAD lo necesitan); la
   restricción aplica a los subagentes de pm-method, identificados por `agent_type` en la entrada del hook.
-- Ante un error propio, el hook termina sin decidir (no bloquea por fallas internas).
+- Ante un error propio, el hook termina sin decidir (no bloquea por fallas internas). `guardian.py` es un control de
+  integridad del método frente a errores del modelo, no una frontera de seguridad (`docs/SEGURIDAD.md`, SEG-09).
+- El pedido de confirmación de `envios.py aprobar` y `enviar --confirmar` lo muestra Claude Code en una sesión
+  interactiva; con `claude -p` sin `bypassPermissions` el comando se deniega, y con `--dangerously-skip-permissions`
+  (`bypassPermissions`) no se muestra y el comando corre (verificado con Claude Code 2.1.304). Ese modo queda para
+  entornos aislados, como las pruebas en vivo.
+- `inicio.py` corre también con `compact`: tras compactar, Claude Code no vuelve a inyectar el listado de skills, y el
+  hook repone el estado, el resumen derivado y las reglas de enrutamiento.
+
+### 9.1 Memoria del cliente y estado del proyecto
+
+Claude Code tiene memoria propia (`CLAUDE.md` y la memoria automática en `~/.claude/projects/<proyecto>/memory/`, activa
+por defecto en sesiones locales); Hermes Agent guarda `MEMORY.md` y `USER.md` en `~/.hermes/memories/`. pm-method no
+la configura ni la usa como fuente: **el estado vigente está en `estado.json`, los registros CSV y los artefactos
+aprobados**, y prevalece sobre cualquier nota de memoria, que puede quedar desactualizada sobre fase, puertas,
+aprobaciones o decisiones. El hook de inicio lo declara en cada sesión junto al resumen derivado de los registros.
+
+- Conviene que la memoria guarde preferencias de la persona (idioma, formato de informes, cómo prefiere que se le
+  pregunte) y no estado de gobierno (etapa, puertas aprobadas, decisiones).
+- Si una nota de memoria contradice los registros, se corrige o se borra la nota (`/memory` en Claude Code); los
+  registros no se ajustan a la nota.
+- Desactivar la memoria automática (`autoMemoryEnabled: false` o `CLAUDE_CODE_DISABLE_AUTO_MEMORY=1`) es una decisión
+  de cada persona; pm-method no lo requiere.
+- En Hermes no corren los hooks: el resumen equivalente se obtiene con `estado.py --proyecto <dir> contexto`.
 
 **Cómo prescindir de los hooks.** El paquete no ofrece una opción para desactivarlos por separado. Las vías son:
 - deshabilitar el plugin: `claude plugin disable pm-method` (y `claude plugin enable pm-method` para volver);
@@ -842,13 +866,14 @@ skills y de la sanidad.
 2. Copia manual: volver a copiar `skills/` y `agents/`. Hermes: `git pull` y volver a correr
    `scripts/instalar_hermes.py` (§3.3); luego `/reload-skills`.
 3. **Proyectos existentes:** `estado.json` y los registros migran solos al leerse (esquema `estado.json` v2 desde v1;
-   `esquema.py` v2 con 9 registros; desde 2.2, 4 registros opcionales más del maestro de interesados que se crean al primer uso, sin migración destructiva). La sanidad avisa la diferencia de versión como **INS-02**.
+   `esquema.py` con 9 registros base y 4 opcionales del maestro de interesados que se crean al primer uso; columnas
+   nuevas, como las de validación de `supuestos.csv`, se agregan sin perder datos). La sanidad avisa la diferencia de versión como **INS-02**.
 4. Skills externas y BMAD: §6.1 (actualizar skills y plugins externos) y §4.3 (BMAD).
 5. Después de actualizar pm-method o BMAD: correr la sanidad completa en cada proyecto activo y, si BMAD cambió de
    versión, `probar_paquete.py`.
 
-Cambio visible de v1 a v2: desaparece la carpeta `commands/`; los comandos son las skills `pm-ayuda`, `pm-nuevo`,
-`pm-estado`, `pm-reporte`, `pm-puerta` y `pm-sync`.
+Los comandos son las skills `pm-ayuda`, `pm-nuevo`, `pm-estado`, `pm-reporte`, `pm-puerta` y `pm-sync` (el paquete
+no usa la carpeta `commands/`).
 
 ---
 
@@ -874,7 +899,7 @@ claude plugin marketplace remove pm-method
 | Síntoma | Causa probable | Solución |
 |---|---|---|
 | `/pm-method:…` no aparece | plugin no instalado o deshabilitado | `claude plugin list`; `claude plugin enable pm-method`; reiniciar la sesión |
-| `claude plugin list` muestra una versión anterior a 2.2.0 | catálogo sin refrescar o versión aún no publicada | §0.4; si persiste, el repositorio publicado no tiene la versión nueva |
+| `claude plugin list` muestra una versión anterior a 2.3.0 | catálogo sin refrescar o versión aún no publicada | §0.4; si persiste, el repositorio publicado no tiene la versión nueva |
 | El modelo no activa la skill esperada | listado recortado por presupuesto (BMAD u otros repos) | `"skillListingBudgetFraction": 0.02` (§7.4); sanidad INS-05; invocar la skill por comando |
 | Responde una skill de otro repositorio | colisión de disparadores | sanidad INS-06; ajustar la descripción local u ocultar la externa con `skillOverrides`; ver `docs/colisiones.md` |
 | Windows: las ediciones o comandos quedan bloqueados por un hook, o no aparece el resumen de inicio | falta Git for Windows, no hay Python 3.9+ en Git Bash (`py.sh` lo avisa) o el clon tiene finales de línea CRLF en `hooks/py.sh` (volver a clonar con el `.gitattributes` vigente) | §1.2 |
@@ -898,6 +923,7 @@ claude plugin marketplace remove pm-method
 | INS-03 AVISO: skill externa no encontrada | no instalada, otro nombre o cargada con `--plugin-dir` | instalarla (§6.1); con `--plugin-dir` ignorar el aviso; o volver a `diagramas=mermaid` / `export=scripts` |
 | INS-03 INFO "no se encontró Chrome/Chromium" en Windows con Chrome instalado | la sanidad no busca en `Program Files` | definir `ARCHIFY_CHROME` con la ruta de `chrome.exe` (§1.2) |
 | archify termina con `browser-check: skipped` | no encuentra Chrome/Chromium | instalar Chrome o `export ARCHIFY_CHROME=<ejecutable>`; el HTML vale como "verificado sin navegador" |
+| `mapas.py … render` avisa "mmdc no pudo iniciar el navegador" y no deja el PNG | el Chromium headless de mermaid-cli no arranca; lo más común es un `TMPDIR` con una ruta larga (la ruta del socket de Chromium no puede superar ~107 caracteres) | correr con un `TMPDIR` corto (`TMPDIR=/tmp …`); el bloque Mermaid del `.md` sigue siendo válido |
 | diagram-design pregunta por la guía de estilo | primera vez, estilo por defecto | responder (personalizar o mantener); sin usuario usa el estilo por defecto |
 | La skill de Office no encuentra `docx`/`pptxgenjs` | paquete npm no resoluble por `require` | `npm install docx pptxgenjs` en una carpeta de trabajo fuera del proyecto |
 | Un conector MCP no aparece en la sesión | no configurado, no aprobado (`.mcp.json`) o sin autenticar | `claude mcp list`; `claude mcp login <nombre>` o `/mcp`; luego `pm-integraciones` |

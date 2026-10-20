@@ -7,8 +7,10 @@ Uso / Usage
   python3 scripts/pruebas_vivo/suite.py guardarrailes                           # hook guardian + roles + BMAD solo lectura
   python3 scripts/pruebas_vivo/suite.py idioma                                  # pedido en inglés → respuesta en inglés
   python3 scripts/pruebas_vivo/suite.py todo                                    # las tres anteriores
-  python3 scripts/pruebas_vivo/suite.py inyeccion|desorden|multisesion|escala|robustez   # robustez = las cuatro (más caras)
-Opciones: --salida <carpeta> (por defecto ./pruebas-vivo-<fecha>), --modelo <id>, --max-turnos N.
+  python3 scripts/pruebas_vivo/suite.py inyeccion|desorden|multisesion|escala|controles|robustez   # robustez = las cinco (más caras)
+  python3 scripts/pruebas_vivo/suite.py integracion --skills-extra <proyecto con BMAD>/.claude/skills   # cruce de skills y contexto
+Opciones: --salida <carpeta> (por defecto ./pruebas-vivo-<fecha>), --modelo <id>, --max-turnos N,
+  --skills-extra <dir .claude/skills> (copia skills de otra instalación, p. ej. BMAD, al proyecto base).
 Resultado: <salida>/INFORME.md y un .jsonl por prueba. Código de salida 1 si alguna prueba falla.
 
 Requisitos: CLI `claude` autenticada, Python 3.9+, pyyaml. El plugin se carga con --plugin-dir desde este repositorio.
@@ -95,7 +97,8 @@ def escenario(nombre, turnos, base, salida, a, chequeos, preparar=None, max_turn
     for t in turnos:
         if isinstance(t, tuple) and t[0] == "NUEVA": s, t = nueva(), t[1]
         r = s.turno(t); rs.append(r)
-        filas.append(f"| {len(rs)} | {t[:70]} | {r.turnos} | {r.costo or 0:.2f} | {r.segundos} |")
+        c = r.resumen()["contexto"]
+        filas.append(f"| {len(rs)} | {t[:70]} | {r.turnos} | {r.costo or 0:.2f} | {r.segundos} | {c['llamadas']} | {c['primera']:,} | {c['maximo']:,} | {c['subagentes_maximo']:,} |".replace(",", "."))
     resultados = []
     for desc, f in chequeos:
         try: ok = bool(f(d, rs))
@@ -103,7 +106,8 @@ def escenario(nombre, turnos, base, salida, a, chequeos, preparar=None, max_turn
         resultados.append((desc, ok))
     costo = sum(r.costo or 0 for r in rs)
     lineas = "\n".join(f"- {'OK   ' if ok else 'FALLO'} {desc}" for desc, ok in resultados)
-    tabla = "| turno | pedido | turnos del modelo | USD | s |\n|---|---|---|---|---|\n" + "\n".join(filas)
+    tabla = ("| turno | pedido | turnos del modelo | USD | s | llamadas | contexto 1.ª llamada | contexto máx. | máx. subagentes |\n"
+             "|---|---|---|---|---|---|---|---|---|\n" + "\n".join(filas))
     return all(ok for _, ok in resultados), f"### {nombre} (USD {costo:.2f})\n\n{lineas}\n\n{tabla}\n"
 
 def fase(d):
@@ -139,17 +143,21 @@ def idioma(a, base, salida):
 
 def main():
     import escenarios as X
-    ap = argparse.ArgumentParser(); ap.add_argument("que", choices=["enrutamiento", "guardarrailes", "idioma", "inyeccion", "desorden", "multisesion", "escala", "todo", "robustez"])
+    ap = argparse.ArgumentParser(); ap.add_argument("que", choices=["enrutamiento", "guardarrailes", "idioma", "inyeccion", "desorden", "multisesion", "escala", "controles", "integracion", "todo", "robustez"])
     ap.add_argument("--ids"); ap.add_argument("--par", type=int, default=6); ap.add_argument("--modelo"); ap.add_argument("--max-turnos", dest="max_turnos", type=int, default=6)
     ap.add_argument("--salida", default=os.path.abspath(f"pruebas-vivo-{datetime.date.today().isoformat()}"))
+    ap.add_argument("--skills-extra", dest="skills_extra", help="carpeta .claude/skills de otra instalación (p. ej. BMAD) que se copia al proyecto base para medir convivencia")
     a = ap.parse_args()
     if not shutil.which("claude"): sys.exit("Falta la CLI 'claude' en el PATH.")
     os.makedirs(a.salida, exist_ok=True)
     base = proyecto_base(os.path.join(a.salida, "_base"))
+    if a.skills_extra:
+        shutil.copytree(a.skills_extra, os.path.join(base, ".claude", "skills"), dirs_exist_ok=True)
+        print(f"Skills extra en el proyecto base: {len(os.listdir(os.path.join(base, '.claude', 'skills')))}")
     partes, todo_ok = [], True
     for nombre, f in (("enrutamiento", enrutamiento), ("guardarrailes", guardarrailes), ("idioma", idioma),
-                      ("inyeccion", X.inyeccion), ("desorden", X.desorden), ("multisesion", X.multisesion), ("escala", X.escala)):
-        grupo = "todo" if nombre in ("enrutamiento", "guardarrailes", "idioma") else "robustez"
+                      ("inyeccion", X.inyeccion), ("desorden", X.desorden), ("multisesion", X.multisesion), ("escala", X.escala), ("controles", X.controles), ("integracion", X.integracion)):
+        grupo = "todo" if nombre in ("enrutamiento", "guardarrailes", "idioma") else ("robustez" if nombre != "integracion" else None)
         if a.que in (nombre, grupo):
             ok, md = f(a, base, a.salida); todo_ok &= ok; partes.append(md); print(md, flush=True)
     open(os.path.join(a.salida, "INFORME.md"), "w", encoding="utf-8").write(

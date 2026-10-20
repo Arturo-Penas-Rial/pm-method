@@ -1,7 +1,7 @@
 ---
 name: pm-orquestador
 description: "Orquestador en el hilo principal: lee el estado, pregunta, delega en agentes de fase y presenta puertas. Usar: qué sigue, cómo venimos, next step, how are we doing, gestionar el proyecto. No: producto concreto→su skill."
-version: 2.2.0
+version: 2.3.0
 author: pm-method
 license: MIT
 metadata:
@@ -58,8 +58,8 @@ Detectar el idioma del usuario; si `estado.json.idioma` difiere, preguntar una v
 | alcance, PBS/WBS, requisitos sin BMAD; cronograma, MS Project; presupuesto; plan de etapa o de excepción, backlog | IP, SB | pm-planificacion | pm-planificacion-por-productos, pm-cronograma-estimacion, pm-costos-presupuesto, pm-plan-etapa-y-limites, pm-agil-hibrido |
 | BMAD, PRD, trazabilidad de requisitos, sprint-status, desvío de especificación | IP, CS, SB | pm-planificacion (avance y desvíos: pm-control) | pm-bmad-puente (+ pm-issues-cambios si hay desvío) |
 | OKR, objetivos y resultados clave | IP, CS | pm-inicio / pm-control | pm-okr (beneficios: pm-caso-de-negocio) |
-| riesgos iniciales, hacer o comprar, adquisiciones | SU, IP | pm-inicio | pm-riesgos, pm-adquisiciones |
-| riesgo, issue, cambio, acción, paquete de trabajo, highlight, EVM, calidad, proveedor | CS, MP | pm-control | pm-registros, pm-riesgos, pm-issues-cambios, pm-paquetes-trabajo, pm-progreso-reportes, pm-calidad, pm-adquisiciones |
+| riesgos iniciales, hacer o comprar, adquisiciones; mapa de Wardley, journey | SU, IP | pm-inicio | pm-riesgos, pm-adquisiciones, pm-mapas-estrategicos |
+| riesgo, issue o incidencia, cambio, acción, paquete de trabajo, highlight, EVM, calidad, proveedor | CS, MP | pm-control | pm-registros, pm-riesgos, pm-issues-cambios, pm-paquetes-trabajo, pm-progreso-reportes, pm-calidad, pm-adquisiciones |
 | sprint, iteración, review, retro de sprint, swap de backlog, burn-up | CS, MP | pm-control | pm-agil-hibrido |
 | reunión, transcripción, acta, acciones acordadas, clima | CS | pm-control | pm-reuniones |
 | interesados, matriz poder/interés, RACI, estereotipos, preferencias | SU, IP, CS | pm-inicio / pm-control | pm-interesados |
@@ -69,7 +69,7 @@ Detectar el idioma del usuario; si `estado.json.idioma` difiere, preguntar una v
 | pronóstico fuera de tolerancia, excepción | CS → DP | pm-control → pm-director | pm-progreso-reportes, pm-issues-cambios, pm-direccion-decisiones |
 | fin de etapa, siguiente etapa | SB (`estado.py limite-etapa`) | pm-control + pm-planificacion → pm-director | pm-progreso-reportes, pm-lecciones-aprendidas, pm-plan-etapa-y-limites, pm-direccion-decisiones |
 | cerrar, cierre prematuro, aceptación final, lecciones | CP (`estado.py cierre`) | pm-cierre | pm-cierre-proyecto, pm-lecciones-aprendidas, pm-adquisiciones |
-| aprobar, autorizar, tolerancias, junta | DP | pm-director (tras la respuesta humana) | pm-direccion-decisiones |
+| aprobar, autorizar, tolerancias, junta o comité de dirección | DP | pm-director (tras la respuesta humana) | pm-direccion-decisiones |
 | sanidad, consistencia, "algo no cuadra", antes de una puerta | transversal | ninguno (hilo principal) | pm-sanidad |
 | "¿qué es…?", "¿quién aprueba…?", glosario | — | ninguno (hilo principal) | pm-knowledge |
 | "somos ágiles", proyecto chico | cualquiera | de la fase | perfil ágil mínimo (SPEC §1.10.12) |

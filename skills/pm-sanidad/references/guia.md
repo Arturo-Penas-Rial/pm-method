@@ -18,6 +18,7 @@
 | REG-01…05 | ERROR/AVISO | registros completos, ids y valores del esquema | edición manual de CSV | `registro.py` |
 | REG-06/07 | AVISO | riesgos altos sin respuesta, acciones vencidas | seguimiento | pm-riesgos, pm-registros |
 | REG-08 | AVISO | referencias entre registros (R-, I-, C-, D-, S-, L-, ST-, Q-, A-, ET-, PF-, RC-, EN-) | id mal escrito | corregir |
+| REG-09 | AVISO | riesgo abierto con `fecha_revision` anterior al corte | la revisión del riesgo se agenda y se olvida | pm-riesgos: revisarlo con el propietario y actualizar `fecha_revision` |
 | CAM-01 | AVISO | cambio aprobado (o implementado, cerrado, `decision=aprobado`) con impacto de costo sin `costo` ni `cargo`, o con costo sin cargo | el costo quedó solo en el texto de `impacto_costo` | `registro.py actualizar cambios C-… --campo costo=… --campo cargo=…` |
 | CAM-02 | AVISO | `cargo=reserva-riesgo` sin citar un R-### | la contingencia usada como bolsa general | citar el riesgo, o cargar al presupuesto de cambio o a la junta |
 | CAM-03 | INFO/AVISO/ERROR | consumo del presupuesto de cambio y de la reserva de riesgo contra `estado.json.presupuestos`: < 80 % INFO, ≥ 80 % AVISO, > 100 % ERROR (bloquea puertas); AVISO si se cargó sin presupuesto fijado | nadie suma lo que consumen los cambios aprobados | avisar a la junta; excedido: excepción o `estado.py presupuesto … --por` (pm-director) |
@@ -40,6 +41,7 @@
 | ESP-14/15 | AVISO | derivados desactualizados o editados; backlog vs estado BMAD | falta sincronizar | `bmad.py requisitos/backlog` |
 | STK-00…11 | ERROR/AVISO/INFO | maestro de interesados (claves foráneas, RACI, preferencias, envíos, OKR); solo si existe algún registro opcional | ver `docs/SANIDAD.md` §2.1 | pm-interesados |
 | STK-12 | AVISO | interesado de gestionar de cerca, mantener satisfecho o mantener informado cuyo último envío `enviado` supera 1,5 × su frecuencia (diaria 1, semanal 7, quincenal 14, mensual 31, trimestral 92 días) | con muchos interesados, la cadencia prometida se pierde | contactarlo (`envios.py`, o reunión o llamada como envío manual) o revisar la frecuencia |
+| MAP-00…05 | AVISO | mapas de Wardley y de recorrido (`02-planificacion/mapas/`): mapa inválido, producto o commodity marcado construir sin decisión, inercia sin riesgo, dolor sin tratamiento, posición o emoción sin evidencia, id roto | el mapa se dibuja una vez y nadie vuelve a contrastarlo con los registros | pm-mapas-estrategicos (`mapas.py … vincular`), pm-adquisiciones, pm-riesgos |
 | INT-01…04 | AVISO | valores de integración conocidos, instantáneas fechadas y recientes | tracker sin leer | pm-integraciones |
 
 ## 2. Dueño de cada familia
@@ -52,6 +54,7 @@
 | QUA | pm-calidad |
 | TOL | pm-progreso-reportes; excepción → pm-director |
 | STK | pm-interesados (STK-07 → pm-integraciones; STK-08 → pm-okr) |
+| MAP | pm-mapas-estrategicos (MAP-01 → pm-adquisiciones; MAP-02 → pm-riesgos) |
 | ESP | pm-bmad-puente, pm-planificacion-por-productos, pm-issues-cambios |
 | INT | pm-integraciones |
 

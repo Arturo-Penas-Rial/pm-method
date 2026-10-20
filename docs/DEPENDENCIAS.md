@@ -1,4 +1,4 @@
-# Dependencias · pm-method 2.2.0
+# Dependencias · pm-method 2.3.0
 
 Lista completa de lo que pm-method necesita o puede usar, con la **URL de origen** de cada elemento, para qué lo usa el
 paquete, si es obligatorio, la versión probada, la licencia y el comando de instalación. Cómo instalar y configurar
@@ -29,7 +29,7 @@ todo de punta a punta: [INSTALACION.md](INSTALACION.md). Decisiones y contratos 
 | BMAD como capa de especificación | además Node.js (≥ 20.12 para `bmad-method@6.12.4`) (§3, §4.1) |
 | Skills externas de diagramas u Office instaladas con `npx skills` | además Node.js ≥ 22.20 (lo exige `skills@1.7.0`) (§3, §6) |
 | Conectores MCP (Jira, Slack, reuniones, OKR…) | el servidor MCP correspondiente, configurado en el cliente (§5) |
-| Enviar comunicaciones a interesados por correo SMTP, webhooks de Slack o Teams, o `.eml` (`envios.py`, v2.2) | nada que instalar (biblioteca estándar de Python); solo las variables de entorno del modo elegido (§5, `INSTALACION.md` §0.7); `.eml` sin configuración |
+| Enviar comunicaciones a interesados por correo SMTP, webhooks de Slack o Teams, o `.eml` (`envios.py`) | nada que instalar (biblioteca estándar de Python); solo las variables de entorno del modo elegido (§5, `INSTALACION.md` §0.7); `.eml` sin configuración |
 
 **Node.js: versión mínima efectiva.** Cada componente declara un mínimo distinto en su `package.json` (`engines`,
 consultado con `npm view`): archify ≥ 18, `@drawio/mcp` ≥ 18, `minutes-mcp` ≥ 20, `bmad-method@6.12.4` ≥ 20.12.0,
@@ -44,9 +44,9 @@ El entorno de pruebas usó Node 22.22.0 y npm 10.9.4.
 
 | Nombre | Para qué lo usa pm-method | Nivel | Versión probada | Licencia | URL de origen | Instalación |
 |---|---|---|---|---|---|---|
-| Claude Code (CLI) | ejecuta las 38 skills, los 6 agentes y los 3 hooks (plugin) | obligatoria (uno de los tres clientes) | 2.1.302 (`compatibilidad.json`, `INTEGRACIONES.md` §3.1) | propietaria: "© Anthropic PBC. All rights reserved", sujeta a los términos comerciales de Anthropic (`LICENSE.md` del repositorio) | https://github.com/anthropics/claude-code · npm `@anthropic-ai/claude-code`: https://registry.npmjs.org/@anthropic-ai%2fclaude-code | según su README: macOS/Linux `curl -fsSL https://claude.ai/install.sh \| bash`; Homebrew `brew install --cask claude-code`; Windows (PowerShell) `irm https://claude.ai/install.ps1 \| iex` o `winget install Anthropic.ClaudeCode`; npm (marcado como obsoleto) `npm install -g @anthropic-ai/claude-code` |
+| Claude Code (CLI) | ejecuta las 39 skills, los 6 agentes y los 3 hooks (plugin) | obligatoria (uno de los tres clientes) | 2.1.302 (`compatibilidad.json`, `INTEGRACIONES.md` §3.1) | propietaria: "© Anthropic PBC. All rights reserved", sujeta a los términos comerciales de Anthropic (`LICENSE.md` del repositorio) | https://github.com/anthropics/claude-code · npm `@anthropic-ai/claude-code`: https://registry.npmjs.org/@anthropic-ai%2fclaude-code | según su README: macOS/Linux `curl -fsSL https://claude.ai/install.sh \| bash`; Homebrew `brew install --cask claude-code`; Windows (PowerShell) `irm https://claude.ai/install.ps1 \| iex` o `winget install Anthropic.ClaudeCode`; npm (marcado como obsoleto) `npm install -g @anthropic-ai/claude-code` |
 | Cowork | usa el formato de plugin (skills y agentes) | alternativa | no registrada | no verificada | URL a confirmar por el usuario | gestión de plugins de la aplicación **[verificar]** |
-| Hermes Agent | usa las 38 skills como comandos `/skill`; los agentes como personas; sin hooks | alternativa | no registrada | MIT (`LICENSE` del repositorio) | https://github.com/NousResearch/hermes-agent | según su README: Linux/macOS `curl -fsSL https://hermes-agent.nousresearch.com/install.sh \| bash`; Windows (PowerShell) `iex (irm https://hermes-agent.nousresearch.com/install.ps1)` |
+| Hermes Agent | usa las 39 skills como comandos `/skill`; los agentes como personas; sin hooks | alternativa | no registrada | MIT (`LICENSE` del repositorio) | https://github.com/NousResearch/hermes-agent | según su README: Linux/macOS `curl -fsSL https://hermes-agent.nousresearch.com/install.sh \| bash`; Windows (PowerShell) `iex (irm https://hermes-agent.nousresearch.com/install.ps1)` |
 
 Documentación de instalación citada en esos README, no accesible desde el entorno de verificación **[verificar]**:
 Claude Code `https://code.claude.com/docs/en/setup`; Hermes
@@ -83,12 +83,13 @@ Las tres juntas: `python3 -m pip install pyyaml python-docx openpyxl`.
 | Node.js y `npx` | `npx bmad-method install` (BMAD), `npx skills add` (skills externas); en ejecución, archify, visual-explainer y las skills de Office | opcional (obligatoria para BMAD y skills externas) | entorno de pruebas Node 22.22.0, npm 10.9.4; mínimo efectivo ≥ 22.20 (§0) | no verificada | código fuente: https://github.com/nodejs/node · descargas: `https://nodejs.org/en/download` **[verificar]** | instalador oficial o gestor de paquetes **[verificar]**; `npx` viene con npm |
 | `skills` (CLI de `npx skills add`) | instalar archify, diagram-design, visual-explainer y docx/xlsx/pptx como skills copiadas (§6.1 de `INSTALACION.md`) | opcional | 1.7.0 (`INSTALACION.md` §6.1); última en npm al 2026-10-17: 1.7.2 | MIT (npm) | https://github.com/vercel-labs/skills · npm https://registry.npmjs.org/skills | sin instalación: `npx skills add <owner>/<repo> -a claude-code -s <skill> -y` (requiere Node ≥ 22.20.0) |
 | Chrome o Chromium | `browser-check` de archify (`pm-visuales` con `diagramas=archify`) | opcional | no registrada | no verificada | URL a confirmar por el usuario | instalar el navegador; si archify no lo encuentra, `ARCHIFY_CHROME=<ruta del ejecutable>` |
-| `@mermaid-js/mermaid-cli` (`mmdc`) | `exportar.py` inserta los diagramas Mermaid como imagen en Word (`pm-exportar`); `scripts/validar_mermaid.py --render` (mantenimiento) | opcional | 11.16.0 (entorno de pruebas); la 12.0.0 exige Node ≥ 22.13.0 | MIT (npm) | https://github.com/mermaid-js/mermaid-cli · npm https://registry.npmjs.org/@mermaid-js%2fmermaid-cli | `npm install -g @mermaid-js/mermaid-cli` |
+| `@mermaid-js/mermaid-cli` (`mmdc`) | `exportar.py` inserta los diagramas Mermaid como imagen en Word (`pm-exportar`); `mapas.py … render` genera el PNG de los mapas de Wardley y de recorrido (`pm-mapas-estrategicos`; `wardley-beta` exige Mermaid 11.14 o posterior y está en beta); `scripts/validar_mermaid.py --render` (mantenimiento) | opcional | 11.16.0 con Mermaid 11.16.1 (entorno de pruebas); la 12.0.0 exige Node ≥ 22.13.0 | MIT (npm) | https://github.com/mermaid-js/mermaid-cli · npm https://registry.npmjs.org/@mermaid-js%2fmermaid-cli | `npm install -g @mermaid-js/mermaid-cli` |
 | Java (JRE/JDK) | solo para usar MPXJ | opcional | entorno de pruebas OpenJDK 21.0.12.1 | no verificada | URL a confirmar por el usuario | distribución de Java del sistema operativo **[verificar]** |
 | MPXJ (paquete PyPI `mpxj`) + JPype (`jpype1`) | validar o convertir el MSPDI de `cpm.py --mspdi` y `.mpp` (`pm-cronograma-estimacion`); `cpm.py` no lo necesita | opcional | `mpxj` 16.10.0 (`INTEGRACIONES.md` §2); `jpype1` 1.7.1 (entorno de pruebas) | `mpxj`: LGPL-2.0-or-later; `jpype1`: Apache-2.0 (metadatos PyPI) | https://pypi.org/project/mpxj/ · fuente https://github.com/joniles/mpxj · https://pypi.org/project/jpype1/ · fuente https://github.com/jpype-project/jpype | `python3 -m pip install mpxj jpype1` (el paquete `mpxj` no declara JPype como dependencia; su documentación lo usa con `import jpype`) |
-| Playwright (PyPI `playwright`) | PNG opcional de diagram-design | opcional | no registrada | no verificada | https://pypi.org/project/playwright/ · fuente https://github.com/microsoft/playwright | `python3 -m pip install playwright && playwright install chromium` (comando de `INSTALACION.md` §6.1) |
+| Playwright (PyPI `playwright`) | PNG opcional de diagram-design; capturas de tableros, reportes y recorridos en los recorridos E2E (`scripts/pruebas/guias_e2e/`, mantenimiento) | opcional | 1.56.0 (entorno de pruebas e imagen Docker) | no verificada | https://pypi.org/project/playwright/ · fuente https://github.com/microsoft/playwright | `python3 -m pip install playwright && playwright install chromium` (comando de `INSTALACION.md` §6.1) |
 | `playwright-core` (npm) | `check.mjs` de visual-explainer (sin él no corre esa comprobación) | opcional | no registrada | Apache-2.0 (npm) | https://github.com/microsoft/playwright · npm https://registry.npmjs.org/playwright-core | **[verificar]** según la documentación de visual-explainer |
-| `docx` y `pptxgenjs` (npm) | los usan las skills de Office de `anthropics/skills` para generar `.docx` y `.pptx` | opcional | no registrada | MIT ambos (npm) | https://github.com/dolanmiu/docx · https://github.com/gitbrent/PptxGenJS | `npm install docx pptxgenjs` en una carpeta de trabajo fuera del proyecto (`INSTALACION.md` §12) |
+| `docx` y `pptxgenjs` (npm) | los usan las skills de Office de `anthropics/skills` para generar `.docx` y `.pptx`; `pptxgenjs` 4.0.1 lo usa también el generador del webinar (`scripts/webinar/pptx.js`) y del Informe 2 | opcional | no registrada | MIT ambos (npm) | https://github.com/dolanmiu/docx · https://github.com/gitbrent/PptxGenJS | `npm install docx pptxgenjs` en una carpeta de trabajo fuera del proyecto (`INSTALACION.md` §12) |
+| matplotlib (PyPI) | gráficos de 1600 × 900 de las guías E2E (`scripts/pruebas/guias_e2e/visuales.py`, mantenimiento); sin él, `probar_paquete.py` omite una comprobación | opcional | 3.11.2 (entorno de pruebas e imagen Docker) | no verificada | https://pypi.org/project/matplotlib/ | `python3 -m pip install matplotlib` |
 | Orca (stablyai/orca) | ver en una sola aplicación varias sesiones de Claude Code o Hermes (gestión y producto) en paralelo, con worktrees, terminales, tableros de GitHub/Linear y notificaciones; no la usan los scripts | opcional (sugerida) | no probada en este entorno **[verificar]** | MIT (README del repositorio) | https://github.com/stablyai/orca | Windows/macOS/Linux desde onorca.dev/download o *releases*; macOS `brew install --cask stablyai/orca/orca`; detalle en `INSTALACION.md` §0.8 |
 
 ---
@@ -99,7 +100,7 @@ Las tres juntas: `python3 -m pip install pyyaml python-docx openpyxl`.
 
 | Nombre | Para qué lo usa pm-method | Nivel | Versión probada | Licencia | URL de origen | Instalación |
 |---|---|---|---|---|---|---|
-| pm-method | el propio paquete (plugin y marketplace `pm-method`) | — | 2.2.0 (este documento) | MIT (`LICENSE` del repositorio publicado) | https://github.com/Arturo-Penas-Rial/pm-method | `claude plugin marketplace add Arturo-Penas-Rial/pm-method` y `claude plugin install pm-method@pm-method` |
+| pm-method | el propio paquete (plugin y marketplace `pm-method`) | — | 2.3.0 (este documento) | MIT (`LICENSE` del repositorio publicado) | https://github.com/Arturo-Penas-Rial/pm-method | `claude plugin marketplace add Arturo-Penas-Rial/pm-method` y `claude plugin install pm-method@pm-method` |
 | BMAD Method | capa de especificación de solo lectura: `pm-bmad-puente` (`bmad.py`), `especificacion.py`, `pm-nuevo` (detección) | opcional | 4.x, 6.11 y 6.12; relevado `bmad-method@6.12.4` (`compatibilidad.json`) | MIT (npm) | https://github.com/bmad-code-org/BMAD-METHOD · npm https://registry.npmjs.org/bmad-method | en la raíz del repositorio del producto: `npx bmad-method@6.12.4 install --modules bmm --tools claude-code --yes --user-name <nombre> --set core.project_name=<proyecto> --no-shims` (requiere Node ≥ 20.12.0) |
 
 ### 4.2 Skills externas (diagramas y Office)
@@ -120,6 +121,18 @@ nombres parecidos; el de draw.io (jgraph) es el que publica el paquete `@drawio/
 |---|---|---|---|---|---|---|
 | drawio-mcp (jgraph, draw.io) | `diagramas=drawio` vía MCP (`pm-visuales` / `pm-integraciones`) | opcional | no probada en vivo con pm-method; npm `@drawio/mcp` 1.7.0 y plugin `drawio` 1.2.3 instalables al 2026-10-17 | Apache-2.0 (`LICENSE` y npm) | https://github.com/jgraph/drawio-mcp · npm https://registry.npmjs.org/@drawio%2fmcp | según su documentación: `claude mcp add drawio -- npx -y @drawio/mcp`; o plugin: `claude plugin marketplace add jgraph/drawio-mcp` y `claude plugin install drawio@drawio` |
 | `drawio-mcp` (npm, otro autor) | no es el anterior: paquete npm `drawio-mcp` de `Sujimoshi/drawio-mcp` (ISC) | no usar sin revisar | — | ISC (npm) | https://github.com/Sujimoshi/drawio-mcp | — |
+
+### 4.4 Métodos y formatos de los mapas estratégicos (sin dependencia instalada)
+
+`pm-mapas-estrategicos` no instala nada nuevo: usa Mermaid (si hay `mmdc`, para el PNG) y escribe texto. Los métodos se
+citan por su autor y el contenido de la skill está redactado en palabras propias; no se copió texto ni código de
+terceros.
+
+| Fuente | Qué toma pm-method | Licencia o condición | URL |
+|---|---|---|---|
+| Mapas de Wardley (Simon Wardley) | el concepto y su vocabulario (ancla, cadena de valor, evolución, inercia) | el contenido del autor se publica bajo CC BY-SA 4.0 según su sitio [verificar versión]; se citan ideas, no texto | https://www.wardleymaps.com/faqs/is-wardley-mapping-free |
+| Mermaid `wardley-beta` y `journey` | sintaxis de salida de `mapas.py render` | MIT (Mermaid); `wardley-beta` disponible desde 11.14 según la documentación y en beta | https://mermaid.js.org/syntax/wardley.html · https://mermaid.js.org/syntax/userJourney.html |
+| Lenguaje de OnlineWardleyMaps (OWM) | formato del export `.owm` (`title`, `evolution`, `anchor`, `component … [v, e]`, `(build)`, `(buy)`, `(outsource)`, `(market)`, `inertia`, `evolve`, `note`), verificado contra su documentación el 2026-10-20 | MIT (repositorio de OWM); solo se escribe texto en ese formato | https://docs.onlinewardleymaps.com/docs/dsl-overview |
 
 ---
 
@@ -152,7 +165,7 @@ en `INSTALACION.md` §6.
 | Archivo | Qué declara |
 |---|---|
 | `compatibilidad.json` | Python ≥ 3.9; recomendadas y opcionales; versiones de BMAD probadas; skills externas probadas en vivo (repositorio, commit, versión, comando); MCP opcionales (incluidos Tability y Perdoo); `canales_sin_conector` (modos de `envios.py` y sus variables de entorno) |
-| `skills/pm-estado-proyecto/scripts/sanidad.py` | INS-01 (módulos Python), INS-03 (skills externas, Node, Chrome), INT-01 (valores de `integraciones`, lista en `esquema.py: VALORES_INTEGRACION`, con `correo` y `okr=perdoo` desde 2.2) |
+| `skills/pm-estado-proyecto/scripts/sanidad.py` | INS-01 (módulos Python), INS-03 (skills externas, Node, Chrome), INT-01 (valores de `integraciones`, lista en `esquema.py: VALORES_INTEGRACION`, incluidos `correo` y `okr=perdoo`) |
 | `skills/pm-integraciones/scripts/envios.py` | capa de canales: solo biblioteca estándar (`smtplib`, `email`, `urllib`); variables de entorno en su docstring y en `ENV` |
 | `INTEGRACIONES.md` §1–§3 | uso de cada dependencia y respaldo interno si falta |
 
@@ -223,14 +236,14 @@ la mayoría de los sitios de documentación está bloqueada por el proxy, por es
   README de origen y con **[verificar]**.
 - Servidores MCP de Slack, Teams/Work IQ, Granola, Fireflies y Zoom, y conectores de correo (Gmail, Outlook) de la
   organización: sin fuente comprobable desde este entorno; la búsqueda en el registro de conectores no devolvió URLs.
-  Figuran como "URL a confirmar por el usuario". (Tability, pendiente en 2.1.0, quedó verificado: §7.5.)
+  Figuran como "URL a confirmar por el usuario". Tability está verificado en §7.5.
 - Tability y Perdoo: si exigen un plan comercial concreto para usar el MCP (sus páginas no lo dicen). Webhooks de Slack
   y Teams: los pasos de interfaz para crearlos y el envío contra un servicio real (solo se probó contra servidores
   locales).
 - Cowork: sin URL ni procedimiento comprobado.
 - Licencias de Python, git, Node.js, Chrome/Chromium y Java: no leídas.
 
-### 7.5 Documentación de servicios consultada el 2026-10-17 (v2.2.0)
+### 7.5 Documentación de servicios consultada el 2026-10-17
 
 Leída con la herramienta de lectura web del entorno de desarrollo; los servidores MCP no se conectaron en vivo con
 pm-method.

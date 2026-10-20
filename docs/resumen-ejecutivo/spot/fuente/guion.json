@@ -1,0 +1,77 @@
+{
+ "titulo": "pm-method · spot para LinkedIn",
+ "voz": {
+  "motor": "kokoro-onnx 0.6.1",
+  "modelo": "Kokoro-82M v1.0 (kokoro-v1.0.onnx, voices-v1.0.bin)",
+  "voz": "em_alex",
+  "idioma": "es-419",
+  "velocidad": 1.1
+ },
+ "nota": "texto = subtítulos; tts = la misma frase escrita como se pronuncia (nombres en inglés respelados para el fonemizador en español). ' | ' separa los subtítulos de una misma frase (mismo número de cortes en texto y tts). Cada cifra sale del repositorio: ver README.md, sección Cifras.",
+ "escenas": [
+  {
+   "id": "gancho",
+   "min": 3.0,
+   "pre": 0.1,
+   "post": 0.3,
+   "texto": "¿Quién aprobó este cambio? | ¿Cuánto queda de la reserva?",
+   "tts": "¿Quién aprobó este cambio? | ¿Cuánto queda de la reserva?"
+  },
+  {
+   "id": "giro",
+   "min": 3.0,
+   "pre": 0.15,
+   "post": 0.3,
+   "texto": "Lo que hoy se controla a mano, una vez o nunca, | pasa a ser un control permanente.",
+   "tts": "Lo que hoy se controla a mano, una vez, o nunca, | pasa a ser un control permanente."
+  },
+  {
+   "id": "jerarquia",
+   "min": 3.0,
+   "pre": 0.15,
+   "post": 0.3,
+   "texto": "Un plugin para Claude Code: | PRINCE2 manda, PMBOK aporta técnicas | y BMAD es la especificación.",
+   "tts": "Un plaguin para Clod Coud: | Prins dos manda, Pimbok aporta técnicas, | y Bi Mad es la especificación."
+  },
+  {
+   "id": "gobierno",
+   "min": 3.0,
+   "pre": 0.15,
+   "post": 0.3,
+   "texto": "El modelo prepara, la persona decide, | y cada puerta queda registrada y verificada.",
+   "tts": "El modelo prepara, la persona decide, | y cada puerta queda registrada y verificada."
+  },
+  {
+   "id": "controles",
+   "min": 3.0,
+   "pre": 0.15,
+   "post": 0.3,
+   "texto": "85 controles en 12 familias vigilan | presupuesto de cambio, tolerancias y riesgos en cada sesión.",
+   "tts": "Ochenta y cinco controles en doce familias vigilan | presupuesto de cambio, tolerancias y riesgos, en cada sesión."
+  },
+  {
+   "id": "estrategia",
+   "min": 3.0,
+   "pre": 0.15,
+   "post": 0.3,
+   "texto": "Mapas de Wardley y de recorrido del cliente, | opciones con VAN y conexión con BMAD, Jira, Slack y Teams.",
+   "tts": "Mapas de Guárdli y de recorrido del cliente, | opciones con ban, y conexión con Bi Mad, Yira, Eslak y Tims."
+  },
+  {
+   "id": "prueba",
+   "min": 3.0,
+   "pre": 0.15,
+   "post": 0.3,
+   "texto": "6 agentes, 39 skills, | más de 200 pruebas automáticas y 5 casos completos con webinar.",
+   "tts": "Seis agentes, treinta y nueve eskils, | más de doscientas pruebas automáticas, y cinco casos completos con uébinar."
+  },
+  {
+   "id": "cierre",
+   "min": 3.0,
+   "pre": 0.15,
+   "post": 1.9,
+   "texto": "pm-method: código abierto, en GitHub.",
+   "tts": "Pi em métod. Código abierto, en Guit jab."
+  }
+ ]
+}

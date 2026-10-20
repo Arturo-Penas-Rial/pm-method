@@ -16,6 +16,7 @@ def md_a_docx(entrada, salida):
         from docx.shared import Pt
     except ImportError:
         sys.exit("Falta python-docx: pip install python-docx")
+    if not os.path.isfile(entrada): sys.exit(f"No existe el archivo / file not found: {entrada}")
     doc = Document(); txt = open(entrada, encoding="utf-8").read()
     estado_doc = ""
     if txt.startswith("---"):
@@ -85,11 +86,17 @@ def csv_a_xlsx(entradas, salida):
         sys.exit("Falta openpyxl: pip install openpyxl")
     no_csv = [e for e in entradas if not e.lower().endswith(".csv")]
     if no_csv: sys.exit(f"xlsx solo convierte CSV; no se exporta {', '.join(no_csv)} (para .md usar 'docx').")
+    faltan = [e for e in entradas if not os.path.isfile(e)]
+    if faltan: sys.exit(f"No existe el archivo / file not found: {', '.join(faltan)}")
     wb = Workbook(); wb.remove(wb.active)
     for e in entradas:
         ws = wb.create_sheet(os.path.splitext(os.path.basename(e))[0][:31])
         for i, row in enumerate(csv.reader(open(e, encoding="utf-8"))):
             ws.append(row)
+            # openpyxl convierte en fórmula todo texto que empieza con "="; un registro puede traer texto de Jira,
+            # transcripciones o BMAD ("=HYPERLINK(…)", "=WEBSERVICE(…)"): se guarda como texto, nunca como fórmula.
+            for c in ws[ws.max_row]:
+                if c.data_type == "f": c.data_type = "s"
         for c in ws[1]: c.font = Font(bold=True, color="FFFFFF"); c.fill = PatternFill("solid", fgColor="002855")
         for col in range(1, ws.max_column + 1): ws.column_dimensions[get_column_letter(col)].width = 18
         ws.freeze_panes = "A2"

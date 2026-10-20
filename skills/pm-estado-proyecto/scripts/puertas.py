@@ -9,7 +9,9 @@ Cada puerta se verifica en tres capas antes de registrar la decisión con `estad
   3. Lista de control de la junta: ítems de juicio que confirma una persona con rol (`lista` la genera; `confirmar`
      registra quién la confirmó). Nunca la marca el modelo por su cuenta.
 Severidades: `bloqueo` (impide registrar "aprobado"; la junta puede registrar "condicionado" o forzar), `condicion`
-(se registra como observación de la puerta), `aviso` (informativo).
+(se registra como observación de la puerta), `aviso` (informativo). Cada hallazgo lleva su código de control (P-11,
+E-06, S-<código de sanidad>, L-01…L-03 para la lista de control); `verificar` lo muestra y `--json` agrega `hallazgos`
+como lista de {severidad, id, mensaje} además de las listas de mensajes `bloqueos`, `condiciones` y `avisos`.
 
 Uso / Usage
   puertas.py --proyecto ./g verificar autorizar-etapa [--json]      # estado de las tres capas, sin escribir nada
@@ -78,6 +80,20 @@ def abiertos(proyecto, reg):
 def art_ok(proyecto, e, clave):
     a = e.get("artefactos", {}).get(clave)
     return bool(a) and (a.get("externo") or os.path.exists(os.path.join(proyecto, a.get("ruta", ""))))
+
+NIVELES_ACEPTAN_SUPUESTOS = ("junta", "ejecutivo", "capa-negocio")
+
+def supuestos_aceptados(proyecto, ids):
+    """{S-###: D-###} para los supuestos de `ids` que una decisión de nivel junta (o ejecutivo, o capa de negocio) cita como
+    aceptados: la fila de decisiones.csv menciona el id y el verbo "aceptar"/"accept" (no "aceptación") en su texto."""
+    out = {}
+    for d in leer_csv(proyecto, "decisiones"):
+        if d.get("nivel") not in NIVELES_ACEPTAN_SUPUESTOS: continue
+        txt = " ".join(d.get(c, "") for c in ("decision", "contexto", "opciones_consideradas", "artefactos_afectados", "notas"))
+        if not re.search(r"\bacept(?:ad[oa]s?|ar|an?|amos|o)\b|\baccept(?:ed|s)?\b", txt, re.I): continue   # no "aceptación"
+        for sid in ids:
+            if sid not in out and re.search(rf"(?<![\w-]){re.escape(sid)}(?![\w-])", txt): out[sid] = d.get("id", "")
+    return out
 
 def art_prefijo(e, prefijo):
     return [k for k in e.get("artefactos", {}) if k.startswith(prefijo)]
@@ -152,6 +168,11 @@ def controles(proyecto, e, tipo, tol_nueva=None):
         for r in ("usuario_senior", "proveedor_senior"):
             if not e["roles"].get(r): add("condicion", "P-05", f"junta incompleta: falta {r}")
         if not art_ok(proyecto, e, "plan-proyecto"): add("condicion", "P-06", "sin plan de proyecto registrado (o incluido en el PID)")
+        criticos = [f["id"] for f in abiertos(proyecto, "supuestos") if f.get("criticidad") == "alta" and f.get("validado") != "si"]
+        acept = supuestos_aceptados(proyecto, criticos) if criticos else {}
+        resto = [x for x in criticos if x not in acept]
+        if resto: add("condicion", "P-11", f"supuestos críticos sin validar: {', '.join(resto[:8])}{' …' if len(resto) > 8 else ''} (la junta invierte sobre hipótesis; acordar experimento, criterio y fecha o aceptarlos explícitamente con una decisión de la junta)")
+        if acept: add("aviso", "P-11", f"supuestos críticos sin validar aceptados por decisión de la junta: {', '.join(f'{k} ({v})' for k, v in list(acept.items())[:8])}{' …' if len(acept) > 8 else ''} (seguir su validación; la sanidad SUP sigue mostrándolos)")
         sts = leer_csv(proyecto, "stakeholders")
         sin_mapa = [f["id"] for f in sts if not f.get("poder") or not f.get("interes")]
         if not sts: add("aviso", "P-09", "registro de interesados vacío: sin matriz poder/interés (pm-interesados)")
@@ -212,16 +233,21 @@ def estado_lista(proyecto, tipo):
     por = re.search(r"(?m)^confirmada_por:\s*\"?([^\"\n]*)", t)
     return {"ruta": os.path.relpath(p, proyecto), "pendientes": pend, "no_cumple": no, "confirmada_por": (por.group(1).strip() if por else "")}
 
-def evaluar(proyecto, e, tipo, tol_nueva=None):
-    """Para estado.py: (bloqueos, condiciones, avisos, resumen_lista)."""
-    cs = controles(proyecto, e, tipo, tol_nueva)
-    bl = [m for s, i, m in cs if s == "bloqueo"]; co = [m for s, i, m in cs if s == "condicion"]; av = [m for s, i, m in cs if s == "aviso"]
+def evaluar_detalle(proyecto, e, tipo, tol_nueva=None):
+    """Hallazgos de las tres capas como lista de {severidad, id, mensaje}, más el resumen de la lista de control."""
+    hs = [{"severidad": s, "id": i, "mensaje": m} for s, i, m in controles(proyecto, e, tipo, tol_nueva)]
     li = estado_lista(proyecto, tipo)
-    if not li: bl.append(f"falta la lista de control de la junta: puertas.py --proyecto <dir> lista {tipo} y confirmarla (puertas.py confirmar …)")
+    if not li: hs.append({"severidad": "bloqueo", "id": "L-01", "mensaje": f"falta la lista de control de la junta: puertas.py --proyecto <dir> lista {tipo} y confirmarla (puertas.py confirmar …)"})
     else:
-        if li["no_cumple"]: bl.append(f"la junta marcó ítems que no se cumplen en {li['ruta']}: {', '.join(li['no_cumple'])}")
-        if li["pendientes"]: bl.append(f"lista de control sin confirmar ({li['ruta']}): {', '.join(li['pendientes'])}")
-    return bl, co, av, li
+        if li["no_cumple"]: hs.append({"severidad": "bloqueo", "id": "L-02", "mensaje": f"la junta marcó ítems que no se cumplen en {li['ruta']}: {', '.join(li['no_cumple'])}"})
+        if li["pendientes"]: hs.append({"severidad": "bloqueo", "id": "L-03", "mensaje": f"lista de control sin confirmar ({li['ruta']}): {', '.join(li['pendientes'])}"})
+    return hs, li
+
+def evaluar(proyecto, e, tipo, tol_nueva=None):
+    """Para estado.py: (bloqueos, condiciones, avisos, resumen_lista), listas de mensajes."""
+    hs, li = evaluar_detalle(proyecto, e, tipo, tol_nueva)
+    sel = lambda sev: [h["mensaje"] for h in hs if h["severidad"] == sev]
+    return sel("bloqueo"), sel("condicion"), sel("aviso"), li
 
 def crear_lista(a, e):
     hoy = a.fecha or datetime.date.today().isoformat()
@@ -288,8 +314,10 @@ def estado_puertas(proyecto, e):
                      "forzada": bool(p.get("forzada")), "decision_id": p.get("decision_id", "")})
     prox = proxima_puerta(e); prep = None
     if prox:
-        bl, co, av, li = evaluar(proyecto, e, prox)
-        prep = {"puerta": prox, "bloqueos": bl, "condiciones": co, "avisos": av, "lista": (li or {}).get("ruta", "")}
+        hs, li = evaluar_detalle(proyecto, e, prox)
+        sel = lambda sev: [h["mensaje"] for h in hs if h["severidad"] == sev]
+        prep = {"puerta": prox, "bloqueos": sel("bloqueo"), "condiciones": sel("condicion"), "avisos": sel("aviso"),
+                "hallazgos": hs, "lista": (li or {}).get("ruta", "")}
     return {"puertas": regs, "condiciones_abiertas": [r for r in regs if r["decision"] in ("condicionado", "aprobado") and r["condiciones"] and not r["condiciones_cumplidas"]],
             "forzadas": [r for r in regs if r["forzada"]], "proxima": prep}
 
@@ -302,7 +330,9 @@ def markdown_estado(d, idioma="es"):
     p = d.get("proxima")
     if p:
         L += ["", f"**Próxima puerta / Next gate: {p['puerta']}** — {len(p['bloqueos'])} bloqueo(s), {len(p['condiciones'])} condición(es), {len(p['avisos'])} aviso(s)."]
-        L += [f"- bloqueo: {x}" for x in p["bloqueos"][:8]] + [f"- condición: {x}" for x in p["condiciones"][:8]]
+        hs = p.get("hallazgos") or [{"severidad": sev, "id": "", "mensaje": m} for sev, k in (("bloqueo", "bloqueos"), ("condicion", "condiciones"), ("aviso", "avisos")) for m in p[k]]
+        for sev, etiqueta in (("bloqueo", "bloqueo"), ("condicion", "condición"), ("aviso", "aviso")):   # mismos códigos que puertas.py verificar
+            L += [f"- {etiqueta}: {(h['id'] + ' ') if h['id'] else ''}{h['mensaje']}" for h in [h for h in hs if h["severidad"] == sev][:8]]
     return "\n".join(L)
 
 def main():
@@ -320,11 +350,14 @@ def main():
     a = ap.parse_args()
     e = E.cargar_estado(a.proyecto)
     if a.cmd == "verificar":
-        bl, co, av, li = evaluar(a.proyecto, e, a.tipo)
-        if a.json: print(json.dumps({"puerta": a.tipo, "bloqueos": bl, "condiciones": co, "avisos": av, "lista": li}, ensure_ascii=False, indent=2)); return
+        hs, li = evaluar_detalle(a.proyecto, e, a.tipo)
+        sel = lambda sev: [h["mensaje"] for h in hs if h["severidad"] == sev]
+        bl, co, av = sel("bloqueo"), sel("condicion"), sel("aviso")
+        if a.json: print(json.dumps({"puerta": a.tipo, "bloqueos": bl, "condiciones": co, "avisos": av, "lista": li, "hallazgos": hs}, ensure_ascii=False, indent=2)); return
         print(f"Puerta {a.tipo}: {len(bl)} bloqueo(s) · {len(co)} condición(es) · {len(av)} aviso(s)")
-        for t_, xs in (("BLOQUEO", bl), ("condición", co), ("aviso", av)):
-            for x in xs: print(f"  {t_:9s} {x}")
+        for sev, etiqueta in (("bloqueo", "BLOQUEO"), ("condicion", "condición"), ("aviso", "aviso")):
+            for h in hs:
+                if h["severidad"] == sev: print(f"  {etiqueta:9s} {h['id']} {h['mensaje']}")
         print("  → aprobado posible" if not bl else "  → 'aprobado' no se registra: corregir, o decisión 'condicionado' (o --forzar) de la junta")
     elif a.cmd == "estado":
         d = estado_puertas(a.proyecto, e)

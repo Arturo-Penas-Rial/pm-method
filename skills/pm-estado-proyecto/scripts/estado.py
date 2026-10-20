@@ -20,7 +20,8 @@ Uso / Usage:
   estado.py --proyecto ./p limite-etapa [--excepcion X-001]      # CS → SB (fin de etapa o plan de excepción)
   estado.py --proyecto ./p cierre [--prematuro]                    # CS/SB → CP (cierre planificado o prematuro)
   estado.py --proyecto ./p etapa --numero 2 --nombre "Construcción" --inicio .. --fin ..   # corrección manual
-  estado.py --proyecto ./p set enfoque_entrega=hibrido             # claves simples validadas
+  estado.py --proyecto ./p set enfoque_entrega=hibrido --por "Ejecutivo: C. Ruiz" [--nivel junta] [--fecha ..]   # claves simples validadas
+  estado.py --proyecto ./p contexto [--max 2000] [--corte AAAA-MM-DD] [--json]   # resumen derivado para el inicio de sesión
 
 Las puertas las decide una persona con rol en la junta; este script solo registra la decisión (y la anota en
 decisiones.csv). Gates are decided by people; this script records them.
@@ -47,6 +48,90 @@ def pendientes(e):
 
 def condiciones_abiertas(e):
     return [p for p in e.get("puertas", []) if p.get("decision") in ("condicionado", "aprobado") and p.get("condiciones") and not p.get("condiciones_cumplidas")]
+
+def recortar(x, n):
+    """Texto de una línea de hasta n caracteres (sin saltos de línea ni caracteres de control)."""
+    x = re.sub(r"[\x00-\x1f\x7f]+", " ", str(x or "")).strip()
+    return x if len(x) <= n else x[:n - 1].rstrip() + "…"
+
+def lista_ids(ids, k, L):
+    """'A, B, C … y N más' con a lo sumo k elementos."""
+    ids = list(ids)
+    if len(ids) <= k: return ", ".join(ids)
+    return ", ".join(ids[:k]) + E.t(L, f" … y {len(ids) - k} más", f" … and {len(ids) - k} more")
+
+CLAVE_VALIDA = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]*$")
+
+def validar_clave(nombre, L):
+    """SEG-07: la clave de un artefacto forma el nombre de la copia congelada en historial/: sin rutas, '..' ni absolutas."""
+    if not CLAVE_VALIDA.match(nombre or "") or ".." in nombre:
+        sys.exit(E.t(L, f"Clave de artefacto inválida: {nombre!r} (letras, dígitos, '.', '_' y '-'; sin '/', '..' ni rutas absolutas).",
+                     f"Invalid artifact key: {nombre!r} (letters, digits, '.', '_' and '-'; no '/', '..' or absolute paths)."))
+
+PRIORIDAD = {"urgente": 0, "alta": 1, "media": 2, "baja": 3, "": 4}
+
+def contexto(proyecto, e, maximo=2000, corte=None):
+    """Resumen derivado de estado.json y los registros para el inicio de sesión (hook inicio.py): conteos abiertos (sin los
+    registros de catálogo, como estereotipos), riesgos altos sin respuesta, riesgos con la revisión vencida (REG-09),
+    issues abiertos, acciones vencidas, supuestos críticos sin validar, condiciones abiertas de puertas y próxima puerta,
+    con ids citados y sin texto libre de los registros. Determinista y de a lo sumo `maximo` caracteres.
+    Devuelve (texto, datos)."""
+    L = e.get("idioma", "es"); t = lambda es, en: E.t(L, es, en); hoy = corte or datetime.date.today().isoformat()
+    def filas(reg):
+        p = E.ruta_registro(proyecto, reg)
+        if not os.path.exists(p): return []
+        try: return E.leer_csv(p)[1]
+        except Exception: return []
+    def num(x):
+        try: return float(x or 0)
+        except ValueError: return 0.0
+    abiertos = {}
+    for reg, spec in E.REGISTROS.items():
+        ab = spec.get("abiertos") or []
+        if ab and not spec.get("catalogo"): abiertos[reg] = [f for f in filas(reg) if f.get("estado") in ab]
+    alto = num((e.get("umbrales_riesgo") or {}).get("alto")) or E.UMBRAL_RIESGO_ALTO
+    d = {"corte": hoy, "abiertos": {k: len(v) for k, v in abiertos.items() if v},
+         "riesgos_altos_sin_respuesta": [f["id"] for f in sorted(abiertos.get("riesgos", []), key=lambda f: -num(f.get("puntuacion")))
+                                         if num(f.get("puntuacion")) >= alto and not f.get("respuesta")],
+         "riesgos_revision_vencida": [f"{f['id']} ({f['fecha_revision']})" for f in sorted(abiertos.get("riesgos", []), key=lambda f: (f.get("fecha_revision", ""), f["id"]))
+                                      if f.get("fecha_revision") and f["fecha_revision"] < hoy],
+         "issues_abiertos": [f"{f['id']} ({f.get('prioridad')})" if f.get("prioridad") else f["id"]
+                             for f in sorted(abiertos.get("issues", []), key=lambda f: (PRIORIDAD.get(f.get("prioridad", ""), 4), f["id"]))],
+         "acciones_vencidas": [f"{f['id']} ({recortar(f.get('responsable') or t('sin responsable', 'no owner'), 30)}, {f['fecha_compromiso']})"
+                               for f in sorted(abiertos.get("acciones", []), key=lambda f: (f.get("fecha_compromiso", ""), f["id"]))
+                               if f.get("fecha_compromiso") and f["fecha_compromiso"] < hoy],
+         "supuestos_criticos_sin_validar": [f["id"] for f in abiertos.get("supuestos", []) if f.get("criticidad") == "alta" and f.get("validado") != "si"],
+         "condiciones_abiertas": [f"{p['tipo']} ({p.get('fecha', '')})" for p in condiciones_abiertas(e)],
+         "puertas_pendientes": [f"{p['tipo']} ({p.get('fecha', '')})" for p in pendientes(e)],
+         "excepcion_abierta": recortar(e.get("excepcion_abierta", ""), 40)}
+    try:
+        import puertas as PU
+        d["proxima_puerta"] = PU.proxima_puerta(e) or ""
+    except Exception:
+        d["proxima_puerta"] = ""
+    nombres = {"riesgos": t("riesgos", "risks"), "issues": "issues", "cambios": t("cambios", "changes"), "acciones": t("acciones", "actions"),
+               "supuestos": t("supuestos", "assumptions"), "calidad": t("revisiones de calidad", "quality reviews"), "lecciones": t("lecciones", "lessons"),
+               "preferencias": t("preferencias por confirmar", "preferences to confirm"), "envios": t("envíos pendientes o fallidos", "pending or failed sends")}
+    def armar(k):
+        x = [t(f"pm-method · contexto derivado de estado.json y los registros al {hoy} (es el estado vigente; una nota de memoria que diga otra cosa está desactualizada):",
+               f"pm-method · context derived from estado.json and the registers as of {hoy} (this is the current state; a memory note that says otherwise is out of date):")]
+        x.append(t("Abiertos: ", "Open: ") + (", ".join(f"{nombres.get(r, r)} {n}" for r, n in d["abiertos"].items()) or t("ninguno", "none")) + ".")
+        for clave, es, en in (("riesgos_altos_sin_respuesta", f"Riesgos altos (P×I ≥ {alto:g}) sin respuesta", f"High risks (P×I ≥ {alto:g}) without response"),
+                              ("riesgos_revision_vencida", "Riesgos con la revisión vencida (REG-09)", "Risks with an overdue review (REG-09)"),
+                              ("issues_abiertos", "Issues abiertos", "Open issues"), ("acciones_vencidas", "Acciones vencidas", "Overdue actions"),
+                              ("supuestos_criticos_sin_validar", "Supuestos críticos sin validar", "Critical assumptions not validated"),
+                              ("condiciones_abiertas", "Condiciones abiertas de puertas", "Open gate conditions"),
+                              ("puertas_pendientes", "Puertas pendientes", "Pending gates")):
+            if d[clave]: x.append(f"{t(es, en)}: {lista_ids(d[clave], k, L)}.")
+        if d["excepcion_abierta"]: x.append(t(f"Excepción abierta: {d['excepcion_abierta']}.", f"Open exception: {d['excepcion_abierta']}."))
+        if d["proxima_puerta"]: x.append(t(f"Próxima puerta: {d['proxima_puerta']} (detalle: puertas.py verificar {d['proxima_puerta']}).",
+                                           f"Next gate: {d['proxima_puerta']} (detail: puertas.py verificar {d['proxima_puerta']})."))
+        return "\n".join(x)
+    for k in (8, 5, 3, 1, 0):
+        txt = armar(k)
+        if len(txt) <= maximo: break
+    if len(txt) > maximo: txt = txt[:maximo - 1] + "…"
+    return txt, d
 
 def siguiente(e):
     L = e.get("idioma", "es"); t = lambda es, en: E.t(L, es, en)
@@ -97,7 +182,7 @@ def siguiente(e):
     pend = pendientes(e)
     if pend: out.append(t("Puertas pendientes: ", "Pending gates: ") + ", ".join(f"{p['tipo']} ({p['fecha']})" for p in pend))
     cond = condiciones_abiertas(e)
-    if cond: out.append(t("Condiciones abiertas: ", "Open conditions: ") + "; ".join(f"{p['tipo']}: {p['condiciones']}" for p in cond))
+    if cond: out.append(t("Condiciones abiertas: ", "Open conditions: ") + "; ".join(f"{p['tipo']}: {recortar(p['condiciones'], 240)}" for p in cond))
     vac = [d for d in ("tiempo", "costo") if not e["tolerancias"]["proyecto"].get(d)]
     if fase in ("inicio", "entrega") and vac:
         out.append(t(f"Aviso: faltan tolerancias de proyecto ({', '.join(vac)}).", f"Warning: missing project tolerances ({', '.join(vac)})."))
@@ -214,6 +299,7 @@ def sincronizar_frontmatter(ruta, campos, proyecto=None):
     open(ruta, "w", encoding="utf-8").write("---" + fm + "---" + partes[2])
 
 def aprobar(a, e):
+    validar_clave(a.nombre, e.get("idioma", "es"))
     art = e["artefactos"].get(a.nombre)
     if not art: sys.exit(f"Artefacto no registrado / not registered: {a.nombre} (usar 'artefacto' primero)")
     if art.get("externo"): sys.exit(f"{a.nombre} es una especificación externa (BMAD): su aprobación se registra con bmad.py linea-base / external spec: use bmad.py linea-base")
@@ -229,6 +315,9 @@ def aprobar(a, e):
         if os.path.isfile(origen):
             hist = os.path.join(a.proyecto, "00-direccion", "historial"); os.makedirs(hist, exist_ok=True)
             destino = os.path.join(hist, f"{a.nombre}-v{art.get('version', '')}{os.path.splitext(origen)[1]}")
+            if os.path.dirname(os.path.realpath(destino)) != os.path.realpath(hist):     # la versión tampoco puede sacar la copia de historial/
+                sys.exit(E.t(e.get("idioma", "es"), f"La copia congelada saldría de 00-direccion/historial/ ({destino}); revisar la clave y la versión.",
+                             f"The frozen copy would leave 00-direccion/historial/ ({destino}); check the key and the version."))
             if not os.path.exists(destino):
                 shutil.copy2(origen, destino); art["copia_congelada"] = os.path.relpath(destino, a.proyecto)
                 print(f"Copia congelada / frozen copy: {art['copia_congelada']}")
@@ -240,6 +329,10 @@ def main():
     sub = ap.add_subparsers(dest="cmd", required=True)
     sub.add_parser("ver"); sub.add_parser("siguiente"); sub.add_parser("resumen", help="fase, etapa, roles clave, tolerancias, puertas pendientes y siguiente paso")
     s = sub.add_parser("set"); s.add_argument("pares", nargs="+"); s.add_argument("--forzar", action="store_true"); s.add_argument("--por", default="")
+    s.add_argument("--nivel", default="gestor", choices=E.REGISTROS["decisiones"]["valores"]["nivel"], help="nivel de la decisión que se anota al cambiar enfoque_entrega")
+    s.add_argument("--fecha", help="fecha de la decisión anotada (defecto: hoy)")
+    cx = sub.add_parser("contexto", help="resumen derivado para el inicio de sesión: conteos, ids críticos y próxima puerta (≤ --max caracteres)")
+    cx.add_argument("--max", type=int, default=2000); cx.add_argument("--corte", help="fecha de corte AAAA-MM-DD para vencidas (defecto: hoy)"); cx.add_argument("--json", action="store_true")
     t_ = sub.add_parser("tolerancia"); t_.add_argument("--nivel", choices=E.NIVELES_TOLERANCIA, default="proyecto"); t_.add_argument("pares", nargs="+")
     r = sub.add_parser("rol"); r.add_argument("pares", nargs="+")
     ag = sub.add_parser("agil"); ag.add_argument("pares", nargs="+")
@@ -262,6 +355,9 @@ def main():
 
     if a.cmd == "ver": print(json.dumps(e, ensure_ascii=False, indent=2)); return
     if a.cmd == "siguiente": print(siguiente(e)); return
+    if a.cmd == "contexto":
+        txt, d = contexto(a.proyecto, e, max(200, a.max), a.corte)
+        print(json.dumps({"texto": txt, "caracteres": len(txt), "datos": d}, ensure_ascii=False, indent=2) if a.json else txt); return
     if a.cmd == "resumen":
         et = e.get("etapa_actual", {}); r = e.get("roles", {})
         print(f"{e.get('proyecto')} · {e['fase']}/{e['proceso_actual']} · {t('etapa', 'stage')} {et.get('numero')} {et.get('nombre', '')} "
@@ -282,7 +378,7 @@ def main():
                 v = ult.get("verificacion") or {}
                 print(t("Última puerta: ", "Last gate: ") + f"{ult['tipo']} · {ult.get('decision')} · {ult.get('fecha')} · {ult.get('por')}"
                       + (t(" · FORZADA", " · FORCED") if ult.get("forzada") else "")
-                      + (t(" · observaciones: ", " · observations: ") + "; ".join(v["observaciones"]) if v.get("observaciones") else ""))
+                      + (t(" · observaciones: ", " · observations: ") + recortar("; ".join(v["observaciones"]), 400) if v.get("observaciones") else ""))
             prox = PU.proxima_puerta(e)
             if prox:
                 bl, co, av, li = PU.evaluar(a.proyecto, e, prox)
@@ -303,6 +399,15 @@ def main():
                            "fase and proceso_actual change through gates (estado.py puerta …), limite-etapa or cierre. Only to fix a recording error: "
                            "set fase=… --forzar --por \"<who authorizes>\" (recorded in decisiones.csv)."))
             if k in permitidos and v not in permitidos[k]: sys.exit(f"{k}: {', '.join(permitidos[k])}")
+        if "enfoque_entrega" in pares and pares["enfoque_entrega"] != e.get("enfoque_entrega"):
+            if a.por:
+                did = E.anotar_decision(a.proyecto, t(f"enfoque de entrega: {e.get('enfoque_entrega')} → {pares['enfoque_entrega']}",
+                                                      f"delivery approach: {e.get('enfoque_entrega')} → {pares['enfoque_entrega']}"),
+                                        a.por, nivel=a.nivel, contexto=f"{e['fase']}/{e['proceso_actual']}", notas="estado.py set", fecha=a.fecha)
+                print(t(f"Decisión anotada: {did}", f"Decision recorded: {did}"))
+            else:
+                print(t("AVISO: cambio de enfoque_entrega sin --por: no queda anotado en decisiones.csv (agregar --por \"Rol: Nombre\").",
+                        "WARNING: enfoque_entrega changed without --por: not recorded in decisiones.csv (add --por \"Role: Name\")."))
         if any(k in ("fase", "proceso_actual") for k in pares):
             E.anotar_decision(a.proyecto, t("corrección forzada de estado: ", "forced state correction: ") + ", ".join(f"{k}={v}" for k, v in pares.items()),
                               a.por, nivel="gestor", contexto=f"{e['fase']}/{e['proceso_actual']}", notas="estado.py set --forzar")
@@ -331,6 +436,11 @@ def main():
     elif a.cmd == "etapa":
         e["etapa_actual"] = {"numero": a.numero, "nombre": a.nombre, "inicio": a.inicio, "fin_previsto": a.fin}
     elif a.cmd == "artefacto":
+        validar_clave(a.nombre, L)
+        base = os.path.realpath(a.proyecto); destino_art = os.path.realpath(os.path.join(a.proyecto, a.ruta))
+        if os.path.commonpath([base, destino_art]) != base:
+            print(t(f"AVISO: {a.ruta} queda fuera de la carpeta del proyecto: paquete.py no lo incluye en el paquete de puerta salvo --permitir-externos.",
+                    f"WARNING: {a.ruta} is outside the project folder: paquete.py leaves it out of the gate package unless --permitir-externos."))
         prev = e["artefactos"].get(a.nombre, {})
         if prev.get("externo"): sys.exit(t(f"{a.nombre} es una especificación externa (BMAD): se gestiona con bmad.py linea-base.", f"{a.nombre} is an external (BMAD) spec: use bmad.py linea-base."))
         version = a.version or prev.get("version") or "0.1"

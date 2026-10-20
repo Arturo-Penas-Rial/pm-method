@@ -10,8 +10,10 @@ Uso / Usage:
   python3 paquete.py --proyecto ./p cierre [--salida ...] [--extra ruta ...]
   python3 paquete.py --proyecto ./p listar puerta autorizar-proyecto     # muestra obligatorios/opcionales y qué falta, sin crear ZIP
 Salida: ZIP con los artefactos + MANIFIESTO.md. Si falta un obligatorio o alguno sigue en borrador, el nombre lleva -BORRADOR (los productos que la puerta decide pueden ir "en-revision").
+Solo se incluyen archivos dentro de la carpeta del proyecto: una ruta de estado.json o de --extra que resuelve fuera de ella
+(absoluta, con ../ o por un enlace simbólico) se excluye y queda anotada en el manifiesto, salvo --permitir-externos.
 """
-import argparse, datetime, glob, json, os, re, sys, zipfile
+import argparse, csv, datetime, glob, json, os, re, sys, zipfile
 
 # Claves canónicas de estado.json.artefactos (ver pm-estado-proyecto/SKILL.md, "Claves de artefactos") o patrones de
 # archivo si no están registradas, por tipo de paquete. {n} = etapa actual, {n1} = siguiente etapa.
@@ -93,6 +95,29 @@ def frontmatter(path):
         if m: meta[k] = m.group(1).strip()
     return meta
 
+def estado_congelada(proyecto, estado, ruta):
+    """Copia congelada en 00-direccion/historial/ sin front matter: el estado sale del registro de aprobación
+    (estado.json.artefactos[*].copia_congelada, o la decisión «aprobado <clave> v<versión>» de decisiones.csv que anota
+    estado.py aprobar). Devuelve (estado, version, aprobado_por) o None si no es una copia congelada reconocible."""
+    rel = os.path.relpath(ruta, proyecto).replace(os.sep, "/")
+    m = re.match(r"^00-direccion/historial/(?P<clave>[^/]+?)-v(?P<ver>[^/]+)$", os.path.splitext(rel)[0])
+    if not m: return None
+    clave, ver = m.group("clave"), m.group("ver")
+    registrada = None
+    for art in (estado.get("artefactos") or {}).values():
+        if (art.get("copia_congelada") or "").replace(os.sep, "/") == rel:
+            registrada = art
+            if str(art.get("version", "")) == ver and art.get("aprobado_por"): return "aprobado", ver, art["aprobado_por"]
+    p = os.path.join(proyecto, "03-control", "registros", "decisiones.csv")
+    if os.path.exists(p):
+        try:
+            with open(p, newline="", encoding="utf-8") as fh: filas = list(csv.DictReader(fh))
+        except (OSError, csv.Error): filas = []
+        for f in reversed(filas):
+            if (f.get("decision") or "").strip() == f"aprobado {clave} v{ver}":
+                return "aprobado", ver, f.get("decidido_por", "")
+    return ("aprobado", ver, "") if registrada else None
+
 def _orden(k):
     return [(0, int(x), "") if x.isdigit() else (1, 0, x) for x in re.split(r"[-.]", k)]
 
@@ -114,12 +139,20 @@ def resolver(proyecto, estado, clave, patrones):
         return [max(hallados, key=os.path.getmtime)], None
     return [], None
 
+def fuera_del_proyecto(proyecto, ruta):
+    """True si la ruta (relativa a la carpeta de trabajo, como las que devuelve resolver() y las de --extra, o absoluta)
+    resuelve fuera de la carpeta del proyecto (SEG-06)."""
+    base = os.path.realpath(proyecto)
+    r = os.path.realpath(ruta)
+    return os.path.commonpath([base, r]) != base
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--proyecto", required=True)
     sub = ap.add_subparsers(dest="cmd", required=True)
     p = sub.add_parser("puerta"); p.add_argument("tipo", choices=[k for k in PAQUETES if k != "cierre"]); p.add_argument("--salida"); p.add_argument("--extra", nargs="*", default=[])
     c = sub.add_parser("cierre"); c.add_argument("--salida"); c.add_argument("--extra", nargs="*", default=[])
+    for x in (p, c): x.add_argument("--permitir-externos", action="store_true", help="incluir también archivos fuera de la carpeta del proyecto")
     l = sub.add_parser("listar"); l.add_argument("clase", choices=["puerta", "cierre"]); l.add_argument("tipo", nargs="?")
     a = ap.parse_args()
 
@@ -133,13 +166,23 @@ def main():
         tipo = "cierre" if a.cmd == "cierre" else a.tipo
     if tipo not in PAQUETES: sys.exit(f"Tipo desconocido: {tipo}")
 
-    filas, faltan, no_aprobados = [], [], []
+    filas, faltan, no_aprobados, externos = [], [], [], []
+    permitir = getattr(a, "permitir_externos", False)
     n = int((estado.get("etapa_actual") or {}).get("numero") or 0)
     defs = [(c.format(n=n, n1=n + 1), [x.format(n=n, n1=n + 1) for x in pats], o) for c, pats, o in PAQUETES[tipo]]
     if estado.get("enfoque_entrega") == "agil":   # perfil ágil mínimo: la visión con el MVP sustituye a la descripción del producto del proyecto
         defs = [(c, pats + ["01-inicio/declaracion-vision.md", "01-inicio/*vision*.md"], o) if c == "descripcion-producto-proyecto" else (c, pats, o) for c, pats, o in defs]
     for clave, patrones, oblig in defs:
         rutas, art = resolver(a.proyecto, estado, clave, patrones)
+        if not permitir:
+            fuera = [r for r in rutas if fuera_del_proyecto(a.proyecto, r)]
+            for r in fuera:
+                externos.append(f"{clave}: {r}")
+                filas.append((clave, "", clave, "", "EXCLUIDO: fuera del proyecto / outside the project (" + r.replace("|", "/") + ")", "obligatorio" if oblig else "opcional", ""))
+            rutas = [r for r in rutas if r not in fuera]
+            if fuera and not rutas:
+                if oblig: faltan.append(clave)
+                continue
         if not rutas:
             filas.append((clave, "", clave, "", "FALTA" if oblig else "no incluido", "obligatorio" if oblig else "opcional", ""))
             if oblig: faltan.append(clave)
@@ -147,12 +190,17 @@ def main():
         for r in rutas:
             es_doc = r.endswith((".md", ".html"))
             meta = frontmatter(r) if es_doc else {"version": "", "estado": "", "aprobado_por": "", "tipo": ""}
-            est = (art or {}).get("estado") or meta["estado"] or ("registro" if r.endswith((".csv", ".xlsx")) else "sin-estado")
+            cong = None if (art or {}).get("estado") or meta["estado"] else estado_congelada(a.proyecto, estado, r)
+            if cong: meta = {**meta, "version": meta["version"] or cong[1], "aprobado_por": meta["aprobado_por"] or cong[2]}
+            est = (art or {}).get("estado") or meta["estado"] or (cong and cong[0]) or ("registro" if r.endswith((".csv", ".xlsx")) else "sin-estado")
             ver = (art or {}).get("version") or meta["version"] or ""
             if est not in ESTADOS_OK and oblig: no_aprobados.append(f"{clave} ({est})")
             filas.append((clave, os.path.relpath(r, a.proyecto), meta["tipo"] or clave, ver, est, "obligatorio" if oblig else "opcional", meta["aprobado_por"] or ""))
     for e in getattr(a, "extra", []) or []:
-        if os.path.exists(e):
+        if os.path.exists(e) and not permitir and fuera_del_proyecto(a.proyecto, e):
+            externos.append(f"extra: {e}")
+            filas.append(("extra", "", "extra", "", "EXCLUIDO: fuera del proyecto / outside the project (" + e.replace("|", "/") + ")", "opcional", ""))
+        elif os.path.exists(e):
             meta = frontmatter(e) if e.endswith((".md", ".html")) else {"version": "", "estado": "", "aprobado_por": "", "tipo": ""}
             filas.append(("extra", os.path.relpath(e, a.proyecto) if e.startswith(a.proyecto) else e, meta["tipo"] or "extra", meta["version"], meta["estado"] or "sin-estado", "opcional", meta["aprobado_por"]))
         else:
@@ -168,6 +216,9 @@ def main():
     for clave, ruta, t, ver, est, oblig, apr in filas:
         nombre = os.path.basename(ruta) if ruta else f"({clave})"
         cabecera.append(f"| {nombre} | {ruta or '—'} | {t} | {ver} | {est} | {oblig} | {apr} |")
+    if externos:
+        cabecera += ["", "> **Excluidos por estar fuera de la carpeta del proyecto / excluded (outside the project folder):** " + "; ".join(x.replace("|", "/") for x in externos)
+                     + ". Para incluirlos, revisar las rutas y volver a generar con `--permitir-externos`."]
     cabecera += ["", "> Este paquete no constituye aprobación. La decisión de la puerta la toma una persona con rol en la junta y se registra con `estado.py puerta` y en `decisiones.csv`."]
     manifiesto = "\n".join(cabecera) + "\n"
 
@@ -187,6 +238,7 @@ def main():
     print(f"Escrito {salida}")
     if faltan: print("Faltan obligatorios:", ", ".join(faltan))
     if no_aprobados: print("En borrador:", ", ".join(no_aprobados))
+    if externos: print("Excluidos por estar fuera del proyecto (usar --permitir-externos para incluirlos) / outside the project, excluded:", "; ".join(externos))
 
 if __name__ == "__main__":
     main()

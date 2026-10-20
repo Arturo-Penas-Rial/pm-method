@@ -9,6 +9,7 @@ Uso como biblioteca:
     r = s.turno("/pm-method:pm-estado")          # primer turno
     r2 = s.turno("Aprobado por el Ejecutivo")      # continúa la misma sesión (--resume)
     r.skills, r.agentes, r.bash, r.negaciones, r.texto, r.costo
+    r.contexto            # tokens de entrada de cada llamada al modelo del hilo principal (control del contexto)
 Uso por línea de comandos (un turno):
     python3 vivo.py --cwd /tmp/x "/pm-method:pm-ayuda"
 """
@@ -21,9 +22,18 @@ class Resultado:
         self.skills, self.agentes, self.bash, self.escrituras, self.herramientas = [], [], [], [], []
         self.negaciones, self.hooks, self.texto, self.errores = [], [], [], []
         self.costo, self.turnos, self.session_id, self.subtipo, self.crudo = 0.0, 0, None, None, []
+        # contexto: tokens de entrada (input + cache_creation + cache_read) de cada llamada al modelo, por id de mensaje;
+        # hilo principal y subagentes por separado. Es lo que ocupa la ventana de contexto en esa llamada.
+        self._ctx, self._ctx_sub, self.salida_tokens = {}, {}, 0
+    @property
+    def contexto(self): return list(self._ctx.values())
+    @property
+    def contexto_sub(self): return list(self._ctx_sub.values())
     def resumen(self):
         return {"skills": self.skills, "agentes": self.agentes, "bash": [b[:160] for b in self.bash], "escrituras": self.escrituras,
                 "negaciones": self.negaciones, "costo_usd": round(self.costo or 0, 4), "turnos": self.turnos, "fin": self.subtipo,
+                "contexto": {"llamadas": len(self._ctx), "primera": (self.contexto or [0])[0], "maximo": max(self.contexto or [0]),
+                             "subagentes_maximo": max(self.contexto_sub or [0]), "salida_tokens": self.salida_tokens},
                 "texto_final": (self.texto[-1][:1500] if self.texto else "")}
 
 def analizar(lineas):
@@ -41,6 +51,10 @@ def analizar(lineas):
                 r.negaciones.append((d.get("stdout") or "")[:300])
         elif t in ("assistant", "user"):
             msg = d.get("message") or {}
+            u = msg.get("usage") if t == "assistant" else None
+            if u and msg.get("id"):
+                ctx = sum(int(u.get(k) or 0) for k in ("input_tokens", "cache_creation_input_tokens", "cache_read_input_tokens"))
+                (r._ctx_sub if d.get("parent_tool_use_id") else r._ctx)[msg["id"]] = ctx
             for c in msg.get("content", []) if isinstance(msg.get("content"), list) else []:
                 if c.get("type") == "tool_use":
                     n, inp = c.get("name"), c.get("input") or {}
@@ -55,6 +69,7 @@ def analizar(lineas):
                     cont = c.get("content"); r.errores.append(str(cont)[:300])
         elif t == "result":
             r.costo, r.turnos, r.subtipo = d.get("total_cost_usd") or 0, d.get("num_turns"), d.get("subtype")
+            r.salida_tokens = int((d.get("usage") or {}).get("output_tokens") or 0)
             r.session_id = d.get("session_id") or r.session_id
             if d.get("result"): r.texto.append(d.get("result"))
     return r

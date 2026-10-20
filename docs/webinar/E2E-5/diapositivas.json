@@ -1,0 +1,635 @@
+{
+ "caso": "E2E-5",
+ "titulo": "De la idea al proyecto diseñado",
+ "subtitulo": "Validar supuestos, comparar opciones, elegir el enfoque, adaptar la gestión y fijar presupuestos y tolerancias",
+ "clases": [
+  {
+   "numero": 1,
+   "titulo": "¿Vale la pena?",
+   "duracion_min": 90,
+   "objetivos": [
+    "Armar un mapa de supuestos y elegir dónde invertir primero en aprender",
+    "Diseñar un experimento barato con criterio previo y llevar el resultado al caso",
+    "Comparar opciones contra no hacer nada con VAN, TIR, repago y punto de equilibrio",
+    "Elegir el enfoque de entrega por entregable con criterios y contrastarlo con un mapa de Wardley"
+   ],
+   "diapositivas": [
+    {
+     "tipo": "seccion",
+     "titulo": "Clase 1 · ¿Vale la pena?",
+     "subtitulo": "¿Qué tendría que ser cierto para que esta idea valga la pena, y cómo lo sabemos barato?",
+     "nota": "Presentá la pregunta de la clase y el escenario: una red ficticia de seis policlínicas que quiere turnos en línea. Hoy decidimos si vale la pena; la próxima clase diseñamos el proyecto."
+    },
+    {
+     "tipo": "gancho",
+     "titulo": "¿Cuántos proyectos se aprueban con un supuesto que nadie verificó?",
+     "puntos": [
+      "El mandato suponía: el recordatorio baja el ausentismo del 18 % al 10 %",
+      "Un piloto de 4 semanas lo bajó al 13,5 %",
+      "Ese solo supuesto inflaba el VAN de cada opción en USD 159.213",
+      "La idea sobrevive, con otro tamaño",
+      "La junta lo supo antes de invertir"
+     ],
+     "nota": "No uses estadísticas de la industria: preguntale a la sala y después contá el dato del caso. La cifra sale de inversion.py en el paso 4 (431.782 contra 272.569 en la opción 2)."
+    },
+    {
+     "tipo": "pregunta",
+     "titulo": "Mano alzada",
+     "pregunta": "¿Quién vio aprobar un proyecto con un supuesto que nadie verificó? ¿Cuál era?",
+     "nota": "Esperá muchas manos. Pedí uno o dos ejemplos breves: suelen ser la adopción de los usuarios o una integración con un tercero. Volvé a esos ejemplos en el ejercicio."
+    },
+    {
+     "tipo": "contenido",
+     "titulo": "El caso: turnos sin llamar en 6 policlínicas",
+     "puntos": [
+      "240.000 turnos por año; 70 % por teléfono",
+      "Ausentismo del 18 %: 43.200 turnos perdidos por año",
+      "USD 216.000 de margen no realizado (USD 5 por turno)",
+      "Restricción: teléfono y presencial se mantienen",
+      "Ejecutiva Carmen Olivera · gestor Pablo Rinaldi"
+     ],
+     "nota": "Todo el escenario es ficticio. Los datos de la red vienen del mandato (paso 1). La base de comparación de las opciones es seguir igual: 43.200 turnos perdidos por año."
+    },
+    {
+     "tipo": "contenido",
+     "titulo": "Supuesto, hipótesis y experimento",
+     "puntos": [
+      "Supuesto: algo que se da por cierto sin evidencia",
+      "Criticidad: si es falso, ¿cuánto cambia el caso?",
+      "Certeza: ¿cuánta evidencia hay hoy?",
+      "Crítico y sin evidencia = hipótesis: se valida primero",
+      "Experimento: barato, con fecha y criterio decidido antes"
+     ],
+     "nota": "Tres familias: deseabilidad (¿lo van a usar?), viabilidad (¿cierra?) y factibilidad (¿se puede construir y operar?). Es la justificación continua de PRINCE2 aplicada antes de gastar."
+    },
+    {
+     "tipo": "demo",
+     "titulo": "En vivo · paso 2: el mapa de supuestos",
+     "prompt": "Listá los supuestos que sostienen la idea en tres familias: deseabilidad (¿lo van a usar?), viabilidad (¿cierra económicamente?) y factibilidad (¿se puede construir y operar?). Empezá por lo que ya dicen el mandato y las lecciones. Calificá criticidad y certeza, registralos con fecha 2026-11-04 y mostrame el mapa.",
+     "nota": "Mostrá los 5 candidatos destilados del mandato y de la lección L-002, los supuestos S-001 a S-007 y la sanidad con 4 avisos SUP-01: S-001, S-002, S-003 y S-006 son críticos y no tienen experimento."
+    },
+    {
+     "tipo": "imagen",
+     "titulo": "Tres supuestos críticos sin evidencia",
+     "imagen": "docs/guias/img/g5-mapa-supuestos.png",
+     "nota": "S-001 (adopción), S-002 (ausentismo) y S-003 (interfaz de la agenda) están en la celda de borde rojo: sostienen los dos beneficios y la factibilidad. Ahí va la primera plata."
+    },
+    {
+     "tipo": "tabla",
+     "titulo": "Experimentos con criterio decidido antes",
+     "tabla": {
+      "cab": [
+       "Supuesto",
+       "Experimento",
+       "Criterio",
+       "Resultado"
+      ],
+      "filas": [
+       [
+        "S-001 adopción",
+        "Prueba de humo, 3 semanas",
+        "≥ 1.000 registros",
+        "1.840: validado"
+       ],
+       [
+        "S-002 ausentismo",
+        "Piloto en una policlínica, 4 semanas",
+        "≤ 12 %",
+        "13,5 %: invalidado"
+       ],
+       [
+        "S-003 agenda",
+        "Prueba técnica de 5 días",
+        "50 de 50 y < 2 s",
+        "sin credenciales: replanificada"
+       ],
+       [
+        "S-006 normativa",
+        "Consulta a la asesoría legal",
+        "dictamen favorable",
+        "llega el 2027-01-29"
+       ]
+      ]
+     },
+     "nota": "El criterio se escribe antes de ver el resultado. El de S-002 era 12 %: el piloto dio 13,5 %, así que el supuesto (10 %) es falso, pero el dato real sirve."
+    },
+    {
+     "tipo": "demo",
+     "titulo": "En vivo · paso 3: experimentos y resultados",
+     "prompt": "Para cada supuesto crítico definí el experimento más barato, el criterio para seguir y la fecha límite: - S-001: prueba de humo, un botón \"sacá tu turno en línea\" en el sitio con registro de interés durante 3 semanas; seguimos con 1.000 registros o más; hasta el 2026-11-27; Inés Ferrer. - S-002: piloto de recordatorio con confirmación en la Policlínica Centro, 4 semanas (2.000 turnos); seguimos si el ausentismo baja a 12 % o menos; hasta el 2026-12-04; Inés Ferrer. - S-003: prueba técnica de 5 días en el entorno de pruebas del proveedor, reservar y cancelar 50 turnos; seguimos con 50 de 50 y respuesta menor a 2 s; hasta el 2026-12-04; Tomás Aguirre. - S-006: consulta formal a la asesoría legal sobre el consentimiento; dictamen hasta el 2027-01-29; Carmen Olivera. Armá la hoja de hipótesis y experimentos para la junta.",
+     "nota": "Con experimentos y fechas, la sanidad del 2026-11-05 queda en 0 avisos. Los resultados del 2026-12-07 se muestran con la evidencia: aparecen SUP-02 por S-003 vencido y SUP-03 por S-002 invalidado sin tratar."
+    },
+    {
+     "tipo": "contenido",
+     "titulo": "Lo que vigila la sanidad",
+     "puntos": [
+      "SUP-01: supuesto crítico sin experimento o sin fecha",
+      "SUP-02: fecha límite vencida sin resultado (S-003)",
+      "SUP-03: invalidado sin decisión, riesgo, issue ni cambio (S-002)",
+      "D-001: el caso usa 13,5 %; D-002: prueba replanificada",
+      "Después de las decisiones: 0 avisos"
+     ],
+     "nota": "Esto es lo que a mano se pierde: la fecha vence y nadie se entera, o el resultado malo se archiva. Acá cada corrida de sanidad lo muestra hasta que alguien decide."
+    },
+    {
+     "tipo": "tabla",
+     "titulo": "Opciones contra no hacer nada (VAN a 5 años, r = 10 %)",
+     "tabla": {
+      "cab": [
+       "Opción",
+       "VAN con supuestos iniciales",
+       "VAN después de los experimentos",
+       "TIR · repago"
+      ],
+      "filas": [
+       [
+        "0 · No hacer nada distinto",
+        "0 (base)",
+        "0 (base)",
+        "—"
+       ],
+       [
+        "1 · Mínimo: recordatorios",
+        "265.681",
+        "106.468",
+        "117,5 % · 0,83 años"
+       ],
+       [
+        "2 · Completo: turnos en línea",
+        "431.782",
+        "272.569",
+        "54,3 % · 1,78 años"
+       ]
+      ]
+     },
+     "nota": "Paso 4, en vivo o con la evidencia: pm-caso-de-negocio escribe los flujos en un CSV por concepto y corre inversion.py, que imprime las fórmulas, el VAN, la TIR, el repago y la sensibilidad. Punto de equilibrio de las llamadas evitadas (B-02, el 65 % del valor de los beneficios): 29,1 % de lo estimado, una adopción estable del 11,6 %."
+    },
+    {
+     "tipo": "imagen",
+     "titulo": "El piloto bajó el VAN; la opción 2 sigue siendo la mejor",
+     "imagen": "docs/guias/img/g5-van-opciones.png",
+     "nota": "Las dos opciones bajan lo mismo, 159.213, porque el cambio en B-01 es igual para ambas. La recomendación: opción 2 en dos releases, el primero con el valor de la opción 1 y el segundo solo si S-003 queda validado."
+    },
+    {
+     "tipo": "pregunta",
+     "titulo": "Discusión",
+     "pregunta": "El piloto dio 13,5 % y el criterio era 12 %. ¿Abandonamos, ajustamos o seguimos?",
+     "nota": "Respuesta esperada: ajustar. El supuesto es falso, pero la idea sigue valiendo con el dato real. Lo que no se puede es seguir como si el 10 % fuera cierto. En el caso decide la ejecutiva (D-001)."
+    },
+    {
+     "tipo": "imagen",
+     "titulo": "Enfoque de entrega por entregable: híbrido por construcción",
+     "imagen": "docs/guias/img/g5-enfoque-entrega.png",
+     "nota": "Nueve criterios de 1 (predictivo) a 3 (adaptativo): integración 12, recordatorios 18, portal 23. Lectura: 13 o menos predictivo, 14 a 21 híbrido, 22 o más adaptativo. La decisión se registra (D-003) y se revisa en cada puerta de etapa."
+    },
+    {
+     "tipo": "demo",
+     "titulo": "En vivo · paso 5: elegir el enfoque con criterios",
+     "prompt": "Puntuá los nueve criterios de selección del enfoque para cada entregable: recordatorios y confirmación, turnos en línea (portal y app) e integración con la agenda clínica. Mostrame la tabla, la lectura de cada uno y tu recomendación para el proyecto. Si Carmen lo aprueba, registralo con fecha 2026-12-09.",
+     "nota": "Mostrá la tabla de nueve criterios y el comando que registra pm-director: estado.py set enfoque_entrega=hibrido --por \"Ejecutiva: Carmen Olivera\". El mismo comando anota la decisión D-003 en decisiones.csv. Después, con la evidencia, la puerta autorizar-inicio del paso 6 (D-004)."
+    },
+    {
+     "tipo": "imagen",
+     "titulo": "Mapa de valor: qué construir, qué comprar, dónde hay inercia",
+     "imagen": "docs/guias/img/g5-wardley.png",
+     "nota": "Paso 5b, con la evidencia. Turnos en línea es a medida y se construye (23, adaptativo); recordatorios ya es producto y se compra (18, híbrido); el adaptador se escribe a medida pero depende de la agenda del proveedor, que tiene inercia (12, predictivo). La sanidad al 2026-12-09 marca MAP-02 (inercia sin riesgo) y MAP-03 (el dolor de cancelar solo llamando, sin tratamiento); se resuelven con R-001 en el paso 9 y con REQ-003 y REQ-005 en el paso 6."
+    },
+    {
+     "tipo": "imagen",
+     "titulo": "El recorrido del paciente: dónde duele hoy",
+     "imagen": "docs/guias/img/g5-recorrido.png",
+     "nota": "Seis pasos del recorrido actual, cada emoción con su fuente. Los dos peores momentos (−2) son olvidar el turno, con el ausentismo del 18 % como métrica, e intentar cancelar fuera de horario. La línea punteada es la emoción esperada con los arreglos; el carril de backstage muestra que nadie reasigna el turno perdido."
+    },
+    {
+     "tipo": "tabla",
+     "titulo": "Variante con BMAD: qué cambia",
+     "tabla": {
+      "cab": [
+       "",
+       "b) sin BMAD",
+       "a) con BMAD"
+      ],
+      "filas": [
+       [
+        "Origen de los supuestos",
+        "mandato y lecciones: 5 candidatos",
+        "brief, PRD y arquitectura: 42 candidatos con cita"
+       ],
+       [
+        "Requisitos",
+        "requisitos.md (REQ-001…007)",
+        "PRD de BMAD (42 ids), solo lectura"
+       ],
+       [
+        "Línea base para el VAN",
+        "datos del mandato",
+        "no hay métricas (brief.md:26): medir primero"
+       ],
+       [
+        "Mapas",
+        "componentes y recorrido desde el mandato, supuestos y lecciones",
+        "recorrido de UJ-2 con el backstage de UJ-3; mapa desde AD-n y decisiones diferidas"
+       ],
+       [
+        "Controles",
+        "SUP-01/02/03, P-04, P-11",
+        "los mismos, más P-07 y P-08"
+       ]
+      ]
+     },
+     "nota": "Pasos 15 a 17, con la evidencia. Con BMAD, riesgos.py candidatos da 24 supuestos, 12 riesgos y 6 preguntas, cada uno con su archivo y línea. Los tres supuestos registrados disparan SUP-01 y P-11 igual que en la variante b. En el paso 17, MAP-01…04 aparecen y se resuelven con S-004, D-001 y R-001."
+    },
+    {
+     "tipo": "ejercicio",
+     "titulo": "Ejercicio · parte A (10 minutos)",
+     "puntos": [
+      "Tu idea en una frase y la decisión que se espera",
+      "Cinco supuestos, uno de cada familia como mínimo",
+      "Ubicalos en el mapa criticidad × certeza",
+      "Un experimento barato con criterio y fecha",
+      "Si sale mal: qué número cambia y quién decide"
+     ],
+     "nota": "La hoja está en ejercicio.md. Pedí que escriban el criterio antes de imaginar el resultado. Si sobra tiempo, compartan dos experimentos en voz alta."
+    },
+    {
+     "tipo": "cierre",
+     "titulo": "Para llevarse",
+     "puntos": [
+      "Los supuestos críticos sin evidencia se validan antes de invertir",
+      "Un resultado negativo ajusta la idea; archivado, la daña",
+      "Las opciones se comparan contra no hacer nada, con la fórmula a la vista",
+      "El enfoque se elige por entregable, con criterios; el mapa muestra qué comprar y dónde hay inercia",
+      "Próxima clase: diseñar el proyecto y la puerta de la junta"
+     ],
+     "nota": "Cerrá con la pregunta de la clase 2: con S-003 y S-006 todavía abiertos, ¿la junta puede autorizar el proyecto? Lo vamos a ver con P-11."
+    }
+   ]
+  },
+  {
+   "numero": 2,
+   "titulo": "Diseñar el proyecto",
+   "duracion_min": 90,
+   "objetivos": [
+    "Definir beneficios con dueño, línea base y fecha",
+    "Separar contingencia, reserva de gestión y presupuesto de cambio",
+    "Adaptar la formalidad de la gestión al contexto",
+    "Llevar el proyecto a autorizar-proyecto sin hipótesis ocultas: validar o aceptar por escrito (P-11)"
+   ],
+   "diapositivas": [
+    {
+     "tipo": "seccion",
+     "titulo": "Clase 2 · Diseñar el proyecto",
+     "subtitulo": "¿Cómo dejamos el proyecto listo para que la junta delegue con cifras?",
+     "nota": "Recordá dónde quedó la clase 1: opción 2 elegida, enfoque híbrido, puerta autorizar-inicio aprobada. Hoy llegamos a autorizar-proyecto."
+    },
+    {
+     "tipo": "gancho",
+     "titulo": "¿Quién puede gastar la reserva en tu proyecto? ¿Está escrito?",
+     "puntos": [
+      "En el caso hay tres bolsas con tres dueños",
+      "Contingencia 28.000 · reserva de gestión 8.540 · cambio 10.000",
+      "El mismo proyecto pide 7 artefactos si es interno y pequeño",
+      "Y 16 si es regulado",
+      "¿Cuál le corresponde al tuyo?"
+     ],
+     "nota": "Preguntá primero, después mostrá las cifras. Las tres bolsas salen del paso 9 y los conteos de artefactos, de los estado.json del bloque C (paso 12)."
+    },
+    {
+     "tipo": "contenido",
+     "titulo": "Beneficios con dueño, línea base y fecha",
+     "puntos": [
+      "B-01 turnos recuperados: ausentismo 18 % → 13,5 %",
+      "B-02 llamadas evitadas: 40 % de turnos en línea",
+      "DB-01 des-beneficio: 2 puestos reasignados",
+      "Dueña: Inés Ferrer, también después del cierre",
+      "Sin enfoque de beneficios, la puerta avisa (P-04)"
+     ],
+     "nota": "El mapa de beneficios encadena salidas, capacidades, resultados y beneficios. Está en la guía, paso 7, como diagrama. El enfoque de beneficios dice quién mide qué, cuándo y con qué línea base."
+    },
+    {
+     "tipo": "contenido",
+     "titulo": "Retomar la sesión: mandan los registros",
+     "puntos": [
+      "La iniciación empieza semanas después, en otra sesión",
+      "El hook de inicio agrega el contexto de estado.json y los registros",
+      "Al 2027-01-08: S-003 y S-006 sin validar",
+      "Próxima puerta: autorizar-proyecto",
+      "Una nota de memoria que diga otra cosa está desactualizada"
+     ],
+     "nota": "Es la salida de estado.py contexto, acotada a 2.000 caracteres y con ids. Nadie retoma el proyecto con lo que recordaba: retoma con lo que dicen los registros."
+    },
+    {
+     "tipo": "demo",
+     "titulo": "En vivo · paso 7: verificar la puerta antes de tiempo",
+     "prompt": "Retomemos el proyecto de turnos: ¿dónde quedamos al 2027-01-08? Después pasá el caso de negocio a su versión completa con la cadena de valor, B-01 y B-02 con línea base, meta, dueña y tolerancia, y el des-beneficio. Antes de seguir, verificá qué le falta al proyecto para la puerta autorizar-proyecto. Después armá el enfoque de beneficios: mediciones al fin de cada etapa y a los 6 y 12 meses del cierre, a cargo de la red.",
+     "nota": "Primero el contexto de sesión; después la verificación, que muestra el código de cada hallazgo. La tabla de la siguiente diapositiva es la lista de trabajo de la iniciación."
+    },
+    {
+     "tipo": "tabla",
+     "titulo": "Verificación temprana de autorizar-proyecto (2027-01-08)",
+     "tabla": {
+      "cab": [
+       "Código",
+       "Severidad",
+       "Hallazgo"
+      ],
+      "filas": [
+       [
+        "P-01 · L-01",
+        "bloqueo",
+        "falta el PID y la lista de control de la junta"
+       ],
+       [
+        "P-04",
+        "aviso",
+        "sin enfoque de beneficios"
+       ],
+       [
+        "P-05",
+        "condición",
+        "falta usuaria sénior y proveedor sénior"
+       ],
+       [
+        "P-06",
+        "condición",
+        "sin plan de proyecto"
+       ],
+       [
+        "P-11",
+        "condición",
+        "supuestos críticos sin validar: S-003, S-006"
+       ],
+       [
+        "P-09 · P-10",
+        "aviso",
+        "sin interesados ni RACI"
+       ]
+      ]
+     },
+     "nota": "Cada fila es un trabajo de la clase de hoy: enfoque de beneficios (paso 7), junta, interesados y RACI (10), plan y PID (13), la lista de control en la junta y P-11 (13)."
+    },
+    {
+     "tipo": "contenido",
+     "titulo": "Tres bolsas, tres dueños, nada dos veces",
+     "puntos": [
+      "Contingencia = Σ EMV 24.000 + respuestas 4.000 = 28.000",
+      "BAC = paquetes 142.800 + contingencia = 170.800",
+      "Reserva de gestión 8.540: fuera del BAC, la libera la junta",
+      "Presupuesto autorizado = BAC + reserva = 179.340",
+      "Presupuesto de cambio 10.000 aparte, tope 3.000 por cambio"
+     ],
+     "nota": "Es la regla de SPEC §1.10.6 que aplica pm-costos-presupuesto. La junta los fija con estado.py presupuesto (D-007) y desde ahí la sanidad vigila el consumo con CAM-03 y la autoridad con CAM-04."
+    },
+    {
+     "tipo": "demo",
+     "titulo": "En vivo · paso 9: riesgos, reservas y presupuestos",
+     "prompt": "Registrá tres riesgos con su EMV y revisión el 2027-01-29: la agenda sin interfaz documentada (P3 × I4, USD 30.000; reducir con la prueba técnica), la adopción baja en mayores de 65 (P3 × I3, 12.000; canal asistido por 4.000) y el dictamen legal que exija consentimiento explícito (P2 × I3, 10.000; contingencia). Armá el presupuesto: paquetes base de la WBS, contingencia, BAC, reserva de gestión del 5 % del BAC y un presupuesto de cambio de 10.000 con tope de 3.000 por cambio. Comparalo con el orden de magnitud del brief y recalculá el VAN de la opción 2 con este presupuesto.",
+     "nota": "Mostrá R-001 a R-003 con su EMV (15.000, 6.000 y 3.000), la tabla del presupuesto, el comando estado.py presupuesto y la salida de inversion.py con la opción 2 dos veces: con el presupuesto, VAN 263.229 (−9.340), TIR 51,1 % y repago de 1,85 años."
+    },
+    {
+     "tipo": "imagen",
+     "titulo": "La junta autoriza USD 179.340",
+     "imagen": "docs/guias/img/g5-presupuesto.png",
+     "nota": "El orden de magnitud del brief era 180.000 con −25/+75 %: el presupuesto real (189.340 con el de cambio) cae dentro. Por eso el VAN baja de 272.569 a 263.229."
+    },
+    {
+     "tipo": "contenido",
+     "titulo": "Adaptar no es saltearse pasos",
+     "puntos": [
+      "Formalidad decidida por enfoque y escrita (D-008)",
+      "Riesgos, calidad, cambios y comunicación: una página cada uno",
+      "Datos de salud dentro del enfoque de calidad",
+      "Inés Ferrer: usuaria sénior, PO y autoridad de cambio",
+      "Se aligeran los documentos, no las decisiones"
+     ],
+     "nota": "La adaptación queda en el PID, sección 8. Cada fila dice qué se adaptó, cómo y por qué. Eso es lo que la junta aprueba junto con los enfoques. Antes de la adaptación, lo que pide la puerta en organización (breve; E2E-3 lo desarrolla): junta completa con ejecutiva, usuaria sénior y proveedor sénior; 7 interesados en la matriz (2 de cerca, 3 satisfechos, 2 informados); RACI de 18 filas en 4 elementos, una A por elemento, sobre productos de la WBS y REQ-006."
+    },
+    {
+     "tipo": "tabla",
+     "titulo": "Bloque C: el mismo proyecto, tres diseños",
+     "tabla": {
+      "cab": [
+       "",
+       "Interno pequeño",
+       "Regulado",
+       "Producto digital ágil"
+      ],
+      "filas": [
+       [
+        "Perfil y PID",
+        "mínimo; acta + PID breve",
+        "completo; PID índice",
+        "ágil mínimo; PID compacto"
+       ],
+       [
+        "Enfoque · etapas",
+        "predictivo · 2",
+        "predictivo · 4",
+        "ágil · 3"
+       ],
+       [
+        "Tolerancias",
+        "2",
+        "7 (privacidad sin no conformidades)",
+        "3 (fecha fija, MoSCoW)"
+       ],
+       [
+        "Artefactos · enfoques",
+        "7 · 1",
+        "16 · 7",
+        "12 · 5 de una página"
+       ],
+       [
+        "Control que cambia",
+        "highlight mensual",
+        "auditoría de privacidad",
+        "demo y burn-up por sprint"
+       ]
+      ]
+     },
+     "nota": "Los tres diseños salen de las tablas del paquete: perfiles de pm-mandato-y-brief, formatos de PID de pm-acta-constitucion y enfoques de una página de pm-enfoques-gestion. Cada uno se creó como proyecto aparte y las cifras se leen de su estado.json."
+    },
+    {
+     "tipo": "imagen",
+     "titulo": "El ágil aligera documentos, no puertas",
+     "imagen": "docs/guias/img/g5-tres-disenos.png",
+     "nota": "El regulado pide 16 artefactos y 7 tolerancias; el pequeño, 7 y 2; el ágil, 12 artefactos con enfoques más cortos. El diseño real del caso es un cuarto punto: híbrido con 3 etapas."
+    },
+    {
+     "tipo": "contenido",
+     "titulo": "P-11: invertir sobre hipótesis",
+     "puntos": [
+      "Condición de autorizar-proyecto, no bloqueo",
+      "Al 2027-01-14: S-003 y S-006 sin validar",
+      "S-003: prueba técnica 50 de 50, 1,4 s: validado",
+      "S-006: la junta lo acepta por escrito (D-009)",
+      "P-11 pasa a aviso; S-006 sigue abierto"
+     ],
+     "nota": "Dos salidas legítimas: validar o aceptar. La aceptación es una decisión de nivel junta que cita el id y dice que lo acepta; la verificación la muestra como aviso con la D-### y el riesgo R-003 cubre el efecto."
+    },
+    {
+     "tipo": "demo",
+     "titulo": "En vivo · paso 13: PID, P-11 y la puerta",
+     "prompt": "Ensamblá el PID con los controles y la sección de adaptación, registrá el plan de proyecto dentro del PID y el plan de la etapa 2, corré la sanidad al 2027-01-14 y verificá la puerta autorizar-proyecto.",
+     "nota": "Sanidad al 2027-01-14 en 0 avisos; verificación con 1 bloqueo (L-01: la lista, que se arma en la junta) y la condición P-11. Después del segundo prompt: S-003 validado, D-009 y el aviso P-11 con S-006 (D-009); la puerta queda aprobada (D-010) y el resumen dice Autorizado: sí."
+    },
+    {
+     "tipo": "pregunta",
+     "titulo": "Discusión",
+     "pregunta": "¿Qué diseño le corresponde a tu proyecto: pequeño, regulado, ágil o híbrido? ¿Qué dejarías de escribir y qué no?",
+     "nota": "Respuesta esperada: depende del riesgo, el costo y los interesados, no del gusto del equipo. Lo que nunca se deja: las decisiones de la junta, las tolerancias de tiempo y costo y quién libera cada reserva."
+    },
+    {
+     "tipo": "indicadores",
+     "titulo": "Proyecto autorizado: el tablero de una página",
+     "imagen": "docs/guias/img/g5-tablero.png",
+     "nota": "VAN 263.229 con el presupuesto real (TIR 51,1 %), 4 de 4 supuestos críticos tratados (2 validados, 1 ajustado, 1 aceptado con D-009), presupuesto autorizado 179.340, enfoque híbrido, tolerancia de costo ±10 % y la puerta aprobada el 2027-01-15 con P-11 en aviso. La tarjeta de la puerta sale de puertas.py verificar --json."
+    },
+    {
+     "tipo": "imagen",
+     "titulo": "Los mapas, tratados, en su tablero",
+     "imagen": "docs/guias/img/g5-tablero-mapas-169.png",
+     "nota": "mapas.py tablero dibuja los dos mapas del paso 5b en SVG propio, sin mmdc, con los vínculos de los pasos 6 y 9. Avisos MAP vigentes: 0. La agenda clínica, con inercia, muestra «inercia → R-001»; cada dolor del paciente tiene su tratamiento: P1 → S-001, P4 → S-002, P5 → REQ-003 y REQ-005. Los ids enlazan a la tabla de vínculos con estado y responsable. La variante con BMAD termina igual (g5-tablero-mapas-bmad.png)."
+    },
+    {
+     "tipo": "contenido",
+     "titulo": "Aceptar no es olvidar: la sanidad al 2027-02-01",
+     "puntos": [
+      "El dictamen de S-006 no llegó el 2027-01-29",
+      "SUP-02: S-006 con la fecha límite vencida",
+      "REG-09: R-001, R-002 y R-003 con la revisión vencida",
+      "Cada aviso nombra al propietario y la acción",
+      "El contexto de sesión sigue listando S-006"
+     ],
+     "nota": "Lo que la junta aceptó y los riesgos que cubren el proyecto siguen bajo control continuo. Sin nadie que se acuerde: la sanidad lo muestra el primer día después de la fecha."
+    },
+    {
+     "tipo": "ejercicio",
+     "titulo": "Ejercicio · parte B (10 minutos)",
+     "puntos": [
+      "Tus tres bolsas: monto y quién las libera",
+      "El tope por cambio de quien aprueba cambios",
+      "Qué diseño le corresponde a tu proyecto",
+      "Una decisión de adaptación para el PID",
+      "Autoevaluá con los criterios de la hoja"
+     ],
+     "nota": "La hoja está en ejercicio.md. Si alguien no tiene reserva de gestión, que lo anote: es un hallazgo, no un error del ejercicio."
+    },
+    {
+     "tipo": "cierre",
+     "titulo": "Para llevarse",
+     "puntos": [
+      "Beneficios con dueño, línea base y fecha (P-04)",
+      "Contingencia, reserva de gestión y cambio: bolsas y dueños distintos",
+      "Adaptar es decidir cuánta formalidad y escribir por qué",
+      "Nadie invierte sobre una hipótesis sin saberlo (P-11)",
+      "Siguen E2E-1 (riesgos) y E2E-4 (ejecución con BMAD)"
+     ],
+     "nota": "El proyecto quedó autorizado con presupuestos, tolerancias y autoridad delegada escritos. Lo que sigue es ejecutarlo: E2E-1 para los riesgos etapa por etapa y E2E-4 para la ejecución, la calidad y el cierre."
+    }
+   ]
+  }
+ ],
+ "glosario": [
+  {
+   "termino": "Mandato (project mandate)",
+   "definicion": "Pedido que da origen al proyecto, conservado como llegó, con su autoridad emisora."
+  },
+  {
+   "termino": "Puesta en marcha (starting up a project)",
+   "definicion": "Proceso PRINCE2 previo al proyecto: decide si vale la pena iniciarlo; termina en la puerta autorizar-inicio."
+  },
+  {
+   "termino": "Iniciación (initiating a project)",
+   "definicion": "Primera etapa: diseña el proyecto (caso, planes, enfoques, controles) hasta la puerta autorizar-proyecto."
+  },
+  {
+   "termino": "Supuesto",
+   "definicion": "Algo que se da por cierto sin evidencia; se registra en supuestos.csv con criticidad y certeza."
+  },
+  {
+   "termino": "Mapa de supuestos",
+   "definicion": "Matriz criticidad × certeza; los supuestos críticos y sin evidencia son hipótesis y se validan primero."
+  },
+  {
+   "termino": "Experimento",
+   "definicion": "La forma más barata de obtener evidencia sobre un supuesto, con criterio y fecha decididos antes."
+  },
+  {
+   "termino": "Deseabilidad, viabilidad, factibilidad",
+   "definicion": "Las tres familias de supuestos: ¿lo van a usar?, ¿cierra?, ¿se puede construir y operar?"
+  },
+  {
+   "termino": "Business case",
+   "definicion": "Justificación del proyecto: opciones, beneficios, costos, riesgos y evaluación de la inversión."
+  },
+  {
+   "termino": "VAN (NPV) y TIR (IRR)",
+   "definicion": "VAN: suma de los flujos anuales descontados a la tasa de la organización. TIR: la tasa con la que el VAN da 0."
+  },
+  {
+   "termino": "Repago (payback)",
+   "definicion": "Tiempo hasta que el flujo acumulado de una opción llega a cero."
+  },
+  {
+   "termino": "Opción 0 y punto de equilibrio",
+   "definicion": "Opción 0: no hacer nada distinto, la base de comparación. Punto de equilibrio: cuánto puede caer un beneficio antes de que el VAN llegue a 0."
+  },
+  {
+   "termino": "Enfoque de entrega",
+   "definicion": "Predictivo, adaptativo o híbrido; se elige por entregable con nueve criterios y se revisa en cada puerta."
+  },
+  {
+   "termino": "Adaptación (tailoring)",
+   "definicion": "Decidir y documentar cuánta formalidad necesita cada parte de la gestión según el contexto."
+  },
+  {
+   "termino": "Enfoque de beneficios",
+   "definicion": "Quién mide cada beneficio, con qué línea base, cuándo y con qué recursos, incluso después del cierre."
+  },
+  {
+   "termino": "Descripción del producto del proyecto",
+   "definicion": "Propósito, productos mayores, criterios de aceptación y tolerancias de calidad del producto final."
+  },
+  {
+   "termino": "Contingencia",
+   "definicion": "Reserva para riesgos identificados (EMV más costo de las respuestas); forma parte del BAC."
+  },
+  {
+   "termino": "BAC",
+   "definicion": "Presupuesto a la conclusión: paquetes base más contingencia."
+  },
+  {
+   "termino": "Reserva de gestión",
+   "definicion": "Reserva para lo no identificado, fuera del BAC; solo la libera la junta."
+  },
+  {
+   "termino": "Presupuesto de cambio",
+   "definicion": "Monto aparte para cambios aprobados por la autoridad de cambio, con un tope por cambio."
+  },
+  {
+   "termino": "Orden de magnitud",
+   "definicion": "Estimación inicial con exactitud de −25 % a +75 %; se refina en la iniciación."
+  },
+  {
+   "termino": "PID",
+   "definicion": "Documentación de inicio del proyecto: el contrato entre el gestor y la junta."
+  },
+  {
+   "termino": "Contexto de sesión",
+   "definicion": "Resumen de estado.json y los registros que el hook de inicio agrega al abrir Claude Code; manda sobre la memoria."
+  },
+  {
+   "termino": "SUP-01…03 y REG-09",
+   "definicion": "Controles de sanidad: crítico sin experimento o fecha; fecha vencida sin resultado; invalidado sin tratar; riesgo abierto con la revisión vencida."
+  },
+  {
+   "termino": "P-04 y P-11",
+   "definicion": "Controles de autorizar-proyecto: criterios de éxito sin enfoque de beneficios; supuestos críticos sin validar (aviso si la junta los acepta por escrito)."
+  },
+  {
+   "termino": "Mapa de Wardley y recorrido del cliente",
+   "definicion": "El primero ubica los componentes por visibilidad para el usuario y evolución (génesis → commodity) para decidir qué construir o comprar y ver la inercia; el segundo sigue a una persona paso a paso con su emoción y sus dolores."
+  }
+ ]
+}

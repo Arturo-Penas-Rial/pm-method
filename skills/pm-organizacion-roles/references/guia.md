@@ -31,7 +31,7 @@ Roles de BMAD (orientativo; ver `pm-bmad-puente/references/guia.md` §3). Los "a
 Estructura de una página: junta con tres intereses (puede ser de dos personas si el ejecutivo asume el interés usuario y el PO es su delegado), PO con autoridad escrita de una línea, equipo con punto de contacto, aseguramiento en alguien de la junta o un tercero. Sin descripciones de rol separadas; RACI por release o épica (5–8 filas); cuadrícula fusionada con el registro. El team charter se reemplaza por el acuerdo de trabajo (DoD/DoR y eventos) que mantiene `pm-agil-hibrido`.
 
 ## 4. Traspaso a pm-interesados
-Desde v2.2 el análisis de interesados (matriz poder/interés con estrategia por cuadrante), la RACI (`raci.csv`, un A por
+El análisis de interesados (matriz poder/interés con estrategia por cuadrante), la RACI (`raci.csv`, un A por
 elemento), los estereotipos, las preferencias de comunicación y el plan de compromiso son de **`pm-interesados`**
 (plantillas `analisis-stakeholders`, `matriz-raci`, `plan-compromiso-stakeholders` y `entrevista-interesado` en esa skill).
 Esta skill le entrega la junta y los roles confirmados para que cada rol figure en el maestro y en la RACI. El usuario
@@ -52,7 +52,7 @@ sénior asesora sobre los influenciadores de su comunidad; el proveedor sénior,
 Con BMAD: la supervisora (PO) opera el flujo de PRD de BMAD y lo presenta; el líder del proveedor ejerce de Architect; el PRD `final` lo aprueba el usuario sénior por delegación de la junta, anotado en su descripción de rol.
 
 ## 7. Columnas de `stakeholders.csv` (id `ST-###`)
-`id`; `nombre` (name); `rol_organizacion` (role in the organisation); `rol_proyecto` (role in the project); `poder` (power); `interes` (interest); `actitud` (attitude); `nivel_compromiso_actual` (current engagement); `nivel_compromiso_deseado` (desired engagement); `expectativas` (expectations); `canal` (channel); `frecuencia` (frequency); `responsable_relacion` (relationship owner); `confidencial` (confidential: si/no; `si` restringe la circulación y excluye la fila de exportaciones públicas); `notas` (notes); v2.2: `estereotipo` (stereotype ET-###), `correo` (e-mail), `usuario_chat` (Slack/Teams user). Dueña del registro: `pm-interesados` (guía §11).
+`id`; `nombre` (name); `rol_organizacion` (role in the organisation); `rol_proyecto` (role in the project); `poder` (power); `interes` (interest); `actitud` (attitude); `nivel_compromiso_actual` (current engagement); `nivel_compromiso_deseado` (desired engagement); `expectativas` (expectations); `canal` (channel); `frecuencia` (frequency); `responsable_relacion` (relationship owner); `confidencial` (confidential: si/no; `si` restringe la circulación y excluye la fila de exportaciones públicas); `notas` (notes); `estereotipo` (stereotype ET-###), `correo` (e-mail), `usuario_chat` (Slack/Teams user). Dueña del registro: `pm-interesados` (guía §11).
 
 ## 8. Casos borde
 - Interesado de alto poder y actitud resistente sin acción → riesgo y acción propuesta al ejecutivo.

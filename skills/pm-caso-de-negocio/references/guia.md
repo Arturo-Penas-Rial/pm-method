@@ -22,6 +22,14 @@ Puerta humana: el ejecutivo revisa (rinde cuentas del caso); el usuario sénior 
 | ¿Cuánto valen los riesgos principales? | EMV = impacto monetario × probabilidad (1–5 → 10/30/50/70/90 %) | riesgos no cuantificables → descripción cualitativa |
 | Alcance flexible (ágil/híbrido) | Escenarios mejor / esperado / peor | — |
 
+Cálculo con `scripts/inversion.py` (biblioteca estándar): lee un CSV con una fila por concepto de cada opción
+(`opcion,concepto,tipo,0,1,2,…`, con `tipo` = `inversion`, `costo` o `beneficio` y egresos en negativo) y devuelve,
+por opción, VAN, TIR (marcada como ambigua si los flujos cambian de signo más de una vez), repago simple y descontado,
+VAN incremental frente a la opción base, sensibilidad de cada concepto (±20 % por defecto, ordenada como tornado) y
+de la tasa (±2 puntos), y el punto de equilibrio de cada concepto: el VAN es lineal en cada concepto, así que llega a
+0 cuando el concepto vale `1 − VAN / VAN_concepto` veces lo estimado. Salida en texto o `--json`; fórmulas y formato
+en `--help`. Las cifras y la tasa siguen saliendo de la organización, con su fuente en el documento.
+
 En proyectos obligatorios se comparan igualmente maneras de cumplir. El EMV de riesgos se refleja como reserva de contingencia en `pm-costos-presupuesto` (dentro del BAC, no como reserva de gestión).
 
 ## 3. Business case de una página (perfil ágil mínimo, SPEC §1.10.12)

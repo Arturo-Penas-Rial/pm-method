@@ -23,8 +23,11 @@ Uso / Usage:
   envios.py --proyecto G verificar --modo smtp|slack-webhook|teams-webhook  # comprueba variables de entorno (sin red)
 Variables de entorno: PM_SMTP_HOST, PM_SMTP_PUERTO (587), PM_SMTP_TLS (starttls|ssl|ninguno), PM_SMTP_USUARIO, PM_SMTP_CLAVE,
 PM_SMTP_REMITENTE · PM_SLACK_WEBHOOK_URL · PM_TEAMS_WEBHOOK_URL.
+Con PM_SMTP_TLS=ninguno hacia un host que no es de bucle local (127.0.0.1, localhost) se avisa y, si hay usuario y
+contraseña, no se envía. Las URL de webhook deben ser https:// (http:// solo hacia bucle local, para pruebas).
+`aprobar` y `enviar --confirmar` los confirma siempre una persona: el hook guardian.py pide permiso (docs/SEGURIDAD.md).
 """
-import argparse, csv, datetime, glob, json, os, re, smtplib, ssl, sys, time, urllib.request
+import argparse, csv, datetime, glob, json, os, re, smtplib, ssl, sys, time, urllib.parse, urllib.request
 from email.message import EmailMessage
 from email.utils import make_msgid, formatdate
 
@@ -115,6 +118,31 @@ def rel(proyecto, p): return os.path.relpath(p, proyecto)
 # ------------------------------------------------------------------ transportes
 def env_faltantes(modo): return [v for v in ENV.get(modo, []) if not os.environ.get(v)]
 
+BUCLE_LOCAL = ("127.0.0.1", "localhost", "::1")
+
+def revisar_tls():
+    """SEG-04: con PM_SMTP_TLS=ninguno la conexión no se cifra. Hacia un host que no es de bucle local: aviso explícito y,
+    si hay usuario y contraseña, rechazo (la contraseña viajaría en claro). Devuelve el error o None."""
+    host = (os.environ.get("PM_SMTP_HOST") or "").strip().lower()
+    if (os.environ.get("PM_SMTP_TLS") or "starttls").lower() != "ninguno" or host in BUCLE_LOCAL: return None
+    if os.environ.get("PM_SMTP_USUARIO") and os.environ.get("PM_SMTP_CLAVE"):
+        return t(f"PM_SMTP_TLS=ninguno con usuario y contraseña hacia {host}: la contraseña viajaría sin cifrar. Usar PM_SMTP_TLS=starttls o ssl "
+                 "(sin TLS solo se admite un servidor de bucle local, 127.0.0.1 o localhost). No se envió nada.",
+                 f"PM_SMTP_TLS=ninguno with user and password to {host}: the password would travel unencrypted. Use PM_SMTP_TLS=starttls or ssl "
+                 "(no TLS is only allowed for a loopback server). Nothing sent.")
+    print(t(f"AVISO: PM_SMTP_TLS=ninguno: la conexión con {host} no está cifrada (el contenido de los mensajes viaja en claro).",
+            f"WARNING: PM_SMTP_TLS=ninguno: the connection to {host} is not encrypted."), file=sys.stderr)
+    return None
+
+def revisar_url(modo):
+    """SEG-05: la URL del webhook debe ser https:// (http:// solo hacia bucle local, para pruebas). Devuelve el error o None."""
+    var = "PM_SLACK_WEBHOOK_URL" if modo == "slack-webhook" else "PM_TEAMS_WEBHOOK_URL"
+    u = urllib.parse.urlsplit(os.environ.get(var) or "")
+    if u.scheme == "https" and u.hostname: return None
+    if u.scheme == "http" and (u.hostname or "").lower() in BUCLE_LOCAL: return None
+    return t(f"{var} debe empezar con https:// (http:// solo hacia 127.0.0.1 o localhost). No se envió nada.",
+             f"{var} must start with https:// (http:// only to a loopback host). Nothing sent.")
+
 def enviar_smtp(fm, cuerpo, destino):
     host = os.environ["PM_SMTP_HOST"]; puerto = int(os.environ.get("PM_SMTP_PUERTO") or 587)
     tls = (os.environ.get("PM_SMTP_TLS") or "starttls").lower(); usuario = os.environ.get("PM_SMTP_USUARIO", ""); clave = os.environ.get("PM_SMTP_CLAVE", "")
@@ -190,6 +218,9 @@ def cmd_aprobar(proyecto, carpeta, solo, por):
 def cmd_enviar(proyecto, carpeta, modo, confirmar, solo, fecha=None):
     canal_modo = CANAL_DE_MODO[modo]; falt = env_faltantes(modo)
     if confirmar and falt: sys.exit(t(f"Faltan variables de entorno para {modo}: {', '.join(falt)} (ver docs/INSTALACION.md §0.7). No se envió nada.", f"Missing environment variables for {modo}: {', '.join(falt)}. Nothing sent."))
+    if confirmar:
+        err = revisar_tls() if modo == "smtp" else (revisar_url(modo) if modo in ("slack-webhook", "teams-webhook") else None)
+        if err: sys.exit(err)
     resumen = {"enviados": 0, "fallidos": 0, "omitidos": 0, "simulados": 0}
     for p in mensajes(carpeta, solo):
         fm, cuerpo, _ = leer_mensaje(p); arch = os.path.basename(p)
@@ -305,6 +336,8 @@ def main():
     if a.cmd == "verificar":
         falt = env_faltantes(a.modo); opc = {"smtp": ["PM_SMTP_PUERTO", "PM_SMTP_TLS", "PM_SMTP_USUARIO", "PM_SMTP_CLAVE"]}.get(a.modo, [])
         for vname in ENV[a.modo] + opc: print(f"   {vname}: {t('definida', 'set') if os.environ.get(vname) else t('no definida', 'not set')}")
+        err = None if falt else (revisar_tls() if a.modo == "smtp" else (revisar_url(a.modo) if a.modo in ("slack-webhook", "teams-webhook") else None))
+        if err: print(err.replace(t(" No se envió nada.", " Nothing sent."), "")); sys.exit(1)
         print(t("Listo para enviar." if not falt else f"Faltan: {', '.join(falt)}", "Ready." if not falt else f"Missing: {', '.join(falt)}")); sys.exit(1 if falt else 0)
     carpeta = carpeta_ok(a.proyecto, a.carpeta)
     if a.cmd == "estado": cmd_estado(a.proyecto, carpeta, a.json)

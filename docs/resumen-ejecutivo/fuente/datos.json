@@ -1,0 +1,1915 @@
+{
+ "generado": "2026-10-20T14:31:23",
+ "meta": {
+  "version": "2.3.0",
+  "licencia": "MIT",
+  "fecha": "2026-10-20",
+  "fecha_larga": "20 de octubre de 2026"
+ },
+ "jerarquia": [
+  {
+   "capa": "PRINCE2 7",
+   "rol": "método y ciclo de vida; siempre manda"
+  },
+  {
+   "capa": "PMBOK 8",
+   "rol": "solo el \"cómo\" (técnicas) o vacíos de PRINCE2"
+  },
+  {
+   "capa": "Plantillas",
+   "rol": "artefactos (campos, listas), destiladas en palabras propias, nunca texto literal"
+  },
+  {
+   "capa": "BMAD",
+   "rol": "capa de especificación de solo lectura, fuente única por dato (especificacion.py, bmad.py)"
+  }
+ ],
+ "agentes": [
+  {
+   "nombre": "pm-orquestador",
+   "procesos": "SU, DP, IP, CS, MP, SB, CP",
+   "subagente": false
+  },
+  {
+   "nombre": "pm-director",
+   "procesos": "DP",
+   "subagente": true
+  },
+  {
+   "nombre": "pm-inicio",
+   "procesos": "SU, IP",
+   "subagente": true
+  },
+  {
+   "nombre": "pm-planificacion",
+   "procesos": "Plans; IP, SB",
+   "subagente": true
+  },
+  {
+   "nombre": "pm-control",
+   "procesos": "CS, MP",
+   "subagente": true
+  },
+  {
+   "nombre": "pm-cierre",
+   "procesos": "CP",
+   "subagente": true
+  }
+ ],
+ "skills": [
+  {
+   "nombre": "pm-acta-constitucion",
+   "agente": "pm-inicio",
+   "fase": "inicio",
+   "procesos": [
+    "IP",
+    "DP"
+   ],
+   "comando": false,
+   "usar": "acta de constitución, PID, project charter, autorizar proyecto"
+  },
+  {
+   "nombre": "pm-adquisiciones",
+   "agente": "pm-planificacion",
+   "fase": "planificacion",
+   "procesos": [
+    "IP",
+    "CS",
+    "MP",
+    "SB",
+    "CP"
+   ],
+   "comando": false,
+   "usar": "proveedor, licitación, RFP, contrato, procurement, vendor"
+  },
+  {
+   "nombre": "pm-agil-hibrido",
+   "agente": "pm-planificacion",
+   "fase": "planificacion",
+   "procesos": [
+    "IP",
+    "CS",
+    "MP",
+    "SB"
+   ],
+   "comando": false,
+   "usar": "backlog, sprint, user story, release plan, DoD, velocity"
+  },
+  {
+   "nombre": "pm-ayuda",
+   "agente": "pm-orquestador",
+   "fase": "transversal",
+   "procesos": [
+    "SU",
+    "IP",
+    "DP",
+    "CS",
+    "MP",
+    "SB",
+    "CP"
+   ],
+   "comando": true,
+   "usar": ""
+  },
+  {
+   "nombre": "pm-bmad-puente",
+   "agente": "pm-planificacion",
+   "fase": "transversal",
+   "procesos": [
+    "IP",
+    "CS",
+    "MP",
+    "SB",
+    "DP"
+   ],
+   "comando": false,
+   "usar": "BMAD, PRD, requisitos FR, trazabilidad, sprint-status, línea base del PRD"
+  },
+  {
+   "nombre": "pm-calidad",
+   "agente": "pm-control",
+   "fase": "control",
+   "procesos": [
+    "IP",
+    "CS",
+    "MP",
+    "SB",
+    "CP"
+   ],
+   "comando": false,
+   "usar": "registro de calidad, revisar o auditar la calidad de un entregable, criterios de aceptación, aceptar producto, quality review, DoD"
+  },
+  {
+   "nombre": "pm-caso-de-negocio",
+   "agente": "pm-inicio",
+   "fase": "inicio",
+   "procesos": [
+    "SU",
+    "IP",
+    "DP",
+    "SB",
+    "CP"
+   ],
+   "comando": false,
+   "usar": "caso de negocio, business case, ROI, VAN/NPV, payback, beneficios"
+  },
+  {
+   "nombre": "pm-cierre-proyecto",
+   "agente": "pm-cierre",
+   "fase": "cierre",
+   "procesos": [
+    "CP",
+    "DP"
+   ],
+   "comando": false,
+   "usar": "cerrar proyecto, cierre prematuro, closeout, end project report"
+  },
+  {
+   "nombre": "pm-comunicacion-stakeholders",
+   "agente": "pm-director",
+   "fase": "transversal",
+   "procesos": [
+    "IP",
+    "DP",
+    "CS",
+    "SB",
+    "CP"
+   ],
+   "comando": false,
+   "usar": "plan de comunicación, comunicado, status email, enviar a interesados"
+  },
+  {
+   "nombre": "pm-costos-presupuesto",
+   "agente": "pm-planificacion",
+   "fase": "planificacion",
+   "procesos": [
+    "IP",
+    "SB"
+   ],
+   "comando": false,
+   "usar": "costear, presupuesto, BAC, contingencia, reserva de gestión, budget, cost baseline"
+  },
+  {
+   "nombre": "pm-cronograma-estimacion",
+   "agente": "pm-planificacion",
+   "fase": "planificacion",
+   "procesos": [
+    "IP",
+    "SB",
+    "MP"
+   ],
+   "comando": false,
+   "usar": "estimar, cronograma, camino crítico, Gantt, schedule, critical path"
+  },
+  {
+   "nombre": "pm-direccion-decisiones",
+   "agente": "pm-director",
+   "fase": "direccion",
+   "procesos": [
+    "DP",
+    "SB",
+    "CS",
+    "CP"
+   ],
+   "comando": false,
+   "usar": "aprobar etapa, autorizar proyecto, junta, excepción, board decision, stage gate"
+  },
+  {
+   "nombre": "pm-enfoques-gestion",
+   "agente": "pm-inicio",
+   "fase": "inicio",
+   "procesos": [
+    "IP",
+    "SB"
+   ],
+   "comando": false,
+   "usar": "enfoque de riesgos, control de cambios, enfoque de calidad, management approach, subsidiary plan"
+  },
+  {
+   "nombre": "pm-estado-proyecto",
+   "agente": "pm-orquestador",
+   "fase": "transversal",
+   "procesos": [
+    "SU",
+    "DP",
+    "IP",
+    "CS",
+    "MP",
+    "SB",
+    "CP"
+   ],
+   "comando": false,
+   "usar": "crear proyecto, estado, etapa, tolerancias, project state"
+  },
+  {
+   "nombre": "pm-estado",
+   "agente": "pm-orquestador",
+   "fase": "transversal",
+   "procesos": [
+    "DP",
+    "CS",
+    "SB"
+   ],
+   "comando": true,
+   "usar": ""
+  },
+  {
+   "nombre": "pm-exportar",
+   "agente": "pm-orquestador",
+   "fase": "transversal",
+   "procesos": [
+    "DP",
+    "IP",
+    "SB",
+    "CP"
+   ],
+   "comando": false,
+   "usar": "exportar a Word, Excel, PowerPoint, paquete de puerta, gate package"
+  },
+  {
+   "nombre": "pm-integraciones",
+   "agente": "pm-control",
+   "fase": "transversal",
+   "procesos": [
+    "CS",
+    "MP",
+    "SB",
+    "DP"
+   ],
+   "comando": false,
+   "usar": "sincronizar Jira, publicar en Slack/Teams, enviar correo, sync"
+  },
+  {
+   "nombre": "pm-interesados",
+   "agente": "pm-inicio",
+   "fase": "transversal",
+   "procesos": [
+    "SU",
+    "IP",
+    "CS",
+    "SB",
+    "CP"
+   ],
+   "comando": false,
+   "usar": "interesados, stakeholders, RACI, poder/interés, preferencias"
+  },
+  {
+   "nombre": "pm-issues-cambios",
+   "agente": "pm-control",
+   "fase": "control",
+   "procesos": [
+    "CS",
+    "MP",
+    "SB",
+    "DP"
+   ],
+   "comando": false,
+   "usar": "issue, incidencia, registro de incidentes, solicitud de cambio, change request, off-spec, concesión, desvío del PRD"
+  },
+  {
+   "nombre": "pm-knowledge",
+   "agente": "pm-orquestador",
+   "fase": "transversal",
+   "procesos": [
+    "SU",
+    "DP",
+    "IP",
+    "CS",
+    "MP",
+    "SB",
+    "CP"
+   ],
+   "comando": false,
+   "usar": "qué es, quién aprueba, qué campos, fórmula, glosario, what is, explain"
+  },
+  {
+   "nombre": "pm-lecciones-aprendidas",
+   "agente": "pm-cierre",
+   "fase": "transversal",
+   "procesos": [
+    "SU",
+    "IP",
+    "CS",
+    "MP",
+    "SB",
+    "CP"
+   ],
+   "comando": false,
+   "usar": "lección aprendida, lessons learned, lessons report, retro de etapa"
+  },
+  {
+   "nombre": "pm-mandato-y-brief",
+   "agente": "pm-inicio",
+   "fase": "inicio",
+   "procesos": [
+    "SU",
+    "IP"
+   ],
+   "comando": false,
+   "usar": "mandato, brief, arrancar, kick-off, canvas, visión, mandate, start up"
+  },
+  {
+   "nombre": "pm-mapas-estrategicos",
+   "agente": "pm-inicio",
+   "fase": "inicio",
+   "procesos": [
+    "SU",
+    "IP",
+    "SB"
+   ],
+   "comando": false,
+   "usar": "mapa de Wardley, evolución de componentes, customer journey, puntos de dolor"
+  },
+  {
+   "nombre": "pm-nuevo",
+   "agente": "pm-orquestador",
+   "fase": "inicio",
+   "procesos": [
+    "SU"
+   ],
+   "comando": true,
+   "usar": ""
+  },
+  {
+   "nombre": "pm-okr",
+   "agente": "pm-director",
+   "fase": "transversal",
+   "procesos": [
+    "SU",
+    "IP",
+    "DP",
+    "SB",
+    "CP"
+   ],
+   "comando": false,
+   "usar": "OKR, key results, check-in, puntuar OKR"
+  },
+  {
+   "nombre": "pm-organizacion-roles",
+   "agente": "pm-inicio",
+   "fase": "inicio",
+   "procesos": [
+    "SU",
+    "IP",
+    "SB"
+   ],
+   "comando": false,
+   "usar": "junta, roles, descripción de rol, team charter, mapear roles ágiles o BMAD"
+  },
+  {
+   "nombre": "pm-orquestador",
+   "agente": "pm-orquestador",
+   "fase": "transversal",
+   "procesos": [
+    "SU",
+    "DP",
+    "IP",
+    "CS",
+    "MP",
+    "SB",
+    "CP"
+   ],
+   "comando": false,
+   "usar": "qué sigue, cómo venimos, next step, how are we doing, gestionar el proyecto"
+  },
+  {
+   "nombre": "pm-paquetes-trabajo",
+   "agente": "pm-control",
+   "fase": "control",
+   "procesos": [
+    "CS",
+    "MP"
+   ],
+   "comando": false,
+   "usar": "autorizar paquete, work package, plan de equipo, recibir paquete, sprint como paquete, team plan"
+  },
+  {
+   "nombre": "pm-plan-etapa-y-limites",
+   "agente": "pm-planificacion",
+   "fase": "planificacion",
+   "procesos": [
+    "SU",
+    "IP",
+    "SB",
+    "DP"
+   ],
+   "comando": false,
+   "usar": "plan de etapa, fin de etapa, stage plan, end stage report"
+  },
+  {
+   "nombre": "pm-planificacion-por-productos",
+   "agente": "pm-planificacion",
+   "fase": "planificacion",
+   "procesos": [
+    "SU",
+    "IP",
+    "SB"
+   ],
+   "comando": false,
+   "usar": "alcance, PBS, WBS, EDT, scope, product description"
+  },
+  {
+   "nombre": "pm-progreso-reportes",
+   "agente": "pm-control",
+   "fase": "control",
+   "procesos": [
+    "CS",
+    "MP",
+    "DP"
+   ],
+   "comando": false,
+   "usar": "checkpoint, highlight report, status report, valor ganado, EVM, burn-up, pronóstico"
+  },
+  {
+   "nombre": "pm-puerta",
+   "agente": "pm-director",
+   "fase": "direccion",
+   "procesos": [
+    "DP",
+    "SB",
+    "CP"
+   ],
+   "comando": true,
+   "usar": ""
+  },
+  {
+   "nombre": "pm-registros",
+   "agente": "pm-control",
+   "fase": "control",
+   "procesos": [
+    "SU",
+    "IP",
+    "CS",
+    "MP",
+    "SB",
+    "CP"
+   ],
+   "comando": false,
+   "usar": "registrar, anotar, acción, supuesto, RAID, action log"
+  },
+  {
+   "nombre": "pm-reporte",
+   "agente": "pm-control",
+   "fase": "control",
+   "procesos": [
+    "CS",
+    "MP"
+   ],
+   "comando": true,
+   "usar": ""
+  },
+  {
+   "nombre": "pm-reuniones",
+   "agente": "pm-control",
+   "fase": "control",
+   "procesos": [
+    "DP",
+    "CS",
+    "MP",
+    "SB",
+    "CP"
+   ],
+   "comando": false,
+   "usar": "acta, minuta, transcripción, acciones de la reunión, action items, minutes"
+  },
+  {
+   "nombre": "pm-riesgos",
+   "agente": "pm-control",
+   "fase": "control",
+   "procesos": [
+    "SU",
+    "IP",
+    "CS",
+    "MP",
+    "SB",
+    "CP"
+   ],
+   "comando": false,
+   "usar": "riesgo, risk register, matriz P×I, EMV, respuesta al riesgo, oportunidad, informe o auditoría de riesgos"
+  },
+  {
+   "nombre": "pm-sanidad",
+   "agente": "pm-orquestador",
+   "fase": "transversal",
+   "procesos": [
+    "DP",
+    "CS",
+    "SB",
+    "CP"
+   ],
+   "comando": false,
+   "usar": "sanidad, chequeo, consistencia, doctor, health check, antes de una puerta"
+  },
+  {
+   "nombre": "pm-sync",
+   "agente": "pm-control",
+   "fase": "control",
+   "procesos": [
+    "CS",
+    "MP"
+   ],
+   "comando": true,
+   "usar": ""
+  },
+  {
+   "nombre": "pm-visuales",
+   "agente": "pm-orquestador",
+   "fase": "transversal",
+   "procesos": [
+    "SU",
+    "IP",
+    "CS",
+    "SB",
+    "CP"
+   ],
+   "comando": false,
+   "usar": "organigrama, mapa de stakeholders, diagrama de la WBS, roadmap visual, one-pager, tablero, dashboard, vista por actor"
+  }
+ ],
+ "hooks": {
+  "scripts": [
+   "guardian.py",
+   "idioma.py",
+   "inicio.py"
+  ],
+  "eventos": [
+   "PreToolUse",
+   "SessionStart",
+   "UserPromptSubmit"
+  ]
+ },
+ "registros": {
+  "base": [
+   "riesgos",
+   "issues",
+   "cambios",
+   "decisiones",
+   "supuestos",
+   "lecciones",
+   "stakeholders",
+   "calidad",
+   "acciones"
+  ],
+  "opcionales": [
+   "estereotipos",
+   "preferencias",
+   "raci",
+   "envios"
+  ]
+ },
+ "puertas": [
+  "autorizar-inicio",
+  "autorizar-proyecto",
+  "autorizar-etapa",
+  "autorizar-plan-excepcion",
+  "autorizar-cierre",
+  "decision-ad-hoc"
+ ],
+ "integraciones": {
+  "tracker": [
+   "azure-devops",
+   "github",
+   "jira",
+   "linear",
+   "ninguno"
+  ],
+  "chat": [
+   "ninguno",
+   "slack",
+   "teams"
+  ],
+  "correo": [
+   "eml",
+   "gmail",
+   "ninguno",
+   "outlook",
+   "smtp"
+  ],
+  "docs": [
+   "confluence",
+   "ninguno",
+   "notion",
+   "sharepoint"
+  ],
+  "reuniones": [
+   "archivo",
+   "fireflies",
+   "granola",
+   "manual",
+   "minutes",
+   "teams",
+   "zoom"
+  ],
+  "okr": [
+   "archivo",
+   "perdoo",
+   "tability"
+  ],
+  "especificacion": [
+   "bmad",
+   "ninguna"
+  ],
+  "diagramas": [
+   "archify",
+   "diagram-design",
+   "drawio",
+   "mermaid",
+   "visual-explainer"
+  ],
+  "cronograma": [
+   "cpm",
+   "mspdi"
+  ],
+  "export": [
+   "scripts",
+   "skills-office"
+  ]
+ },
+ "bmad_probado": [
+  "4.x",
+  "6.11",
+  "6.12"
+ ],
+ "controles": {
+  "familias": [
+   {
+    "familia": "INS",
+    "nombre": "instalación",
+    "codigos": [
+     "INS-01",
+     "INS-02",
+     "INS-03",
+     "INS-04",
+     "INS-05",
+     "INS-06"
+    ],
+    "permanente": false
+   },
+   {
+    "familia": "EST",
+    "nombre": "estado, roles y puertas",
+    "codigos": [
+     "EST-01",
+     "EST-02",
+     "EST-03",
+     "EST-04",
+     "EST-05",
+     "EST-06",
+     "EST-07",
+     "EST-08",
+     "EST-09",
+     "EST-10",
+     "EST-11",
+     "EST-12",
+     "EST-13",
+     "EST-14"
+    ],
+    "permanente": false
+   },
+   {
+    "familia": "ART",
+    "nombre": "artefactos",
+    "codigos": [
+     "ART-01",
+     "ART-02",
+     "ART-03",
+     "ART-04"
+    ],
+    "permanente": false
+   },
+   {
+    "familia": "REG",
+    "nombre": "registros",
+    "codigos": [
+     "REG-01",
+     "REG-02",
+     "REG-03",
+     "REG-04",
+     "REG-05",
+     "REG-06",
+     "REG-07",
+     "REG-08",
+     "REG-09"
+    ],
+    "permanente": false
+   },
+   {
+    "familia": "CAM",
+    "nombre": "cambios contra presupuestos",
+    "codigos": [
+     "CAM-01",
+     "CAM-02",
+     "CAM-03",
+     "CAM-04",
+     "CAM-05"
+    ],
+    "permanente": true
+   },
+   {
+    "familia": "QUA",
+    "nombre": "calidad a volumen",
+    "codigos": [
+     "QUA-01",
+     "QUA-02",
+     "QUA-03"
+    ],
+    "permanente": true
+   },
+   {
+    "familia": "TOL",
+    "nombre": "pronóstico contra tolerancias",
+    "codigos": [
+     "TOL-01",
+     "TOL-02",
+     "TOL-03"
+    ],
+    "permanente": true
+   },
+   {
+    "familia": "SUP",
+    "nombre": "supuestos críticos",
+    "codigos": [
+     "SUP-01",
+     "SUP-02",
+     "SUP-03"
+    ],
+    "permanente": true
+   },
+   {
+    "familia": "ESP",
+    "nombre": "especificación y BMAD",
+    "codigos": [
+     "ESP-01",
+     "ESP-02",
+     "ESP-03",
+     "ESP-04",
+     "ESP-05",
+     "ESP-06",
+     "ESP-07",
+     "ESP-08",
+     "ESP-09",
+     "ESP-10",
+     "ESP-11",
+     "ESP-12",
+     "ESP-13",
+     "ESP-14",
+     "ESP-15"
+    ],
+    "permanente": false
+   },
+   {
+    "familia": "STK",
+    "nombre": "maestro de interesados",
+    "codigos": [
+     "STK-00",
+     "STK-01",
+     "STK-02",
+     "STK-03",
+     "STK-04",
+     "STK-05",
+     "STK-06",
+     "STK-07",
+     "STK-08",
+     "STK-09",
+     "STK-10",
+     "STK-11",
+     "STK-12"
+    ],
+    "permanente": false
+   },
+   {
+    "familia": "MAP",
+    "nombre": "mapas de Wardley y de recorrido",
+    "codigos": [
+     "MAP-00",
+     "MAP-01",
+     "MAP-02",
+     "MAP-03",
+     "MAP-04",
+     "MAP-05"
+    ],
+    "permanente": false
+   },
+   {
+    "familia": "INT",
+    "nombre": "integraciones MCP",
+    "codigos": [
+     "INT-01",
+     "INT-02",
+     "INT-03",
+     "INT-04"
+    ],
+    "permanente": false
+   }
+  ],
+  "puerta": [
+   "P-01",
+   "P-02",
+   "P-03",
+   "P-04",
+   "P-05",
+   "P-06",
+   "P-07",
+   "P-08",
+   "P-09",
+   "P-10",
+   "P-11",
+   "G-01"
+  ],
+  "ejemplos": [
+   {
+    "codigo": "CAM-03",
+    "caso": "E2E-2",
+    "texto": "El presupuesto de cambio queda en 75 % tras C-001; con C-002 llegaría al 200 %, por eso C-002 espera a la junta, que amplía el presupuesto y lo aprueba: vuelve a 75 % (paso 10)."
+   },
+   {
+    "codigo": "CAM-03",
+    "caso": "E2E-1",
+    "texto": "La reserva pasa del 21 % al 81 % en cinco corridas de la sanidad; al cruzar el 80 %, CAM-03 deja de ser informativo y avisa."
+   },
+   {
+    "codigo": "STK-12",
+    "caso": "E2E-3",
+    "texto": "STK-12 al 5/2: TI, Martín y Lucía superan el máximo de días sin contacto. Laura, Sofía y el sindicato están en el límite."
+   },
+   {
+    "codigo": "QUA-01",
+    "caso": "E2E-4",
+    "texto": "Historias terminadas contra historias con revisión aprobada en cada corte: las brechas del 26/2 y del 7/5 se cerraron antes de la puerta siguiente (paso 8)."
+   }
+  ]
+ },
+ "casos": [
+  {
+   "id": "E2E-1",
+   "titulo_guia": "Ciclo completo de gestión de riesgos",
+   "archivo": "docs/guias/E2E-1-riesgos.md",
+   "pasos": 15,
+   "clases": 2,
+   "imagenes": {
+    "g1-mapa-inherente-residual.png": {
+     "alt": "Mapa de calor inherente frente a residual",
+     "leyenda": "Dos amenazas en zona alta al salir del taller; con las respuestas del paso 6, ninguna queda en zona alta."
+    },
+    "g1-revisiones-vencidas.png": {
+     "alt": "Riesgos con la revisión vencida al 12/02",
+     "leyenda": "El 12/02 los seis riesgos abiertos llevan entre 17 y 45 días sin revisar; la sanidad lo avisaba con REG-09 desde el 12/01."
+    },
+    "g1-consumo-reserva.png": {
+     "alt": "Consumo de la reserva de riesgo",
+     "leyenda": "La reserva pasa del 21 % al 81 % en cinco corridas de la sanidad; al cruzar el 80 %, CAM-03 deja de ser informativo y avisa."
+    },
+    "g1-tarjetas-etapa.png": {
+     "alt": "Tarjetas del fin de etapa",
+     "leyenda": "El estado de riesgo en una sola vista para la junta del límite de etapa: lo único en atención es la reserva."
+    }
+   },
+   "imagen": {
+    "archivo": "docs/guias/img/g1-consumo-reserva.png",
+    "alt": "Consumo de la reserva de riesgo",
+    "leyenda": "La reserva pasa del 21 % al 81 % en cinco corridas de la sanidad; al cruzar el 80 %, CAM-03 deja de ser informativo y avisa."
+   },
+   "indicadores": [
+    "Dos amenazas en zona alta al salir del taller; con las respuestas del paso 6, ninguna queda en zona alta.",
+    "La reserva pasa del 21 % al 81 % en cinco corridas de la sanidad; al cruzar el 80 %, CAM-03 deja de ser informativo y avisa.",
+    "El estado de riesgo en una sola vista para la junta del límite de etapa: lo único en atención es la reserva."
+   ]
+  },
+  {
+   "id": "E2E-2",
+   "titulo_guia": "Alcance y su cambio, estimación de esfuerzo, priorización y mapa de ruta",
+   "archivo": "docs/guias/E2E-2-alcance-roadmap.md",
+   "pasos": 10,
+   "clases": 2,
+   "imagenes": {
+    "g2-indicadores.png": {
+     "alt": "Tarjetas de indicadores del caso",
+     "leyenda": "Resumen al 26/2: VAN de 30.939 con los dos cambios, puesta en producción el 18/5, 2 días de reserva, presupuesto de cambio al 75 % tras la ampliación, 22,1 % del alcance en riesgo en el corte del 19/2 y 13 de 13 requisitos trazados."
+    },
+    "g2-consumo-cambio.png": {
+     "alt": "Consumo del presupuesto de cambio en tres cortes",
+     "leyenda": "El presupuesto de cambio queda en 75 % tras C-001; con C-002 llegaría al 200 %, por eso C-002 espera a la junta, que amplía el presupuesto y lo aprueba: vuelve a 75 % (paso 10)."
+    },
+    "g2-alcance-evm.png": {
+     "alt": "Alcance que no entra frente al margen de Should/Could",
+     "leyenda": "El 29/1 no entra el 10,3 % del alcance (ámbar, lo gestiona el PO); el 19/2 no entra el 22,1 %, más que el 20 % de margen: los Must peligran y hay excepción (pasos 9 y 10)."
+    },
+    "g2-business-case.png": {
+     "alt": "VAN del business case en cada escenario",
+     "leyenda": "C-001 suma 6.163 de VAN y C-002 resta 15.000; con los dos, el VAN sigue en 30.939 y el beneficio principal puede caer 18 % antes de llegar a 0 (pasos 5, 7 y 10)."
+    }
+   },
+   "imagen": {
+    "archivo": "docs/guias/img/g2-consumo-cambio.png",
+    "alt": "Consumo del presupuesto de cambio en tres cortes",
+    "leyenda": "El presupuesto de cambio queda en 75 % tras C-001; con C-002 llegaría al 200 %, por eso C-002 espera a la junta, que amplía el presupuesto y lo aprueba: vuelve a 75 % (paso 10)."
+   },
+   "indicadores": [
+    "El presupuesto de cambio queda en 75 % tras C-001; con C-002 llegaría al 200 %, por eso C-002 espera a la junta, que amplía el presupuesto y lo aprueba: vuelve a 75 % (paso 10).",
+    "El 29/1 no entra el 10,3 % del alcance (ámbar, lo gestiona el PO); el 19/2 no entra el 22,1 %, más que el 20 % de margen: los Must peligran y hay excepción (pasos 9 y 10).",
+    "Resumen al 26/2: VAN de 30.939 con los dos cambios, puesta en producción el 18/5, 2 días de reserva, presupuesto de cambio al 75 % tras la ampliación, 22,1 % del alcance en riesgo en el corte del 19/2 y 13 de 13 requisitos trazados."
+   ]
+  },
+  {
+   "id": "E2E-3",
+   "titulo_guia": "Interesados, comunicaciones, OKR y reporte de avance",
+   "archivo": "docs/guias/E2E-3-interesados-okr-avance.md",
+   "pasos": 14,
+   "clases": 2,
+   "imagenes": {
+    "g3-highlight-indicadores.png": {
+     "alt": "Indicadores del highlight al 8/1",
+     "leyenda": "Highlight al 8/1: plazo y costo en ámbar dentro de la tolerancia (SPI 0,933, CPI 0,942) y un compromiso vencido (A-004)."
+    },
+    "g3-okr-salud.png": {
+     "alt": "Salud de los KR por check-in",
+     "leyenda": "Margen de cada KR frente a su avance esperado: la bandeja (KR-2.3) cae a −19 pp el 8/1 y queda «en riesgo»."
+    },
+    "g3-cadencia-stk12.png": {
+     "alt": "Cadencia de contacto al 5/2",
+     "leyenda": "STK-12 al 5/2: TI, Martín y Lucía superan el máximo de días sin contacto. Laura, Sofía y el sindicato están en el límite."
+    },
+    "g3-brecha-compromiso.png": {
+     "alt": "Brecha de compromiso por revisión",
+     "leyenda": "La brecha total baja de 7 a 3 niveles. TI empeora cuando se corta su reunión semanal y repunta al retomarla."
+    }
+   },
+   "imagen": {
+    "archivo": "docs/guias/img/g3-cadencia-stk12.png",
+    "alt": "Cadencia de contacto al 5/2",
+    "leyenda": "STK-12 al 5/2: TI, Martín y Lucía superan el máximo de días sin contacto. Laura, Sofía y el sindicato están en el límite."
+   },
+   "indicadores": [
+    "Highlight al 8/1: plazo y costo en ámbar dentro de la tolerancia (SPI 0,933, CPI 0,942) y un compromiso vencido (A-004).",
+    "STK-12 al 5/2: TI, Martín y Lucía superan el máximo de días sin contacto. Laura, Sofía y el sindicato están en el límite.",
+    "La brecha total baja de 7 a 3 niveles. TI empeora cuando se corta su reunión semanal y repunta al retomarla."
+   ]
+  },
+  {
+   "id": "E2E-4",
+   "titulo_guia": "Gestión del producto de la idea al producto con BMAD dentro de un proyecto PRINCE2",
+   "archivo": "docs/guias/E2E-4-producto-bmad.md",
+   "pasos": 12,
+   "clases": 2,
+   "imagenes": {
+    "g4-calidad-entregas.png": {
+     "alt": "Calidad por entrega",
+     "leyenda": "Historias terminadas contra historias con revisión aprobada en cada corte: las brechas del 26/2 y del 7/5 se cerraron antes de la puerta siguiente (paso 8)."
+    },
+    "g4-recorrido.png": {
+     "alt": "Recorrido de la socia sobre el Release 1",
+     "leyenda": "El recorrido de UJ-1 con lo observado en la revisión del Release 1: dos dolores, cada uno con su tratamiento (R-001 y NFR-3 con Q-001) (paso 6b)."
+    },
+    "g4-tablero-mapas-169.png": {
+     "alt": "El recorrido en el tablero del Release 1",
+     "leyenda": "El mismo recorrido en la sección «Mapas estratégicos» del tablero de avance: curva de emoción, cada dolor con su tratamiento enlazado y 0 avisos MAP vigentes (paso 7)."
+    },
+    "g4-cierre.png": {
+     "alt": "Tablero de cierre",
+     "leyenda": "La puerta de cierre en una página: 11 de 11 historias con revisión aprobada, CPI 0,977, 40 % del presupuesto de cambio usado y 0 condiciones abiertas (paso 9)."
+    },
+    "g4-beneficios.png": {
+     "alt": "Revisión final de beneficios",
+     "leyenda": "Al 31/12/2027, B-02 adopción llega al 83 % de la meta y queda fuera de la tolerancia de −10 %; B-01 y B-03, dentro (paso 11)."
+    }
+   },
+   "imagen": {
+    "archivo": "docs/guias/img/g4-calidad-entregas.png",
+    "alt": "Calidad por entrega",
+    "leyenda": "Historias terminadas contra historias con revisión aprobada en cada corte: las brechas del 26/2 y del 7/5 se cerraron antes de la puerta siguiente (paso 8)."
+   },
+   "indicadores": [
+    "Historias terminadas contra historias con revisión aprobada en cada corte: las brechas del 26/2 y del 7/5 se cerraron antes de la puerta siguiente (paso 8).",
+    "La puerta de cierre en una página: 11 de 11 historias con revisión aprobada, CPI 0,977, 40 % del presupuesto de cambio usado y 0 condiciones abiertas (paso 9).",
+    "Al 31/12/2027, B-02 adopción llega al 83 % de la meta y queda fuera de la tolerancia de −10 %; B-01 y B-03, dentro (paso 11)."
+   ]
+  },
+  {
+   "id": "E2E-5",
+   "titulo_guia": "De la idea al proyecto diseñado",
+   "archivo": "docs/guias/E2E-5-idea-a-proyecto.md",
+   "pasos": 18,
+   "clases": 2,
+   "imagenes": {
+    "g5-mapa-supuestos.png": {
+     "alt": "Mapa de supuestos",
+     "leyenda": "Tres supuestos críticos sin evidencia (S-001, S-002, S-003) sostienen los dos beneficios y la factibilidad: ahí se invierte primero en aprender (paso 2)."
+    },
+    "g5-van-opciones.png": {
+     "alt": "VAN antes y después de los experimentos",
+     "leyenda": "El piloto bajó el VAN de las dos opciones; la opción 2 sigue siendo la mejor, con una TIR de 54,3 % y un repago de 1,78 años (paso 4)."
+    },
+    "g5-wardley.png": {
+     "alt": "Mapa de valor de los entregables",
+     "leyenda": "Lo que diferencia se construye, lo que el mercado ya ofrece se compra, y el adaptador queda atado a una agenda con inercia: el mapa confirma desde otro ángulo la lectura 23 · 18 · 12 del enfoque (paso 5b)."
+    },
+    "g5-tablero-mapas-169.png": {
+     "alt": "Tablero de mapas del proyecto autorizado",
+     "leyenda": "Los dos mapas del paso 5b en su tablero, con los vínculos de los pasos 6 y 9: la agenda clínica con inercia ya tiene su riesgo (R-001), cada dolor del paciente su tratamiento (S-001, S-002, REQ-003 y REQ-005) y no queda ningún aviso MAP (paso 14)."
+    },
+    "g5-presupuesto.png": {
+     "alt": "Presupuesto con reservas",
+     "leyenda": "La junta autoriza USD 179.340 (BAC 170.800 + reserva de gestión 8.540) y fija aparte un presupuesto de cambio de 10.000 con tope de 3.000 por cambio (paso 9)."
+    },
+    "g5-tablero.png": {
+     "alt": "Tablero del proyecto diseñado",
+     "leyenda": "Al autorizarse el proyecto: VAN de USD 263.229 con el presupuesto real, 4 de 4 supuestos críticos tratados (uno de ellos aceptado por la junta con la decisión D-009) y la puerta autorizar-proyecto aprobada el 2027-01-15 (paso 14)."
+    }
+   },
+   "imagen": {
+    "archivo": "docs/guias/img/g5-van-opciones.png",
+    "alt": "VAN antes y después de los experimentos",
+    "leyenda": "El piloto bajó el VAN de las dos opciones; la opción 2 sigue siendo la mejor, con una TIR de 54,3 % y un repago de 1,78 años (paso 4)."
+   },
+   "indicadores": [
+    "Tres supuestos críticos sin evidencia (S-001, S-002, S-003) sostienen los dos beneficios y la factibilidad: ahí se invierte primero en aprender (paso 2).",
+    "El piloto bajó el VAN de las dos opciones; la opción 2 sigue siendo la mejor, con una TIR de 54,3 % y un repago de 1,78 años (paso 4).",
+    "La junta autoriza USD 179.340 (BAC 170.800 + reserva de gestión 8.540) y fija aparte un presupuesto de cambio de 10.000 con tope de 3.000 por cambio (paso 9)."
+   ]
+  }
+ ],
+ "ciclo": [
+  {
+   "codigo": "SU",
+   "procesos": [
+    "SU"
+   ],
+   "nombre": "Puesta en marcha",
+   "etapa": "etapa 0 · pre-proyecto",
+   "agentes": [
+    "pm-inicio"
+   ],
+   "produce": "mandato · project brief · caso de negocio esquemático",
+   "skills": [
+    "pm-caso-de-negocio",
+    "pm-interesados",
+    "pm-mandato-y-brief",
+    "pm-mapas-estrategicos",
+    "pm-organizacion-roles"
+   ]
+  },
+  {
+   "codigo": "IP",
+   "procesos": [
+    "IP"
+   ],
+   "nombre": "Iniciación",
+   "etapa": "etapa 1",
+   "agentes": [
+    "pm-inicio",
+    "pm-planificacion"
+   ],
+   "produce": "PID · business case · planes · presupuestos de la junta",
+   "skills_de": [
+    "pm-inicio"
+   ],
+   "skills": [
+    "pm-acta-constitucion",
+    "pm-caso-de-negocio",
+    "pm-enfoques-gestion",
+    "pm-interesados",
+    "pm-mandato-y-brief",
+    "pm-mapas-estrategicos",
+    "pm-organizacion-roles"
+   ]
+  },
+  {
+   "codigo": "CS · MP",
+   "procesos": [
+    "CS",
+    "MP"
+   ],
+   "nombre": "Control y entrega",
+   "etapa": "etapas 2 … n",
+   "agentes": [
+    "pm-control"
+   ],
+   "produce": "paquetes · highlight · registros · valor ganado",
+   "skills": [
+    "pm-calidad",
+    "pm-integraciones",
+    "pm-issues-cambios",
+    "pm-paquetes-trabajo",
+    "pm-progreso-reportes",
+    "pm-registros",
+    "pm-reuniones",
+    "pm-riesgos"
+   ]
+  },
+  {
+   "codigo": "SB",
+   "procesos": [
+    "SB"
+   ],
+   "nombre": "Límite de etapa",
+   "etapa": "fin de cada etapa",
+   "agentes": [
+    "pm-planificacion"
+   ],
+   "produce": "informe de fin de etapa · plan de la siguiente",
+   "skills": [
+    "pm-adquisiciones",
+    "pm-agil-hibrido",
+    "pm-bmad-puente",
+    "pm-costos-presupuesto",
+    "pm-cronograma-estimacion",
+    "pm-plan-etapa-y-limites",
+    "pm-planificacion-por-productos"
+   ]
+  },
+  {
+   "codigo": "CP",
+   "procesos": [
+    "CP"
+   ],
+   "nombre": "Cierre",
+   "etapa": "última etapa",
+   "agentes": [
+    "pm-cierre"
+   ],
+   "produce": "aceptación · lecciones · revisión de beneficios",
+   "skills": [
+    "pm-cierre-proyecto",
+    "pm-lecciones-aprendidas"
+   ]
+  }
+ ],
+ "webinar": [
+  {
+   "caso": "E2E-1",
+   "clases": 2,
+   "minutos": 180,
+   "diapositivas": 37,
+   "glosario": 24,
+   "guion": true,
+   "ejercicio": true
+  },
+  {
+   "caso": "E2E-2",
+   "clases": 2,
+   "minutos": 180,
+   "diapositivas": 35,
+   "glosario": 25,
+   "guion": true,
+   "ejercicio": true
+  },
+  {
+   "caso": "E2E-3",
+   "clases": 2,
+   "minutos": 180,
+   "diapositivas": 38,
+   "glosario": 25,
+   "guion": true,
+   "ejercicio": true
+  },
+  {
+   "caso": "E2E-4",
+   "clases": 2,
+   "minutos": 180,
+   "diapositivas": 36,
+   "glosario": 25,
+   "guion": true,
+   "ejercicio": true
+  },
+  {
+   "caso": "E2E-5",
+   "clases": 2,
+   "minutos": 180,
+   "diapositivas": 40,
+   "glosario": 25,
+   "guion": true,
+   "ejercicio": true
+  }
+ ],
+ "glosario": [
+  {
+   "termino": "Agente y subagente",
+   "definicion": "Instancia del modelo con un rol. El orquestador conversa con la persona y delega en subagentes de fase, que trabajan con contexto aislado y no deciden.",
+   "formas": [
+    "subagentes",
+    "agentes"
+   ],
+   "fuente": "propia"
+  },
+  {
+   "termino": "BMAD",
+   "definicion": "Método de especificación y construcción con agentes; en pm-method es la fuente única de la especificación, de solo lectura.",
+   "formas": [
+    "BMAD"
+   ],
+   "fuente": "webinar"
+  },
+  {
+   "termino": "Condición formal",
+   "definicion": "Requisito que la junta impone al autorizar una puerta; se sigue con EST-12 y G-01 hasta cumplir-condiciones.",
+   "formas": [
+    "condición formal",
+    "condiciones"
+   ],
+   "fuente": "webinar"
+  },
+  {
+   "termino": "Fachada de especificación",
+   "definicion": "Lectura de BMAD que hace pm-method (bmad.py, especificacion.py) sin copiar ni modificar los artefactos.",
+   "formas": [
+    "fachada"
+   ],
+   "fuente": "webinar"
+  },
+  {
+   "termino": "Gestión por excepción",
+   "definicion": "Cada nivel decide dentro de su tolerancia y escala solo cuando un pronóstico la supera (management by exception).",
+   "formas": [
+    "gestión por excepción"
+   ],
+   "fuente": "webinar"
+  },
+  {
+   "termino": "Hook",
+   "definicion": "Script que Claude Code ejecuta ante un evento (inicio de sesión, pedido, uso de una herramienta). En pm-method protege los datos de gobierno y agrega contexto.",
+   "formas": [
+    "hooks"
+   ],
+   "fuente": "propia"
+  },
+  {
+   "termino": "Junta del proyecto (project board)",
+   "definicion": "Ejecutiva, usuaria sénior y proveedor sénior; decide tolerancias, presupuestos y excepciones.",
+   "formas": [
+    "junta"
+   ],
+   "fuente": "webinar"
+  },
+  {
+   "termino": "Matriz RACI",
+   "definicion": "Quién es responsable (R), aprobador (A), consultado (C) e informado (I) en cada elemento; un solo A.",
+   "formas": [
+    "RACI"
+   ],
+   "fuente": "webinar"
+  },
+  {
+   "termino": "MCP",
+   "definicion": "Model Context Protocol: estándar para conectar el modelo con herramientas externas como trackers, chat, correo, transcripciones u OKR.",
+   "formas": [
+    "MCP"
+   ],
+   "fuente": "propia"
+  },
+  {
+   "termino": "OKR",
+   "definicion": "Objetivos y resultados clave: metas de ciclo que complementan los beneficios y se siguen con check-ins (mediciones fechadas con su confianza).",
+   "formas": [
+    "OKR"
+   ],
+   "fuente": "webinar"
+  },
+  {
+   "termino": "PMBOK 8",
+   "definicion": "Guía de fundamentos de la dirección de proyectos. En pm-method aporta solo técnicas (valor ganado, camino crítico, PERT, P×I) dentro de PRINCE2.",
+   "formas": [
+    "PMBOK 8",
+    "PMBOK"
+   ],
+   "fuente": "propia"
+  },
+  {
+   "termino": "Presupuesto de cambio",
+   "definicion": "Monto que la junta reserva para pagar cambios aprobados, separado de la reserva de riesgo (change budget).",
+   "formas": [
+    "presupuesto de cambio"
+   ],
+   "fuente": "webinar"
+  },
+  {
+   "termino": "PRINCE2 7",
+   "definicion": "Método de gestión de proyectos por etapas. En pm-method define el ciclo de vida, los roles, las tolerancias y las puertas, y siempre manda.",
+   "formas": [
+    "PRINCE2 7",
+    "PRINCE2"
+   ],
+   "fuente": "propia"
+  },
+  {
+   "termino": "Puerta",
+   "definicion": "Decisión formal de la junta; pm-method la verifica y la bloquea si sanidad tiene un ERROR.",
+   "formas": [
+    "puertas",
+    "puerta"
+   ],
+   "fuente": "webinar"
+  },
+  {
+   "termino": "Sanidad",
+   "definicion": "Control automático de pm-method que, en cada corrida, informa hallazgos ERROR, AVISO o INFO con su código.",
+   "formas": [
+    "sanidad"
+   ],
+   "fuente": "webinar"
+  },
+  {
+   "termino": "Skill",
+   "definicion": "Paquete de instrucciones, plantillas y scripts que Claude Code activa por su descripción o que la persona invoca como comando.",
+   "formas": [
+    "skills",
+    "skill"
+   ],
+   "fuente": "propia"
+  },
+  {
+   "termino": "Tolerancia",
+   "definicion": "Margen fijado por la junta; superarlo es una excepción que decide un nivel superior.",
+   "formas": [
+    "tolerancias",
+    "tolerancia"
+   ],
+   "fuente": "webinar"
+  },
+  {
+   "termino": "Valor ganado (EVM)",
+   "definicion": "Técnica que compara lo planificado (PV), lo ganado (EV) y lo gastado (AC) para pronosticar.",
+   "formas": [
+    "valor ganado",
+    "EVM"
+   ],
+   "fuente": "webinar"
+  }
+ ],
+ "perfiles": [
+  {
+   "fila": "PMO / CoE de IA",
+   "titulo": "PMO y centros de excelencia",
+   "empieza": "guía E2E-2: cambio y gestión por excepción",
+   "obtiene": "un estándar reproducible de gestión asistida, con trazabilidad y controles"
+  },
+  {
+   "fila": "Gestor de proyectos",
+   "titulo": "Gestores de proyecto",
+   "empieza": "guía E2E-1: riesgos de punta a punta",
+   "obtiene": "planes, registros, informes y puertas preparados con método; comunicados por interesado enviados con aprobación; menos trabajo administrativo"
+  },
+  {
+   "fila": "Ejecutivo y junta",
+   "titulo": "Líderes de negocio y junta",
+   "empieza": "guía E2E-5: de la idea al proyecto",
+   "obtiene": "decisiones claras con opciones, tolerancias y excepciones a tiempo"
+  },
+  {
+   "fila": "Product owner / equipo ágil",
+   "titulo": "Equipos de producto con BMAD",
+   "empieza": "guía E2E-4: producto con BMAD",
+   "obtiene": "backlog sincronizado con BMAD, MoSCoW, release plan, avance por puntos"
+  }
+ ],
+ "lema": "El modelo prepara; la persona decide; los scripts verifican y registran.",
+ "empezar": {
+  "manual": [
+   "claude plugin marketplace add Arturo-Penas-Rial/pm-method",
+   "claude plugin install pm-method@pm-method"
+  ],
+  "luego": "/pm-method:pm-nuevo \"Mi proyecto\" y \"¿qué sigue?\"",
+  "docker": [
+   "docker compose -f docker/compose.yaml build pm",
+   "PROYECTO=/ruta/al/proyecto docker compose -f /ruta/a/pm-method/docker/compose.yaml run --rm pm",
+   "docker compose -f docker/compose.yaml run --rm pruebas"
+  ],
+  "docker_seguridad": [
+   "Usuario sin privilegios pm (UID 1000)",
+   "Raíz de solo lectura",
+   "Sin capacidades de Linux",
+   "Sin escalada de privilegios",
+   "Sin secretos en capas",
+   "Dependencias verificadas"
+  ]
+ },
+ "seguridad": {
+  "fecha": "2026-10-20",
+  "filas": [
+   {
+    "severidad": "Alta",
+    "cantidad": "0",
+    "corregidos": "—"
+   },
+   {
+    "severidad": "Media",
+    "cantidad": "3",
+    "corregidos": "3"
+   },
+   {
+    "severidad": "Baja",
+    "cantidad": "12",
+    "corregidos": "11 + SEG-12 en parte"
+   },
+   {
+    "severidad": "Informativa",
+    "cantidad": "2",
+    "corregidos": "—"
+   }
+  ]
+ },
+ "vivo": [
+  {
+   "fecha": "2026-10-20",
+   "prueba": "suite.py enrutamiento, 14 frases variadas, tras el resumen de contexto derivado y la precedencia en el hook de inicio",
+   "resultado": "14/14"
+  },
+  {
+   "fecha": "2026-10-20",
+   "prueba": "suite.py enrutamiento, ids 95–102 (skill de mapas estratégicos)",
+   "resultado": "8/8"
+  },
+  {
+   "fecha": "2026-10-20",
+   "prueba": "suite.py controles, tras el control de autoridad y presupuesto de cambio en registro.py",
+   "resultado": "7/7"
+  },
+  {
+   "fecha": "2026-10-20",
+   "prueba": "suite.py integracion con las 29 skills de BMAD 6.12.4 instaladas",
+   "resultado": "12/12"
+  }
+ ],
+ "frases_enrutamiento": 102,
+ "pruebas": {
+  "fecha": "2026-10-20",
+  "validar": {
+   "ok": true,
+   "skills": 39,
+   "invocables": 33,
+   "listado": 6817,
+   "agentes": 6
+  },
+  "regresion": {
+   "ok": 216,
+   "fallo": 0,
+   "casos": 20
+  },
+  "e2e": {
+   "ok": 5,
+   "total": 5
+  },
+  "mermaid": {
+   "bloques": 127,
+   "errores": 0
+  }
+ },
+ "n": {
+  "version": "2.3.0",
+  "agentes": 6,
+  "subagentes": 5,
+  "skills": 39,
+  "invocables": 33,
+  "comandos": 6,
+  "hooks": 3,
+  "eventos_hooks": 3,
+  "registros": 13,
+  "registros_base": 9,
+  "registros_opc": 4,
+  "puertas": 6,
+  "codigos_sanidad": 85,
+  "familias_sanidad": 12,
+  "codigos_puerta": 12,
+  "codigos": 97,
+  "casos": 5,
+  "pasos_casos": 69,
+  "clases_webinar": 10,
+  "diapositivas_webinar": 186,
+  "pruebas_ok": 216,
+  "pruebas_fallo": 0,
+  "pruebas_casos": 20,
+  "e2e_ok": 5,
+  "e2e_total": 5,
+  "mermaid": 127,
+  "mermaid_errores": 0,
+  "listado": 6817,
+  "frases": 102,
+  "familias_permanentes": 4,
+  "hooks_nombres": "guardian · idioma · inicio",
+  "bmad_probado": "4.x, 6.11, 6.12",
+  "licencia": "MIT"
+ },
+ "txt": {
+  "pie": "pm-method 2.3.0 · Resumen ejecutivo",
+  "portada": {
+   "kicker": "Resumen ejecutivo · pm-method 2.3.0",
+   "titulo": "Gestión de proyectos con IA, con método, gobierno y controles permanentes",
+   "subtitulo": "Un plugin para Claude Code y Cowork. PRINCE2 7 manda, PMBOK 8 aporta las técnicas y BMAD es la especificación del producto, de solo lectura.",
+   "cifras": [
+    [
+     "6",
+     "agentes"
+    ],
+    [
+     "39",
+     "skills"
+    ],
+    [
+     "3",
+     "hooks"
+    ],
+    [
+     "97",
+     "controles automáticos"
+    ],
+    [
+     "5",
+     "casos de punta a punta"
+    ]
+   ],
+   "en": "EN: AI-assisted project management with a real method, governance and permanent controls, as a Claude Code and Cowork plugin."
+  },
+  "problema": {
+   "titulo": "Lo que hoy se controla a mano, una sola vez o nunca, pasa a ser un control permanente",
+   "col_hoy": "Lo habitual",
+   "col_pm": "Con pm-method",
+   "filas": [
+    [
+     "El registro de riesgos se arma en un taller y se congela",
+     "Riesgos altos sin respuesta y revisiones vencidas aparecen en cada sesión",
+     "REG-06 · REG-09"
+    ],
+    [
+     "Los cambios se aprueban uno a uno y nadie suma lo comprometido",
+     "Cada cambio se carga contra el presupuesto de la junta; excedido, bloquea la puerta",
+     "CAM-03 · CAM-04"
+    ],
+    [
+     "«Aprobado con condiciones» queda en el acta y se olvida",
+     "La condición se sigue hasta que alguien con rol la cierra; abierta, bloquea el cierre",
+     "EST-12 · G-01"
+    ],
+    [
+     "La calidad se revisa al final, si se revisa",
+     "Cada historia terminada necesita su revisión aprobada, en cada entrega",
+     "QUA-01 · QUA-02"
+    ],
+    [
+     "El pronóstico de valor ganado no se vuelve a mirar",
+     "Un pronóstico fuera de tolerancia sin excepción abierta genera aviso",
+     "TOL-01"
+    ],
+    [
+     "El plan de comunicaciones promete una frecuencia que nadie verifica",
+     "La cadencia de contacto de cada interesado clave queda vigilada",
+     "STK-12"
+    ]
+   ],
+   "en": "EN: what is usually checked by hand, once or never becomes a permanent control that runs in every session."
+  },
+  "perfiles": {
+   "titulo": "PMO, gestores, negocio y producto trabajan sobre la misma fuente de verdad",
+   "obtiene": "Qué obtiene",
+   "empieza": "Para empezar",
+   "en": "EN: one source of truth for PMOs, project managers, business leaders and product teams using BMAD."
+  },
+  "que_es": {
+   "titulo": "Un plugin de Claude Code y Cowork con una jerarquía fija: PRINCE2 7 siempre manda",
+   "jerarquia": "Jerarquía de fuentes",
+   "kpis": [
+    [
+     "6",
+     "agentes",
+     "un orquestador y 5 subagentes de fase"
+    ],
+    [
+     "39",
+     "skills",
+     "33 que el modelo activa y 6 comandos"
+    ],
+    [
+     "3",
+     "hooks",
+     "guardian · idioma · inicio"
+    ],
+    [
+     "13",
+     "registros CSV",
+     "9 base y 4 que se crean al primer uso"
+    ],
+    [
+     "6",
+     "tipos de puerta",
+     "decisiones de la junta, verificadas antes"
+    ],
+    [
+     "97",
+     "controles",
+     "85 de sanidad y 12 de puerta"
+    ]
+   ],
+   "nota": "Bilingüe ES/EN. Licencia MIT. La fuente de verdad es una carpeta de Markdown, CSV y JSON que se versiona con git y se lee sin pm-method.",
+   "en": "EN: a Claude Code and Cowork plugin with a fixed hierarchy: PRINCE2 7 always leads, PMBOK 8 supplies techniques, BMAD is read-only."
+  },
+  "arquitectura": {
+   "titulo": "Las personas deciden, los agentes preparan y los scripts escriben y verifican",
+   "puntos": [
+    [
+     "Decisiones humanas",
+     "Solo pm-director registra decisiones de la junta, siempre después de una respuesta con nombre y rol; un hook lo hace cumplir."
+    ],
+    [
+     "Datos íntegros",
+     "estado.json y los registros cambian solo por scripts que validan; las ediciones directas se bloquean."
+    ],
+    [
+     "Especificación sin copias",
+     "BMAD se lee por una fachada y nunca se escribe; los desvíos contra la línea base se detectan."
+    ]
+   ],
+   "en": "EN: people decide, agents prepare, scripts write and verify."
+  },
+  "componentes": {
+   "titulo": "6 agentes y 39 skills, cada una con un dueño en el ciclo de vida",
+   "comando": "comando",
+   "nota": "Agente dueño según el campo metadata.pm-method.agente de cada SKILL.md. Los comandos (/pm-method:…) los invoca la persona; las demás skills las activa el modelo por su descripción.",
+   "roles": {
+    "pm-orquestador": "Conversa, pregunta, delega y presenta las decisiones",
+    "pm-director": "Único que registra las decisiones de la junta",
+    "pm-inicio": "Del mandato al proyecto autorizado",
+    "pm-planificacion": "Productos, estimación, cronograma y costo",
+    "pm-control": "Mantiene la etapa dentro de tolerancias",
+    "pm-cierre": "Cierre ordenado, planificado o prematuro"
+   },
+   "en": "EN: agents and skills, each with an owner in the life cycle."
+  },
+  "ciclo": {
+   "titulo": "Cada transición del ciclo PRINCE2 pasa por una puerta que decide la junta",
+   "direccion": "DP · Dirección: la junta decide en cada puerta; pm-director prepara la solicitud y registra la decisión",
+   "excepcion": "Pronóstico fuera de tolerancia → informe de excepción → autorizar-plan-excepcion",
+   "antes": "Antes de cada puerta: sanidad, lista de control de la junta y, con BMAD, verificación de la especificación. Un ERROR abierto bloquea la decisión salvo que la junta lo acepte como condición.",
+   "en": "EN: every PRINCE2 transition goes through a board gate, verified before the decision."
+  },
+  "controles": {
+   "titulo": "97 controles automáticos vigilan lo que nadie revisa a mano",
+   "grafico": "Códigos de control por familia de sanidad",
+   "leyenda_perm": "control permanente",
+   "leyenda_otro": "otras familias",
+   "puerta": "Además, 12 controles de puerta (P y G) verifican cada decisión de la junta.",
+   "ejemplos_titulo": "Lo que detectaron en los casos E2E",
+   "ejemplos": [
+    {
+     "codigo": "CAM-03",
+     "caso": "E2E-2",
+     "imagen": "g2-consumo-cambio.png"
+    },
+    {
+     "codigo": "CAM-03",
+     "caso": "E2E-1",
+     "imagen": "g1-consumo-reserva.png"
+    },
+    {
+     "codigo": "STK-12",
+     "caso": "E2E-3",
+     "imagen": "g3-cadencia-stk12.png"
+    },
+    {
+     "codigo": "QUA-01",
+     "caso": "E2E-4",
+     "imagen": "g4-calidad-entregas.png"
+    }
+   ],
+   "en": "EN: automatic controls watch what nobody checks by hand."
+  },
+  "integraciones": {
+   "titulo": "Se conecta con las herramientas que ya usa la organización, sin atarse a ninguna",
+   "centro": "pm-method",
+   "centro_sub": "gobierno sobre la carpeta del proyecto",
+   "nodos": [
+    {
+     "nombre": "BMAD",
+     "clave": "especificacion",
+     "texto": "Especificación de solo lectura: PRD, arquitectura, épicas, historias y estado del sprint, sin copias.",
+     "valores": "versiones probadas: 4.x, 6.11, 6.12"
+    },
+    {
+     "nombre": "Trackers",
+     "clave": "tracker",
+     "texto": "Instantáneas fechadas, avance y riesgos candidatos desde los tickets.",
+     "valores": "Azure DevOps · GitHub · Jira · Linear"
+    },
+    {
+     "nombre": "Transcripciones",
+     "clave": "reuniones",
+     "texto": "Actas con acciones, riesgos, decisiones y preferencias declaradas, confirmadas por una persona.",
+     "valores": "archivo · Fireflies · Granola · minutes · Teams · Zoom"
+    },
+    {
+     "nombre": "Correo, Slack y Teams",
+     "clave": "canales",
+     "texto": "Capa de canales: envía solo mensajes aprobados, simula por defecto y registra cada envío.",
+     "valores": ".eml · Gmail · Outlook · SMTP · Slack · Teams"
+    },
+    {
+     "nombre": "OKR",
+     "clave": "okr",
+     "texto": "Resultados clave ligados a los beneficios del business case, con check-ins y salud.",
+     "valores": "archivo · Perdoo · Tability"
+    },
+    {
+     "nombre": "Mapas de Wardley y recorrido",
+     "clave": "mapas",
+     "texto": "Qué construir, comprar o tercerizar y la experiencia del usuario paso a paso, con controles.",
+     "valores": "Mermaid wardley-beta y journey · OWM · HTML"
+    }
+   ],
+   "nombres": {
+    "jira": "Jira",
+    "linear": "Linear",
+    "github": "GitHub",
+    "azure-devops": "Azure DevOps",
+    "granola": "Granola",
+    "fireflies": "Fireflies",
+    "zoom": "Zoom",
+    "minutes": "minutes",
+    "teams": "Teams",
+    "archivo": "archivo",
+    "slack": "Slack",
+    "smtp": "SMTP",
+    "gmail": "Gmail",
+    "outlook": "Outlook",
+    "eml": ".eml",
+    "tability": "Tability",
+    "perdoo": "Perdoo",
+    "bmad": "BMAD"
+   },
+   "mapas": "Mermaid wardley-beta y journey · OWM · HTML",
+   "nota": "Conexión por MCP genérico: nada viene predefinido. Sin MCP, pm-method trabaja con archivos; sin BMAD, con su propia especificación.",
+   "en": "EN: open integrations through generic MCP; nothing is hard-wired to a vendor.",
+   "bmad": "versiones probadas: 4.x, 6.11, 6.12"
+  },
+  "catalogo": {
+   "titulo": "5 casos de punta a punta, cada uno con su módulo de capacitación",
+   "cab": [
+    "Caso",
+    "Qué recorre",
+    "Pasos",
+    "Clases",
+    "Minutos",
+    "Diapositivas",
+    "Glosario"
+   ],
+   "material": "Material por caso: guía paso a paso por prompts, guion del instructor minuto a minuto, ejercicio con solución de referencia y diapositivas PPTX y HTML que regenera un script.",
+   "induccion": "Inducción sugerida: instalar → recorrer una guía sobre la copia del proyecto de prueba con BMAD real → dictar su clase → piloto en paralelo con un proyecto real.",
+   "recorre": {
+    "E2E-1": "Riesgos desde cuatro fuentes, respuestas costeadas, reserva vigilada y escalamiento a la junta",
+    "E2E-2": "Alcance por productos, estimación, priorización, cambio con presupuesto y excepción",
+    "E2E-3": "Interesados, preferencias, RACI, OKR, highlight desde el dato y envío por canales",
+    "E2E-4": "Producto con BMAD: condiciones formales, calidad a volumen, cierre y beneficios",
+    "E2E-5": "De la idea al proyecto diseñado: supuestos, opciones con VAN, enfoque y mapas"
+   },
+   "en": "EN: end-to-end cases, each one also a training module."
+  },
+  "casos": {
+   "E2E-1": {
+    "titulo": "E2E-1 · Riesgos: el registro trabaja solo entre revisiones",
+    "problema": "El registro de riesgos nace en un taller y se congela. Las respuestas no se costean y la reserva se usa como bolsa general.",
+    "muestra": [
+     "Riesgos candidatos desde BMAD, transcripciones, Jira y artefactos, con cita de origen",
+     "Respuestas justificadas por su costo frente a la reducción del valor monetario esperado",
+     "Reserva de riesgo vigilada como presupuesto vivo de la junta"
+    ]
+   },
+   "E2E-2": {
+    "titulo": "E2E-2 · Alcance y cambio: el desvío se ve el mismo día, no al cerrar la etapa",
+    "problema": "El alcance se define bien una vez y se controla mal después. Los cambios se aprueban «porque son razonables» y nadie suma lo comprometido.",
+    "muestra": [
+     "Alcance por productos trazado a requisitos e historias",
+     "Presupuesto y límite de la autoridad de cambio registrados por la junta",
+     "Excepción completa: detectada, informada, replanificada y autorizada"
+    ]
+   },
+   "E2E-3": {
+    "titulo": "E2E-3 · Interesados y OKR: el compromiso se mide en cada período",
+    "problema": "El mapa de interesados se arma una vez, el highlight se copia a mano y los OKR se miran al final.",
+    "muestra": [
+     "Maestro único de interesados: matriz, preferencias con cita y RACI",
+     "Highlight armado desde el dato y enviado por la capa de canales",
+     "Cadencia de contacto y brecha de compromiso como control permanente"
+    ]
+   },
+   "E2E-4": {
+    "titulo": "E2E-4 · Producto con BMAD: calidad a volumen y beneficios medidos después del cierre",
+    "problema": "Con decenas de historias terminadas nadie verifica cada revisión, las condiciones de la junta se olvidan y los beneficios no se miden.",
+    "muestra": [
+     "El CONCERNS del gate de BMAD se vuelve una condición formal que bloquea el cierre",
+     "Cada historia terminada con su revisión de calidad, incluido un rechazo",
+     "Beneficios medidos después del cierre contra trayectoria y tolerancia"
+    ]
+   },
+   "E2E-5": {
+    "titulo": "E2E-5 · De la idea al proyecto: los supuestos se validan antes de invertir",
+    "problema": "El caso de negocio se escribe una vez, con el supuesto más optimista, y el enfoque de entrega se elige por costumbre.",
+    "muestra": [
+     "Mapa de supuestos y experimentos baratos antes de comprometer dinero",
+     "Opciones comparadas con VAN y enfoque de entrega elegido con criterios",
+     "Mapa de Wardley y recorrido del paciente para decidir qué construir"
+    ]
+   },
+   "rotulos": {
+    "problema": "El problema",
+    "muestra": "Qué muestra",
+    "indicadores": "Indicadores de la corrida de referencia",
+    "ficha": "[pasos] pasos · [clases] clases de webinar · guía [archivo]"
+   },
+   "en": "EN: real figures from the reproducible reference run of each guide."
+  },
+  "calidad": {
+   "titulo": "La confianza se demuestra: pruebas reproducibles, pruebas en vivo y revisión de seguridad",
+   "kpis": [
+    [
+     "216",
+     "pruebas de regresión OK",
+     "0 FALLO · 20 casos"
+    ],
+    [
+     "5/5",
+     "recorridos E2E",
+     "reproducen las guías con los scripts reales"
+    ],
+    [
+     "127",
+     "diagramas Mermaid",
+     "0 errores de lint"
+    ],
+    [
+     "102",
+     "frases de enrutamiento",
+     "para pruebas en vivo con Claude Code real"
+    ]
+   ],
+   "vivo": "Pruebas en vivo con Claude Code real",
+   "seguridad": "Revisión de seguridad",
+   "docker": "Contenedor Docker endurecido",
+   "nota": "Los límites conocidos están declarados en docs/RESUMEN-EJECUTIVO.md §7: el enrutamiento en lenguaje natural es probabilístico, y los conectores MCP de terceros no se probaron en vivo.",
+   "en": "EN: trust is shown, not claimed: reproducible tests, live tests and a security review.",
+   "docker_medidas": [
+    "Usuario sin privilegios",
+    "Raíz de solo lectura",
+    "Sin capacidades de Linux",
+    "Sin escalada de privilegios",
+    "Sin secretos en capas",
+    "Dependencias verificadas"
+   ]
+  },
+  "empezar": {
+   "titulo": "Dos formas de empezar: instalación manual o contenedor Docker aislado",
+   "manual": "Instalación manual (Claude Code y Cowork)",
+   "docker": "Docker (probar sin instalar nada en el equipo)",
+   "docker_pasos": [
+    "Construir la imagen",
+    "Trabajar sobre un proyecto montado",
+    "Correr todas las pruebas sin red"
+   ],
+   "luego": "Luego, en una sesión",
+   "siguiente": "Siguiente paso: recorrer una guía E2E sobre la copia del proyecto de prueba (docs/guias/README.md) y planificar un piloto en paralelo (docs/PILOTO.md).",
+   "en": "EN: two ways to start: manual install or an isolated Docker container."
+  },
+  "glosario": {
+   "titulo": "Glosario breve",
+   "en": "EN: short glossary; full terminology in docs/TERMINOLOGIA.md."
+  }
+ },
+ "diagramas": {
+  "arquitectura": "diagramas/arquitectura.png"
+ }
+}

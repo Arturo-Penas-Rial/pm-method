@@ -6,7 +6,11 @@ Dos capas:
      - ';' dentro de mensajes de sequenceDiagram (corta la línea)
      - etiquetas de arista |...| con paréntesis sin comillas
      - '{{' (marcadores de plantilla) en etiquetas de arista sin comillas, datos de gantt o números de xychart/quadrant
-  2. Render real con mmdc (opcional, si está instalado): --render [--config puppeteer.json]
+     - wardley-beta: nombres sin comillas con caracteres no ASCII o con una palabra que empieza por dígito (el parser
+       falla), title entre comillas (se dibujan las comillas), note sin comillas, coordenadas fuera de 0–1
+     - journey: puntaje que no es un entero de 1 a 5, ':' de más en el texto de la tarea
+  2. Render real con mmdc (opcional, si está instalado): --render [--config puppeteer.json]. mmdc puede terminar sin
+     error y dibujar un SVG con "Syntax error" (pasa con wardley-beta): el render se hace a SVG y se busca ese texto.
 
 Uso:
   python3 scripts/validar_mermaid.py                 # lint
@@ -76,23 +80,79 @@ def lint(codigo):
                 errores.append(f"l.{n}: marcador '{{{{…}}}}' en datos de gantt (usar un valor de ejemplo + comentario %%)")
             if t != "gantt" and re.search(r"\[[^\]]*\{\{|\{\{[^}]*\}\}\s*,", s):
                 errores.append(f"l.{n}: marcador '{{{{…}}}}' en lugar de un número")
+        if t == "wardley-beta":
+            errores += lint_wardley(n, s)
+        if t == "journey":
+            errores += lint_journey(n, s)
     return errores
+
+
+NOMBRE_W = r'(?:"[^"]*"|[^\[\]"]+?)'
+
+
+def _nombre_mal(nombre):
+    nombre = nombre.strip()
+    if nombre.startswith('"') and nombre.endswith('"'):
+        return False
+    return bool(re.search(r"[^\x00-\x7f]", nombre) or re.search(r"(^|\s)\d", nombre))
+
+
+def lint_wardley(n, s):
+    errores = []
+    if s.startswith("title ") and s[6:].strip().startswith('"'):
+        errores.append(f"l.{n}: title de wardley-beta entre comillas (Mermaid dibuja las comillas)")
+    m = re.match(rf"^(anchor|component)\s+({NOMBRE_W})\s*\[([^\]]*)\]", s)
+    if m:
+        if _nombre_mal(m.group(2)):
+            errores.append(f"l.{n}: nombre sin comillas con tildes, eñe u otro carácter no ASCII, o con una palabra que empieza por dígito: {m.group(2).strip()}")
+        try:
+            if not all(0 <= float(x) <= 1 for x in m.group(3).split(",")):
+                errores.append(f"l.{n}: coordenadas fuera de 0–1: [{m.group(3)}]")
+        except ValueError:
+            errores.append(f"l.{n}: coordenadas no numéricas: [{m.group(3)}]")
+    m = re.match(rf"^({NOMBRE_W})\s*(?:-+>|<-+>|-\.->)\s*({NOMBRE_W})\s*$", s)
+    if m and not s.startswith(("evolution", "title")):
+        for x in (m.group(1), m.group(2)):
+            if _nombre_mal(x):
+                errores.append(f"l.{n}: nombre sin comillas en un enlace: {x.strip()}")
+    m = re.match(rf"^evolve\s+({NOMBRE_W})\s+[\d.]+\s*$", s)
+    if m and _nombre_mal(m.group(1)):
+        errores.append(f"l.{n}: nombre sin comillas en evolve: {m.group(1).strip()}")
+    if s.startswith("note ") and not s[5:].strip().startswith('"'):
+        errores.append(f"l.{n}: texto de note sin comillas")
+    return errores
+
+
+def lint_journey(n, s):
+    if s.startswith(("journey", "title", "section")) or ":" not in s:
+        return []
+    partes = s.split(":")
+    if len(partes) != 3:
+        return [f"l.{n}: tarea de journey con ':' de más o sin actores (formato 'tarea: puntaje: actores'): {s[:60]}"]
+    p = partes[1].strip()
+    if not (p.isdigit() and 1 <= int(p) <= 5):
+        return [f"l.{n}: puntaje de journey '{p}' (debe ser un entero de 1 a 5)"]
+    return []
 
 
 def render(codigo, config, png_dir, nombre):
     with tempfile.TemporaryDirectory() as d:
         ent = os.path.join(d, "d.mmd")
         open(ent, "w", encoding="utf-8").write(codigo)
-        sal = os.path.join(png_dir, nombre + ".png") if png_dir else os.path.join(d, "d.svg")
-        cmd = ["mmdc", "-i", ent, "-o", sal, "-b", "white"]
-        if png_dir:
-            cmd += ["-s", "2"]
-        if config:
-            cmd += ["-p", config]
-        r = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
-        if r.returncode != 0:
-            ultima = [x for x in (r.stderr or r.stdout).splitlines() if x.strip()]
-            return (ultima[0] if ultima else "error de mmdc")[:300]
+        svg = os.path.join(d, "d.svg")
+        salidas = [svg] + ([os.path.join(png_dir, nombre + ".png")] if png_dir else [])
+        for sal in salidas:
+            cmd = ["mmdc", "-i", ent, "-o", sal, "-b", "white"]
+            if sal.endswith(".png"):
+                cmd += ["-s", "2"]
+            if config:
+                cmd += ["-p", config]
+            r = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
+            if r.returncode != 0:
+                ultima = [x for x in (r.stderr or r.stdout).splitlines() if x.strip()]
+                return (ultima[0] if ultima else "error de mmdc")[:300]
+            if sal == svg and "Syntax error" in open(svg, encoding="utf-8", errors="replace").read():
+                return "mmdc dibujó un diagrama de 'Syntax error' (el bloque no se puede interpretar)"
     return None
 
 

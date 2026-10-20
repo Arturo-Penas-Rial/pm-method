@@ -1,0 +1,31 @@
+flowchart LR
+    U(["Personas<br/>gestor · junta · product owner"])
+    subgraph HP["Hilo principal"]
+        O["pm-orquestador<br/>conversa, pregunta y delega"]
+    end
+    subgraph SA["5 subagentes · contexto aislado"]
+        D["pm-director<br/>único que registra<br/>decisiones de la junta"]
+        F["pm-inicio · pm-planificacion<br/>pm-control · pm-cierre"]
+    end
+    S["33 skills + 6 comandos<br/>PRINCE2 7 manda<br/>PMBOK 8 aporta técnicas"]
+    B[("BMAD<br/>especificación<br/>solo lectura")]
+    M["MCP y capa de canales<br/>trackers · transcripciones<br/>correo · Slack · Teams · OKR"]
+    P[("Carpeta del proyecto<br/>estado.json · 13 registros CSV<br/>artefactos Markdown")]
+    H["3 hooks<br/>guardian · idioma · inicio"]
+    C["sanidad.py<br/>85 controles"]
+    U <--> O
+    O --> D
+    O --> F
+    D --> S
+    F --> S
+    S -->|"fachada de lectura"| B
+    S -->|"solo lo aprobado"| M
+    S -->|"estado.py · registro.py"| P
+    H -.->|"bloquea ediciones directas"| P
+    C -.->|"verifica en cada sesión y puerta"| P
+    classDef gente fill:#FBF1E6,stroke:#B5651D,color:#272425
+    classDef dato fill:#E9F1F8,stroke:#002855,color:#272425
+    classDef guarda fill:#F4F6F8,stroke:#696969,color:#272425,stroke-dasharray:4 3
+    class U gente
+    class P,B dato
+    class H,C guarda

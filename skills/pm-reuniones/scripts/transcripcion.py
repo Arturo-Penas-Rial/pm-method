@@ -19,6 +19,7 @@ def seg(m):
 def fmt(t): t = int(t or 0); return f"{t // 3600:02d}:{t % 3600 // 60:02d}:{t % 60:02d}"
 
 def leer(p):
+    if not os.path.isfile(p): sys.exit(f"No existe el archivo / file not found: {p}")
     if p.lower().endswith(".docx"):
         try: from docx import Document
         except ImportError: sys.exit("Falta python-docx para leer .docx")

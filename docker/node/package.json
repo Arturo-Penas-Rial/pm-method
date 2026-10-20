@@ -1,0 +1,16 @@
+{
+  "name": "pm-method-herramientas-node",
+  "version": "2.3.0",
+  "private": true,
+  "description": "Herramientas Node del entorno Docker de pm-method (versiones fijadas; se instalan con npm ci).",
+  "license": "MIT",
+  "dependencies": {
+    "@anthropic-ai/claude-code": "2.1.304",
+    "@mermaid-js/mermaid-cli": "11.16.0",
+    "npm": "11.21.1",
+    "pptxgenjs": "4.0.1"
+  },
+  "overrides": {
+    "image-size": "2.0.3"
+  }
+}

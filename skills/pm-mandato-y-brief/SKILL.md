@@ -1,7 +1,7 @@
 ---
 name: pm-mandato-y-brief
 description: "Mandato, propuesta, project brief, canvas, visión y roadmap; enfoque de entrega. Usar: mandato, brief, arrancar, kick-off, canvas, visión, mandate, start up. No: business case→pm-caso-de-negocio."
-version: 2.2.0
+version: 2.3.0
 author: pm-method
 license: MIT
 metadata:
@@ -33,7 +33,7 @@ metadata:
 - `pm-knowledge/references/prince2-practicas-bc-organizacion-planes-calidad.md` §2.2.1, §2.5.1 (brief), §3.3.2.
 - `pm-knowledge/references/plantillas-inicio-y-planes.md` §2.1, §2.3, §2.4, §2.6, §2.7, §4.4, §6.5.
 - `pm-knowledge/references/pmbok8-estandar-principios-ciclos.md` §4.3–4.4 (selección del enfoque).
-- `references/guia.md`: perfiles (§1), ágil mínimo (§2), enfoque de entrega (§3), BMAD (§4), reglas extendidas (§5), ejemplo (§6), casos borde (§7), columnas de lecciones (§8).
+- `references/guia.md`: perfiles (§1), ágil mínimo (§2), enfoque de entrega (§3), BMAD (§4), reglas extendidas (§5), ejemplo (§6), casos borde (§7), columnas de lecciones (§8), validar antes de invertir (§9).
 - Con BMAD: `SPEC.md` §1.13 y `pm-bmad-puente/references/guia.md` §2.
 
 ## Entradas requeridas
@@ -52,6 +52,7 @@ metadata:
 6. **Propuesta** → `templates/propuesta-proyecto.md` en `01-inicio/propuesta-proyecto.md` (resumen autónomo, dato verificable, orden de magnitud con confianza, petición de decisión).
 7. **Visión** (si hay producto o servicio) → `templates/declaracion-vision.md` en `01-inicio/`; con BMAD, cita la visión del brief de producto. **Canvas** (opcional) → `templates/canvas-arranque.md` en `01-inicio/`.
 8. **Project brief** → `templates/project-brief.md` en `01-inicio/project-brief.md`: definición, business case esquemático (`pm-caso-de-negocio`), descripción del producto del proyecto, enfoque (regla 10), estructura (`pm-organizacion-roles`), referencias; datos de fuente única copiados. **Con BMAD**: problema, usuarios y visión se **referencian** al brief de producto (ruta + sha corto), sin copiarlos (`references/guia.md` §4.2).
+8b. **Validar antes de invertir** (idea con incertidumbre alta): supuestos críticos de deseabilidad, viabilidad y factibilidad en `supuestos.csv` con `criticidad`, `certeza`, `experimento`, `criterio`, `fecha_limite`; vista para la junta con `templates/hipotesis-y-experimentos.md` (`references/guia.md` §9). Sanidad SUP-01…03; puerta P-11.
 9. **Roadmap** → `templates/roadmap.md` en `01-inicio/roadmap.md`: SU = etapa 0, etapa 1 = iniciación, entrega 2…n, puertas, releases; Mermaid. Con BMAD, en qué etapa se esperan PRD `final`, arquitectura y épicas (`references/guia.md` §4.4).
 10. **Coherencia cruzada** de presupuesto, plazo, entregables, exclusiones e interesados; reportar discrepancias.
 11. **Registrar** (`estado.py artefacto <clave> --ruta ... --estado borrador --version 0.1`) y listar `[por confirmar]` con su rol.
@@ -83,6 +84,7 @@ Más reglas: `references/guia.md` §5.
 | Canvas de arranque | `templates/canvas-arranque.md` | `01-inicio/canvas-arranque.md` | `canvas-arranque` |
 | Declaración de visión | `templates/declaracion-vision.md` | `01-inicio/declaracion-vision.md` | `declaracion-vision` |
 | Roadmap | `templates/roadmap.md` | `01-inicio/roadmap.md` | `roadmap` |
+| Hipótesis y experimentos | `templates/hipotesis-y-experimentos.md` | `01-inicio/hipotesis-y-experimentos.md` | `hipotesis-y-experimentos` |
 | Enfoque de entrega | brief + `estado.py set` | `estado.json.enfoque_entrega` | campo raíz |
 | Lecciones previas | `registro.py agregar lecciones` | `03-control/registros/lecciones.csv` | registro |
 

@@ -1,7 +1,7 @@
 ---
 name: pm-lecciones-aprendidas
 description: "Lecciones aprendidas: lecciones.csv, taller de etapa, informe de lecciones. Usar: lección aprendida, lessons learned, lessons report, retro de etapa. No: retro de sprint→pm-agil-hibrido."
-version: 2.2.0
+version: 2.3.0
 author: pm-method
 license: MIT
 metadata:

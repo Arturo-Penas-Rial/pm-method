@@ -64,3 +64,39 @@
 64	Send the approved status update to the steering committee by email	pm-comunicacion-stakeholders
 65	Registrá el check-in del KR-1.1 de esta semana con confianza 7	pm-okr
 66	Detectá riesgos candidatos en el brief de BMAD, las actas y los tickets de Jira	pm-riesgos
+67	Prepará el informe de aspectos destacados de esta semana para la junta	pm-progreso-reportes	pm-reporte
+68	Necesito el informe de punto de control del paquete de trabajo del equipo de desarrollo	pm-progreso-reportes	pm-reporte,pm-paquetes-trabajo
+69	Registrá una incidencia: el proveedor entregó el módulo de pagos fuera de especificación	pm-issues-cambios
+70	Abrí el registro de incidentes con los problemas de esta semana	pm-issues-cambios
+71	Armá el resumen del proyecto a partir del mandato que nos mandó el directorio	pm-mandato-y-brief
+72	Convocá a la junta del proyecto para aprobar el plan de la próxima etapa	pm-direccion-decisiones	pm-puerta,pm-plan-etapa-y-limites
+73	El comité de dirección tiene que decidir si seguimos con la etapa 3	pm-direccion-decisiones	pm-puerta
+74	Preparame el material para el steering committee del jueves	pm-direccion-decisiones	pm-puerta,pm-progreso-reportes,pm-reporte
+75	Anotá en el registro diario que el proveedor llamó por el retraso	pm-registros
+76	Calculá la ruta crítica del cronograma	pm-cronograma-estimacion
+77	Armá la estructura de desglose del trabajo con su diccionario	pm-planificacion-por-productos
+78	Fijemos la línea base de costos con la reserva de contingencia	pm-costos-presupuesto
+79	Actualizá el registro de interesados con los nuevos gerentes de sucursal	pm-interesados
+80	Armá el plan de involucramiento de los interesados	pm-interesados	pm-comunicacion-stakeholders
+81	Hacé la matriz de asignación de responsabilidades del equipo	pm-interesados	pm-organizacion-roles
+82	Necesito el plan de gestión de las comunicaciones	pm-comunicacion-stakeholders	pm-enfoques-gestion
+83	Llevá esta solicitud al comité de control de cambios	pm-issues-cambios	pm-direccion-decisiones
+84	Armá la matriz de riesgos con probabilidad e impacto	pm-riesgos
+85	Hay un impedimento: infraestructura no nos da el ambiente de pruebas	pm-issues-cambios	pm-registros
+86	Mandame el informe de estado del proyecto	pm-progreso-reportes	pm-reporte,pm-estado,pm-orquestador
+87	Quiero la documentación de inicio del proyecto (DIP) para la junta	pm-acta-constitucion
+88	Agregá al registro de supuestos que TI asigna dos personas a tiempo completo	pm-registros
+89	Cerremos el límite de etapa y prepará el informe de fin de etapa	pm-plan-etapa-y-limites
+90	Actualizá el estado de los productos del paquete de trabajo 2	pm-paquetes-trabajo
+91	El cliente pide alcance adicional: agregar pagos con QR	pm-issues-cambios
+92	Hacé el registro de lecciones aprendidas de la etapa	pm-lecciones-aprendidas
+93	Necesito el plan para la dirección del proyecto con sus planes de gestión subsidiarios	pm-enfoques-gestion	pm-acta-constitucion
+94	Armá el diagrama de Gantt con los hitos del proyecto	pm-cronograma-estimacion	pm-visuales
+95	Armá un mapa de Wardley de los componentes del portal	pm-mapas-estrategicos
+96	Ubicá los componentes del producto según su evolución y decime qué conviene construir y qué comprar	pm-mapas-estrategicos	pm-adquisiciones
+97	Hacé el customer journey del socio que pide un préstamo	pm-mapas-estrategicos
+98	Mapeá los puntos de dolor del paciente al sacar y cancelar un turno	pm-mapas-estrategicos
+99	Armemos un service blueprint del trámite con lo que pasa detrás del mostrador	pm-mapas-estrategicos
+100	Draw a Wardley map of our platform showing inertia and build or buy decisions	pm-mapas-estrategicos
+101	Create a customer journey map for UJ-2 with emotions and touchpoints	pm-mapas-estrategicos
+102	Armá el mapa de stakeholders con poder e interés	pm-interesados	pm-visuales

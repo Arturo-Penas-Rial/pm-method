@@ -1,0 +1,25 @@
+# Contexto de construcción de docker/Dockerfile (ver docs/DOCKER.md).
+# Se excluye lo que no hace falta en la imagen, lo regenerable y cualquier archivo con credenciales.
+.git
+.github
+**/__pycache__
+**/*.pyc
+**/.DS_Store
+**/node_modules
+pruebas-vivo-*
+pruebas-docker*
+docs/informe/fuente/salida-v*
+docs/informe/fuente/data.json
+docs/informe/fuente/diagramas/*.png
+docs/informe/fuente/diagramas/*.svg
+docs/informe/fuente/qa-pptx
+docs/informe/fuente/qa-html*
+# credenciales y configuración local: nunca entran en la imagen
+**/.env
+**/.env.*
+**/*.pem
+**/*.key
+**/.claude.json
+**/.claude/settings.local.json
+**/.npmrc
+**/.pypirc

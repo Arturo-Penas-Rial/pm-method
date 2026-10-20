@@ -1,12 +1,15 @@
 flowchart TB
-    c2["C-002 · requisito regulatorio<br/>15.000 aprobado por Sofía"] --> s1{"sanidad<br/>corte 19/2"}
-    ev["evm.py --guardar<br/>corte 19/2 · alcance rojo"] --> s1
-    s1 -->|"CAM-03 ERROR · CAM-04 · TOL-01"| x["Informe de excepción X-001<br/>e issue I-003"]
+    c2["C-002 · requisito regulatorio<br/>15.000, aprobado de palabra por Sofía"] --> rg{"registro.py<br/>límite y saldo"}
+    rg -->|"rechaza<br/>pendiente-decision"| ti["Tabla de impacto de C-002<br/>con VAN 30.939"]
+    ev["evm.py --guardar<br/>corte 19/2 · alcance rojo"] --> s1{"sanidad<br/>corte 19/2"}
+    s1 -->|"TOL-01<br/>CAM-03 al 75 %"| ti
+    ti --> x["Informe de excepción<br/>X-001 e issue I-003"]
     x --> j1{"Junta 22/2<br/>decision-ad-hoc"}
     j1 --> le["limite-etapa<br/>--excepcion X-001"]
-    le --> pe["Plan de excepción X-001"]
-    pe --> v1["verificar · bloqueo<br/>sanidad CAM-03"]
+    le --> pe["Plan de excepción X-001<br/>y business case actualizado"]
+    pe --> v1["verificar · bloqueo<br/>lista de control L-01"]
     v1 --> j2{"Junta 26/2"}
-    j2 --> pr["presupuesto cambio=32000<br/>C-002 ratificado"]
+    j2 --> pr["presupuesto cambio=32000<br/>y luego C-002 aprobado"]
     pr --> ap["autorizar-plan-excepcion<br/>fin de etapa 2027-03-19"]
-    ap --> s2["sanidad 26/2<br/>CAM-03 INFO 75 %"]
+    ap --> s2["sanidad 26/2<br/>REG-09: revisar R-001"]
+    s2 --> s3["sanidad final<br/>CAM-03 INFO 75 %"]

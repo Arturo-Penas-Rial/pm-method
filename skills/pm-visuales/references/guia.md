@@ -44,12 +44,12 @@ Está instalada si figura en el listado de skills de la sesión con cualquiera d
 ## 2. Contenido de cada visual
 - **Organigrama**: tres intereses (negocio, usuario, proveedor) en la junta, un ejecutivo, gestor, aseguramiento separado, soporte, gestores de equipo; líneas de reporte; autoridad de cambio si existe. Si la fuente viola la separación, se señala.
 - **Mapa poder/interés**: cuatro cuadrantes con criterios explícitos; actitud; estrategia por cuadrante; circulación restringida; nunca para evaluar personas del equipo.
-- **Reporte de interesados (v2.2)**: es el visual del maestro de interesados y lo genera su dueña, `pm-interesados`: `python3 ${CLAUDE_SKILL_DIR}/../pm-interesados/scripts/interesados.py --proyecto <dir> reporte --html 03-control/reportes/<fecha>-interesados.html` (HTML autocontenido con la matriz poder/interés en SVG, RACI, perfiles y envíos; contenido y opciones en la guía de `pm-interesados` §8). pm-visuales no lo redibuja ni copia sus datos: lo enlaza o lo incluye en un tablero; un mapa poder/interés con motor externo (tabla 1.2) parte de `interesados.py matriz --json`.
+- **Reporte de interesados**: es el visual del maestro de interesados y lo genera su dueña, `pm-interesados`: `python3 ${CLAUDE_SKILL_DIR}/../pm-interesados/scripts/interesados.py --proyecto <dir> reporte --html 03-control/reportes/<fecha>-interesados.html` (HTML autocontenido con la matriz poder/interés en SVG, RACI, perfiles y envíos; contenido y opciones en la guía de `pm-interesados` §8). pm-visuales no lo redibuja ni copia sus datos: lo enlaza o lo incluye en un tablero; un mapa poder/interés con motor externo (tabla 1.2) parte de `interesados.py matriz --json`.
 - **PBS/WBS**: producto del proyecto en la raíz; externos marcados; sin actividades en la PBS; la WBS deriva de la PBS. Desde `wbs.csv`: `python3 ${CLAUDE_SKILL_DIR}/../pm-estado-proyecto/scripts/wbs.py 02-planificacion/wbs.csv --titulo "<Proyecto>" --mermaid 02-planificacion/visuales/wbs.md [--profundidad 3] [--diccionario 02-planificacion/diccionario-wbs-esqueleto.md]` (valida la EDT, consolida esfuerzo y costo y escribe el árbol Mermaid `flowchart TD`). El contenido de la EDT es de `pm-planificacion-por-productos`; aquí solo se dibuja.
 - **Flujo de productos**: dependencias entre productos de un plan; externos como entradas; aristas sin confirmar en línea punteada.
 - **Gantt y roadmap**: Gantt desde `cpm.py --mermaid` o el plan (camino crítico resaltado); roadmap por etapas de gestión con puertas como hitos.
 - **Flujo de excepciones**: paquete → gestor; etapa → junta; proyecto → capa de negocio, con tolerancias y quién decide.
-- **Canvas de arranque**: `templates/canvas-arranque.html` con los campos del brief (contenido en `01-inicio/canvas-arranque.md` de `pm-mandato-y-brief`).
+- **Canvas de arranque**: `templates/canvas-arranque.html` con los campos del brief (contenido en `01-inicio/canvas-arranque.md` de `pm-mandato-y-brief`). Cada valor que reemplaza un `{{marcador}}` se escapa antes (`&`, `<`, `>` y comillas; en Python, `html.escape(valor)`): el texto del brief es dato, no HTML.
 
 ## 3. Tablero de avance: inyección de datos
 HTML autocontenido (sin red ni librerías; SVG generado en la página). Todo el contenido variable vive en un único bloque `<script type="application/json" id="datos-tablero">`; no se editan celdas: se arma el JSON y se reemplaza el bloque.
@@ -71,7 +71,7 @@ datos = {"proyecto": e["proyecto"], "etapa": e["etapa_actual"]["nombre"], "enfoq
          "agil": {"iteraciones": [...], "ventana_velocidad": 3, "fecha_fija": "", "fecha_pronostico": "", "must_en_riesgo": []},
          "comentario_gestor": "...", "fuentes": "...", "fecha_generacion": "AAAA-MM-DD", "confirmado_por": ""}
 html = pathlib.Path(T).read_text(encoding="utf-8")
-bloque = json.dumps(datos, ensure_ascii=False).replace("</", "<\\/")
+bloque = json.dumps(datos, ensure_ascii=False).replace("<", "\\u003c")   # ni </script> ni <!-- pueden cortar el bloque
 html = re.sub(r'(<script type="application/json" id="datos-tablero">)(.*?)(</script>)',
               lambda m: m.group(1) + bloque + m.group(3), html, count=1, flags=re.S)
 pathlib.Path(f"{P}/03-control/reportes/AAAA-MM-DD-tablero-avance.html").write_text(html, encoding="utf-8")
@@ -85,6 +85,16 @@ Campos:
 - `riesgos`, `issues`, `acciones`: filas de los CSV tal cual (las usan el mapa de calor, las tablas y la vista por actor).
 - Acciones vencidas con la misma fecha de corte del tablero (`registro.py resumen --corte <fecha>`).
 - `estado: "aprobado"` (quita la marca BORRADOR) solo tras la confirmación del gestor.
+
+**Sección opcional «Mapas estratégicos».** No va en el JSON: si el proyecto tiene mapas de Wardley o de recorrido en
+`02-planificacion/mapas/`, después de escribir el tablero se corre
+`python3 ${CLAUDE_SKILL_DIR}/../pm-mapas-estrategicos/scripts/mapas.py --proyecto <dir> tablero --insertar <dir>/03-control/reportes/AAAA-MM-DD-tablero-avance.html`
+(`--mapas S1,S2` para elegir cuáles). El script reemplaza lo que haya entre los marcadores `<!-- pm-mapas:inicio … -->` y
+`<!-- pm-mapas:fin -->` con una sección ya escapada, sin scripts ni recursos externos: cada mapa válido dibujado en SVG,
+los avisos MAP vigentes y la tabla de vínculos (dolor → requisito, riesgo, issue o supuesto; componente con inercia →
+riesgo), con los ids enlazados a esa tabla. Sin mapas válidos la deja vacía y la sección no aparece. Los títulos de
+sección se numeran solos (la ágil y la de mapas son opcionales). No se edita a mano: se vuelve a correr tras cada cambio
+de los mapas o de los registros que citan. Detalle del dibujo: `pm-mapas-estrategicos/references/guia.md` §9.
 
 ## 4. Vista por actor
 Sección 5b del tablero ("Vista por actor / View by actor"): un selector (`<select id="sel-actor">`) lista todas las personas o roles que tienen compromisos abiertos y filtra una tabla única con:
