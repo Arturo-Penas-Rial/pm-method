@@ -35,6 +35,7 @@ paso "integracion/correr.py (cadenas 1-6)"    04b-integracion.log        python3
 paso "validar_mermaid.py --render"            05-validar-mermaid.log     python3 "$R/scripts/validar_mermaid.py" --render
 paso "webinar/generar.py --todos --validar"   06-webinar-validar.log     python3 "$R/scripts/webinar/generar.py" --todos --validar
 paso "webinar/generar.py --todos (HTML+PPTX)" 07-webinar-generar.log     python3 "$R/scripts/webinar/generar.py" --todos --salida "$SALIDA/webinar"
+paso "webinar/documentos.py --todos (HTML)"   08-webinar-documentos.log  python3 "$R/scripts/webinar/documentos.py" --todos --salida "$SALIDA/webinar-documentos"
 
 # Comprobaciones adicionales sobre las salidas (el texto exacto que imprimen los scripts).
 # Compatibilidad con Python 3.9: la hace validar_paquete.py (sin intérprete 3.9 en la imagen, con su análisis de f-strings).

@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="generator" content="pm-method 2.3.0 · scripts/webinar/documentos.py">
+<title>E2E-2 · Guion del instructor · Guion del instructor · E2E-2 · Alcance, cambio y mapa de ruta</title><style>
+:root{--navy:#002855;--blue:#00629b;--orange:#b5651d;--gray:#696969;--ink:#272425;--page:#e9edf1;--surface:#fff;--soft:#f4f6f8;
+--tint:#e9f1f8;--ortint:#fbf1e6;--line:#e2e2e6;--sky:#9fd0f0;--dark:#002855;--dark2:#173d66;--azul:#00629b;--code:#0f2238;--codefg:#e8eef5;
+--title-ink:#002855;--accent:#00629b;--warm:#b5651d;--shadow:0 6px 24px rgba(0,40,85,.10);color-scheme:light}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--page:#0b1118;--surface:#131c27;--soft:#1a2633;--tint:#16283b;--ortint:#2c2116;
+--line:#2a3644;--ink:#e6ebf0;--gray:#a3acb6;--dark:#08203d;--dark2:#173d66;--azul:#0a4f7d;--title-ink:#cfe3f3;--accent:#4ea3dc;--warm:#e39a5f;
+--shadow:0 6px 24px rgba(0,0,0,.45);color-scheme:dark}}
+:root[data-theme="dark"]{--page:#0b1118;--surface:#131c27;--soft:#1a2633;--tint:#16283b;--ortint:#2c2116;--line:#2a3644;--ink:#e6ebf0;
+--gray:#a3acb6;--dark:#08203d;--dark2:#173d66;--azul:#0a4f7d;--title-ink:#cfe3f3;--accent:#4ea3dc;--warm:#e39a5f;--shadow:0 6px 24px rgba(0,0,0,.45);color-scheme:dark}
+
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:72px;-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--page);color:var(--ink);font-family:Arial,Helvetica,sans-serif;line-height:1.55;font-size:16px}
+a{color:var(--accent)}
+code{font-family:"Courier New",monospace;font-size:.92em;background:var(--soft);padding:.05em .3em;border-radius:4px;overflow-wrap:anywhere}
+.barra{position:sticky;top:0;z-index:10;display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;padding:10px 16px;background:var(--surface);
+border-bottom:1px solid var(--line)}
+.barra .marca{font-weight:700;color:var(--title-ink);text-decoration:none;margin-right:6px}
+.barra nav{display:flex;flex-wrap:wrap;gap:6px}
+.barra nav a{padding:4px 10px;border-radius:8px;background:var(--soft);text-decoration:none;font-size:.9rem;color:var(--ink)}
+.barra nav a:hover{background:var(--tint)}
+.barra nav a[aria-current]{background:var(--blue);color:#fff}
+.barra .ctl{display:flex;flex-wrap:wrap;gap:6px;margin-left:auto;align-items:center}
+.barra button{font:inherit;font-size:.85rem;padding:4px 8px;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
+.marco{display:grid;grid-template-columns:250px minmax(0,1fr);gap:32px;max-width:1240px;margin:0 auto;padding:24px 16px 48px}
+.lateral{position:sticky;top:64px;align-self:start;max-height:calc(100vh - 80px);overflow:auto}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 12px;font-size:.88rem}
+details.toc summary{cursor:pointer;font-weight:700;color:var(--title-ink)}
+details.toc ol{list-style:none;margin:8px 0 0;padding:0}
+details.toc li{margin:0}
+details.toc li.n3{padding-left:14px;font-size:.95em}
+details.toc a{display:block;padding:3px 6px;border-radius:6px;color:var(--ink);text-decoration:none;line-height:1.3}
+details.toc a:hover{background:var(--soft)}
+details.toc a.activo{background:var(--tint);color:var(--title-ink);font-weight:700}
+main{min-width:0;max-width:920px}
+.cab{position:relative;background:var(--dark);color:#fff;border-radius:14px;padding:26px clamp(18px,4vw,36px) 22px;box-shadow:var(--shadow);margin-bottom:22px}
+.cab .logo{position:absolute;top:20px;right:20px;width:120px;height:50px;border:1px dashed #7f9bb8;border-radius:4px;display:grid;place-items:center;
+font-size:.78rem;color:#a9bfd6}
+.cab .logo.con-img{border:0}.cab .logo img{max-width:100%;max-height:100%}
+.cab .kicker{margin:0 140px 6px 0;color:var(--sky);font-weight:700;font-size:.92rem}
+.cab h1{margin:0 140px 10px 0;font-size:1.85rem;line-height:1.2}
+.cab .meta{margin:0;display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;color:#d6e4f0;font-size:.92rem}
+.etiqueta{display:inline-block;background:var(--dark2);color:#fff;border-radius:999px;padding:3px 12px;font-weight:700}
+.etiqueta.instr{background:var(--orange)}
+.aviso-doc{margin:14px 0 0;background:var(--dark2);border-left:4px solid var(--sky);border-radius:8px;padding:10px 14px;color:#fff;font-size:.95rem}
+.md{background:var(--surface);border-radius:14px;box-shadow:var(--shadow);padding:8px clamp(16px,4vw,40px) 28px;overflow-wrap:break-word}
+.md>*:first-child{margin-top:18px}
+.md h2{color:var(--title-ink);font-size:1.45rem;line-height:1.25;margin:2em 0 .6em;padding-bottom:.25em;border-bottom:2px solid var(--line)}
+.md h3{color:var(--title-ink);font-size:1.15rem;margin:1.6em 0 .5em}
+.md h4,.md h5,.md h6{font-size:1rem;margin:1.4em 0 .4em}
+.md h2 .ancla,.md h3 .ancla,.md h4 .ancla{margin-left:.4em;color:var(--gray);text-decoration:none;opacity:0;font-weight:400}
+.md h2:hover .ancla,.md h3:hover .ancla,.md h4:hover .ancla,.md .ancla:focus{opacity:1}
+.md p{margin:.7em 0}
+.md ul,.md ol{margin:.6em 0;padding-left:1.5em}
+.md li{margin:.25em 0}
+.md li>ul,.md li>ol{margin:.2em 0}
+.md ul.tareas{list-style:none;padding-left:.4em}
+.md li.tarea{position:relative;padding-left:1.8em}
+.md li.tarea .caja{position:absolute;left:0;top:.2em;width:1.05em;height:1.05em;margin:0;accent-color:var(--blue)}
+.md hr{border:0;border-top:1px solid var(--line);margin:2em 0}
+.md blockquote{margin:1em 0;padding:.6em 1em;background:var(--tint);border-left:4px solid var(--accent);border-radius:0 8px 8px 0}
+.md blockquote p{margin:.4em 0}
+.md strong{color:var(--title-ink)}
+.md .ruta{color:var(--gray)}
+.md .falta{color:#b00020;font-weight:700}
+.tabla{overflow-x:auto;margin:1em 0;border:1px solid var(--line);border-radius:8px}
+.tabla table{width:100%;border-collapse:collapse;font-size:.92rem}
+.tabla th{background:var(--navy);color:#fff;text-align:left;padding:.5em .65em;vertical-align:bottom}
+.tabla th code{background:var(--dark2);color:#fff}
+.tabla td{padding:.5em .65em;border-top:1px solid var(--line);vertical-align:top}
+.tabla tbody tr:nth-child(even) td{background:var(--soft)}
+.doc-ejercicio .tabla td:empty{height:2.6em;min-width:4em}
+.codigo{position:relative;margin:.8em 0}
+.codigo pre{margin:0;background:var(--code);color:var(--codefg);border-radius:8px;padding:14px 76px 14px 16px;font-family:"Courier New",monospace;
+font-size:.9rem;line-height:1.45;white-space:pre-wrap;overflow-wrap:anywhere}
+.codigo pre code{background:none;padding:0;color:inherit;font-size:1em}
+.copiar{position:absolute;top:8px;right:8px;font:inherit;font-size:.75rem;border:0;border-radius:6px;padding:.3em .7em;background:var(--dark2);color:#fff;cursor:pointer}
+figure{margin:1.1em 0}
+figure.img{display:flex;flex-direction:column;align-items:center}
+figure.img .zoom{all:unset;cursor:zoom-in;display:block;max-width:100%}
+figure img{display:block;max-width:100%;height:auto;border:1px solid var(--line);border-radius:6px;background:#fff}
+figure figcaption{margin-top:.5em;font-size:.92rem;color:var(--gray);max-width:760px;text-align:center}
+figure.mermaid .svg{background:#fff;border:1px solid var(--line);border-radius:8px;padding:12px;overflow-x:auto;text-align:center}
+figure.mermaid svg{max-width:100%;height:auto}
+details.fuente-mermaid{margin-top:6px;font-size:.85rem}
+details.fuente-mermaid summary{cursor:pointer;color:var(--gray)}
+details.fuente-mermaid pre{background:var(--code);color:var(--codefg);border-radius:8px;padding:12px;white-space:pre-wrap;overflow-wrap:anywhere;font-size:.85rem}
+details.desplegable{margin:1em 0;border:1px solid var(--line);border-radius:10px;padding:8px 14px;background:var(--soft)}
+details.desplegable>summary{cursor:pointer;font-weight:700;color:var(--accent)}
+details.ejemplo{border:1px solid var(--accent);border-left-width:5px;background:var(--tint);padding:10px 16px}
+details.ejemplo>summary{font-size:1.05rem;padding:4px 0}
+details.ejemplo[open]>summary{margin-bottom:.4em}
+details.ejemplo .det>*:first-child{margin-top:.4em}
+.pie-doc{margin:22px 4px 0;color:var(--gray);font-size:.85rem}
+.fuente-imp{display:none}
+dialog.visor{border:0;padding:0;background:transparent;max-width:96vw;max-height:94vh}
+dialog.visor::backdrop{background:rgba(0,0,0,.8)}
+dialog.visor img{display:block;max-width:96vw;height:auto;background:#fff;border-radius:6px}
+dialog.visor .cerrar{position:fixed;top:10px;right:14px;font-size:1.1rem;padding:6px 12px;border-radius:8px;border:0;cursor:pointer}
+/* índice del webinar */
+.intro{background:var(--surface);border-radius:14px;box-shadow:var(--shadow);padding:6px clamp(16px,4vw,32px) 14px;margin-bottom:22px}
+.casos{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,520px),1fr));gap:18px}
+.caso{background:var(--surface);border-radius:14px;box-shadow:var(--shadow);padding:18px clamp(16px,3vw,26px)}
+.caso h2{margin:0 0 .2em;color:var(--title-ink);font-size:1.25rem;line-height:1.25}
+.caso .sub{margin:0 0 .6em;color:var(--warm);font-weight:700}
+.caso .clases{margin:0 0 .8em;font-size:.9rem;color:var(--gray)}
+.caso h3{margin:.9em 0 .4em;font-size:.95rem;color:var(--title-ink)}
+.enlaces{display:flex;flex-wrap:wrap;gap:8px;margin:0;padding:0;list-style:none}
+.enlaces a,.enlaces span{display:inline-block;padding:6px 12px;border-radius:8px;background:var(--tint);text-decoration:none;color:var(--ink);font-size:.92rem}
+.enlaces a:hover{background:var(--soft);outline:1px solid var(--accent)}
+.enlaces a.instr{background:var(--ortint)}
+.enlaces small{color:var(--gray)}
+.marco.sin-toc{grid-template-columns:minmax(0,1fr)}
+.marco.sin-toc main{max-width:none}
+@media (max-width:999px){
+.marco{grid-template-columns:minmax(0,1fr);gap:16px;padding:16px 16px 40px}
+.lateral{position:static;max-height:none}
+.barra{position:static}
+.barra .ctl{margin-left:0}
+html{scroll-padding-top:8px}
+}
+@media (max-width:600px){
+body{font-size:15px}
+.cab{padding:18px 16px}
+.cab .logo{position:static;width:96px;height:40px;margin-bottom:10px}
+.cab .kicker,.cab h1{margin-right:0}
+.cab h1{font-size:1.4rem}
+.md{padding:4px 14px 20px}
+.md h2{font-size:1.25rem}
+.codigo pre{padding:12px 12px 12px 12px;padding-top:34px;font-size:.84rem}
+.tabla table{font-size:.85rem}
+details.ejemplo{padding:8px 10px;border-left-width:4px}
+}
+@media print{
+:root,:root:not([data-theme="light"]),:root[data-theme="light"],:root[data-theme="dark"]{--page:#fff;--surface:#fff;--soft:#f4f6f8;--tint:#e9f1f8;
+--ortint:#fbf1e6;--line:#d5d8de;--ink:#1d1b1c;--gray:#5d5d5d;--dark:#002855;--dark2:#173d66;--title-ink:#002855;--accent:#00629b;--warm:#b5651d;
+--code:#f4f6f8;--codefg:#1d1b1c;color-scheme:light}
+@page{size:A4;margin:15mm 14mm 16mm}
+body{background:#fff;font-size:10pt;line-height:1.45}
+.barra,.lateral,.copiar,.ancla,dialog.visor,details.fuente-mermaid,.enlaces small{display:none!important}
+.marco{display:block;max-width:none;padding:0}
+main{max-width:none}
+.cab,.md,.caso,.intro{box-shadow:none;border-radius:0}
+.cab{border-radius:6px;padding:14px 18px;margin-bottom:10px}
+.md{padding:0}
+.md h2{font-size:14pt;margin-top:1.4em}
+.md h3{font-size:11.5pt}
+h1,h2,h3,h4{break-after:avoid;page-break-after:avoid}
+tr,figure,.codigo,blockquote,li,.caso{break-inside:avoid;page-break-inside:avoid}
+thead{display:table-header-group}
+.tabla{overflow:visible;border:0}
+.tabla table{font-size:8.5pt}
+.tabla td,.tabla th{padding:.3em .45em;overflow-wrap:break-word}
+.tabla code,.md code{overflow-wrap:break-word}
+p:has(+ .tabla),p:has(+ .codigo),p:has(+ figure){break-after:avoid;page-break-after:avoid}
+.pie-doc{display:none}
+.cab .fuente-imp{display:block;margin:8px 0 0;font-size:7.5pt;color:#d6e4f0}
+.cab .fuente-imp code{background:none;color:inherit;padding:0}
+figure.mermaid svg{max-height:240mm}
+.codigo pre{border:1px solid #d5d8de;padding:8px 10px;font-size:8.5pt}
+figure img{max-height:200mm;width:auto}
+figure.mermaid .svg{border:0;padding:0}
+a{color:inherit;text-decoration:none}
+a.ext{text-decoration:underline dotted}
+.cab,.cab *,.tabla th,.etiqueta,.aviso-doc,.md blockquote,.tabla tbody tr:nth-child(even) td{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.casos{display:block}.caso{margin-bottom:12px;border:1px solid #d5d8de;border-radius:6px}
+details.ejemplo{border:0;padding:0;background:none}
+details.ejemplo>summary{display:none}
+}
+@media print{details.ejemplo::details-content{content-visibility:visible}}
+</style></head>
+<body class="doc doc-guion">
+<header class="barra">
+  <a class="marca" href="../index.html">Webinar E2E-2</a>
+  <nav aria-label="Material del caso"><a href="E2E-2-diapositivas.html">Diapositivas</a><a href="E2E-2-guia.html">Guía</a><a href="E2E-2-guion-instructor.html" aria-current="page">Guion</a><a href="E2E-2-ejercicio.html">Ejercicio</a></nav>
+  <div class="ctl"><button type="button" id="b-imprimir">Imprimir</button><button type="button" id="b-tema">Tema: automático</button></div>
+</header>
+<div class="marco">
+<aside class="lateral"><details class="toc" open><summary>Contenido</summary><nav aria-label="Contenido del documento"><ol><li class="n2"><a href="#objetivos-de-aprendizaje">Objetivos de aprendizaje</a></li><li class="n2"><a href="#requisitos-previos">Requisitos previos</a></li><li class="n2"><a href="#el-ejercicio">El ejercicio</a></li><li class="n2"><a href="#clase-1--del-alcance-a-la-línea-base">Clase 1 · Del alcance a la línea base</a></li><li class="n3"><a href="#agenda-minuto-a-minuto">Agenda minuto a minuto</a></li><li class="n3"><a href="#demostración-40-minutos">Demostración (40 minutos)</a></li><li class="n3"><a href="#mensajes-clave">Mensajes clave</a></li><li class="n3"><a href="#preguntas-para-la-audiencia">Preguntas para la audiencia</a></li><li class="n3"><a href="#dudas-frecuentes">Dudas frecuentes</a></li><li class="n3"><a href="#plan-b-si-la-demo-en-vivo-falla">Plan B si la demo en vivo falla</a></li><li class="n2"><a href="#clase-2--el-cambio-bajo-control">Clase 2 · El cambio bajo control</a></li><li class="n3"><a href="#agenda-minuto-a-minuto-1">Agenda minuto a minuto</a></li><li class="n3"><a href="#demostración-40-minutos-1">Demostración (40 minutos)</a></li><li class="n3"><a href="#mensajes-clave-1">Mensajes clave</a></li><li class="n3"><a href="#preguntas-para-la-audiencia-1">Preguntas para la audiencia</a></li><li class="n3"><a href="#dudas-frecuentes-1">Dudas frecuentes</a></li><li class="n3"><a href="#plan-b-si-la-demo-en-vivo-falla-1">Plan B si la demo en vivo falla</a></li><li class="n2"><a href="#conexión-con-el-caso-siguiente">Conexión con el caso siguiente</a></li></ol></nav></details></aside>
+<main>
+<header class="cab"><div class="logo" aria-label="Espacio reservado para el logo de IEEE">Logo IEEE</div><p class="kicker">Webinar E2E-2 · Guion del instructor · pm-method 2.3.0</p><h1>Guion del instructor · E2E-2 · Alcance, cambio y mapa de ruta</h1><p class="meta"><span class="etiqueta instr">Guion del instructor</span><span>Para: instructor</span></p><p class="fuente-imp">Fuente: <a href="https://github.com/Arturo-Penas-Rial/pm-method/blob/main/docs/webinar/E2E-2/guion-instructor.md" class="ext">docs/webinar/E2E-2/guion-instructor.md</a> · pm-method 2.3.0 · Guion del instructor del caso E2E-2 · generado con <code>scripts/webinar/documentos.py</code></p></header>
+<article class="md">
+<p><strong>Caso:</strong> <a href="E2E-2-guia.html">Guía E2E-2</a> · <strong>Evidencia:</strong> <a href="https://github.com/Arturo-Penas-Rial/pm-method/blob/main/docs/guias/evidencia/salida-g2.md" class="ext" title="Abre el archivo en GitHub">salida-g2.md</a>
+· <strong>Ejercicio:</strong> <a href="E2E-2-ejercicio.html">E2E-2-ejercicio.html</a> · <strong>Diapositivas:</strong> <a href="E2E-2-diapositivas.html">E2E-2-diapositivas.html</a> (las arma el
+generador común) · <strong>Público:</strong> gestores de proyecto con algo de PMBOK o PRINCE2 y líderes de negocio.</p>
+<p><strong>Formato:</strong> dos clases de 90 minutos. La primera construye la línea base contra la que se mide todo cambio (pasos 1 a
+5); la segunda gestiona tres cambios de distinto tamaño, hasta la excepción (pasos 6 a 10). Se dividió así porque la
+clase 2 necesita lo que deja la 1: sin presupuesto de cambio, límite delegado y tolerancias registrados, el análisis de
+impacto no tiene contra qué compararse. Una sola clase obligaría a saltear el análisis de impacto o la excepción, que
+son el foco del caso.</p>
+<p>Todas las cifras de este guion salen de la corrida de referencia (<code>docs/guias/evidencia/salida-g2.md</code>).</p>
+<hr>
+<h2 id="objetivos-de-aprendizaje">Objetivos de aprendizaje<a class="ancla" href="#objetivos-de-aprendizaje" aria-label="Enlace a esta sección">#</a></h2>
+<p>Al terminar las dos clases, cada asistente puede:</p>
+<ol><li>Explicar por qué el alcance se define por productos y se mide contra criterios de calidad, y leer una cobertura de
+trazabilidad requisito → historia → paquete.</li><li>Leer un camino crítico y calcular una reserva de cronograma a 2σ con PERT.</li><li>Distinguir los tres caminos de un cambio: intercambio del product owner, decisión de la autoridad de cambio y
+excepción a la junta, y decir quién decide cada uno.</li><li>Armar una tabla de impacto de un cambio <strong>antes</strong> de decidirlo (tiempo, reserva, costo, presupuesto, autoridad,
+capacidad y VAN del business case).</li><li>Reconocer las señales de una excepción (aprobación rechazada por <code>registro.py</code> fuera de la autoridad, TOL-01) y recorrer su ruta: informe, plan de excepción con
+el business case y los riesgos actualizados, y puerta de la junta.</li></ol>
+<h2 id="requisitos-previos">Requisitos previos<a class="ancla" href="#requisitos-previos" aria-label="Enlace a esta sección">#</a></h2>
+<p><strong>Asistentes:</strong> saber qué es una WBS, un backlog y un presupuesto; no hace falta saber programar. Conviene haber visto
+E2E-1 (riesgos), pero no es obligatorio.</p>
+<p><strong>Instructor (antes de cada clase):</strong></p>
+<ul><li>Claude Code con el plugin pm-method instalado y una copia del fixture en <code>~/proyectos-prueba/portal-e2e-2</code>, según el
+<a href="https://github.com/Arturo-Penas-Rial/pm-method/blob/main/docs/guias/README.md#cómo-usar-las-guías" class="ext" title="Abre el archivo en GitHub">README de las guías</a>.</li><li>La evidencia y las imágenes abiertas en pestañas: <code>salida-g2.md</code> y <code>docs/guias/img/g2-*.png</code> (plan B).</li><li>Para la clase 2: un proyecto ya avanzado hasta el paso 5, preparado antes de la clase con los prompts de los pasos 1
+a 5 en una copia nueva del fixture. Para mostrar archivos del recorrido completo, sirve la carpeta que deja el driver:
+<code>cd scripts/pruebas/guias_e2e &amp;&amp; GUIAS_SALIDA=&lt;dir&gt; TMPDIR=&lt;dir&gt; python3 g2.py &lt;dir&gt;/salida-g2.md</code> (la ruta aparece al
+final como "Carpeta del recorrido").</li><li>Probar el micrófono y el tamaño de letra de la terminal (mínimo 18 pt).</li></ul>
+<h2 id="el-ejercicio">El ejercicio<a class="ancla" href="#el-ejercicio" aria-label="Enlace a esta sección">#</a></h2>
+<p>La hoja es una sola para asistentes e instructor: <a href="E2E-2-ejercicio.html">E2E-2-ejercicio.html</a> (en HTML, <code>E2E-2-ejercicio.html</code>). Se
+basta sola: empieza por «Cómo funciona este ejercicio», resume el escenario y los conceptos que hacen falta, trae la
+hoja de trabajo con sus criterios de autoevaluación y termina con un <strong>ejemplo resuelto</strong> con el escenario del caso,
+plegado, donde cada dato cita el paso de la guía de donde sale.</p>
+<ul><li><strong>Cuándo:</strong> la parte A en el minuto 75 de la clase 1 y la parte B en el minuto 75 de la clase 2, siempre después de
+la demostración; 10 minutos cada una.</li><li><strong>Cómo se presenta:</strong> proyectá la diapositiva del ejercicio y leé en voz alta «Cómo funciona este ejercicio» (un
+minuto). Quien no tenga un proyecto propio trabaja con los datos de partida del caso, que están en «Lo que necesitás
+saber».</li><li><strong>Mientras trabajan:</strong> si alguien no tiene alguno de los números de A1, ese es el hallazgo: que lo anote como "no
+definido". En la parte B, si el camino que correspondía no coincide con quien aprobó, encontraron un caso de
+autoridad excedida: es el hallazgo más valioso del ejercicio.</li><li><strong>Ejemplo resuelto:</strong> pedí que no lo abran antes de intentar. Mostralo recién en los dos últimos minutos del bloque:
+desplegalo en pantalla y comparalo con la hoja de uno o dos voluntarios. Al imprimir, sale desplegado al final de la
+hoja.</li><li><strong>Autoevaluación:</strong> cada asistente marca los criterios de su parte; un criterio sin cumplir es un hallazgo sobre su
+proyecto, no un error del ejercicio.</li></ul>
+<hr>
+<h2 id="clase-1--del-alcance-a-la-línea-base">Clase 1 · Del alcance a la línea base<a class="ancla" href="#clase-1--del-alcance-a-la-línea-base" aria-label="Enlace a esta sección">#</a></h2>
+<p><strong>Pregunta de la clase:</strong> ¿contra qué vamos a medir cada cambio?</p>
+<h3 id="agenda-minuto-a-minuto">Agenda minuto a minuto<a class="ancla" href="#agenda-minuto-a-minuto" aria-label="Enlace a esta sección">#</a></h3>
+<div class="tabla"><table><thead><tr><th>Minuto</th><th>Bloque</th><th>Qué pasa</th><th>Material</th></tr></thead><tbody><tr><td>0–10</td><td>Gancho</td><td>La historia de C-002 contada al revés: "el 19/2 llegó aprobado de palabra un cambio que llevaba el presupuesto de cambio al 200 %". Pregunta a mano alzada (ver abajo).</td><td>Diapositiva de gancho (el gráfico <code>g2-consumo-cambio.png</code> se reserva para la clase 2)</td></tr><tr><td>10–25</td><td>Concepto</td><td>Producto antes que tarea (PBS/WBS y descripción de producto); trazabilidad viva; PERT y camino crítico; MoSCoW como margen; línea base, tolerancia, autoridad de cambio, presupuesto de cambio y VAN del business case.</td><td>Diapositivas de concepto</td></tr><tr><td>25–65</td><td>Demostración</td><td>Pasos 1 a 5 (detalle abajo).</td><td>Terminal + evidencia</td></tr><tr><td>65–75</td><td>Pregunta y discusión</td><td>"¿Quién aprueba un cambio de 9.000? ¿Y uno de 15.000?"</td><td>Diapositiva de pregunta</td></tr><tr><td>75–85</td><td>Ejercicio</td><td>Parte A del ejercicio: la línea base de cambio de un proyecto propio; ejemplo resuelto al cerrar el bloque.</td><td><a href="E2E-2-ejercicio.html">E2E-2-ejercicio.html</a> · <a href="#el-ejercicio">cómo conducirlo</a></td></tr><tr><td>85–90</td><td>Cierre</td><td>Tres mensajes clave y anticipo de la clase 2.</td><td>Diapositiva de cierre</td></tr></tbody></table></div>
+<h3 id="demostración-40-minutos">Demostración (40 minutos)<a class="ancla" href="#demostración-40-minutos" aria-label="Enlace a esta sección">#</a></h3>
+<div class="tabla"><table><thead><tr><th>Min</th><th>Paso</th><th>En vivo o con evidencia</th><th>Qué mostrar</th><th>Qué decir</th></tr></thead><tbody><tr><td>25–29</td><td>1</td><td>Evidencia</td><td>"requisitos: 42 · historias: 10", tres épicas</td><td>"pm-method no reescribe la especificación: la lee de BMAD."</td></tr><tr><td>29–40</td><td>2</td><td><strong>En vivo</strong> (prompt del paso 2)</td><td>"13 elementos, 8 hojas · esfuerzo 2480 h · costo 124,000"; trazabilidad sin huecos; la cobertura (12 de 12)</td><td>Abrir <code>descripcion-producto-proyecto.md</code> y señalar CA-02 "p95 &lt; 3 s". "Esto es lo que significa terminado."</td></tr><tr><td>40–50</td><td>3</td><td><strong>En vivo</strong> (prompt del paso 3)</td><td>"Duración total (días laborables): 110 · Fin previsto: 2027-05-03"; σ = 6,51; reserva 13,0 días</td><td>Mostrar <code>g2-gantt.png</code>: "cinco barras naranjas mandan; A04 tiene 3 días de holgura".</td></tr><tr><td>50–55</td><td>4</td><td>Evidencia</td><td>Orden por valor/puntos; R1 47 de 48, R2 21 de 24</td><td>"Should y Could son el margen del PO, no un premio consuelo."</td></tr><tr><td>55–65</td><td>5</td><td><strong>En vivo</strong> (prompt del paso 5)</td><td><code>estado.py presupuesto cambio=12000 limite_autoridad_cambio=10000</code>; business case con VAN 39.776 y B-01 con equilibrio en 76,8 %; verificación de autorizar-proyecto "1 bloqueo(s) · 0 condición(es) · 2 aviso(s)" (L-01, P-09, P-10); líneas base con sha</td><td>"Desde acá, cada cambio aprobado se compara solo contra estos números, y cada cambio recalcula el VAN."</td></tr></tbody></table></div>
+<p><strong>Prompts exactos:</strong> los de los pasos 2, 3 y 5 de la guía, copiados tal cual. Si Claude pregunta, responder con el texto
+de "Si te pregunta" de cada paso.</p>
+<h3 id="mensajes-clave">Mensajes clave<a class="ancla" href="#mensajes-clave" aria-label="Enlace a esta sección">#</a></h3>
+<ol><li>El alcance es una lista de <strong>productos con criterios de aceptación</strong>, no de tareas. Sin criterio, "terminado" se
+discute en la UAT.</li><li>La trazabilidad sirve si se <strong>recalcula</strong>: 12 de 12 hoy no garantiza nada mañana.</li><li>La línea base de cambio son <strong>tres números</strong> que fija la junta: tolerancias, límite por cambio y presupuesto de cambio.
+Al lado, el VAN del business case: la vara para saber si un cambio crea o destruye valor.</li></ol>
+<h3 id="preguntas-para-la-audiencia">Preguntas para la audiencia<a class="ancla" href="#preguntas-para-la-audiencia" aria-label="Enlace a esta sección">#</a></h3>
+<div class="tabla"><table><thead><tr><th>Pregunta</th><th>Respuesta esperada</th></tr></thead><tbody><tr><td>"¿Cuántos tienen hoy una matriz de trazabilidad actualizada?" (gancho, mano alzada)</td><td>Pocas manos. Se arma una vez y se abandona; es el problema que resuelve el paso 8.</td></tr><tr><td>"La reserva a 2σ es de 13 días y la tolerancia de tiempo es de 15. ¿Cuánto puede absorber un cambio?"</td><td>La tolerancia admite hasta 15 días, pero la reserva cubre la incertidumbre de las estimaciones: un cambio que consume 11 días deja solo 2 de reserva. No es excepción, pero sí un riesgo.</td></tr><tr><td>"¿Quién aprueba un cambio de 9.000? ¿Y uno de 15.000?"</td><td>9.000: la autoridad de cambio, si queda saldo en el presupuesto de cambio. 15.000: supera el límite de 10.000, así que decide la junta.</td></tr><tr><td>"¿Por qué la junta fija un presupuesto de cambio aparte de la reserva de riesgo?"</td><td>La reserva de riesgo paga respuestas a riesgos; los cambios de alcance tienen su propio presupuesto. Mezclarlos oculta cuánto se gastó en cada cosa.</td></tr><tr><td>"El VAN es 39.776. ¿Cuánto puede fallar el beneficio principal antes de que el proyecto deje de valer la pena?"</td><td>B-01 tiene su punto de equilibrio en 76,8 % de lo estimado: puede caer 23,2 %. Es más que su tolerancia de −10 %, así que el caso es robusto, pero depende sobre todo de ese beneficio.</td></tr></tbody></table></div>
+<h3 id="dudas-frecuentes">Dudas frecuentes<a class="ancla" href="#dudas-frecuentes" aria-label="Enlace a esta sección">#</a></h3>
+<ul><li><strong>"¿Tengo que usar BMAD?"</strong> En este caso la especificación viene de BMAD y pm-method la lee sin escribirla. Las
+demás guías muestran el resto del ecosistema.</li><li><strong>"¿Puedo exportar el cronograma a MS Project?"</strong> Sí: <code>cpm.py … --mspdi cronograma.xml</code> (paso 3), que se abre en MS
+Project o ProjectLibre.</li><li><strong>"¿De dónde salen los flujos del business case?"</strong> Los montos los da la dueña de los beneficios y la tasa, la
+organización; <code>inversion.py</code> solo calcula VAN, TIR, repago, sensibilidad y punto de equilibrio. Si falta un dato,
+queda <code>[por confirmar]</code>.</li><li><strong>"¿Quién escribe la WBS?"</strong> La redacta la skill con lo que dice el equipo; los cálculos (horas, costo, BAC) los hace
+<code>wbs.py</code>.</li><li><strong>"¿Por qué hay avisos P-09 y P-10 en la puerta de proyecto?"</strong> Faltan la matriz poder/interés y la RACI; se trabajan
+en E2E-3.</li></ul>
+<h3 id="plan-b-si-la-demo-en-vivo-falla">Plan B si la demo en vivo falla<a class="ancla" href="#plan-b-si-la-demo-en-vivo-falla" aria-label="Enlace a esta sección">#</a></h3>
+<p>Seguir con la evidencia: abrir <code>salida-g2.md</code> en el bloque del paso y leer la línea de "Qué deberías ver" de la guía.
+Mostrar <code>g2-gantt.png</code> para el paso 3 y <code>g2-indicadores.png</code> para cerrar. Nunca improvisar cifras: si una no está en
+la evidencia, decir "lo verificamos después".</p>
+<hr>
+<h2 id="clase-2--el-cambio-bajo-control">Clase 2 · El cambio bajo control<a class="ancla" href="#clase-2--el-cambio-bajo-control" aria-label="Enlace a esta sección">#</a></h2>
+<p><strong>Pregunta de la clase:</strong> ¿quién decide cada cambio, y cómo nos enteramos a tiempo?</p>
+<h3 id="agenda-minuto-a-minuto-1">Agenda minuto a minuto<a class="ancla" href="#agenda-minuto-a-minuto-1" aria-label="Enlace a esta sección">#</a></h3>
+<div class="tabla"><table><thead><tr><th>Minuto</th><th>Bloque</th><th>Qué pasa</th><th>Material</th></tr></thead><tbody><tr><td>0–10</td><td>Gancho</td><td>Mostrar <code>g2-consumo-cambio.png</code> sin título: "una barra roja al 200 %. ¿Quién lo quiso aprobar? ¿Por qué no llegó a consumirse?" Repaso en un minuto de los tres números de la clase 1.</td><td>Diapositivas de gancho</td></tr><tr><td>10–25</td><td>Concepto</td><td>Tres caminos de un cambio; tabla de impacto en todos los objetivos, incluido el VAN; EVM ágil (alcance que no entra, no sobrecosto); gestión por excepción.</td><td>Diapositivas de concepto</td></tr><tr><td>25–65</td><td>Demostración</td><td>Pasos 6 a 10 (detalle abajo).</td><td>Terminal + evidencia</td></tr><tr><td>65–75</td><td>Pregunta y discusión</td><td>"Sofía aprobó C-002 porque era obligatorio. ¿Estuvo mal?"</td><td>Diapositiva de pregunta</td></tr><tr><td>75–85</td><td>Ejercicio</td><td>Parte B del ejercicio: la tabla de impacto de un cambio real; ejemplo resuelto al cerrar el bloque.</td><td><a href="E2E-2-ejercicio.html">E2E-2-ejercicio.html</a> · <a href="#el-ejercicio">cómo conducirlo</a></td></tr><tr><td>85–90</td><td>Cierre</td><td>Mensajes clave y puente a E2E-3.</td><td>Diapositiva de cierre</td></tr></tbody></table></div>
+<h3 id="demostración-40-minutos-1">Demostración (40 minutos)<a class="ancla" href="#demostración-40-minutos-1" aria-label="Enlace a esta sección">#</a></h3>
+<div class="tabla"><table><thead><tr><th>Min</th><th>Paso</th><th>En vivo o con evidencia</th><th>Qué mostrar</th><th>Qué decir</th></tr></thead><tbody><tr><td>25–29</td><td>6</td><td>Evidencia</td><td><strong>D-009</strong>, nivel <code>product-owner</code>, sin solicitud de cambio</td><td>"Primer camino: lo decide el PO porque no toca Must, fecha ni costo."</td></tr><tr><td>29–42</td><td>7</td><td><strong>En vivo</strong> (prompt del paso 7)</td><td>"agregados ['FR-13']"; escenario "121 · 2027-05-18"; VAN 39.776 → 45.939; la tabla de impacto; "INFO CAM-03 Presupuesto de cambio: 9.000 de 12.000 (75 %)"</td><td>Recorrer la tabla fila por fila. Mostrar <code>g2-roadmap-c001.png</code>: "el Release 1 no se mueve; la puesta en producción, 11 días; y el simulador se paga solo".</td></tr><tr><td>42–47</td><td>8</td><td>Evidencia</td><td>"Sin desvíos"; líneas base 1.1; cobertura 13 de 13</td><td>Mostrar <code>g2-trazabilidad.png</code>: "la matriz se rehízo sola tras el cambio".</td></tr><tr><td>47–52</td><td>9</td><td>Evidencia</td><td><code>alcance_no_entregable_pct 10.345</code>, ámbar; TOL-02; SPI 0,867 activa el disparador de R-001; Q-001 sin QUA-01</td><td>"Ámbar: el PO saca Should/Could, que es justo la respuesta prevista en R-001; nadie escala todavía."</td></tr><tr><td>52–65</td><td>10</td><td><strong>En vivo</strong> el prompt 1; evidencia para los prompts 2 y 3</td><td><code>registro.py</code> rechaza la aprobación de Sofía ("supera el límite de la autoridad de cambio (10.000)", "24.000 de 12.000 fijados por la junta") y C-002 queda <code>pendiente-decision</code>; sanidad "0 ERROR · 1 AVISO · 1 INFO" (TOL-01, CAM-03 al 75 %); tabla de impacto de C-002 con VAN 30.939; puerta "1 bloqueo(s)" (L-01); la junta amplía el presupuesto a 32.000 y recién entonces aprueba C-002; REG-09 de R-001 el 26/2 y su revisión; sanidad final "24.000 de 32.000 (75 %)"</td><td>Mostrar <code>g2-alcance-evm.png</code>, <code>g2-consumo-cambio.png</code> y <code>g2-business-case.png</code>. "La aprobación fuera de la autoridad se frenó el mismo día, el cambio esperó a la junta, y la junta decidió sabiendo que el proyecto sigue valiendo la pena."</td></tr></tbody></table></div>
+<p><strong>Prompts exactos:</strong> los de los pasos 7 y 10 (prompt 1) de la guía. Los prompts 2 y 3 del paso 10 se leen en voz alta y
+se muestra su resultado en la evidencia, para no depender de dos rondas más en vivo.</p>
+<h3 id="mensajes-clave-1">Mensajes clave<a class="ancla" href="#mensajes-clave-1" aria-label="Enlace a esta sección">#</a></h3>
+<ol><li>Un cambio tiene <strong>tres caminos</strong> y cada uno tiene dueño: PO (intercambio), autoridad de cambio (dentro del límite y
+del saldo) y junta (excepción).</li><li>El impacto se calcula <strong>antes</strong> de decidir y en <strong>todos</strong> los objetivos, no solo en el costo: también en el VAN.</li><li>"Obligatorio" responde si hay que hacerlo, no quién lo decide.</li><li>La excepción no es un fracaso: es la ruta prevista, y con pm-method empieza el mismo día del desvío. Llega a la
+junta con el business case recalculado y, si un riesgo queda sin revisar, REG-09 lo recuerda.</li></ol>
+<h3 id="preguntas-para-la-audiencia-1">Preguntas para la audiencia<a class="ancla" href="#preguntas-para-la-audiencia-1" aria-label="Enlace a esta sección">#</a></h3>
+<div class="tabla"><table><thead><tr><th>Pregunta</th><th>Respuesta esperada</th></tr></thead><tbody><tr><td>"C-001 corre 11 días la puesta en producción. ¿Es una excepción?"</td><td>No: 11 de 15 días de tolerancia (73 %). Pero deja la reserva en 2,0 días, y por eso se registra R-001 antes de aprobar.</td></tr><tr><td>"Sofía aprobó C-002 porque era obligatorio. ¿Estuvo mal?"</td><td>La necesidad no se discute; la autoridad sí. 15.000 supera su límite de 10.000 y el presupuesto quedaría al 200 %: debía escalar a la junta. Por eso <code>registro.py</code> no registra su aprobación y C-002 queda <code>pendiente-decision</code>.</td></tr><tr><td>"¿Por qué el EVM ágil habla de alcance y no de sobrecosto?"</td><td>Con costo y fecha fijos, un EAC mayor que el BAC significa que no entra todo el alcance. Si lo que no entra cabe en Should/Could (10,3 % &lt; 20 %), decide el PO; si no (22,1 %), los Must peligran y hay excepción.</td></tr><tr><td>"C-002 resta 15.000 de VAN y no suma beneficio. ¿Sigue valiendo la pena el proyecto?"</td><td>Sí: el VAN queda en 30.939 y B-01 puede caer 18 % antes de llegar a 0, más que su tolerancia de −10 %. Con menos margen: la junta lo sabe antes de aprobar el plan de excepción.</td></tr><tr><td>"Tras C-002, ¿qué pasa con la fecha de fin del proyecto?"</td><td>La recalcula el plan de proyecto junto con el plan de excepción (lo pide <code>limite-etapa</code>). La guía no la recalcula. Si quedara fuera de ±3 semanas, la junta tampoco podría aprobarla sola.</td></tr></tbody></table></div>
+<h3 id="dudas-frecuentes-1">Dudas frecuentes<a class="ancla" href="#dudas-frecuentes-1" aria-label="Enlace a esta sección">#</a></h3>
+<ul><li><strong>"¿El intercambio del PO no debería ser una solicitud de cambio?"</strong> No, si cambia Should/Could equivalentes sin tocar
+Must, fecha ni costo: queda como decisión de nivel <code>product-owner</code> (D-009) y se avisa a BMAD.</li><li><strong>"¿Puedo pagar un cambio con la reserva de riesgo?"</strong> Solo si responde a un riesgo registrado; si no cita un R-###,
+sanidad avisa con CAM-02.</li><li><strong>"¿Y si la junta necesita aprobar igual una puerta con un ERROR?"</strong> La verificación lo indica: "corregir, o decisión
+'condicionado' (o --forzar) de la junta". En el caso, la junta corrige (amplía el presupuesto) y después aprueba.</li><li><strong>"¿Por qué aparece REG-09 al final si todo se aprobó?"</strong> <code>limite-etapa</code> pide actualizar plan, business case y
+riesgos. El business case se actualizó; R-001, con revisión prevista el 19/2, quedó sin mirar en medio de la
+excepción. Sanidad lo marca el 26/2 y el gestor lo revisa ese día (probabilidad 3 → 4, próxima revisión el 19/3).</li><li><strong>"¿Qué pasa si BMAD cambia el PRD sin avisar?"</strong> <code>bmad.py verificar</code> lo detecta como desvío contra la línea base. Sin un
+issue que lo cite, sanidad lo marca como ERROR ESP-10 ("Cambio no controlado"), que bloquea las puertas; con el issue
+baja a aviso hasta la nueva línea base.</li></ul>
+<h3 id="plan-b-si-la-demo-en-vivo-falla-1">Plan B si la demo en vivo falla<a class="ancla" href="#plan-b-si-la-demo-en-vivo-falla-1" aria-label="Enlace a esta sección">#</a></h3>
+<p>Usar la evidencia: los bloques "análisis de impacto de C-001" y "análisis de impacto de C-002" de <code>salida-g2.md</code>, y la
+salida de sanidad del 19/2. Las imágenes <code>g2-roadmap-c001.png</code>, <code>g2-trazabilidad.png</code>, <code>g2-alcance-evm.png</code>,
+<code>g2-consumo-cambio.png</code> y <code>g2-business-case.png</code> cuentan la clase completa sin terminal.</p>
+<hr>
+<h2 id="conexión-con-el-caso-siguiente">Conexión con el caso siguiente<a class="ancla" href="#conexión-con-el-caso-siguiente" aria-label="Enlace a esta sección">#</a></h2>
+<p>Al cerrar la clase 2: "Todo lo que vimos lo decidieron la junta, la PO y el equipo. Falta el resto: socios,
+operadores, cumplimiento, el Consejo. En E2E-3 vamos a ver quiénes son, qué quieren saber, cómo se les cuenta el avance
+y cómo se verifica que el contacto prometido se cumple." Enlace: <a href="../E2E-3/E2E-3-guia.html">E2E-3 · Interesados, comunicaciones, OKR y reporte de
+avance</a>.</p></article>
+<footer class="pie-doc">Fuente: <a href="https://github.com/Arturo-Penas-Rial/pm-method/blob/main/docs/webinar/E2E-2/guion-instructor.md" class="ext">docs/webinar/E2E-2/guion-instructor.md</a> · pm-method 2.3.0 · Guion del instructor del caso E2E-2 · generado con <code>scripts/webinar/documentos.py</code></footer>
+</main>
+</div>
+<dialog class="visor" id="visor"><button type="button" class="cerrar">Cerrar</button><img alt=""></dialog>
+<script>
+(function(){
+  var raiz=document.documentElement;
+  function guardar(k,v){try{localStorage.setItem(k,v)}catch(e){}}
+  function leer(k){try{return localStorage.getItem(k)}catch(e){return null}}
+  var tema=leer('webinar-tema'); if(tema==='light'||tema==='dark') raiz.setAttribute('data-theme',tema);
+  var bTema=document.getElementById('b-tema');
+  function rotTema(){var t=raiz.getAttribute('data-theme'); bTema.textContent=t==='dark'?'Tema: oscuro':(t==='light'?'Tema: claro':'Tema: automático');}
+  if(bTema){rotTema(); bTema.addEventListener('click',function(){var t=raiz.getAttribute('data-theme'); var s=!t?'light':(t==='light'?'dark':'');
+    if(s){raiz.setAttribute('data-theme',s)}else{raiz.removeAttribute('data-theme')} guardar('webinar-tema',s); rotTema();});}
+  var bImp=document.getElementById('b-imprimir'); if(bImp) bImp.addEventListener('click',function(){window.print()});
+  var toc=document.querySelector('details.toc');
+  if(toc&&window.matchMedia){var mq=window.matchMedia('(min-width: 1000px)');
+    function ajustar(){toc.open=mq.matches} ajustar();
+    if(mq.addEventListener) mq.addEventListener('change',ajustar); else if(mq.addListener) mq.addListener(ajustar);
+    toc.addEventListener('click',function(ev){if(ev.target.tagName==='A'&&!mq.matches) toc.open=false;});}
+  var enl={}; [].forEach.call(document.querySelectorAll('details.toc a[href^="#"]'),function(a){enl[decodeURIComponent(a.getAttribute('href').slice(1))]=a});
+  if('IntersectionObserver' in window&&toc){var obs=new IntersectionObserver(function(ents){ents.forEach(function(en){
+      if(en.isIntersecting){var a=enl[en.target.id]; if(a){[].forEach.call(document.querySelectorAll('details.toc a.activo'),function(x){x.classList.remove('activo')}); a.classList.add('activo');}}});},
+      {rootMargin:'0px 0px -70% 0px'});
+    [].forEach.call(document.querySelectorAll('.md h2[id],.md h3[id]'),function(h){obs.observe(h)});}
+  [].forEach.call(document.querySelectorAll('.codigo .copiar'),function(b){b.addEventListener('click',function(){
+    var t=b.parentNode.querySelector('pre').textContent;
+    if(navigator.clipboard){navigator.clipboard.writeText(t).then(function(){b.textContent='Copiado'; setTimeout(function(){b.textContent='Copiar'},1500)},function(){});}});});
+  var visor=document.getElementById('visor');
+  if(visor){var vimg=visor.querySelector('img');
+    [].forEach.call(document.querySelectorAll('figure.img .zoom'),function(b){b.addEventListener('click',function(){
+      var im=b.querySelector('img'); vimg.src=im.src; vimg.alt=im.alt; if(visor.showModal) visor.showModal();});});
+    visor.addEventListener('click',function(){visor.close()});}
+  function abrirHasta(id){var el=id&&document.getElementById(id); while(el){if(el.tagName==='DETAILS'&&!el.open) el.open=true; el=el.parentElement;}}
+  function hashActual(){try{return decodeURIComponent(location.hash.slice(1))}catch(e){return ''}}
+  [].forEach.call(document.querySelectorAll('a[href^="#"]'),function(a){a.addEventListener('click',function(){
+    var h=a.getAttribute('href').slice(1); try{h=decodeURIComponent(h)}catch(e){} abrirHasta(h);});});
+  window.addEventListener('hashchange',function(){abrirHasta(hashActual())}); if(location.hash) abrirHasta(hashActual());
+  var abiertos=[];
+  function abrirTodo(){[].forEach.call(document.querySelectorAll('details.desplegable:not([open])'),function(d){d.open=true; abiertos.push(d)});}
+  function cerrarAbiertos(){abiertos.forEach(function(d){d.open=false}); abiertos=[];}
+  window.addEventListener('beforeprint',abrirTodo);
+  window.addEventListener('afterprint',cerrarAbiertos);
+  if(window.matchMedia){var mp=window.matchMedia('print'); var alCambiar=function(e){if(e.matches) abrirTodo(); else cerrarAbiertos();};
+    if(mp.addEventListener) mp.addEventListener('change',alCambiar); else if(mp.addListener) mp.addListener(alCambiar);}
+})();
+</script>
+</body></html>

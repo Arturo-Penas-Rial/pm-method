@@ -40,6 +40,27 @@ Al terminar, cada asistente puede:
   `02-planificacion/visuales/recorrido-uj-1.html` en el navegador.
 - **Recomendado:** haber dado E2E-5 antes (la idea y el diseño del mismo tipo de proyecto).
 
+## El ejercicio
+
+La hoja es una sola para asistentes e instructor: [ejercicio.md](ejercicio.md) (en HTML, `E2E-4-ejercicio.html`). Se
+basta sola: empieza por «Cómo funciona este ejercicio», resume el escenario y los conceptos que hacen falta, trae la
+hoja de trabajo con sus criterios de autoevaluación y termina con un **ejemplo resuelto** con el escenario del caso,
+plegado, donde cada dato cita el paso de la guía de donde sale.
+
+- **Cuándo:** la parte A en el minuto 75 de la clase 1 y la parte B en el minuto 75 de la clase 2, siempre después de
+  la demostración; 10 minutos la parte A y de 10 a 15 la parte B (si el tiempo aprieta, B1 y B2 en clase y B3
+  después).
+- **Cómo se presenta:** proyectá la diapositiva del ejercicio y leé en voz alta «Cómo funciona este ejercicio» (un
+  minuto). Quien no tenga un proyecto propio trabaja con los datos de partida del caso, que están en «Lo que necesitás
+  saber».
+- **Mientras trabajan:** pedí casos concretos: una condición con verificador y evidencia, una entrega con su foto de
+  calidad, un paso del recorrido con su fuente.
+- **Ejemplo resuelto:** pedí que no lo abran antes de intentar. Mostralo recién en los dos últimos minutos del bloque:
+  desplegalo en pantalla y comparalo con la hoja de uno o dos voluntarios. Al imprimir, sale desplegado al final de la
+  hoja.
+- **Autoevaluación:** cada asistente marca los criterios de su parte; un criterio sin cumplir es un hallazgo sobre su
+  proyecto, no un error del ejercicio.
+
 ## Clase 1 · Gobernar la construcción con BMAD (90 min)
 
 | Min | Bloque | Qué se hace | Material |
@@ -48,7 +69,7 @@ Al terminar, cada asistente puede:
 | 10–25 | Concepto | Dos capas: BMAD (especificación, solo lectura) y pm-method (gobierno). Paso 1 en resumen: qué quedó listo (backlog de 68 puntos, enfoques, presupuesto de cambio, líneas base 1.0). Remite a E2E-5 | diapositivas 3–5 |
 | 25–65 | Demostración | Pasos 2 a 5 (detalle abajo) | diapositivas 6–12, guía y evidencia |
 | 65–75 | Pregunta y discusión | ¿Quién decide un cambio de USD 6.000? ¿Y uno de USD 9.000? | diapositiva 13 |
-| 75–85 | Ejercicio | Parte A del ejercicio (condiciones y presupuesto de cambio de un proyecto propio) | diapositiva 15, ejercicio.md |
+| 75–85 | Ejercicio | Parte A del ejercicio (condiciones y presupuesto de cambio de un proyecto propio); ejemplo resuelto al cerrar el bloque | diapositiva 15, [ejercicio.md](ejercicio.md) · [cómo conducirlo](#el-ejercicio) |
 | 85–90 | Cierre | Mensajes clave; adelanto de la clase 2 (`g4-calidad-entregas.png`) | diapositivas 14 y 16 |
 
 ### Demostración (40 min)
@@ -86,7 +107,7 @@ Si el tiempo aprieta, el paso 4 se muestra solo con la evidencia.
 | 10–25 | Concepto | Calidad por entrega (registro de calidad, QUA-01/02/03); recorrido del cliente (dolor con tratamiento, MAP-03); beneficios: puntaje, salud y tolerancia | diapositivas 3–7 |
 | 25–65 | Demostración | Pasos 6 a 11 (detalle abajo) | diapositivas 8–16, guía y evidencia |
 | 65–75 | Pregunta y discusión | El objetivo O-1 sale 0,91 en verde: ¿está todo bien? | diapositiva 17 |
-| 75–85 | Ejercicio | Parte B del ejercicio (calidad por entrega, un dolor del recorrido y plan de revisión de beneficios) | diapositiva 19, ejercicio.md |
+| 75–85 | Ejercicio | Parte B del ejercicio (calidad por entrega, un dolor del recorrido y plan de revisión de beneficios); ejemplo resuelto al cerrar el bloque | diapositiva 19, [ejercicio.md](ejercicio.md) · [cómo conducirlo](#el-ejercicio) |
 | 85–90 | Cierre | Mensajes clave; conexión con los otros casos | diapositivas 18 y 20 |
 
 ### Demostración (40 min)

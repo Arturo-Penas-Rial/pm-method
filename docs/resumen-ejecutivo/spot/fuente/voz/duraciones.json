@@ -2,13 +2,12 @@
  "voz": "em_alex",
  "sr": 24000,
  "duraciones": {
-  "gancho": 2.943,
-  "giro": 4.364,
+  "apertura": 5.544,
+  "pregunta": 4.774,
   "jerarquia": 5.602,
-  "gobierno": 4.968,
-  "controles": 6.532,
+  "caso": 7.341,
   "estrategia": 5.939,
   "prueba": 6.49,
-  "cierre": 2.46
+  "cierre": 15.151
  }
 }

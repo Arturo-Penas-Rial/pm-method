@@ -8,7 +8,7 @@ Este archivo sigue la convención AGENTS.md para agentes distintos de Claude Cod
 - **Verificar siempre después de cambiar algo:**
   ```bash
   python3 scripts/validar_paquete.py      # estructura, tamaños, descripciones, versiones → OK
-  python3 scripts/probar_paquete.py       # regresión → 216 OK · 0 FALLO (requiere pyyaml)
+  python3 scripts/probar_paquete.py       # regresión → 223 OK · 0 FALLO (requiere pyyaml)
   python3 scripts/pruebas/integracion/correr.py   # integración cruzada → 61 OK · 0 FALLO
   python3 scripts/pruebas/guias_e2e/correr.py --salida /tmp/guias   # recorridos E2E → 5/5 OK
   python3 scripts/validar_mermaid.py --render   # si se tocó un diagrama → 0 errores

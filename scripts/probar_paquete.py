@@ -803,6 +803,92 @@ def caso_webinar(tmp):
     check("webinar: tipo desconocido, >5 puntos, imagen inexistente, tabla >6×4 y demo sin prompt = error; clase <12 y glosario <10 = aviso",
           rc == 1 and all(x in out for x in ("tipo desconocido", "máximo es 5", "no existe", "máximo es 4", "máximo es 6", "necesita «prompt»", "12–20", "10–25")), out[-600:])
 
+def caso_documentos(tmp):
+    print("Caso L2 · documentos del webinar en HTML (documentos.py): Markdown completo, escapado, ejercicio en una sola versión y validación")
+    GD = os.path.join(RAIZ, "scripts", "webinar", "documentos.py")
+    d = os.path.join(tmp, "docs-html"); os.makedirs(d, exist_ok=True)
+    shutil.copy(sorted(glob.glob(os.path.join(RAIZ, "docs", "guias", "img", "*.png")))[0], os.path.join(d, "fig.png"))
+    con_mmdc = shutil.which("mmdc") is not None
+    mermaid = "```mermaid\nflowchart LR\n    a[\"Inicio\"] --> b[\"Fin\"]\n```\n" if con_mmdc else ""
+    md = ("# Ejercicio · E2E-9 · Muestra\n\n## Cómo funciona este ejercicio\n\nMECANICA-77: completás la hoja y comparás con el ejemplo.\n\n"
+          "**Negrita**, *cursiva*, `código <b>` y [ancla](#parte-a) y [externo](https://example.org/x?a=1&b=2).\n"
+          "Texto con <script>alert(1)</script> y <img src=x onerror=alert(2)> y un salto<br>de línea.\n\n"
+          "## Parte A\n\n- uno\n  - anidado\n- dos\n\n3. tres\n4. cuatro\n\n- [ ] tarea abierta\n- [x] tarea hecha\n\n"
+          "| Izq | Centro | Der |\n|:---|:---:|---:|\n| a \\| b | `x|y` | 1 |\n\n```text\n<b>prompt</b> & \"comillas\"\n```\n\n> cita **fuerte**\n\n"
+          "![Figura de prueba](fig.png)\nPie de la figura.\n\n<details>\n<summary>Más detalle</summary>\n\nTexto plegado.\n\n</details>\n\n"
+          + mermaid + "## Parte A\n\nDuplicado.\n\n---\n\n## Ejemplo resuelto (escenario del caso)\n\nRESUELTO-123 en el ejemplo.\n\n"
+          "### Parte A del ejemplo\n\nOTRO-RESUELTO.\n\n---\n\n## Anexo\n\nTexto del anexo.\n")
+    fuente = os.path.join(d, "E2E-9-ejercicio.md"); open(fuente, "w", encoding="utf-8").write(md)
+    sal = os.path.join(d, "out")
+
+    def plegado(h):
+        """(antes, dentro, después) del bloque plegable del ejemplo resuelto, o None si no está."""
+        ini = h.find('<details class="desplegable ejemplo"><summary>Ver el ejemplo resuelto (después de intentarlo)</summary>')
+        fin = h.find("</details>", ini) if ini >= 0 else -1
+        return (h[:ini], h[ini:fin], h[fin:]) if ini >= 0 and fin >= 0 else None
+
+    r = run([GD, "--archivo", fuente, "--tipo", "ejercicio", "--salida", sal], tmp, esperar=None)
+    h = open(os.path.join(sal, "E2E-9-ejercicio.html"), encoding="utf-8").read() if r.returncode == 0 else ""
+    partes = plegado(h)
+    unica = (bool(partes) and "MECANICA-77" in partes[0] and 'id="cómo-funciona-este-ejercicio"' in partes[0]
+             and 'id="ejemplo-resuelto-escenario-del-caso"' in partes[0] and "RESUELTO-123" in partes[1] and "OTRO-RESUELTO" in partes[1]
+             and "RESUELTO-123" not in partes[0] and "Texto del anexo" in partes[2] and "Duplicado" in partes[0]
+             and not glob.glob(os.path.join(sal, "*-alumno.html")) and not glob.glob(os.path.join(sal, "*-con-solucion.html")))
+    check("documentos: ejercicio en una sola versión, con la mecánica al comienzo y el ejemplo resuelto en un bloque plegable (el anexo queda fuera)",
+          r.returncode == 0 and unica, (r.stdout + r.stderr)[-500:])
+    escapado = ("&lt;script&gt;alert(1)&lt;/script&gt;" in h and "<script>alert" not in h and "<img src=x" not in h and "&lt;img src=x" in h
+                and "<code>código &lt;b&gt;</code>" in h and "&lt;b&gt;prompt&lt;/b&gt; &amp; &quot;comillas&quot;" in h
+                and 'href="https://example.org/x?a=1&amp;b=2"' in h and h.count("<script>") == 1)
+    check("documentos: escapado de <script>, HTML no permitido, código y atributos", escapado, h[:0])
+    elementos = all(x in h for x in ('<strong>Negrita</strong>', '<em>cursiva</em>', 'href="#parte-a"', 'id="parte-a"', 'id="parte-a-1"',
+                                     '<li>anidado</li>', '<ol start="3">', 'class="caja" aria-label', 'class="caja" checked', 'text-align:center',
+                                     '<td style="text-align:left">a | b</td>', '<blockquote>', 'data:image/png;base64,', '<figcaption>Pie de la figura.</figcaption>',
+                                     '<details class="desplegable"><summary>Más detalle</summary>', '<br>', 'Logo IEEE', 'class="toc"'))
+    if con_mmdc:
+        elementos = elementos and "<svg" in h and "Código Mermaid (respaldo)" in h
+    check("documentos: encabezados con anclas (duplicadas como GitHub), listas anidadas y de tareas, tabla alineada, cita, imagen embebida, <details>" + (" y Mermaid en SVG" if con_mmdc else ""), elementos)
+    imprime = ("@media print{details.ejemplo::details-content{content-visibility:visible}}" in h and "addEventListener('beforeprint',abrirTodo)" in h
+               and "matchMedia('print')" in h and "abrirHasta(" in h)
+    check("documentos: el ejemplo resuelto se despliega al imprimir y al seguir un enlace a un encabezado plegado", imprime)
+    malo = md.replace("fig.png", "no-existe.png").replace("(#parte-a)", "(otro.md)").replace("[externo](https", "[js](javascript:alert(1)) [externo](https")
+    malo = malo.replace("## Parte A\n\nDuplicado.", "[ancla rota](#no-hay)\n\n## Parte A\n\nDuplicado.")
+    if con_mmdc:
+        malo = malo.replace("flowchart LR", "estonoesundiagrama")
+    fm = os.path.join(d, "E2E-9-malo.md"); open(fm, "w", encoding="utf-8").write(malo)
+    salm = os.path.join(d, "out-malo")
+    r = run([GD, "--archivo", fm, "--tipo", "guia", "--salida", salm], tmp, esperar=None)
+    esperados = ["imagen inexistente", "enlace roto: otro.md", "enlace roto: #no-hay", "esquema no permitido"] + (["Mermaid que no renderiza"] if con_mmdc else [])
+    check("documentos: imagen inexistente, enlace roto (archivo y ancla), esquema javascript:" + (" y Mermaid que no renderiza" if con_mmdc else "") + " = error claro y no se escribe",
+          r.returncode == 1 and all(x in r.stdout for x in esperados) and not os.path.exists(salm), r.stdout[-700:])
+    sin_mec = os.path.join(d, "sin-mecanica.md"); open(sin_mec, "w", encoding="utf-8").write("# E\n\n## Parte A\n\nNada.\n\n## Ejemplo resuelto\n\nAlgo.\n")
+    sin_ej = os.path.join(d, "sin-ejemplo.md"); open(sin_ej, "w", encoding="utf-8").write("# E\n\n## Cómo funciona este ejercicio\n\nAsí.\n\n## Parte A\n\nNada.\n")
+    r1 = run([GD, "--archivo", sin_mec, "--tipo", "ejercicio", "--salida", os.path.join(d, "o3")], tmp, esperar=None)
+    r2 = run([GD, "--archivo", sin_ej, "--tipo", "ejercicio", "--salida", os.path.join(d, "o4")], tmp, esperar=None)
+    check("documentos: ejercicio que no empieza por «Cómo funciona este ejercicio» o sin «Ejemplo resuelto» → error y no se escribe",
+          r1.returncode == 1 and "Cómo funciona este ejercicio" in r1.stdout and r2.returncode == 1 and "«Ejemplo resuelto»" in r2.stdout
+          and not os.path.exists(os.path.join(d, "o3")) and not os.path.exists(os.path.join(d, "o4")), (r1.stdout + r2.stdout)[-500:])
+    # material real: los cinco casos validan (enlaces, imágenes, secciones), con un solo ejercicio por caso y su ejemplo plegado
+    salr = os.path.join(d, "real")
+    r = run([GD, "--todos", "--sin-mermaid", "--salida", salr], tmp, esperar=None)
+    malos = []
+    indice = open(os.path.join(salr, "index.html"), encoding="utf-8").read() if os.path.isfile(os.path.join(salr, "index.html")) else ""
+    for ej in sorted(glob.glob(os.path.join(RAIZ, "docs", "webinar", "E2E-*", "ejercicio.md"))):
+        caso = os.path.basename(os.path.dirname(ej))
+        lineas = open(ej, encoding="utf-8").read().splitlines()
+        k = next((i for i, l in enumerate(lineas) if l.startswith("## Ejemplo resuelto")), None)
+        marcas = [l.strip()[:30] for l in lineas[k + 1:] if len(l.strip()) > 40 and not re.search(r"[|`#*\[\]<>&\"]", l)][:3] if k is not None else []
+        try:
+            h = open(os.path.join(salr, caso, f"{caso}-ejercicio.html"), encoding="utf-8").read()
+        except OSError:
+            malos.append(f"{caso}: sin salida"); continue
+        partes = plegado(h)
+        viejos = glob.glob(os.path.join(salr, caso, "*-ejercicio-*.html")) + glob.glob(os.path.join(RAIZ, "docs", "webinar", caso, "*-ejercicio-*.html"))
+        if (not partes or not marcas or not all(m in partes[1] for m in marcas) or any(m in partes[0] for m in marcas)
+                or 'id="cómo-funciona-este-ejercicio"' not in partes[0] or viejos or f'href="{caso}/{caso}-ejercicio.html"' not in indice):
+            malos.append(caso)
+    check("documentos: los 5 casos reales sin errores e índice; un solo ejercicio por caso, con la mecánica y el ejemplo resuelto plegado",
+          r.returncode == 0 and bool(indice) and "ejercicio-alumno" not in indice and not malos, (malos, r.stdout[-400:]))
+
 def caso_seguridad(tmp):
     print("Caso S · seguridad (docs/SEGURIDAD.md): escapado HTML del reporte de interesados y fórmulas en la exportación xlsx")
     d = os.path.join(tmp, "seg"); os.makedirs(d); g = "g"
@@ -1279,7 +1365,7 @@ def main():
         print(__doc__.strip()); return
     tmp = tempfile.mkdtemp(prefix="pm-method-pruebas-")
     try:
-        caso_v6(tmp); caso_v6_real(tmp); caso_v4(tmp); caso_nativo(tmp); caso_guardian(tmp); caso_puertas(tmp); caso_puertas_bmad(tmp); caso_regresiones(tmp); caso_interesados(tmp); caso_riesgos_fuentes(tmp); caso_controles(tmp); caso_control_cambio(tmp); caso_supuestos(tmp); caso_webinar(tmp); caso_seguridad(tmp); caso_endurecimiento(tmp); caso_mapas(tmp); caso_salidas(tmp)
+        caso_v6(tmp); caso_v6_real(tmp); caso_v4(tmp); caso_nativo(tmp); caso_guardian(tmp); caso_puertas(tmp); caso_puertas_bmad(tmp); caso_regresiones(tmp); caso_interesados(tmp); caso_riesgos_fuentes(tmp); caso_controles(tmp); caso_control_cambio(tmp); caso_supuestos(tmp); caso_webinar(tmp); caso_documentos(tmp); caso_seguridad(tmp); caso_endurecimiento(tmp); caso_mapas(tmp); caso_salidas(tmp)
         caso_ayuda(tmp)
         if "--sin-integracion" not in sys.argv: caso_integracion(tmp)
     finally:

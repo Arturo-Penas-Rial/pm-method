@@ -7,7 +7,12 @@ ver** (imágenes de la corrida real con una línea de lectura) y **clases** (qu�
 La sección **"Del uso único al control continuo"** de cada guía compara cómo se hace hoy cada actividad (a mano, una
 vez o nunca) con la frecuencia y el control de pm-method (código de sanidad o de puerta) y el indicador que lo muestra.
 Las cinco guías son también el material del webinar: guion del instructor, ejercicio y diapositivas en
-[docs/webinar/](../webinar/README.md).
+[docs/webinar/](../webinar/README.md). El ejercicio de cada caso es una sola hoja que se hace sin abrir la guía:
+explica su mecánica al comienzo, resume el escenario y los conceptos necesarios, y termina con un ejemplo resuelto con
+el escenario del caso en el que cada dato cita el paso de la guía de donde sale. Para presentar, repartir o imprimir,
+cada guía tiene su versión HTML autocontenida en la carpeta del caso del webinar (`docs/webinar/E2E-N/E2E-N-guia.html`,
+con imágenes y diagramas embebidos), generada desde este Markdown con `scripts/webinar/documentos.py`; se edita el
+`.md` y se regenera.
 
 | Guía | Ciclo que recorre | Skills y agentes principales | Gráficos que obtenés | Duración |
 |---|---|---|---|---|

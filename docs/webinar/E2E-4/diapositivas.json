@@ -225,7 +225,7 @@
       "A2: presupuesto y límite de cambio",
       "Autoevaluación con la lista"
      ],
-     "nota": "Hoja en docs/webinar/E2E-4/ejercicio.md. Al final mostrá la solución de referencia con la condición de NFR-3 y C-001."
+     "nota": "Hoja en docs/webinar/E2E-4/ejercicio.md. Al terminar mostrá el ejemplo resuelto de la hoja: la condición de NFR-3 y C-001."
     },
     {
      "tipo": "cierre",
@@ -473,7 +473,7 @@
       "B3: plan de revisión de dos beneficios",
       "Autoevaluación con la lista"
      ],
-     "nota": "Hoja en docs/webinar/E2E-4/ejercicio.md. La solución de referencia usa el recorrido de UJ-1 y los beneficios B-02 y B-01 del caso."
+     "nota": "Hoja en docs/webinar/E2E-4/ejercicio.md. El ejemplo resuelto de la hoja usa el recorrido de UJ-1 y los beneficios B-02 y B-01 del caso; mostralo al terminar."
     },
     {
      "tipo": "cierre",

@@ -37,8 +37,9 @@ Bilingüe ES/EN: responder en el idioma del usuario; artefactos en `estado.json.
 - `scripts/pruebas/fixtures/` (BMAD v6 sintético, 6.12.4 real, v4), `scripts/pruebas/guias_e2e/` (recorridos de
   `docs/guias/`: `g1.py`…`g5.py`, `comun.py`, `visuales.py` y `correr.py`), `scripts/pruebas/integracion/` (suite de
   integración cruzada, `correr.py`), `scripts/pruebas_vivo/` (Claude Code real; consume tokens).
-- `scripts/webinar/` generador de diapositivas del webinar (`generar.py` y `pptx.js`: PPTX y HTML desde
-  `docs/webinar/E2E-N/diapositivas.json`).
+- `scripts/webinar/` material del webinar: `generar.py` y `pptx.js` (diapositivas PPTX y HTML desde
+  `docs/webinar/E2E-N/diapositivas.json`) y `documentos.py` (guía, guion y ejercicio con el ejemplo resuelto plegado, en HTML, e
+  índice `docs/webinar/index.html`).
 - `docker/` entorno Docker opcional (`Dockerfile`, `compose.yaml`, `requirements.txt` y `node/` con versiones fijadas,
   `pm-pruebas.sh`); documentado en `docs/DOCKER.md`.
 - `docs/guias/` cinco casos E2E con `evidencia/` e `img/` (salen de `guias_e2e/correr.py`; nunca dejar PNG ni carpetas

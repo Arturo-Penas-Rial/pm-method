@@ -43,6 +43,27 @@ E2E-1 (riesgos), pero no es obligatorio.
   final como "Carpeta del recorrido").
 - Probar el micrófono y el tamaño de letra de la terminal (mínimo 18 pt).
 
+## El ejercicio
+
+La hoja es una sola para asistentes e instructor: [ejercicio.md](ejercicio.md) (en HTML, `E2E-2-ejercicio.html`). Se
+basta sola: empieza por «Cómo funciona este ejercicio», resume el escenario y los conceptos que hacen falta, trae la
+hoja de trabajo con sus criterios de autoevaluación y termina con un **ejemplo resuelto** con el escenario del caso,
+plegado, donde cada dato cita el paso de la guía de donde sale.
+
+- **Cuándo:** la parte A en el minuto 75 de la clase 1 y la parte B en el minuto 75 de la clase 2, siempre después de
+  la demostración; 10 minutos cada una.
+- **Cómo se presenta:** proyectá la diapositiva del ejercicio y leé en voz alta «Cómo funciona este ejercicio» (un
+  minuto). Quien no tenga un proyecto propio trabaja con los datos de partida del caso, que están en «Lo que necesitás
+  saber».
+- **Mientras trabajan:** si alguien no tiene alguno de los números de A1, ese es el hallazgo: que lo anote como "no
+  definido". En la parte B, si el camino que correspondía no coincide con quien aprobó, encontraron un caso de
+  autoridad excedida: es el hallazgo más valioso del ejercicio.
+- **Ejemplo resuelto:** pedí que no lo abran antes de intentar. Mostralo recién en los dos últimos minutos del bloque:
+  desplegalo en pantalla y comparalo con la hoja de uno o dos voluntarios. Al imprimir, sale desplegado al final de la
+  hoja.
+- **Autoevaluación:** cada asistente marca los criterios de su parte; un criterio sin cumplir es un hallazgo sobre su
+  proyecto, no un error del ejercicio.
+
 ---
 
 ## Clase 1 · Del alcance a la línea base
@@ -57,7 +78,7 @@ E2E-1 (riesgos), pero no es obligatorio.
 | 10–25 | Concepto | Producto antes que tarea (PBS/WBS y descripción de producto); trazabilidad viva; PERT y camino crítico; MoSCoW como margen; línea base, tolerancia, autoridad de cambio, presupuesto de cambio y VAN del business case. | Diapositivas de concepto |
 | 25–65 | Demostración | Pasos 1 a 5 (detalle abajo). | Terminal + evidencia |
 | 65–75 | Pregunta y discusión | "¿Quién aprueba un cambio de 9.000? ¿Y uno de 15.000?" | Diapositiva de pregunta |
-| 75–85 | Ejercicio | Parte A del ejercicio: la línea base de cambio de un proyecto propio. | [ejercicio.md](ejercicio.md) |
+| 75–85 | Ejercicio | Parte A del ejercicio: la línea base de cambio de un proyecto propio; ejemplo resuelto al cerrar el bloque. | [ejercicio.md](ejercicio.md) · [cómo conducirlo](#el-ejercicio) |
 | 85–90 | Cierre | Tres mensajes clave y anticipo de la clase 2. | Diapositiva de cierre |
 
 ### Demostración (40 minutos)
@@ -125,7 +146,7 @@ la evidencia, decir "lo verificamos después".
 | 10–25 | Concepto | Tres caminos de un cambio; tabla de impacto en todos los objetivos, incluido el VAN; EVM ágil (alcance que no entra, no sobrecosto); gestión por excepción. | Diapositivas de concepto |
 | 25–65 | Demostración | Pasos 6 a 10 (detalle abajo). | Terminal + evidencia |
 | 65–75 | Pregunta y discusión | "Sofía aprobó C-002 porque era obligatorio. ¿Estuvo mal?" | Diapositiva de pregunta |
-| 75–85 | Ejercicio | Parte B del ejercicio: la tabla de impacto de un cambio real. | [ejercicio.md](ejercicio.md) |
+| 75–85 | Ejercicio | Parte B del ejercicio: la tabla de impacto de un cambio real; ejemplo resuelto al cerrar el bloque. | [ejercicio.md](ejercicio.md) · [cómo conducirlo](#el-ejercicio) |
 | 85–90 | Cierre | Mensajes clave y puente a E2E-3. | Diapositiva de cierre |
 
 ### Demostración (40 minutos)

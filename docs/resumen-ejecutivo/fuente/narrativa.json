@@ -534,7 +534,7 @@
     "Diapositivas",
     "Glosario"
    ],
-   "material": "Material por caso: guía paso a paso por prompts, guion del instructor minuto a minuto, ejercicio con solución de referencia y diapositivas PPTX y HTML que regenera un script.",
+   "material": "Material por caso: guía paso a paso por prompts, guion del instructor minuto a minuto, ejercicio autocontenido con ejemplo resuelto y diapositivas PPTX y HTML que regenera un script.",
    "induccion": "Inducción sugerida: instalar → recorrer una guía sobre la copia del proyecto de prueba con BMAD real → dictar su clase → piloto en paralelo con un proyecto real.",
    "recorre": {
     "E2E-1": "Riesgos desde cuatro fuentes, respuestas costeadas, reserva vigilada y escalamiento a la junta",

@@ -1,23 +1,93 @@
 # Ejercicio · E2E-5 · Los supuestos, el experimento y las reservas de tu proyecto
 
-**Para qué:** aplicar el caso a una idea o un proyecto propio (real o reciente) sin herramientas: papel o una planilla
-alcanzan. **Duración:** parte A, 10 minutos (cierre de la clase 1); parte B, 10 minutos (cierre de la clase 2). Si hacés
-el ejercicio solo, calculá 20 minutos en total. **Referencia:** [Guía E2E-5](../../guias/E2E-5-idea-a-proyecto.md),
-pasos 2 a 5, 9 y 11 a 14.
+## Cómo funciona este ejercicio
 
-Elegí una idea que alguien quiera aprobar en los próximos meses, o un proyecto que se aprobó hace poco. No hace falta que
-los números sean exactos: alcanza con el orden de magnitud.
+- **Para qué sirve:** llevar el caso a una idea o un proyecto tuyo. Vas a separar lo que sabés de lo que suponés,
+  diseñar un experimento barato antes de invertir, separar las reservas del presupuesto y dejar escrita la adaptación
+  de la gestión.
+- **Cuándo se hace:** la parte A, al cierre de la clase 1, después de la demostración (10 minutos); la parte B, al
+  cierre de la clase 2, después de la demostración (10 minutos). Si lo hacés por tu cuenta, calculá 20 minutos.
+- **Qué hacés:** completás la hoja de trabajo con una idea que alguien quiera aprobar en los próximos meses, o con un
+  proyecto que se aprobó hace poco. Alcanza con papel o una planilla, y con el orden de magnitud de los números. Si no
+  tenés uno, usá el escenario del caso: los datos de partida están en
+  [Lo que necesitás saber](#lo-que-necesitás-saber).
+- **Cómo te autoevaluás:** al final de cada parte hay una tabla de criterios. Marcá cuáles cumple tu hoja; un criterio
+  sin cumplir es un hallazgo sobre tu proyecto, no un error del ejercicio.
+- **Ejemplo resuelto:** al final está la hoja resuelta con el escenario del caso, y cada dato dice de qué paso de la
+  guía sale. Miralo **después** de intentarlo, para comparar, no antes.
 
 ---
 
-## Parte A · El mapa de supuestos y un experimento barato (clase 1)
+## Lo que necesitás saber
+
+### El escenario del caso
+
+La red de Policlínicas Altamar (6 policlínicas, 240.000 turnos por año, 70 % por teléfono, ausentismo del 18 %) quiere
+que los pacientes saquen, confirmen y cancelen turnos sin llamar. Carmen Olivera es la ejecutiva; Pablo Rinaldi, el
+gestor; Inés Ferrer, usuaria sénior, product owner y autoridad de cambio; Tomás Aguirre, proveedor sénior (jefe de TI).
+La clase 1 decide si vale la pena autorizar la iniciación; la clase 2 diseña el proyecto hasta la puerta
+`autorizar-proyecto` del 2027-01-15.
+
+**Datos de partida para la parte A** (si usás el caso):
+
+- Lo que el mandato y las lecciones dan por cierto: al menos el 40 % de los turnos se sacará en línea desde el segundo
+  año (20 % el primero); un recordatorio con confirmación baja el ausentismo del 18 % al 10 %; la agenda clínica del
+  proveedor permite reservar y cancelar en tiempo real desde otro sistema; la dirección médica libera las agendas con
+  60 días de anticipación; la normativa permite enviar recordatorios con el consentimiento dado al pedir el turno; el
+  costo por mensaje se mantiene en USD 0,02. Se mantienen el teléfono y el presencial (restricción, no supuesto).
+- Lecciones previas: la app de resultados de 2024 tuvo 11 % de uso en mayores de 65; la integración con la agenda
+  clínica de 2025 se estimó en 4 semanas y llevó 14; un piloto de recordatorios bajó el ausentismo, pero nadie midió la
+  línea base.
+- Para A5: el piloto de recordatorios en una policlínica dio 13,5 % de ausentismo (criterio: 12 % o menos). Con el 10 %
+  del mandato, el VAN de la opción completa es 431.782; con el 13,5 % medido, 272.569.
+
+**Datos de partida para la parte B:**
+
+- WBS: USD 142.800. Riesgos: la agenda sin interfaz documentada (P3 × I4, USD 30.000), la adopción baja en mayores de
+  65 (P3 × I3, USD 12.000; canal asistido por USD 4.000) y un dictamen legal que exija consentimiento explícito (P2 ×
+  I3, USD 10.000). La reserva de gestión es el 5 % del BAC. La junta fija un presupuesto de cambio de 10.000 con tope
+  de 3.000 por cambio.
+- Enfoque de entrega con los nueve criterios: recordatorios 18 (híbrido), turnos en línea 23 (adaptativo), integración
+  con la agenda 12 (predictivo). Proyecto mediano, con datos de salud y un solo equipo.
+- El 2027-01-14, la prueba técnica de la agenda dio 50 de 50 reservas y cancelaciones (1,4 s). El dictamen legal sobre
+  el consentimiento llega el 2027-01-29, después de la puerta del 15/1.
+- Mapas: la agenda clínica del proveedor es un producto con inercia (sistema en uso en las 6 policlínicas, el
+  proveedor controla la interfaz). En el recorrido del paciente, el paso «Intenta avisar que no va» (emoción −2) tiene
+  un dolor: solo puede cancelar llamando en horario de atención.
+
+### Conceptos mínimos
+
+- **Supuesto:** algo que se da por cierto sin evidencia; una **restricción** es un límite que no se discute.
+- **Familias:** deseabilidad (¿lo van a usar?), viabilidad (¿cierra económicamente?) y factibilidad (¿se puede
+  construir y operar?).
+- **Criticidad y certeza:** criticidad, cuánto cambia el caso si el supuesto es falso; certeza, cuánta evidencia hay
+  hoy. Criticidad alta y certeza baja = hipótesis: se valida primero.
+- **Experimento barato:** más barato que equivocarse, con fecha y con el criterio para seguir decidido **antes** del
+  resultado.
+- **VAN (valor actual neto):** la suma de los flujos de cada año descontados a la tasa de la organización; se compara
+  siempre con la opción 0, "no hacer nada distinto".
+- **Contingencia:** cubre los riesgos identificados (su EMV, valor monetario esperado, más el costo de las respuestas);
+  EMV = impacto en dinero × probabilidad (P1 10 % · P2 30 % · P3 50 % · P4 70 % · P5 90 %).
+- **BAC:** paquetes de la WBS + contingencia. **Reserva de gestión:** cubre lo no identificado y la libera solo la
+  junta. **Presupuesto de cambio:** va aparte y lo administra la autoridad de cambio, con un tope por cambio.
+- **Enfoque de entrega:** nueve criterios de 1 (favorece predictivo) a 3 (favorece adaptativo) por entregable: 13 o
+  menos es predictivo, de 14 a 21 híbrido y 22 o más adaptativo.
+- **Adaptación (tailoring):** decidir cuánta formalidad necesita cada parte de la gestión, y por qué; se aligeran los
+  documentos, no las decisiones.
+- **Aceptar un supuesto:** si un supuesto crítico no se valida antes de la puerta, la junta puede aceptarlo con una
+  decisión escrita que lo cite y diga cómo se cubre; en pm-method, la puerta lo marca con P-11.
+- **Inercia y dolor:** en un mapa de Wardley, la inercia es algo difícil de cambiar (un sistema en uso); en un recorrido
+  del cliente, el dolor es dónde sufre la persona. Los dos necesitan un tratamiento con id.
+
+---
+
+## Hoja de trabajo · parte A · El mapa de supuestos y un experimento barato (clase 1)
 
 **A1. La idea en una frase y la decisión que se espera.**
 
 > Idea: ……………………………………………… · Decisión que se espera: ………………………… · ¿Para cuándo? ……………
 
-**A2. Cinco supuestos.** Al menos uno de cada familia. Criticidad: si es falso, ¿cuánto cambia el caso? Certeza: ¿cuánta
-evidencia hay hoy? (alta / media / baja).
+**A2. Cinco supuestos.** Al menos uno de cada familia. Criticidad y certeza: alta / media / baja.
 
 | Id | Supuesto (si es falso, el caso cambia) | Familia (deseabilidad · viabilidad · factibilidad) | Criticidad | Certeza | Evidencia que tengo hoy |
 |---|---|---|---|---|---|
@@ -56,7 +126,7 @@ evidencia hay hoy? (alta / media / baja).
 
 ---
 
-## Parte B · Las reservas y la adaptación (clase 2)
+## Hoja de trabajo · parte B · Las reservas y la adaptación (clase 2)
 
 **B1. Las tres bolsas.** Completá con lo que existe hoy en tu proyecto. Si no existe, escribí "no definido".
 
@@ -108,71 +178,82 @@ con lo que lo trata (en pm-method, `mapas.py tablero` los dibuja con su vínculo
 
 ---
 
-## Solución de referencia (escenario del caso)
+## Para ir más allá
+
+- ¿Qué número del último caso de negocio que viste aprobar descansaba en un supuesto que nadie había probado?
+- Si tu experimento sale mal, ¿la idea se ajusta o se abandona? ¿Quién lo decidió antes de ver el resultado?
+
+---
+
+## Ejemplo resuelto (escenario del caso)
+
+Cifras de la corrida de referencia ([salida-g5.md](../../guias/evidencia/salida-g5.md)); entre paréntesis, el paso de
+la [guía E2E-5](../../guias/E2E-5-idea-a-proyecto.md) de donde sale cada dato.
 
 ### Parte A · Turnos en línea, Policlínicas Altamar
 
-**A1.** Idea: que los pacientes saquen, confirmen y cancelen turnos sin llamar. Decisión: autorizar la iniciación
-(2026-12-11).
+**A1.** Idea: que los pacientes saquen, confirmen y cancelen turnos sin llamar (paso 1). Decisión: autorizar la
+iniciación, en la puerta `autorizar-inicio` del 2026-12-11 (paso 6).
 
-**A2 y A3.**
+**A2.** Supuestos registrados el 2026-11-04 (paso 2; el texto y el origen de cada uno están en la evidencia).
 
-| Id | Supuesto | Familia | Criticidad | Certeza |
-|---|---|---|---|---|
-| S-001 | Al menos el 40 % de los turnos se sacará en línea desde el segundo año | deseabilidad | alta | baja |
-| S-002 | Un recordatorio con confirmación baja el ausentismo del 18 % al 10 % | viabilidad | alta | baja |
-| S-003 | La agenda clínica permite reservar y cancelar en tiempo real desde otro sistema | factibilidad | alta | baja |
-| S-004 | La dirección médica libera las agendas con 60 días | viabilidad | media | media |
-| S-006 | La normativa permite recordatorios con el consentimiento dado al pedir el turno | factibilidad | alta | media |
+| Id | Supuesto | Familia | Criticidad | Certeza | Evidencia al registrarlo |
+|---|---|---|---|---|---|
+| S-001 | Al menos el 40 % de los turnos se sacará en línea desde el segundo año (20 % el primero) | deseabilidad | alta | baja | mandato y lección L-001 (11 % de uso en mayores de 65) |
+| S-002 | Un recordatorio con confirmación baja el ausentismo del 18 % al 10 % | viabilidad | alta | baja | mandato y L-003 (piloto sin línea base) |
+| S-003 | La agenda clínica del proveedor permite reservar y cancelar en tiempo real desde otro sistema | factibilidad | alta | baja | mandato y L-002 (4 semanas estimadas, 14 reales) |
+| S-004 | La dirección médica libera las agendas con 60 días de anticipación | viabilidad | media | media | sin cita en el registro |
+| S-006 | La normativa permite enviar recordatorios con el consentimiento dado al pedir el turno | factibilidad | alta | media | sin cita en el registro |
 
-"Validar primero": S-001, S-002 y S-003 (la imagen `g5-mapa-supuestos.png`).
+**A3.** "Validar primero" (alta, baja): S-001, S-002 y S-003. Alta y media: S-006. Media y media: S-004 (paso 2).
 
-**A4.**
+**A4.** Experimentos del paso 3 (el caso da la duración, no el costo).
 
-| Supuesto | Experimento | Criterio | Fecha límite | Responsable |
-|---|---|---|---|---|
-| S-001 | Prueba de humo: botón en el sitio con registro de interés, 3 semanas | ≥ 1.000 registros | 2026-11-27 | Inés Ferrer |
-| S-002 | Piloto de recordatorio en una policlínica, 4 semanas (2.000 turnos) | ausentismo ≤ 12 % | 2026-12-04 | Inés Ferrer |
-| S-003 | Prueba técnica de 5 días: reservar y cancelar 50 turnos | 50 de 50 y < 2 s | 2026-12-04 (replanificada al 2027-01-14) | Tomás Aguirre |
+| Supuesto | Experimento | Criterio | Duración | Responsable | Fecha límite |
+|---|---|---|---|---|---|
+| S-001 | prueba de humo: botón en el sitio con registro de interés | ≥ 1.000 registros | 3 semanas | Inés Ferrer | 2026-11-27 |
+| S-002 | piloto de recordatorio con confirmación en la Policlínica Centro (2.000 turnos) | ausentismo ≤ 12 % | 4 semanas | Inés Ferrer | 2026-12-04 |
+| S-003 | prueba técnica: reservar y cancelar 50 turnos en el entorno del proveedor | 50 de 50 y < 2 s | 5 días | Tomás Aguirre | 2026-12-04, replanificada al 2027-01-14 |
 
-**A5.** S-002 salió mal (13,5 %, criterio 12 %): cambia B-01 y el VAN de las dos opciones baja 159.213 (opción 2: de
-431.782 a 272.569, según `inversion.py`). Decide la ejecutiva, Carmen Olivera: ajustar (D-001). La idea sigue.
+**A5.** S-002 salió mal: 13,5 % contra un criterio de 12 % (paso 3). Cambia el beneficio de turnos recuperados (B-01) y
+el VAN de las dos opciones baja 159.213; el de la opción 2, de 431.782 a 272.569 (paso 4). Decide la ejecutiva, Carmen
+Olivera: ajustar, el caso usa 13,5 % (D-001, paso 3). La idea sigue: la opción 2 sigue siendo la mejor (paso 4).
 
 ### Parte B
 
-**B1.**
+**B1.** Presupuesto del paso 9 (D-007).
 
-| Bolsa | Monto | Quién la libera |
-|---|---|---|
-| Contingencia (Σ EMV 24.000 + respuestas 4.000) | 28.000 | solo para R-001, R-002 y R-003 (enfoque de riesgos) |
-| Reserva de gestión (5 % del BAC) | 8.540 | la junta |
-| Presupuesto de cambio | 10.000 | la autoridad de cambio (Inés Ferrer) |
-| Tope por cambio | 3.000 | por encima, la junta |
+| Bolsa | Monto | Para qué se usa | Quién la libera | ¿Escrita y aprobada? |
+|---|---|---|---|---|
+| Contingencia | 28.000 = Σ EMV 24.000 (R-001 15.000, R-002 6.000, R-003 3.000) + respuestas 4.000 | los riesgos R-001, R-002 y R-003 | el caso no lo dice | sí: `estado.py presupuesto … riesgo=28000`, Carmen Olivera, 2027-01-12 |
+| Reserva de gestión | 8.540 (5 % del BAC) | lo no identificado | la junta | sí, en la misma decisión |
+| Presupuesto de cambio | 10.000 | los cambios aprobados | la autoridad de cambio, Inés Ferrer | sí |
+| Tope por cambio | 3.000 | — | por encima, la junta | sí |
 
-BAC 170.800 (paquetes 142.800 + contingencia); presupuesto autorizado 179.340. Registrado con `estado.py presupuesto`
-(D-007).
+BAC 170.800 (paquetes 142.800 + contingencia); presupuesto autorizado 179.340 (BAC + reserva de gestión) (paso 9).
 
-**B2.** El caso es híbrido: integración predictiva (12), recordatorios híbridos (18) y portal adaptativo (23). Si fuera
-regulado, pediría 16 artefactos y siete tolerancias; si fuera interno y pequeño, 7 y dos.
+**B2.** Híbrido: integración predictiva (12), recordatorios híbridos (18) y portal adaptativo (23) (paso 5). Si fuera
+regulado, pediría 16 artefactos y siete tolerancias; si fuera interno y pequeño, 7 artefactos y dos tolerancias (paso
+12).
 
-**B3.**
+**B3.** Sección 8 del PID (paso 13; la tabla completa está en la evidencia).
 
 | Qué se adapta | Cómo | Por qué |
 |---|---|---|
-| Enfoques de gestión | una página cada uno; datos digitales dentro de calidad | proyecto mediano, un solo equipo (D-008) |
+| Enfoques de gestión | una página cada uno; datos digitales dentro de calidad | proyecto mediano, un solo equipo (D-008, paso 11) |
 | Roles | Inés Ferrer: usuaria sénior, product owner y autoridad de cambio | una sola voz del negocio |
-| Puerta de la etapa 3 | condicionada a la adopción medida en el release 1 | el VAN es sensible a la adopción (equilibrio en 11,6 % con el orden de magnitud, 12,6 % con el presupuesto) |
+| Puerta de la etapa 3 | condicionada a la adopción medida en el release 1 | el VAN es sensible a la adopción: equilibrio en 11,6 % de adopción estable con el orden de magnitud y 12,6 % con el presupuesto (pasos 4 y 9) |
 
-**B4.**
+**B4.** (paso 13, salvo donde se indica).
 
 | Supuesto | ¿Validar o aceptar? | Quién lo acepta | Cobertura | Fecha |
 |---|---|---|---|---|
-| S-003 · interfaz de la agenda | validado el 2027-01-14 (50 de 50, 1,4 s) | — | — | — |
-| S-006 · consentimiento para recordatorios | aceptado sin validar | la junta, decisión D-009 del 2027-01-15 | riesgo R-003 y su contingencia; el dictamen es condición antes del release de recordatorios | 2027-01-29 (al 2027-02-01 la sanidad avisa SUP-02 y REG-09) |
+| S-003, interfaz de la agenda | validado el 2027-01-14 (50 de 50, 1,4 s) | — | — | — |
+| S-006, consentimiento para recordatorios | aceptado sin validar | la junta, decisión D-009 del 2027-01-15 | riesgo R-003 y su contingencia; el dictamen es condición antes del release de recordatorios | 2027-01-29; al 2027-02-01 la sanidad avisa SUP-02 y REG-09 (paso 14) |
 
-**B5.** (tablero de mapas del caso, `g5-tablero-mapas.png`)
+**B5.** Tablero de mapas del proyecto autorizado (paso 14).
 
 | Elemento del mapa | Qué muestra | Tratamiento | Dueño |
 |---|---|---|---|
-| Agenda clínica del proveedor (producto, con inercia) | el proveedor controla la interfaz; el adaptador depende de ella | R-001, "La integración en tiempo real se atrasa" (`en-seguimiento`) | Tomás Aguirre |
-| P5 «Intenta avisar que no va» (−2) | solo puede cancelar llamando en horario de atención | REQ-003 (confirmar o cancelar desde el recordatorio) y REQ-005 (reprogramar o cancelar en línea) | Inés Ferrer (usuaria sénior y product owner) |
+| Agenda clínica del proveedor (producto, con inercia) | el proveedor controla la interfaz y el adaptador depende de ella (paso 5b) | R-001, «La integración en tiempo real se atrasa», `en-seguimiento` (pasos 9 y 14) | Tomás Aguirre, propietario de R-001 (paso 9, en la evidencia) |
+| P5 «Intenta avisar que no va» (−2) | solo puede cancelar llamando en horario de atención (paso 5b) | REQ-003 (confirmar o cancelar y liberar el turno) y REQ-005 (reprogramar) (paso 6) | Inés Ferrer, usuaria sénior y product owner: confirmó el recorrido (paso 5b) y acepta cada release (enfoque de calidad del paso 11, en la evidencia) |

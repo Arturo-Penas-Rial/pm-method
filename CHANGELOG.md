@@ -73,6 +73,20 @@ de 90 minutos, 42 imágenes) y 186 diapositivas de contenido en los mazos del we
   `E2E-N-diapositivas.html` (autocontenido, navegación por clase y diapositiva, claro/oscuro, notas plegables,
   imprimible, glosario con anclas). Portada del caso, portada de cada clase con objetivos y glosario; sin marca de
   empresa (recuadro «Logo IEEE» o `--logo`).
+- **Documentos del webinar en HTML** `scripts/webinar/documentos.py` (biblioteca estándar; los diagramas con `mmdc`):
+  convierte por caso la guía (`docs/guias/E2E-N-*.md`), el guion y el ejercicio en HTML autocontenido con la estética
+  de las diapositivas y los escribe en `docs/webinar/E2E-N/`: `E2E-N-guia.html`, `E2E-N-guion-instructor.html` y
+  `E2E-N-ejercicio.html`, una sola versión para asistentes e instructor que exige empezar por «Cómo funciona este
+  ejercicio» y deja el «Ejemplo resuelto» en un bloque plegable rotulado «Ver el ejemplo resuelto (después de
+  intentarlo)», que se despliega al imprimir y al seguir un enlace a un encabezado que está dentro; con `--todos`, además
+  `docs/webinar/index.html` con todo el material de los cinco casos y para quién es cada archivo. Conversor de Markdown
+  propio (encabezados con anclas como GitHub, listas anidadas y de tareas, tablas, código con botón «Copiar», citas,
+  imágenes como data URI, `<details>`; el resto del HTML se escapa), Mermaid dibujado en SVG en línea con el código
+  plegable (semilla fija: dos corridas dan archivos idénticos; `TMPDIR` corto para Chromium), enlaces relativos
+  llevados al `.html` convertido o a GitHub, índice lateral, claro/oscuro, A4 imprimible y 390 px sin desplazamiento
+  horizontal. Valida imágenes, enlaces y anclas, las secciones del ejercicio y los diagramas (error claro; con errores no
+  escribe el caso). `--salida` arma una carpeta para repartir con las diapositivas copiadas; `docker/pm-pruebas.sh`
+  suma el paso.
 - **Entorno Docker opcional** (`docker/`): `Dockerfile` multietapa sobre `ubuntu:26.04` fijada por digest, usuario sin
   privilegios, Claude Code CLI 2.1.304 (`DISABLE_AUTOUPDATER=1`), Python 3.14 con dependencias fijadas por hash, Node 22
   con mermaid-cli 11.16.0, pptxgenjs 4.0.1 y npm 11.21.1 por lockfile, Chromium headless shell de Playwright, git,
@@ -88,8 +102,10 @@ de 90 minutos, 42 imágenes) y 186 diapositivas de contenido en los mazos del we
   glosario con anclas) con arquitectura, componentes, ciclo de vida, controles permanentes y un caso E2E por
   diapositiva; `fuente/extraer.py` cuenta skills, agentes, hooks, registros, códigos de control y casos y corre las
   pruebas al regenerar.
-- **Spot para LinkedIn** (`docs/resumen-ejecutivo/spot/`): MP4 de 44 s en 4:5 con locución sintética (Kokoro-82M,
-  Apache 2.0), música original sintetizada y subtítulos incrustados, versión sin voz, `.srt` y guion con tiempos.
+- **Spot para LinkedIn** (`docs/resumen-ejecutivo/spot/`): MP4 de 54 s en 4:5 para directivos y PMO (la
+  estrategia se ejecuta con proyectos; un control real del caso E2E-2; cierre con invitación a consultar, oferta de
+  capacitación y transferencia y la mención de apoyo de PMI e IEEE Uruguay provista por el autor, solo como texto) con locución sintética (Kokoro-82M, Apache 2.0), música original sintetizada y subtítulos
+  incrustados, versión sin voz, `.srt` y guion con tiempos.
 
 ### Cambiado
 - `puertas.py verificar` muestra el código de cada control (`condición P-11 …`) y `--json` agrega `hallazgos`
@@ -162,8 +178,12 @@ de 90 minutos, 42 imágenes) y 186 diapositivas de contenido en los mazos del we
   (`g4-tablero.png`, recorte 16:9 `g4-tablero-mapas-169.png`) y los tableros de mapas `g5-tablero-mapas.png`
   (recorte `g5-tablero-mapas-169.png`) y `g5-tablero-mapas-bmad.png`, con una diapositiva de imagen en cada mazo.
 - Material del webinar en `docs/webinar/E2E-1…E2E-5/`: guion del instructor (agenda minuto a minuto, mensajes clave,
-  preguntas con respuesta esperada, plan B), ejercicio para asistentes con solución de referencia y contenido de
-  diapositivas: 186 diapositivas de contenido y 124 términos de glosario en los cinco mazos.
+  preguntas con respuesta esperada, plan B y cómo conducir el ejercicio), ejercicio y contenido de diapositivas: 186
+  diapositivas de contenido y 124 términos de glosario en los cinco mazos. El ejercicio es una sola hoja que se hace
+  sin abrir la guía: «Cómo funciona este ejercicio» (para qué sirve, cuándo se hace, qué se completa con un proyecto
+  propio o con el escenario del caso, cómo se autoevalúa), «Lo que necesitás saber» (escenario, datos de partida y
+  conceptos mínimos), la hoja de trabajo con sus criterios, preguntas para ir más allá y un ejemplo resuelto con el
+  escenario del caso en el que cada dato cita el paso de la guía de donde sale.
 - `docs/SEGURIDAD.md`, `docs/DOCKER.md`, `docs/PRUEBAS.md` §2.2 (presupuestos de contexto con y
   sin pm-method y con BMAD instalado), `docs/INSTALACION.md` §9.1 (contexto y memoria) y la solución de problemas de
   `mmdc` con un `TMPDIR` largo.
@@ -176,11 +196,11 @@ de 90 minutos, 42 imágenes) y 186 diapositivas de contenido en los mazos del we
   el repositorio (marcadores `{{clave}}`); HTML con tema claro u oscuro; recuadro «Logo IEEE» en lugar de marca.
 
 ### Pruebas
-- `probar_paquete.py`: **216 OK · 0 FALLO** con Python 3.13; **215 OK · 0 FALLO** con Python 3.9 (sin `matplotlib` se
-  omite una comprobación de visuales). Casos nuevos: J2 (autoridad y presupuesto de cambio al registrar), K (supuestos y P-11), L (esquema de las diapositivas del webinar),
+- `probar_paquete.py`: **223 OK · 0 FALLO** con Python 3.13; **222 OK · 0 FALLO** con Python 3.9 (sin `matplotlib` se
+  omite una comprobación de visuales). Casos nuevos: J2 (autoridad y presupuesto de cambio al registrar), K (supuestos y P-11), L (esquema de las diapositivas del webinar), L2 (documentos del webinar en HTML: Markdown completo, escapado, ejercicio en una sola versión con el ejemplo resuelto plegable y errores de imagen, enlace y Mermaid),
   M (mapas, tablero de mapas, REG-09 y `linea-base --fecha`), N (endurecimiento SEG-03…SEG-10 y control del contexto), P (salidas de los
   scripts: contexto, sanidad, puertas, paquete, mapas, inversión y reporte de interesados), S (SEG-01 y SEG-02),
-  X (integración cruzada) e Y (`--help` de 29 scripts y 17 entradas faltantes sin traza de Python).
+  X (integración cruzada) e Y (`--help` de 30 scripts y 17 entradas faltantes sin traza de Python).
 - Suite de integración cruzada `scripts/pruebas/integracion/correr.py`: seis cadenas sobre un mismo proyecto (BMAD →
   especificación → backlog → WBS → CPM → EVM → OKR → sanidad → puertas; acta, Jira y BMAD → riesgos → presupuestos y
   cambios → tablero; interesados ↔ RACI ↔ OKR ↔ envíos; mapas → vínculos → MAP → inversión; exportación y paquete;

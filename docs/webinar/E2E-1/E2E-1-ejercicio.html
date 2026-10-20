@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="generator" content="pm-method 2.3.0 · scripts/webinar/documentos.py">
+<title>E2E-1 · Ejercicio · Ejercicio · E2E-1 · El enfoque, el presupuesto y la revisión de riesgos de tu proyecto</title><style>
+:root{--navy:#002855;--blue:#00629b;--orange:#b5651d;--gray:#696969;--ink:#272425;--page:#e9edf1;--surface:#fff;--soft:#f4f6f8;
+--tint:#e9f1f8;--ortint:#fbf1e6;--line:#e2e2e6;--sky:#9fd0f0;--dark:#002855;--dark2:#173d66;--azul:#00629b;--code:#0f2238;--codefg:#e8eef5;
+--title-ink:#002855;--accent:#00629b;--warm:#b5651d;--shadow:0 6px 24px rgba(0,40,85,.10);color-scheme:light}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--page:#0b1118;--surface:#131c27;--soft:#1a2633;--tint:#16283b;--ortint:#2c2116;
+--line:#2a3644;--ink:#e6ebf0;--gray:#a3acb6;--dark:#08203d;--dark2:#173d66;--azul:#0a4f7d;--title-ink:#cfe3f3;--accent:#4ea3dc;--warm:#e39a5f;
+--shadow:0 6px 24px rgba(0,0,0,.45);color-scheme:dark}}
+:root[data-theme="dark"]{--page:#0b1118;--surface:#131c27;--soft:#1a2633;--tint:#16283b;--ortint:#2c2116;--line:#2a3644;--ink:#e6ebf0;
+--gray:#a3acb6;--dark:#08203d;--dark2:#173d66;--azul:#0a4f7d;--title-ink:#cfe3f3;--accent:#4ea3dc;--warm:#e39a5f;--shadow:0 6px 24px rgba(0,0,0,.45);color-scheme:dark}
+
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:72px;-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--page);color:var(--ink);font-family:Arial,Helvetica,sans-serif;line-height:1.55;font-size:16px}
+a{color:var(--accent)}
+code{font-family:"Courier New",monospace;font-size:.92em;background:var(--soft);padding:.05em .3em;border-radius:4px;overflow-wrap:anywhere}
+.barra{position:sticky;top:0;z-index:10;display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;padding:10px 16px;background:var(--surface);
+border-bottom:1px solid var(--line)}
+.barra .marca{font-weight:700;color:var(--title-ink);text-decoration:none;margin-right:6px}
+.barra nav{display:flex;flex-wrap:wrap;gap:6px}
+.barra nav a{padding:4px 10px;border-radius:8px;background:var(--soft);text-decoration:none;font-size:.9rem;color:var(--ink)}
+.barra nav a:hover{background:var(--tint)}
+.barra nav a[aria-current]{background:var(--blue);color:#fff}
+.barra .ctl{display:flex;flex-wrap:wrap;gap:6px;margin-left:auto;align-items:center}
+.barra button{font:inherit;font-size:.85rem;padding:4px 8px;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
+.marco{display:grid;grid-template-columns:250px minmax(0,1fr);gap:32px;max-width:1240px;margin:0 auto;padding:24px 16px 48px}
+.lateral{position:sticky;top:64px;align-self:start;max-height:calc(100vh - 80px);overflow:auto}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 12px;font-size:.88rem}
+details.toc summary{cursor:pointer;font-weight:700;color:var(--title-ink)}
+details.toc ol{list-style:none;margin:8px 0 0;padding:0}
+details.toc li{margin:0}
+details.toc li.n3{padding-left:14px;font-size:.95em}
+details.toc a{display:block;padding:3px 6px;border-radius:6px;color:var(--ink);text-decoration:none;line-height:1.3}
+details.toc a:hover{background:var(--soft)}
+details.toc a.activo{background:var(--tint);color:var(--title-ink);font-weight:700}
+main{min-width:0;max-width:920px}
+.cab{position:relative;background:var(--dark);color:#fff;border-radius:14px;padding:26px clamp(18px,4vw,36px) 22px;box-shadow:var(--shadow);margin-bottom:22px}
+.cab .logo{position:absolute;top:20px;right:20px;width:120px;height:50px;border:1px dashed #7f9bb8;border-radius:4px;display:grid;place-items:center;
+font-size:.78rem;color:#a9bfd6}
+.cab .logo.con-img{border:0}.cab .logo img{max-width:100%;max-height:100%}
+.cab .kicker{margin:0 140px 6px 0;color:var(--sky);font-weight:700;font-size:.92rem}
+.cab h1{margin:0 140px 10px 0;font-size:1.85rem;line-height:1.2}
+.cab .meta{margin:0;display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;color:#d6e4f0;font-size:.92rem}
+.etiqueta{display:inline-block;background:var(--dark2);color:#fff;border-radius:999px;padding:3px 12px;font-weight:700}
+.etiqueta.instr{background:var(--orange)}
+.aviso-doc{margin:14px 0 0;background:var(--dark2);border-left:4px solid var(--sky);border-radius:8px;padding:10px 14px;color:#fff;font-size:.95rem}
+.md{background:var(--surface);border-radius:14px;box-shadow:var(--shadow);padding:8px clamp(16px,4vw,40px) 28px;overflow-wrap:break-word}
+.md>*:first-child{margin-top:18px}
+.md h2{color:var(--title-ink);font-size:1.45rem;line-height:1.25;margin:2em 0 .6em;padding-bottom:.25em;border-bottom:2px solid var(--line)}
+.md h3{color:var(--title-ink);font-size:1.15rem;margin:1.6em 0 .5em}
+.md h4,.md h5,.md h6{font-size:1rem;margin:1.4em 0 .4em}
+.md h2 .ancla,.md h3 .ancla,.md h4 .ancla{margin-left:.4em;color:var(--gray);text-decoration:none;opacity:0;font-weight:400}
+.md h2:hover .ancla,.md h3:hover .ancla,.md h4:hover .ancla,.md .ancla:focus{opacity:1}
+.md p{margin:.7em 0}
+.md ul,.md ol{margin:.6em 0;padding-left:1.5em}
+.md li{margin:.25em 0}
+.md li>ul,.md li>ol{margin:.2em 0}
+.md ul.tareas{list-style:none;padding-left:.4em}
+.md li.tarea{position:relative;padding-left:1.8em}
+.md li.tarea .caja{position:absolute;left:0;top:.2em;width:1.05em;height:1.05em;margin:0;accent-color:var(--blue)}
+.md hr{border:0;border-top:1px solid var(--line);margin:2em 0}
+.md blockquote{margin:1em 0;padding:.6em 1em;background:var(--tint);border-left:4px solid var(--accent);border-radius:0 8px 8px 0}
+.md blockquote p{margin:.4em 0}
+.md strong{color:var(--title-ink)}
+.md .ruta{color:var(--gray)}
+.md .falta{color:#b00020;font-weight:700}
+.tabla{overflow-x:auto;margin:1em 0;border:1px solid var(--line);border-radius:8px}
+.tabla table{width:100%;border-collapse:collapse;font-size:.92rem}
+.tabla th{background:var(--navy);color:#fff;text-align:left;padding:.5em .65em;vertical-align:bottom}
+.tabla th code{background:var(--dark2);color:#fff}
+.tabla td{padding:.5em .65em;border-top:1px solid var(--line);vertical-align:top}
+.tabla tbody tr:nth-child(even) td{background:var(--soft)}
+.doc-ejercicio .tabla td:empty{height:2.6em;min-width:4em}
+.codigo{position:relative;margin:.8em 0}
+.codigo pre{margin:0;background:var(--code);color:var(--codefg);border-radius:8px;padding:14px 76px 14px 16px;font-family:"Courier New",monospace;
+font-size:.9rem;line-height:1.45;white-space:pre-wrap;overflow-wrap:anywhere}
+.codigo pre code{background:none;padding:0;color:inherit;font-size:1em}
+.copiar{position:absolute;top:8px;right:8px;font:inherit;font-size:.75rem;border:0;border-radius:6px;padding:.3em .7em;background:var(--dark2);color:#fff;cursor:pointer}
+figure{margin:1.1em 0}
+figure.img{display:flex;flex-direction:column;align-items:center}
+figure.img .zoom{all:unset;cursor:zoom-in;display:block;max-width:100%}
+figure img{display:block;max-width:100%;height:auto;border:1px solid var(--line);border-radius:6px;background:#fff}
+figure figcaption{margin-top:.5em;font-size:.92rem;color:var(--gray);max-width:760px;text-align:center}
+figure.mermaid .svg{background:#fff;border:1px solid var(--line);border-radius:8px;padding:12px;overflow-x:auto;text-align:center}
+figure.mermaid svg{max-width:100%;height:auto}
+details.fuente-mermaid{margin-top:6px;font-size:.85rem}
+details.fuente-mermaid summary{cursor:pointer;color:var(--gray)}
+details.fuente-mermaid pre{background:var(--code);color:var(--codefg);border-radius:8px;padding:12px;white-space:pre-wrap;overflow-wrap:anywhere;font-size:.85rem}
+details.desplegable{margin:1em 0;border:1px solid var(--line);border-radius:10px;padding:8px 14px;background:var(--soft)}
+details.desplegable>summary{cursor:pointer;font-weight:700;color:var(--accent)}
+details.ejemplo{border:1px solid var(--accent);border-left-width:5px;background:var(--tint);padding:10px 16px}
+details.ejemplo>summary{font-size:1.05rem;padding:4px 0}
+details.ejemplo[open]>summary{margin-bottom:.4em}
+details.ejemplo .det>*:first-child{margin-top:.4em}
+.pie-doc{margin:22px 4px 0;color:var(--gray);font-size:.85rem}
+.fuente-imp{display:none}
+dialog.visor{border:0;padding:0;background:transparent;max-width:96vw;max-height:94vh}
+dialog.visor::backdrop{background:rgba(0,0,0,.8)}
+dialog.visor img{display:block;max-width:96vw;height:auto;background:#fff;border-radius:6px}
+dialog.visor .cerrar{position:fixed;top:10px;right:14px;font-size:1.1rem;padding:6px 12px;border-radius:8px;border:0;cursor:pointer}
+/* índice del webinar */
+.intro{background:var(--surface);border-radius:14px;box-shadow:var(--shadow);padding:6px clamp(16px,4vw,32px) 14px;margin-bottom:22px}
+.casos{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,520px),1fr));gap:18px}
+.caso{background:var(--surface);border-radius:14px;box-shadow:var(--shadow);padding:18px clamp(16px,3vw,26px)}
+.caso h2{margin:0 0 .2em;color:var(--title-ink);font-size:1.25rem;line-height:1.25}
+.caso .sub{margin:0 0 .6em;color:var(--warm);font-weight:700}
+.caso .clases{margin:0 0 .8em;font-size:.9rem;color:var(--gray)}
+.caso h3{margin:.9em 0 .4em;font-size:.95rem;color:var(--title-ink)}
+.enlaces{display:flex;flex-wrap:wrap;gap:8px;margin:0;padding:0;list-style:none}
+.enlaces a,.enlaces span{display:inline-block;padding:6px 12px;border-radius:8px;background:var(--tint);text-decoration:none;color:var(--ink);font-size:.92rem}
+.enlaces a:hover{background:var(--soft);outline:1px solid var(--accent)}
+.enlaces a.instr{background:var(--ortint)}
+.enlaces small{color:var(--gray)}
+.marco.sin-toc{grid-template-columns:minmax(0,1fr)}
+.marco.sin-toc main{max-width:none}
+@media (max-width:999px){
+.marco{grid-template-columns:minmax(0,1fr);gap:16px;padding:16px 16px 40px}
+.lateral{position:static;max-height:none}
+.barra{position:static}
+.barra .ctl{margin-left:0}
+html{scroll-padding-top:8px}
+}
+@media (max-width:600px){
+body{font-size:15px}
+.cab{padding:18px 16px}
+.cab .logo{position:static;width:96px;height:40px;margin-bottom:10px}
+.cab .kicker,.cab h1{margin-right:0}
+.cab h1{font-size:1.4rem}
+.md{padding:4px 14px 20px}
+.md h2{font-size:1.25rem}
+.codigo pre{padding:12px 12px 12px 12px;padding-top:34px;font-size:.84rem}
+.tabla table{font-size:.85rem}
+details.ejemplo{padding:8px 10px;border-left-width:4px}
+}
+@media print{
+:root,:root:not([data-theme="light"]),:root[data-theme="light"],:root[data-theme="dark"]{--page:#fff;--surface:#fff;--soft:#f4f6f8;--tint:#e9f1f8;
+--ortint:#fbf1e6;--line:#d5d8de;--ink:#1d1b1c;--gray:#5d5d5d;--dark:#002855;--dark2:#173d66;--title-ink:#002855;--accent:#00629b;--warm:#b5651d;
+--code:#f4f6f8;--codefg:#1d1b1c;color-scheme:light}
+@page{size:A4;margin:15mm 14mm 16mm}
+body{background:#fff;font-size:10pt;line-height:1.45}
+.barra,.lateral,.copiar,.ancla,dialog.visor,details.fuente-mermaid,.enlaces small{display:none!important}
+.marco{display:block;max-width:none;padding:0}
+main{max-width:none}
+.cab,.md,.caso,.intro{box-shadow:none;border-radius:0}
+.cab{border-radius:6px;padding:14px 18px;margin-bottom:10px}
+.md{padding:0}
+.md h2{font-size:14pt;margin-top:1.4em}
+.md h3{font-size:11.5pt}
+h1,h2,h3,h4{break-after:avoid;page-break-after:avoid}
+tr,figure,.codigo,blockquote,li,.caso{break-inside:avoid;page-break-inside:avoid}
+thead{display:table-header-group}
+.tabla{overflow:visible;border:0}
+.tabla table{font-size:8.5pt}
+.tabla td,.tabla th{padding:.3em .45em;overflow-wrap:break-word}
+.tabla code,.md code{overflow-wrap:break-word}
+p:has(+ .tabla),p:has(+ .codigo),p:has(+ figure){break-after:avoid;page-break-after:avoid}
+.pie-doc{display:none}
+.cab .fuente-imp{display:block;margin:8px 0 0;font-size:7.5pt;color:#d6e4f0}
+.cab .fuente-imp code{background:none;color:inherit;padding:0}
+figure.mermaid svg{max-height:240mm}
+.codigo pre{border:1px solid #d5d8de;padding:8px 10px;font-size:8.5pt}
+figure img{max-height:200mm;width:auto}
+figure.mermaid .svg{border:0;padding:0}
+a{color:inherit;text-decoration:none}
+a.ext{text-decoration:underline dotted}
+.cab,.cab *,.tabla th,.etiqueta,.aviso-doc,.md blockquote,.tabla tbody tr:nth-child(even) td{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.casos{display:block}.caso{margin-bottom:12px;border:1px solid #d5d8de;border-radius:6px}
+details.ejemplo{border:0;padding:0;background:none}
+details.ejemplo>summary{display:none}
+}
+@media print{details.ejemplo::details-content{content-visibility:visible}}
+</style></head>
+<body class="doc doc-ejercicio">
+<header class="barra">
+  <a class="marca" href="../index.html">Webinar E2E-1</a>
+  <nav aria-label="Material del caso"><a href="E2E-1-diapositivas.html">Diapositivas</a><a href="E2E-1-guia.html">Guía</a><a href="E2E-1-ejercicio.html" aria-current="page">Ejercicio</a></nav>
+  <div class="ctl"><button type="button" id="b-imprimir">Imprimir</button><button type="button" id="b-tema">Tema: automático</button></div>
+</header>
+<div class="marco">
+<aside class="lateral"><details class="toc" open><summary>Contenido</summary><nav aria-label="Contenido del documento"><ol><li class="n2"><a href="#cómo-funciona-este-ejercicio">Cómo funciona este ejercicio</a></li><li class="n2"><a href="#lo-que-necesitás-saber">Lo que necesitás saber</a></li><li class="n3"><a href="#el-escenario-del-caso">El escenario del caso</a></li><li class="n3"><a href="#conceptos-mínimos">Conceptos mínimos</a></li><li class="n2"><a href="#hoja-de-trabajo--parte-a--enfoque-y-presupuesto-de-riesgo-clase-1">Hoja de trabajo · parte A · Enfoque y presupuesto de riesgo (clase 1)</a></li><li class="n3"><a href="#autoevaluación-de-la-parte-a">Autoevaluación de la parte A</a></li><li class="n2"><a href="#hoja-de-trabajo--parte-b--la-revisión-que-se-deja-de-hacer-clase-2">Hoja de trabajo · parte B · La revisión que se deja de hacer (clase 2)</a></li><li class="n3"><a href="#autoevaluación-de-la-parte-b">Autoevaluación de la parte B</a></li><li class="n2"><a href="#para-ir-más-allá">Para ir más allá</a></li><li class="n2"><a href="#ejemplo-resuelto-escenario-del-caso">Ejemplo resuelto (escenario del caso)</a></li></ol></nav></details></aside>
+<main>
+<header class="cab"><div class="logo" aria-label="Espacio reservado para el logo de IEEE">Logo IEEE</div><p class="kicker">Webinar E2E-1 · Ejercicio · pm-method 2.3.0</p><h1>Ejercicio · E2E-1 · El enfoque, el presupuesto y la revisión de riesgos de tu proyecto</h1><p class="meta"><span class="etiqueta">Ejercicio</span><span>Para: asistentes e instructor</span></p><p class="fuente-imp">Fuente: <a href="https://github.com/Arturo-Penas-Rial/pm-method/blob/main/docs/webinar/E2E-1/ejercicio.md" class="ext">docs/webinar/E2E-1/ejercicio.md</a> · pm-method 2.3.0 · Ejercicio del caso E2E-1 · generado con <code>scripts/webinar/documentos.py</code></p></header>
+<article class="md">
+<h2 id="cómo-funciona-este-ejercicio">Cómo funciona este ejercicio<a class="ancla" href="#cómo-funciona-este-ejercicio" aria-label="Enlace a esta sección">#</a></h2>
+<ul><li><strong>Para qué sirve:</strong> llevar el caso a un proyecto tuyo. Vas a escribir las reglas de riesgo que fija la junta, costear
+tres respuestas, calcular un presupuesto de riesgo y revisar si tu registro sigue vivo.</li><li><strong>Cuándo se hace:</strong> la parte A, al cierre de la clase 1, después de la demostración (10 minutos); la parte B, al
+cierre de la clase 2, después de la demostración (10 minutos). Si lo hacés por tu cuenta, calculá 20 minutos.</li><li><strong>Qué hacés:</strong> completás la hoja de trabajo con un proyecto propio, real o reciente, que tenga al menos tres riesgos
+conocidos. Alcanza con papel o una planilla, y con el orden de magnitud de los números. Si no tenés un proyecto,
+usá el escenario del caso: los datos de partida están en <a href="#lo-que-necesitás-saber">Lo que necesitás saber</a>.</li><li><strong>Cómo te autoevaluás:</strong> al final de cada parte hay una tabla de criterios. Marcá cuáles cumple tu hoja; un criterio
+sin cumplir es un hallazgo sobre tu proyecto, no un error del ejercicio.</li><li><strong>Ejemplo resuelto:</strong> al final está la hoja resuelta con el escenario del caso, y cada dato dice de qué paso de la
+guía sale. Miralo <strong>después</strong> de intentarlo, para comparar, no antes.</li></ul>
+<hr>
+<h2 id="lo-que-necesitás-saber">Lo que necesitás saber<a class="ancla" href="#lo-que-necesitás-saber" aria-label="Enlace a esta sección">#</a></h2>
+<h3 id="el-escenario-del-caso">El escenario del caso<a class="ancla" href="#el-escenario-del-caso" aria-label="Enlace a esta sección">#</a></h3>
+<p>Una cooperativa construye un portal de autoservicio para sus socios (WBS de 2.480 horas, USD 124.000). Laura Méndez es
+la ejecutiva; Martín Suárez, el gestor; Sofía Ramírez, usuaria sénior, product owner y autoridad de cambio; Diego
+Ferreira, proveedor sénior; Lucía Benítez, jefa de equipo. Se trabaja en sprints de 14 días. La clase 1 va del enfoque
+de riesgo al presupuesto de riesgo; la clase 2 sigue la etapa de entrega hasta el 12/02, cuando la revisión de riesgos
+lleva semanas sin hacerse.</p>
+<p><strong>Datos de partida para la parte A</strong> (si usás el caso):</p>
+<ul><li>Enfoque que el gestor lleva a la ejecutiva: apetito bajo en cumplimiento (Ley 18.331) y en seguridad del acceso,
+moderado en plazo y costo, abierto a oportunidades de reutilización; tolerancia: ningún riesgo alto sin respuesta y
+exposición de amenazas ≤ USD 60.000; el gestor compromete hasta USD 5.000 por respuesta aceptada y por encima decide
+la ejecutiva; revisión del registro en cada sprint y auditoría en cada fin de etapa.</li><li>Tres riesgos del taller con la respuesta propuesta:</li></ul>
+<div class="tabla"><table><thead><tr><th>Riesgo</th><th>P × I</th><th>Impacto (USD)</th><th>Respuesta propuesta</th><th>P residual</th><th>Costo (USD)</th></tr></thead><tbody><tr><td>R-001 el padrón no tiene entorno de pruebas</td><td>4 × 4</td><td>30.000</td><td>reducir: spike de integración con datos sintéticos</td><td>2</td><td>2.000</td></tr><tr><td>R-003 el proveedor de SMS no cumple la disponibilidad</td><td>3 × 5</td><td>25.000</td><td>transferir: SLA con penalidad, con tope de USD 2.000 por mes</td><td>2</td><td>2.500</td></tr><tr><td>R-005 el proveedor rota desarrolladores</td><td>3 × 3</td><td>18.000</td><td>reducir: cláusula de permanencia</td><td>2</td><td>3.000</td></tr></tbody></table></div>
+<ul><li>Para A3, el resto del registro: R-002 (respuesta USD 1.500, EMV residual 4.500), R-004 (aceptar, sin costo, EMV
+residual 3.600) y R-006 (oportunidad, respuesta USD 800). La transferencia de R-003 no cubre el costo del atraso: si
+lo registrás como riesgo secundario, es P2 × I3 con un impacto de USD 6.000. La provisión para riesgos no
+identificados es el 5 % del costo de la WBS.</li></ul>
+<p><strong>Datos de partida para la parte B</strong> (al 12/02):</p>
+<ul><li>La última revisión completa del registro fue el 15/12 y dejó la próxima para el 29/12, que no se hizo. R-008, un
+riesgo nuevo del 8/1, tenía la suya prevista para el 26/01. Riesgos abiertos: R-002, R-003, R-004, R-005, R-007 y
+R-008. La sanidad avisa con REG-09 en cada corrida desde el 12/01.</li><li>La acción A-004 (entregar a la junta el análisis normativo; Martín Suárez) vencía el 05/02 y sigue abierta. La junta
+dejó una condición abierta sobre R-008 en su decisión del 12/01.</li><li>El disparador de R-003 es «dos caídas del proveedor en un mes»; el proveedor cayó el 20/1 y el 3/2.</li><li>Usos de la reserva de riesgo (presupuesto de 47.800): C-001 respuestas planificadas, 9.800 · C-002 entorno de
+pruebas temporal para R-001, 8.000 · C-003 licencias de diseño sin riesgo citado, 3.000, rechazado el 18/12 · C-004
+análisis normativo para R-008, 10.000 · C-005 contingencia de R-003, 11.000, el 15/02.</li><li>EMV residual planificado de las amenazas abiertas al 15/02: R-002 4.500 · R-003 7.500 · R-004 3.600 · R-005 5.400 ·
+R-007 1.800 · R-008 12.000.</li></ul>
+<h3 id="conceptos-mínimos">Conceptos mínimos<a class="ancla" href="#conceptos-mínimos" aria-label="Enlace a esta sección">#</a></h3>
+<ul><li><strong>Apetito de riesgo:</strong> cuánto riesgo acepta la organización en cada área (por ejemplo, poco en cumplimiento y más en
+plazo).</li><li><strong>Tolerancia de riesgo:</strong> el límite que, si se supera, obliga a escalar a la junta; en el caso, ningún riesgo alto sin
+respuesta y exposición ≤ USD 60.000.</li><li><strong>P × I:</strong> probabilidad e impacto, de 1 a 5; el producto da el nivel: alto ≥ 15, medio 6 a 12, bajo ≤ 5.</li><li><strong>Probabilidad convertida:</strong> P1 10 % · P2 30 % · P3 50 % · P4 70 % · P5 90 %.</li><li><strong>EMV (valor monetario esperado):</strong> impacto en dinero × probabilidad convertida. <strong>Exposición:</strong> la suma del EMV de
+las amenazas abiertas.</li><li><strong>Respuesta:</strong> reducir, transferir, aceptar o escalar una amenaza; explotar una oportunidad. Se justifica por los
+números si cuesta menos que la reducción de EMV que logra (ΔEMV); si no, necesita una razón no económica escrita.</li><li><strong>EMV residual:</strong> impacto en dinero × probabilidad residual convertida, después de la respuesta (el impacto no se
+rebaja).</li><li><strong>Riesgo secundario:</strong> el riesgo nuevo que crea una respuesta.</li><li><strong>Presupuesto de riesgo:</strong> costo de las respuestas + EMV residual de las amenazas + provisión para riesgos no
+identificados. Lo fija la ejecutiva; es distinto de la reserva de gestión, que solo libera la junta.</li><li><strong>Disparador:</strong> el hecho observable que indica que el riesgo está ocurriendo y activa la contingencia.</li><li><strong>Fecha de próxima revisión:</strong> cuándo se vuelve a mirar cada riesgo; en pm-method, la sanidad avisa REG-09 cuando un
+riesgo abierto la pasa y CAM-03 cuando la reserva consumida llega al 80 %.</li></ul>
+<hr>
+<h2 id="hoja-de-trabajo--parte-a--enfoque-y-presupuesto-de-riesgo-clase-1">Hoja de trabajo · parte A · Enfoque y presupuesto de riesgo (clase 1)<a class="ancla" href="#hoja-de-trabajo--parte-a--enfoque-y-presupuesto-de-riesgo-clase-1" aria-label="Enlace a esta sección">#</a></h2>
+<p><strong>A1. Lo que decide la junta antes del taller.</strong> Si no existe, escribí "no definido".</p>
+<div class="tabla"><table><thead><tr><th>Elemento</th><th>En mi proyecto</th><th>¿Escrito y aprobado? (sí / no)</th><th>¿Quién lo aprobó?</th></tr></thead><tbody><tr><td>Apetito (dónde aceptamos poco riesgo y dónde más)</td><td></td><td></td><td></td></tr><tr><td>Tolerancia de riesgo (regla y tope de exposición)</td><td></td><td></td><td></td></tr><tr><td>Quién puede gastar la reserva y hasta qué monto</td><td></td><td></td><td></td></tr><tr><td>Cada cuánto se revisa el registro</td><td></td><td></td><td></td></tr></tbody></table></div>
+<p><strong>A2. Tres riesgos con su respuesta.</strong> EMV = impacto en dinero × probabilidad convertida.</p>
+<div class="tabla"><table><thead><tr><th>Riesgo</th><th>P × I</th><th>Impacto (USD)</th><th>EMV antes</th><th>Respuesta</th><th>P residual</th><th>EMV residual</th><th>Costo de la respuesta</th><th>¿Costo &lt; reducción de EMV?</th></tr></thead><tbody><tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr><tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr><tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr></tbody></table></div>
+<p>¿Alguna respuesta crea un riesgo nuevo (secundario)? Anotalo: ……………………………………………</p>
+<p><strong>A3. Presupuesto de riesgo.</strong></p>
+<div class="tabla"><table><thead><tr><th>Costo de las respuestas</th><th>+ EMV residual de las amenazas</th><th>+ Provisión para no identificados (…… % del costo)</th><th>= Presupuesto de riesgo</th></tr></thead><tbody><tr><td></td><td></td><td></td><td></td></tr></tbody></table></div>
+<h3 id="autoevaluación-de-la-parte-a">Autoevaluación de la parte A<a class="ancla" href="#autoevaluación-de-la-parte-a" aria-label="Enlace a esta sección">#</a></h3>
+<div class="tabla"><table><thead><tr><th>Criterio</th><th>Cumple si…</th></tr></thead><tbody><tr><td>Reglas antes del taller</td><td>Los cuatro elementos de A1 tienen valor y alguien con autoridad los aprobó.</td></tr><tr><td>Respuestas justificadas</td><td>Cada respuesta cumple costo &lt; reducción de EMV, o tiene una justificación no económica escrita (apetito, cumplimiento).</td></tr><tr><td>Secundarios a la vista</td><td>Revisaste si cada respuesta crea un riesgo nuevo y, si lo crea, está en la tabla.</td></tr><tr><td>Presupuesto con fórmula</td><td>A3 suma los tres componentes; no es un porcentaje a ojo.</td></tr></tbody></table></div>
+<hr>
+<h2 id="hoja-de-trabajo--parte-b--la-revisión-que-se-deja-de-hacer-clase-2">Hoja de trabajo · parte B · La revisión que se deja de hacer (clase 2)<a class="ancla" href="#hoja-de-trabajo--parte-b--la-revisión-que-se-deja-de-hacer-clase-2" aria-label="Enlace a esta sección">#</a></h2>
+<p><strong>B1. Estado de tu registro hoy.</strong></p>
+<div class="tabla"><table><thead><tr><th>Pregunta</th><th>Respuesta</th></tr></thead><tbody><tr><td>¿Cuándo se revisó por última vez el registro completo?</td><td></td></tr><tr><td>¿Cuántos riesgos tienen una fecha de próxima revisión? ¿Cuántos la tienen vencida?</td><td></td></tr><tr><td>¿Quién o qué avisa cuando esa fecha pasa? ¿Desde cuándo está el aviso sin atender?</td><td></td></tr><tr><td>¿Cuántas acciones de respuesta están vencidas o hechas pero sin cerrar?</td><td></td></tr><tr><td>¿Algún disparador ya se alcanzó y nadie activó la contingencia?</td><td></td></tr><tr><td>¿Hay condiciones de la junta (o del comité) sin cumplir?</td><td></td></tr></tbody></table></div>
+<p><strong>B2. La reserva de riesgo.</strong></p>
+<div class="tabla"><table><thead><tr><th>Presupuesto de riesgo</th><th>Consumido</th><th>%</th><th>Remanente</th><th>EMV residual de las amenazas abiertas</th><th>¿Algún gasto que no responde a un riesgo?</th></tr></thead><tbody><tr><td></td><td></td><td></td><td></td><td></td><td></td></tr></tbody></table></div>
+<p><strong>B3. Tu regla de revisión.</strong> Completá en una línea: "Revisamos el registro cada ……… en ………………… (reunión), lo
+dirige ………………, y avisamos a la junta cuando la reserva llega al …… %."</p>
+<h3 id="autoevaluación-de-la-parte-b">Autoevaluación de la parte B<a class="ancla" href="#autoevaluación-de-la-parte-b" aria-label="Enlace a esta sección">#</a></h3>
+<div class="tabla"><table><thead><tr><th>Criterio</th><th>Cumple si…</th></tr></thead><tbody><tr><td>Registro vivo</td><td>Ningún riesgo abierto tiene la revisión vencida por más de un ciclo (un sprint o un mes).</td></tr><tr><td>Acciones al día</td><td>Cero acciones vencidas sin replanificar ni cerrar.</td></tr><tr><td>Reserva con propósito</td><td>Cada gasto de la reserva cita el riesgo al que responde.</td></tr><tr><td>Alerta temprana</td><td>Hay un umbral de aviso (el caso usa 80 %) y una persona que decide qué hacer al cruzarlo.</td></tr></tbody></table></div>
+<hr>
+<h2 id="para-ir-más-allá">Para ir más allá<a class="ancla" href="#para-ir-más-allá" aria-label="Enlace a esta sección">#</a></h2>
+<ul><li>Si la reserva llega al 80 % a mitad de la etapa, ¿qué preferís: ampliarla con reserva de gestión, concentrar la
+autoridad en la ejecutiva o pedir un plan de excepción? En el caso la ejecutiva eligió la segunda (guía, paso 13).</li><li>¿Qué urgencia de tu proyecto desplazaría hoy la revisión de riesgos, y quién se daría cuenta?</li></ul>
+<hr>
+<h2 id="ejemplo-resuelto-escenario-del-caso">Ejemplo resuelto (escenario del caso)<a class="ancla" href="#ejemplo-resuelto-escenario-del-caso" aria-label="Enlace a esta sección">#</a></h2>
+<details class="desplegable ejemplo"><summary>Ver el ejemplo resuelto (después de intentarlo)</summary><div class="det"><p>Cifras de la corrida de referencia (<a href="https://github.com/Arturo-Penas-Rial/pm-method/blob/main/docs/guias/evidencia/salida-g1.md" class="ext" title="Abre el archivo en GitHub">salida-g1.md</a>); entre paréntesis, el paso de
+la <a href="E2E-1-guia.html">guía E2E-1</a> de donde sale cada dato.</p>
+<p><strong>A1.</strong> Todo quedó escrito en el enfoque de riesgo v1.0, aprobado por Laura Méndez, ejecutiva, el 2026-10-28 (D-002)
+(guía, paso 3).</p>
+<div class="tabla"><table><thead><tr><th>Elemento</th><th>En el caso</th><th>¿Escrito y aprobado?</th><th>¿Quién lo aprobó?</th></tr></thead><tbody><tr><td>Apetito</td><td>bajo en cumplimiento (Ley 18.331) y en seguridad del acceso; moderado en plazo y costo; abierto a oportunidades de reutilización (paso 3)</td><td>sí</td><td>Laura Méndez, ejecutiva</td></tr><tr><td>Tolerancia de riesgo</td><td>ningún riesgo alto sin respuesta y exposición de amenazas ≤ USD 60.000 (pasos 1 y 3)</td><td>sí</td><td>Laura Méndez</td></tr><tr><td>Reserva</td><td>el gestor compromete hasta USD 5.000 por respuesta ya aceptada; por encima, o para un riesgo nuevo, decide la ejecutiva (paso 3)</td><td>sí</td><td>Laura Méndez</td></tr><tr><td>Revisión del registro</td><td>en cada sprint (14 días); reevaluación y auditoría en cada fin de etapa; vigilancia normativa mensual (paso 3)</td><td>sí</td><td>Laura Méndez</td></tr></tbody></table></div>
+<p><strong>A2.</strong> P × I e impacto del taller (pasos 4 y 5); respuesta, residual, costo y ΔEMV (paso 6).</p>
+<div class="tabla"><table><thead><tr><th>Riesgo</th><th>P × I</th><th>Impacto (USD)</th><th>EMV antes</th><th>Respuesta</th><th>P residual</th><th>EMV residual</th><th>Costo</th><th>¿Costo &lt; ΔEMV?</th></tr></thead><tbody><tr><td>R-001 sin entorno de pruebas del padrón</td><td>4 × 4</td><td>30.000</td><td>21.000</td><td>reducir (spike)</td><td>2</td><td>9.000</td><td>2.000</td><td>sí (12.000)</td></tr><tr><td>R-003 proveedor de SMS</td><td>3 × 5</td><td>25.000</td><td>12.500</td><td>transferir (SLA)</td><td>2</td><td>7.500</td><td>2.500</td><td>sí (5.000)</td></tr><tr><td>R-005 rotación del equipo</td><td>3 × 3</td><td>18.000</td><td>9.000</td><td>reducir (permanencia)</td><td>2</td><td>5.400</td><td>3.000</td><td>sí (3.600)</td></tr></tbody></table></div>
+<p>Secundario: R-007, porque la penalidad del SLA de R-003 (tope de USD 2.000 por mes) no cubre el costo del atraso: P2 ×
+I3, impacto 6.000, EMV 1.800, aceptar (paso 6).</p>
+<p><strong>A3.</strong> 9.800 de respuestas + 31.800 de EMV residual de las amenazas (R-001 a R-005 y R-007) + 6.200 de provisión (5 %
+de 124.000) = <strong>47.800</strong>, que la ejecutiva fija el 2026-11-27 (D-006) (pasos 6 y 7).</p>
+<p><strong>B1, al 12/02</strong> (paso 12, salvo donde se indica).</p>
+<div class="tabla"><table><thead><tr><th>Pregunta</th><th>En el caso</th></tr></thead><tbody><tr><td>Última revisión completa</td><td>15/12, en la revisión del sprint 2 (paso 8)</td></tr><tr><td>Con fecha de próxima revisión / vencidos</td><td>6 de 6 abiertos, los 6 vencidos: R-002, R-003, R-004, R-005 y R-007 desde el 29/12 (45 días); R-008 desde el 26/01 (17 días)</td></tr><tr><td>Quién avisa y desde cuándo</td><td>la sanidad, con REG-09, en cada corrida desde el 12/01 (pasos 10 y 12): un mes sin atender</td></tr><tr><td>Acciones vencidas</td><td>1: A-004 (Martín Suárez, 2027-02-05)</td></tr><tr><td>Disparador alcanzado sin contingencia</td><td>R-003: caídas del 20/1 y del 3/2</td></tr><tr><td>Condiciones de la junta sin cumplir</td><td>1: la de la <code>decision-ad-hoc</code> del 12/01 sobre R-008 (paso 10)</td></tr></tbody></table></div>
+<p><strong>B2, al 15/02</strong> (paso 13).</p>
+<div class="tabla"><table><thead><tr><th>Presupuesto</th><th>Consumido</th><th>%</th><th>Remanente</th><th>EMV residual de las amenazas abiertas</th><th>Gastos sin riesgo citado</th></tr></thead><tbody><tr><td>47.800</td><td>38.800</td><td>81 %</td><td>9.000</td><td>34.800</td><td>0: C-003 se rechazó el 18/12 (paso 9)</td></tr></tbody></table></div>
+<p>Consumido = 9.800 + 8.000 + 10.000 + 11.000 (C-001, C-002, C-004 y C-005; pasos 7, 9, 10 y 13). Al cruzar el 80 %, la
+sanidad pasa CAM-03 a aviso y la ejecutiva decide mantener el presupuesto y suspender la delegación de USD 5.000 al
+gestor hasta el límite de etapa (D-015, paso 13).</p>
+<p><strong>B3.</strong> "Revisamos el registro cada 14 días en la revisión del sprint, lo dirige el gestor, Martín Suárez, y avisamos a
+la junta cuando la reserva llega al 80 %" (pasos 1, 3, 12 y 13). La lección L-002 del límite de etapa lo resume:
+«empezar cada revisión de sprint por los REG-09 de la sanidad del día y no cerrarla con riesgos de revisión vencida,
+aunque haya urgencias» (paso 14).</p></div></details></article>
+<footer class="pie-doc">Fuente: <a href="https://github.com/Arturo-Penas-Rial/pm-method/blob/main/docs/webinar/E2E-1/ejercicio.md" class="ext">docs/webinar/E2E-1/ejercicio.md</a> · pm-method 2.3.0 · Ejercicio del caso E2E-1 · generado con <code>scripts/webinar/documentos.py</code></footer>
+</main>
+</div>
+<dialog class="visor" id="visor"><button type="button" class="cerrar">Cerrar</button><img alt=""></dialog>
+<script>
+(function(){
+  var raiz=document.documentElement;
+  function guardar(k,v){try{localStorage.setItem(k,v)}catch(e){}}
+  function leer(k){try{return localStorage.getItem(k)}catch(e){return null}}
+  var tema=leer('webinar-tema'); if(tema==='light'||tema==='dark') raiz.setAttribute('data-theme',tema);
+  var bTema=document.getElementById('b-tema');
+  function rotTema(){var t=raiz.getAttribute('data-theme'); bTema.textContent=t==='dark'?'Tema: oscuro':(t==='light'?'Tema: claro':'Tema: automático');}
+  if(bTema){rotTema(); bTema.addEventListener('click',function(){var t=raiz.getAttribute('data-theme'); var s=!t?'light':(t==='light'?'dark':'');
+    if(s){raiz.setAttribute('data-theme',s)}else{raiz.removeAttribute('data-theme')} guardar('webinar-tema',s); rotTema();});}
+  var bImp=document.getElementById('b-imprimir'); if(bImp) bImp.addEventListener('click',function(){window.print()});
+  var toc=document.querySelector('details.toc');
+  if(toc&&window.matchMedia){var mq=window.matchMedia('(min-width: 1000px)');
+    function ajustar(){toc.open=mq.matches} ajustar();
+    if(mq.addEventListener) mq.addEventListener('change',ajustar); else if(mq.addListener) mq.addListener(ajustar);
+    toc.addEventListener('click',function(ev){if(ev.target.tagName==='A'&&!mq.matches) toc.open=false;});}
+  var enl={}; [].forEach.call(document.querySelectorAll('details.toc a[href^="#"]'),function(a){enl[decodeURIComponent(a.getAttribute('href').slice(1))]=a});
+  if('IntersectionObserver' in window&&toc){var obs=new IntersectionObserver(function(ents){ents.forEach(function(en){
+      if(en.isIntersecting){var a=enl[en.target.id]; if(a){[].forEach.call(document.querySelectorAll('details.toc a.activo'),function(x){x.classList.remove('activo')}); a.classList.add('activo');}}});},
+      {rootMargin:'0px 0px -70% 0px'});
+    [].forEach.call(document.querySelectorAll('.md h2[id],.md h3[id]'),function(h){obs.observe(h)});}
+  [].forEach.call(document.querySelectorAll('.codigo .copiar'),function(b){b.addEventListener('click',function(){
+    var t=b.parentNode.querySelector('pre').textContent;
+    if(navigator.clipboard){navigator.clipboard.writeText(t).then(function(){b.textContent='Copiado'; setTimeout(function(){b.textContent='Copiar'},1500)},function(){});}});});
+  var visor=document.getElementById('visor');
+  if(visor){var vimg=visor.querySelector('img');
+    [].forEach.call(document.querySelectorAll('figure.img .zoom'),function(b){b.addEventListener('click',function(){
+      var im=b.querySelector('img'); vimg.src=im.src; vimg.alt=im.alt; if(visor.showModal) visor.showModal();});});
+    visor.addEventListener('click',function(){visor.close()});}
+  function abrirHasta(id){var el=id&&document.getElementById(id); while(el){if(el.tagName==='DETAILS'&&!el.open) el.open=true; el=el.parentElement;}}
+  function hashActual(){try{return decodeURIComponent(location.hash.slice(1))}catch(e){return ''}}
+  [].forEach.call(document.querySelectorAll('a[href^="#"]'),function(a){a.addEventListener('click',function(){
+    var h=a.getAttribute('href').slice(1); try{h=decodeURIComponent(h)}catch(e){} abrirHasta(h);});});
+  window.addEventListener('hashchange',function(){abrirHasta(hashActual())}); if(location.hash) abrirHasta(hashActual());
+  var abiertos=[];
+  function abrirTodo(){[].forEach.call(document.querySelectorAll('details.desplegable:not([open])'),function(d){d.open=true; abiertos.push(d)});}
+  function cerrarAbiertos(){abiertos.forEach(function(d){d.open=false}); abiertos=[];}
+  window.addEventListener('beforeprint',abrirTodo);
+  window.addEventListener('afterprint',cerrarAbiertos);
+  if(window.matchMedia){var mp=window.matchMedia('print'); var alCambiar=function(e){if(e.matches) abrirTodo(); else cerrarAbiertos();};
+    if(mp.addEventListener) mp.addEventListener('change',alCambiar); else if(mp.addListener) mp.addListener(alCambiar);}
+})();
+</script>
+</body></html>

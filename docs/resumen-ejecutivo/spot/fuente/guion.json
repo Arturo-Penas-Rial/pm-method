@@ -10,68 +10,60 @@
  "nota": "texto = subtítulos; tts = la misma frase escrita como se pronuncia (nombres en inglés respelados para el fonemizador en español). ' | ' separa los subtítulos de una misma frase (mismo número de cortes en texto y tts). Cada cifra sale del repositorio: ver README.md, sección Cifras.",
  "escenas": [
   {
-   "id": "gancho",
+   "id": "apertura",
    "min": 3.0,
-   "pre": 0.1,
-   "post": 0.3,
-   "texto": "¿Quién aprobó este cambio? | ¿Cuánto queda de la reserva?",
-   "tts": "¿Quién aprobó este cambio? | ¿Cuánto queda de la reserva?"
+   "pre": 0.08,
+   "post": 0.25,
+   "texto": "La estrategia se ejecuta a través de proyectos. | Si los resultados importan, los métodos también.",
+   "tts": "La estrategia se ejecuta a través de proyectos. | Si los resultados importan, los métodos también."
   },
   {
-   "id": "giro",
+   "id": "pregunta",
    "min": 3.0,
-   "pre": 0.15,
-   "post": 0.3,
-   "texto": "Lo que hoy se controla a mano, una vez o nunca, | pasa a ser un control permanente.",
-   "tts": "Lo que hoy se controla a mano, una vez, o nunca, | pasa a ser un control permanente."
+   "pre": 0.12,
+   "post": 0.25,
+   "texto": "¿Cómo gestionar con más eficiencia y foco en valor? | Aplicando IA, con método.",
+   "tts": "¿Cómo gestionar con más eficiencia, y foco en valor? | Aplicando i a, con método."
   },
   {
    "id": "jerarquia",
    "min": 3.0,
-   "pre": 0.15,
-   "post": 0.3,
+   "pre": 0.12,
+   "post": 0.25,
    "texto": "Un plugin para Claude Code: | PRINCE2 manda, PMBOK aporta técnicas | y BMAD es la especificación.",
    "tts": "Un plaguin para Clod Coud: | Prins dos manda, Pimbok aporta técnicas, | y Bi Mad es la especificación."
   },
   {
-   "id": "gobierno",
+   "id": "caso",
    "min": 3.0,
-   "pre": 0.15,
-   "post": 0.3,
-   "texto": "El modelo prepara, la persona decide, | y cada puerta queda registrada y verificada.",
-   "tts": "El modelo prepara, la persona decide, | y cada puerta queda registrada y verificada."
-  },
-  {
-   "id": "controles",
-   "min": 3.0,
-   "pre": 0.15,
-   "post": 0.3,
-   "texto": "85 controles en 12 familias vigilan | presupuesto de cambio, tolerancias y riesgos en cada sesión.",
-   "tts": "Ochenta y cinco controles en doce familias vigilan | presupuesto de cambio, tolerancias y riesgos, en cada sesión."
+   "pre": 0.12,
+   "post": 0.25,
+   "texto": "Un cambio llevaría el presupuesto al 200 %. | Sin saldo ni autoridad, no se aprueba: | sube a la junta el mismo día.",
+   "tts": "Un cambio llevaría el presupuesto al doscientos por ciento. | Sin saldo ni autoridad, no se aprueba: | sube a la junta, el mismo día."
   },
   {
    "id": "estrategia",
    "min": 3.0,
-   "pre": 0.15,
-   "post": 0.3,
+   "pre": 0.12,
+   "post": 0.25,
    "texto": "Mapas de Wardley y de recorrido del cliente, | opciones con VAN y conexión con BMAD, Jira, Slack y Teams.",
    "tts": "Mapas de Guárdli y de recorrido del cliente, | opciones con ban, y conexión con Bi Mad, Yira, Eslak y Tims."
   },
   {
    "id": "prueba",
    "min": 3.0,
-   "pre": 0.15,
-   "post": 0.3,
+   "pre": 0.12,
+   "post": 0.25,
    "texto": "6 agentes, 39 skills, | más de 200 pruebas automáticas y 5 casos completos con webinar.",
    "tts": "Seis agentes, treinta y nueve eskils, | más de doscientas pruebas automáticas, y cinco casos completos con uébinar."
   },
   {
    "id": "cierre",
    "min": 3.0,
-   "pre": 0.15,
-   "post": 1.9,
-   "texto": "pm-method: código abierto, en GitHub.",
-   "tts": "Pi em métod. Código abierto, en Guit jab."
+   "pre": 0.12,
+   "post": 1.2,
+   "texto": "pm-method: código abierto, en GitHub. | ¿Estás en proyectos e innovación? Te invito a consultarme: | capacitación y transferencia para lograr los beneficios de tus proyectos con IA. | Escribime por LinkedIn. | Iniciativa con el apoyo de PMI e IEEE (Uruguay).",
+   "tts": "Pi em métod: código abierto, en Guit jab. | ¿Estás en proyectos e innovación? Te invito a consultarme: | capacitación y transferencia, para lograr los beneficios de tus proyectos con i a. | Escribime por Línkedin. | Iniciativa con el apoyo de Pi Em Ai e i triple e, Uruguay."
   }
  ]
 }

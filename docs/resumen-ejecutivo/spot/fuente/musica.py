@@ -2,7 +2,7 @@
 
 Pad de cuerdas sintéticas (sierras desafinadas filtradas), bajo, pulso suave (bombo senoidal y ticks de ruido
 filtrado), arpegio de pulsos en la escena de prueba, barridos de ruido en los cambios de escena y un acorde final que
-resuelve. Progresión Si m – Sol – Re – La a 96 BPM. Todo depende de la línea de tiempo que arma construir.py.
+resuelve. Progresión Si m – Sol – Re – La a 96 BPM; resuelve en Re mayor al terminar la locución. Todo depende de la línea de tiempo que arma construir.py.
 
     from musica import componer
     estereo = componer(linea_de_tiempo, sr=48000)   # ndarray (n, 2) float32, pico ≈ −6 dBFS
@@ -63,10 +63,12 @@ def componer(lt, sr=48000, semilla=7):
     L = np.zeros(N)
     R = np.zeros(N)
     esc = {e["id"]: e for e in lt["escenas"]}
-    t_giro = esc["giro"]["inicio"]
-    t_ctrl = esc["controles"]["inicio"]
-    t_prueba = esc["prueba"]["inicio"]
-    t_cierre = esc["cierre"]["inicio"]
+    E = lt["escenas"]
+    t_giro = E[1]["inicio"]                 # golpe y entrada del pad: segunda escena
+    t_ctrl = E[3]["inicio"]                 # ticks desde la cuarta escena
+    t_prueba = esc["prueba"]["inicio"]      # arpegio
+    t_cierre = E[-1]["inicio"]              # el pulso se detiene; el pad sigue bajo la última frase
+    t_res = max(t_cierre + 0.5, E[-1]["voz_fin"] - 0.1)   # acorde final al terminar la locución
 
     def poner(sig, t0, pan=0.0, g=1.0):
         i0 = int(t0 * sr)
@@ -94,7 +96,7 @@ def componer(lt, sr=48000, semilla=7):
 
     k = 0
     t0 = t_giro
-    fin_pad = t_cierre
+    fin_pad = t_res
     while t0 < fin_pad - 0.05:
         root, tipo = PROG[k % len(PROG)]
         dur = min(bloque, fin_pad - t0) + 0.9
@@ -159,18 +161,19 @@ def componer(lt, sr=48000, semilla=7):
         poner(y, max(0, e["inicio"] - dsw + 0.05), pan=0.0)
 
     # ---------- cierre: acorde de Re mayor con quinta arriba, cola larga
-    dur = total - t_cierre
+    poner(golpe * 0.6, t_cierre)
+    dur = total - t_res
     t = np.arange(int(dur * sr)) / sr
     for m in (50, 57, 62, 66, 69, 74):
         for det, pan in ((-0.005, -0.5), (0.005, 0.5)):
             v = lp(sierra(hz(m) * (1 + det), t, armonicos=10, sr=sr), 1800, sr)
-            poner(v * env_ar(len(t), sr, 0.08, min(2.5, dur * 0.6)) * 0.026, t_cierre, pan)
-    poner(np.sin(2 * np.pi * hz(38) * t) * env_ar(len(t), sr, 0.03, min(2.5, dur * 0.6)) * 0.16, t_cierre)
-    poner(golpe * 0.8, t_cierre)
+            poner(v * env_ar(len(t), sr, 0.08, min(2.5, dur * 0.6)) * 0.026, t_res, pan)
+    poner(np.sin(2 * np.pi * hz(38) * t) * env_ar(len(t), sr, 0.03, min(2.5, dur * 0.6)) * 0.16, t_res)
+    poner(golpe * 0.8, t_res)
     # campanita final (sinusoides inarmónicas suaves)
     tb = np.arange(int(2.0 * sr)) / sr
     campana = sum(np.sin(2 * np.pi * hz(86) * r * tb) * a for r, a in ((1, 1), (2.01, 0.4), (3.0, 0.2))) * np.exp(-tb * 2.5) * 0.04
-    poner(campana, t_cierre + 0.05, pan=0.2)
+    poner(campana, t_res + 0.05, pan=0.2)
 
     x = np.stack([L, R], axis=1)
     x = hp(x.T, 30, sr).T

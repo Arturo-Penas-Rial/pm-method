@@ -166,6 +166,7 @@ mkdir -p pruebas-docker && docker compose -f docker/compose.yaml run --rm -v "$P
 | integración cruzada completa | `python3 /opt/pm-method/scripts/pruebas/integracion/correr.py --e2e <DIR>/guias --json <DIR>/integracion.json` (las seis cadenas de [PRUEBAS §2.3](PRUEBAS.md); la sexta usa las imágenes de los recorridos del paso anterior) |
 | diagramas | `python3 /opt/pm-method/scripts/validar_mermaid.py --render` |
 | diapositivas | `python3 /opt/pm-method/scripts/webinar/generar.py --todos --validar` y `--todos --salida <DIR>/webinar` (HTML y PPTX reales) |
+| documentos del webinar | `python3 /opt/pm-method/scripts/webinar/documentos.py --todos --salida <DIR>/webinar-documentos` (guía, guion y ejercicio en HTML, con los diagramas dibujados por el `mmdc` de la imagen; agregado después de la verificación de la imagen del 2026-10-20, todavía sin correr dentro del contenedor `[verificar]`) |
 
 Cada comando también se puede correr suelto: `docker compose -f docker/compose.yaml run --rm pruebas python3
 /opt/pm-method/scripts/validar_paquete.py`. `validar_mermaid.py --render` no necesita `--config`: el `mmdc` de la

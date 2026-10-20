@@ -49,6 +49,26 @@ programar. Conviene haber visto E2E-2 (línea base y cambio), pero no es obligat
   de `envios.py aprobar` y `enviar --confirmar` es parte de lo que se muestra.
 - Probar el micrófono y el tamaño de letra de la terminal (mínimo 18 pt).
 
+## El ejercicio
+
+La hoja es una sola para asistentes e instructor: [ejercicio.md](ejercicio.md) (en HTML, `E2E-3-ejercicio.html`). Se
+basta sola: empieza por «Cómo funciona este ejercicio», resume el escenario y los conceptos que hacen falta, trae la
+hoja de trabajo con sus criterios de autoevaluación y termina con un **ejemplo resuelto** con el escenario del caso,
+plegado, donde cada dato cita el paso de la guía de donde sale.
+
+- **Cuándo:** la parte A en el minuto 75 de la clase 1 y la parte B en el minuto 75 de la clase 2, siempre después de
+  la demostración; 10 minutos cada una.
+- **Cómo se presenta:** proyectá la diapositiva del ejercicio y leé en voz alta «Cómo funciona este ejercicio» (un
+  minuto). Quien no tenga un proyecto propio trabaja con los datos de partida del caso, que están en «Lo que necesitás
+  saber».
+- **Mientras trabajan:** pedí que marquen qué frecuencias pidió la persona y cuáles supusieron ellos. En la parte B lo
+  habitual es descubrir un contacto que ocurrió y no quedó registrado, y una cifra copiada a mano.
+- **Ejemplo resuelto:** pedí que no lo abran antes de intentar. Mostralo recién en los dos últimos minutos del bloque:
+  desplegalo en pantalla y comparalo con la hoja de uno o dos voluntarios. Al imprimir, sale desplegado al final de la
+  hoja.
+- **Autoevaluación:** cada asistente marca los criterios de su parte; un criterio sin cumplir es un hallazgo sobre su
+  proyecto, no un error del ejercicio.
+
 ---
 
 ## Clase 1 · Del mapa de interesados al plan de compromiso
@@ -63,7 +83,7 @@ programar. Conviene haber visto E2E-2 (línea base y cambio), pero no es obligat
 | 10–25 | Concepto | Interesado y maestro único; matriz poder/interés y estrategia; matriz de evaluación del compromiso; preferencias declaradas frente a inferidas; beneficio frente a KR; RACI con un A. | Diapositivas de concepto |
 | 25–65 | Demostración | Pasos 1 a 8 (detalle abajo). | Terminal + evidencia |
 | 65–75 | Pregunta y discusión | "¿Los OKR pueden reemplazar a los beneficios del business case?" | Diapositiva de pregunta |
-| 75–85 | Ejercicio | Parte A del ejercicio: el mapa de interesados y la brecha de un proyecto propio. | [ejercicio.md](ejercicio.md) |
+| 75–85 | Ejercicio | Parte A del ejercicio: el mapa de interesados y la brecha de un proyecto propio; ejemplo resuelto al cerrar el bloque. | [ejercicio.md](ejercicio.md) · [cómo conducirlo](#el-ejercicio) |
 | 85–90 | Cierre | Tres mensajes clave y anticipo de la clase 2. | Diapositiva de cierre |
 
 ### Demostración (40 minutos)
@@ -130,7 +150,7 @@ cifras: si una no está en la evidencia, decir "lo verificamos después".
 | 10–25 | Concepto | Contexto al retomar la sesión; highlight report y cadena de reporte; confirmación humana antes de enviar; salud de un KR contra el avance esperado; tolerancia y semáforo; STK-12 y la tolerancia de 1,5×; compromiso que retrocede. | Diapositivas de concepto |
 | 25–65 | Demostración | Pasos 9 a 14 (detalle abajo). | Terminal + evidencia |
 | 65–75 | Pregunta y discusión | "Laura, Sofía y el sindicato están en 21 de 21 días. ¿Hay que hacer algo?" | Diapositiva de pregunta |
-| 75–85 | Ejercicio | Parte B del ejercicio: la cadencia de contacto y la cadena de reporte de un proyecto propio. | [ejercicio.md](ejercicio.md) |
+| 75–85 | Ejercicio | Parte B del ejercicio: la cadencia de contacto y la cadena de reporte de un proyecto propio; ejemplo resuelto al cerrar el bloque. | [ejercicio.md](ejercicio.md) · [cómo conducirlo](#el-ejercicio) |
 | 85–90 | Cierre | Mensajes clave y puente a E2E-4. | Diapositiva de cierre |
 
 ### Demostración (40 minutos)

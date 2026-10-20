@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="generator" content="pm-method 2.3.0 · scripts/webinar/documentos.py">
+<title>E2E-4 · Guion del instructor · Guion del instructor · E2E-4 · Producto con BMAD gobernado con PRINCE2</title><style>
+:root{--navy:#002855;--blue:#00629b;--orange:#b5651d;--gray:#696969;--ink:#272425;--page:#e9edf1;--surface:#fff;--soft:#f4f6f8;
+--tint:#e9f1f8;--ortint:#fbf1e6;--line:#e2e2e6;--sky:#9fd0f0;--dark:#002855;--dark2:#173d66;--azul:#00629b;--code:#0f2238;--codefg:#e8eef5;
+--title-ink:#002855;--accent:#00629b;--warm:#b5651d;--shadow:0 6px 24px rgba(0,40,85,.10);color-scheme:light}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--page:#0b1118;--surface:#131c27;--soft:#1a2633;--tint:#16283b;--ortint:#2c2116;
+--line:#2a3644;--ink:#e6ebf0;--gray:#a3acb6;--dark:#08203d;--dark2:#173d66;--azul:#0a4f7d;--title-ink:#cfe3f3;--accent:#4ea3dc;--warm:#e39a5f;
+--shadow:0 6px 24px rgba(0,0,0,.45);color-scheme:dark}}
+:root[data-theme="dark"]{--page:#0b1118;--surface:#131c27;--soft:#1a2633;--tint:#16283b;--ortint:#2c2116;--line:#2a3644;--ink:#e6ebf0;
+--gray:#a3acb6;--dark:#08203d;--dark2:#173d66;--azul:#0a4f7d;--title-ink:#cfe3f3;--accent:#4ea3dc;--warm:#e39a5f;--shadow:0 6px 24px rgba(0,0,0,.45);color-scheme:dark}
+
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:72px;-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--page);color:var(--ink);font-family:Arial,Helvetica,sans-serif;line-height:1.55;font-size:16px}
+a{color:var(--accent)}
+code{font-family:"Courier New",monospace;font-size:.92em;background:var(--soft);padding:.05em .3em;border-radius:4px;overflow-wrap:anywhere}
+.barra{position:sticky;top:0;z-index:10;display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;padding:10px 16px;background:var(--surface);
+border-bottom:1px solid var(--line)}
+.barra .marca{font-weight:700;color:var(--title-ink);text-decoration:none;margin-right:6px}
+.barra nav{display:flex;flex-wrap:wrap;gap:6px}
+.barra nav a{padding:4px 10px;border-radius:8px;background:var(--soft);text-decoration:none;font-size:.9rem;color:var(--ink)}
+.barra nav a:hover{background:var(--tint)}
+.barra nav a[aria-current]{background:var(--blue);color:#fff}
+.barra .ctl{display:flex;flex-wrap:wrap;gap:6px;margin-left:auto;align-items:center}
+.barra button{font:inherit;font-size:.85rem;padding:4px 8px;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
+.marco{display:grid;grid-template-columns:250px minmax(0,1fr);gap:32px;max-width:1240px;margin:0 auto;padding:24px 16px 48px}
+.lateral{position:sticky;top:64px;align-self:start;max-height:calc(100vh - 80px);overflow:auto}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 12px;font-size:.88rem}
+details.toc summary{cursor:pointer;font-weight:700;color:var(--title-ink)}
+details.toc ol{list-style:none;margin:8px 0 0;padding:0}
+details.toc li{margin:0}
+details.toc li.n3{padding-left:14px;font-size:.95em}
+details.toc a{display:block;padding:3px 6px;border-radius:6px;color:var(--ink);text-decoration:none;line-height:1.3}
+details.toc a:hover{background:var(--soft)}
+details.toc a.activo{background:var(--tint);color:var(--title-ink);font-weight:700}
+main{min-width:0;max-width:920px}
+.cab{position:relative;background:var(--dark);color:#fff;border-radius:14px;padding:26px clamp(18px,4vw,36px) 22px;box-shadow:var(--shadow);margin-bottom:22px}
+.cab .logo{position:absolute;top:20px;right:20px;width:120px;height:50px;border:1px dashed #7f9bb8;border-radius:4px;display:grid;place-items:center;
+font-size:.78rem;color:#a9bfd6}
+.cab .logo.con-img{border:0}.cab .logo img{max-width:100%;max-height:100%}
+.cab .kicker{margin:0 140px 6px 0;color:var(--sky);font-weight:700;font-size:.92rem}
+.cab h1{margin:0 140px 10px 0;font-size:1.85rem;line-height:1.2}
+.cab .meta{margin:0;display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;color:#d6e4f0;font-size:.92rem}
+.etiqueta{display:inline-block;background:var(--dark2);color:#fff;border-radius:999px;padding:3px 12px;font-weight:700}
+.etiqueta.instr{background:var(--orange)}
+.aviso-doc{margin:14px 0 0;background:var(--dark2);border-left:4px solid var(--sky);border-radius:8px;padding:10px 14px;color:#fff;font-size:.95rem}
+.md{background:var(--surface);border-radius:14px;box-shadow:var(--shadow);padding:8px clamp(16px,4vw,40px) 28px;overflow-wrap:break-word}
+.md>*:first-child{margin-top:18px}
+.md h2{color:var(--title-ink);font-size:1.45rem;line-height:1.25;margin:2em 0 .6em;padding-bottom:.25em;border-bottom:2px solid var(--line)}
+.md h3{color:var(--title-ink);font-size:1.15rem;margin:1.6em 0 .5em}
+.md h4,.md h5,.md h6{font-size:1rem;margin:1.4em 0 .4em}
+.md h2 .ancla,.md h3 .ancla,.md h4 .ancla{margin-left:.4em;color:var(--gray);text-decoration:none;opacity:0;font-weight:400}
+.md h2:hover .ancla,.md h3:hover .ancla,.md h4:hover .ancla,.md .ancla:focus{opacity:1}
+.md p{margin:.7em 0}
+.md ul,.md ol{margin:.6em 0;padding-left:1.5em}
+.md li{margin:.25em 0}
+.md li>ul,.md li>ol{margin:.2em 0}
+.md ul.tareas{list-style:none;padding-left:.4em}
+.md li.tarea{position:relative;padding-left:1.8em}
+.md li.tarea .caja{position:absolute;left:0;top:.2em;width:1.05em;height:1.05em;margin:0;accent-color:var(--blue)}
+.md hr{border:0;border-top:1px solid var(--line);margin:2em 0}
+.md blockquote{margin:1em 0;padding:.6em 1em;background:var(--tint);border-left:4px solid var(--accent);border-radius:0 8px 8px 0}
+.md blockquote p{margin:.4em 0}
+.md strong{color:var(--title-ink)}
+.md .ruta{color:var(--gray)}
+.md .falta{color:#b00020;font-weight:700}
+.tabla{overflow-x:auto;margin:1em 0;border:1px solid var(--line);border-radius:8px}
+.tabla table{width:100%;border-collapse:collapse;font-size:.92rem}
+.tabla th{background:var(--navy);color:#fff;text-align:left;padding:.5em .65em;vertical-align:bottom}
+.tabla th code{background:var(--dark2);color:#fff}
+.tabla td{padding:.5em .65em;border-top:1px solid var(--line);vertical-align:top}
+.tabla tbody tr:nth-child(even) td{background:var(--soft)}
+.doc-ejercicio .tabla td:empty{height:2.6em;min-width:4em}
+.codigo{position:relative;margin:.8em 0}
+.codigo pre{margin:0;background:var(--code);color:var(--codefg);border-radius:8px;padding:14px 76px 14px 16px;font-family:"Courier New",monospace;
+font-size:.9rem;line-height:1.45;white-space:pre-wrap;overflow-wrap:anywhere}
+.codigo pre code{background:none;padding:0;color:inherit;font-size:1em}
+.copiar{position:absolute;top:8px;right:8px;font:inherit;font-size:.75rem;border:0;border-radius:6px;padding:.3em .7em;background:var(--dark2);color:#fff;cursor:pointer}
+figure{margin:1.1em 0}
+figure.img{display:flex;flex-direction:column;align-items:center}
+figure.img .zoom{all:unset;cursor:zoom-in;display:block;max-width:100%}
+figure img{display:block;max-width:100%;height:auto;border:1px solid var(--line);border-radius:6px;background:#fff}
+figure figcaption{margin-top:.5em;font-size:.92rem;color:var(--gray);max-width:760px;text-align:center}
+figure.mermaid .svg{background:#fff;border:1px solid var(--line);border-radius:8px;padding:12px;overflow-x:auto;text-align:center}
+figure.mermaid svg{max-width:100%;height:auto}
+details.fuente-mermaid{margin-top:6px;font-size:.85rem}
+details.fuente-mermaid summary{cursor:pointer;color:var(--gray)}
+details.fuente-mermaid pre{background:var(--code);color:var(--codefg);border-radius:8px;padding:12px;white-space:pre-wrap;overflow-wrap:anywhere;font-size:.85rem}
+details.desplegable{margin:1em 0;border:1px solid var(--line);border-radius:10px;padding:8px 14px;background:var(--soft)}
+details.desplegable>summary{cursor:pointer;font-weight:700;color:var(--accent)}
+details.ejemplo{border:1px solid var(--accent);border-left-width:5px;background:var(--tint);padding:10px 16px}
+details.ejemplo>summary{font-size:1.05rem;padding:4px 0}
+details.ejemplo[open]>summary{margin-bottom:.4em}
+details.ejemplo .det>*:first-child{margin-top:.4em}
+.pie-doc{margin:22px 4px 0;color:var(--gray);font-size:.85rem}
+.fuente-imp{display:none}
+dialog.visor{border:0;padding:0;background:transparent;max-width:96vw;max-height:94vh}
+dialog.visor::backdrop{background:rgba(0,0,0,.8)}
+dialog.visor img{display:block;max-width:96vw;height:auto;background:#fff;border-radius:6px}
+dialog.visor .cerrar{position:fixed;top:10px;right:14px;font-size:1.1rem;padding:6px 12px;border-radius:8px;border:0;cursor:pointer}
+/* índice del webinar */
+.intro{background:var(--surface);border-radius:14px;box-shadow:var(--shadow);padding:6px clamp(16px,4vw,32px) 14px;margin-bottom:22px}
+.casos{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,520px),1fr));gap:18px}
+.caso{background:var(--surface);border-radius:14px;box-shadow:var(--shadow);padding:18px clamp(16px,3vw,26px)}
+.caso h2{margin:0 0 .2em;color:var(--title-ink);font-size:1.25rem;line-height:1.25}
+.caso .sub{margin:0 0 .6em;color:var(--warm);font-weight:700}
+.caso .clases{margin:0 0 .8em;font-size:.9rem;color:var(--gray)}
+.caso h3{margin:.9em 0 .4em;font-size:.95rem;color:var(--title-ink)}
+.enlaces{display:flex;flex-wrap:wrap;gap:8px;margin:0;padding:0;list-style:none}
+.enlaces a,.enlaces span{display:inline-block;padding:6px 12px;border-radius:8px;background:var(--tint);text-decoration:none;color:var(--ink);font-size:.92rem}
+.enlaces a:hover{background:var(--soft);outline:1px solid var(--accent)}
+.enlaces a.instr{background:var(--ortint)}
+.enlaces small{color:var(--gray)}
+.marco.sin-toc{grid-template-columns:minmax(0,1fr)}
+.marco.sin-toc main{max-width:none}
+@media (max-width:999px){
+.marco{grid-template-columns:minmax(0,1fr);gap:16px;padding:16px 16px 40px}
+.lateral{position:static;max-height:none}
+.barra{position:static}
+.barra .ctl{margin-left:0}
+html{scroll-padding-top:8px}
+}
+@media (max-width:600px){
+body{font-size:15px}
+.cab{padding:18px 16px}
+.cab .logo{position:static;width:96px;height:40px;margin-bottom:10px}
+.cab .kicker,.cab h1{margin-right:0}
+.cab h1{font-size:1.4rem}
+.md{padding:4px 14px 20px}
+.md h2{font-size:1.25rem}
+.codigo pre{padding:12px 12px 12px 12px;padding-top:34px;font-size:.84rem}
+.tabla table{font-size:.85rem}
+details.ejemplo{padding:8px 10px;border-left-width:4px}
+}
+@media print{
+:root,:root:not([data-theme="light"]),:root[data-theme="light"],:root[data-theme="dark"]{--page:#fff;--surface:#fff;--soft:#f4f6f8;--tint:#e9f1f8;
+--ortint:#fbf1e6;--line:#d5d8de;--ink:#1d1b1c;--gray:#5d5d5d;--dark:#002855;--dark2:#173d66;--title-ink:#002855;--accent:#00629b;--warm:#b5651d;
+--code:#f4f6f8;--codefg:#1d1b1c;color-scheme:light}
+@page{size:A4;margin:15mm 14mm 16mm}
+body{background:#fff;font-size:10pt;line-height:1.45}
+.barra,.lateral,.copiar,.ancla,dialog.visor,details.fuente-mermaid,.enlaces small{display:none!important}
+.marco{display:block;max-width:none;padding:0}
+main{max-width:none}
+.cab,.md,.caso,.intro{box-shadow:none;border-radius:0}
+.cab{border-radius:6px;padding:14px 18px;margin-bottom:10px}
+.md{padding:0}
+.md h2{font-size:14pt;margin-top:1.4em}
+.md h3{font-size:11.5pt}
+h1,h2,h3,h4{break-after:avoid;page-break-after:avoid}
+tr,figure,.codigo,blockquote,li,.caso{break-inside:avoid;page-break-inside:avoid}
+thead{display:table-header-group}
+.tabla{overflow:visible;border:0}
+.tabla table{font-size:8.5pt}
+.tabla td,.tabla th{padding:.3em .45em;overflow-wrap:break-word}
+.tabla code,.md code{overflow-wrap:break-word}
+p:has(+ .tabla),p:has(+ .codigo),p:has(+ figure){break-after:avoid;page-break-after:avoid}
+.pie-doc{display:none}
+.cab .fuente-imp{display:block;margin:8px 0 0;font-size:7.5pt;color:#d6e4f0}
+.cab .fuente-imp code{background:none;color:inherit;padding:0}
+figure.mermaid svg{max-height:240mm}
+.codigo pre{border:1px solid #d5d8de;padding:8px 10px;font-size:8.5pt}
+figure img{max-height:200mm;width:auto}
+figure.mermaid .svg{border:0;padding:0}
+a{color:inherit;text-decoration:none}
+a.ext{text-decoration:underline dotted}
+.cab,.cab *,.tabla th,.etiqueta,.aviso-doc,.md blockquote,.tabla tbody tr:nth-child(even) td{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.casos{display:block}.caso{margin-bottom:12px;border:1px solid #d5d8de;border-radius:6px}
+details.ejemplo{border:0;padding:0;background:none}
+details.ejemplo>summary{display:none}
+}
+@media print{details.ejemplo::details-content{content-visibility:visible}}
+</style></head>
+<body class="doc doc-guion">
+<header class="barra">
+  <a class="marca" href="../index.html">Webinar E2E-4</a>
+  <nav aria-label="Material del caso"><a href="E2E-4-diapositivas.html">Diapositivas</a><a href="E2E-4-guia.html">Guía</a><a href="E2E-4-guion-instructor.html" aria-current="page">Guion</a><a href="E2E-4-ejercicio.html">Ejercicio</a></nav>
+  <div class="ctl"><button type="button" id="b-imprimir">Imprimir</button><button type="button" id="b-tema">Tema: automático</button></div>
+</header>
+<div class="marco">
+<aside class="lateral"><details class="toc" open><summary>Contenido</summary><nav aria-label="Contenido del documento"><ol><li class="n2"><a href="#por-qué-dos-clases">Por qué dos clases</a></li><li class="n2"><a href="#objetivos-de-aprendizaje">Objetivos de aprendizaje</a></li><li class="n2"><a href="#requisitos-previos">Requisitos previos</a></li><li class="n2"><a href="#el-ejercicio">El ejercicio</a></li><li class="n2"><a href="#clase-1--gobernar-la-construcción-con-bmad-90-min">Clase 1 · Gobernar la construcción con BMAD (90 min)</a></li><li class="n3"><a href="#demostración-40-min">Demostración (40 min)</a></li><li class="n3"><a href="#mensajes-clave-clase-1">Mensajes clave (clase 1)</a></li><li class="n3"><a href="#preguntas-para-la-audiencia-clase-1">Preguntas para la audiencia (clase 1)</a></li><li class="n2"><a href="#clase-2--calidad-a-volumen-recorrido-cierre-y-beneficios-90-min">Clase 2 · Calidad a volumen, recorrido, cierre y beneficios (90 min)</a></li><li class="n3"><a href="#demostración-40-min-1">Demostración (40 min)</a></li><li class="n3"><a href="#mensajes-clave-clase-2">Mensajes clave (clase 2)</a></li><li class="n3"><a href="#preguntas-para-la-audiencia-clase-2">Preguntas para la audiencia (clase 2)</a></li><li class="n2"><a href="#dudas-frecuentes">Dudas frecuentes</a></li><li class="n2"><a href="#plan-b-si-la-demostración-en-vivo-falla">Plan B si la demostración en vivo falla</a></li><li class="n2"><a href="#conexión-con-los-otros-casos">Conexión con los otros casos</a></li></ol></nav></details></aside>
+<main>
+<header class="cab"><div class="logo" aria-label="Espacio reservado para el logo de IEEE">Logo IEEE</div><p class="kicker">Webinar E2E-4 · Guion del instructor · pm-method 2.3.0</p><h1>Guion del instructor · E2E-4 · Producto con BMAD gobernado con PRINCE2</h1><p class="meta"><span class="etiqueta instr">Guion del instructor</span><span>Para: instructor</span></p><p class="fuente-imp">Fuente: <a href="https://github.com/Arturo-Penas-Rial/pm-method/blob/main/docs/webinar/E2E-4/guion-instructor.md" class="ext">docs/webinar/E2E-4/guion-instructor.md</a> · pm-method 2.3.0 · Guion del instructor del caso E2E-4 · generado con <code>scripts/webinar/documentos.py</code></p></header>
+<article class="md">
+<p>Guía del caso: <a href="E2E-4-guia.html">E2E-4-guia.html</a> · Evidencia:
+<a href="https://github.com/Arturo-Penas-Rial/pm-method/blob/main/docs/guias/evidencia/salida-g4.md" class="ext" title="Abre el archivo en GitHub">salida-g4.md</a> · Ejercicio: <a href="E2E-4-ejercicio.html">E2E-4-ejercicio.html</a> · Diapositivas:
+<a href="E2E-4-diapositivas.html">E2E-4-diapositivas.html</a>. Todas las cifras de este guion salen de la evidencia de la corrida de referencia.
+Los números de diapositiva de las agendas cuentan dentro de cada clase, sin las portadas que agrega el generador.</p>
+<h2 id="por-qué-dos-clases">Por qué dos clases<a class="ancla" href="#por-qué-dos-clases" aria-label="Enlace a esta sección">#</a></h2>
+<p>El caso responde dos preguntas distintas y cada una necesita su demostración completa:</p>
+<ol><li><strong>Clase 1 · Gobernar la construcción con BMAD.</strong> ¿Cómo controla la junta lo que construye un equipo que especifica
+con BMAD, sin copiar la especificación? Condición formal, paquete de trabajo, valor ganado y cambio con presupuesto
+(pasos 1 a 5). Termina con la línea base 1.1, un corte natural.</li><li><strong>Clase 2 · Calidad a volumen, recorrido, cierre y beneficios.</strong> ¿Cómo se llega a la puerta de cierre con cada
+historia revisada, cada dolor de la socia tratado y, meses después, cómo se sabe si valió la pena? Pasos 6 a 11.</li></ol>
+<p>La idea y el diseño del proyecto se ven en <a href="../E2E-5/E2E-5-guia.html">E2E-5</a>; aquí el paso 1 se resume en
+5 minutos.</p>
+<h2 id="objetivos-de-aprendizaje">Objetivos de aprendizaje<a class="ancla" href="#objetivos-de-aprendizaje" aria-label="Enlace a esta sección">#</a></h2>
+<p>Al terminar, cada asistente puede:</p>
+<ol><li>Explicar la división de trabajo: BMAD especifica y construye; pm-method gobierna y nunca escribe en <code>_bmad-output/</code>.</li><li>Convertir una aprobación "con condiciones" en una condición formal con seguimiento y cierre registrado.</li><li>Controlar un cambio con costo y cargo contra el presupuesto de cambio de la junta.</li><li>Diseñar la calidad <strong>por entrega</strong> (una revisión registrada por historia) y tratar un rechazo con traza.</li><li>Mapear el recorrido del cliente sobre lo entregado y darle a cada dolor un tratamiento con id.</li><li>Distinguir puntaje de OKR, salud contra la trayectoria y tolerancia de beneficios al revisar beneficios después del
+cierre.</li></ol>
+<h2 id="requisitos-previos">Requisitos previos<a class="ancla" href="#requisitos-previos" aria-label="Enlace a esta sección">#</a></h2>
+<ul><li><strong>Asistentes:</strong> nociones de etapas, puertas y business case (PRINCE2 o PMBOK) o experiencia liderando iniciativas.
+No hace falta saber programar ni conocer BMAD.</li><li><strong>Instructor:</strong> Claude Code con pm-method 2.3.0; copia del fixture <code>scripts/pruebas/fixtures/bmad-v6.12-real</code> en
+<code>~/proyectos-prueba/portal-e2e-4</code>; la evidencia y las imágenes <code>docs/guias/img/g4-*.png</code> abiertas en pestañas; para
+la clase 2, el driver <code>scripts/pruebas/guias_e2e/g4.py</code> ya corrido (unos 40 segundos) y su carpeta abierta, con
+<code>02-planificacion/visuales/recorrido-uj-1.html</code> en el navegador.</li><li><strong>Recomendado:</strong> haber dado E2E-5 antes (la idea y el diseño del mismo tipo de proyecto).</li></ul>
+<h2 id="el-ejercicio">El ejercicio<a class="ancla" href="#el-ejercicio" aria-label="Enlace a esta sección">#</a></h2>
+<p>La hoja es una sola para asistentes e instructor: <a href="E2E-4-ejercicio.html">E2E-4-ejercicio.html</a> (en HTML, <code>E2E-4-ejercicio.html</code>). Se
+basta sola: empieza por «Cómo funciona este ejercicio», resume el escenario y los conceptos que hacen falta, trae la
+hoja de trabajo con sus criterios de autoevaluación y termina con un <strong>ejemplo resuelto</strong> con el escenario del caso,
+plegado, donde cada dato cita el paso de la guía de donde sale.</p>
+<ul><li><strong>Cuándo:</strong> la parte A en el minuto 75 de la clase 1 y la parte B en el minuto 75 de la clase 2, siempre después de
+la demostración; 10 minutos la parte A y de 10 a 15 la parte B (si el tiempo aprieta, B1 y B2 en clase y B3
+después).</li><li><strong>Cómo se presenta:</strong> proyectá la diapositiva del ejercicio y leé en voz alta «Cómo funciona este ejercicio» (un
+minuto). Quien no tenga un proyecto propio trabaja con los datos de partida del caso, que están en «Lo que necesitás
+saber».</li><li><strong>Mientras trabajan:</strong> pedí casos concretos: una condición con verificador y evidencia, una entrega con su foto de
+calidad, un paso del recorrido con su fuente.</li><li><strong>Ejemplo resuelto:</strong> pedí que no lo abran antes de intentar. Mostralo recién en los dos últimos minutos del bloque:
+desplegalo en pantalla y comparalo con la hoja de uno o dos voluntarios. Al imprimir, sale desplegado al final de la
+hoja.</li><li><strong>Autoevaluación:</strong> cada asistente marca los criterios de su parte; un criterio sin cumplir es un hallazgo sobre su
+proyecto, no un error del ejercicio.</li></ul>
+<h2 id="clase-1--gobernar-la-construcción-con-bmad-90-min">Clase 1 · Gobernar la construcción con BMAD (90 min)<a class="ancla" href="#clase-1--gobernar-la-construcción-con-bmad-90-min" aria-label="Enlace a esta sección">#</a></h2>
+<div class="tabla"><table><thead><tr><th>Min</th><th>Bloque</th><th>Qué se hace</th><th>Material</th></tr></thead><tbody><tr><td>0–10</td><td>Gancho</td><td>"Aprobado con condiciones": ¿cuántas condiciones de tus actas se verificaron? Mostrar <code>g4-cierre.png</code> como destino: 0 condiciones abiertas al cierre</td><td>diapositivas 1–2</td></tr><tr><td>10–25</td><td>Concepto</td><td>Dos capas: BMAD (especificación, solo lectura) y pm-method (gobierno). Paso 1 en resumen: qué quedó listo (backlog de 68 puntos, enfoques, presupuesto de cambio, líneas base 1.0). Remite a E2E-5</td><td>diapositivas 3–5</td></tr><tr><td>25–65</td><td>Demostración</td><td>Pasos 2 a 5 (detalle abajo)</td><td>diapositivas 6–12, guía y evidencia</td></tr><tr><td>65–75</td><td>Pregunta y discusión</td><td>¿Quién decide un cambio de USD 6.000? ¿Y uno de USD 9.000?</td><td>diapositiva 13</td></tr><tr><td>75–85</td><td>Ejercicio</td><td>Parte A del ejercicio (condiciones y presupuesto de cambio de un proyecto propio); ejemplo resuelto al cerrar el bloque</td><td>diapositiva 15, <a href="E2E-4-ejercicio.html">E2E-4-ejercicio.html</a> · <a href="#el-ejercicio">cómo conducirlo</a></td></tr><tr><td>85–90</td><td>Cierre</td><td>Mensajes clave; adelanto de la clase 2 (<code>g4-calidad-entregas.png</code>)</td><td>diapositivas 14 y 16</td></tr></tbody></table></div>
+<h3 id="demostración-40-min">Demostración (40 min)<a class="ancla" href="#demostración-40-min" aria-label="Enlace a esta sección">#</a></h3>
+<div class="tabla"><table><thead><tr><th>Min</th><th>Paso</th><th>En vivo</th><th>Con evidencia</th></tr></thead><tbody><tr><td>25–35</td><td>2 · condición formal</td><td>prompt del gate: "El gate de preparación de BMAD dio CONCERNS el 26/11 …"</td><td>verificación con L-01 y E-10; "Condiciones agregadas desde la verificación: gate de preparación de BMAD en CONCERNS …"; sanidad con EST-12</td></tr><tr><td>35–45</td><td>3 · sprint como paquete</td><td>prompt "Traé el avance de BMAD al 23/12 …"</td><td>checkpoint con Q-002 y Q-003; "D-015"</td></tr><tr><td>45–50</td><td>4 · valor ganado</td><td>prompt "Highlight del sprint 2 al 8/1 …"</td><td>SPI 0,927 · CPI 0,938; próxima puerta con 2 bloqueos y 3 condiciones (G-01, E-05, E-10)</td></tr><tr><td>50–65</td><td>5 · cambio de rumbo</td><td>prompt "Verificá la especificación contra la línea base y corré la sanidad al 12/1 …"</td><td>"2 ERROR · 2 AVISO · 1 INFO" (ESP-10, ESP-03); C-001 con <code>costo=6000</code>; CAM-03 "6.000 de 15.000 (40 %)"; líneas base 1.1</td></tr></tbody></table></div>
+<p>Si el tiempo aprieta, el paso 4 se muestra solo con la evidencia.</p>
+<h3 id="mensajes-clave-clase-1">Mensajes clave (clase 1)<a class="ancla" href="#mensajes-clave-clase-1" aria-label="Enlace a esta sección">#</a></h3>
+<ul><li>pm-method <strong>lee</strong> la especificación de BMAD y le devuelve decisiones por traspaso: una sola fuente por dato.</li><li>Una condición de puerta es un registro con dueño, no una frase del acta: reaparece en cada sanidad (EST-12), en la
+puerta siguiente (G-01) y bloquea el cierre.</li><li>Un cambio sin monto no es un cambio controlado: costo, cargo y presupuesto de la junta (CAM-03); por encima del
+límite de la autoridad de cambio avisa CAM-04.</li></ul>
+<h3 id="preguntas-para-la-audiencia-clase-1">Preguntas para la audiencia (clase 1)<a class="ancla" href="#preguntas-para-la-audiencia-clase-1" aria-label="Enlace a esta sección">#</a></h3>
+<div class="tabla"><table><thead><tr><th>Pregunta</th><th>Respuesta esperada</th></tr></thead><tbody><tr><td>¿Por qué la sanidad marca FR-13 como ERROR y no como aviso?</td><td>Porque es un cambio no controlado contra la línea base aprobada (ESP-10): bloquea la próxima puerta hasta tramitarlo.</td></tr><tr><td>Sofía aprobó C-001 por USD 6.000. ¿Podía?</td><td>Sí: su límite como autoridad de cambio es USD 8.000 por cambio; arriba de eso CAM-04 avisa que decide la junta.</td></tr><tr><td>El checkpoint dice "2 productos completados". ¿Por qué no 3, si la 1.3 está en review?</td><td>Solo cuentan los productos con revisión de calidad aprobada (Q-002 y Q-003).</td></tr></tbody></table></div>
+<h2 id="clase-2--calidad-a-volumen-recorrido-cierre-y-beneficios-90-min">Clase 2 · Calidad a volumen, recorrido, cierre y beneficios (90 min)<a class="ancla" href="#clase-2--calidad-a-volumen-recorrido-cierre-y-beneficios-90-min" aria-label="Enlace a esta sección">#</a></h2>
+<div class="tabla"><table><thead><tr><th>Min</th><th>Bloque</th><th>Qué se hace</th><th>Material</th></tr></thead><tbody><tr><td>0–10</td><td>Gancho</td><td>"Done no es aceptado": la 2-4 pasó la revisión de código y fue rechazada contra sus criterios. ¿Dónde quedaría eso en tu proyecto? Abrir con lo que ve el gestor al retomar la sesión (<code>estado.py contexto</code>)</td><td>diapositivas 1–2</td></tr><tr><td>10–25</td><td>Concepto</td><td>Calidad por entrega (registro de calidad, QUA-01/02/03); recorrido del cliente (dolor con tratamiento, MAP-03); beneficios: puntaje, salud y tolerancia</td><td>diapositivas 3–7</td></tr><tr><td>25–65</td><td>Demostración</td><td>Pasos 6 a 11 (detalle abajo)</td><td>diapositivas 8–16, guía y evidencia</td></tr><tr><td>65–75</td><td>Pregunta y discusión</td><td>El objetivo O-1 sale 0,91 en verde: ¿está todo bien?</td><td>diapositiva 17</td></tr><tr><td>75–85</td><td>Ejercicio</td><td>Parte B del ejercicio (calidad por entrega, un dolor del recorrido y plan de revisión de beneficios); ejemplo resuelto al cerrar el bloque</td><td>diapositiva 19, <a href="E2E-4-ejercicio.html">E2E-4-ejercicio.html</a> · <a href="#el-ejercicio">cómo conducirlo</a></td></tr><tr><td>85–90</td><td>Cierre</td><td>Mensajes clave; conexión con los otros casos</td><td>diapositivas 18 y 20</td></tr></tbody></table></div>
+<h3 id="demostración-40-min-1">Demostración (40 min)<a class="ancla" href="#demostración-40-min-1" aria-label="Enlace a esta sección">#</a></h3>
+<div class="tabla"><table><thead><tr><th>Min</th><th>Paso</th><th>En vivo</th><th>Con evidencia</th></tr></thead><tbody><tr><td>25–31</td><td>6 · calidad a volumen</td><td>prompt "Al 26/2 el equipo terminó las historias 1.3, 1.4, 3.1, 3.2 y 3.3 …"</td><td>"0 ERROR · 7 AVISO · 3 INFO": cinco QUA-01 y QUA-02; después del lote "0 ERROR · 2 AVISO · 2 INFO"</td></tr><tr><td>31–39</td><td>6b · recorrido de la socia</td><td>prompt "Armá el mapa de recorrido de UJ-1 desde la especificación de BMAD …"</td><td>dos MAP-03; candidatos; R-001; "0 aviso(s) de la familia MAP"; <code>g4-recorrido.png</code> o el HTML del recorrido</td></tr><tr><td>39–44</td><td>7 · condición cumplida</td><td>prompt "La prueba de carga de NFR-3 se hizo el 2/3 …"</td><td>G-01 antes de <code>cumplir-condiciones</code>; después "0 bloqueo(s) · 0 condición(es) · 0 aviso(s)"; <code>g4-tablero.png</code> con R-001 en zona media y la sección «Mapas estratégicos» (<code>g4-tablero-mapas-169.png</code>: cada dolor con su tratamiento enlazado, 0 avisos MAP)</td></tr><tr><td>44–52</td><td>8 · Release 2 con un rechazo</td><td>prompt "Release 2 terminado en BMAD …"</td><td>QUA-01 "terminado con revisión Q-012 sin aprobar" y QUA-03; I-002; Q-013; sanidad final "0 AVISO"; <code>g4-calidad-entregas.png</code></td></tr><tr><td>52–57</td><td>9 · cierre</td><td>solo evidencia</td><td>verificación de cierre solo con L-01; recomendaciones con R-001; paquete "COMPLETO PARA LA PUERTA" que excluye el PRD vivo de BMAD; <code>g4-cierre.png</code></td></tr><tr><td>57–65</td><td>10 y 11 · beneficios</td><td>prompt del paso 10 "Soy Sofía Ramírez, de servicios al socio …"</td><td>30/6: O-1 0,37 rojo, salud en camino (esperado 0,20); 31/12: O-1 0,91 verde, KR-1.1 0,83 en riesgo y fuera de tolerancia; D-029 apunta a R-001; <code>g4-beneficios.png</code></td></tr></tbody></table></div>
+<p>Si el tiempo aprieta, el paso 7 se muestra con el tablero y el paso 9 con <code>g4-cierre.png</code>.</p>
+<h3 id="mensajes-clave-clase-2">Mensajes clave (clase 2)<a class="ancla" href="#mensajes-clave-clase-2" aria-label="Enlace a esta sección">#</a></h3>
+<ul><li>La calidad se registra <strong>por entrega</strong>: cada historia terminada con su revisión aprobada antes de la puerta, no una
+revisión general al final.</li><li>Un rechazo de calidad sin issue, acción o cambio que lo cite es un rechazo olvidado (QUA-03).</li><li>Todo <code>done</code> no es lo mismo que un recorrido sin fricción: cada dolor de la persona necesita un tratamiento con id
+(MAP-03). El tratamiento no siempre es alcance: puede ser un riesgo con respuesta del negocio.</li><li>Los beneficios los mide el negocio después del cierre; el proyecto deja el plan, la línea base, el criterio de desvío
+y los riesgos que los amenazan.</li><li>Rojo en el OKR no es desvío (comparar con la trayectoria), y verde en el objetivo no garantiza que cada beneficio
+esté dentro de tolerancia.</li></ul>
+<h3 id="preguntas-para-la-audiencia-clase-2">Preguntas para la audiencia (clase 2)<a class="ancla" href="#preguntas-para-la-audiencia-clase-2" aria-label="Enlace a esta sección">#</a></h3>
+<div class="tabla"><table><thead><tr><th>Pregunta</th><th>Respuesta esperada</th></tr></thead><tbody><tr><td>Al 26/2, ¿cuántas historias terminadas no tenían revisión? ¿Cómo lo supimos?</td><td>Cinco; la sanidad las listó una por una con QUA-01.</td></tr><tr><td>El sistema propuso tratar el dolor del primer ingreso como requisito. ¿Por qué se registró como riesgo?</td><td>A una etapa del cierre no justifica alcance nuevo, pero amenaza B-02 adopción: R-001 con dueña en el negocio y respuesta (alta asistida).</td></tr><tr><td>Al 30/6 el OKR está en rojo (0,37). ¿Hay que informar a la ejecutiva?</td><td>No: la salud es "en camino" (esperado 0,20: van 46 de los 230 días entre el 15/5 y el 31/12); el plan escala la revisión intermedia solo si está en riesgo o desviada.</td></tr><tr><td>Al 31/12 el objetivo sale 0,91 en verde. ¿Todo bien?</td><td>No: B-02 adopción llega a 0,83, por debajo de 0,90 (tolerancia −10 %); se informa a la ejecutiva (D-029), que empieza por R-001.</td></tr></tbody></table></div>
+<h2 id="dudas-frecuentes">Dudas frecuentes<a class="ancla" href="#dudas-frecuentes" aria-label="Enlace a esta sección">#</a></h2>
+<ul><li><strong>¿pm-method modifica los archivos de BMAD?</strong> No. Lee por la fachada (<code>bmad.py</code>, <code>especificacion.py</code>) y emite un
+traspaso (<code>bmad.py handoff</code>) que aplica el equipo de BMAD. El mapa de recorrido también parte de BMAD
+(<code>bmad.py recorridos</code>) y se guarda en la carpeta de gestión.</li><li><strong>¿Qué pasa si la historia se reabre en BMAD en vez de quedar <code>done</code>?</strong> QUA-01 solo mira historias terminadas: deja
+de avisar, y el rechazo sigue marcado por QUA-03 hasta que algo lo trate.</li><li><strong>¿Las emociones del mapa son inventadas?</strong> Cada una lleva su fuente (aquí, la observación de la revisión del
+Release 1 con seis socios, o un supuesto declarado). Sin fuente, MAP-04 avisa.</li><li><strong>¿Por qué los beneficios se registran como check-ins y no editando el OKR?</strong> Porque los check-ins solo se agregan:
+queda la historia de cada medición, con autor y fecha, y la salud se calcula desde el primero.</li><li><strong>¿Qué ve el gestor al abrir Claude Code después de semanas?</strong> Un resumen derivado de <code>estado.json</code> y los registros
+(conteos abiertos, condiciones de puertas, próxima puerta). Si una nota de memoria dice otra cosa, mandan los
+registros.</li><li><strong>¿Por qué el paquete de cierre no incluyó el PRD de BMAD?</strong> Porque está fuera de la carpeta del proyecto: el paquete
+solo lleva archivos de <code>gestion/</code> y anota en el manifiesto lo que excluyó. La especificación viaja como línea base
+congelada (<code>00-direccion/historial/bmad-prd-v1.1/</code>).</li><li><strong>¿Las decisiones humanas están simuladas?</strong> Sí, con los nombres del escenario; en uso real las toma cada rol y el
+hook reserva a pm-director los comandos de la junta.</li><li><strong>¿Las fechas del paquete de cierre son distintas a las de la guía?</strong> <code>paquete.py</code>, <code>exportar.py</code> y <code>bmad.py handoff</code> nombran el archivo con la fecha de la corrida; el contenido no cambia.</li></ul>
+<h2 id="plan-b-si-la-demostración-en-vivo-falla">Plan B si la demostración en vivo falla<a class="ancla" href="#plan-b-si-la-demostración-en-vivo-falla" aria-label="Enlace a esta sección">#</a></h2>
+<ol><li>Seguir con la evidencia: cada paso de la guía remite a su bloque en <code>salida-g4.md</code> (encabezados "Paso N").</li><li>Mostrar las imágenes ya generadas (<code>g4-calidad-entregas.png</code>, <code>g4-recorrido.png</code>, <code>g4-burnup.png</code>,
+<code>g4-tablero.png</code>, <code>g4-tablero-mapas-169.png</code>, <code>g4-cierre.png</code>, <code>g4-beneficios.png</code>): cuentan la historia completa sin terminal.</li><li>Si falla solo un paso, correr el driver completo en segundo plano (<code>g4.py</code>, unos 40 segundos) y abrir la carpeta del
+recorrido que imprime al final.</li></ol>
+<h2 id="conexión-con-los-otros-casos">Conexión con los otros casos<a class="ancla" href="#conexión-con-los-otros-casos" aria-label="Enlace a esta sección">#</a></h2>
+<ul><li><strong>Antes:</strong> E2E-5 muestra cómo se llegó al proyecto autorizado (supuestos, opciones, enfoque, presupuestos y
+tolerancias de la junta) y el recorrido de UJ-2 en el diseño. E2E-4 arranca donde termina E2E-5 y vuelve al
+recorrido del cliente, esta vez sobre lo entregado.</li><li><strong>Después:</strong> E2E-1 (riesgos) profundiza lo que aquí quedó como un riesgo medio con respuesta; E2E-2 (alcance y
+cambios) muestra la ruta de excepción cuando un cambio no entra en las tolerancias; E2E-3 (interesados y avance)
+amplía el informe de aspectos destacados y los OKR.</li></ul></article>
+<footer class="pie-doc">Fuente: <a href="https://github.com/Arturo-Penas-Rial/pm-method/blob/main/docs/webinar/E2E-4/guion-instructor.md" class="ext">docs/webinar/E2E-4/guion-instructor.md</a> · pm-method 2.3.0 · Guion del instructor del caso E2E-4 · generado con <code>scripts/webinar/documentos.py</code></footer>
+</main>
+</div>
+<dialog class="visor" id="visor"><button type="button" class="cerrar">Cerrar</button><img alt=""></dialog>
+<script>
+(function(){
+  var raiz=document.documentElement;
+  function guardar(k,v){try{localStorage.setItem(k,v)}catch(e){}}
+  function leer(k){try{return localStorage.getItem(k)}catch(e){return null}}
+  var tema=leer('webinar-tema'); if(tema==='light'||tema==='dark') raiz.setAttribute('data-theme',tema);
+  var bTema=document.getElementById('b-tema');
+  function rotTema(){var t=raiz.getAttribute('data-theme'); bTema.textContent=t==='dark'?'Tema: oscuro':(t==='light'?'Tema: claro':'Tema: automático');}
+  if(bTema){rotTema(); bTema.addEventListener('click',function(){var t=raiz.getAttribute('data-theme'); var s=!t?'light':(t==='light'?'dark':'');
+    if(s){raiz.setAttribute('data-theme',s)}else{raiz.removeAttribute('data-theme')} guardar('webinar-tema',s); rotTema();});}
+  var bImp=document.getElementById('b-imprimir'); if(bImp) bImp.addEventListener('click',function(){window.print()});
+  var toc=document.querySelector('details.toc');
+  if(toc&&window.matchMedia){var mq=window.matchMedia('(min-width: 1000px)');
+    function ajustar(){toc.open=mq.matches} ajustar();
+    if(mq.addEventListener) mq.addEventListener('change',ajustar); else if(mq.addListener) mq.addListener(ajustar);
+    toc.addEventListener('click',function(ev){if(ev.target.tagName==='A'&&!mq.matches) toc.open=false;});}
+  var enl={}; [].forEach.call(document.querySelectorAll('details.toc a[href^="#"]'),function(a){enl[decodeURIComponent(a.getAttribute('href').slice(1))]=a});
+  if('IntersectionObserver' in window&&toc){var obs=new IntersectionObserver(function(ents){ents.forEach(function(en){
+      if(en.isIntersecting){var a=enl[en.target.id]; if(a){[].forEach.call(document.querySelectorAll('details.toc a.activo'),function(x){x.classList.remove('activo')}); a.classList.add('activo');}}});},
+      {rootMargin:'0px 0px -70% 0px'});
+    [].forEach.call(document.querySelectorAll('.md h2[id],.md h3[id]'),function(h){obs.observe(h)});}
+  [].forEach.call(document.querySelectorAll('.codigo .copiar'),function(b){b.addEventListener('click',function(){
+    var t=b.parentNode.querySelector('pre').textContent;
+    if(navigator.clipboard){navigator.clipboard.writeText(t).then(function(){b.textContent='Copiado'; setTimeout(function(){b.textContent='Copiar'},1500)},function(){});}});});
+  var visor=document.getElementById('visor');
+  if(visor){var vimg=visor.querySelector('img');
+    [].forEach.call(document.querySelectorAll('figure.img .zoom'),function(b){b.addEventListener('click',function(){
+      var im=b.querySelector('img'); vimg.src=im.src; vimg.alt=im.alt; if(visor.showModal) visor.showModal();});});
+    visor.addEventListener('click',function(){visor.close()});}
+  function abrirHasta(id){var el=id&&document.getElementById(id); while(el){if(el.tagName==='DETAILS'&&!el.open) el.open=true; el=el.parentElement;}}
+  function hashActual(){try{return decodeURIComponent(location.hash.slice(1))}catch(e){return ''}}
+  [].forEach.call(document.querySelectorAll('a[href^="#"]'),function(a){a.addEventListener('click',function(){
+    var h=a.getAttribute('href').slice(1); try{h=decodeURIComponent(h)}catch(e){} abrirHasta(h);});});
+  window.addEventListener('hashchange',function(){abrirHasta(hashActual())}); if(location.hash) abrirHasta(hashActual());
+  var abiertos=[];
+  function abrirTodo(){[].forEach.call(document.querySelectorAll('details.desplegable:not([open])'),function(d){d.open=true; abiertos.push(d)});}
+  function cerrarAbiertos(){abiertos.forEach(function(d){d.open=false}); abiertos=[];}
+  window.addEventListener('beforeprint',abrirTodo);
+  window.addEventListener('afterprint',cerrarAbiertos);
+  if(window.matchMedia){var mp=window.matchMedia('print'); var alCambiar=function(e){if(e.matches) abrirTodo(); else cerrarAbiertos();};
+    if(mp.addEventListener) mp.addEventListener('change',alCambiar); else if(mp.addListener) mp.addListener(alCambiar);}
+})();
+</script>
+</body></html>

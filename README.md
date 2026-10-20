@@ -31,7 +31,7 @@ tolerancias, gestión por excepción), **PMBOK 8** aporta solo técnicas, las **
 
 **Valor agregado:** gobierno auditable (cada puerta con su fila en `decisiones.csv`), trazabilidad requisito → historia →
 paquete de trabajo → aceptación, informes de avance y excepción con valor ganado, visuales y exportaciones listos para la
-junta, y un ecosistema probado con **216 pruebas de regresión**, una suite de integración cruzada de 61 comprobaciones,
+junta, y un ecosistema probado con **223 pruebas de regresión**, una suite de integración cruzada de 61 comprobaciones,
 cinco recorridos E2E reproducibles y pruebas en vivo con Claude Code real.
 
 ---
@@ -47,7 +47,7 @@ cinco recorridos E2E reproducibles y pruebas en vivo con Claude Code real.
 
 | Evidencia (2026-10-20) | Resultado |
 |---|---|
-| Pruebas de regresión (`probar_paquete.py`) | 216 OK · 0 FALLO con Python 3.13 (215 con 3.9), incluida una instalación real de BMAD 6.12.4 y envíos SMTP y por webhooks contra servidores locales |
+| Pruebas de regresión (`probar_paquete.py`) | 223 OK · 0 FALLO con Python 3.13 (222 con 3.9), incluida una instalación real de BMAD 6.12.4 y envíos SMTP y por webhooks contra servidores locales |
 | Integración cruzada (`scripts/pruebas/integracion/correr.py`) | 61 OK · 0 FALLO en 24 eslabones de seis cadenas sobre un mismo proyecto |
 | Recorridos E2E de las guías (`guias_e2e/correr.py`) | 5/5 OK con los scripts reales, evidencia idéntica en dos corridas |
 | Diagramas Mermaid (`validar_mermaid.py --render`) | 127 bloques, 0 errores |
@@ -453,11 +453,12 @@ Versiones probadas, licencias, comandos de instalación y cómo se verificó cad
 | Verificación | Resultado |
 |---|---|
 | `python3 scripts/validar_paquete.py` | OK · 39 skills, 33 invocables, listado de 6.817 caracteres (límite 7.500); sintaxis verificada con Python 3.9 |
-| `python3 scripts/probar_paquete.py` | 216 OK · 0 FALLO con Python 3.13; 215 OK · 0 FALLO con Python 3.9 (sin `matplotlib` se omite una comprobación de visuales). Casos A–N (con J2), P, S, X e Y: BMAD v6, 6.12.4 real, v4 y nativo, hook guardian, puertas, interesados y canales, riesgos desde cuatro fuentes, controles permanentes, autoridad y presupuesto de cambio al registrar, supuestos, webinar, seguridad, contexto, mapas, salidas de los scripts, integración y `--help` de 29 scripts |
+| `python3 scripts/probar_paquete.py` | 223 OK · 0 FALLO con Python 3.13; 222 OK · 0 FALLO con Python 3.9 (sin `matplotlib` se omite una comprobación de visuales). Casos A–N (con J2 y L2), P, S, X e Y: BMAD v6, 6.12.4 real, v4 y nativo, hook guardian, puertas, interesados y canales, riesgos desde cuatro fuentes, controles permanentes, autoridad y presupuesto de cambio al registrar, supuestos, webinar, seguridad, contexto, mapas, salidas de los scripts, integración y `--help` de 29 scripts |
 | `python3 scripts/pruebas/integracion/correr.py` | 61 OK · 0 FALLO en 24 eslabones (seis cadenas) |
 | `python3 scripts/pruebas/guias_e2e/correr.py` | 5/5 OK (E2E-1 15 pasos, E2E-2 10, E2E-3 14, E2E-4 13, E2E-5 18), evidencia idéntica en dos corridas |
 | `python3 scripts/validar_mermaid.py --render` | 127 bloques, 0 errores |
 | `python3 scripts/webinar/generar.py --todos --validar` | 5/5 mazos sin errores (186 diapositivas de contenido, 124 términos de glosario) |
+| `python3 scripts/webinar/documentos.py --todos` | 5/5 casos sin errores: 15 documentos HTML (guía, guion y ejercicio con el ejemplo resuelto plegado) e `index.html`; 17 diagramas Mermaid dibujados |
 | `claude plugin validate .` | aprobado (un aviso esperado: `CLAUDE.md` de la raíz es para quien desarrolla el repositorio, no contexto del plugin) |
 | Enrutamiento en vivo (Claude Code real) | 102 frases en `docs/evaluacion/frases-enrutamiento.tsv`. Resultados registrados: 60/60 en la batería base (Sonnet 59/60, Haiku 56/60), 14/14 en las frases de las cinco skills de interesados, organización, comunicación, canales y OKR, 27/28 con vocabulario de PRINCE2 y PMBOK en español y de uso habitual, 25/25 con las skills de BMAD instaladas en el mismo proyecto, 14/14 con el resumen de contexto del hook de inicio y 8/8 en las frases de mapas estratégicos ([resultados](docs/evaluacion/resultados/)) |
 | Guardarraíles, idioma y robustez en vivo | guardarraíles 4/4; idioma 5/5 con el hook `idioma.py`; inyección en fuentes 6/6; datos desordenados 7/7; escala 5/5; varias sesiones con `/compact` 10/10; controles permanentes 6/6; integración con BMAD instalado 12/12 |

@@ -1,6 +1,6 @@
 # Informe 2 · Documentación del ecosistema pm-method (v2.3)
 
-- `informe-2-ecosistema-pm-method-v2.3.html` y `.pptx`: el informe (mismo contenido; 270 diapositivas), generado
+- `informe-2-ecosistema-pm-method-v2.3.html` y `.pptx`: el informe (mismo contenido; 271 diapositivas), generado
   desde la documentación de este repositorio (versión 2.3.0). Describe el ecosistema tal como es: resumen ejecutivo,
   capacidades de gestión (validar antes de invertir, evaluación de inversiones con `inversion.py`, mapas de Wardley y de
   recorrido, contexto de sesión acotado, maestro de interesados, capa de canales, OKR, riesgos desde cuatro fuentes y

@@ -226,7 +226,7 @@
       "A3: presupuesto = respuestas + residual + provisión",
       "10 minutos; autoevaluación al final de la hoja"
      ],
-     "nota": "La hoja está en docs/webinar/E2E-1/ejercicio.md. Pedir órdenes de magnitud, no precisión. Mostrar la solución de referencia al terminar."
+     "nota": "La hoja está en docs/webinar/E2E-1/ejercicio.md y explica la mecánica al comienzo. Pedir órdenes de magnitud, no precisión. El ejemplo resuelto está plegado al final de la hoja: mostrarlo al terminar, no antes."
     },
     {
      "tipo": "cierre",
@@ -425,7 +425,7 @@
       "B3: tu regla de revisión en una línea",
       "10 minutos; autoevaluación al final de la hoja"
      ],
-     "nota": "Si el asistente no tiene reserva de riesgo formal, que anote cuánto se gastó en respuestas a riesgos y de qué partida salió. Mostrar la solución de referencia al terminar."
+     "nota": "Si el asistente no tiene reserva de riesgo formal, que anote cuánto se gastó en respuestas a riesgos y de qué partida salió. Mostrar el ejemplo resuelto de la hoja al terminar."
     },
     {
      "tipo": "cierre",

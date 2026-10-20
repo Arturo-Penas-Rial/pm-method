@@ -69,6 +69,9 @@ Al 31/12/2027, B-02 adopción llega al 83 % de la meta y queda fuera de la toler
 | 1 · Gobernar la construcción con BMAD | 1 (resumen, remite a E2E-5) · 2 · 3 · 4 · 5 | condición formal, paquete de trabajo con punto de control, valor ganado guardado, cambio con presupuesto y nueva línea base |
 | 2 · Calidad a volumen, recorrido, cierre y beneficios | 6 · 6b · 7 · 8 · 9 · 10 · 11 | calidad por entrega (QUA-01/02/03), recorrido del cliente con dolores tratados (MAP-03), condición cumplida, traspaso a operación y paquete de cierre, beneficios contra trayectoria y tolerancia |
 
+Material de clase: [guion](../webinar/E2E-4/guion-instructor.md) · [ejercicio](../webinar/E2E-4/ejercicio.md) ·
+[diapositivas](../webinar/E2E-4/diapositivas.json).
+
 **Skills y agentes de pm-method:** pm-orquestador · pm-planificacion · pm-control · pm-cierre · `pm-director` ·
 `pm-bmad-puente` · `pm-paquetes-trabajo` · `pm-progreso-reportes` · `pm-issues-cambios` · `pm-calidad` ·
 `pm-mapas-estrategicos` · `pm-riesgos` · `pm-plan-etapa-y-limites` · `pm-caso-de-negocio` · `pm-okr` ·

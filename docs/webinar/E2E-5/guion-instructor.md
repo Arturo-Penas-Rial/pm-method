@@ -48,6 +48,26 @@ Conviene haber visto otro caso E2E, pero no es obligatorio: este es el primero e
   final como "Carpeta del recorrido"; los tres diseños del bloque C quedan al lado, en `diseno-1` a `diseno-3`).
 - Probar el micrófono y el tamaño de letra de la terminal (mínimo 18 pt).
 
+## El ejercicio
+
+La hoja es una sola para asistentes e instructor: [ejercicio.md](ejercicio.md) (en HTML, `E2E-5-ejercicio.html`). Se
+basta sola: empieza por «Cómo funciona este ejercicio», resume el escenario y los conceptos que hacen falta, trae la
+hoja de trabajo con sus criterios de autoevaluación y termina con un **ejemplo resuelto** con el escenario del caso,
+plegado, donde cada dato cita el paso de la guía de donde sale.
+
+- **Cuándo:** la parte A en el minuto 75 de la clase 1 y la parte B en el minuto 75 de la clase 2, siempre después de
+  la demostración; 10 minutos cada una.
+- **Cómo se presenta:** proyectá la diapositiva del ejercicio y leé en voz alta «Cómo funciona este ejercicio» (un
+  minuto). Quien no tenga un proyecto propio trabaja con los datos de partida del caso, que están en «Lo que necesitás
+  saber».
+- **Mientras trabajan:** pedí que escriban el criterio del experimento antes de imaginar el resultado. En la parte B,
+  si alguien no tiene reserva de gestión, que lo anote: es un hallazgo, no un error del ejercicio.
+- **Ejemplo resuelto:** pedí que no lo abran antes de intentar. Mostralo recién en los dos últimos minutos del bloque:
+  desplegalo en pantalla y comparalo con la hoja de uno o dos voluntarios. Al imprimir, sale desplegado al final de la
+  hoja.
+- **Autoevaluación:** cada asistente marca los criterios de su parte; un criterio sin cumplir es un hallazgo sobre su
+  proyecto, no un error del ejercicio.
+
 ---
 
 ## Clase 1 · ¿Vale la pena?
@@ -62,7 +82,7 @@ Conviene haber visto otro caso E2E, pero no es obligatorio: este es el primero e
 | 10–25 | Concepto | Mandato y lecciones; supuesto e hipótesis; criticidad × certeza; experimento con criterio previo; opciones contra "no hacer nada"; VAN, TIR, repago y punto de equilibrio; nueve criterios del enfoque; mapa de Wardley y recorrido del cliente. | Diapositivas de concepto |
 | 25–65 | Demostración | Pasos 1 a 6 (detalle abajo). | Terminal + evidencia |
 | 65–75 | Pregunta y discusión | "¿Qué harían con S-002: abandonar, ajustar o seguir?" y contraste con la variante a (pasos 15 a 17, con evidencia). | Diapositivas de pregunta y tabla a/b |
-| 75–85 | Ejercicio | Parte A: mapa de supuestos y un experimento barato de un proyecto propio. | [ejercicio.md](ejercicio.md) |
+| 75–85 | Ejercicio | Parte A: mapa de supuestos y un experimento barato de un proyecto propio; ejemplo resuelto al cerrar el bloque. | [ejercicio.md](ejercicio.md) · [cómo conducirlo](#el-ejercicio) |
 | 85–90 | Cierre | Tres mensajes clave y anticipo de la clase 2. | Diapositiva de cierre |
 
 ### Demostración (40 minutos)
@@ -137,7 +157,7 @@ ver qué pasa con S-003 y S-006, que todavía no tienen resultado."
 | 10–25 | Concepto | Contexto de sesión; mapa y enfoque de beneficios; descripción del producto del proyecto; contingencia, BAC, reserva de gestión y presupuesto de cambio; adaptación (tailoring); P-11: validar o aceptar. | Diapositivas de concepto |
 | 25–65 | Demostración | Pasos 7 a 14 (detalle abajo). | Terminal + evidencia |
 | 65–75 | Pregunta y discusión | "¿Qué diseño le corresponde a tu proyecto: pequeño, regulado o ágil?" | Tabla del bloque C |
-| 75–85 | Ejercicio | Parte B: las reservas y la adaptación de un proyecto propio. | [ejercicio.md](ejercicio.md) |
+| 75–85 | Ejercicio | Parte B: las reservas y la adaptación de un proyecto propio; ejemplo resuelto al cerrar el bloque. | [ejercicio.md](ejercicio.md) · [cómo conducirlo](#el-ejercicio) |
 | 85–90 | Cierre | Tablero de una página, tablero de mapas, mensajes clave y conexión con E2E-1 y E2E-4. | `g5-tablero.png`, `g5-tablero-mapas-169.png` |
 
 ### Demostración (40 minutos)

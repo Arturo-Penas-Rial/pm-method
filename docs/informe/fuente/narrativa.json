@@ -1346,7 +1346,7 @@
   },
   {
    "t": "Material del webinar",
-   "d": "Por caso E2E: guion del instructor, ejercicio con solución de referencia y diapositivas (PPTX y HTML) generadas por `scripts/webinar/generar.py` desde `diapositivas.json`."
+   "d": "Por caso E2E: guion del instructor, guía y ejercicio (con su mecánica, todo lo necesario para hacerlo y un ejemplo resuelto) en HTML, y diapositivas en PPTX y HTML generadas desde `diapositivas.json`."
   },
   {
    "t": "Compatibilidad con Python 3.9",

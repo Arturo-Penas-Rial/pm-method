@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="generator" content="pm-method 2.3.0 · scripts/webinar/documentos.py">
+<title>E2E-3 · Ejercicio · Ejercicio · E2E-3 · El compromiso de tus interesados y la cadena de tu informe</title><style>
+:root{--navy:#002855;--blue:#00629b;--orange:#b5651d;--gray:#696969;--ink:#272425;--page:#e9edf1;--surface:#fff;--soft:#f4f6f8;
+--tint:#e9f1f8;--ortint:#fbf1e6;--line:#e2e2e6;--sky:#9fd0f0;--dark:#002855;--dark2:#173d66;--azul:#00629b;--code:#0f2238;--codefg:#e8eef5;
+--title-ink:#002855;--accent:#00629b;--warm:#b5651d;--shadow:0 6px 24px rgba(0,40,85,.10);color-scheme:light}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--page:#0b1118;--surface:#131c27;--soft:#1a2633;--tint:#16283b;--ortint:#2c2116;
+--line:#2a3644;--ink:#e6ebf0;--gray:#a3acb6;--dark:#08203d;--dark2:#173d66;--azul:#0a4f7d;--title-ink:#cfe3f3;--accent:#4ea3dc;--warm:#e39a5f;
+--shadow:0 6px 24px rgba(0,0,0,.45);color-scheme:dark}}
+:root[data-theme="dark"]{--page:#0b1118;--surface:#131c27;--soft:#1a2633;--tint:#16283b;--ortint:#2c2116;--line:#2a3644;--ink:#e6ebf0;
+--gray:#a3acb6;--dark:#08203d;--dark2:#173d66;--azul:#0a4f7d;--title-ink:#cfe3f3;--accent:#4ea3dc;--warm:#e39a5f;--shadow:0 6px 24px rgba(0,0,0,.45);color-scheme:dark}
+
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:72px;-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--page);color:var(--ink);font-family:Arial,Helvetica,sans-serif;line-height:1.55;font-size:16px}
+a{color:var(--accent)}
+code{font-family:"Courier New",monospace;font-size:.92em;background:var(--soft);padding:.05em .3em;border-radius:4px;overflow-wrap:anywhere}
+.barra{position:sticky;top:0;z-index:10;display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;padding:10px 16px;background:var(--surface);
+border-bottom:1px solid var(--line)}
+.barra .marca{font-weight:700;color:var(--title-ink);text-decoration:none;margin-right:6px}
+.barra nav{display:flex;flex-wrap:wrap;gap:6px}
+.barra nav a{padding:4px 10px;border-radius:8px;background:var(--soft);text-decoration:none;font-size:.9rem;color:var(--ink)}
+.barra nav a:hover{background:var(--tint)}
+.barra nav a[aria-current]{background:var(--blue);color:#fff}
+.barra .ctl{display:flex;flex-wrap:wrap;gap:6px;margin-left:auto;align-items:center}
+.barra button{font:inherit;font-size:.85rem;padding:4px 8px;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
+.marco{display:grid;grid-template-columns:250px minmax(0,1fr);gap:32px;max-width:1240px;margin:0 auto;padding:24px 16px 48px}
+.lateral{position:sticky;top:64px;align-self:start;max-height:calc(100vh - 80px);overflow:auto}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 12px;font-size:.88rem}
+details.toc summary{cursor:pointer;font-weight:700;color:var(--title-ink)}
+details.toc ol{list-style:none;margin:8px 0 0;padding:0}
+details.toc li{margin:0}
+details.toc li.n3{padding-left:14px;font-size:.95em}
+details.toc a{display:block;padding:3px 6px;border-radius:6px;color:var(--ink);text-decoration:none;line-height:1.3}
+details.toc a:hover{background:var(--soft)}
+details.toc a.activo{background:var(--tint);color:var(--title-ink);font-weight:700}
+main{min-width:0;max-width:920px}
+.cab{position:relative;background:var(--dark);color:#fff;border-radius:14px;padding:26px clamp(18px,4vw,36px) 22px;box-shadow:var(--shadow);margin-bottom:22px}
+.cab .logo{position:absolute;top:20px;right:20px;width:120px;height:50px;border:1px dashed #7f9bb8;border-radius:4px;display:grid;place-items:center;
+font-size:.78rem;color:#a9bfd6}
+.cab .logo.con-img{border:0}.cab .logo img{max-width:100%;max-height:100%}
+.cab .kicker{margin:0 140px 6px 0;color:var(--sky);font-weight:700;font-size:.92rem}
+.cab h1{margin:0 140px 10px 0;font-size:1.85rem;line-height:1.2}
+.cab .meta{margin:0;display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;color:#d6e4f0;font-size:.92rem}
+.etiqueta{display:inline-block;background:var(--dark2);color:#fff;border-radius:999px;padding:3px 12px;font-weight:700}
+.etiqueta.instr{background:var(--orange)}
+.aviso-doc{margin:14px 0 0;background:var(--dark2);border-left:4px solid var(--sky);border-radius:8px;padding:10px 14px;color:#fff;font-size:.95rem}
+.md{background:var(--surface);border-radius:14px;box-shadow:var(--shadow);padding:8px clamp(16px,4vw,40px) 28px;overflow-wrap:break-word}
+.md>*:first-child{margin-top:18px}
+.md h2{color:var(--title-ink);font-size:1.45rem;line-height:1.25;margin:2em 0 .6em;padding-bottom:.25em;border-bottom:2px solid var(--line)}
+.md h3{color:var(--title-ink);font-size:1.15rem;margin:1.6em 0 .5em}
+.md h4,.md h5,.md h6{font-size:1rem;margin:1.4em 0 .4em}
+.md h2 .ancla,.md h3 .ancla,.md h4 .ancla{margin-left:.4em;color:var(--gray);text-decoration:none;opacity:0;font-weight:400}
+.md h2:hover .ancla,.md h3:hover .ancla,.md h4:hover .ancla,.md .ancla:focus{opacity:1}
+.md p{margin:.7em 0}
+.md ul,.md ol{margin:.6em 0;padding-left:1.5em}
+.md li{margin:.25em 0}
+.md li>ul,.md li>ol{margin:.2em 0}
+.md ul.tareas{list-style:none;padding-left:.4em}
+.md li.tarea{position:relative;padding-left:1.8em}
+.md li.tarea .caja{position:absolute;left:0;top:.2em;width:1.05em;height:1.05em;margin:0;accent-color:var(--blue)}
+.md hr{border:0;border-top:1px solid var(--line);margin:2em 0}
+.md blockquote{margin:1em 0;padding:.6em 1em;background:var(--tint);border-left:4px solid var(--accent);border-radius:0 8px 8px 0}
+.md blockquote p{margin:.4em 0}
+.md strong{color:var(--title-ink)}
+.md .ruta{color:var(--gray)}
+.md .falta{color:#b00020;font-weight:700}
+.tabla{overflow-x:auto;margin:1em 0;border:1px solid var(--line);border-radius:8px}
+.tabla table{width:100%;border-collapse:collapse;font-size:.92rem}
+.tabla th{background:var(--navy);color:#fff;text-align:left;padding:.5em .65em;vertical-align:bottom}
+.tabla th code{background:var(--dark2);color:#fff}
+.tabla td{padding:.5em .65em;border-top:1px solid var(--line);vertical-align:top}
+.tabla tbody tr:nth-child(even) td{background:var(--soft)}
+.doc-ejercicio .tabla td:empty{height:2.6em;min-width:4em}
+.codigo{position:relative;margin:.8em 0}
+.codigo pre{margin:0;background:var(--code);color:var(--codefg);border-radius:8px;padding:14px 76px 14px 16px;font-family:"Courier New",monospace;
+font-size:.9rem;line-height:1.45;white-space:pre-wrap;overflow-wrap:anywhere}
+.codigo pre code{background:none;padding:0;color:inherit;font-size:1em}
+.copiar{position:absolute;top:8px;right:8px;font:inherit;font-size:.75rem;border:0;border-radius:6px;padding:.3em .7em;background:var(--dark2);color:#fff;cursor:pointer}
+figure{margin:1.1em 0}
+figure.img{display:flex;flex-direction:column;align-items:center}
+figure.img .zoom{all:unset;cursor:zoom-in;display:block;max-width:100%}
+figure img{display:block;max-width:100%;height:auto;border:1px solid var(--line);border-radius:6px;background:#fff}
+figure figcaption{margin-top:.5em;font-size:.92rem;color:var(--gray);max-width:760px;text-align:center}
+figure.mermaid .svg{background:#fff;border:1px solid var(--line);border-radius:8px;padding:12px;overflow-x:auto;text-align:center}
+figure.mermaid svg{max-width:100%;height:auto}
+details.fuente-mermaid{margin-top:6px;font-size:.85rem}
+details.fuente-mermaid summary{cursor:pointer;color:var(--gray)}
+details.fuente-mermaid pre{background:var(--code);color:var(--codefg);border-radius:8px;padding:12px;white-space:pre-wrap;overflow-wrap:anywhere;font-size:.85rem}
+details.desplegable{margin:1em 0;border:1px solid var(--line);border-radius:10px;padding:8px 14px;background:var(--soft)}
+details.desplegable>summary{cursor:pointer;font-weight:700;color:var(--accent)}
+details.ejemplo{border:1px solid var(--accent);border-left-width:5px;background:var(--tint);padding:10px 16px}
+details.ejemplo>summary{font-size:1.05rem;padding:4px 0}
+details.ejemplo[open]>summary{margin-bottom:.4em}
+details.ejemplo .det>*:first-child{margin-top:.4em}
+.pie-doc{margin:22px 4px 0;color:var(--gray);font-size:.85rem}
+.fuente-imp{display:none}
+dialog.visor{border:0;padding:0;background:transparent;max-width:96vw;max-height:94vh}
+dialog.visor::backdrop{background:rgba(0,0,0,.8)}
+dialog.visor img{display:block;max-width:96vw;height:auto;background:#fff;border-radius:6px}
+dialog.visor .cerrar{position:fixed;top:10px;right:14px;font-size:1.1rem;padding:6px 12px;border-radius:8px;border:0;cursor:pointer}
+/* índice del webinar */
+.intro{background:var(--surface);border-radius:14px;box-shadow:var(--shadow);padding:6px clamp(16px,4vw,32px) 14px;margin-bottom:22px}
+.casos{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,520px),1fr));gap:18px}
+.caso{background:var(--surface);border-radius:14px;box-shadow:var(--shadow);padding:18px clamp(16px,3vw,26px)}
+.caso h2{margin:0 0 .2em;color:var(--title-ink);font-size:1.25rem;line-height:1.25}
+.caso .sub{margin:0 0 .6em;color:var(--warm);font-weight:700}
+.caso .clases{margin:0 0 .8em;font-size:.9rem;color:var(--gray)}
+.caso h3{margin:.9em 0 .4em;font-size:.95rem;color:var(--title-ink)}
+.enlaces{display:flex;flex-wrap:wrap;gap:8px;margin:0;padding:0;list-style:none}
+.enlaces a,.enlaces span{display:inline-block;padding:6px 12px;border-radius:8px;background:var(--tint);text-decoration:none;color:var(--ink);font-size:.92rem}
+.enlaces a:hover{background:var(--soft);outline:1px solid var(--accent)}
+.enlaces a.instr{background:var(--ortint)}
+.enlaces small{color:var(--gray)}
+.marco.sin-toc{grid-template-columns:minmax(0,1fr)}
+.marco.sin-toc main{max-width:none}
+@media (max-width:999px){
+.marco{grid-template-columns:minmax(0,1fr);gap:16px;padding:16px 16px 40px}
+.lateral{position:static;max-height:none}
+.barra{position:static}
+.barra .ctl{margin-left:0}
+html{scroll-padding-top:8px}
+}
+@media (max-width:600px){
+body{font-size:15px}
+.cab{padding:18px 16px}
+.cab .logo{position:static;width:96px;height:40px;margin-bottom:10px}
+.cab .kicker,.cab h1{margin-right:0}
+.cab h1{font-size:1.4rem}
+.md{padding:4px 14px 20px}
+.md h2{font-size:1.25rem}
+.codigo pre{padding:12px 12px 12px 12px;padding-top:34px;font-size:.84rem}
+.tabla table{font-size:.85rem}
+details.ejemplo{padding:8px 10px;border-left-width:4px}
+}
+@media print{
+:root,:root:not([data-theme="light"]),:root[data-theme="light"],:root[data-theme="dark"]{--page:#fff;--surface:#fff;--soft:#f4f6f8;--tint:#e9f1f8;
+--ortint:#fbf1e6;--line:#d5d8de;--ink:#1d1b1c;--gray:#5d5d5d;--dark:#002855;--dark2:#173d66;--title-ink:#002855;--accent:#00629b;--warm:#b5651d;
+--code:#f4f6f8;--codefg:#1d1b1c;color-scheme:light}
+@page{size:A4;margin:15mm 14mm 16mm}
+body{background:#fff;font-size:10pt;line-height:1.45}
+.barra,.lateral,.copiar,.ancla,dialog.visor,details.fuente-mermaid,.enlaces small{display:none!important}
+.marco{display:block;max-width:none;padding:0}
+main{max-width:none}
+.cab,.md,.caso,.intro{box-shadow:none;border-radius:0}
+.cab{border-radius:6px;padding:14px 18px;margin-bottom:10px}
+.md{padding:0}
+.md h2{font-size:14pt;margin-top:1.4em}
+.md h3{font-size:11.5pt}
+h1,h2,h3,h4{break-after:avoid;page-break-after:avoid}
+tr,figure,.codigo,blockquote,li,.caso{break-inside:avoid;page-break-inside:avoid}
+thead{display:table-header-group}
+.tabla{overflow:visible;border:0}
+.tabla table{font-size:8.5pt}
+.tabla td,.tabla th{padding:.3em .45em;overflow-wrap:break-word}
+.tabla code,.md code{overflow-wrap:break-word}
+p:has(+ .tabla),p:has(+ .codigo),p:has(+ figure){break-after:avoid;page-break-after:avoid}
+.pie-doc{display:none}
+.cab .fuente-imp{display:block;margin:8px 0 0;font-size:7.5pt;color:#d6e4f0}
+.cab .fuente-imp code{background:none;color:inherit;padding:0}
+figure.mermaid svg{max-height:240mm}
+.codigo pre{border:1px solid #d5d8de;padding:8px 10px;font-size:8.5pt}
+figure img{max-height:200mm;width:auto}
+figure.mermaid .svg{border:0;padding:0}
+a{color:inherit;text-decoration:none}
+a.ext{text-decoration:underline dotted}
+.cab,.cab *,.tabla th,.etiqueta,.aviso-doc,.md blockquote,.tabla tbody tr:nth-child(even) td{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.casos{display:block}.caso{margin-bottom:12px;border:1px solid #d5d8de;border-radius:6px}
+details.ejemplo{border:0;padding:0;background:none}
+details.ejemplo>summary{display:none}
+}
+@media print{details.ejemplo::details-content{content-visibility:visible}}
+</style></head>
+<body class="doc doc-ejercicio">
+<header class="barra">
+  <a class="marca" href="../index.html">Webinar E2E-3</a>
+  <nav aria-label="Material del caso"><a href="E2E-3-diapositivas.html">Diapositivas</a><a href="E2E-3-guia.html">Guía</a><a href="E2E-3-ejercicio.html" aria-current="page">Ejercicio</a></nav>
+  <div class="ctl"><button type="button" id="b-imprimir">Imprimir</button><button type="button" id="b-tema">Tema: automático</button></div>
+</header>
+<div class="marco">
+<aside class="lateral"><details class="toc" open><summary>Contenido</summary><nav aria-label="Contenido del documento"><ol><li class="n2"><a href="#cómo-funciona-este-ejercicio">Cómo funciona este ejercicio</a></li><li class="n2"><a href="#lo-que-necesitás-saber">Lo que necesitás saber</a></li><li class="n3"><a href="#el-escenario-del-caso">El escenario del caso</a></li><li class="n3"><a href="#conceptos-mínimos">Conceptos mínimos</a></li><li class="n2"><a href="#hoja-de-trabajo--parte-a--mapa-de-interesados-y-brecha-de-compromiso-clase-1">Hoja de trabajo · parte A · Mapa de interesados y brecha de compromiso (clase 1)</a></li><li class="n3"><a href="#autoevaluación-de-la-parte-a">Autoevaluación de la parte A</a></li><li class="n2"><a href="#hoja-de-trabajo--parte-b--cadencia-de-contacto-y-cadena-de-reporte-clase-2">Hoja de trabajo · parte B · Cadencia de contacto y cadena de reporte (clase 2)</a></li><li class="n3"><a href="#autoevaluación-de-la-parte-b">Autoevaluación de la parte B</a></li><li class="n2"><a href="#para-ir-más-allá">Para ir más allá</a></li><li class="n2"><a href="#ejemplo-resuelto-escenario-del-caso">Ejemplo resuelto (escenario del caso)</a></li></ol></nav></details></aside>
+<main>
+<header class="cab"><div class="logo" aria-label="Espacio reservado para el logo de IEEE">Logo IEEE</div><p class="kicker">Webinar E2E-3 · Ejercicio · pm-method 2.3.0</p><h1>Ejercicio · E2E-3 · El compromiso de tus interesados y la cadena de tu informe</h1><p class="meta"><span class="etiqueta">Ejercicio</span><span>Para: asistentes e instructor</span></p><p class="fuente-imp">Fuente: <a href="https://github.com/Arturo-Penas-Rial/pm-method/blob/main/docs/webinar/E2E-3/ejercicio.md" class="ext">docs/webinar/E2E-3/ejercicio.md</a> · pm-method 2.3.0 · Ejercicio del caso E2E-3 · generado con <code>scripts/webinar/documentos.py</code></p></header>
+<article class="md">
+<h2 id="cómo-funciona-este-ejercicio">Cómo funciona este ejercicio<a class="ancla" href="#cómo-funciona-este-ejercicio" aria-label="Enlace a esta sección">#</a></h2>
+<ul><li><strong>Para qué sirve:</strong> llevar el caso a un proyecto tuyo. Vas a mapear a cinco interesados, escribir qué les prometiste,
+comprobar si lo cumplís y seguir de dónde salen las cifras de tu último informe.</li><li><strong>Cuándo se hace:</strong> la parte A, al cierre de la clase 1, después de la demostración (10 minutos); la parte B, al
+cierre de la clase 2, después de la demostración (10 minutos). Si lo hacés por tu cuenta, calculá 20 minutos.</li><li><strong>Qué hacés:</strong> completás la hoja de trabajo con un proyecto propio, real o reciente, que tenga al menos cinco
+interesados y un informe de avance enviado en el último mes. Alcanza con papel o una planilla, y con lo que
+recuerdes. Si no tenés un proyecto, usá el escenario del caso: los datos de partida están en
+<a href="#lo-que-necesitás-saber">Lo que necesitás saber</a>.</li><li><strong>Cómo te autoevaluás:</strong> al final de cada parte hay una tabla de criterios. Marcá cuáles cumple tu hoja; un criterio
+sin cumplir es un hallazgo sobre tu proyecto, no un error del ejercicio.</li><li><strong>Ejemplo resuelto:</strong> al final está la hoja resuelta con el escenario del caso, y cada dato dice de qué paso de la
+guía sale. Miralo <strong>después</strong> de intentarlo, para comparar, no antes.</li></ul>
+<hr>
+<h2 id="lo-que-necesitás-saber">Lo que necesitás saber<a class="ancla" href="#lo-que-necesitás-saber" aria-label="Enlace a esta sección">#</a></h2>
+<h3 id="el-escenario-del-caso">El escenario del caso<a class="ancla" href="#el-escenario-del-caso" aria-label="Enlace a esta sección">#</a></h3>
+<p>Una cooperativa construye un portal de autoservicio para sus socios. Laura Méndez es la ejecutiva; Martín Suárez, el
+gestor; Sofía Ramírez, usuaria sénior y product owner; Lucía Benítez, jefa de equipo del proveedor. El proyecto tiene
+diez interesados en un maestro único, beneficios en el business case y OKR que los complementan. La clase 1 arma el
+mapa y el plan de compromiso; la clase 2 arma el informe de aspectos destacados del 8/1 desde el dato y, el 5/2,
+descubre que tres interesados están fuera de la frecuencia de contacto prometida.</p>
+<p><strong>Datos de partida para la parte A</strong> (si usás el caso). Cinco interesados del maestro, con poder, interés, compromiso
+actual → deseado, y el canal y la frecuencia registrados al inicio:</p>
+<div class="tabla"><table><thead><tr><th>Interesado</th><th>Poder</th><th>Interés</th><th>Compromiso</th><th>Canal y frecuencia</th></tr></thead><tbody><tr><td>Consejo directivo</td><td>alto</td><td>medio</td><td>partidario → líder</td><td>informe ejecutivo por correo, trimestral</td></tr><tr><td>Sindicato de operadores</td><td>medio</td><td>alto</td><td>resistente → neutral</td><td>taller presencial mensual</td></tr><tr><td>Socios usuarios piloto (panel de 40)</td><td>bajo</td><td>alto</td><td>desconocedor → partidario</td><td>encuesta y boletín mensual</td></tr><tr><td>Área de TI del núcleo operativo</td><td>alto</td><td>medio</td><td>neutral → partidario</td><td>reunión técnica semanal</td></tr><tr><td>Unidad de cumplimiento</td><td>alto</td><td>bajo</td><td>neutral → partidario</td><td>correo y revisión por hito</td></tr></tbody></table></div>
+<ul><li>Los valores «medio» se ubican del lado alto de la matriz. Las valoraciones las revisó el gestor con Laura.</li><li>En el taller del 19/11, el delegado sindical dijo: «Prefiero que las novedades nos lleguen por correo, en un resumen
+corto, cada dos semanas».</li><li>Un criterio de éxito del business case: B-03, préstamos simples respondidos en menos de 48 horas hábiles, de 96 a 48
+horas al 30/6/2027; dueña Sofía Ramírez; tolerancia de beneficios −10 %; revisión posterior al cierre el 31/12/2027.</li></ul>
+<p><strong>Datos de partida para la parte B</strong> (al 5/2):</p>
+<ul><li>Frecuencia prometida y último contacto registrado: TI, semanal, 18/1 · Martín Suárez (checkpoint semanal), ninguno ·
+Lucía Benítez (frecuencia registrada «diaria», la daily del equipo), ninguno · Laura Méndez, quincenal, 15/1 ·
+Consejo directivo, trimestral, 15/1. Sin contacto propio, se cuenta desde el primer envío del proyecto, el 15/1.</li><li>Cifras del informe de aspectos destacados del 8/1: SPI 0,933 · CPI 0,942 · EAC USD 131.676 (+6,2 %) · 26 de 68
+puntos terminados · O-1 0,11 y O-2 0,24 · 1 acción vencida (A-004). Fuentes disponibles: el corte de valor ganado
+guardado (<code>evm-2027-01-08.json</code>), el avance de BMAD (<code>avance-bmad.csv</code>), los OKR al corte (<code>okr.py</code>) y el resumen de
+registros (<code>registro.py resumen</code>).</li></ul>
+<h3 id="conceptos-mínimos">Conceptos mínimos<a class="ancla" href="#conceptos-mínimos" aria-label="Enlace a esta sección">#</a></h3>
+<ul><li><strong>Poder e interés:</strong> poder es la autoridad real (aprobar presupuestos, vetar decisiones); interés, cuánto se involucra
+o cuánto lo afecta el proyecto.</li><li><strong>Cuadrantes:</strong> poder alto e interés alto → gestionar de cerca; poder alto e interés bajo → mantener satisfecho; poder
+bajo e interés alto → mantener informado; los dos bajos → monitorear.</li><li><strong>Compromiso:</strong> desconocedor (0), resistente (1), neutral (2), partidario (3), líder (4). <strong>Brecha</strong> = deseado −
+actual (0 si ya está donde querés).</li><li><strong>Preferencia declarada:</strong> la que la persona pidió con sus palabras (con la cita); se distingue de la que supuso el
+equipo.</li><li><strong>Beneficio frente a KR:</strong> un beneficio del business case tiene dueño de medirlo, línea base, tolerancia y fecha de
+medición después del cierre; un KR (resultado clave de un OKR) es una meta de ciclo, a menudo aspiracional.</li><li><strong>Cadencia de contacto:</strong> la frecuencia prometida en días (diaria 1, semanal 7, quincenal 14, mensual 31, trimestral
+92). El máximo sin contacto es la frecuencia × 1,5, redondeado; en pm-method, la sanidad lo vigila con STK-12.</li><li><strong>Cadena de reporte:</strong> cada cifra del informe sale de una fuente y es la misma en el informe, el tablero y el correo.</li><li><strong>Aprobación trazable:</strong> se sabe quién aprobó cada mensaje antes de enviarlo y dónde quedó escrito.</li></ul>
+<hr>
+<h2 id="hoja-de-trabajo--parte-a--mapa-de-interesados-y-brecha-de-compromiso-clase-1">Hoja de trabajo · parte A · Mapa de interesados y brecha de compromiso (clase 1)<a class="ancla" href="#hoja-de-trabajo--parte-a--mapa-de-interesados-y-brecha-de-compromiso-clase-1" aria-label="Enlace a esta sección">#</a></h2>
+<p><strong>A1. Cinco interesados.</strong> Elegí los cinco con más poder o más afectados por el proyecto.</p>
+<div class="tabla"><table><thead><tr><th>Interesado</th><th>Poder (alto/bajo)</th><th>Interés (alto/bajo)</th><th>Cuadrante</th><th>Compromiso actual</th><th>Compromiso deseado</th><th>Brecha</th></tr></thead><tbody><tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr><tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr><tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr><tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr><tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr></tbody></table></div>
+<p><strong>A2. Lo que le prometiste a cada uno.</strong> Para los mismos cinco:</p>
+<div class="tabla"><table><thead><tr><th>Interesado</th><th>Canal prometido</th><th>Frecuencia prometida</th><th>¿La pidió la persona o la decidiste vos?</th><th>¿Dónde está escrita?</th></tr></thead><tbody><tr><td></td><td></td><td></td><td></td><td></td></tr><tr><td></td><td></td><td></td><td></td><td></td></tr><tr><td></td><td></td><td></td><td></td><td></td></tr><tr><td></td><td></td><td></td><td></td><td></td></tr><tr><td></td><td></td><td></td><td></td><td></td></tr></tbody></table></div>
+<p><strong>A3. ¿Beneficio o KR?</strong> Escribí un criterio de éxito de tu proyecto y marcá qué tiene.</p>
+<blockquote><p>Criterio: ……………………………………………… · [ ] dueño de medirlo · [ ] línea base · [ ] tolerancia · [ ] fecha de
+medición después del cierre</p></blockquote>
+<h3 id="autoevaluación-de-la-parte-a">Autoevaluación de la parte A<a class="ancla" href="#autoevaluación-de-la-parte-a" aria-label="Enlace a esta sección">#</a></h3>
+<div class="tabla"><table><thead><tr><th>Criterio</th><th>Cumple si…</th></tr></thead><tbody><tr><td>Una sola fuente</td><td>Los cinco interesados están en un único lugar (planilla, registro) y no repetidos con otros nombres.</td></tr><tr><td>Brecha explícita</td><td>Cada interesado con brecha &gt; 0 tiene una acción con dueño y fecha.</td></tr><tr><td>Promesa trazable</td><td>Canal y frecuencia están escritos y sabés si los pidió la persona (declarado) o los supusiste.</td></tr><tr><td>Beneficio completo</td><td>El criterio de A3 tiene las cuatro marcas; si solo tiene una meta, es un KR, no un beneficio.</td></tr></tbody></table></div>
+<hr>
+<h2 id="hoja-de-trabajo--parte-b--cadencia-de-contacto-y-cadena-de-reporte-clase-2">Hoja de trabajo · parte B · Cadencia de contacto y cadena de reporte (clase 2)<a class="ancla" href="#hoja-de-trabajo--parte-b--cadencia-de-contacto-y-cadena-de-reporte-clase-2" aria-label="Enlace a esta sección">#</a></h2>
+<p><strong>B1. ¿Se cumplió la promesa?</strong> Para los interesados de A2 con frecuencia diaria, semanal, quincenal, mensual o
+trimestral. Máximo = frecuencia × 1,5, redondeado.</p>
+<div class="tabla"><table><thead><tr><th>Interesado</th><th>Frecuencia (días)</th><th>Máximo (días)</th><th>Último contacto registrado (fecha)</th><th>Días hasta hoy</th><th>¿Fuera de cadencia?</th></tr></thead><tbody><tr><td></td><td></td><td></td><td></td><td></td><td></td></tr><tr><td></td><td></td><td></td><td></td><td></td><td></td></tr><tr><td></td><td></td><td></td><td></td><td></td><td></td></tr><tr><td></td><td></td><td></td><td></td><td></td><td></td></tr><tr><td></td><td></td><td></td><td></td><td></td><td></td></tr></tbody></table></div>
+<p>Si un contacto ocurrió pero no quedó registrado (una reunión sin acta, una llamada), anotalo aparte: para el control,
+un contacto sin registro no existe.</p>
+<p><strong>B2. La cadena de tu último informe.</strong> Tomá cinco cifras de tu último informe de avance (o del correo que lo
+acompañó) y buscá de dónde salen.</p>
+<div class="tabla"><table><thead><tr><th>Cifra tal como aparece</th><th>Fuente (archivo, sistema o planilla)</th><th>¿Se copió a mano o sale de un cálculo?</th><th>¿Coincide con el tablero o con el correo?</th></tr></thead><tbody><tr><td></td><td></td><td></td><td></td></tr><tr><td></td><td></td><td></td><td></td></tr><tr><td></td><td></td><td></td><td></td></tr><tr><td></td><td></td><td></td><td></td></tr><tr><td></td><td></td><td></td><td></td></tr></tbody></table></div>
+<h3 id="autoevaluación-de-la-parte-b">Autoevaluación de la parte B<a class="ancla" href="#autoevaluación-de-la-parte-b" aria-label="Enlace a esta sección">#</a></h3>
+<div class="tabla"><table><thead><tr><th>Criterio</th><th>Cumple si…</th></tr></thead><tbody><tr><td>Cadencia verificable</td><td>Para cada interesado sabés la fecha del último contacto sin preguntarle a nadie.</td></tr><tr><td>Sin descuidos</td><td>Ninguno supera su máximo; si alguno lo supera, anotaste qué contacto vas a hacer y cuándo.</td></tr><tr><td>Frecuencia real</td><td>Ninguna frecuencia es una ceremonia del equipo (daily, sprint review) cargada como compromiso con un interesado, salvo que lo sea.</td></tr><tr><td>Cadena íntegra</td><td>Las cinco cifras de B2 tienen fuente y coinciden en el informe, el tablero y el correo.</td></tr><tr><td>Aprobación trazable</td><td>Podés decir quién aprobó tu último informe antes de que saliera, y dónde quedó escrito.</td></tr></tbody></table></div>
+<hr>
+<h2 id="para-ir-más-allá">Para ir más allá<a class="ancla" href="#para-ir-más-allá" aria-label="Enlace a esta sección">#</a></h2>
+<ul><li>¿Cuál de tus interesados con poder alto podría pasar de neutral a resistente sin que nadie lo note durante un mes?</li><li>¿Qué cifra de tu informe cambiaría si la copiaras de nuevo hoy, y quién se daría cuenta?</li></ul>
+<hr>
+<h2 id="ejemplo-resuelto-escenario-del-caso">Ejemplo resuelto (escenario del caso)<a class="ancla" href="#ejemplo-resuelto-escenario-del-caso" aria-label="Enlace a esta sección">#</a></h2>
+<details class="desplegable ejemplo"><summary>Ver el ejemplo resuelto (después de intentarlo)</summary><div class="det"><p>Cifras de la corrida de referencia (<a href="https://github.com/Arturo-Penas-Rial/pm-method/blob/main/docs/guias/evidencia/salida-g3.md" class="ext" title="Abre el archivo en GitHub">salida-g3.md</a>); entre paréntesis, el paso de
+la <a href="E2E-3-guia.html">guía E2E-3</a> de donde sale cada dato.</p>
+<p><strong>A1.</strong> Valoraciones del paso 2 y cuadrantes del paso 3 (◇ = valor «medio», ubicado del lado alto).</p>
+<div class="tabla"><table><thead><tr><th>Interesado</th><th>Poder</th><th>Interés</th><th>Cuadrante</th><th>Actual</th><th>Deseado</th><th>Brecha al inicio</th></tr></thead><tbody><tr><td>ST-002 Consejo directivo</td><td>alto</td><td>medio ◇</td><td>gestionar de cerca</td><td>partidario</td><td>líder</td><td>1</td></tr><tr><td>ST-004 Sindicato de operadores</td><td>medio ◇</td><td>alto</td><td>gestionar de cerca</td><td>resistente</td><td>neutral</td><td>1</td></tr><tr><td>ST-005 Socios usuarios piloto</td><td>bajo</td><td>alto</td><td>mantener informado</td><td>desconocedor</td><td>partidario</td><td>3</td></tr><tr><td>ST-006 Área de TI del núcleo</td><td>alto</td><td>medio ◇</td><td>gestionar de cerca</td><td>neutral</td><td>partidario</td><td>1</td></tr><tr><td>ST-007 Unidad de cumplimiento</td><td>alto</td><td>bajo</td><td>mantener satisfecho</td><td>neutral</td><td>partidario</td><td>1</td></tr></tbody></table></div>
+<p>Brecha total al inicio: 7 niveles (paso 2). Acciones del plan de compromiso con dueña y fecha: A-001, taller con el
+sindicato (Sofía, 20/11); A-002, boletín al panel (Sofía, 1/12); A-003, informe ejecutivo trimestral al Consejo (Laura,
+15/1) (paso 5). TI y cumplimiento no tienen acción propia en el plan del paso 5: la de TI llega en el paso 13 (A-005).</p>
+<p><strong>A2.</strong></p>
+<div class="tabla"><table><thead><tr><th>Interesado</th><th>Canal</th><th>Frecuencia</th><th>¿Pedida o decidida?</th><th>¿Dónde está escrita?</th></tr></thead><tbody><tr><td>ST-002 Consejo</td><td>informe ejecutivo por correo</td><td>trimestral</td><td>decidida por el proyecto, validada con Laura (paso 2)</td><td>maestro de interesados y matriz de comunicaciones (pasos 2 y 5)</td></tr><tr><td>ST-004 Sindicato</td><td>correo, resumen ejecutivo</td><td>quincenal</td><td>pedida por el delegado en el taller del 19/11: PF-006…PF-008, que reemplazan el taller mensual (paso 8)</td><td><code>preferencias.csv</code>, con la cita; la matriz se actualiza a quincenal (paso 8)</td></tr><tr><td>ST-005 Socios piloto</td><td>encuesta y boletín</td><td>mensual</td><td>decidida por el proyecto (paso 2)</td><td>maestro y matriz (pasos 2 y 5)</td></tr><tr><td>ST-006 TI</td><td>reunión técnica</td><td>semanal</td><td>decidida por el proyecto (paso 2)</td><td>maestro y matriz (pasos 2 y 5)</td></tr><tr><td>ST-007 Cumplimiento</td><td>correo y revisión</td><td>por hito</td><td>decidida por el proyecto (paso 2)</td><td>maestro y matriz (pasos 2 y 5)</td></tr></tbody></table></div>
+<p>Para comparar, Laura Méndez declaró su canal en una entrevista: correo (PF-001, «Prefiero que el avance me llegue por
+correo, no por chat»); su frecuencia quincenal sale de la matriz de comunicaciones, no de una preferencia (paso 4).</p>
+<p><strong>A3.</strong> B-03, préstamos simples respondidos en menos de 48 horas: dueña Sofía Ramírez, línea base 96 horas,
+tolerancia −10 % (≤ 52,8 horas), medición al 30/6/2027 y revisión posterior al cierre al 31/12/2027. Tiene las cuatro
+marcas: es un beneficio. El KR que lo complementa es KR-2.1 (mantener la respuesta por debajo de 48 horas) (paso 6).</p>
+<p><strong>B1, al 5/2</strong> (paso 13).</p>
+<div class="tabla"><table><thead><tr><th>Interesado</th><th>Frecuencia</th><th>Máximo</th><th>Último contacto</th><th>Días</th><th>¿Fuera?</th></tr></thead><tbody><tr><td>ST-006 TI del núcleo</td><td>semanal (7)</td><td>10</td><td>2027-01-18</td><td>18</td><td>sí</td></tr><tr><td>ST-009 Martín Suárez</td><td>semanal (7)</td><td>10</td><td>ninguno (se cuenta desde el primer envío, 15/1)</td><td>21</td><td>sí</td></tr><tr><td>ST-010 Lucía Benítez</td><td>diaria (1)</td><td>2</td><td>ninguno (desde el 15/1)</td><td>21</td><td>sí</td></tr><tr><td>ST-001 Laura Méndez</td><td>quincenal (14)</td><td>21</td><td>2027-01-15</td><td>21</td><td>en el límite</td></tr><tr><td>ST-002 Consejo directivo</td><td>trimestral (92)</td><td>138</td><td>2027-01-15</td><td>21</td><td>no</td></tr></tbody></table></div>
+<p>Contacto que ocurrió sin registro: el checkpoint semanal de Martín y Lucía. La frecuencia «diaria» de Lucía era la daily,
+una ceremonia del equipo: se corrige a semanal (paso 13). Correcciones: reunión con TI el 5/2 (EN-008) y acción A-005;
+checkpoint registrado (EN-009 y EN-010) (paso 13); resumen quincenal a Laura, el sindicato y Sofía el 5/2 (EN-011 a
+EN-013) (paso 14). Al 19/2, ningún STK-12 y la brecha total en 3 niveles (paso 14).</p>
+<p><strong>B2.</strong> Cadena de reporte del informe de aspectos destacados del 8/1 (fuentes del paso 10; cifras de los pasos 9 y 10).</p>
+<div class="tabla"><table><thead><tr><th>Cifra</th><th>Fuente</th><th>¿A mano o cálculo?</th><th>¿Coincide?</th></tr></thead><tbody><tr><td>SPI 0,933 · CPI 0,942</td><td><code>evm-2027-01-08.json</code></td><td>cálculo (<code>evm.py</code>)</td><td>sí: informe, tarjetas y mensaje de Sofía</td></tr><tr><td>EAC USD 131.676 (+6,2 %)</td><td><code>evm-2027-01-08.json</code></td><td>cálculo</td><td>sí: informe y mensaje de Sofía; el comunicado base cita el 6,2</td></tr><tr><td>26 de 68 puntos (38,2 %)</td><td><code>avance-bmad.csv</code></td><td>cálculo (<code>bmad.py avance</code>)</td><td>sí</td></tr><tr><td>O-1 0,11 · O-2 0,24</td><td><code>okr.py … --corte 2027-01-08 --json</code></td><td>cálculo</td><td>sí: informe, comunicado y mensaje ejecutivo</td></tr><tr><td>1 acción vencida (A-004)</td><td><code>registro.py resumen --corte 2027-01-08 --json</code></td><td>cálculo</td><td>sí: informe y tarjetas</td></tr></tbody></table></div>
+<p>Antes de enviar, la comprobación del paso 11 revisa las 12 cifras del comunicado y los borradores: ninguna sin respaldo
+en el informe. Aprobación trazable: los borradores se aprueban como "Gestor: Martín Suárez", con un pedido de permiso
+que resuelve una persona, y cada envío queda en <code>envios.csv</code> (EN-001 a EN-007) con quién lo aprobó (paso 11).</p></div></details></article>
+<footer class="pie-doc">Fuente: <a href="https://github.com/Arturo-Penas-Rial/pm-method/blob/main/docs/webinar/E2E-3/ejercicio.md" class="ext">docs/webinar/E2E-3/ejercicio.md</a> · pm-method 2.3.0 · Ejercicio del caso E2E-3 · generado con <code>scripts/webinar/documentos.py</code></footer>
+</main>
+</div>
+<dialog class="visor" id="visor"><button type="button" class="cerrar">Cerrar</button><img alt=""></dialog>
+<script>
+(function(){
+  var raiz=document.documentElement;
+  function guardar(k,v){try{localStorage.setItem(k,v)}catch(e){}}
+  function leer(k){try{return localStorage.getItem(k)}catch(e){return null}}
+  var tema=leer('webinar-tema'); if(tema==='light'||tema==='dark') raiz.setAttribute('data-theme',tema);
+  var bTema=document.getElementById('b-tema');
+  function rotTema(){var t=raiz.getAttribute('data-theme'); bTema.textContent=t==='dark'?'Tema: oscuro':(t==='light'?'Tema: claro':'Tema: automático');}
+  if(bTema){rotTema(); bTema.addEventListener('click',function(){var t=raiz.getAttribute('data-theme'); var s=!t?'light':(t==='light'?'dark':'');
+    if(s){raiz.setAttribute('data-theme',s)}else{raiz.removeAttribute('data-theme')} guardar('webinar-tema',s); rotTema();});}
+  var bImp=document.getElementById('b-imprimir'); if(bImp) bImp.addEventListener('click',function(){window.print()});
+  var toc=document.querySelector('details.toc');
+  if(toc&&window.matchMedia){var mq=window.matchMedia('(min-width: 1000px)');
+    function ajustar(){toc.open=mq.matches} ajustar();
+    if(mq.addEventListener) mq.addEventListener('change',ajustar); else if(mq.addListener) mq.addListener(ajustar);
+    toc.addEventListener('click',function(ev){if(ev.target.tagName==='A'&&!mq.matches) toc.open=false;});}
+  var enl={}; [].forEach.call(document.querySelectorAll('details.toc a[href^="#"]'),function(a){enl[decodeURIComponent(a.getAttribute('href').slice(1))]=a});
+  if('IntersectionObserver' in window&&toc){var obs=new IntersectionObserver(function(ents){ents.forEach(function(en){
+      if(en.isIntersecting){var a=enl[en.target.id]; if(a){[].forEach.call(document.querySelectorAll('details.toc a.activo'),function(x){x.classList.remove('activo')}); a.classList.add('activo');}}});},
+      {rootMargin:'0px 0px -70% 0px'});
+    [].forEach.call(document.querySelectorAll('.md h2[id],.md h3[id]'),function(h){obs.observe(h)});}
+  [].forEach.call(document.querySelectorAll('.codigo .copiar'),function(b){b.addEventListener('click',function(){
+    var t=b.parentNode.querySelector('pre').textContent;
+    if(navigator.clipboard){navigator.clipboard.writeText(t).then(function(){b.textContent='Copiado'; setTimeout(function(){b.textContent='Copiar'},1500)},function(){});}});});
+  var visor=document.getElementById('visor');
+  if(visor){var vimg=visor.querySelector('img');
+    [].forEach.call(document.querySelectorAll('figure.img .zoom'),function(b){b.addEventListener('click',function(){
+      var im=b.querySelector('img'); vimg.src=im.src; vimg.alt=im.alt; if(visor.showModal) visor.showModal();});});
+    visor.addEventListener('click',function(){visor.close()});}
+  function abrirHasta(id){var el=id&&document.getElementById(id); while(el){if(el.tagName==='DETAILS'&&!el.open) el.open=true; el=el.parentElement;}}
+  function hashActual(){try{return decodeURIComponent(location.hash.slice(1))}catch(e){return ''}}
+  [].forEach.call(document.querySelectorAll('a[href^="#"]'),function(a){a.addEventListener('click',function(){
+    var h=a.getAttribute('href').slice(1); try{h=decodeURIComponent(h)}catch(e){} abrirHasta(h);});});
+  window.addEventListener('hashchange',function(){abrirHasta(hashActual())}); if(location.hash) abrirHasta(hashActual());
+  var abiertos=[];
+  function abrirTodo(){[].forEach.call(document.querySelectorAll('details.desplegable:not([open])'),function(d){d.open=true; abiertos.push(d)});}
+  function cerrarAbiertos(){abiertos.forEach(function(d){d.open=false}); abiertos=[];}
+  window.addEventListener('beforeprint',abrirTodo);
+  window.addEventListener('afterprint',cerrarAbiertos);
+  if(window.matchMedia){var mp=window.matchMedia('print'); var alCambiar=function(e){if(e.matches) abrirTodo(); else cerrarAbiertos();};
+    if(mp.addEventListener) mp.addEventListener('change',alCambiar); else if(mp.addListener) mp.addListener(alCambiar);}
+})();
+</script>
+</body></html>

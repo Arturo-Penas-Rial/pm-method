@@ -1,11 +1,78 @@
 # Ejercicio · E2E-4 · Del "done" al beneficio medido
 
-Hoja de trabajo para aplicar el caso a un proyecto propio (o a uno que conozcas bien). La parte A va al final de la
-clase 1 (10 minutos) y la parte B al final de la clase 2 (10 a 15 minutos; si el tiempo aprieta, B1 y B2 en clase y B3
-después). No hace falta tener pm-method instalado: lo que se practica es el criterio. Al final está la solución de referencia con el escenario del caso
-([guía E2E-4](../../guias/E2E-4-producto-bmad.md)).
+## Cómo funciona este ejercicio
 
-## Parte A · Condiciones y presupuesto de cambio (clase 1, 10 min)
+- **Para qué sirve:** llevar el caso a un proyecto tuyo. Vas a seguir una aprobación "con condiciones" hasta su
+  evidencia, ubicar un cambio en el presupuesto de cambio, comprobar la calidad de una entrega, darle tratamiento a un
+  dolor del recorrido de tu cliente y planificar quién mide los beneficios después del cierre.
+- **Cuándo se hace:** la parte A, al cierre de la clase 1, después de la demostración (10 minutos); la parte B, al
+  cierre de la clase 2, después de la demostración (10 a 15 minutos; si el tiempo aprieta, B1 y B2 en clase y B3
+  después). Si lo hacés por tu cuenta, calculá 25 minutos.
+- **Qué hacés:** completás la hoja de trabajo con un proyecto propio o uno que conozcas bien. No hace falta tener
+  pm-method instalado: lo que se practica es el criterio. Si no tenés un proyecto, usá el escenario del caso: los datos
+  de partida están en [Lo que necesitás saber](#lo-que-necesitás-saber).
+- **Cómo te autoevaluás:** al final de cada parte hay una lista de criterios. Marcá cuáles cumple tu hoja; un criterio
+  sin cumplir es un hallazgo sobre tu proyecto, no un error del ejercicio.
+- **Ejemplo resuelto:** al final está la hoja resuelta con el escenario del caso, y cada dato dice de qué paso de la
+  guía sale. Miralo **después** de intentarlo, para comparar, no antes.
+
+---
+
+## Lo que necesitás saber
+
+### El escenario del caso
+
+Una cooperativa construye con BMAD un portal de autoservicio para sus socios (consulta de saldos, constancias,
+solicitudes de préstamo y una consola para las operadoras), gobernado con PRINCE2. Laura Méndez es la ejecutiva; Sofía
+Ramírez, usuaria sénior, product owner y autoridad de cambio; Martín Suárez, el gestor; Lucía Benítez, jefa de equipo;
+Andrea Costa, aseguramiento. Hay dos releases: el 1 termina el 5/3 y el 2 el 12/5; el proyecto cierra el 14/5 y el
+negocio mide los beneficios el 30/6 y el 31/12/2027.
+
+**Datos de partida para la parte A** (si usás el caso):
+
+- El 26/11, el gate de preparación de BMAD da CONCERNS: NFR-3 (consultas en menos de 3 segundos, p95) no tiene prueba
+  de carga planificada. Laura autoriza la etapa 2 con esa condición, y la prueba de carga se planifica como revisión de
+  calidad Q-001 para el 19/2. La prueba se hace el 2/3 (p95 2,4 s con 400 sesiones concurrentes) y el gate da PASS el
+  3/3.
+- La junta fija un presupuesto de cambio de USD 15.000 y un límite de USD 8.000 por cambio para la autoridad de cambio.
+  El único cambio del caso, C-001 (FR-13, pago de cuotas con débito en cuenta), cuesta USD 6.000 y se carga al
+  presupuesto de cambio.
+
+**Datos de partida para la parte B:**
+
+- Entregas: sprint 1 al 23/12 con las historias 1.1 y 1.2; Release 1 al 26/2 con siete historias terminadas (1.1 a 1.4
+  y 3.1 a 3.3), de las que solo 1.1 y 1.2 tienen revisión; Release 2 al 7/5 con once terminadas: en las revisiones del
+  6/5, 2.1, 2.2 y 2.3 se aprueban y 2.4 se rechaza porque falta la notificación al socio después del débito.
+- Recorrido UJ-1 del PRD: "Marta consulta su saldo y baja una constancia desde el celular". En la revisión del Release
+  1 con seis socios (25/2), dos pidieron ayuda en el primer ingreso con segundo factor, el resumen de cuentas tarda en
+  aparecer y no tiene indicador de carga, y la constancia se descargó en el primer intento. A una etapa del cierre no se
+  quiere sumar alcance.
+- Beneficios y sus KR: B-01 desvío de consultas (KR-1.2, de 5.000 a 3.500 consultas por mes), B-02 adopción (KR-1.1, 30
+  % de socios registrados) y B-03 préstamos en menos de 48 horas (KR-1.3, de 96 a 48 horas). Sofía Ramírez, de
+  servicios al socio, mide el 30/6 y el 31/12/2027. El producto entra en operación el 15/5.
+
+### Conceptos mínimos
+
+- **Condición formal de una puerta:** lo que la junta exige para que su aprobación valga; tiene quien la verifica,
+  evidencia y fecha, y bloquea la puerta siguiente hasta que alguien con rol la da por cumplida.
+- **Gate de preparación de BMAD:** el control de BMAD antes de construir; responde PASS, CONCERNS o FAIL.
+- **Revisión de calidad:** la comprobación registrada de un producto o una historia contra sus criterios de aceptación;
+  "terminado" sin revisión aprobada no cuenta como completado.
+- **Presupuesto de cambio y límite por cambio:** el monto total para cambios que fija la junta y el máximo que la
+  autoridad de cambio puede aprobar en un solo cambio; por encima decide la junta.
+- **Rechazo tratado:** una revisión rechazada queda citada por un issue, una acción o un cambio hasta que una nueva
+  revisión la aprueba.
+- **Mapa de recorrido del cliente:** las acciones de la persona en fila, con su emoción en cada paso (de −2 a +2) y la
+  fuente que la respalda; todo **dolor** necesita un **tratamiento con id** (requisito, historia, riesgo, issue,
+  cambio, decisión, supuesto o revisión de calidad) y un dueño.
+- **Plan de revisión de beneficios:** quién mide cada beneficio después del cierre, contra qué línea base (medida al
+  entrar en operación), con qué meta y qué criterio de desvío, y a quién informa.
+- **Trayectoria y tolerancia:** en una revisión intermedia se compara el avance con el esperado a esa fecha (salud); en
+  la final, con la tolerancia (en el caso, avance menor que 0,90 = fuera de la tolerancia de −10 %).
+
+---
+
+## Hoja de trabajo · parte A · Condiciones y presupuesto de cambio (clase 1)
 
 **A1. Una aprobación "con condiciones" de tu proyecto.** Escribí la última que recuerdes (o una plausible).
 
@@ -22,13 +89,16 @@ después). No hace falta tener pm-method instalado: lo que se practica es el cri
 | Último cambio aprobado: costo y a qué se cargó | |
 | ¿Quién debió decidirlo según el límite? | |
 
-**Autoevaluación A** (marcá lo que se cumple):
+### Autoevaluación de la parte A
+
 - [ ] La condición tiene un verificador con rol, no "el equipo".
 - [ ] La evidencia es un registro concreto (una revisión, una prueba, un documento), no "que esté bien".
 - [ ] La condición bloquea algo concreto (la puerta siguiente o el cierre).
 - [ ] El cambio tiene monto y cargo; sabés cuánto queda del presupuesto.
 
-## Parte B · Calidad por entrega, recorrido y revisión de beneficios (clase 2, 10–15 min)
+---
+
+## Hoja de trabajo · parte B · Calidad por entrega, recorrido y revisión de beneficios (clase 2)
 
 **B1. Calidad por entrega.** Elegí tu última entrega (sprint, release o hito).
 
@@ -50,7 +120,8 @@ traba, cómo lo sabés y qué lo trata.
 | | | | | | | |
 | | | | | | | |
 
-**Autoevaluación B**:
+### Autoevaluación de la parte B
+
 - [ ] Terminadas = con revisión aprobada antes de pasar la puerta (si no, ¿cuántas faltan?).
 - [ ] Ningún rechazo queda sin un issue, acción o cambio que lo cite.
 - [ ] El paso del recorrido es una sola acción y la emoción tiene una fuente, no una opinión.
@@ -61,46 +132,62 @@ traba, cómo lo sabés y qué lo trata.
 - [ ] Quien mide es del negocio, no del equipo del proyecto.
 - [ ] El criterio distingue la revisión intermedia (trayectoria) de la final (tolerancia).
 
-## Solución de referencia (escenario del caso)
+---
+
+## Para ir más allá
+
+- ¿Qué condición de una puerta de tu proyecto se aprobó y nadie volvió a mirar? ¿Qué la habría hecho reaparecer?
+- Si un objetivo sale en verde pero uno de sus beneficios queda fuera de tolerancia, ¿quién lo nota en tu organización?
+
+---
+
+## Ejemplo resuelto (escenario del caso)
+
+Cifras de la corrida de referencia ([salida-g4.md](../../guias/evidencia/salida-g4.md)); entre paréntesis, el paso de
+la [guía E2E-4](../../guias/E2E-4-producto-bmad.md) de donde sale cada dato.
 
 **A1.**
 
 | Condición | Quién la verifica | Evidencia | Fecha límite | Qué bloquea |
 |---|---|---|---|---|
-| Gate de preparación de BMAD en CONCERNS: NFR-3 sin prueba de carga planificada (26/11) | Laura Méndez, ejecutiva (`cumplir-condiciones` el 5/3) | Q-001 prueba de carga aprobada el 2/3 (p95 2,4 s con 400 sesiones; meta menor a 3 s) y gate en PASS el 3/3 | 19/2 (`fecha_prevista` de Q-001; QUA-02 avisó al vencer) | condición en la puerta siguiente (G-01) y bloqueo de `autorizar-cierre` |
+| Gate de preparación de BMAD en CONCERNS: NFR-3 sin prueba de carga planificada (26/11) (paso 2) | Laura Méndez, ejecutiva, que la da por cumplida con `cumplir-condiciones` el 5/3 (paso 7) | Q-001, prueba de carga aprobada el 2/3 (p95 2,4 s con 400 sesiones; meta menor a 3 s), y gate en PASS el 3/3 (paso 7) | 19/2, la `fecha_prevista` de Q-001; QUA-02 avisa al vencer (pasos 2 y 6) | la puerta siguiente, como condición G-01 (paso 7), y `autorizar-cierre`, que bloquea con G-01 (paso 9) |
 
 **A2.**
 
 | Concepto | Valor |
 |---|---|
-| Presupuesto de cambio que fija la junta | USD 15.000 |
-| Límite por cambio de la autoridad de cambio | USD 8.000 |
-| Último cambio aprobado | C-001 (FR-13 pago de cuotas): USD 6.000, `cargo=presupuesto-cambio` |
-| ¿Quién debió decidirlo? | Sofía Ramírez, autoridad de cambio (está bajo su límite); consumo 6.000 de 15.000 (40 %, CAM-03) |
+| Presupuesto de cambio que fija la junta | USD 15.000 (paso 1, sub-paso 1g) |
+| Límite por cambio de la autoridad de cambio | USD 8.000 (paso 1, sub-paso 1g) |
+| Último cambio aprobado | C-001 (FR-13, pago de cuotas): USD 6.000, `cargo=presupuesto-cambio` (paso 5) |
+| ¿Quién debió decidirlo? | Sofía Ramírez, autoridad de cambio, porque está bajo su límite; consumo 6.000 de 15.000 (40 %, CAM-03) (paso 5) |
 
 **B1.**
 
 | Entrega | Terminadas | Con revisión aprobada | Rechazadas | ¿Rechazo tratado? |
 |---|---|---|---|---|
-| Sprint 1 (23/12) | 2 | 2 (Q-002, Q-003) | 0 | — |
-| Release 1 (26/2, antes del lote) | 7 | 2 → 7 después del lote (Q-004 a Q-008) | 0 | — |
-| Release 2 (7/5) | 11 | 10 → 11 el 12/5 (Q-013) | 1 (Q-012, historia 2-4) | sí: I-002 lo cita; Q-013 aprobada el 11/5 |
+| Sprint 1 (23/12) (paso 3) | 2 | 2 (Q-002 y Q-003) | 0 | — |
+| Release 1 (26/2) (paso 6) | 7 | 2; 7 después del lote del 25/2 (Q-004 a Q-008) | 0 | — |
+| Release 2 (7/5) (paso 8) | 11 | 10; 11 al 12/5 (Q-013) | 1 (Q-012, historia 2-4) | sí: I-002 lo cita y Q-013 lo aprueba el 11/5 |
 
-**B2.** (recorrido UJ-1, revisión del Release 1 con seis socios el 25/2; mapa en `g4-recorrido.png` y, en el tablero
-del Release 1, en `g4-tablero-mapas-169.png`: los dos dolores con su tratamiento y 0 avisos MAP)
+**B2.** Recorrido UJ-1 con lo observado en la revisión del Release 1 con seis socios el 25/2 (paso 6b). En el tablero
+del Release 1, la sección «Mapas estratégicos» muestra los dos dolores con su tratamiento y 0 avisos MAP (paso 7).
 
 | Paso | Emoción | Fuente | Dolor | Tratamiento | Dueño |
 |---|---|---|---|---|---|
-| P1 Ingresa con sus credenciales | −1 | observación: dos de seis socios pidieron ayuda en el primer ingreso | el primer ingreso con segundo factor la frena | R-001, riesgo para B-02 adopción (respuesta: alta asistida en sucursal y por teléfono los primeros 60 días) | Sofía Ramírez |
-| P2 Ve el resumen de cuentas | −1 | observación: el resumen tarda y no hay indicador de carga | espera sin saber si cargó | NFR-3 (p95 menor a 3 s), verificado por Q-001 | Lucía Benítez (produce), Sofía Ramírez (aprueba) |
+| P1 Ingresa con sus credenciales | −1 | observación: dos de seis socios pidieron ayuda en el primer ingreso | el primer ingreso con segundo factor la frena y pide ayuda | R-001, riesgo para B-02 adopción; respuesta del negocio: alta asistida en sucursal y por teléfono los primeros 60 días de operación | Sofía Ramírez |
+| P2 Ve el resumen de cuentas de ahorro y préstamos | −1 | observación: el resumen tarda en aparecer y no hay indicador de carga | espera el resumen sin saber si cargó | NFR-3 (p95 menor a 3 s), verificado por Q-001 | Lucía Benítez produce, Sofía Ramírez aprueba (enfoque de calidad, paso 1, sub-paso 1g) |
 
-**B3.**
+P1 va como riesgo y no como requisito porque, a una etapa del cierre, el dolor no justifica alcance nuevo pero sí
+amenaza un beneficio (paso 6b).
+
+**B3.** Plan de revisión de beneficios del cierre (paso 9), con la línea base al entrar en operación (paso 10).
 
 | Beneficio | Medida | Línea base | Meta | Quién mide | Criterio de desvío | A quién |
 |---|---|---|---|---|---|---|
-| B-02 adopción | KR-1.1 % de socios registrados (SM-1) | 0 % (15/5/2027) | 30 % (31/12/2027) | Sofía Ramírez, servicios al socio | 30/6: salud en-riesgo o desviado; 31/12: avance menor que 0,90 | Laura Méndez, ejecutiva |
-| B-01 desvío de consultas | KR-1.2 consultas por mes (SM-2) | 5.000 (15/5/2027) | 3.500 (31/12/2027) | Sofía Ramírez | ídem | Laura Méndez |
+| B-02 adopción | KR-1.1 % de socios registrados | 0 % (15/5/2027) | 30 % (31/12/2027) | Sofía Ramírez, servicios al socio | 30/6: escala si la salud es en-riesgo o desviado; 31/12: avance menor que 0,90 | Laura Méndez, ejecutiva |
+| B-01 desvío de consultas | KR-1.2 consultas por mes | 5.000 (15/5/2027) | 3.500 (31/12/2027) | Sofía Ramírez | ídem | Laura Méndez |
 
-Resultado en el caso: al 30/6, los tres KR "en camino" (esperado 0,20); al 31/12, B-02 llega a 0,83 (fuera de la
-tolerancia de −10 %) y B-01 a 0,93 (dentro). Se informa a la ejecutiva (D-029), que empieza por R-001: el dolor del
-primer ingreso que dejó el recorrido.
+Lo que pasó: al 30/6, los tres KR van «en camino» (esperado 0,20) y no hay informe a la ejecutiva (paso 10). Al
+31/12, el objetivo sale en verde (0,91), pero B-02 llega a 0,83, fuera de la tolerancia, y B-01 a 0,93, dentro. Se
+informa a la ejecutiva con D-029, que empieza a buscar la causa por R-001: el dolor del primer ingreso que dejó el
+recorrido (paso 11).

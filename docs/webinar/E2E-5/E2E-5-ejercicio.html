@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="generator" content="pm-method 2.3.0 · scripts/webinar/documentos.py">
+<title>E2E-5 · Ejercicio · Ejercicio · E2E-5 · Los supuestos, el experimento y las reservas de tu proyecto</title><style>
+:root{--navy:#002855;--blue:#00629b;--orange:#b5651d;--gray:#696969;--ink:#272425;--page:#e9edf1;--surface:#fff;--soft:#f4f6f8;
+--tint:#e9f1f8;--ortint:#fbf1e6;--line:#e2e2e6;--sky:#9fd0f0;--dark:#002855;--dark2:#173d66;--azul:#00629b;--code:#0f2238;--codefg:#e8eef5;
+--title-ink:#002855;--accent:#00629b;--warm:#b5651d;--shadow:0 6px 24px rgba(0,40,85,.10);color-scheme:light}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--page:#0b1118;--surface:#131c27;--soft:#1a2633;--tint:#16283b;--ortint:#2c2116;
+--line:#2a3644;--ink:#e6ebf0;--gray:#a3acb6;--dark:#08203d;--dark2:#173d66;--azul:#0a4f7d;--title-ink:#cfe3f3;--accent:#4ea3dc;--warm:#e39a5f;
+--shadow:0 6px 24px rgba(0,0,0,.45);color-scheme:dark}}
+:root[data-theme="dark"]{--page:#0b1118;--surface:#131c27;--soft:#1a2633;--tint:#16283b;--ortint:#2c2116;--line:#2a3644;--ink:#e6ebf0;
+--gray:#a3acb6;--dark:#08203d;--dark2:#173d66;--azul:#0a4f7d;--title-ink:#cfe3f3;--accent:#4ea3dc;--warm:#e39a5f;--shadow:0 6px 24px rgba(0,0,0,.45);color-scheme:dark}
+
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:72px;-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--page);color:var(--ink);font-family:Arial,Helvetica,sans-serif;line-height:1.55;font-size:16px}
+a{color:var(--accent)}
+code{font-family:"Courier New",monospace;font-size:.92em;background:var(--soft);padding:.05em .3em;border-radius:4px;overflow-wrap:anywhere}
+.barra{position:sticky;top:0;z-index:10;display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;padding:10px 16px;background:var(--surface);
+border-bottom:1px solid var(--line)}
+.barra .marca{font-weight:700;color:var(--title-ink);text-decoration:none;margin-right:6px}
+.barra nav{display:flex;flex-wrap:wrap;gap:6px}
+.barra nav a{padding:4px 10px;border-radius:8px;background:var(--soft);text-decoration:none;font-size:.9rem;color:var(--ink)}
+.barra nav a:hover{background:var(--tint)}
+.barra nav a[aria-current]{background:var(--blue);color:#fff}
+.barra .ctl{display:flex;flex-wrap:wrap;gap:6px;margin-left:auto;align-items:center}
+.barra button{font:inherit;font-size:.85rem;padding:4px 8px;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
+.marco{display:grid;grid-template-columns:250px minmax(0,1fr);gap:32px;max-width:1240px;margin:0 auto;padding:24px 16px 48px}
+.lateral{position:sticky;top:64px;align-self:start;max-height:calc(100vh - 80px);overflow:auto}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 12px;font-size:.88rem}
+details.toc summary{cursor:pointer;font-weight:700;color:var(--title-ink)}
+details.toc ol{list-style:none;margin:8px 0 0;padding:0}
+details.toc li{margin:0}
+details.toc li.n3{padding-left:14px;font-size:.95em}
+details.toc a{display:block;padding:3px 6px;border-radius:6px;color:var(--ink);text-decoration:none;line-height:1.3}
+details.toc a:hover{background:var(--soft)}
+details.toc a.activo{background:var(--tint);color:var(--title-ink);font-weight:700}
+main{min-width:0;max-width:920px}
+.cab{position:relative;background:var(--dark);color:#fff;border-radius:14px;padding:26px clamp(18px,4vw,36px) 22px;box-shadow:var(--shadow);margin-bottom:22px}
+.cab .logo{position:absolute;top:20px;right:20px;width:120px;height:50px;border:1px dashed #7f9bb8;border-radius:4px;display:grid;place-items:center;
+font-size:.78rem;color:#a9bfd6}
+.cab .logo.con-img{border:0}.cab .logo img{max-width:100%;max-height:100%}
+.cab .kicker{margin:0 140px 6px 0;color:var(--sky);font-weight:700;font-size:.92rem}
+.cab h1{margin:0 140px 10px 0;font-size:1.85rem;line-height:1.2}
+.cab .meta{margin:0;display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;color:#d6e4f0;font-size:.92rem}
+.etiqueta{display:inline-block;background:var(--dark2);color:#fff;border-radius:999px;padding:3px 12px;font-weight:700}
+.etiqueta.instr{background:var(--orange)}
+.aviso-doc{margin:14px 0 0;background:var(--dark2);border-left:4px solid var(--sky);border-radius:8px;padding:10px 14px;color:#fff;font-size:.95rem}
+.md{background:var(--surface);border-radius:14px;box-shadow:var(--shadow);padding:8px clamp(16px,4vw,40px) 28px;overflow-wrap:break-word}
+.md>*:first-child{margin-top:18px}
+.md h2{color:var(--title-ink);font-size:1.45rem;line-height:1.25;margin:2em 0 .6em;padding-bottom:.25em;border-bottom:2px solid var(--line)}
+.md h3{color:var(--title-ink);font-size:1.15rem;margin:1.6em 0 .5em}
+.md h4,.md h5,.md h6{font-size:1rem;margin:1.4em 0 .4em}
+.md h2 .ancla,.md h3 .ancla,.md h4 .ancla{margin-left:.4em;color:var(--gray);text-decoration:none;opacity:0;font-weight:400}
+.md h2:hover .ancla,.md h3:hover .ancla,.md h4:hover .ancla,.md .ancla:focus{opacity:1}
+.md p{margin:.7em 0}
+.md ul,.md ol{margin:.6em 0;padding-left:1.5em}
+.md li{margin:.25em 0}
+.md li>ul,.md li>ol{margin:.2em 0}
+.md ul.tareas{list-style:none;padding-left:.4em}
+.md li.tarea{position:relative;padding-left:1.8em}
+.md li.tarea .caja{position:absolute;left:0;top:.2em;width:1.05em;height:1.05em;margin:0;accent-color:var(--blue)}
+.md hr{border:0;border-top:1px solid var(--line);margin:2em 0}
+.md blockquote{margin:1em 0;padding:.6em 1em;background:var(--tint);border-left:4px solid var(--accent);border-radius:0 8px 8px 0}
+.md blockquote p{margin:.4em 0}
+.md strong{color:var(--title-ink)}
+.md .ruta{color:var(--gray)}
+.md .falta{color:#b00020;font-weight:700}
+.tabla{overflow-x:auto;margin:1em 0;border:1px solid var(--line);border-radius:8px}
+.tabla table{width:100%;border-collapse:collapse;font-size:.92rem}
+.tabla th{background:var(--navy);color:#fff;text-align:left;padding:.5em .65em;vertical-align:bottom}
+.tabla th code{background:var(--dark2);color:#fff}
+.tabla td{padding:.5em .65em;border-top:1px solid var(--line);vertical-align:top}
+.tabla tbody tr:nth-child(even) td{background:var(--soft)}
+.doc-ejercicio .tabla td:empty{height:2.6em;min-width:4em}
+.codigo{position:relative;margin:.8em 0}
+.codigo pre{margin:0;background:var(--code);color:var(--codefg);border-radius:8px;padding:14px 76px 14px 16px;font-family:"Courier New",monospace;
+font-size:.9rem;line-height:1.45;white-space:pre-wrap;overflow-wrap:anywhere}
+.codigo pre code{background:none;padding:0;color:inherit;font-size:1em}
+.copiar{position:absolute;top:8px;right:8px;font:inherit;font-size:.75rem;border:0;border-radius:6px;padding:.3em .7em;background:var(--dark2);color:#fff;cursor:pointer}
+figure{margin:1.1em 0}
+figure.img{display:flex;flex-direction:column;align-items:center}
+figure.img .zoom{all:unset;cursor:zoom-in;display:block;max-width:100%}
+figure img{display:block;max-width:100%;height:auto;border:1px solid var(--line);border-radius:6px;background:#fff}
+figure figcaption{margin-top:.5em;font-size:.92rem;color:var(--gray);max-width:760px;text-align:center}
+figure.mermaid .svg{background:#fff;border:1px solid var(--line);border-radius:8px;padding:12px;overflow-x:auto;text-align:center}
+figure.mermaid svg{max-width:100%;height:auto}
+details.fuente-mermaid{margin-top:6px;font-size:.85rem}
+details.fuente-mermaid summary{cursor:pointer;color:var(--gray)}
+details.fuente-mermaid pre{background:var(--code);color:var(--codefg);border-radius:8px;padding:12px;white-space:pre-wrap;overflow-wrap:anywhere;font-size:.85rem}
+details.desplegable{margin:1em 0;border:1px solid var(--line);border-radius:10px;padding:8px 14px;background:var(--soft)}
+details.desplegable>summary{cursor:pointer;font-weight:700;color:var(--accent)}
+details.ejemplo{border:1px solid var(--accent);border-left-width:5px;background:var(--tint);padding:10px 16px}
+details.ejemplo>summary{font-size:1.05rem;padding:4px 0}
+details.ejemplo[open]>summary{margin-bottom:.4em}
+details.ejemplo .det>*:first-child{margin-top:.4em}
+.pie-doc{margin:22px 4px 0;color:var(--gray);font-size:.85rem}
+.fuente-imp{display:none}
+dialog.visor{border:0;padding:0;background:transparent;max-width:96vw;max-height:94vh}
+dialog.visor::backdrop{background:rgba(0,0,0,.8)}
+dialog.visor img{display:block;max-width:96vw;height:auto;background:#fff;border-radius:6px}
+dialog.visor .cerrar{position:fixed;top:10px;right:14px;font-size:1.1rem;padding:6px 12px;border-radius:8px;border:0;cursor:pointer}
+/* índice del webinar */
+.intro{background:var(--surface);border-radius:14px;box-shadow:var(--shadow);padding:6px clamp(16px,4vw,32px) 14px;margin-bottom:22px}
+.casos{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,520px),1fr));gap:18px}
+.caso{background:var(--surface);border-radius:14px;box-shadow:var(--shadow);padding:18px clamp(16px,3vw,26px)}
+.caso h2{margin:0 0 .2em;color:var(--title-ink);font-size:1.25rem;line-height:1.25}
+.caso .sub{margin:0 0 .6em;color:var(--warm);font-weight:700}
+.caso .clases{margin:0 0 .8em;font-size:.9rem;color:var(--gray)}
+.caso h3{margin:.9em 0 .4em;font-size:.95rem;color:var(--title-ink)}
+.enlaces{display:flex;flex-wrap:wrap;gap:8px;margin:0;padding:0;list-style:none}
+.enlaces a,.enlaces span{display:inline-block;padding:6px 12px;border-radius:8px;background:var(--tint);text-decoration:none;color:var(--ink);font-size:.92rem}
+.enlaces a:hover{background:var(--soft);outline:1px solid var(--accent)}
+.enlaces a.instr{background:var(--ortint)}
+.enlaces small{color:var(--gray)}
+.marco.sin-toc{grid-template-columns:minmax(0,1fr)}
+.marco.sin-toc main{max-width:none}
+@media (max-width:999px){
+.marco{grid-template-columns:minmax(0,1fr);gap:16px;padding:16px 16px 40px}
+.lateral{position:static;max-height:none}
+.barra{position:static}
+.barra .ctl{margin-left:0}
+html{scroll-padding-top:8px}
+}
+@media (max-width:600px){
+body{font-size:15px}
+.cab{padding:18px 16px}
+.cab .logo{position:static;width:96px;height:40px;margin-bottom:10px}
+.cab .kicker,.cab h1{margin-right:0}
+.cab h1{font-size:1.4rem}
+.md{padding:4px 14px 20px}
+.md h2{font-size:1.25rem}
+.codigo pre{padding:12px 12px 12px 12px;padding-top:34px;font-size:.84rem}
+.tabla table{font-size:.85rem}
+details.ejemplo{padding:8px 10px;border-left-width:4px}
+}
+@media print{
+:root,:root:not([data-theme="light"]),:root[data-theme="light"],:root[data-theme="dark"]{--page:#fff;--surface:#fff;--soft:#f4f6f8;--tint:#e9f1f8;
+--ortint:#fbf1e6;--line:#d5d8de;--ink:#1d1b1c;--gray:#5d5d5d;--dark:#002855;--dark2:#173d66;--title-ink:#002855;--accent:#00629b;--warm:#b5651d;
+--code:#f4f6f8;--codefg:#1d1b1c;color-scheme:light}
+@page{size:A4;margin:15mm 14mm 16mm}
+body{background:#fff;font-size:10pt;line-height:1.45}
+.barra,.lateral,.copiar,.ancla,dialog.visor,details.fuente-mermaid,.enlaces small{display:none!important}
+.marco{display:block;max-width:none;padding:0}
+main{max-width:none}
+.cab,.md,.caso,.intro{box-shadow:none;border-radius:0}
+.cab{border-radius:6px;padding:14px 18px;margin-bottom:10px}
+.md{padding:0}
+.md h2{font-size:14pt;margin-top:1.4em}
+.md h3{font-size:11.5pt}
+h1,h2,h3,h4{break-after:avoid;page-break-after:avoid}
+tr,figure,.codigo,blockquote,li,.caso{break-inside:avoid;page-break-inside:avoid}
+thead{display:table-header-group}
+.tabla{overflow:visible;border:0}
+.tabla table{font-size:8.5pt}
+.tabla td,.tabla th{padding:.3em .45em;overflow-wrap:break-word}
+.tabla code,.md code{overflow-wrap:break-word}
+p:has(+ .tabla),p:has(+ .codigo),p:has(+ figure){break-after:avoid;page-break-after:avoid}
+.pie-doc{display:none}
+.cab .fuente-imp{display:block;margin:8px 0 0;font-size:7.5pt;color:#d6e4f0}
+.cab .fuente-imp code{background:none;color:inherit;padding:0}
+figure.mermaid svg{max-height:240mm}
+.codigo pre{border:1px solid #d5d8de;padding:8px 10px;font-size:8.5pt}
+figure img{max-height:200mm;width:auto}
+figure.mermaid .svg{border:0;padding:0}
+a{color:inherit;text-decoration:none}
+a.ext{text-decoration:underline dotted}
+.cab,.cab *,.tabla th,.etiqueta,.aviso-doc,.md blockquote,.tabla tbody tr:nth-child(even) td{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.casos{display:block}.caso{margin-bottom:12px;border:1px solid #d5d8de;border-radius:6px}
+details.ejemplo{border:0;padding:0;background:none}
+details.ejemplo>summary{display:none}
+}
+@media print{details.ejemplo::details-content{content-visibility:visible}}
+</style></head>
+<body class="doc doc-ejercicio">
+<header class="barra">
+  <a class="marca" href="../index.html">Webinar E2E-5</a>
+  <nav aria-label="Material del caso"><a href="E2E-5-diapositivas.html">Diapositivas</a><a href="E2E-5-guia.html">Guía</a><a href="E2E-5-ejercicio.html" aria-current="page">Ejercicio</a></nav>
+  <div class="ctl"><button type="button" id="b-imprimir">Imprimir</button><button type="button" id="b-tema">Tema: automático</button></div>
+</header>
+<div class="marco">
+<aside class="lateral"><details class="toc" open><summary>Contenido</summary><nav aria-label="Contenido del documento"><ol><li class="n2"><a href="#cómo-funciona-este-ejercicio">Cómo funciona este ejercicio</a></li><li class="n2"><a href="#lo-que-necesitás-saber">Lo que necesitás saber</a></li><li class="n3"><a href="#el-escenario-del-caso">El escenario del caso</a></li><li class="n3"><a href="#conceptos-mínimos">Conceptos mínimos</a></li><li class="n2"><a href="#hoja-de-trabajo--parte-a--el-mapa-de-supuestos-y-un-experimento-barato-clase-1">Hoja de trabajo · parte A · El mapa de supuestos y un experimento barato (clase 1)</a></li><li class="n3"><a href="#autoevaluación-de-la-parte-a">Autoevaluación de la parte A</a></li><li class="n2"><a href="#hoja-de-trabajo--parte-b--las-reservas-y-la-adaptación-clase-2">Hoja de trabajo · parte B · Las reservas y la adaptación (clase 2)</a></li><li class="n3"><a href="#autoevaluación-de-la-parte-b">Autoevaluación de la parte B</a></li><li class="n2"><a href="#para-ir-más-allá">Para ir más allá</a></li><li class="n2"><a href="#ejemplo-resuelto-escenario-del-caso">Ejemplo resuelto (escenario del caso)</a></li><li class="n3"><a href="#parte-a--turnos-en-línea-policlínicas-altamar">Parte A · Turnos en línea, Policlínicas Altamar</a></li><li class="n3"><a href="#parte-b">Parte B</a></li></ol></nav></details></aside>
+<main>
+<header class="cab"><div class="logo" aria-label="Espacio reservado para el logo de IEEE">Logo IEEE</div><p class="kicker">Webinar E2E-5 · Ejercicio · pm-method 2.3.0</p><h1>Ejercicio · E2E-5 · Los supuestos, el experimento y las reservas de tu proyecto</h1><p class="meta"><span class="etiqueta">Ejercicio</span><span>Para: asistentes e instructor</span></p><p class="fuente-imp">Fuente: <a href="https://github.com/Arturo-Penas-Rial/pm-method/blob/main/docs/webinar/E2E-5/ejercicio.md" class="ext">docs/webinar/E2E-5/ejercicio.md</a> · pm-method 2.3.0 · Ejercicio del caso E2E-5 · generado con <code>scripts/webinar/documentos.py</code></p></header>
+<article class="md">
+<h2 id="cómo-funciona-este-ejercicio">Cómo funciona este ejercicio<a class="ancla" href="#cómo-funciona-este-ejercicio" aria-label="Enlace a esta sección">#</a></h2>
+<ul><li><strong>Para qué sirve:</strong> llevar el caso a una idea o un proyecto tuyo. Vas a separar lo que sabés de lo que suponés,
+diseñar un experimento barato antes de invertir, separar las reservas del presupuesto y dejar escrita la adaptación
+de la gestión.</li><li><strong>Cuándo se hace:</strong> la parte A, al cierre de la clase 1, después de la demostración (10 minutos); la parte B, al
+cierre de la clase 2, después de la demostración (10 minutos). Si lo hacés por tu cuenta, calculá 20 minutos.</li><li><strong>Qué hacés:</strong> completás la hoja de trabajo con una idea que alguien quiera aprobar en los próximos meses, o con un
+proyecto que se aprobó hace poco. Alcanza con papel o una planilla, y con el orden de magnitud de los números. Si no
+tenés uno, usá el escenario del caso: los datos de partida están en
+<a href="#lo-que-necesitás-saber">Lo que necesitás saber</a>.</li><li><strong>Cómo te autoevaluás:</strong> al final de cada parte hay una tabla de criterios. Marcá cuáles cumple tu hoja; un criterio
+sin cumplir es un hallazgo sobre tu proyecto, no un error del ejercicio.</li><li><strong>Ejemplo resuelto:</strong> al final está la hoja resuelta con el escenario del caso, y cada dato dice de qué paso de la
+guía sale. Miralo <strong>después</strong> de intentarlo, para comparar, no antes.</li></ul>
+<hr>
+<h2 id="lo-que-necesitás-saber">Lo que necesitás saber<a class="ancla" href="#lo-que-necesitás-saber" aria-label="Enlace a esta sección">#</a></h2>
+<h3 id="el-escenario-del-caso">El escenario del caso<a class="ancla" href="#el-escenario-del-caso" aria-label="Enlace a esta sección">#</a></h3>
+<p>La red de Policlínicas Altamar (6 policlínicas, 240.000 turnos por año, 70 % por teléfono, ausentismo del 18 %) quiere
+que los pacientes saquen, confirmen y cancelen turnos sin llamar. Carmen Olivera es la ejecutiva; Pablo Rinaldi, el
+gestor; Inés Ferrer, usuaria sénior, product owner y autoridad de cambio; Tomás Aguirre, proveedor sénior (jefe de TI).
+La clase 1 decide si vale la pena autorizar la iniciación; la clase 2 diseña el proyecto hasta la puerta
+<code>autorizar-proyecto</code> del 2027-01-15.</p>
+<p><strong>Datos de partida para la parte A</strong> (si usás el caso):</p>
+<ul><li>Lo que el mandato y las lecciones dan por cierto: al menos el 40 % de los turnos se sacará en línea desde el segundo
+año (20 % el primero); un recordatorio con confirmación baja el ausentismo del 18 % al 10 %; la agenda clínica del
+proveedor permite reservar y cancelar en tiempo real desde otro sistema; la dirección médica libera las agendas con
+60 días de anticipación; la normativa permite enviar recordatorios con el consentimiento dado al pedir el turno; el
+costo por mensaje se mantiene en USD 0,02. Se mantienen el teléfono y el presencial (restricción, no supuesto).</li><li>Lecciones previas: la app de resultados de 2024 tuvo 11 % de uso en mayores de 65; la integración con la agenda
+clínica de 2025 se estimó en 4 semanas y llevó 14; un piloto de recordatorios bajó el ausentismo, pero nadie midió la
+línea base.</li><li>Para A5: el piloto de recordatorios en una policlínica dio 13,5 % de ausentismo (criterio: 12 % o menos). Con el 10 %
+del mandato, el VAN de la opción completa es 431.782; con el 13,5 % medido, 272.569.</li></ul>
+<p><strong>Datos de partida para la parte B:</strong></p>
+<ul><li>WBS: USD 142.800. Riesgos: la agenda sin interfaz documentada (P3 × I4, USD 30.000), la adopción baja en mayores de
+65 (P3 × I3, USD 12.000; canal asistido por USD 4.000) y un dictamen legal que exija consentimiento explícito (P2 ×
+I3, USD 10.000). La reserva de gestión es el 5 % del BAC. La junta fija un presupuesto de cambio de 10.000 con tope
+de 3.000 por cambio.</li><li>Enfoque de entrega con los nueve criterios: recordatorios 18 (híbrido), turnos en línea 23 (adaptativo), integración
+con la agenda 12 (predictivo). Proyecto mediano, con datos de salud y un solo equipo.</li><li>El 2027-01-14, la prueba técnica de la agenda dio 50 de 50 reservas y cancelaciones (1,4 s). El dictamen legal sobre
+el consentimiento llega el 2027-01-29, después de la puerta del 15/1.</li><li>Mapas: la agenda clínica del proveedor es un producto con inercia (sistema en uso en las 6 policlínicas, el
+proveedor controla la interfaz). En el recorrido del paciente, el paso «Intenta avisar que no va» (emoción −2) tiene
+un dolor: solo puede cancelar llamando en horario de atención.</li></ul>
+<h3 id="conceptos-mínimos">Conceptos mínimos<a class="ancla" href="#conceptos-mínimos" aria-label="Enlace a esta sección">#</a></h3>
+<ul><li><strong>Supuesto:</strong> algo que se da por cierto sin evidencia; una <strong>restricción</strong> es un límite que no se discute.</li><li><strong>Familias:</strong> deseabilidad (¿lo van a usar?), viabilidad (¿cierra económicamente?) y factibilidad (¿se puede
+construir y operar?).</li><li><strong>Criticidad y certeza:</strong> criticidad, cuánto cambia el caso si el supuesto es falso; certeza, cuánta evidencia hay
+hoy. Criticidad alta y certeza baja = hipótesis: se valida primero.</li><li><strong>Experimento barato:</strong> más barato que equivocarse, con fecha y con el criterio para seguir decidido <strong>antes</strong> del
+resultado.</li><li><strong>VAN (valor actual neto):</strong> la suma de los flujos de cada año descontados a la tasa de la organización; se compara
+siempre con la opción 0, "no hacer nada distinto".</li><li><strong>Contingencia:</strong> cubre los riesgos identificados (su EMV, valor monetario esperado, más el costo de las respuestas);
+EMV = impacto en dinero × probabilidad (P1 10 % · P2 30 % · P3 50 % · P4 70 % · P5 90 %).</li><li><strong>BAC:</strong> paquetes de la WBS + contingencia. <strong>Reserva de gestión:</strong> cubre lo no identificado y la libera solo la
+junta. <strong>Presupuesto de cambio:</strong> va aparte y lo administra la autoridad de cambio, con un tope por cambio.</li><li><strong>Enfoque de entrega:</strong> nueve criterios de 1 (favorece predictivo) a 3 (favorece adaptativo) por entregable: 13 o
+menos es predictivo, de 14 a 21 híbrido y 22 o más adaptativo.</li><li><strong>Adaptación (tailoring):</strong> decidir cuánta formalidad necesita cada parte de la gestión, y por qué; se aligeran los
+documentos, no las decisiones.</li><li><strong>Aceptar un supuesto:</strong> si un supuesto crítico no se valida antes de la puerta, la junta puede aceptarlo con una
+decisión escrita que lo cite y diga cómo se cubre; en pm-method, la puerta lo marca con P-11.</li><li><strong>Inercia y dolor:</strong> en un mapa de Wardley, la inercia es algo difícil de cambiar (un sistema en uso); en un recorrido
+del cliente, el dolor es dónde sufre la persona. Los dos necesitan un tratamiento con id.</li></ul>
+<hr>
+<h2 id="hoja-de-trabajo--parte-a--el-mapa-de-supuestos-y-un-experimento-barato-clase-1">Hoja de trabajo · parte A · El mapa de supuestos y un experimento barato (clase 1)<a class="ancla" href="#hoja-de-trabajo--parte-a--el-mapa-de-supuestos-y-un-experimento-barato-clase-1" aria-label="Enlace a esta sección">#</a></h2>
+<p><strong>A1. La idea en una frase y la decisión que se espera.</strong></p>
+<blockquote><p>Idea: ……………………………………………… · Decisión que se espera: ………………………… · ¿Para cuándo? ……………</p></blockquote>
+<p><strong>A2. Cinco supuestos.</strong> Al menos uno de cada familia. Criticidad y certeza: alta / media / baja.</p>
+<div class="tabla"><table><thead><tr><th>Id</th><th>Supuesto (si es falso, el caso cambia)</th><th>Familia (deseabilidad · viabilidad · factibilidad)</th><th>Criticidad</th><th>Certeza</th><th>Evidencia que tengo hoy</th></tr></thead><tbody><tr><td>S-1</td><td></td><td></td><td></td><td></td><td></td></tr><tr><td>S-2</td><td></td><td></td><td></td><td></td><td></td></tr><tr><td>S-3</td><td></td><td></td><td></td><td></td><td></td></tr><tr><td>S-4</td><td></td><td></td><td></td><td></td><td></td></tr><tr><td>S-5</td><td></td><td></td><td></td><td></td><td></td></tr></tbody></table></div>
+<p><strong>A3. Ubicalos en el mapa.</strong> Escribí los ids en la celda que corresponde.</p>
+<div class="tabla"><table><thead><tr><th>Criticidad \ Certeza</th><th>baja</th><th>media</th><th>alta</th></tr></thead><tbody><tr><td><strong>alta</strong></td><td><strong>(validar primero)</strong></td><td></td><td></td></tr><tr><td><strong>media</strong></td><td></td><td></td><td></td></tr><tr><td><strong>baja</strong></td><td></td><td></td><td></td></tr></tbody></table></div>
+<p><strong>A4. Un experimento barato</strong> para un supuesto de la celda "validar primero".</p>
+<div class="tabla"><table><thead><tr><th>Supuesto</th><th>Experimento (lo más barato que da evidencia)</th><th>Criterio para seguir, decidido hoy</th><th>Costo y duración</th><th>Responsable</th><th>Fecha límite</th></tr></thead><tbody><tr><td></td><td></td><td></td><td></td><td></td><td></td></tr></tbody></table></div>
+<p><strong>A5. Si el resultado sale mal</strong>, ¿qué número del caso cambia y quién decide qué hacer?</p>
+<blockquote><p>Cambia: ……………………………… · Decide: ……………………………… · Opciones: seguir / ajustar / abandonar</p></blockquote>
+<h3 id="autoevaluación-de-la-parte-a">Autoevaluación de la parte A<a class="ancla" href="#autoevaluación-de-la-parte-a" aria-label="Enlace a esta sección">#</a></h3>
+<div class="tabla"><table><thead><tr><th>Criterio</th><th>Cumple si…</th></tr></thead><tbody><tr><td>Familias cubiertas</td><td>Hay al menos un supuesto de deseabilidad, uno de viabilidad y uno de factibilidad.</td></tr><tr><td>Prioridad clara</td><td>Hay al menos un supuesto en "validar primero" y sabés por qué está ahí.</td></tr><tr><td>Experimento bien diseñado</td><td>Es más barato que equivocarse, tiene fecha y el criterio está escrito <strong>antes</strong> del resultado.</td></tr><tr><td>Resultado con destino</td><td>A5 dice qué número del caso cambia y quién decide (lo que en pm-method vigila SUP-03).</td></tr></tbody></table></div>
+<hr>
+<h2 id="hoja-de-trabajo--parte-b--las-reservas-y-la-adaptación-clase-2">Hoja de trabajo · parte B · Las reservas y la adaptación (clase 2)<a class="ancla" href="#hoja-de-trabajo--parte-b--las-reservas-y-la-adaptación-clase-2" aria-label="Enlace a esta sección">#</a></h2>
+<p><strong>B1. Las tres bolsas.</strong> Completá con lo que existe hoy en tu proyecto. Si no existe, escribí "no definido".</p>
+<div class="tabla"><table><thead><tr><th>Bolsa</th><th>Monto</th><th>Para qué se usa</th><th>Quién la libera</th><th>¿Está escrita y aprobada?</th></tr></thead><tbody><tr><td>Contingencia (riesgos identificados)</td><td></td><td></td><td></td><td></td></tr><tr><td>Reserva de gestión (lo no identificado)</td><td></td><td></td><td></td><td></td></tr><tr><td>Presupuesto de cambio</td><td></td><td></td><td></td><td></td></tr><tr><td>Tope por cambio de quien aprueba cambios</td><td></td><td>—</td><td></td><td></td></tr></tbody></table></div>
+<p><strong>B2. ¿Qué diseño le corresponde?</strong> Marcá el que más se parece a tu proyecto y anotá una cosa que harías distinto.</p>
+<div class="tabla"><table><thead><tr><th>Diseño</th><th>Se parece a mi proyecto</th><th>Qué haría distinto</th></tr></thead><tbody><tr><td>Interno pequeño (perfil mínimo; acta y PID breve; un enfoque de una página)</td><td>[ ]</td><td></td></tr><tr><td>Regulado (perfil completo; aseguramiento independiente; siete tolerancias)</td><td>[ ]</td><td></td></tr><tr><td>Producto digital ágil (PID compacto; enfoques de una página; fecha fija y alcance en MoSCoW)</td><td>[ ]</td><td></td></tr><tr><td>Híbrido (como el caso: cada entregable con su vía)</td><td>[ ]</td><td></td></tr></tbody></table></div>
+<p><strong>B3. Una decisión de adaptación</strong> que dejarías escrita en el PID:</p>
+<div class="tabla"><table><thead><tr><th>Qué se adapta</th><th>Cómo</th><th>Por qué</th></tr></thead><tbody><tr><td></td><td></td><td></td></tr></tbody></table></div>
+<p><strong>B4. Un supuesto crítico que seguiría sin validar</strong> el día de la aprobación:</p>
+<div class="tabla"><table><thead><tr><th>Supuesto</th><th>¿Se valida antes o la junta lo acepta?</th><th>Quién lo acepta (decisión escrita)</th><th>Cómo se cubre si sale mal</th><th>Fecha para revisarlo</th></tr></thead><tbody><tr><td></td><td></td><td></td><td></td><td></td></tr></tbody></table></div>
+<p><strong>B5. Lo que el tablero de mapas mostraría a la junta.</strong> Un componente con inercia y un dolor de la persona, cada uno
+con lo que lo trata (en pm-method, <code>mapas.py tablero</code> los dibuja con su vínculo o con un aviso MAP).</p>
+<div class="tabla"><table><thead><tr><th>Elemento del mapa</th><th>Qué muestra</th><th>Tratamiento con id (riesgo, requisito, supuesto, decisión…)</th><th>Dueño</th></tr></thead><tbody><tr><td>Componente con inercia</td><td></td><td></td><td></td></tr><tr><td>Dolor del recorrido</td><td></td><td></td><td></td></tr></tbody></table></div>
+<h3 id="autoevaluación-de-la-parte-b">Autoevaluación de la parte B<a class="ancla" href="#autoevaluación-de-la-parte-b" aria-label="Enlace a esta sección">#</a></h3>
+<div class="tabla"><table><thead><tr><th>Criterio</th><th>Cumple si…</th></tr></thead><tbody><tr><td>Bolsas separadas</td><td>Contingencia, reserva de gestión y presupuesto de cambio tienen monto y dueño distintos; nada se cuenta dos veces.</td></tr><tr><td>Autoridad delimitada</td><td>El tope por cambio es menor que el presupuesto de cambio.</td></tr><tr><td>Adaptación escrita</td><td>B3 dice qué se aligera y por qué, sin saltear ninguna decisión de la junta.</td></tr><tr><td>Hipótesis a la vista</td><td>B4 tiene una decisión escrita de quien puede aceptar el supuesto, una cobertura y una fecha.</td></tr><tr><td>Mapas con tratamiento</td><td>B5 nombra un id para la inercia y para el dolor; ninguno queda "para después".</td></tr></tbody></table></div>
+<hr>
+<h2 id="para-ir-más-allá">Para ir más allá<a class="ancla" href="#para-ir-más-allá" aria-label="Enlace a esta sección">#</a></h2>
+<ul><li>¿Qué número del último caso de negocio que viste aprobar descansaba en un supuesto que nadie había probado?</li><li>Si tu experimento sale mal, ¿la idea se ajusta o se abandona? ¿Quién lo decidió antes de ver el resultado?</li></ul>
+<hr>
+<h2 id="ejemplo-resuelto-escenario-del-caso">Ejemplo resuelto (escenario del caso)<a class="ancla" href="#ejemplo-resuelto-escenario-del-caso" aria-label="Enlace a esta sección">#</a></h2>
+<details class="desplegable ejemplo"><summary>Ver el ejemplo resuelto (después de intentarlo)</summary><div class="det"><p>Cifras de la corrida de referencia (<a href="https://github.com/Arturo-Penas-Rial/pm-method/blob/main/docs/guias/evidencia/salida-g5.md" class="ext" title="Abre el archivo en GitHub">salida-g5.md</a>); entre paréntesis, el paso de
+la <a href="E2E-5-guia.html">guía E2E-5</a> de donde sale cada dato.</p>
+<h3 id="parte-a--turnos-en-línea-policlínicas-altamar">Parte A · Turnos en línea, Policlínicas Altamar<a class="ancla" href="#parte-a--turnos-en-línea-policlínicas-altamar" aria-label="Enlace a esta sección">#</a></h3>
+<p><strong>A1.</strong> Idea: que los pacientes saquen, confirmen y cancelen turnos sin llamar (paso 1). Decisión: autorizar la
+iniciación, en la puerta <code>autorizar-inicio</code> del 2026-12-11 (paso 6).</p>
+<p><strong>A2.</strong> Supuestos registrados el 2026-11-04 (paso 2; el texto y el origen de cada uno están en la evidencia).</p>
+<div class="tabla"><table><thead><tr><th>Id</th><th>Supuesto</th><th>Familia</th><th>Criticidad</th><th>Certeza</th><th>Evidencia al registrarlo</th></tr></thead><tbody><tr><td>S-001</td><td>Al menos el 40 % de los turnos se sacará en línea desde el segundo año (20 % el primero)</td><td>deseabilidad</td><td>alta</td><td>baja</td><td>mandato y lección L-001 (11 % de uso en mayores de 65)</td></tr><tr><td>S-002</td><td>Un recordatorio con confirmación baja el ausentismo del 18 % al 10 %</td><td>viabilidad</td><td>alta</td><td>baja</td><td>mandato y L-003 (piloto sin línea base)</td></tr><tr><td>S-003</td><td>La agenda clínica del proveedor permite reservar y cancelar en tiempo real desde otro sistema</td><td>factibilidad</td><td>alta</td><td>baja</td><td>mandato y L-002 (4 semanas estimadas, 14 reales)</td></tr><tr><td>S-004</td><td>La dirección médica libera las agendas con 60 días de anticipación</td><td>viabilidad</td><td>media</td><td>media</td><td>sin cita en el registro</td></tr><tr><td>S-006</td><td>La normativa permite enviar recordatorios con el consentimiento dado al pedir el turno</td><td>factibilidad</td><td>alta</td><td>media</td><td>sin cita en el registro</td></tr></tbody></table></div>
+<p><strong>A3.</strong> "Validar primero" (alta, baja): S-001, S-002 y S-003. Alta y media: S-006. Media y media: S-004 (paso 2).</p>
+<p><strong>A4.</strong> Experimentos del paso 3 (el caso da la duración, no el costo).</p>
+<div class="tabla"><table><thead><tr><th>Supuesto</th><th>Experimento</th><th>Criterio</th><th>Duración</th><th>Responsable</th><th>Fecha límite</th></tr></thead><tbody><tr><td>S-001</td><td>prueba de humo: botón en el sitio con registro de interés</td><td>≥ 1.000 registros</td><td>3 semanas</td><td>Inés Ferrer</td><td>2026-11-27</td></tr><tr><td>S-002</td><td>piloto de recordatorio con confirmación en la Policlínica Centro (2.000 turnos)</td><td>ausentismo ≤ 12 %</td><td>4 semanas</td><td>Inés Ferrer</td><td>2026-12-04</td></tr><tr><td>S-003</td><td>prueba técnica: reservar y cancelar 50 turnos en el entorno del proveedor</td><td>50 de 50 y &lt; 2 s</td><td>5 días</td><td>Tomás Aguirre</td><td>2026-12-04, replanificada al 2027-01-14</td></tr></tbody></table></div>
+<p><strong>A5.</strong> S-002 salió mal: 13,5 % contra un criterio de 12 % (paso 3). Cambia el beneficio de turnos recuperados (B-01) y
+el VAN de las dos opciones baja 159.213; el de la opción 2, de 431.782 a 272.569 (paso 4). Decide la ejecutiva, Carmen
+Olivera: ajustar, el caso usa 13,5 % (D-001, paso 3). La idea sigue: la opción 2 sigue siendo la mejor (paso 4).</p>
+<h3 id="parte-b">Parte B<a class="ancla" href="#parte-b" aria-label="Enlace a esta sección">#</a></h3>
+<p><strong>B1.</strong> Presupuesto del paso 9 (D-007).</p>
+<div class="tabla"><table><thead><tr><th>Bolsa</th><th>Monto</th><th>Para qué se usa</th><th>Quién la libera</th><th>¿Escrita y aprobada?</th></tr></thead><tbody><tr><td>Contingencia</td><td>28.000 = Σ EMV 24.000 (R-001 15.000, R-002 6.000, R-003 3.000) + respuestas 4.000</td><td>los riesgos R-001, R-002 y R-003</td><td>el caso no lo dice</td><td>sí: <code>estado.py presupuesto … riesgo=28000</code>, Carmen Olivera, 2027-01-12</td></tr><tr><td>Reserva de gestión</td><td>8.540 (5 % del BAC)</td><td>lo no identificado</td><td>la junta</td><td>sí, en la misma decisión</td></tr><tr><td>Presupuesto de cambio</td><td>10.000</td><td>los cambios aprobados</td><td>la autoridad de cambio, Inés Ferrer</td><td>sí</td></tr><tr><td>Tope por cambio</td><td>3.000</td><td>—</td><td>por encima, la junta</td><td>sí</td></tr></tbody></table></div>
+<p>BAC 170.800 (paquetes 142.800 + contingencia); presupuesto autorizado 179.340 (BAC + reserva de gestión) (paso 9).</p>
+<p><strong>B2.</strong> Híbrido: integración predictiva (12), recordatorios híbridos (18) y portal adaptativo (23) (paso 5). Si fuera
+regulado, pediría 16 artefactos y siete tolerancias; si fuera interno y pequeño, 7 artefactos y dos tolerancias (paso
+12).</p>
+<p><strong>B3.</strong> Sección 8 del PID (paso 13; la tabla completa está en la evidencia).</p>
+<div class="tabla"><table><thead><tr><th>Qué se adapta</th><th>Cómo</th><th>Por qué</th></tr></thead><tbody><tr><td>Enfoques de gestión</td><td>una página cada uno; datos digitales dentro de calidad</td><td>proyecto mediano, un solo equipo (D-008, paso 11)</td></tr><tr><td>Roles</td><td>Inés Ferrer: usuaria sénior, product owner y autoridad de cambio</td><td>una sola voz del negocio</td></tr><tr><td>Puerta de la etapa 3</td><td>condicionada a la adopción medida en el release 1</td><td>el VAN es sensible a la adopción: equilibrio en 11,6 % de adopción estable con el orden de magnitud y 12,6 % con el presupuesto (pasos 4 y 9)</td></tr></tbody></table></div>
+<p><strong>B4.</strong> (paso 13, salvo donde se indica).</p>
+<div class="tabla"><table><thead><tr><th>Supuesto</th><th>¿Validar o aceptar?</th><th>Quién lo acepta</th><th>Cobertura</th><th>Fecha</th></tr></thead><tbody><tr><td>S-003, interfaz de la agenda</td><td>validado el 2027-01-14 (50 de 50, 1,4 s)</td><td>—</td><td>—</td><td>—</td></tr><tr><td>S-006, consentimiento para recordatorios</td><td>aceptado sin validar</td><td>la junta, decisión D-009 del 2027-01-15</td><td>riesgo R-003 y su contingencia; el dictamen es condición antes del release de recordatorios</td><td>2027-01-29; al 2027-02-01 la sanidad avisa SUP-02 y REG-09 (paso 14)</td></tr></tbody></table></div>
+<p><strong>B5.</strong> Tablero de mapas del proyecto autorizado (paso 14).</p>
+<div class="tabla"><table><thead><tr><th>Elemento del mapa</th><th>Qué muestra</th><th>Tratamiento</th><th>Dueño</th></tr></thead><tbody><tr><td>Agenda clínica del proveedor (producto, con inercia)</td><td>el proveedor controla la interfaz y el adaptador depende de ella (paso 5b)</td><td>R-001, «La integración en tiempo real se atrasa», <code>en-seguimiento</code> (pasos 9 y 14)</td><td>Tomás Aguirre, propietario de R-001 (paso 9, en la evidencia)</td></tr><tr><td>P5 «Intenta avisar que no va» (−2)</td><td>solo puede cancelar llamando en horario de atención (paso 5b)</td><td>REQ-003 (confirmar o cancelar y liberar el turno) y REQ-005 (reprogramar) (paso 6)</td><td>Inés Ferrer, usuaria sénior y product owner: confirmó el recorrido (paso 5b) y acepta cada release (enfoque de calidad del paso 11, en la evidencia)</td></tr></tbody></table></div></div></details></article>
+<footer class="pie-doc">Fuente: <a href="https://github.com/Arturo-Penas-Rial/pm-method/blob/main/docs/webinar/E2E-5/ejercicio.md" class="ext">docs/webinar/E2E-5/ejercicio.md</a> · pm-method 2.3.0 · Ejercicio del caso E2E-5 · generado con <code>scripts/webinar/documentos.py</code></footer>
+</main>
+</div>
+<dialog class="visor" id="visor"><button type="button" class="cerrar">Cerrar</button><img alt=""></dialog>
+<script>
+(function(){
+  var raiz=document.documentElement;
+  function guardar(k,v){try{localStorage.setItem(k,v)}catch(e){}}
+  function leer(k){try{return localStorage.getItem(k)}catch(e){return null}}
+  var tema=leer('webinar-tema'); if(tema==='light'||tema==='dark') raiz.setAttribute('data-theme',tema);
+  var bTema=document.getElementById('b-tema');
+  function rotTema(){var t=raiz.getAttribute('data-theme'); bTema.textContent=t==='dark'?'Tema: oscuro':(t==='light'?'Tema: claro':'Tema: automático');}
+  if(bTema){rotTema(); bTema.addEventListener('click',function(){var t=raiz.getAttribute('data-theme'); var s=!t?'light':(t==='light'?'dark':'');
+    if(s){raiz.setAttribute('data-theme',s)}else{raiz.removeAttribute('data-theme')} guardar('webinar-tema',s); rotTema();});}
+  var bImp=document.getElementById('b-imprimir'); if(bImp) bImp.addEventListener('click',function(){window.print()});
+  var toc=document.querySelector('details.toc');
+  if(toc&&window.matchMedia){var mq=window.matchMedia('(min-width: 1000px)');
+    function ajustar(){toc.open=mq.matches} ajustar();
+    if(mq.addEventListener) mq.addEventListener('change',ajustar); else if(mq.addListener) mq.addListener(ajustar);
+    toc.addEventListener('click',function(ev){if(ev.target.tagName==='A'&&!mq.matches) toc.open=false;});}
+  var enl={}; [].forEach.call(document.querySelectorAll('details.toc a[href^="#"]'),function(a){enl[decodeURIComponent(a.getAttribute('href').slice(1))]=a});
+  if('IntersectionObserver' in window&&toc){var obs=new IntersectionObserver(function(ents){ents.forEach(function(en){
+      if(en.isIntersecting){var a=enl[en.target.id]; if(a){[].forEach.call(document.querySelectorAll('details.toc a.activo'),function(x){x.classList.remove('activo')}); a.classList.add('activo');}}});},
+      {rootMargin:'0px 0px -70% 0px'});
+    [].forEach.call(document.querySelectorAll('.md h2[id],.md h3[id]'),function(h){obs.observe(h)});}
+  [].forEach.call(document.querySelectorAll('.codigo .copiar'),function(b){b.addEventListener('click',function(){
+    var t=b.parentNode.querySelector('pre').textContent;
+    if(navigator.clipboard){navigator.clipboard.writeText(t).then(function(){b.textContent='Copiado'; setTimeout(function(){b.textContent='Copiar'},1500)},function(){});}});});
+  var visor=document.getElementById('visor');
+  if(visor){var vimg=visor.querySelector('img');
+    [].forEach.call(document.querySelectorAll('figure.img .zoom'),function(b){b.addEventListener('click',function(){
+      var im=b.querySelector('img'); vimg.src=im.src; vimg.alt=im.alt; if(visor.showModal) visor.showModal();});});
+    visor.addEventListener('click',function(){visor.close()});}
+  function abrirHasta(id){var el=id&&document.getElementById(id); while(el){if(el.tagName==='DETAILS'&&!el.open) el.open=true; el=el.parentElement;}}
+  function hashActual(){try{return decodeURIComponent(location.hash.slice(1))}catch(e){return ''}}
+  [].forEach.call(document.querySelectorAll('a[href^="#"]'),function(a){a.addEventListener('click',function(){
+    var h=a.getAttribute('href').slice(1); try{h=decodeURIComponent(h)}catch(e){} abrirHasta(h);});});
+  window.addEventListener('hashchange',function(){abrirHasta(hashActual())}); if(location.hash) abrirHasta(hashActual());
+  var abiertos=[];
+  function abrirTodo(){[].forEach.call(document.querySelectorAll('details.desplegable:not([open])'),function(d){d.open=true; abiertos.push(d)});}
+  function cerrarAbiertos(){abiertos.forEach(function(d){d.open=false}); abiertos=[];}
+  window.addEventListener('beforeprint',abrirTodo);
+  window.addEventListener('afterprint',cerrarAbiertos);
+  if(window.matchMedia){var mp=window.matchMedia('print'); var alCambiar=function(e){if(e.matches) abrirTodo(); else cerrarAbiertos();};
+    if(mp.addEventListener) mp.addEventListener('change',alCambiar); else if(mp.addListener) mp.addListener(alCambiar);}
+})();
+</script>
+</body></html>

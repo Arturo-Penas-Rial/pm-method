@@ -49,7 +49,8 @@ La brecha total baja de 7 a 3 niveles. TI empeora cuando se corta su reunión se
 ## Clases
 
 El caso tiene 14 pasos y dos temas distintos: **montar** el sistema de interesados y **operarlo** período a período. Por
-eso se dicta en **dos clases de 90 minutos**. Guion, ejercicio y diapositivas: [docs/webinar/E2E-3](../webinar/E2E-3/).
+eso se dicta en **dos clases de 90 minutos**. Material de clase: [guion](../webinar/E2E-3/guion-instructor.md) ·
+[ejercicio](../webinar/E2E-3/ejercicio.md) · [diapositivas](../webinar/E2E-3/diapositivas.json).
 
 | Clase | Pasos | Qué cubre |
 |---|---|---|

@@ -52,7 +52,7 @@ gobierna, y cada decisión queda registrada y verificada.
    cuándo y con qué condiciones. Los subagentes no pueden registrar decisiones de la junta.
 2. **La especificación no se duplica.** pm-method no edita BMAD: lee, mide y devuelve decisiones con un documento de
    traspaso. Un requisito nuevo en el PRD sin cambio aprobado aparece como **ESP-10** y bloquea la puerta.
-3. **Verificado, no solo diseñado.** 216 pruebas automáticas de regresión (incluida una instalación real de BMAD
+3. **Verificado, no solo diseñado.** 223 pruebas automáticas de regresión (incluida una instalación real de BMAD
    6.12.4 y envíos SMTP y por webhooks contra servidores locales), una suite de integración cruzada de 61 comprobaciones,
    cinco recorridos E2E reproducibles, validación del plugin con la CLI y pruebas en vivo con Claude Code real:
    enrutamiento, guardarraíles, idioma, robustez y skills externas.
@@ -75,7 +75,7 @@ gobierna, y cada decisión queda registrada y verificada.
 | Verificación | Resultado |
 |---|---|
 | Validación estructural (`validar_paquete.py`) | OK · 39 skills, listado de 6.817 caracteres (límite 7.500); sintaxis compatible con Python 3.9 |
-| Regresión (`probar_paquete.py`) | 216 OK · 0 FALLO con Python 3.13 (215 con 3.9) |
+| Regresión (`probar_paquete.py`) | 223 OK · 0 FALLO con Python 3.13 (222 con 3.9) |
 | Integración cruzada (`scripts/pruebas/integracion/correr.py`) | 61 OK · 0 FALLO en 24 eslabones |
 | Validación del plugin (`claude plugin validate .`) | aprobada |
 | Enrutamiento en vivo | 60/60 en la batería base; 27/28 con vocabulario de PRINCE2 y PMBOK en español; 25/25 con las skills de BMAD instaladas; 14/14 con el resumen de contexto del hook de inicio; 8/8 en mapas estratégicos (detalle en [PRUEBAS](PRUEBAS.md)) |

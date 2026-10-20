@@ -503,7 +503,7 @@
             "Compará con quién lo aprobó",
             "10 minutos"
           ],
-          "nota": "Si el camino que correspondía no coincide con quien aprobó, encontraron un caso de autoridad excedida: es el hallazgo más valioso del ejercicio. La solución de referencia está en ejercicio.md."
+          "nota": "Si el camino que correspondía no coincide con quien aprobó, encontraron un caso de autoridad excedida: es el hallazgo más valioso del ejercicio. El ejemplo resuelto, plegado al final de ejercicio.md, se muestra al terminar."
         },
         {
           "tipo": "cierre",

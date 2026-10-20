@@ -1,6 +1,6 @@
 """Genera la locución del spot con Kokoro-82M (kokoro-onnx), una frase por escena.
 
-Uso:  python voz.py --modelo DIR_CON_kokoro-v1.0.onnx_Y_voices-v1.0.bin [--voz em_alex]
+Uso:  python voz.py --modelo DIR_CON_kokoro-v1.0.onnx_Y_voices-v1.0.bin [--voz em_alex] [--escenas id1,id2]
 Salida: voz/<id>.flac (24 kHz, mono) y voz/duraciones.json. Las locuciones generadas quedan versionadas, así que
 construir.py no necesita el modelo (≈ 350 MB). Requiere: pip install kokoro-onnx==0.6.1 soundfile.
 """
@@ -14,14 +14,22 @@ AQUI = os.path.dirname(os.path.abspath(__file__))
 ap = argparse.ArgumentParser()
 ap.add_argument("--modelo", required=True)
 ap.add_argument("--voz")
+ap.add_argument("--escenas", help="ids separados por coma; solo regenera esas (las demás conservan su audio)")
 a = ap.parse_args()
 g = json.load(open(os.path.join(AQUI, "guion.json"), encoding="utf-8"))
 cfg = g["voz"]
 voz = a.voz or cfg["voz"]
 k = Kokoro(os.path.join(a.modelo, "kokoro-v1.0.onnx"), os.path.join(a.modelo, "voices-v1.0.bin"))
-dur = {}
+RUTA_DUR = os.path.join(AQUI, "voz", "duraciones.json")
+previo = json.load(open(RUTA_DUR))["duraciones"] if os.path.exists(RUTA_DUR) else {}
+solo = set(a.escenas.split(",")) if a.escenas else None
+ids = [e["id"] for e in g["escenas"]]
+dur = {i: previo[i] for i in ids if i in previo and solo is not None and i not in solo}
+sr = 24000
 os.makedirs(os.path.join(AQUI, "voz"), exist_ok=True)
 for e in g["escenas"]:
+    if solo is not None and e["id"] not in solo:
+        continue
     s, sr = k.create(e["tts"].replace(" | ", " "), voice=voz, speed=cfg["velocidad"], lang=cfg["idioma"])
     s = np.asarray(s, dtype=np.float32)
     # recorta silencios de borde (umbral −50 dBFS) y deja 30 ms
@@ -31,5 +39,6 @@ for e in g["escenas"]:
     sf.write(os.path.join(AQUI, "voz", e["id"] + ".flac"), s, sr)
     dur[e["id"]] = round(len(s) / sr, 3)
     print(f'{e["id"]:<11} {dur[e["id"]]:5.2f} s  {k.tokenizer.phonemize(e["tts"].replace(" | ", " "), cfg["idioma"])}')
-json.dump({"voz": voz, "sr": sr, "duraciones": dur}, open(os.path.join(AQUI, "voz", "duraciones.json"), "w"), indent=1)
+dur = {i: dur[i] for i in ids}
+json.dump({"voz": voz, "sr": sr, "duraciones": dur}, open(RUTA_DUR, "w"), indent=1)
 print("total voz", round(sum(dur.values()), 2), "s")

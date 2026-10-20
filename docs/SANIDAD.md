@@ -371,7 +371,7 @@ Crea proyectos temporales y recorre los casos con los scripts reales (principale
 
 - **Caso P, salidas de los scripts:** contexto de sesión sin los registros de catálogo y con REG-09, agrupación «… y 1 hallazgo más» de la sanidad, códigos de control en `puertas.py estado --markdown`, estado de una copia congelada sin front matter en `paquete.py` y MAP-03 con una historia o una revisión Q-###.
 
-Resultado al 2026-10-20: **216 OK · 0 FALLO** con Python 3.13 (215 con 3.9); todos los casos figuran en [PRUEBAS.md §2](PRUEBAS.md).
+Resultado al 2026-10-20: **223 OK · 0 FALLO** con Python 3.13 (222 con 3.9); todos los casos figuran en [PRUEBAS.md §2](PRUEBAS.md).
 
 Para adoptar una versión nueva de BMAD, se agrega un fixture con artefactos reales de esa versión en `scripts/pruebas/fixtures/`, se ajusta el caso correspondiente y, si pasa, se actualiza `compatibilidad.json.bmad.probado`.
 

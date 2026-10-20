@@ -1,11 +1,30 @@
-# Webinar pm-method · material por caso y generador de diapositivas
+# Webinar pm-method · material por caso, generador de diapositivas y documentos en HTML
 
 Material del webinar de pm-method: dos clases de 90 minutos por caso E2E, para un público mixto (gestores
 de proyecto con algo de PMBOK o PRINCE2 y líderes de negocio). Cada caso se apoya en su guía de punta a punta
 (`docs/guias/E2E-N-*.md`) y en la evidencia real de su corrida (`docs/guias/evidencia/`).
 
-EN: Webinar material per E2E case (instructor script, attendee exercise, slide content) and the generator that turns
-`diapositivas.json` into a PPTX deck and a self-contained HTML deck with glossary.
+EN: Webinar material per E2E case (instructor script, attendee exercise, slide content), the generator that turns
+`diapositivas.json` into a PPTX deck and a self-contained HTML deck with glossary, and the converter that turns the
+step-by-step guide, the instructor script and the exercise (a single version that explains how it works and ends
+with a folded worked example) into self-contained HTML handouts, plus an index page (`index.html`).
+
+## Qué archivo es para quién
+
+Abrí [`index.html`](index.html) (generado): enlaza todo el material de los cinco casos. Por caso, en `docs/webinar/E2E-N/`:
+
+| Archivo | Para quién | Cuándo se usa |
+|---|---|---|
+| `E2E-N-diapositivas.html` y `.pptx` | instructor (proyectar); el HTML también sirve para repartir | en clase |
+| `E2E-N-guia.html` | asistentes e instructor | práctica individual, antes o después de clase |
+| `E2E-N-guion-instructor.html` | instructor | preparar y dar la clase (agenda, mensajes, preguntas, plan B, cómo conducir el ejercicio) |
+| `E2E-N-ejercicio.html` | asistentes e instructor | cierre de cada clase; al final, plegado, el ejemplo resuelto con el escenario del caso, para comparar después de intentarlo |
+
+Los `.md` (`guion-instructor.md`, `ejercicio.md` y la guía en `docs/guias/`) son la fuente: se editan ellos y se
+regeneran los HTML. La guía convertida va en la carpeta del caso del webinar, no en `docs/guias/`: así todo lo que se
+reparte de un caso está en una sola carpeta (y los enlaces entre guía, guion, ejercicio y diapositivas son relativos
+dentro de ella), mientras `docs/guias/` sigue siendo la fuente Markdown con su `evidencia/` e `img/` (las imágenes
+quedan embebidas en el HTML).
 
 ## Estructura de carpetas
 
@@ -13,14 +32,19 @@ EN: Webinar material per E2E case (instructor script, attendee exercise, slide c
 docs/webinar/
 ├── README.md                          este archivo
 └── E2E-N/                             un caso (N = 1..5)
-    ├── guion-instructor.md            agenda minuto a minuto, mensajes clave, preguntas, plan B
-    ├── ejercicio.md                   hoja de trabajo para asistentes y solución de referencia
+    ├── guion-instructor.md            agenda minuto a minuto, cómo conducir el ejercicio, mensajes clave, preguntas, plan B
+    ├── ejercicio.md                   mecánica, escenario y conceptos, hoja de trabajo y ejemplo resuelto
     ├── diapositivas.json              contenido de las diapositivas (esquema abajo)
     ├── E2E-N-diapositivas.pptx        generado: PowerPoint con notas del orador
-    └── E2E-N-diapositivas.html        generado: HTML autocontenido con glosario
+    ├── E2E-N-diapositivas.html        generado: HTML autocontenido con glosario
+    ├── E2E-N-guia.html                generado: guía paso a paso (desde docs/guias/E2E-N-*.md)
+    ├── E2E-N-guion-instructor.html    generado: guion del instructor
+    └── E2E-N-ejercicio.html           generado: ejercicio con el ejemplo resuelto plegado
+docs/webinar/index.html                generado: índice de todo el material (documentos.py --todos)
 scripts/webinar/
 ├── generar.py                         validación, HTML y orquestación (Python 3.9+, biblioteca estándar)
-└── pptx.js                            armado del PPTX con pptxgenjs (lo llama generar.py)
+├── pptx.js                            armado del PPTX con pptxgenjs (lo llama generar.py)
+└── documentos.py                      guía, guion y ejercicio → HTML autocontenido, e index.html
 ```
 
 Las imágenes que citan las diapositivas viven en `docs/guias/img/` (los PNG 16:9 de
@@ -134,9 +158,69 @@ Con errores no se genera nada. Los avisos no detienen la generación.
 
 Las cifras de la tabla salen de `python3 scripts/webinar/generar.py --todos --validar` (línea «válido: …» de cada caso: 5/5 sin errores ni avisos). A las diapositivas de contenido el generador suma la portada del caso, la de cada clase y el glosario.
 
+## Documentos en HTML (guía, guion y ejercicio)
+
+`scripts/webinar/documentos.py` convierte los tres Markdown de cada caso en HTML de un solo archivo con la misma
+estética que las diapositivas (Arial, azul marino, azul y naranja; los tokens de color se toman de `generar.py`).
+
+```bash
+python3 scripts/webinar/documentos.py --todos                        # los 5 casos (3 HTML cada uno) e index.html
+python3 scripts/webinar/documentos.py --caso docs/webinar/E2E-1      # un caso (no toca index.html)
+python3 scripts/webinar/documentos.py --todos --validar              # valida sin escribir nada
+python3 scripts/webinar/documentos.py --todos --salida /tmp/reparto  # E2E-N/… e index.html, con copia de las diapositivas
+python3 scripts/webinar/documentos.py --archivo X.md --tipo ejercicio --salida DIR   # un Markdown suelto
+```
+
+| Opción | Qué hace |
+|---|---|
+| `--caso DIR` / `--todos` | un caso (`docs/webinar/E2E-N`) o todos; `--todos` escribe además `index.html` |
+| `--archivo MD --tipo T` | convierte un Markdown suelto; `T` = `guia`, `guion` o `ejercicio` |
+| `--salida DIR` | carpeta de salida con la estructura de `docs/webinar/` (`E2E-N/…` e `index.html`); copia ahí las diapositivas ya generadas para repartir el conjunto |
+| `--logo PNG` | logo de IEEE en el encabezado; sin él queda el recuadro rotulado «Logo IEEE» |
+| `--validar` | valida imágenes, enlaces, anclas, las secciones del ejercicio y los diagramas sin escribir archivos |
+| `--sin-mermaid` | no dibuja los diagramas (quedan como código, con aviso); sin `mmdc` y sin esta opción, error |
+
+Qué hace con cada elemento:
+
+- **Markdown**: encabezados con anclas iguales a las de GitHub (los enlaces `…md#ancla` siguen funcionando), párrafos,
+  negrita, cursiva, código, listas anidadas y de tareas (`- [ ]`, con casilla marcable), tablas con alineación, bloques
+  de código (con botón «Copiar»), citas, enlaces, imágenes, `<details>`/`<summary>` y `<br>`. Cualquier otro HTML del
+  Markdown se muestra escapado (un `<script>` queda como texto).
+- **Imágenes**: embebidas como data URI; una imagen sola en su párrafo pasa a figura, con el texto que la sigue como pie.
+- **Mermaid**: dibujado con `mmdc` a SVG en línea (fondo blanco también en tema oscuro, semilla fija para que dos
+  corridas den el mismo archivo), con el código fuente plegable como respaldo. `mmdc` corre con un `TMPDIR` corto
+  bajo `/tmp` (Chromium no arranca si la ruta de su socket es larga).
+- **Enlaces relativos**: a otro documento convertido → su `.html`; a `diapositivas.json` → `E2E-N-diapositivas.html`; a
+  la carpeta de un caso → `index.html#E2E-N`; a cualquier otro archivo del repositorio → GitHub
+  (`https://github.com/Arturo-Penas-Rial/pm-method/blob/main/…`, la URL del README y la rama del workflow).
+- **Página**: barra con el material hermano del caso (la guía y el ejercicio no enlazan al guion), índice lateral
+  (plegable en el teléfono) con la sección actual resaltada, tema claro, oscuro o automático (compartido con las
+  diapositivas), botón Imprimir, encabezado con caso, tipo de documento y versión, y la fuente
+  `.md` al pie (al imprimir, en el encabezado). Impresión en A4 sin barra ni índice; al imprimir desde el navegador, los `<details>` se abren solos.
+- **Ejercicio**: una sola versión, para asistentes e instructor. Tiene que empezar con la sección de nivel 2 «Cómo
+  funciona este ejercicio» (la mecánica: para qué sirve, cuándo se hace, qué se completa, cómo se autoevalúa y que al
+  final hay un ejemplo resuelto) y tener una única sección de nivel 2 «Ejemplo resuelto». El contenido de esa sección
+  (hasta el siguiente encabezado de nivel 1 o 2, o el final) queda dentro de un bloque plegable rotulado «Ver el
+  ejemplo resuelto (después de intentarlo)», que se abre solo al imprimir y al seguir un enlace a un encabezado que
+  está dentro.
+
+| Situación | Resultado |
+|---|---|
+| imagen inexistente, externa o de formato no admitido | error |
+| enlace a un archivo que no existe, a un ancla que no está (en el documento o en otro Markdown) o con esquema no permitido (`javascript:`) | error |
+| bloque Mermaid que `mmdc` no dibuja (o `mmdc` ausente sin `--sin-mermaid`) | error con el motivo |
+| ejercicio que no empieza con «Cómo funciona este ejercicio» o sin una única sección «Ejemplo resuelto» de nivel 2 | error |
+| falta la guía `docs/guias/E2E-N-*.md`, el guion o el ejercicio del caso | error |
+| diapositivas HTML del caso sin generar | aviso; la barra no las enlaza |
+
+Con errores no se escribe ningún archivo del caso (ni `index.html`). Código de salida: `0` sin errores, `1` con errores,
+`2` uso incorrecto. Requisitos: Python 3.9+ (biblioteca estándar) y mermaid-cli (`mmdc`) para los diagramas. Las guías
+pesan entre 2 y 4,5 MB por las imágenes embebidas; el guion y el ejercicio, menos de 45 KB.
+
 ## Control de calidad
 
-Después de regenerar, revisar el PPTX como imágenes (LibreOffice → PDF → PNG) y el HTML en el navegador, en claro,
+Después de regenerar las diapositivas o los documentos, revisar el PPTX como imágenes (LibreOffice → PDF → PNG) y el HTML en el navegador, en claro,
 oscuro y ancho de teléfono: textos cortados o superpuestos, imágenes legibles, avisos del generador resueltos. Las
 imágenes muy altas (capturas completas de tableros) se ven chicas en la diapositiva: conviene citar un PNG 16:9 de
-`visuales.py` o un recorte.
+`visuales.py` o un recorte. En los documentos, mirar también la vista de impresión (A4): tablas sin columnas
+partidas, diagramas enteros en una página y, en el ejercicio, el ejemplo resuelto desplegado al final.

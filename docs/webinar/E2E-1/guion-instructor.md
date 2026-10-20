@@ -45,6 +45,26 @@ Al terminar las dos clases, cada asistente puede:
   final como "Carpeta del recorrido").
 - Probar el micrófono y el tamaño de letra de la terminal (mínimo 18 pt).
 
+## El ejercicio
+
+La hoja es una sola para asistentes e instructor: [ejercicio.md](ejercicio.md) (en HTML, `E2E-1-ejercicio.html`). Se
+basta sola: empieza por «Cómo funciona este ejercicio», resume el escenario y los conceptos que hacen falta, trae la
+hoja de trabajo con sus criterios de autoevaluación y termina con un **ejemplo resuelto** con el escenario del caso,
+plegado, donde cada dato cita el paso de la guía de donde sale.
+
+- **Cuándo:** la parte A en el minuto 75 de la clase 1 y la parte B en el minuto 75 de la clase 2, siempre después de
+  la demostración; 10 minutos cada una.
+- **Cómo se presenta:** proyectá la diapositiva del ejercicio y leé en voz alta «Cómo funciona este ejercicio» (un
+  minuto). Quien no tenga un proyecto propio trabaja con los datos de partida del caso, que están en «Lo que necesitás
+  saber».
+- **Mientras trabajan:** pedí órdenes de magnitud, no precisión. Si alguien no tiene reserva de riesgo formal, que
+  anote cuánto se gastó en respuestas a riesgos y de qué partida salió.
+- **Ejemplo resuelto:** pedí que no lo abran antes de intentar. Mostralo recién en los dos últimos minutos del bloque:
+  desplegalo en pantalla y comparalo con la hoja de uno o dos voluntarios. Al imprimir, sale desplegado al final de la
+  hoja.
+- **Autoevaluación:** cada asistente marca los criterios de su parte; un criterio sin cumplir es un hallazgo sobre su
+  proyecto, no un error del ejercicio.
+
 ---
 
 ## Clase 1 · Del taller al plan de respuesta
@@ -59,7 +79,7 @@ Al terminar las dos clases, cada asistente puede:
 | 10–25 | Concepto | Enfoque de riesgo: apetito, tolerancia, autoridad sobre la reserva y cadencia; P×I y EMV; riesgo frente a issue; presupuesto de riesgo y reserva de gestión. | Diapositivas de concepto |
 | 25–65 | Demostración | Pasos 3, 4, 15, 5, 6 y 7 (detalle abajo). | Terminal + evidencia |
 | 65–75 | Pregunta y discusión | "R-003 se transfiere con un SLA. ¿Por qué su EMV residual sigue en el presupuesto?" | Diapositiva de pregunta |
-| 75–85 | Ejercicio | Parte A: el enfoque y el presupuesto de riesgo de un proyecto propio. | [ejercicio.md](ejercicio.md) |
+| 75–85 | Ejercicio | Parte A: el enfoque y el presupuesto de riesgo de un proyecto propio; ejemplo resuelto al cerrar el bloque. | [ejercicio.md](ejercicio.md) · [cómo conducirlo](#el-ejercicio) |
 | 85–90 | Cierre | Tres mensajes clave y anticipo de la clase 2. | Diapositiva de cierre |
 
 ### Demostración (40 minutos)
@@ -124,7 +144,7 @@ decir "lo verificamos después".
 | 10–25 | Concepto | Revisión periódica, fecha de revisión y REG-09; el resumen que pm-method muestra al abrir la sesión; disparador y contingencia; riesgo que ocurre → issue; la reserva como presupuesto vivo (CAM-02, CAM-03); condiciones de la junta (EST-12). | Diapositivas de concepto |
 | 25–65 | Demostración | Pasos 8 a 14 (detalle abajo). | Terminal + evidencia |
 | 65–75 | Pregunta y discusión | "Con la reserva al 81 %, ¿qué harías en lugar de Laura?" | Diapositiva de pregunta |
-| 75–85 | Ejercicio | Parte B: la revisión de riesgos de un proyecto propio. | [ejercicio.md](ejercicio.md) |
+| 75–85 | Ejercicio | Parte B: la revisión de riesgos de un proyecto propio; ejemplo resuelto al cerrar el bloque. | [ejercicio.md](ejercicio.md) · [cómo conducirlo](#el-ejercicio) |
 | 85–90 | Cierre | Mensajes clave y puente a E2E-2. | Diapositiva de cierre |
 
 ### Demostración (40 minutos)

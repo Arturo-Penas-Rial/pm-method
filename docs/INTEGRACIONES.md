@@ -187,7 +187,7 @@ Controles adicionales:
 - **`pm-puerta` / `pm-director`**: ninguna puerta con ERROR sin decisión humana registrada como condición.
 - **`compatibilidad.json`**: declara versiones probadas de BMAD (4.x, 6.11, 6.12), integraciones externas opcionales y
   comportamiento por cliente.
-- **`scripts/probar_paquete.py`**: regresión de punta a punta (216 pruebas: BMAD v6, v6.12.4 real, v4, nativo, hook guardian, ciclo de puertas, regresiones, el caso H con maestro de interesados, capa de canales contra servidores SMTP y HTTP locales y OKR, el caso I con candidatos de riesgo desde BMAD, transcripciones, una instantánea de Jira y artefactos, el caso J con los controles permanentes y el caso X con la integración cruzada; detalle en [PRUEBAS §2](PRUEBAS.md)).
+- **`scripts/probar_paquete.py`**: regresión de punta a punta (223 pruebas: BMAD v6, v6.12.4 real, v4, nativo, hook guardian, ciclo de puertas, regresiones, el caso H con maestro de interesados, capa de canales contra servidores SMTP y HTTP locales y OKR, el caso I con candidatos de riesgo desde BMAD, transcripciones, una instantánea de Jira y artefactos, el caso J con los controles permanentes y el caso X con la integración cruzada; detalle en [PRUEBAS §2](PRUEBAS.md)).
 
 Observación: INT-01 valida también `diagramas` (acepta listas de valores conocidos), `cronograma` y `export`; la instalación de las skills externas la controla INS-03.
 

@@ -1,5 +1,5 @@
 {
- "generado": "2026-10-20T14:31:23",
+ "generado": "2026-10-20T16:36:34",
  "meta": {
   "version": "2.3.0",
   "licencia": "MIT",
@@ -1480,9 +1480,9 @@
    "agentes": 6
   },
   "regresion": {
-   "ok": 216,
+   "ok": 223,
    "fallo": 0,
-   "casos": 20
+   "casos": 21
   },
   "e2e": {
    "ok": 5,
@@ -1491,7 +1491,8 @@
   "mermaid": {
    "bloques": 127,
    "errores": 0
-  }
+  },
+  "reusado": true
  },
  "n": {
   "version": "2.3.0",
@@ -1514,9 +1515,9 @@
   "pasos_casos": 69,
   "clases_webinar": 10,
   "diapositivas_webinar": 186,
-  "pruebas_ok": 216,
+  "pruebas_ok": 223,
   "pruebas_fallo": 0,
-  "pruebas_casos": 20,
+  "pruebas_casos": 21,
   "e2e_ok": 5,
   "e2e_total": 5,
   "mermaid": 127,
@@ -1788,7 +1789,7 @@
     "Diapositivas",
     "Glosario"
    ],
-   "material": "Material por caso: guía paso a paso por prompts, guion del instructor minuto a minuto, ejercicio con solución de referencia y diapositivas PPTX y HTML que regenera un script.",
+   "material": "Material por caso: guía paso a paso por prompts, guion del instructor minuto a minuto, ejercicio autocontenido con ejemplo resuelto y diapositivas PPTX y HTML que regenera un script.",
    "induccion": "Inducción sugerida: instalar → recorrer una guía sobre la copia del proyecto de prueba con BMAD real → dictar su clase → piloto en paralelo con un proyecto real.",
    "recorre": {
     "E2E-1": "Riesgos desde cuatro fuentes, respuestas costeadas, reserva vigilada y escalamiento a la junta",
@@ -1857,9 +1858,9 @@
    "titulo": "La confianza se demuestra: pruebas reproducibles, pruebas en vivo y revisión de seguridad",
    "kpis": [
     [
-     "216",
+     "223",
      "pruebas de regresión OK",
-     "0 FALLO · 20 casos"
+     "0 FALLO · 21 casos"
     ],
     [
      "5/5",

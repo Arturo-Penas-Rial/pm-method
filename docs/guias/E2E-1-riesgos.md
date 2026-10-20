@@ -47,7 +47,8 @@ El estado de riesgo en una sola vista para la junta del límite de etapa: lo ún
 | 1 · Del taller al plan de respuesta | 1–7 y 15 | Enfoque y apetito, identificación con cita (con y sin BMAD), evaluación, respuestas costeadas, presupuesto de riesgo y puertas |
 | 2 · El control continuo | 8–14 | Revisión del sprint, riesgo que ocurre (Jira), reserva usada y mal usada, escalamiento a la junta, informe, revisión periódica (REG-09 y resumen de inicio de sesión), reserva al 80 % y límite de etapa |
 
-El guion del instructor y el ejercicio para asistentes están en [docs/webinar/E2E-1/](../webinar/E2E-1/guion-instructor.md).
+Material de clase: [guion del instructor](../webinar/E2E-1/guion-instructor.md) · [ejercicio](../webinar/E2E-1/ejercicio.md)
+(con un ejemplo resuelto del caso al final) · [diapositivas](../webinar/E2E-1/diapositivas.json).
 
 ---
 

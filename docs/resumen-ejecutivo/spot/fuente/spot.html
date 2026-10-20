@@ -54,42 +54,30 @@ body{font-family:"Inter","DejaVu Sans",sans-serif;color:var(--tinta);-webkit-fon
 <body>
 <div id="lienzo">
 
-<!-- 1 · GANCHO -->
-<section class="escena fondo-osc" id="e-gancho">
-  <div class="a kicker" style="color:#ec835a" data-in="0" data-fx="none">Reunión de la junta</div>
-  <div class="a titulo disp" style="color:#fff;font-size:92px;top:200px" data-in="0" data-fx="none">¿Quién aprobó este&nbsp;cambio?</div>
-  <div class="a titulo disp" style="color:#f4c4ae;font-size:92px;top:430px" data-in="1.35" data-fx="up">¿Cuánto queda de la&nbsp;reserva?</div>
-  <div class="a" style="left:60px;right:60px;top:735px" data-in="0.5" data-fx="fade">
-    <div style="font-size:28px;color:#c3c2b7;font-weight:600;margin-bottom:18px">Presupuesto de cambio fijado por la junta</div>
-    <div style="position:relative;height:74px;background:#2a2c30;border-radius:12px;overflow:visible">
-      <div id="g-barra" style="position:absolute;left:0;top:0;bottom:0;width:0;background:var(--critico);border-radius:12px"></div>
-      <div style="position:absolute;left:50%;top:-14px;bottom:-14px;width:5px;background:#fff;border-radius:3px"></div>
-      <div style="position:absolute;left:50%;top:92px;transform:translateX(-50%);font-size:24px;color:#c3c2b7;white-space:nowrap">tope</div>
-    </div>
-    <div style="display:flex;justify-content:space-between;align-items:baseline;margin-top:56px">
-      <div class="disp" style="font-size:120px;font-weight:800;color:#fff;letter-spacing:-.03em"><span id="g-pct">0</span>&nbsp;%</div>
-      <div id="g-estado" style="font-size:40px;font-weight:800;color:#ff7b74;opacity:0">✖ excedido</div>
-    </div>
-    <div style="font-size:25px;color:#a9a8a2;margin-top:10px">Caso E2E-2 de las guías: un cambio llevó el presupuesto de cambio al 200&nbsp;%.</div>
+<!-- 1 · APERTURA -->
+<section class="escena fondo-osc" id="e-apertura">
+  <div class="a kicker" style="color:#86b6ef" data-in="0" data-fx="none">Para directivos y PMO</div>
+  <div class="a titulo disp" style="color:#fff;font-size:96px;line-height:1.04;top:190px" data-in="0" data-fx="none">La estrategia se ejecuta a través de <span style="color:#86b6ef">proyectos.</span></div>
+  <div class="a" style="left:60px;right:60px;top:560px;display:flex;align-items:center;gap:18px" data-in="0.6" data-fx="none" id="ap-flujo">
+    <div class="chip ap" style="background:transparent;color:#fff;border-color:#52514e">Estrategia</div><div class="flecha ap" style="color:#898781;font-size:40px;font-weight:800">→</div>
+    <div class="chip ap" style="background:#2a78d6;color:#fff;border-color:#2a78d6">Proyectos</div><div class="flecha ap" style="color:#898781;font-size:40px;font-weight:800">→</div>
+    <div class="chip ap" style="background:transparent;color:#fff;border-color:#52514e">Resultados</div>
   </div>
+  <div class="a disp" style="left:60px;right:60px;top:720px;font-size:60px;font-weight:700;color:#f4c4ae;line-height:1.1" data-in="2.75" data-fx="up">Si los resultados importan,</div>
+  <div class="a disp" style="left:60px;right:60px;top:800px;font-size:112px;font-weight:800;color:#fff;letter-spacing:-.03em;line-height:1.05" data-in="3.55" data-fx="scale">los métodos también.</div>
 </section>
 
-<!-- 2 · GIRO -->
-<section class="escena fondo-claro" id="e-giro">
-  <div class="a kicker" data-in="0.05" data-fx="left">Del uso único al control continuo</div>
-  <div class="a disp" style="left:60px;top:190px;font-size:40px;font-weight:600;color:var(--tinta2)" data-in="0.15" data-fx="up">Lo que hoy se controla…</div>
-  <div class="a disp" style="left:60px;top:268px" data-in="0.45" data-fx="up">
-    <div class="tachable" data-strike="1.9" style="font-size:118px;font-weight:800;letter-spacing:-.03em;line-height:1.12;position:relative;display:inline-block">a mano<i></i></div>
+<!-- 2 · PREGUNTA -->
+<section class="escena fondo-claro" id="e-pregunta">
+  <div class="a kicker" data-in="0.05" data-fx="left">La pregunta</div>
+  <div class="a titulo disp" style="font-size:84px;line-height:1.06;top:175px" data-in="0.12" data-fx="up">¿Cómo gestionar con más <span style="color:#2a78d6">eficiencia</span> y foco en <span style="color:#eb6834">valor</span>?</div>
+  <div class="a" style="left:60px;right:60px;top:590px;background:var(--azul-osc);color:#fff;border-radius:26px;padding:36px 42px" data-in="3.2" data-fx="scale">
+    <div style="font-size:36px;font-weight:600;opacity:.88">Aplicando</div>
+    <div class="disp" style="font-size:104px;font-weight:800;letter-spacing:-.03em;line-height:1.02">IA, con método.</div>
   </div>
-  <div class="a disp" style="left:60px;top:410px" data-in="0.85" data-fx="up">
-    <div class="tachable" data-strike="2.15" style="font-size:118px;font-weight:800;letter-spacing:-.03em;line-height:1.12;position:relative;display:inline-block">una vez<i></i></div>
-  </div>
-  <div class="a disp" style="left:60px;top:552px" data-in="1.25" data-fx="up">
-    <div class="tachable" data-strike="2.4" style="font-size:118px;font-weight:800;letter-spacing:-.03em;line-height:1.12;position:relative;display:inline-block">o nunca<i></i></div>
-  </div>
-  <div class="a" style="left:60px;right:60px;top:760px;background:var(--azul);color:#fff;border-radius:24px;padding:34px 40px" data-in="2.75" data-fx="scale">
-    <div style="font-size:34px;font-weight:600;opacity:.9">pasa a ser un</div>
-    <div class="disp" style="font-size:86px;font-weight:800;letter-spacing:-.02em;line-height:1.05">control permanente&nbsp;✔</div>
+  <div class="a" style="left:60px;right:60px;top:900px;display:flex;align-items:center;gap:18px" data-in="4.0" data-fx="up">
+    <div class="disp" style="font-size:44px;font-weight:800;color:var(--tinta)">→ pm-method</div>
+    <div style="font-size:28px;color:var(--tinta2);font-weight:600">código abierto · Claude Code y Cowork</div>
   </div>
 </section>
 
@@ -111,35 +99,29 @@ body{font-family:"Inter","DejaVu Sans",sans-serif;color:var(--tinta);-webkit-fon
   </div>
 </section>
 
-<!-- 4 · GOBIERNO -->
-<section class="escena fondo-claro" id="e-gobierno">
-  <div class="a kicker" data-in="0.05" data-fx="left">Gobierno</div>
-  <div class="a disp" style="left:60px;top:175px;font-size:84px;font-weight:800;letter-spacing:-.025em;line-height:1.1" data-in="0.15" data-fx="up">El modelo <span style="color:var(--azul)">prepara.</span></div>
-  <div class="a disp" style="left:60px;top:282px;font-size:84px;font-weight:800;letter-spacing:-.025em;line-height:1.1" data-in="1.05" data-fx="up">La persona <span style="color:var(--naranja)">decide.</span></div>
-  <div class="a disp" style="left:60px;right:40px;top:389px;font-size:84px;font-weight:800;letter-spacing:-.025em;line-height:1.1" data-in="2.0" data-fx="up">Los scripts <span style="color:var(--verde)">verifican y registran.</span></div>
-  <div class="a" style="left:60px;right:60px;top:640px" data-in="2.3" data-fx="fade">
-    <div style="font-size:28px;font-weight:700;color:var(--tinta2);margin-bottom:22px">Ciclo de vida PRINCE2 · cada transición pasa por una puerta de la junta</div>
-    <div id="ciclo" style="display:flex;align-items:center;justify-content:space-between"></div>
-    <div style="display:flex;gap:16px;margin-top:34px;flex-wrap:wrap">
-      <div class="chip" id="gob-c1" style="opacity:0">◆ puerta verificada</div>
-      <div class="chip" id="gob-c2" style="opacity:0">estado.json · decisiones.csv</div>
+<!-- 4 · CASO: EL CONTROL EN ACCIÓN (guía E2E-2, paso 10) -->
+<section class="escena fondo-claro" id="e-caso">
+  <div class="a kicker" style="color:#d03b3b" data-in="0.05" data-fx="left">Un control en acción · caso E2E-2</div>
+  <div class="a titulo disp" style="font-size:62px" data-in="0.12" data-fx="up">Un cambio de 15.000, aprobado de palabra por quien tenía un límite de 10.000</div>
+  <div class="a" style="left:60px;right:60px;top:420px" data-in="0.3" data-fx="fade">
+    <div style="font-size:28px;color:var(--tinta2);font-weight:600;margin-bottom:16px">Presupuesto de cambio fijado por la junta: 12.000</div>
+    <div style="position:relative;height:70px;background:#ecebe6;border-radius:12px">
+      <div id="k-barra" style="position:absolute;left:0;top:0;bottom:0;width:0;background:#0ca30c;border-radius:12px"></div>
+      <div style="position:absolute;left:50%;top:-12px;bottom:-12px;width:5px;background:var(--tinta);border-radius:3px"></div>
+      <div style="position:absolute;left:50%;top:84px;transform:translateX(-50%);font-size:23px;color:var(--tinta2);white-space:nowrap">tope</div>
+    </div>
+    <div style="display:flex;justify-content:space-between;align-items:baseline;margin-top:44px">
+      <div class="disp" style="font-size:104px;font-weight:800;letter-spacing:-.03em;line-height:1"><span id="k-pct">0</span>&nbsp;%</div>
+      <div id="k-monto" style="font-size:30px;font-weight:700;color:var(--tinta2)">24.000 de 12.000</div>
     </div>
   </div>
-</section>
-
-<!-- 5 · CONTROLES -->
-<section class="escena fondo-claro" id="e-controles">
-  <div class="a kicker" data-in="0.05" data-fx="left">Controles permanentes</div>
-  <div class="a" style="left:60px;top:168px;display:flex;align-items:baseline;gap:22px" data-in="0.1" data-fx="up">
-    <div class="disp" style="font-size:190px;font-weight:800;letter-spacing:-.04em;line-height:1;color:var(--azul)" id="c-num">0</div>
-    <div class="disp" style="font-size:52px;font-weight:800;line-height:1.05;letter-spacing:-.015em">controles<br>en 12 familias</div>
+  <div class="a" style="left:60px;right:60px;top:735px;background:#fff;border:3px solid #d03b3b;border-radius:22px;padding:24px 30px" data-in="3.45" data-fx="scale">
+    <div class="disp" style="font-size:44px;font-weight:800;color:#d03b3b">✖ No se puede registrar como aprobado</div>
+    <div style="font-size:26px;color:var(--tinta2);margin-top:6px">supera el límite de quien decide y el saldo del presupuesto</div>
   </div>
-  <div class="a" style="left:60px;right:60px;top:390px;display:flex;flex-wrap:wrap;gap:12px" data-in="0.5" data-fx="none" id="familias"></div>
-  <div class="a card" style="left:60px;width:960px;top:560px;height:540px" data-in="2.7" data-fx="up" id="c-img1">
-    <img src="../../../guias/img/g2-consumo-cambio.png" alt=""><div class="pill">Caso E2E-2 · presupuesto de cambio</div>
-  </div>
-  <div class="a card" style="left:60px;width:960px;top:560px;height:540px" data-in="4.9" data-fx="slide" id="c-img2">
-    <img src="../../../guias/img/g1-tarjetas-etapa.png" alt=""><div class="pill">Caso E2E-1 · riesgos al fin de etapa</div>
+  <div class="a" style="left:60px;right:60px;top:905px;background:var(--azul-osc);color:#fff;border-radius:22px;padding:24px 30px" data-in="5.6" data-fx="up">
+    <div class="disp" style="font-size:44px;font-weight:800">→ Pendiente de la junta, el mismo día</div>
+    <div style="font-size:26px;opacity:.9;margin-top:6px">con el impacto calculado · el modelo prepara, la persona decide</div>
   </div>
 </section>
 
@@ -166,23 +148,25 @@ body{font-family:"Inter","DejaVu Sans",sans-serif;color:var(--tinta);-webkit-fon
   <div class="a fuente" style="left:60px;right:60px;top:1060px" data-in="2.5" data-fx="fade">Cifras del repositorio, versión 2.3.0 (20/10/2026): README, PRUEBAS y SEGURIDAD.</div>
 </section>
 
-<!-- 8 · CIERRE -->
+<!-- 8 · CIERRE (la mención de apoyo es texto provisto por el autor; solo texto, sin logos ni identidad visual) -->
 <section class="escena fondo-azul" id="e-cierre">
-  <div class="a disp" style="left:60px;right:60px;top:210px;font-size:150px;font-weight:800;letter-spacing:-.045em;color:#fff;line-height:1" data-in="0.05" data-fx="scale">pm-method</div>
-  <div class="a disp" style="left:60px;right:60px;top:400px;font-size:52px;font-weight:700;line-height:1.14;color:#e7f0fc;letter-spacing:-.01em" data-in="0.45" data-fx="up">Gestión de proyectos con IA, con método, gobierno y controles permanentes.</div>
-  <div class="a" style="left:60px;right:60px;top:640px;display:flex;gap:14px;flex-wrap:wrap" data-in="0.9" data-fx="up">
-    <div class="chip" style="background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.35);color:#fff">Código abierto · MIT</div>
-    <div class="chip" style="background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.35);color:#fff">Claude Code y Cowork</div>
-    <div class="chip" style="background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.35);color:#fff">ES / EN</div>
+  <div class="a disp" style="left:60px;right:60px;top:100px;font-size:120px;font-weight:800;letter-spacing:-.045em;color:#fff;line-height:1" data-in="0.05" data-fx="scale">pm-method</div>
+  <div class="a" style="left:60px;right:60px;top:245px;background:#fff;border-radius:22px;padding:22px 32px" data-in="0.5" data-fx="up">
+    <div style="font-size:24px;font-weight:700;color:var(--tinta2);letter-spacing:.08em;text-transform:uppercase">Código abierto en GitHub · MIT</div>
+    <div style="font-size:41px;font-weight:800;color:var(--azul-prof);margin-top:6px;letter-spacing:-.01em">github.com/Arturo-Penas-Rial/pm-method</div>
   </div>
-  <div class="a" style="left:60px;right:60px;top:790px;background:#fff;border-radius:22px;padding:30px 34px" data-in="1.3" data-fx="up">
-    <div style="font-size:26px;font-weight:700;color:var(--tinta2);letter-spacing:.08em;text-transform:uppercase">En GitHub</div>
-    <div style="font-size:41px;font-weight:800;color:var(--azul-prof);margin-top:8px;letter-spacing:-.01em">github.com/Arturo-Penas-Rial/pm-method</div>
+  <div class="a" style="left:60px;right:60px;top:445px" data-in="2.45" data-fx="up">
+    <div class="disp" style="font-size:58px;font-weight:800;color:#fff;line-height:1.08;letter-spacing:-.015em">¿Estás en proyectos e innovación?</div>
+    <div class="disp" style="font-size:44px;font-weight:700;color:#86b6ef;margin-top:10px">Te invito a consultarme.</div>
   </div>
-  <div class="a" style="left:60px;right:60px;top:985px;font-family:'DejaVu Sans Mono',monospace;font-size:25px;line-height:1.6;color:#cde2fb" data-in="1.9" data-fx="up">
-    <div><span style="color:#86b6ef">$</span> claude plugin marketplace add Arturo-Penas-Rial/pm-method</div>
-    <div><span style="color:#86b6ef">$</span> claude plugin install pm-method@pm-method</div>
+  <div class="a" style="left:60px;right:60px;top:675px" data-in="5.75" data-fx="up">
+    <div style="font-size:26px;font-weight:700;color:#86b6ef;letter-spacing:.12em;text-transform:uppercase">Capacitación y transferencia</div>
+    <div class="disp" style="font-size:42px;font-weight:700;color:#fff;line-height:1.14;margin-top:8px">para lograr los beneficios de tus proyectos con&nbsp;IA.</div>
   </div>
+  <div class="a" style="left:60px;right:60px;top:880px;background:#eb6834;border-radius:24px;padding:24px 34px;box-shadow:0 18px 40px rgba(0,0,0,.25)" data-in="10.45" data-fx="scale">
+    <div class="disp" style="font-size:60px;font-weight:800;color:#fff;letter-spacing:-.02em;line-height:1.05">Escribime por LinkedIn&nbsp;→</div>
+  </div>
+  <div class="a" style="left:60px;right:60px;top:1035px;font-size:30px;font-weight:600;color:#e7f0fc" data-in="11.8" data-fx="up">Iniciativa con el apoyo de PMI e IEEE (Uruguay)</div>
 </section>
 
 <div id="marca"><b>pm-method</b> · v2.3.0</div>
@@ -198,27 +182,12 @@ const back=x=>{x=clamp(x);const c1=1.5,c3=c1+1;return 1+c3*Math.pow(x-1,3)+c1*Ma
 const $=s=>document.querySelector(s);
 
 // ---- contenido generado
-const CICLO=[["SU","puesta en marcha"],["IP","inicio"],["CS","control de etapa"],["SB","límite de etapa"],["CP","cierre"]];
 (function(){
-  const c=$("#ciclo");
-  CICLO.forEach((p,i)=>{
-    if(i){const g=document.createElement("div");g.className="gate";g.dataset.i=i;
-      g.style.cssText="width:40px;height:40px;transform:rotate(45deg);border:4px solid #c3c2b7;border-radius:6px;background:#fff;flex:none";c.appendChild(g)}
-    const n=document.createElement("div");n.className="fase";n.dataset.i=i;
-    n.style.cssText="width:150px;height:150px;border-radius:24px;background:#fff;border:3px solid #e1e0d9;display:flex;flex-direction:column;align-items:center;justify-content:center;flex:none";
-    n.innerHTML=`<div class="disp" style="font-size:52px;font-weight:800">${p[0]}</div><div style="font-size:19px;color:#52514e;text-align:center;line-height:1.15;padding:0 8px">${p[1]}</div>`;
-    c.appendChild(n);
-  });
-  const FAM=["INS","EST","ART","REG","CAM","QUA","TOL","SUP","ESP","INT","STK","MAP"];
-  const PERM=["CAM","QUA","TOL"];
-  const f=$("#familias");
-  FAM.forEach((x,i)=>{const d=document.createElement("div");d.className="chip fam";d.dataset.i=i;d.textContent=x;
-    d.style.cssText+=";font-size:28px;padding:10px 20px;opacity:0;"+(PERM.includes(x)?"background:#2a78d6;color:#fff;border-color:#2a78d6":"");f.appendChild(d)});
   const IN=["BMAD","Jira","Slack","Teams","correo","transcripciones","OKR"];
   const g=$("#integ");
   IN.forEach((x,i)=>{const d=document.createElement("div");d.className="chip int";d.dataset.i=i;d.textContent=x;d.style.opacity=0;d.style.fontSize="24px";d.style.padding="9px 16px";g.appendChild(d)});
   const ST=[[6,"agentes","orquestador, pm-director y 4 de fase"],[39,"skills","33 que activa el modelo y 6 comandos"],
-    [216,"pruebas de regresión","0 fallos; y 61 de integración cruzada"],[5,"casos E2E","con guía, evidencia y webinar"],
+    [223,"pruebas de regresión","0 fallos; y 61 de integración cruzada"],[5,"casos E2E","con guía, evidencia y webinar"],
     [85,"controles de sanidad","en 12 familias"],[0,"hallazgos de severidad alta","revisión de seguridad; 3 medios, corregidos"]];
   const s=$("#stats");
   ST.forEach((x,i)=>{const d=document.createElement("div");d.className="stat";d.dataset.i=i;d.dataset.n=x[0];
@@ -245,36 +214,16 @@ function anima(el,lt){
 function escena(id,lt,dur,LT){
   const e=document.getElementById("e-"+id);
   e.querySelectorAll(".a").forEach(el=>anima(el,lt));
-  if(id==="gancho"){
-    const p=eInOut((lt-0.7)/1.7);           // 0 → 200 % (E2E-2: C-002 llevó el presupuesto de cambio al 200 %)
-    $("#g-barra").style.width=(p*100)+"%";
-    $("#g-barra").style.background=p>0.5?"#d03b3b":"#0ca30c";
-    $("#g-pct").textContent=Math.round(p*200);
-    $("#g-estado").style.opacity=lt>2.45?1:0;
+  if(id==="apertura"){
+    e.querySelectorAll(".ap").forEach((c,i)=>{const p=eOut((lt-0.6-i*0.22)/0.4);c.style.opacity=p;c.style.transform=`translateX(${(1-p)*-24}px)`});
   }
-  if(id==="giro"){
-    e.querySelectorAll(".tachable").forEach(d=>{
-      const s=parseFloat(d.dataset.strike), p=eOut((lt-s)/0.35);
-      const i=d.querySelector("i");
-      i.style.cssText=`position:absolute;left:-6px;top:54%;height:12px;border-radius:6px;background:#d03b3b;width:${p*(d.offsetWidth+12)}px`;
-      d.style.color=p>0.5?"#898781":"#0b0b0b";
-    });
-  }
-  if(id==="gobierno"){
-    e.querySelectorAll(".fase").forEach(n=>{const i=+n.dataset.i,p=eOut((lt-2.45-i*0.32)/0.4);
-      n.style.opacity=p;n.style.transform=`translateY(${(1-p)*30}px)`;
-      const on=lt>2.6+i*0.32; n.style.borderColor=on?"#2a78d6":"#e1e0d9"});
-    e.querySelectorAll(".gate").forEach(g=>{const i=+g.dataset.i,on=lt>2.75+(i-1)*0.32+0.16;
-      g.style.background=on?"#eb6834":"#fff";g.style.borderColor=on?"#eb6834":"#c3c2b7";
-      g.style.opacity=eOut((lt-2.45-(i-0.5)*0.32)/0.4)});
-    ["#gob-c1","#gob-c2"].forEach((s,i)=>{const p=eOut((lt-4.1-i*0.25)/0.45);$(s).style.opacity=p;$(s).style.transform=`translateY(${(1-p)*20}px)`});
-  }
-  if(id==="controles"){
-    $("#c-num").textContent=Math.round(85*eOut((lt-0.15)/1.4));
-    e.querySelectorAll(".fam").forEach(c=>{const i=+c.dataset.i,p=eOut((lt-0.6-i*0.09)/0.35);c.style.opacity=p;c.style.transform=`scale(${0.85+0.15*p})`});
-    const k1=$("#c-img1 img"),k2=$("#c-img2 img");
-    k1.style.transform=`scale(${1+0.05*clamp((lt-2.7)/4)})`;
-    k2.style.transform=`scale(${1+0.04*clamp((lt-4.9)/3)})`;
+  if(id==="caso"){
+    const p=eInOut((lt-0.5)/2.4);           // 0 → 200 %: E2E-2, C-002 (9.000 + 15.000 = 24.000 de 12.000)
+    $("#k-barra").style.width=(p*100)+"%";
+    $("#k-barra").style.background=p>0.5?"#d03b3b":"#0ca30c";
+    $("#k-pct").textContent=Math.round(p*200);
+    $("#k-pct").parentNode.style.color=p>0.5?"#d03b3b":"#0b0b0b";
+    $("#k-monto").style.opacity=lt>2.9?1:0;
   }
   if(id==="estrategia"){
     [["#s-img1",0.35,1.28],["#s-img2",2.05,1.55],["#s-img3",3.55,1.0]].forEach(([s,t,z])=>{$(s+" img").style.transform=`scale(${z+0.06*clamp((lt-t)/3)})`});
@@ -305,8 +254,8 @@ window.render=function(t){
   $("#progreso").style.width=(1080*t/LT.total)+"px";
   // marca superior: blanca sobre fondos oscuros
   const cur=LT.escenas.filter(s=>t>=s.inicio).pop();
-  $("#marca").style.color=(cur.id==="gancho"||cur.id==="cierre")?"#c3c2b7":"#52514e";
-  $("#marca b").style.color=(cur.id==="gancho"||cur.id==="cierre")?"#fff":"#0b0b0b";
+  $("#marca").style.color=(cur.id==="apertura"||cur.id==="cierre")?"#c3c2b7":"#52514e";
+  $("#marca b").style.color=(cur.id==="apertura"||cur.id==="cierre")?"#fff":"#0b0b0b";
   $("#marca").style.opacity=cur.id==="cierre"?0:1;
   // subtítulos
   const c=LT.subtitulos.find(x=>t>=x.ini&&t<x.fin);

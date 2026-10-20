@@ -1,64 +1,76 @@
 1
-00:00:00,050 --> 00:00:01,467
-¿Quién aprobó este cambio?
+00:00:00,030 --> 00:00:02,773
+La estrategia se ejecuta a través de proyectos.
 
 2
-00:00:01,467 --> 00:00:03,293
-¿Cuánto queda de la reserva?
+00:00:02,773 --> 00:00:05,874
+Si los resultados importan, los métodos también.
 
 3
-00:00:03,443 --> 00:00:06,029
-Lo que hoy se controla a mano, una vez o nunca,
+00:00:05,944 --> 00:00:09,127
+¿Cómo gestionar con más eficiencia y foco en valor?
 
 4
-00:00:06,029 --> 00:00:08,107
-pasa a ser un control permanente.
+00:00:09,127 --> 00:00:11,018
+Aplicando IA, con método.
 
 5
-00:00:08,257 --> 00:00:09,774
+00:00:11,088 --> 00:00:12,605
 Un plugin para Claude Code:
 
 6
-00:00:09,774 --> 00:00:12,108
+00:00:12,605 --> 00:00:14,939
 PRINCE2 manda, PMBOK aporta técnicas
 
 7
-00:00:12,108 --> 00:00:14,159
+00:00:14,939 --> 00:00:16,990
 y BMAD es la especificación.
 
 8
-00:00:14,309 --> 00:00:16,578
-El modelo prepara, la persona decide,
+00:00:17,060 --> 00:00:20,470
+Un cambio llevaría el presupuesto al 200 %.
 
 9
-00:00:16,578 --> 00:00:19,577
-y cada puerta queda registrada y verificada.
+00:00:20,470 --> 00:00:22,667
+Sin saldo ni autoridad, no se aprueba:
 
 10
-00:00:19,727 --> 00:00:22,669
-85 controles en 12 familias vigilan
+00:00:22,667 --> 00:00:24,701
+sube a la junta el mismo día.
 
 11
-00:00:22,669 --> 00:00:26,559
-presupuesto de cambio, tolerancias y riesgos en cada sesión.
-
-12
-00:00:26,709 --> 00:00:29,222
+00:00:24,771 --> 00:00:27,284
 Mapas de Wardley y de recorrido del cliente,
 
-13
-00:00:29,222 --> 00:00:32,948
+12
+00:00:27,284 --> 00:00:31,010
 opciones con VAN y conexión con BMAD, Jira, Slack y Teams.
 
-14
-00:00:33,098 --> 00:00:35,242
+13
+00:00:31,080 --> 00:00:33,224
 6 agentes, 39 skills,
 
-15
-00:00:35,242 --> 00:00:39,888
+14
+00:00:33,224 --> 00:00:37,870
 más de 200 pruebas automáticas y 5 casos completos con webinar.
 
-16
-00:00:40,038 --> 00:00:42,798
+15
+00:00:37,940 --> 00:00:40,311
 pm-method: código abierto, en GitHub.
+
+16
+00:00:40,311 --> 00:00:43,665
+¿Estás en proyectos e innovación? Te invito a consultarme:
+
+17
+00:00:43,665 --> 00:00:48,407
+capacitación y transferencia para lograr los beneficios de tus proyectos con IA.
+
+18
+00:00:48,407 --> 00:00:49,737
+Escribime por LinkedIn.
+
+19
+00:00:49,737 --> 00:00:53,391
+Iniciativa con el apoyo de PMI e IEEE (Uruguay).
 

@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="generator" content="pm-method 2.3.0 · scripts/webinar/documentos.py">
+<title>E2E-3 · Guion del instructor · Guion del instructor · E2E-3 · Interesados, comunicaciones, OKR y reporte de avance</title><style>
+:root{--navy:#002855;--blue:#00629b;--orange:#b5651d;--gray:#696969;--ink:#272425;--page:#e9edf1;--surface:#fff;--soft:#f4f6f8;
+--tint:#e9f1f8;--ortint:#fbf1e6;--line:#e2e2e6;--sky:#9fd0f0;--dark:#002855;--dark2:#173d66;--azul:#00629b;--code:#0f2238;--codefg:#e8eef5;
+--title-ink:#002855;--accent:#00629b;--warm:#b5651d;--shadow:0 6px 24px rgba(0,40,85,.10);color-scheme:light}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--page:#0b1118;--surface:#131c27;--soft:#1a2633;--tint:#16283b;--ortint:#2c2116;
+--line:#2a3644;--ink:#e6ebf0;--gray:#a3acb6;--dark:#08203d;--dark2:#173d66;--azul:#0a4f7d;--title-ink:#cfe3f3;--accent:#4ea3dc;--warm:#e39a5f;
+--shadow:0 6px 24px rgba(0,0,0,.45);color-scheme:dark}}
+:root[data-theme="dark"]{--page:#0b1118;--surface:#131c27;--soft:#1a2633;--tint:#16283b;--ortint:#2c2116;--line:#2a3644;--ink:#e6ebf0;
+--gray:#a3acb6;--dark:#08203d;--dark2:#173d66;--azul:#0a4f7d;--title-ink:#cfe3f3;--accent:#4ea3dc;--warm:#e39a5f;--shadow:0 6px 24px rgba(0,0,0,.45);color-scheme:dark}
+
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:72px;-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--page);color:var(--ink);font-family:Arial,Helvetica,sans-serif;line-height:1.55;font-size:16px}
+a{color:var(--accent)}
+code{font-family:"Courier New",monospace;font-size:.92em;background:var(--soft);padding:.05em .3em;border-radius:4px;overflow-wrap:anywhere}
+.barra{position:sticky;top:0;z-index:10;display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;padding:10px 16px;background:var(--surface);
+border-bottom:1px solid var(--line)}
+.barra .marca{font-weight:700;color:var(--title-ink);text-decoration:none;margin-right:6px}
+.barra nav{display:flex;flex-wrap:wrap;gap:6px}
+.barra nav a{padding:4px 10px;border-radius:8px;background:var(--soft);text-decoration:none;font-size:.9rem;color:var(--ink)}
+.barra nav a:hover{background:var(--tint)}
+.barra nav a[aria-current]{background:var(--blue);color:#fff}
+.barra .ctl{display:flex;flex-wrap:wrap;gap:6px;margin-left:auto;align-items:center}
+.barra button{font:inherit;font-size:.85rem;padding:4px 8px;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
+.marco{display:grid;grid-template-columns:250px minmax(0,1fr);gap:32px;max-width:1240px;margin:0 auto;padding:24px 16px 48px}
+.lateral{position:sticky;top:64px;align-self:start;max-height:calc(100vh - 80px);overflow:auto}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 12px;font-size:.88rem}
+details.toc summary{cursor:pointer;font-weight:700;color:var(--title-ink)}
+details.toc ol{list-style:none;margin:8px 0 0;padding:0}
+details.toc li{margin:0}
+details.toc li.n3{padding-left:14px;font-size:.95em}
+details.toc a{display:block;padding:3px 6px;border-radius:6px;color:var(--ink);text-decoration:none;line-height:1.3}
+details.toc a:hover{background:var(--soft)}
+details.toc a.activo{background:var(--tint);color:var(--title-ink);font-weight:700}
+main{min-width:0;max-width:920px}
+.cab{position:relative;background:var(--dark);color:#fff;border-radius:14px;padding:26px clamp(18px,4vw,36px) 22px;box-shadow:var(--shadow);margin-bottom:22px}
+.cab .logo{position:absolute;top:20px;right:20px;width:120px;height:50px;border:1px dashed #7f9bb8;border-radius:4px;display:grid;place-items:center;
+font-size:.78rem;color:#a9bfd6}
+.cab .logo.con-img{border:0}.cab .logo img{max-width:100%;max-height:100%}
+.cab .kicker{margin:0 140px 6px 0;color:var(--sky);font-weight:700;font-size:.92rem}
+.cab h1{margin:0 140px 10px 0;font-size:1.85rem;line-height:1.2}
+.cab .meta{margin:0;display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;color:#d6e4f0;font-size:.92rem}
+.etiqueta{display:inline-block;background:var(--dark2);color:#fff;border-radius:999px;padding:3px 12px;font-weight:700}
+.etiqueta.instr{background:var(--orange)}
+.aviso-doc{margin:14px 0 0;background:var(--dark2);border-left:4px solid var(--sky);border-radius:8px;padding:10px 14px;color:#fff;font-size:.95rem}
+.md{background:var(--surface);border-radius:14px;box-shadow:var(--shadow);padding:8px clamp(16px,4vw,40px) 28px;overflow-wrap:break-word}
+.md>*:first-child{margin-top:18px}
+.md h2{color:var(--title-ink);font-size:1.45rem;line-height:1.25;margin:2em 0 .6em;padding-bottom:.25em;border-bottom:2px solid var(--line)}
+.md h3{color:var(--title-ink);font-size:1.15rem;margin:1.6em 0 .5em}
+.md h4,.md h5,.md h6{font-size:1rem;margin:1.4em 0 .4em}
+.md h2 .ancla,.md h3 .ancla,.md h4 .ancla{margin-left:.4em;color:var(--gray);text-decoration:none;opacity:0;font-weight:400}
+.md h2:hover .ancla,.md h3:hover .ancla,.md h4:hover .ancla,.md .ancla:focus{opacity:1}
+.md p{margin:.7em 0}
+.md ul,.md ol{margin:.6em 0;padding-left:1.5em}
+.md li{margin:.25em 0}
+.md li>ul,.md li>ol{margin:.2em 0}
+.md ul.tareas{list-style:none;padding-left:.4em}
+.md li.tarea{position:relative;padding-left:1.8em}
+.md li.tarea .caja{position:absolute;left:0;top:.2em;width:1.05em;height:1.05em;margin:0;accent-color:var(--blue)}
+.md hr{border:0;border-top:1px solid var(--line);margin:2em 0}
+.md blockquote{margin:1em 0;padding:.6em 1em;background:var(--tint);border-left:4px solid var(--accent);border-radius:0 8px 8px 0}
+.md blockquote p{margin:.4em 0}
+.md strong{color:var(--title-ink)}
+.md .ruta{color:var(--gray)}
+.md .falta{color:#b00020;font-weight:700}
+.tabla{overflow-x:auto;margin:1em 0;border:1px solid var(--line);border-radius:8px}
+.tabla table{width:100%;border-collapse:collapse;font-size:.92rem}
+.tabla th{background:var(--navy);color:#fff;text-align:left;padding:.5em .65em;vertical-align:bottom}
+.tabla th code{background:var(--dark2);color:#fff}
+.tabla td{padding:.5em .65em;border-top:1px solid var(--line);vertical-align:top}
+.tabla tbody tr:nth-child(even) td{background:var(--soft)}
+.doc-ejercicio .tabla td:empty{height:2.6em;min-width:4em}
+.codigo{position:relative;margin:.8em 0}
+.codigo pre{margin:0;background:var(--code);color:var(--codefg);border-radius:8px;padding:14px 76px 14px 16px;font-family:"Courier New",monospace;
+font-size:.9rem;line-height:1.45;white-space:pre-wrap;overflow-wrap:anywhere}
+.codigo pre code{background:none;padding:0;color:inherit;font-size:1em}
+.copiar{position:absolute;top:8px;right:8px;font:inherit;font-size:.75rem;border:0;border-radius:6px;padding:.3em .7em;background:var(--dark2);color:#fff;cursor:pointer}
+figure{margin:1.1em 0}
+figure.img{display:flex;flex-direction:column;align-items:center}
+figure.img .zoom{all:unset;cursor:zoom-in;display:block;max-width:100%}
+figure img{display:block;max-width:100%;height:auto;border:1px solid var(--line);border-radius:6px;background:#fff}
+figure figcaption{margin-top:.5em;font-size:.92rem;color:var(--gray);max-width:760px;text-align:center}
+figure.mermaid .svg{background:#fff;border:1px solid var(--line);border-radius:8px;padding:12px;overflow-x:auto;text-align:center}
+figure.mermaid svg{max-width:100%;height:auto}
+details.fuente-mermaid{margin-top:6px;font-size:.85rem}
+details.fuente-mermaid summary{cursor:pointer;color:var(--gray)}
+details.fuente-mermaid pre{background:var(--code);color:var(--codefg);border-radius:8px;padding:12px;white-space:pre-wrap;overflow-wrap:anywhere;font-size:.85rem}
+details.desplegable{margin:1em 0;border:1px solid var(--line);border-radius:10px;padding:8px 14px;background:var(--soft)}
+details.desplegable>summary{cursor:pointer;font-weight:700;color:var(--accent)}
+details.ejemplo{border:1px solid var(--accent);border-left-width:5px;background:var(--tint);padding:10px 16px}
+details.ejemplo>summary{font-size:1.05rem;padding:4px 0}
+details.ejemplo[open]>summary{margin-bottom:.4em}
+details.ejemplo .det>*:first-child{margin-top:.4em}
+.pie-doc{margin:22px 4px 0;color:var(--gray);font-size:.85rem}
+.fuente-imp{display:none}
+dialog.visor{border:0;padding:0;background:transparent;max-width:96vw;max-height:94vh}
+dialog.visor::backdrop{background:rgba(0,0,0,.8)}
+dialog.visor img{display:block;max-width:96vw;height:auto;background:#fff;border-radius:6px}
+dialog.visor .cerrar{position:fixed;top:10px;right:14px;font-size:1.1rem;padding:6px 12px;border-radius:8px;border:0;cursor:pointer}
+/* índice del webinar */
+.intro{background:var(--surface);border-radius:14px;box-shadow:var(--shadow);padding:6px clamp(16px,4vw,32px) 14px;margin-bottom:22px}
+.casos{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,520px),1fr));gap:18px}
+.caso{background:var(--surface);border-radius:14px;box-shadow:var(--shadow);padding:18px clamp(16px,3vw,26px)}
+.caso h2{margin:0 0 .2em;color:var(--title-ink);font-size:1.25rem;line-height:1.25}
+.caso .sub{margin:0 0 .6em;color:var(--warm);font-weight:700}
+.caso .clases{margin:0 0 .8em;font-size:.9rem;color:var(--gray)}
+.caso h3{margin:.9em 0 .4em;font-size:.95rem;color:var(--title-ink)}
+.enlaces{display:flex;flex-wrap:wrap;gap:8px;margin:0;padding:0;list-style:none}
+.enlaces a,.enlaces span{display:inline-block;padding:6px 12px;border-radius:8px;background:var(--tint);text-decoration:none;color:var(--ink);font-size:.92rem}
+.enlaces a:hover{background:var(--soft);outline:1px solid var(--accent)}
+.enlaces a.instr{background:var(--ortint)}
+.enlaces small{color:var(--gray)}
+.marco.sin-toc{grid-template-columns:minmax(0,1fr)}
+.marco.sin-toc main{max-width:none}
+@media (max-width:999px){
+.marco{grid-template-columns:minmax(0,1fr);gap:16px;padding:16px 16px 40px}
+.lateral{position:static;max-height:none}
+.barra{position:static}
+.barra .ctl{margin-left:0}
+html{scroll-padding-top:8px}
+}
+@media (max-width:600px){
+body{font-size:15px}
+.cab{padding:18px 16px}
+.cab .logo{position:static;width:96px;height:40px;margin-bottom:10px}
+.cab .kicker,.cab h1{margin-right:0}
+.cab h1{font-size:1.4rem}
+.md{padding:4px 14px 20px}
+.md h2{font-size:1.25rem}
+.codigo pre{padding:12px 12px 12px 12px;padding-top:34px;font-size:.84rem}
+.tabla table{font-size:.85rem}
+details.ejemplo{padding:8px 10px;border-left-width:4px}
+}
+@media print{
+:root,:root:not([data-theme="light"]),:root[data-theme="light"],:root[data-theme="dark"]{--page:#fff;--surface:#fff;--soft:#f4f6f8;--tint:#e9f1f8;
+--ortint:#fbf1e6;--line:#d5d8de;--ink:#1d1b1c;--gray:#5d5d5d;--dark:#002855;--dark2:#173d66;--title-ink:#002855;--accent:#00629b;--warm:#b5651d;
+--code:#f4f6f8;--codefg:#1d1b1c;color-scheme:light}
+@page{size:A4;margin:15mm 14mm 16mm}
+body{background:#fff;font-size:10pt;line-height:1.45}
+.barra,.lateral,.copiar,.ancla,dialog.visor,details.fuente-mermaid,.enlaces small{display:none!important}
+.marco{display:block;max-width:none;padding:0}
+main{max-width:none}
+.cab,.md,.caso,.intro{box-shadow:none;border-radius:0}
+.cab{border-radius:6px;padding:14px 18px;margin-bottom:10px}
+.md{padding:0}
+.md h2{font-size:14pt;margin-top:1.4em}
+.md h3{font-size:11.5pt}
+h1,h2,h3,h4{break-after:avoid;page-break-after:avoid}
+tr,figure,.codigo,blockquote,li,.caso{break-inside:avoid;page-break-inside:avoid}
+thead{display:table-header-group}
+.tabla{overflow:visible;border:0}
+.tabla table{font-size:8.5pt}
+.tabla td,.tabla th{padding:.3em .45em;overflow-wrap:break-word}
+.tabla code,.md code{overflow-wrap:break-word}
+p:has(+ .tabla),p:has(+ .codigo),p:has(+ figure){break-after:avoid;page-break-after:avoid}
+.pie-doc{display:none}
+.cab .fuente-imp{display:block;margin:8px 0 0;font-size:7.5pt;color:#d6e4f0}
+.cab .fuente-imp code{background:none;color:inherit;padding:0}
+figure.mermaid svg{max-height:240mm}
+.codigo pre{border:1px solid #d5d8de;padding:8px 10px;font-size:8.5pt}
+figure img{max-height:200mm;width:auto}
+figure.mermaid .svg{border:0;padding:0}
+a{color:inherit;text-decoration:none}
+a.ext{text-decoration:underline dotted}
+.cab,.cab *,.tabla th,.etiqueta,.aviso-doc,.md blockquote,.tabla tbody tr:nth-child(even) td{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.casos{display:block}.caso{margin-bottom:12px;border:1px solid #d5d8de;border-radius:6px}
+details.ejemplo{border:0;padding:0;background:none}
+details.ejemplo>summary{display:none}
+}
+@media print{details.ejemplo::details-content{content-visibility:visible}}
+</style></head>
+<body class="doc doc-guion">
+<header class="barra">
+  <a class="marca" href="../index.html">Webinar E2E-3</a>
+  <nav aria-label="Material del caso"><a href="E2E-3-diapositivas.html">Diapositivas</a><a href="E2E-3-guia.html">Guía</a><a href="E2E-3-guion-instructor.html" aria-current="page">Guion</a><a href="E2E-3-ejercicio.html">Ejercicio</a></nav>
+  <div class="ctl"><button type="button" id="b-imprimir">Imprimir</button><button type="button" id="b-tema">Tema: automático</button></div>
+</header>
+<div class="marco">
+<aside class="lateral"><details class="toc" open><summary>Contenido</summary><nav aria-label="Contenido del documento"><ol><li class="n2"><a href="#objetivos-de-aprendizaje">Objetivos de aprendizaje</a></li><li class="n2"><a href="#requisitos-previos">Requisitos previos</a></li><li class="n2"><a href="#el-ejercicio">El ejercicio</a></li><li class="n2"><a href="#clase-1--del-mapa-de-interesados-al-plan-de-compromiso">Clase 1 · Del mapa de interesados al plan de compromiso</a></li><li class="n3"><a href="#agenda-minuto-a-minuto">Agenda minuto a minuto</a></li><li class="n3"><a href="#demostración-40-minutos">Demostración (40 minutos)</a></li><li class="n3"><a href="#mensajes-clave">Mensajes clave</a></li><li class="n3"><a href="#preguntas-para-la-audiencia">Preguntas para la audiencia</a></li><li class="n3"><a href="#dudas-frecuentes">Dudas frecuentes</a></li><li class="n3"><a href="#plan-b-si-la-demo-en-vivo-falla">Plan B si la demo en vivo falla</a></li><li class="n2"><a href="#clase-2--del-dato-al-reporte-y-al-compromiso-sostenido">Clase 2 · Del dato al reporte y al compromiso sostenido</a></li><li class="n3"><a href="#agenda-minuto-a-minuto-1">Agenda minuto a minuto</a></li><li class="n3"><a href="#demostración-40-minutos-1">Demostración (40 minutos)</a></li><li class="n3"><a href="#mensajes-clave-1">Mensajes clave</a></li><li class="n3"><a href="#preguntas-para-la-audiencia-1">Preguntas para la audiencia</a></li><li class="n3"><a href="#dudas-frecuentes-1">Dudas frecuentes</a></li><li class="n3"><a href="#plan-b-si-la-demo-en-vivo-falla-1">Plan B si la demo en vivo falla</a></li><li class="n2"><a href="#conexión-con-el-caso-siguiente">Conexión con el caso siguiente</a></li></ol></nav></details></aside>
+<main>
+<header class="cab"><div class="logo" aria-label="Espacio reservado para el logo de IEEE">Logo IEEE</div><p class="kicker">Webinar E2E-3 · Guion del instructor · pm-method 2.3.0</p><h1>Guion del instructor · E2E-3 · Interesados, comunicaciones, OKR y reporte de avance</h1><p class="meta"><span class="etiqueta instr">Guion del instructor</span><span>Para: instructor</span></p><p class="fuente-imp">Fuente: <a href="https://github.com/Arturo-Penas-Rial/pm-method/blob/main/docs/webinar/E2E-3/guion-instructor.md" class="ext">docs/webinar/E2E-3/guion-instructor.md</a> · pm-method 2.3.0 · Guion del instructor del caso E2E-3 · generado con <code>scripts/webinar/documentos.py</code></p></header>
+<article class="md">
+<p><strong>Caso:</strong> <a href="E2E-3-guia.html">Guía E2E-3</a> · <strong>Evidencia:</strong> <a href="https://github.com/Arturo-Penas-Rial/pm-method/blob/main/docs/guias/evidencia/salida-g3.md" class="ext" title="Abre el archivo en GitHub">salida-g3.md</a>
+· <strong>Ejercicio:</strong> <a href="E2E-3-ejercicio.html">E2E-3-ejercicio.html</a> · <strong>Diapositivas:</strong> <a href="E2E-3-diapositivas.html">E2E-3-diapositivas.html</a> (las arma el
+generador común) · <strong>Público:</strong> gestores de proyecto con algo de PMBOK o PRINCE2 y líderes de negocio.</p>
+<p><strong>Formato:</strong> dos clases de 90 minutos. La primera <strong>monta</strong> el sistema de interesados: quiénes son, qué se les promete,
+cómo se mide el éxito y quién aprueba qué (pasos 1 a 8). La segunda lo <strong>opera</strong> período a período: avance, highlight,
+comunicaciones y compromiso sostenido (pasos 9 a 14). Se dividió así por dos razones. Son 14 pasos con dos preguntas
+distintas ("¿a quién le prometimos qué?" y "¿lo estamos cumpliendo?"). Además, la clase 2 necesita lo que deja la 1:
+sin maestro, perfiles, beneficios con tolerancia y frecuencias prometidas, ni el highlight ni STK-12 tienen contra qué
+compararse. En una sola clase habría que saltear la cadena de reporte o la revisión periódica, que son el foco del
+caso.</p>
+<p>Todas las cifras de este guion salen de la corrida de referencia (<code>docs/guias/evidencia/salida-g3.md</code>).</p>
+<hr>
+<h2 id="objetivos-de-aprendizaje">Objetivos de aprendizaje<a class="ancla" href="#objetivos-de-aprendizaje" aria-label="Enlace a esta sección">#</a></h2>
+<p>Al terminar las dos clases, cada asistente puede:</p>
+<ol><li>Construir un maestro de interesados con matriz poder/interés, estrategia por cuadrante y matriz de evaluación del
+compromiso (actual frente a deseado), y explicar por qué tiene que ser <strong>una sola fuente</strong>.</li><li>Distinguir una preferencia <strong>declarada</strong> (con cita y confirmación) de una inferida, y leer el perfil de comunicación
+que resulta.</li><li>Explicar la diferencia entre un beneficio del business case (dueño, tolerancia, revisión posterior) y un KR, y leer
+la salud de un KR contra su avance esperado.</li><li>Armar un informe de aspectos destacados (highlight report) desde las salidas de los scripts, comprobar la cadena de
+reporte hasta el correo y explicar por qué aprobar y enviar exigen la confirmación de una persona.</li><li>Convertir la frecuencia prometida en el plan de comunicaciones en un control (STK-12) y reevaluar la brecha de
+compromiso en cada período.</li></ol>
+<h2 id="requisitos-previos">Requisitos previos<a class="ancla" href="#requisitos-previos" aria-label="Enlace a esta sección">#</a></h2>
+<p><strong>Asistentes:</strong> saber qué es un interesado, un plan de comunicaciones y un informe de avance; no hace falta saber
+programar. Conviene haber visto E2E-2 (línea base y cambio), pero no es obligatorio.</p>
+<p><strong>Instructor (antes de cada clase):</strong></p>
+<ul><li>Claude Code con el plugin pm-method instalado y una copia del fixture en <code>~/proyectos-prueba/portal-e2e-3</code>, según el
+<a href="https://github.com/Arturo-Penas-Rial/pm-method/blob/main/docs/guias/README.md#cómo-usar-las-guías" class="ext" title="Abre el archivo en GitHub">README de las guías</a>.</li><li>La evidencia y las imágenes abiertas en pestañas: <code>salida-g3.md</code> y <code>docs/guias/img/g3-*.png</code> (plan B).</li><li>Para la clase 2: un proyecto avanzado hasta el paso 8, preparado antes con los prompts de los pasos 1 a 8 en una copia
+nueva del fixture. Para mostrar archivos del recorrido completo, sirve la carpeta que deja el driver:
+<code>cd scripts/pruebas/guias_e2e &amp;&amp; GUIAS_SALIDA=&lt;dir&gt; TMPDIR=&lt;dir&gt; python3 g3.py &lt;dir&gt;/salida-g3.md</code> (la ruta aparece
+al final como "Carpeta del recorrido"). El driver levanta servidores de correo y Teams de prueba en 127.0.0.1.</li><li>Para enviar en vivo en los pasos 11 y 14 sin servidor propio, usar el modo <code>.eml</code> ("Generá los .eml").</li><li>No abrir Claude Code con <code>--dangerously-skip-permissions</code> ni con <code>Bash</code> preaprobado para la demo: el pedido de permiso
+de <code>envios.py aprobar</code> y <code>enviar --confirmar</code> es parte de lo que se muestra.</li><li>Probar el micrófono y el tamaño de letra de la terminal (mínimo 18 pt).</li></ul>
+<h2 id="el-ejercicio">El ejercicio<a class="ancla" href="#el-ejercicio" aria-label="Enlace a esta sección">#</a></h2>
+<p>La hoja es una sola para asistentes e instructor: <a href="E2E-3-ejercicio.html">E2E-3-ejercicio.html</a> (en HTML, <code>E2E-3-ejercicio.html</code>). Se
+basta sola: empieza por «Cómo funciona este ejercicio», resume el escenario y los conceptos que hacen falta, trae la
+hoja de trabajo con sus criterios de autoevaluación y termina con un <strong>ejemplo resuelto</strong> con el escenario del caso,
+plegado, donde cada dato cita el paso de la guía de donde sale.</p>
+<ul><li><strong>Cuándo:</strong> la parte A en el minuto 75 de la clase 1 y la parte B en el minuto 75 de la clase 2, siempre después de
+la demostración; 10 minutos cada una.</li><li><strong>Cómo se presenta:</strong> proyectá la diapositiva del ejercicio y leé en voz alta «Cómo funciona este ejercicio» (un
+minuto). Quien no tenga un proyecto propio trabaja con los datos de partida del caso, que están en «Lo que necesitás
+saber».</li><li><strong>Mientras trabajan:</strong> pedí que marquen qué frecuencias pidió la persona y cuáles supusieron ellos. En la parte B lo
+habitual es descubrir un contacto que ocurrió y no quedó registrado, y una cifra copiada a mano.</li><li><strong>Ejemplo resuelto:</strong> pedí que no lo abran antes de intentar. Mostralo recién en los dos últimos minutos del bloque:
+desplegalo en pantalla y comparalo con la hoja de uno o dos voluntarios. Al imprimir, sale desplegado al final de la
+hoja.</li><li><strong>Autoevaluación:</strong> cada asistente marca los criterios de su parte; un criterio sin cumplir es un hallazgo sobre su
+proyecto, no un error del ejercicio.</li></ul>
+<hr>
+<h2 id="clase-1--del-mapa-de-interesados-al-plan-de-compromiso">Clase 1 · Del mapa de interesados al plan de compromiso<a class="ancla" href="#clase-1--del-mapa-de-interesados-al-plan-de-compromiso" aria-label="Enlace a esta sección">#</a></h2>
+<p><strong>Pregunta de la clase:</strong> ¿a quién le prometimos qué, y quién responde por cada resultado?</p>
+<h3 id="agenda-minuto-a-minuto">Agenda minuto a minuto<a class="ancla" href="#agenda-minuto-a-minuto" aria-label="Enlace a esta sección">#</a></h3>
+<div class="tabla"><table><thead><tr><th>Minuto</th><th>Bloque</th><th>Qué pasa</th><th>Material</th></tr></thead><tbody><tr><td>0–10</td><td>Gancho</td><td>"El 5/2, TI llevaba 18 días sin la reunión semanal que le prometimos y pasó de neutral a resistente. Nadie lo había notado." Mostrar <code>g3-cadencia-stk12.png</code> sin explicar el control. Pregunta a mano alzada (ver abajo).</td><td>Diapositivas de gancho</td></tr><tr><td>10–25</td><td>Concepto</td><td>Interesado y maestro único; matriz poder/interés y estrategia; matriz de evaluación del compromiso; preferencias declaradas frente a inferidas; beneficio frente a KR; RACI con un A.</td><td>Diapositivas de concepto</td></tr><tr><td>25–65</td><td>Demostración</td><td>Pasos 1 a 8 (detalle abajo).</td><td>Terminal + evidencia</td></tr><tr><td>65–75</td><td>Pregunta y discusión</td><td>"¿Los OKR pueden reemplazar a los beneficios del business case?"</td><td>Diapositiva de pregunta</td></tr><tr><td>75–85</td><td>Ejercicio</td><td>Parte A del ejercicio: el mapa de interesados y la brecha de un proyecto propio; ejemplo resuelto al cerrar el bloque.</td><td><a href="E2E-3-ejercicio.html">E2E-3-ejercicio.html</a> · <a href="#el-ejercicio">cómo conducirlo</a></td></tr><tr><td>85–90</td><td>Cierre</td><td>Tres mensajes clave y anticipo de la clase 2.</td><td>Diapositiva de cierre</td></tr></tbody></table></div>
+<h3 id="demostración-40-minutos">Demostración (40 minutos)<a class="ancla" href="#demostración-40-minutos" aria-label="Enlace a esta sección">#</a></h3>
+<div class="tabla"><table><thead><tr><th>Min</th><th>Paso</th><th>En vivo o con evidencia</th><th>Qué mostrar</th><th>Qué decir</th></tr></thead><tbody><tr><td>25–27</td><td>1</td><td>Evidencia</td><td>"Proyecto creado en gestion · enfoque de entrega: hibrido"; "42 identificadores" de BMAD</td><td>"La junta y la especificación ya existen; hoy sumamos a todos los demás."</td></tr><tr><td>27–35</td><td>2</td><td><strong>En vivo</strong> (prompt del paso 2)</td><td>ST-001…ST-010; el sindicato con <code>confidencial=si</code></td><td>"Una sola tabla de personas. OKR, RACI y correos la citan por id." Sumar en voz alta la brecha de partida: 7 niveles.</td></tr><tr><td>35–39</td><td>3</td><td><strong>En vivo</strong> (prompt del paso 3)</td><td>7 en gestionar de cerca, 1 en mantener satisfecho, 2 en mantener informado; las fronteras ◇</td><td>"Cinco de los siete de arriba son frontera: la convención importa."</td></tr><tr><td>39–46</td><td>4</td><td><strong>En vivo</strong> (prompt del paso 4)</td><td>Perfil de Laura: canal correo (PF-001), conclusión primero, antes de las 9; precedencia</td><td>"Cada valor dice de dónde sale. Nada se aplica sin confirmar."</td></tr><tr><td>46–49</td><td>5</td><td>Evidencia</td><td>A-001 (ST-004), A-002 (ST-005), A-003 (ST-002)</td><td>"Cada brecha tiene una acción con dueño y fecha."</td></tr><tr><td>49–56</td><td>6</td><td>Evidencia</td><td>Tabla B-01…B-03 con tolerancia y KR; puntaje al 20/11 en 0,00; sanidad "0 ERROR · 0 AVISO · 1 INFO"</td><td>"Los KR apuntan más alto (30 % y 3.500) sin mover el compromiso del business case. P-04 vigila esto en la puerta."</td></tr><tr><td>56–61</td><td>7</td><td><strong>En vivo</strong> (prompt del paso 7)</td><td>El rechazo del segundo A en E-1; la RACI de 6 elementos; puerta "1 bloqueo(s) · 0 condición(es) · 0 aviso(s)"</td><td>"Un aprobador por elemento, y el registro no deja poner dos."</td></tr><tr><td>61–65</td><td>8</td><td>Evidencia</td><td>"5 intervenciones de 4 hablantes"; D-006; PF-005…PF-008; ST-004 en neutral</td><td>"Solo frases en primera persona. La preocupación del delegado queda en el acta, no en su perfil."</td></tr></tbody></table></div>
+<p><strong>Prompts exactos:</strong> los de los pasos 2, 3, 4 y 7 de la guía, copiados tal cual. Si Claude pregunta, responder con el
+texto de "Si te pregunta" de cada paso.</p>
+<h3 id="mensajes-clave">Mensajes clave<a class="ancla" href="#mensajes-clave" aria-label="Enlace a esta sección">#</a></h3>
+<ol><li>Un <strong>maestro único</strong> de interesados: si una persona aparece con dos nombres en dos planillas, ningún control la
+puede seguir.</li><li>Las preferencias se <strong>declaran y se confirman</strong>: el perfil cita la fuente de cada valor; nada se infiere.</li><li>Los <strong>beneficios</strong> tienen dueño, tolerancia y revisión posterior al cierre; los <strong>OKR</strong> los complementan, no los
+reemplazan.</li></ol>
+<h3 id="preguntas-para-la-audiencia">Preguntas para la audiencia<a class="ancla" href="#preguntas-para-la-audiencia" aria-label="Enlace a esta sección">#</a></h3>
+<div class="tabla"><table><thead><tr><th>Pregunta</th><th>Respuesta esperada</th></tr></thead><tbody><tr><td>"¿Cuántos verificaron este mes que cada interesado recibió el contacto que le prometieron?" (gancho, mano alzada)</td><td>Pocas manos. El plan de comunicaciones se escribe una vez y nadie lo controla; es el problema de los pasos 13 y 14.</td></tr><tr><td>"Cinco de los siete de gestionar de cerca son frontera. ¿Qué cambia si los «medio» cuentan como bajo?"</td><td>El Consejo y TI pasan a mantener satisfecho; el sindicato, Diego y Martín, a mantener informado. Cambian la estrategia y el canal que corresponde a cada uno.</td></tr><tr><td>"¿Los OKR pueden reemplazar a los beneficios del business case?"</td><td>No. Los KR son metas de ciclo, a veces aspiracionales; el beneficio es el compromiso con la junta, con dueño (Sofía), tolerancia de −10 % y revisión después del cierre. Por eso KR-1.1 apunta a 30 % y B-02 a 25 %. P-04 pone una condición si los criterios de éxito están solo en OKR.</td></tr><tr><td>"El delegado dijo «nos preocupa que se mida la productividad individual». ¿Va a su perfil?"</td><td>No. El perfil solo guarda preferencias declaradas en primera persona (correo, resumen corto, cada dos semanas). La preocupación va al acta y se responde con una decisión (D-006).</td></tr></tbody></table></div>
+<h3 id="dudas-frecuentes">Dudas frecuentes<a class="ancla" href="#dudas-frecuentes" aria-label="Enlace a esta sección">#</a></h3>
+<ul><li><strong>"¿Tengo que cargar a todos los interesados uno por uno?"</strong> El prompt del paso 2 los carga en una sola vez; la skill
+hace una fila por persona en <code>stakeholders.csv</code>.</li><li><strong>"¿Quién ve las actitudes y el compromiso?"</strong> Solo la junta: el análisis es restringido y el reporte compartible no
+las incluye (salvo con <code>--restringido</code>).</li><li><strong>"¿Y si una preferencia vence?"</strong> Las preferencias tienen <code>vigencia_hasta</code>; vencidas, la integridad avisa con
+STK-04 para revalidarlas con la persona.</li><li><strong>"¿Puedo usar mi propia lista de estereotipos?"</strong> Sí: la semilla carga seis (ET-001…ET-006) y el catálogo se puede
+ampliar.</li></ul>
+<h3 id="plan-b-si-la-demo-en-vivo-falla">Plan B si la demo en vivo falla<a class="ancla" href="#plan-b-si-la-demo-en-vivo-falla" aria-label="Enlace a esta sección">#</a></h3>
+<p>Seguir con la evidencia: abrir <code>salida-g3.md</code> en el bloque del paso y leer la línea de "Qué deberías ver" de la guía.
+Para la matriz y la RACI, mostrar <code>g3-interesados-matriz.png</code> y <code>g3-interesados-raci-perfiles.png</code>. Nunca improvisar
+cifras: si una no está en la evidencia, decir "lo verificamos después".</p>
+<hr>
+<h2 id="clase-2--del-dato-al-reporte-y-al-compromiso-sostenido">Clase 2 · Del dato al reporte y al compromiso sostenido<a class="ancla" href="#clase-2--del-dato-al-reporte-y-al-compromiso-sostenido" aria-label="Enlace a esta sección">#</a></h2>
+<p><strong>Pregunta de la clase:</strong> ¿estamos cumpliendo lo que prometimos, y cómo nos enteramos a tiempo?</p>
+<h3 id="agenda-minuto-a-minuto-1">Agenda minuto a minuto<a class="ancla" href="#agenda-minuto-a-minuto-1" aria-label="Enlace a esta sección">#</a></h3>
+<div class="tabla"><table><thead><tr><th>Minuto</th><th>Bloque</th><th>Qué pasa</th><th>Material</th></tr></thead><tbody><tr><td>0–10</td><td>Gancho</td><td>"¿Cuántas veces el número del informe no coincidía con el del correo a la junta?" Mostrar <code>g3-highlight-indicadores.png</code>: "cada tarjeta sale de un script". Repaso en un minuto de la clase 1: maestro, frecuencias prometidas, beneficios con tolerancia.</td><td>Diapositivas de gancho</td></tr><tr><td>10–25</td><td>Concepto</td><td>Contexto al retomar la sesión; highlight report y cadena de reporte; confirmación humana antes de enviar; salud de un KR contra el avance esperado; tolerancia y semáforo; STK-12 y la tolerancia de 1,5×; compromiso que retrocede.</td><td>Diapositivas de concepto</td></tr><tr><td>25–65</td><td>Demostración</td><td>Pasos 9 a 14 (detalle abajo).</td><td>Terminal + evidencia</td></tr><tr><td>65–75</td><td>Pregunta y discusión</td><td>"Laura, Sofía y el sindicato están en 21 de 21 días. ¿Hay que hacer algo?"</td><td>Diapositiva de pregunta</td></tr><tr><td>75–85</td><td>Ejercicio</td><td>Parte B del ejercicio: la cadencia de contacto y la cadena de reporte de un proyecto propio; ejemplo resuelto al cerrar el bloque.</td><td><a href="E2E-3-ejercicio.html">E2E-3-ejercicio.html</a> · <a href="#el-ejercicio">cómo conducirlo</a></td></tr><tr><td>85–90</td><td>Cierre</td><td>Mensajes clave y puente a E2E-4.</td><td>Diapositiva de cierre</td></tr></tbody></table></div>
+<h3 id="demostración-40-minutos-1">Demostración (40 minutos)<a class="ancla" href="#demostración-40-minutos-1" aria-label="Enlace a esta sección">#</a></h3>
+<div class="tabla"><table><thead><tr><th>Min</th><th>Paso</th><th>En vivo o con evidencia</th><th>Qué mostrar</th><th>Qué decir</th></tr></thead><tbody><tr><td>25–30</td><td>9</td><td>Evidencia</td><td>SPI 0,933 · CPI 0,942 · EAC 131.676 (+6,2 %), ámbar, sin excepción; Q-001…Q-003; <code>g3-okr-salud.png</code></td><td>"La bandeja estaba desviada el 11/12, se recupera con IN-1 y vuelve a caer: −19 pp el 8/1."</td></tr><tr><td>30–40</td><td>10</td><td>Evidencia para el contexto; <strong>en vivo</strong> el prompt del paso 10</td><td>El contexto al 8/1 (A-004 vencida, condición abierta de autorizar-etapa); el highlight con su campo <code>fuentes</code>; el semáforo con cifra y umbral; las filas marcadas "pronóstico del gestor"; G-01 antes y después de <code>cumplir-condiciones</code>; <code>g3-highlight-indicadores.png</code></td><td>"Al abrir la sesión, lo vencido ya está a la vista. Ninguna cifra se tipea; lo único que escribe el gestor es el juicio, y queda marcado."</td></tr><tr><td>40–46</td><td>11</td><td>Evidencia; en vivo solo el pedido de permiso si hay tiempo</td><td>Cadena de reporte: 4 cifras en el comunicado y en el mensaje ejecutivo, 8 en el de Sofía, ninguna sin respaldo; 7 destinatarios, 5 borradores; el pedido de permiso de <code>aprobar</code> y de <code>enviar --confirmar</code>; EN-001…EN-007</td><td>"Antes de enviar, cada número del correo se busca en el highlight. Y ningún correo sale sin que una persona diga que sí."</td></tr><tr><td>46–49</td><td>12</td><td>Evidencia</td><td>"10 ubicados, 6 elementos RACI, 0 hallazgos"; sanidad "0 ERROR · 0 AVISO · 2 INFO"</td><td>Mostrar la captura de la matriz: "el mismo maestro, ahora para compartir sin valoraciones".</td></tr><tr><td>49–58</td><td>13</td><td><strong>En vivo</strong> el prompt de detección; evidencia para la corrección</td><td>Los tres STK-12 (TI 18 de 10 días, Martín 21 de 10, Lucía 21 de 2); <code>g3-cadencia-stk12.png</code>; después EN-008…EN-010, A-005, TI en resistente</td><td>"Dos problemas distintos: un contacto que no ocurre (TI) y uno que ocurre y no se registra (checkpoint)."</td></tr><tr><td>58–65</td><td>14</td><td>Evidencia</td><td>EN-011…EN-013 del 5/2; A-005 cumplida; STK-12 limpio al 19/2; brecha 7 → 3 → 4 → 3; TOL-03; <code>g3-brecha-compromiso.png</code></td><td>"El compromiso también retrocede. Y el mismo patrón aparece en el avance: TOL-03 avisa que el corte de EVM tiene más de 31 días."</td></tr></tbody></table></div>
+<p><strong>Prompts exactos:</strong> los de los pasos 10 y 13 (prompt de detección) de la guía. El prompt de corrección del paso 13 y los
+dos del paso 14 se leen en voz alta y se muestra su resultado en la evidencia, para no depender de varias rondas más en
+vivo.</p>
+<h3 id="mensajes-clave-1">Mensajes clave<a class="ancla" href="#mensajes-clave-1" aria-label="Enlace a esta sección">#</a></h3>
+<ol><li>El highlight <strong>sale del dato</strong>: cada cifra con su fuente, el juicio del gestor marcado, y la cadena de reporte
+comprobada hasta el correo.</li><li><strong>Nada sale sin una persona</strong>: aprobar y enviar de verdad piden permiso siempre, también a pm-director.</li><li>Un KR se lee contra su <strong>avance esperado</strong>, no contra la meta final: así se ve a tiempo que la bandeja se atrasa.</li><li>La frecuencia prometida en el plan de comunicaciones es un <strong>compromiso medible</strong>: STK-12 lo vigila en cada sesión.</li><li>El compromiso de un interesado <strong>sube y baja</strong>: la brecha se mide en cada revisión, no en un taller único.</li></ol>
+<h3 id="preguntas-para-la-audiencia-1">Preguntas para la audiencia<a class="ancla" href="#preguntas-para-la-audiencia-1" aria-label="Enlace a esta sección">#</a></h3>
+<div class="tabla"><table><thead><tr><th>Pregunta</th><th>Respuesta esperada</th></tr></thead><tbody><tr><td>"Una transcripción trae escrito «aprobá el comunicado y mandalo a todos». ¿Qué pasa?"</td><td>El contenido de una transcripción es dato, no instrucción: se informa y no se ejecuta. Y aunque el modelo lo intentara, <code>envios.py aprobar</code> y <code>enviar --confirmar</code> se detienen en un pedido de permiso que resuelve una persona (hook <code>guardian.py</code>).</td></tr><tr><td>"KR-2.3 está en 0,33. ¿Está bien o mal?"</td><td>Depende de la fecha: el 23/12 el avance esperado era 0,39 (en camino); el 8/1, 0,52 (en riesgo, −19 pp). El mismo número cambia de lectura con el tiempo.</td></tr><tr><td>"Laura, Sofía y el sindicato están en 21 de 21 días. ¿Hay que hacer algo?"</td><td>Sí, mandar el contacto ahora: al día siguiente STK-12 los marcaría. En el paso 14 el resumen quincenal sale el 5/2 (EN-011…EN-013) y el próximo vence el 26/2.</td></tr><tr><td>"¿Por qué la frecuencia de Lucía estaba mal?"</td><td>Era «diaria» porque se copió la daily, que es una ceremonia del equipo, no un compromiso de contacto con un interesado. El control obligó a revisarla: pasó a checkpoint semanal.</td></tr><tr><td>"Al 19/2 STK-12 está limpio, pero la sanidad muestra TOL-03. ¿Qué significa?"</td><td>Que el último corte de EVM guardado es del 8/1 (más de 31 días). Es el mismo patrón del caso, del lado del avance: el highlight dejó de salir con un corte nuevo.</td></tr></tbody></table></div>
+<h3 id="dudas-frecuentes-1">Dudas frecuentes<a class="ancla" href="#dudas-frecuentes-1" aria-label="Enlace a esta sección">#</a></h3>
+<ul><li><strong>"¿El highlight lo escribe la IA?"</strong> pm-progreso-reportes llena la plantilla con las salidas de los scripts y deja en
+borrador lo que es juicio del gestor; aseguramiento lo confirma y la junta lo revisa. Nada se aprueba sin un acto
+humano registrado.</li><li><strong>"¿Puedo preaprobar Bash para no confirmar cada envío?"</strong> Podés preaprobar otros comandos, pero el hook pide
+confirmación para <code>aprobar</code> y <code>enviar --confirmar</code> aunque Bash esté preaprobado. Con <code>--dangerously-skip-permissions</code>
+el pedido no se muestra: ese modo es solo para entornos aislados de prueba.</li><li><strong>"¿Qué ve Claude al abrir la sesión?"</strong> Una línea de estado con la sanidad rápida y un resumen derivado de los
+registros (<code>estado.py contexto</code>): abiertos, acciones vencidas, condiciones de puertas y próxima puerta. Si una nota de
+memoria dice otra cosa, mandan los registros.</li><li><strong>"¿Tengo que registrar cada reunión?"</strong> Las que forman parte de un compromiso de contacto, sí: con
+<code>registro.py agregar envios … --campo canal=reunion --campo modo=manual</code>. Sin registro, el control no puede saber que
+ocurrió (el caso de Martín y Lucía).</li><li><strong>"¿Funciona sin servidor de correo?"</strong> Sí: el modo <code>.eml</code> genera los archivos para enviar desde tu cliente, y un
+conector MCP de correo, Slack o Teams también sirve (<code>envios.py preparar-mcp</code>).</li><li><strong>"¿STK-12 vigila a todos?"</strong> A los cuadrantes gestionar de cerca, mantener satisfecho y mantener informado con
+frecuencia diaria, semanal, quincenal, mensual o trimestral. Una frecuencia "por hito" (cumplimiento) se revisa en
+cada puerta.</li></ul>
+<h3 id="plan-b-si-la-demo-en-vivo-falla-1">Plan B si la demo en vivo falla<a class="ancla" href="#plan-b-si-la-demo-en-vivo-falla-1" aria-label="Enlace a esta sección">#</a></h3>
+<p>Usar la evidencia: el bloque "highlight armado desde el dato" y el de "cadena de reporte" de <code>salida-g3.md</code>, y las
+salidas de integridad y sanidad del 5/2 y del 19/2. Las imágenes <code>g3-okr-salud.png</code>, <code>g3-highlight-indicadores.png</code>,
+<code>g3-cadencia-stk12.png</code> y <code>g3-brecha-compromiso.png</code> cuentan la clase completa sin terminal.</p>
+<hr>
+<h2 id="conexión-con-el-caso-siguiente">Conexión con el caso siguiente<a class="ancla" href="#conexión-con-el-caso-siguiente" aria-label="Enlace a esta sección">#</a></h2>
+<p>Al cerrar la clase 2: "En este caso preparamos las puertas con un atajo y dejamos los beneficios con dueño y
+tolerancia. En E2E-4 vamos a recorrer el ciclo completo, de la idea al cierre: cada puerta, la condición formal que se
+cierra, la calidad a volumen y la primera revisión de beneficios después del proyecto." Enlace: <a href="../E2E-4/E2E-4-guia.html">E2E-4 · Producto de la
+idea al producto con BMAD</a>.</p></article>
+<footer class="pie-doc">Fuente: <a href="https://github.com/Arturo-Penas-Rial/pm-method/blob/main/docs/webinar/E2E-3/guion-instructor.md" class="ext">docs/webinar/E2E-3/guion-instructor.md</a> · pm-method 2.3.0 · Guion del instructor del caso E2E-3 · generado con <code>scripts/webinar/documentos.py</code></footer>
+</main>
+</div>
+<dialog class="visor" id="visor"><button type="button" class="cerrar">Cerrar</button><img alt=""></dialog>
+<script>
+(function(){
+  var raiz=document.documentElement;
+  function guardar(k,v){try{localStorage.setItem(k,v)}catch(e){}}
+  function leer(k){try{return localStorage.getItem(k)}catch(e){return null}}
+  var tema=leer('webinar-tema'); if(tema==='light'||tema==='dark') raiz.setAttribute('data-theme',tema);
+  var bTema=document.getElementById('b-tema');
+  function rotTema(){var t=raiz.getAttribute('data-theme'); bTema.textContent=t==='dark'?'Tema: oscuro':(t==='light'?'Tema: claro':'Tema: automático');}
+  if(bTema){rotTema(); bTema.addEventListener('click',function(){var t=raiz.getAttribute('data-theme'); var s=!t?'light':(t==='light'?'dark':'');
+    if(s){raiz.setAttribute('data-theme',s)}else{raiz.removeAttribute('data-theme')} guardar('webinar-tema',s); rotTema();});}
+  var bImp=document.getElementById('b-imprimir'); if(bImp) bImp.addEventListener('click',function(){window.print()});
+  var toc=document.querySelector('details.toc');
+  if(toc&&window.matchMedia){var mq=window.matchMedia('(min-width: 1000px)');
+    function ajustar(){toc.open=mq.matches} ajustar();
+    if(mq.addEventListener) mq.addEventListener('change',ajustar); else if(mq.addListener) mq.addListener(ajustar);
+    toc.addEventListener('click',function(ev){if(ev.target.tagName==='A'&&!mq.matches) toc.open=false;});}
+  var enl={}; [].forEach.call(document.querySelectorAll('details.toc a[href^="#"]'),function(a){enl[decodeURIComponent(a.getAttribute('href').slice(1))]=a});
+  if('IntersectionObserver' in window&&toc){var obs=new IntersectionObserver(function(ents){ents.forEach(function(en){
+      if(en.isIntersecting){var a=enl[en.target.id]; if(a){[].forEach.call(document.querySelectorAll('details.toc a.activo'),function(x){x.classList.remove('activo')}); a.classList.add('activo');}}});},
+      {rootMargin:'0px 0px -70% 0px'});
+    [].forEach.call(document.querySelectorAll('.md h2[id],.md h3[id]'),function(h){obs.observe(h)});}
+  [].forEach.call(document.querySelectorAll('.codigo .copiar'),function(b){b.addEventListener('click',function(){
+    var t=b.parentNode.querySelector('pre').textContent;
+    if(navigator.clipboard){navigator.clipboard.writeText(t).then(function(){b.textContent='Copiado'; setTimeout(function(){b.textContent='Copiar'},1500)},function(){});}});});
+  var visor=document.getElementById('visor');
+  if(visor){var vimg=visor.querySelector('img');
+    [].forEach.call(document.querySelectorAll('figure.img .zoom'),function(b){b.addEventListener('click',function(){
+      var im=b.querySelector('img'); vimg.src=im.src; vimg.alt=im.alt; if(visor.showModal) visor.showModal();});});
+    visor.addEventListener('click',function(){visor.close()});}
+  function abrirHasta(id){var el=id&&document.getElementById(id); while(el){if(el.tagName==='DETAILS'&&!el.open) el.open=true; el=el.parentElement;}}
+  function hashActual(){try{return decodeURIComponent(location.hash.slice(1))}catch(e){return ''}}
+  [].forEach.call(document.querySelectorAll('a[href^="#"]'),function(a){a.addEventListener('click',function(){
+    var h=a.getAttribute('href').slice(1); try{h=decodeURIComponent(h)}catch(e){} abrirHasta(h);});});
+  window.addEventListener('hashchange',function(){abrirHasta(hashActual())}); if(location.hash) abrirHasta(hashActual());
+  var abiertos=[];
+  function abrirTodo(){[].forEach.call(document.querySelectorAll('details.desplegable:not([open])'),function(d){d.open=true; abiertos.push(d)});}
+  function cerrarAbiertos(){abiertos.forEach(function(d){d.open=false}); abiertos=[];}
+  window.addEventListener('beforeprint',abrirTodo);
+  window.addEventListener('afterprint',cerrarAbiertos);
+  if(window.matchMedia){var mp=window.matchMedia('print'); var alCambiar=function(e){if(e.matches) abrirTodo(); else cerrarAbiertos();};
+    if(mp.addEventListener) mp.addEventListener('change',alCambiar); else if(mp.addListener) mp.addListener(alCambiar);}
+})();
+</script>
+</body></html>

@@ -986,7 +986,7 @@ Proyecto cerrado. Pendiente fuera del proyecto: revisiones de beneficios según 
 ### Integridad al final
 
 - **BMAD:** al comparar las huellas sha256 del principio y del final, solo cambiaron los tres archivos que editó el "equipo BMAD": `prd.md`, `epics.md` y `sprint-status.yaml`. Ningún script de pm-method escribió en `_bmad*`.
-- **Regresión:** `scripts/probar_paquete.py` → **216 OK · 0 FALLO** con la versión 2.3.0 (80 OK cuando se recorrió este caso con 2.1.0); detalle de los casos en [PRUEBAS §2](PRUEBAS.md).
+- **Regresión:** `scripts/probar_paquete.py` → **223 OK · 0 FALLO** con la versión 2.3.0 (80 OK cuando se recorrió este caso con 2.1.0); detalle de los casos en [PRUEBAS §2](PRUEBAS.md).
 
 ---
 
