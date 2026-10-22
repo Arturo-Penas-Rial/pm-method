@@ -30,6 +30,7 @@ idioma: "{{idioma}}"
 | Unidad de esfuerzo / Effort unit | {{unidad_esfuerzo}} |
 | Moneda / Currency | {{moneda}} |
 | Redondeo / Rounding | {{redondeo}} |
+| Tres valores y reserva / Three-point estimating and reserve | {{distribucion_tres_valores}} (beta-PERT por defecto o triangular: `cpm.py --distribucion`) · reserva de cronograma a {{k_reserva}}σ del camino crítico (`--confianza`) |
 | Rango de precisión por fase (orden de magnitud → definitivo) / Accuracy by phase | {{precision_fase}} |
 
 ## 3. Umbrales de control / Control thresholds

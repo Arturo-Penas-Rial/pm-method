@@ -4,8 +4,9 @@ Material del webinar de pm-method: dos clases de 90 minutos por caso E2E, para u
 de proyecto con algo de PMBOK o PRINCE2 y líderes de negocio). Cada caso se apoya en su guía de punta a punta
 (`docs/guias/E2E-N-*.md`) y en la evidencia real de su corrida (`docs/guias/evidencia/`).
 
-EN: Webinar material per E2E case (instructor script, attendee exercise, slide content), the generator that turns
-`diapositivas.json` into a PPTX deck and a self-contained HTML deck with glossary, and the converter that turns the
+EN: Webinar material per E2E case (instructor script, attendee exercise, slide content, workshop promo sheet), the
+generator that turns `diapositivas.json` into a PPTX deck and a self-contained HTML deck with glossary (and, with
+`--ficha`, `ficha.json` into a 2-slide promo PPTX and a printable A4 HTML flyer), and the converter that turns the
 step-by-step guide, the instructor script and the exercise (a single version that explains how it works and ends
 with a folded worked example) into self-contained HTML handouts, plus an index page (`index.html`).
 
@@ -15,12 +16,13 @@ Abrí [`index.html`](index.html) (generado): enlaza todo el material de los cinc
 
 | Archivo | Para quién | Cuándo se usa |
 |---|---|---|
+| `E2E-N-ficha.html` y `.pptx` | posibles asistentes e interesados; quien organiza | antes del taller, para difundirlo: el HTML se imprime como volante A4 ([ficha del taller](#ficha-promocional-del-taller)) |
 | `E2E-N-diapositivas.html` y `.pptx` | instructor (proyectar); el HTML también sirve para repartir | en clase |
 | `E2E-N-guia.html` | asistentes e instructor | práctica individual, antes o después de clase |
 | `E2E-N-guion-instructor.html` | instructor | preparar y dar la clase (agenda, mensajes, preguntas, plan B, cómo conducir el ejercicio) |
 | `E2E-N-ejercicio.html` | asistentes e instructor | cierre de cada clase; al final, plegado, el ejemplo resuelto con el escenario del caso, para comparar después de intentarlo |
 
-Los `.md` (`guion-instructor.md`, `ejercicio.md` y la guía en `docs/guias/`) son la fuente: se editan ellos y se
+Los `.md` (`guion-instructor.md`, `ejercicio.md` y la guía en `docs/guias/`) y los `.json` (`diapositivas.json`, `ficha.json`) son la fuente: se editan ellos y se
 regeneran los HTML. La guía convertida va en la carpeta del caso del webinar, no en `docs/guias/`: así todo lo que se
 reparte de un caso está en una sola carpeta (y los enlaces entre guía, guion, ejercicio y diapositivas son relativos
 dentro de ella), mientras `docs/guias/` sigue siendo la fuente Markdown con su `evidencia/` e `img/` (las imágenes
@@ -35,6 +37,9 @@ docs/webinar/
     ├── guion-instructor.md            agenda minuto a minuto, cómo conducir el ejercicio, mensajes clave, preguntas, plan B
     ├── ejercicio.md                   mecánica, escenario y conceptos, hoja de trabajo y ejemplo resuelto
     ├── diapositivas.json              contenido de las diapositivas (esquema abajo)
+    ├── ficha.json                     contenido de la ficha promocional del taller (esquema más abajo)
+    ├── E2E-N-ficha.pptx               generado: ficha del taller, 2 diapositivas con notas del orador
+    ├── E2E-N-ficha.html               generado: ficha del taller, volante autocontenido (A4 al imprimir)
     ├── E2E-N-diapositivas.pptx        generado: PowerPoint con notas del orador
     ├── E2E-N-diapositivas.html        generado: HTML autocontenido con glosario
     ├── E2E-N-guia.html                generado: guía paso a paso (desde docs/guias/E2E-N-*.md)
@@ -42,8 +47,8 @@ docs/webinar/
     └── E2E-N-ejercicio.html           generado: ejercicio con el ejemplo resuelto plegado
 docs/webinar/index.html                generado: índice de todo el material (documentos.py --todos)
 scripts/webinar/
-├── generar.py                         validación, HTML y orquestación (Python 3.9+, biblioteca estándar)
-├── pptx.js                            armado del PPTX con pptxgenjs (lo llama generar.py)
+├── generar.py                         validación, HTML y orquestación (Python 3.9+, biblioteca estándar); --ficha: ficha del taller
+├── pptx.js                            armado del PPTX con pptxgenjs (lo llama generar.py; modo --ficha para la ficha)
 └── documentos.py                      guía, guion y ejercicio → HTML autocontenido, e index.html
 ```
 
@@ -69,6 +74,7 @@ python3 scripts/webinar/generar.py --todos --logo logo-ieee.png          # usar 
 | `--salida DIR` | carpeta de salida (por defecto, la del caso) |
 | `--logo PNG` | logo de IEEE para la portada y la esquina; sin él queda un recuadro rotulado «Logo IEEE» |
 | `--validar` | valida el JSON y muestra errores y avisos sin generar archivos |
+| `--ficha` | trabaja con `ficha.json` y genera la [ficha promocional del taller](#ficha-promocional-del-taller) en lugar de las diapositivas |
 
 Código de salida: `0` sin errores (puede haber avisos), `1` con errores de validación o de generación, `2` uso
 incorrecto. Requisitos: Python 3.9+ y, para el PPTX, Node.js con `pptxgenjs` (`npm install -g pptxgenjs`; el script
@@ -149,14 +155,93 @@ Con errores no se genera nada. Los avisos no detienen la generación.
 
 | Caso | Tema | Guía | Clases (90 min cada una) | Diapositivas de contenido | Glosario |
 |---|---|---|---|---|---|
-| E2E-1 | riesgos | [E2E-1-riesgos](../guias/E2E-1-riesgos.md) | 1 · Del taller al plan de respuesta · 2 · El control continuo | 37 (18 + 19) | 24 términos |
-| E2E-2 | alcance, cambio, esfuerzo, priorización y mapa de ruta | [E2E-2-alcance-roadmap](../guias/E2E-2-alcance-roadmap.md) | 1 · Del alcance a la línea base · 2 · El cambio bajo control | 35 (16 + 19) | 25 términos |
-| E2E-3 | interesados, comunicaciones, OKR y avance | [E2E-3-interesados-okr-avance](../guias/E2E-3-interesados-okr-avance.md) | 1 · Del mapa de interesados al plan de compromiso · 2 · Del dato al reporte y al compromiso sostenido | 38 (18 + 20) | 25 términos |
-| E2E-4 | producto de la idea al producto con BMAD | [E2E-4-producto-bmad](../guias/E2E-4-producto-bmad.md) | 1 · Gobernar la construcción con BMAD · 2 · Calidad a volumen, recorrido, cierre y beneficios | 36 (16 + 20) | 25 términos |
+| E2E-1 | riesgos | [E2E-1-riesgos](../guias/E2E-1-riesgos.md) | 1 · Del taller al plan de respuesta · 2 · El control continuo | 39 (19 + 20) | 25 términos |
+| E2E-2 | alcance, cambio, esfuerzo, priorización y mapa de ruta | [E2E-2-alcance-roadmap](../guias/E2E-2-alcance-roadmap.md) | 1 · Del alcance a la línea base · 2 · El cambio bajo control | 37 (17 + 20) | 25 términos |
+| E2E-3 | interesados, comunicaciones, OKR y avance | [E2E-3-interesados-okr-avance](../guias/E2E-3-interesados-okr-avance.md) | 1 · Del mapa de interesados al plan de compromiso · 2 · Del dato al reporte y al compromiso sostenido | 39 (19 + 20) | 25 términos |
+| E2E-4 | producto de la idea al producto con BMAD | [E2E-4-producto-bmad](../guias/E2E-4-producto-bmad.md) | 1 · Gobernar la construcción con BMAD · 2 · Recorrido, lecciones, cierre y beneficios | 40 (20 + 20) | 25 términos |
 | E2E-5 | de la idea al proyecto diseñado | [E2E-5-idea-a-proyecto](../guias/E2E-5-idea-a-proyecto.md) | 1 · ¿Vale la pena? · 2 · Diseñar el proyecto | 40 (20 + 20) | 25 términos |
-| **Total** | | | **10 clases** | **186** | **124 términos** |
+| **Total** | | | **10 clases** | **195** | **125 términos** |
 
 Las cifras de la tabla salen de `python3 scripts/webinar/generar.py --todos --validar` (línea «válido: …» de cada caso: 5/5 sin errores ni avisos). A las diapositivas de contenido el generador suma la portada del caso, la de cada clase y el glosario.
+
+## Ficha promocional del taller
+
+Una ficha por caso para **difundir el taller** entre posibles asistentes e interesados: qué problema resuelve, para
+quién es, qué van a poder hacer, cómo se trabaja con el sistema agéntico, qué se llevan, el índice de contenidos por
+clase, los requisitos y la modalidad, con una imagen real de la corrida del caso. Sale de `docs/webinar/E2E-N/ficha.json`
+(la fuente que se edita) con el mismo generador y la estética del webinar:
+
+```bash
+python3 scripts/webinar/generar.py --todos --ficha                         # las 5 fichas (PPTX + HTML)
+python3 scripts/webinar/generar.py --caso docs/webinar/E2E-1 --ficha       # una ficha
+python3 scripts/webinar/generar.py --todos --ficha --validar               # solo valida
+python3 scripts/webinar/generar.py --todos --ficha --logo logo-ieee.png    # con el logo de IEEE
+```
+
+- **`E2E-N-ficha.pptx`**: dos diapositivas con notas del orador. La 1 lleva el problema (título y bajada), «Qué vas a
+  poder hacer», «Para quién es», la imagen del caso con su pie y la duración con la convocatoria; la 2, «Cómo trabajás
+  con el agente» (lo que hace el agente, lo que decidís vos y el control humano), «Antes de inscribirte» (requisitos y
+  modalidad), los contenidos por clase y «Qué te llevás». Las dos columnas de la 2 usan un solo tamaño de letra (de 14 a
+  10,5 pt), el mayor con el que todo entra.
+- **`E2E-N-ficha.html`**: volante de un solo archivo (CSS en línea, imagen como data URI), tema claro, oscuro o
+  automático, una columna en el teléfono y botón Imprimir: al imprimir sale en **una página A4** vertical, en claro, sin
+  la barra ni las notas. Las notas para quien presenta la ficha quedan en un bloque plegable al pie.
+- **Sin marca ni logo de empresa**: recuadro rotulado «Logo IEEE», o la imagen pasada con `--logo`. Si `convocatoria`
+  no está, la ficha muestra un recuadro punteado «Fecha, horario, lugar o enlace e inscripción: a completar por quien
+  organiza».
+
+**Criterios de contenido** (los que sigue cada `ficha.json`): título centrado en el problema que resuelve, no en la
+herramienta; destinatarios concretos; objetivos con verbos que se pueden observar y coherentes con los del guion;
+el sistema agéntico explicado en lenguaje simple, con lo que decide la persona y el control humano; beneficios para la
+persona y para su organización sin cifras de la industria ni promesas de retorno de la inversión (solo resultados del
+propio caso); índice por clase tomado de la guía; requisitos, modalidad y duración visibles; y brevedad: los límites
+de la tabla de abajo son los que hacen que todo entre en dos diapositivas y en una carilla.
+
+### Esquema de `ficha.json`
+
+```json
+{"caso": "E2E-N",
+ "titulo": "… (≤ 75 caracteres; el problema que resuelve)",
+ "bajada": "… (≤ 170; una frase con la promesa del taller)",
+ "para_quien": ["… (2–3 perfiles, ≤ 90 c/u)"],
+ "objetivos": ["… (3–5, ≤ 110 c/u; empiezan con un verbo observable)"],
+ "sistema_agentico": {"agente": ["… qué hace el agente (2–3, ≤ 85)"],
+                      "persona": ["… qué decide la persona (2–3, ≤ 85)"],
+                      "control": "… control humano (≤ 150)"},
+ "beneficios": {"para_vos": ["… (1–2, ≤ 85)"], "para_la_organizacion": ["… (1–2, ≤ 85)"]},
+ "clases": [{"numero": 1, "temas": ["… (3–4 temas, ≤ 60 c/u)"]}, {"numero": 2, "temas": ["…"]}],
+ "requisitos": ["… (2–3, ≤ 85)"],
+ "modalidad": "… (≤ 120)",
+ "convocatoria": "… (opcional, ≤ 110: fecha, lugar o enlace, inscripción)",
+ "imagen": {"ruta": "docs/guias/img/gN-….png", "pie": "… (≤ 110)"},
+ "notas": ["notas del orador de la diapositiva 1", "… de la diapositiva 2 (opcional)"]}
+```
+
+El título y la duración de cada clase **no** van en la ficha: se toman de `diapositivas.json` (fuente única), y con
+ellos el generador arma la duración total («3 h en total · 2 clases de 90 minutos»). En los textos se admite
+`` `código` `` y `**negrita**`.
+
+| Situación | Resultado |
+|---|---|
+| JSON inválido; falta un campo obligatorio; lista con menos o más elementos que el rango; texto más largo que su límite | error (con el campo y el largo) |
+| clase que no está en `diapositivas.json`, o clase de `diapositivas.json` sin sus `temas`; `diapositivas.json` ilegible | error |
+| imagen inexistente o que no es PNG ni JPEG | error |
+| objetivo que empieza con un verbo que no se puede observar (entender, conocer, comprender, saber, aprender…) | aviso |
+| beneficio que promete retorno de la inversión (ROI) | aviso |
+| clave desconocida; `titulo` o `duracion_min` en una clase (salen de `diapositivas.json`); sin `notas`; imagen fuera de `docs/guias/img/` o no apaisada; `caso` distinto de la carpeta | aviso |
+| texto que no entra en la diapositiva ni con el tamaño mínimo | aviso del PPTX |
+
+| Caso | Título de la ficha | Imagen |
+|---|---|---|
+| E2E-1 | Que el registro de riesgos no muera después del taller | `g1-opciones-valor-neto.png` |
+| E2E-2 | Cada cambio, con su impacto medido antes de decidir | `g2-impacto-c002.png` |
+| E2E-3 | Que lo prometido a cada interesado se cumpla, y se note a tiempo | `g3-cadencia-stk12.png` |
+| E2E-4 | Del «done» al beneficio medido: gobernar un producto hecho con BMAD | `g4-cierre.png` |
+| E2E-5 | ¿Vale la pena? Validar la idea antes de invertir y diseñar el proyecto | `g5-van-opciones.png` |
+
+**Control de calidad de la ficha:** convertir el PPTX a imágenes (LibreOffice → PDF → PNG) y mirar el HTML en claro,
+oscuro, 390 px de ancho e impresión A4 (una sola página). Con Chromium por Playwright conviene un `TMPDIR` corto bajo
+`/tmp`.
 
 ## Documentos en HTML (guía, guion y ejercicio)
 
@@ -175,7 +260,7 @@ python3 scripts/webinar/documentos.py --archivo X.md --tipo ejercicio --salida D
 |---|---|
 | `--caso DIR` / `--todos` | un caso (`docs/webinar/E2E-N`) o todos; `--todos` escribe además `index.html` |
 | `--archivo MD --tipo T` | convierte un Markdown suelto; `T` = `guia`, `guion` o `ejercicio` |
-| `--salida DIR` | carpeta de salida con la estructura de `docs/webinar/` (`E2E-N/…` e `index.html`); copia ahí las diapositivas ya generadas para repartir el conjunto |
+| `--salida DIR` | carpeta de salida con la estructura de `docs/webinar/` (`E2E-N/…` e `index.html`); copia ahí las diapositivas y las fichas del taller ya generadas para repartir el conjunto |
 | `--logo PNG` | logo de IEEE en el encabezado; sin él queda el recuadro rotulado «Logo IEEE» |
 | `--validar` | valida imágenes, enlaces, anclas, las secciones del ejercicio y los diagramas sin escribir archivos |
 | `--sin-mermaid` | no dibuja los diagramas (quedan como código, con aviso); sin `mmdc` y sin esta opción, error |
@@ -215,7 +300,7 @@ Qué hace con cada elemento:
 
 Con errores no se escribe ningún archivo del caso (ni `index.html`). Código de salida: `0` sin errores, `1` con errores,
 `2` uso incorrecto. Requisitos: Python 3.9+ (biblioteca estándar) y mermaid-cli (`mmdc`) para los diagramas. Las guías
-pesan entre 2 y 4,5 MB por las imágenes embebidas; el guion y el ejercicio, menos de 45 KB.
+pesan entre 2 y 5 MB por las imágenes embebidas; el guion y el ejercicio, menos de 50 KB.
 
 ## Control de calidad
 

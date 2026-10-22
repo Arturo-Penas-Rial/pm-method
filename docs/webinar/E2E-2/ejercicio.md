@@ -34,15 +34,17 @@ supera la autoridad delegada.
 - Backlog en puntos: Must 1.1 (8), 1.2 (5), 1.3 (8), 2.1 (8), 3.1 (5), 3.2 (8) y 3.3 (8); Should 1.4 (5) y 2.2 (8);
   Could 2.3 (5).
 - La matriz requisito → historia → paquete de la WBS la regenera pm-method en cada sincronización con BMAD.
+- Las personas de usuario salen de los tres recorridos de BMAD: Marta (socia que consulta, épica 1), Diego (socio que
+  pide un préstamo, épica 2) y Lucía (operadora de back-office, épica 3).
 
 **Datos de partida para la parte B** (cambio C-001, el simulador de préstamo):
 
 - El PM de producto agregó FR-13 al PRD por pedido del Consejo, sin pasar por la autoridad de cambio. Cuesta 9.000, se
   estima en 8, 10 y 16 días (optimista, más probable y pesimista) después de los sprints de solicitudes, suma una
   historia de 8 puntos al Release 2 y agrega 4.000 por año al beneficio B-03.
-- Antes del cambio: camino crítico de 110 días laborables (fin 2027-05-03) y reserva de cronograma de 13,0 días; el
+- Antes del cambio: camino crítico de 112 días laborables (fin 2027-05-05) y reserva de cronograma de 13,0 días; el
   Release 2 tiene 21 puntos en 3 sprints; no se usó nada del presupuesto de cambio; VAN del business case 39.776.
-- Con el cambio, el escenario de cronograma da 121 días (fin 2027-05-18) y el business case, un VAN de 45.939.
+- Con el cambio, el escenario de cronograma da 123 días (fin 2027-05-20) y el business case, un VAN de 45.939.
 
 ### Conceptos mínimos
 
@@ -54,11 +56,15 @@ supera la autoridad delegada.
   **margen de alcance** que el product owner puede mover sin pedir permiso.
 - **Trazabilidad:** la relación requisito → historia o tarea → paquete de trabajo; sirve si se recalcula con cada
   cambio.
+- **Persona de usuario:** un arquetipo de quien usa el producto (objetivo, contexto, dolores). No es un interesado: es a
+  quien sirve cada capacidad. Un Must sin persona es una pregunta: ¿falta la persona o sobra la prioridad?
 - **Camino crítico:** la cadena de actividades sin holgura; si una se atrasa, se atrasa el fin. La **reserva de
   cronograma** (en el caso, 2σ del camino crítico) cubre su incertidumbre.
 - **Capacidad:** velocidad × sprints (en el caso, 8 puntos por sprint).
 - **VAN (valor actual neto):** la suma de los flujos de cada año descontados a la tasa de la organización; si es
   positivo, el proyecto crea valor.
+- **Análisis de impacto:** el cambio medido contra cada objetivo antes de decidir; dice además qué nivel tiene que
+  decidirlo.
 - **Tres caminos para un cambio:** el **intercambio** del product owner (no toca Must, fecha ni costo), la **autoridad
   de cambio** (dentro de su límite y del saldo del presupuesto) y la **excepción** a la junta (supera el límite, el
   presupuesto o una tolerancia).
@@ -86,6 +92,14 @@ supera la autoridad delegada.
 
 - [ ] En la última semana · [ ] En el último mes · [ ] Al planificar · [ ] Nunca se armó
 
+**A4. ¿A quién sirve cada Must?** Elegí tres Must de tu alcance y escribí qué tipo de usuario los necesita.
+
+| Must | Usuario (persona) que lo necesita | ¿De dónde sale? (entrevista, recorrido, supuesto) |
+|---|---|---|
+| | | |
+| | | |
+| | | |
+
 ### Autoevaluación de la parte A
 
 | Criterio | Cumple si… |
@@ -94,6 +108,7 @@ supera la autoridad delegada.
 | Autoridad delimitada | El límite por cambio es menor que el presupuesto de cambio (si no, un solo cambio lo agota). |
 | Margen conocido | Sabés el porcentaje de A2 y quién decide retirar Should/Could. |
 | Trazabilidad viva | A3 es "en la última semana" o se regenera en cada sincronización. |
+| Must con usuario | Cada Must de A4 tiene una persona y una fuente; uno sin persona es un hallazgo para revisar su prioridad. |
 
 ---
 
@@ -113,6 +128,7 @@ supera la autoridad delegada.
 | Autoridad | | | límite por cambio | |
 | Capacidad del equipo o del release | | | velocidad × iteraciones | |
 | Business case (VAN o beneficio esperado) | | | VAN de la línea base o meta del beneficio | |
+| Quién lo pide y a quién afecta | | | personas de usuario que lo usan o se benefician | |
 
 **B3. ¿Qué camino le correspondía?** Marcá uno y justificá en una línea.
 
@@ -166,23 +182,36 @@ que dan los puntos. Retirar Should/Could lo decide la product owner, Sofía Ram�
 **A3.** En cada sincronización con BMAD: 12 de 12 requisitos funcionales con historia y paquete en el paso 2, y 13 de
 13 después del cambio, en el paso 8.
 
+**A4.** Con las personas propuestas desde los recorridos de BMAD y confirmadas por Sofía Ramírez (paso 4):
+
+| Must | Persona | Fuente |
+|---|---|---|
+| 1.3 Consulta de saldos y préstamos (FR-3, FR-4) | Marta, socia que consulta (PU-001) | recorrido UJ-1 |
+| 2.1 Solicitud guiada de préstamo (FR-6) | Diego, socio que pide un préstamo (PU-002) | recorrido UJ-2 |
+| 3.2 Bandeja única (FR-9) | Lucía, operadora de back-office (PU-003) | recorrido UJ-3 |
+
+La primera priorización por persona avisó "Must sin persona: FR-8, FR-12". No sobraba la prioridad: UJ-2 dice que
+Diego entra con el contacto verificado y recibe la confirmación por correo, así que se vincularon a él y quedó "Must
+sin persona: ninguno" (Marta 5 Must, Diego 4, Lucía 3).
+
 **B1.** C-001, simulador de préstamo · aprobado por Sofía Ramírez, autoridad de cambio, con cargo al presupuesto de
 cambio · 2027-01-18 (paso 7; la fecha de la decisión está en la evidencia).
 
-**B2.** Tabla de impacto de C-001, armada antes de la decisión (paso 7; las cifras de "Antes" salen de los pasos 3, 4 y
-5).
+**B2.** Tabla de impacto de C-001, calculada con `impacto.py analizar C-001` antes de la decisión (paso 7; las cifras
+de "Antes" salen de los pasos 3, 4 y 5). Resumida:
 
 | Objetivo | Antes | Con C-001 | Contra qué se mide | Lectura |
 |---|---|---|---|---|
-| Tiempo | 110 días · fin 2027-05-03 | 121 días · fin 2027-05-18 | ±3 semanas = 15 días | dentro (11 de 15) |
-| Reserva | 2σ = 13,0 días | 2,0 días | atraso posible | riesgo: R-001 |
-| Costo y presupuesto | 0 de 12.000 | 9.000 de 12.000 (75 %) | saldo del presupuesto | dentro |
-| Autoridad | — | 9.000 | límite 10.000 | dentro |
-| Capacidad R2 | 21 pts de 24 | 29 pts de 24 | velocidad 8 × 3 sprints | +1 sprint (32 pts) |
-| Business case | VAN 39.776 | VAN 45.939 (+6.163) | VAN a 5 años, tasa 10 % | a favor: se paga solo |
+| Tiempo | 112 días · fin 2027-05-05 | 123 días · fin 2027-05-20 (+11) | ±3 semanas = 15 días laborables | dentro: usa 11 de 15 (73 %) |
+| Reserva | 2σ = 13,0 días | 13,0 − 11 = 2,0 días | atraso posible del camino crítico | registrar riesgo: R-001 |
+| Costo y presupuesto | 0 de 12.000 | 9.000 de 12.000 (75 %) | saldo del presupuesto de cambio | dentro del saldo |
+| Autoridad | límite 10.000 por cambio | 9.000 en este cambio | límite por cambio | dentro de la autoridad delegada |
+| Capacidad R2 | 21 pts de 24 (3 sprints) | 29 pts | velocidad 8 pts por sprint | 4 sprints: +1 sprint |
+| Business case | VAN 39.776 | VAN 45.939 (+6.163) | VAN a 5 años, tasa 10 % | a favor: el cambio suma valor |
+| Quién lo pide y a quién afecta | — | lo pide el Consejo directivo; lo usa Diego (PU-002) | personas de usuario | sirve a una persona registrada |
 
-**B3.** Camino: **autoridad de cambio**. 9.000 está dentro del límite de 10.000 y del saldo de 12.000; el tiempo queda
-dentro de la tolerancia. Como la reserva de cronograma queda en 2 días, se registra R-001 (P3 × I3, reducir,
+**B3.** Camino: **autoridad de cambio**, el mismo que da el análisis ("Decide: Autoridad de cambio: Sofía Ramírez").
+9.000 está dentro del límite de 10.000 y del saldo de 12.000; el tiempo queda dentro de la tolerancia. Como la reserva de cronograma queda en 2 días, se registra R-001 (P3 × I3, reducir,
 disparador SPI < 0,90) (paso 7).
 
 **Otro cambio del caso para comparar: C-002** (requisito regulatorio, paso 10). Camino: **excepción a la junta**. La
@@ -190,6 +219,7 @@ autoridad de cambio lo aprobó de palabra el 17/2, pero 15.000 supera su límite
 24.000 de 12.000 (200 %): `registro.py` rechaza registrar esa aprobación y C-002 queda `pendiente-decision`. Además, el
 R1 necesita 7 sprints en lugar de 6 (+14 días corridos, más que la tolerancia de etapa de 9,8 días) y el corte de EVM
 del 19/2 deja fuera el 22,1 % del alcance, más que el 20 % de margen (sanidad: TOL-01). No suma beneficio propio: el
-VAN baja de 45.939 a 30.939, pero sigue positivo y B-01 puede caer 18 % antes de llegar a 0 (tolerancia −10 %). La
+VAN baja de 45.939 a 30.939, pero sigue positivo y B-01 puede caer 18 % antes de llegar a 0 (tolerancia −10 %). El
+análisis de impacto lo resume: "Decide: Junta", con cuatro motivos, y recomienda pedir un plan de excepción. La
 junta pide un plan de excepción con el business case actualizado, amplía el presupuesto a 32.000, aprueba C-002 con
 cargo a ese presupuesto y aprueba `autorizar-plan-excepcion` el 26/2; ese día, REG-09 recuerda revisar R-001.

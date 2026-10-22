@@ -9,11 +9,22 @@ Uso / Usage:
   python3 paquete.py --proyecto ./p puerta autorizar-etapa [--salida exportados/2026-10-16-paquete-autorizar-etapa-v1.zip] [--extra ruta ...]
   python3 paquete.py --proyecto ./p cierre [--salida ...] [--extra ruta ...]
   python3 paquete.py --proyecto ./p listar puerta autorizar-proyecto     # muestra obligatorios/opcionales y qué falta, sin crear ZIP
+  python3 paquete.py --proyecto ./p auditoria [--desde AAAA-MM-DD] [--hasta AAAA-MM-DD] [--proposito "auditoría interna"]
+                     [--externo] [--salida exportados/<hoy>-expediente-auditoria.zip] [--extra ruta ...]
+  python3 paquete.py --proyecto ./p verificar exportados/<hoy>-expediente-auditoria.zip   # rehash contra SHA256SUMS (código 1 si no coincide)
+Expediente de auditoría (PMO, auditoría interna, due diligence o entrega al cliente): INDICE.md e INDICE.html (escapado)
+navegables, cronologia.csv (puertas, decisiones, aprobaciones, cambios decididos, riesgos aceptados, productos aceptados y
+envíos), estado.json, líneas base congeladas de 00-direccion/historial/, registros (con período: filas fechadas en él y sin
+fecha), evidencia de puertas (00-direccion/decisiones/), actas, informes, cortes de EVM y comunicaciones, hallazgos de
+sanidad al corte (--hasta o hoy), MANIFIESTO.md y SHA256SUMS con la huella de cada archivo. Los paquetes de puerta ya
+generados se citan con su huella y no se reincluyen. Con período, los archivos fechados en su nombre fuera de él se omiten.
+--externo (cliente, proveedor, due diligence): sin el registro de interesados ni sus valoraciones (stakeholders,
+estereotipos, preferencias) y sin el destino (correo o canal) de los envíos.
 Salida: ZIP con los artefactos + MANIFIESTO.md. Si falta un obligatorio o alguno sigue en borrador, el nombre lleva -BORRADOR (los productos que la puerta decide pueden ir "en-revision").
 Solo se incluyen archivos dentro de la carpeta del proyecto: una ruta de estado.json o de --extra que resuelve fuera de ella
 (absoluta, con ../ o por un enlace simbólico) se excluye y queda anotada en el manifiesto, salvo --permitir-externos.
 """
-import argparse, csv, datetime, glob, json, os, re, sys, zipfile
+import argparse, csv, datetime, glob, hashlib, html, io, json, os, re, subprocess, sys, zipfile
 
 # Claves canónicas de estado.json.artefactos (ver pm-estado-proyecto/SKILL.md, "Claves de artefactos") o patrones de
 # archivo si no están registradas, por tipo de paquete. {n} = etapa actual, {n1} = siguiente etapa.
@@ -146,19 +157,266 @@ def fuera_del_proyecto(proyecto, ruta):
     r = os.path.realpath(ruta)
     return os.path.commonpath([base, r]) != base
 
+# ================================================================== expediente de auditoría y verificación de integridad
+# PRINCE2 7: líneas base y gestión de configuración (pista de auditoría de todos los cambios, archivo de versiones anteriores,
+# aprobación del nivel correcto: prince2-practicas-riesgo-issues-progreso-productos.md §3.c.4), registro del proyecto (A13) y
+# enfoque de gestión de datos (integridad, auditorías de datos: §4.d). PMBOK 8: auditorías (pmbok8-artefactos-tecnicas-anexos.md).
+# El expediente consolida lo que ya está en la carpeta del proyecto: no dictamina, no aprueba y no reescribe nada.
+FECHA_CSV = {"riesgos": ("fecha_identificacion", "fecha_revision"), "issues": ("fecha", "fecha_cierre"), "cambios": ("fecha", "fecha_decision"),
+             "decisiones": ("fecha",), "supuestos": ("fecha", "fecha_validacion"), "lecciones": ("fecha",), "calidad": ("fecha_prevista", "fecha_real"),
+             "acciones": ("fecha", "fecha_compromiso", "fecha_cierre"), "preferencias": ("fecha",), "envios": ("fecha",)}
+PERSONALES = {"envios": ("destino",)}
+VALORACIONES = ("stakeholders", "estereotipos", "preferencias")   # regla 12 de pm-exportar: nunca a un destinatario externo
+ARCHIVO_SUMAS = "SHA256SUMS"
+TOPE_PANTALLA = 15
+
+def _t(e, es, en): return en if (e or {}).get("idioma") == "en" else es
+
+def _en_rango(f, desde, hasta):
+    return bool(f) and (not desde or f >= desde) and (not hasta or f <= hasta)
+
+def _fecha_nombre(rel):
+    """Fecha AAAA-MM-DD al comienzo del nombre del archivo o de alguna carpeta de su ruta (o None)."""
+    for parte in reversed(rel.replace(os.sep, "/").split("/")):
+        m = re.match(r"(\d{4}-\d{2}-\d{2})", parte)
+        if m: return m.group(1)
+    return None
+
+def _sha(datos): return hashlib.sha256(datos).hexdigest()
+
+def _csv_texto(cols, filas):
+    buf = io.StringIO(); w = csv.DictWriter(buf, fieldnames=cols, extrasaction="ignore"); w.writeheader(); w.writerows(filas)
+    return buf.getvalue()
+
+def _md(x): return str(x if x is not None else "").replace("|", "/").replace("\n", " ")
+
+def cronologia(proyecto, estado, desde, hasta):
+    """Decisiones, puertas, cambios decididos, riesgos aceptados, productos aceptados y envíos, en orden de fecha."""
+    leer = lambda reg: list(csv.DictReader(open(os.path.join(proyecto, "03-control", "registros", f"{reg}.csv"), encoding="utf-8"))) \
+        if os.path.exists(os.path.join(proyecto, "03-control", "registros", f"{reg}.csv")) else []
+    ev = []; ids_puerta = set()
+    for p in estado.get("puertas") or []:
+        ver = (p.get("verificacion") or {})
+        ev.append({"fecha": p.get("fecha", ""), "tipo": "puerta", "id": p.get("decision_id", ""), "que": f"{p.get('tipo')}: {p.get('decision')}"
+                   + (f" — condiciones: {p['condiciones']}" if p.get("condiciones") else "") + (" (FORZADA)" if p.get("forzada") else ""),
+                   "quien": p.get("por", ""), "evidencia": ver.get("lista", "") + (f" · lista confirmada por {ver['confirmada_por']}" if ver.get("confirmada_por") else "")})
+        if p.get("decision_id"): ids_puerta.add(p["decision_id"])
+    for d in leer("decisiones"):
+        if d.get("id") in ids_puerta: continue
+        ev.append({"fecha": d.get("fecha", ""), "tipo": "aprobacion" if (d.get("decision") or "").startswith("aprobado ") else "decision", "id": d.get("id", ""),
+                   "que": d.get("decision", "") + (f" (nivel {d['nivel']})" if d.get("nivel") else ""), "quien": d.get("decidido_por", ""), "evidencia": d.get("artefactos_afectados", "")})
+    for c in leer("cambios"):
+        if c.get("decision") or c.get("fecha_decision"):
+            ev.append({"fecha": c.get("fecha_decision") or c.get("fecha", ""), "tipo": "cambio", "id": c.get("id", ""),
+                       "que": f"{c.get('titulo', '')}: {c.get('decision') or c.get('estado', '')}" + (f" · costo {c['costo']} ({c.get('cargo', '')})" if c.get("costo") else ""),
+                       "quien": c.get("decidido_por", ""), "evidencia": c.get("notas", "")[:120]})
+    for r in leer("riesgos"):
+        if r.get("respuesta") == "aceptar":
+            ev.append({"fecha": r.get("fecha_revision") or r.get("fecha_identificacion", ""), "tipo": "aceptacion-riesgo", "id": r.get("id", ""),
+                       "que": r.get("evento", "")[:160], "quien": r.get("propietario", ""), "evidencia": r.get("notas", "")[:120]})
+    for q in leer("calidad"):
+        if q.get("resultado") in ("aprobado", "aprobado-con-observaciones"):
+            ev.append({"fecha": q.get("fecha_real") or q.get("fecha_prevista", ""), "tipo": "aceptacion-producto", "id": q.get("id", ""),
+                       "que": f"{q.get('producto', '')}: {q.get('resultado')}", "quien": q.get("aprobador", ""), "evidencia": q.get("metodo_verificacion", "")})
+    for s in leer("envios"):
+        if s.get("estado") in ("enviado", "simulado"):
+            ev.append({"fecha": s.get("fecha", ""), "tipo": "comunicacion", "id": s.get("id", ""), "que": f"{s.get('proposito') or 'envío'}: {s.get('asunto', '')} ({s.get('canal', '')}, {s.get('estado')})",
+                       "quien": s.get("stakeholder_id", ""), "evidencia": s.get("archivo", "")})
+    ev = [x for x in ev if not (desde or hasta) or _en_rango(x["fecha"], desde, hasta)]
+    return sorted(ev, key=lambda x: (x["fecha"] or "9999", x["id"], x["tipo"]))
+
+def _secciones_a_texto(titulo, secciones):
+    """Mismo contenido en Markdown y en HTML escapado. Bloques: ("p", texto) o ("tabla", cabecera, filas, columna_enlace)."""
+    md = [f"# {titulo}", ""]
+    h = ["<!doctype html>", '<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">',
+         f"<title>{html.escape(titulo)}</title>", "<style>body{font-family:system-ui,sans-serif;margin:24px;max-width:1100px;color:#1d1d1f;background:#fff}"
+         "table{border-collapse:collapse;width:100%;margin:8px 0 20px}th,td{border:1px solid #ccc;padding:4px 6px;text-align:left;vertical-align:top;font-size:14px}"
+         "th{background:#f2f2f2}nav a{margin-right:12px}code{font-size:13px}</style></head><body>", f"<h1>{html.escape(titulo)}</h1>", "<nav>"]
+    h += [f'<a href="#s{i}">{html.escape(s)}</a>' for i, (s, _) in enumerate(secciones, 1)] + ["</nav>"]
+    md += [f"{i}. [{s}](#{re.sub(r'[^a-z0-9áéíóúñü -]', '', s.lower()).replace(' ', '-')})" for i, (s, _) in enumerate(secciones, 1)] + [""]
+    for i, (s, bloques) in enumerate(secciones, 1):
+        md += [f"## {s}", ""]; h.append(f'<h2 id="s{i}">{html.escape(s)}</h2>')
+        for b in bloques:
+            if b[0] == "p":
+                md += [b[1], ""]; h.append(f"<p>{html.escape(b[1])}</p>")
+                continue
+            _, cab, filas, enlace = b
+            if not filas:
+                md += ["—", ""]; h.append("<p>—</p>"); continue
+            md += ["| " + " | ".join(cab) + " |", "|" + "---|" * len(cab)]
+            h.append("<table><tr>" + "".join(f"<th>{html.escape(c)}</th>" for c in cab) + "</tr>")
+            for f in filas:
+                md.append("| " + " | ".join((f"[{_md(v)}]({_md(v)})" if j == enlace and v else _md(v)) for j, v in enumerate(f)) + " |")
+                h.append("<tr>" + "".join((f'<td><a href="{html.escape(str(v), quote=True)}">{html.escape(str(v))}</a></td>' if j == enlace and v else f"<td>{html.escape(str(v if v is not None else ''))}</td>")
+                                          for j, v in enumerate(f)) + "</tr>")
+            md.append(""); h.append("</table>")
+    h.append("</body></html>")
+    return "\n".join(md) + "\n", "\n".join(h) + "\n"
+
+def expediente(a, estado):
+    """Arma el expediente de auditoría (ZIP) con índice navegable (Markdown y HTML), cronología, líneas base, registros,
+    comunicaciones, evidencia de puertas, hallazgos de sanidad al corte y manifiesto con sha256."""
+    p = a.proyecto; hoy = datetime.date.today().isoformat(); corte = a.hasta or hoy
+    T = lambda es, en: _t(estado, es, en)
+    miembros = {}     # nombre en el ZIP → bytes
+    origen = {}       # nombre en el ZIP → (sección, nota)
+    externos = []
+    def agregar(rel, datos, seccion, nota=""):
+        miembros[rel] = datos; origen[rel] = (seccion, nota)
+    def archivo(ruta_abs, seccion, nota="", filtrar=True):
+        rel = os.path.relpath(ruta_abs, p).replace(os.sep, "/")
+        if not getattr(a, "permitir_externos", False) and fuera_del_proyecto(p, ruta_abs):
+            externos.append(rel); return
+        f = _fecha_nombre(rel)
+        if filtrar and (a.desde or a.hasta) and f and not _en_rango(f, a.desde, a.hasta): return
+        agregar(rel, open(ruta_abs, "rb").read(), seccion, nota)
+    # estado y registros
+    agregar("estado.json", open(os.path.join(p, "estado.json"), "rb").read(), "estado", T("puertas, aprobaciones, tolerancias y presupuestos", "gates, approvals, tolerances, budgets"))
+    regs = []; omitidos = []
+    for ruta in sorted(glob.glob(os.path.join(p, "03-control", "registros", "*.csv"))):
+        reg = os.path.splitext(os.path.basename(ruta))[0]; rel = os.path.relpath(ruta, p).replace(os.sep, "/")
+        if fuera_del_proyecto(p, ruta) and not getattr(a, "permitir_externos", False): externos.append(rel); continue
+        with open(ruta, newline="", encoding="utf-8") as fh: rd = csv.DictReader(fh); cols = list(rd.fieldnames or []); filas = list(rd)
+        total = len(filas); sin_fecha = 0
+        if (a.desde or a.hasta) and reg in FECHA_CSV:
+            sel = []
+            for f in filas:
+                fechas = [f.get(c) for c in FECHA_CSV[reg] if f.get(c)]
+                if not fechas: sin_fecha += 1; sel.append(f)
+                elif any(_en_rango(x, a.desde, a.hasta) for x in fechas): sel.append(f)
+            filas = sel
+        if a.externo and reg in VALORACIONES: omitidos.append(rel); continue
+        personales = a.externo and reg in PERSONALES
+        if personales: filas = [{**f, **{c: "" for c in PERSONALES[reg] if c in f}} for f in filas]
+        # sin período ni anonimización, la copia es byte a byte la del proyecto (misma huella sha256)
+        agregar(rel, _csv_texto(cols, filas).encode("utf-8") if personales or len(filas) != total else open(ruta, "rb").read(), "registros")
+        regs.append([rel, len(filas), total, sin_fecha])
+    # líneas base congeladas, evidencia de puertas, comunicaciones, aceptaciones
+    for ruta in sorted(glob.glob(os.path.join(p, "00-direccion", "historial", "**", "*"), recursive=True)):
+        if os.path.isfile(ruta): archivo(ruta, "lineas-base", filtrar=False)
+    for ruta in sorted(glob.glob(os.path.join(p, "00-direccion", "decisiones", "**", "*"), recursive=True)):
+        if os.path.isfile(ruta): archivo(ruta, "puertas")
+    for patron in ("03-control/reuniones/*acta*.md", "03-control/reportes/*.md", "03-control/reportes/*.html", "03-control/reportes/evm-*.json", "03-control/comunicaciones/**/*"):
+        for ruta in sorted(glob.glob(os.path.join(p, patron), recursive=True)):
+            if os.path.isfile(ruta): archivo(ruta, "comunicaciones")
+    for ruta in sorted(glob.glob(os.path.join(p, "04-cierre", "*aceptacion*.md"))):
+        archivo(ruta, "aceptaciones")
+    for e_ in a.extra or []:
+        if not os.path.exists(e_): print(f"Aviso: no existe {e_}"); continue
+        if fuera_del_proyecto(p, e_) and not a.permitir_externos: externos.append(e_); continue
+        rel = os.path.relpath(e_, p).replace(os.sep, "/") if not fuera_del_proyecto(p, e_) else "extra/" + os.path.basename(e_)
+        agregar(rel, open(e_, "rb").read(), "extra")
+    # hallazgos de sanidad al corte (solo lectura)
+    san = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "pm-estado-proyecto", "scripts", "sanidad.py")
+    r = subprocess.run([sys.executable, os.path.normpath(san), "--proyecto", p, "--json", "--corte", corte], capture_output=True, text=True)
+    try: sj = json.loads(r.stdout)
+    except ValueError: sj = {"hallazgos": [], "cuenta": {}, "error": (r.stderr or r.stdout)[-300:]}
+    agregar(f"sanidad-{corte}.json", json.dumps(sj, ensure_ascii=False, indent=2).encode("utf-8"), "sanidad")
+    # cronología
+    crono = cronologia(p, estado, a.desde, a.hasta)
+    cab_c = ["fecha", "tipo", "id", "que", "quien", "evidencia"]
+    agregar("cronologia.csv", _csv_texto(cab_c, crono).encode("utf-8"), "cronologia")
+    # paquetes de puerta ya generados: se citan con su huella, no se reincluyen
+    zips = [(os.path.relpath(z, p).replace(os.sep, "/"), _sha(open(z, "rb").read())) for z in sorted(glob.glob(os.path.join(p, "exportados", "*.zip")))
+            if "expediente-auditoria" not in os.path.basename(z)]
+    # índice
+    rango = (a.desde or T("inicio", "start")) + " → " + (a.hasta or corte)
+    cuenta = sj.get("cuenta") or {}
+    por_sec = lambda s: [[k, len(v), _sha(v)[:16], origen[k][1]] for k, v in sorted(miembros.items()) if origen[k][0] == s]
+    secciones = [
+        (T("Alcance del expediente", "Scope"), [("p", T(f"Proyecto: {estado.get('proyecto', '')} · propósito: {a.proposito or '[por confirmar]'} · período: {rango} · corte: {corte} · generado: {hoy} con asistencia de IA (consolidación de archivos existentes).",
+                                                     f"Project: {estado.get('proyecto', '')} · purpose: {a.proposito or 'TBC'} · period: {rango} · cut-off: {corte} · generated {hoy} with AI assistance.")),
+                                                ("p", T(f"Fase {estado.get('fase', '')}, etapa {(estado.get('etapa_actual') or {}).get('numero', '')} ({(estado.get('etapa_actual') or {}).get('nombre', '')}); excepción abierta: {estado.get('excepcion_abierta') or 'ninguna'}.",
+                                                        f"Phase {estado.get('fase', '')}, stage {(estado.get('etapa_actual') or {}).get('numero', '')}; open exception: {estado.get('excepcion_abierta') or 'none'}.")),
+                                                ("p", T("Este expediente no constituye aprobación ni dictamen: consolida la evidencia registrada. La integridad se comprueba con `paquete.py verificar <zip>` (sha256 de cada archivo contra SHA256SUMS).",
+                                                        "This file is not an approval or an opinion. Integrity: `paquete.py verificar <zip>`."))]),
+        (T("Cronología de decisiones y puertas", "Decisions and gates timeline"), [("p", T(f"{len(crono)} eventos (también en cronologia.csv).", f"{len(crono)} events (also in cronologia.csv).")),
+                                                                                   ("tabla", [T("Fecha", "Date"), T("Tipo", "Type"), "Id", T("Qué", "What"), T("Quién", "Who"), T("Evidencia", "Evidence")],
+                                                                                    [[x[k] for k in cab_c] for x in crono], None)]),
+        (T("Líneas base congeladas", "Frozen baselines"), [("tabla", [T("Archivo", "File"), "Bytes", "sha256", T("Nota", "Note")], por_sec("lineas-base"), 0)]),
+        (T("Registros", "Registers"), [("p", T("Copia de los registros al corte; con período, las filas cuya fecha cae en él y las que no tienen fecha.", "Registers at the cut-off; with a period, rows dated within it and undated rows.")
+                                        + (T(f" Destinatario externo: sin {', '.join(omitidos) or 'registros de interesados'} (valoraciones de interesados) y sin el destino de los envíos.",
+                                             f" External recipient: without {', '.join(omitidos) or 'stakeholder registers'} and without message recipients.") if a.externo else "")),
+                                       ("tabla", [T("Archivo", "File"), T("Filas incluidas", "Rows included"), T("Filas totales", "Total rows"), T("Sin fecha", "Undated")], regs, 0)]),
+        (T("Evidencia de puertas", "Gate evidence"), [("tabla", [T("Archivo", "File"), "Bytes", "sha256", T("Nota", "Note")], por_sec("puertas"), 0),
+                                                      ("p", T("Paquetes de puerta generados (se citan con su huella; no se reincluyen):", "Gate packages generated (cited by hash, not re-included):")),
+                                                      ("tabla", [T("Archivo", "File"), "sha256"], [[z, h] for z, h in zips], None)]),
+        (T("Comunicaciones, informes y aceptaciones", "Communications, reports and acceptances"), [("tabla", [T("Archivo", "File"), "Bytes", "sha256", T("Nota", "Note")],
+                                                                                                  por_sec("comunicaciones") + por_sec("aceptaciones") + por_sec("extra"), 0)]),
+        (T("Hallazgos de sanidad al corte", "Health findings at the cut-off"), [("p", f"ERROR {cuenta.get('ERROR', 0)} · AVISO {cuenta.get('AVISO', 0)} · INFO {cuenta.get('INFO', 0)} · sanidad-{corte}.json"),
+                                                                                ("tabla", [T("Severidad", "Severity"), T("Código", "Code"), T("Mensaje", "Message")],
+                                                                                 [[h.get("severidad"), h.get("codigo"), h.get("mensaje", "")[:200]] for h in sj.get("hallazgos", []) if h.get("severidad") in ("ERROR", "AVISO")], None)]),
+        (T("Manifiesto e integridad", "Manifest and integrity"), [("p", T(f"MANIFIESTO.md y {ARCHIVO_SUMAS} listan cada archivo con su sha256.", f"MANIFIESTO.md and {ARCHIVO_SUMAS} list every file with its sha256."))]
+                                                                 + ([("p", T("Excluidos por estar fuera de la carpeta del proyecto: ", "Excluded (outside the project folder): ") + "; ".join(externos))] if externos else []))]
+    titulo = T(f"Expediente de auditoría · {estado.get('proyecto', '')}", f"Audit file · {estado.get('proyecto', '')}")
+    imd, ihtml = _secciones_a_texto(titulo, secciones)
+    agregar("INDICE.md", imd.encode("utf-8"), "indice"); agregar("INDICE.html", ihtml.encode("utf-8"), "indice")
+    man = [f"# {T('Manifiesto del expediente', 'Audit file manifest')}", "", f"**{T('Proyecto', 'Project')}:** {estado.get('proyecto', '')} · **{T('Período', 'Period')}:** {rango} · **{T('Generado', 'Generated')}:** {hoy}", "",
+           "| " + T("Archivo | Sección | Bytes | sha256", "File | Section | Bytes | sha256") + " |", "|---|---|---|---|"]
+    man += [f"| {_md(k)} | {origen[k][0]} | {len(v)} | {_sha(v)} |" for k, v in sorted(miembros.items())]
+    agregar("MANIFIESTO.md", ("\n".join(man) + "\n").encode("utf-8"), "manifiesto")
+    sumas = "".join(f"{_sha(v)}  {k}\n" for k, v in sorted(miembros.items()))
+    sufijo = f"-{a.desde or 'inicio'}_{a.hasta or corte}" if (a.desde or a.hasta) else ""
+    salida = a.salida or os.path.join(p, "exportados", f"{hoy}-expediente-auditoria{sufijo}.zip")
+    os.makedirs(os.path.dirname(salida) or ".", exist_ok=True)
+    with zipfile.ZipFile(salida, "w", zipfile.ZIP_DEFLATED) as z:
+        for k, v in sorted(miembros.items()): z.writestr(k, v)
+        z.writestr(ARCHIVO_SUMAS, sumas)
+    secs = {}
+    for k in miembros: secs[origen[k][0]] = secs.get(origen[k][0], 0) + 1
+    print(T(f"Escrito {salida}: {len(miembros) + 1} archivos · {len(crono)} eventos en la cronología · registros {len(regs)} · sanidad ERROR {cuenta.get('ERROR', 0)} AVISO {cuenta.get('AVISO', 0)}",
+            f"Written {salida}: {len(miembros) + 1} files · {len(crono)} timeline events · {len(regs)} registers · health ERROR {cuenta.get('ERROR', 0)} AVISO {cuenta.get('AVISO', 0)}"))
+    print("  " + " · ".join(f"{s} {n}" for s, n in sorted(secs.items())))
+    if externos: print(T("Excluidos por estar fuera del proyecto: ", "Excluded (outside the project): ") + "; ".join(externos[:TOPE_PANTALLA]) + (f" … y {len(externos) - TOPE_PANTALLA} más" if len(externos) > TOPE_PANTALLA else ""))
+    print(T(f"Integridad: paquete.py --proyecto {p} verificar {salida}", f"Integrity: paquete.py --proyecto {p} verificar {salida}"))
+
+def verificar(ruta_zip, estado):
+    """Rehash de cada archivo del ZIP contra SHA256SUMS: alterados, faltantes y agregados. Código 1 si algo no coincide."""
+    T = lambda es, en: _t(estado, es, en)
+    if not os.path.isfile(ruta_zip): sys.exit(T(f"No existe el archivo: {ruta_zip}", f"File not found: {ruta_zip}"))
+    try: z = zipfile.ZipFile(ruta_zip)
+    except zipfile.BadZipFile: sys.exit(T(f"{ruta_zip} no es un ZIP válido", f"{ruta_zip} is not a valid ZIP"))
+    if ARCHIVO_SUMAS not in z.namelist(): sys.exit(T(f"{ruta_zip} no tiene {ARCHIVO_SUMAS}: solo los expedientes de auditoría se verifican.", f"{ruta_zip} has no {ARCHIVO_SUMAS}."))
+    esperado = {}
+    for l in z.read(ARCHIVO_SUMAS).decode("utf-8").splitlines():
+        m = re.match(r"^([0-9a-f]{64})  (.+)$", l)
+        if m: esperado[m.group(2)] = m.group(1)
+    presentes = [n for n in z.namelist() if n != ARCHIVO_SUMAS and not n.endswith("/")]
+    alterados = [n for n in presentes if n in esperado and _sha(z.read(n)) != esperado[n]]
+    faltan = [n for n in esperado if n not in presentes]
+    agregados = [n for n in presentes if n not in esperado]
+    problemas = [T("alterado", "altered") + f": {n}" for n in alterados] + [T("falta", "missing") + f": {n}" for n in faltan] + [T("agregado", "added") + f": {n}" for n in agregados]
+    if problemas:
+        print(T(f"INTEGRIDAD: FALLA · {len(problemas)} problema(s) en {ruta_zip}", f"INTEGRITY: FAILED · {len(problemas)} problem(s) in {ruta_zip}"))
+        for x in problemas[:TOPE_PANTALLA]: print("  " + x)
+        if len(problemas) > TOPE_PANTALLA: print(T(f"  … y {len(problemas) - TOPE_PANTALLA} más", f"  … and {len(problemas) - TOPE_PANTALLA} more"))
+        sys.exit(1)
+    print(T(f"INTEGRIDAD: OK · {len(esperado)} archivos coinciden con {ARCHIVO_SUMAS}", f"INTEGRITY: OK · {len(esperado)} files match {ARCHIVO_SUMAS}"))
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--proyecto", required=True)
     sub = ap.add_subparsers(dest="cmd", required=True)
     p = sub.add_parser("puerta"); p.add_argument("tipo", choices=[k for k in PAQUETES if k != "cierre"]); p.add_argument("--salida"); p.add_argument("--extra", nargs="*", default=[])
     c = sub.add_parser("cierre"); c.add_argument("--salida"); c.add_argument("--extra", nargs="*", default=[])
-    for x in (p, c): x.add_argument("--permitir-externos", action="store_true", help="incluir también archivos fuera de la carpeta del proyecto")
+    au = sub.add_parser("auditoria", help="expediente de auditoría: índice MD/HTML, cronología, líneas base, registros, comunicaciones, sanidad y sha256")
+    au.add_argument("--desde"); au.add_argument("--hasta"); au.add_argument("--proposito", help="PMO, auditoría interna, due diligence, entrega al cliente…")
+    au.add_argument("--externo", action="store_true", help="para un destinatario externo (cliente, proveedor, due diligence): sin stakeholders, estereotipos ni preferencias y sin el destino de los envíos")
+    au.add_argument("--salida"); au.add_argument("--extra", nargs="*", default=[])
+    for x in (p, c, au): x.add_argument("--permitir-externos", action="store_true", help="incluir también archivos fuera de la carpeta del proyecto")
+    v = sub.add_parser("verificar", help="rehash de un expediente contra su SHA256SUMS"); v.add_argument("zip")
     l = sub.add_parser("listar"); l.add_argument("clase", choices=["puerta", "cierre"]); l.add_argument("tipo", nargs="?")
     a = ap.parse_args()
 
     f_estado = os.path.join(a.proyecto, "estado.json")
     if not os.path.exists(f_estado): sys.exit("No existe estado.json; ejecutar nuevo_proyecto.py")
     estado = json.load(open(f_estado, encoding="utf-8"))
+    if a.cmd == "verificar": verificar(a.zip, estado); return
+    if a.cmd == "auditoria":
+        for f in (a.desde, a.hasta):
+            if f and not re.fullmatch(r"\d{4}-\d{2}-\d{2}", f): sys.exit(_t(estado, f"Fecha inválida: {f} (AAAA-MM-DD)", f"Invalid date: {f}"))
+        if a.desde and a.hasta and a.desde > a.hasta: sys.exit(_t(estado, "--desde es posterior a --hasta", "--desde is after --hasta"))
+        expediente(a, estado); return
 
     if a.cmd == "listar":
         tipo = "cierre" if a.clase == "cierre" else (a.tipo or sys.exit("Indicar tipo de puerta"))

@@ -6,14 +6,19 @@ caso (o en --salida): `E2E-N-diapositivas.pptx` y `E2E-N-diapositivas.html`. Agr
 de cada clase con sus objetivos y el glosario al final. Sin marca ni logo de empresa: un recuadro rotulado
 "Logo IEEE" (o la imagen que se pase con --logo).
 
+Con --ficha, en lugar de las diapositivas lee `ficha.json` (ficha promocional del taller, mismo esquema documentado en
+docs/webinar/README.md) y escribe `E2E-N-ficha.pptx` (2 diapositivas con notas) y `E2E-N-ficha.html` (volante A4).
+
 Uso:
     python3 scripts/webinar/generar.py --caso docs/webinar/E2E-1 [--salida DIR] [--logo logo-ieee.png]
     python3 scripts/webinar/generar.py --todos [--salida DIR]
     python3 scripts/webinar/generar.py --caso docs/webinar/E2E-1 --validar      # solo valida, no escribe nada
+    python3 scripts/webinar/generar.py --todos --ficha [--validar]              # fichas promocionales del taller
 
 Requiere Python 3.9+ (solo biblioteca estándar) y, para el PPTX, Node.js con pptxgenjs (`npm install -g pptxgenjs@4.0.1`).
 Salida: 0 sin errores (puede haber avisos), 1 con errores de validación o de generación, 2 uso incorrecto.
-EN: Webinar slide generator (PPTX + self-contained HTML with glossary) from diapositivas.json.
+EN: Webinar slide generator (PPTX + self-contained HTML with glossary) from diapositivas.json; with --ficha, the
+workshop promo sheet (2-slide PPTX + printable A4 HTML flyer) from ficha.json.
 """
 import argparse
 import base64
@@ -705,12 +710,12 @@ def entorno_node():
     return env
 
 
-def armar_pptx(mazo, version, logo, salida):
+def armar_pptx(mazo, version, logo, salida, ficha=False):
     node = shutil.which("node")
     if not node:
         return False, ["no se encontró Node.js: instalalo para generar el PPTX (el HTML sí se generó)"], []
     datos = dict(mazo, version=version, logo=str(logo) if logo else None)
-    r = subprocess.run([node, str(AQUI / "pptx.js"), str(salida)], input=json.dumps(datos, ensure_ascii=False),
+    r = subprocess.run([node, str(AQUI / "pptx.js"), str(salida)] + (["--ficha"] if ficha else []), input=json.dumps(datos, ensure_ascii=False),
                        capture_output=True, text=True, env=entorno_node())
     avisos = [l[len("AVISO: "):] for l in r.stderr.splitlines() if l.startswith("AVISO: ")]
     if r.returncode != 0:
@@ -719,6 +724,388 @@ def armar_pptx(mazo, version, logo, salida):
             err = "falta pptxgenjs: instalalo con `npm install -g pptxgenjs@4.0.1` (el HTML sí se generó)"
         return False, [err], avisos
     return True, [r.stdout.strip()], avisos
+
+
+# ====================================================================== ficha promocional del taller
+# Fuente: docs/webinar/E2E-N/ficha.json (esquema en docs/webinar/README.md). El título y la duración de cada clase se
+# toman de diapositivas.json (fuente única); la ficha solo agrega los temas de cada clase.
+CLAVES_FICHA = {"caso", "titulo", "bajada", "para_quien", "objetivos", "sistema_agentico", "beneficios", "clases",
+                "requisitos", "modalidad", "convocatoria", "imagen", "notas"}
+FICHA_TEXTOS = {"titulo": 75, "bajada": 170, "control": 150, "modalidad": 120, "convocatoria": 110, "pie": 110}   # caracteres
+FICHA_LISTAS = {"para_quien": (2, 3, 90), "objetivos": (3, 5, 110), "agente": (2, 3, 85), "persona": (2, 3, 85),
+                "para_vos": (1, 2, 85), "para_la_organizacion": (1, 2, 85), "temas": (3, 4, 60),
+                "requisitos": (2, 3, 85), "notas": (1, 2, 1500)}   # (mínimo, máximo, caracteres por elemento)
+VERBOS_VAGOS = {"entender", "conocer", "comprender", "saber", "aprender", "familiarizarse", "apreciar", "descubrir",
+                "explorar", "ver", "valorar", "internalizar", "dominar"}
+CONVOCATORIA_VACIA = "Fecha, horario, lugar o enlace e inscripción: a completar por quien organiza."
+
+
+def _texto_ficha(v, donde, nombre, inf, requerido=True):
+    if v is None or (isinstance(v, str) and not v.strip()):
+        if requerido:
+            inf.error(donde, f"falta «{nombre}» (texto)")
+        return ""
+    if not isinstance(v, str):
+        inf.error(donde, f"«{nombre}» debe ser texto")
+        return ""
+    tope = FICHA_TEXTOS.get(nombre)
+    if tope and len(v.strip()) > tope:
+        inf.error(donde, f"«{nombre}» tiene {len(v.strip())} caracteres; el máximo es {tope} (la ficha es breve: acortalo)")
+    return v.strip()
+
+
+def _lista_ficha(v, donde, nombre, inf):
+    mn, mx, largo = FICHA_LISTAS[nombre]
+    if v is None:
+        inf.error(donde, f"falta «{nombre}» (lista de {mn} a {mx} textos)")
+        return []
+    if not isinstance(v, list) or not all(_texto(x) for x in v):
+        inf.error(donde, f"«{nombre}» debe ser una lista de textos no vacíos")
+        return []
+    if not mn <= len(v) <= mx:
+        inf.error(donde, f"«{nombre}» tiene {len(v)} elementos; deben ser de {mn} a {mx}")
+    for i, x in enumerate(v, 1):
+        if len(x.strip()) > largo:
+            inf.error(donde, f"«{nombre}» {i} tiene {len(x.strip())} caracteres; el máximo es {largo}: «{x.strip()[:50]}…»")
+    return [x.strip() for x in v]
+
+
+def _subobjeto(datos, clave, claves, inf):
+    v = datos.get(clave)
+    if not isinstance(v, dict):
+        inf.error("raíz", f"falta «{clave}» (objeto con {', '.join(claves)})")
+        return {}
+    for k in sorted(set(v) - set(claves)):
+        inf.aviso(clave, f"clave desconocida «{k}» (se ignora); claves válidas: {', '.join(claves)}")
+    return v
+
+
+def duracion_texto(clases):
+    total = sum(c["duracion_min"] for c in clases)
+    h, m = divmod(total, 60)
+    tot = (f"{h} h" if h else "") + (f" {m} min" if m else "")
+    durs = sorted({c["duracion_min"] for c in clases})
+    n = len(clases)
+    partes = (f"{n} clases de {durs[0]} minutos" if len(durs) == 1 else f"{n} clases de " + " y ".join(map(str, durs)) + " minutos") \
+        if n > 1 else f"una clase de {durs[0]} minutos"
+    return tot.strip() + " en total · " + partes, partes
+
+
+def validar_ficha(datos, carpeta, inf):
+    """Valida ficha.json contra su esquema y contra diapositivas.json; devuelve la ficha normalizada o None."""
+    if not isinstance(datos, dict):
+        inf.error("raíz", "el JSON debe ser un objeto {caso, titulo, bajada, para_quien, objetivos, …}")
+        return None
+    for k in sorted(set(datos) - CLAVES_FICHA):
+        inf.aviso("raíz", f"clave desconocida «{k}» (se ignora); claves válidas: {', '.join(sorted(CLAVES_FICHA))}")
+    caso = _texto_ficha(datos.get("caso"), "raíz", "caso", inf)
+    if caso and caso != carpeta.name:
+        inf.aviso("raíz", f"«caso» es {caso!r} pero la carpeta se llama {carpeta.name!r}")
+    f = {"caso": caso or carpeta.name,
+         "titulo": _texto_ficha(datos.get("titulo"), "raíz", "titulo", inf),
+         "bajada": _texto_ficha(datos.get("bajada"), "raíz", "bajada", inf),
+         "modalidad": _texto_ficha(datos.get("modalidad"), "raíz", "modalidad", inf),
+         "convocatoria": _texto_ficha(datos.get("convocatoria"), "raíz", "convocatoria", inf, requerido=False),
+         "para_quien": _lista_ficha(datos.get("para_quien"), "raíz", "para_quien", inf),
+         "objetivos": _lista_ficha(datos.get("objetivos"), "raíz", "objetivos", inf),
+         "requisitos": _lista_ficha(datos.get("requisitos"), "raíz", "requisitos", inf)}
+    for i, o in enumerate(f["objetivos"], 1):
+        verbo = normal(re.split(r"[\s,:]", o, maxsplit=1)[0])
+        if verbo in VERBOS_VAGOS:
+            inf.aviso("objetivos", f"el objetivo {i} empieza con «{o.split()[0]}», que no se puede observar; usá un verbo que se "
+                                   "pueda comprobar (explicar, identificar, comparar, calcular, escribir, leer, decidir…)")
+    sa = _subobjeto(datos, "sistema_agentico", ("agente", "persona", "control"), inf)
+    f["agente"] = _lista_ficha(sa.get("agente"), "sistema_agentico", "agente", inf) if sa else []
+    f["persona"] = _lista_ficha(sa.get("persona"), "sistema_agentico", "persona", inf) if sa else []
+    f["control"] = _texto_ficha(sa.get("control"), "sistema_agentico", "control", inf) if sa else ""
+    be = _subobjeto(datos, "beneficios", ("para_vos", "para_la_organizacion"), inf)
+    f["beneficios_vos"] = _lista_ficha(be.get("para_vos"), "beneficios", "para_vos", inf) if be else []
+    f["beneficios_org"] = _lista_ficha(be.get("para_la_organizacion"), "beneficios", "para_la_organizacion", inf) if be else []
+    for b in f["beneficios_vos"] + f["beneficios_org"]:
+        if re.search(r"\bROI\b|retorno de (la )?inversi", b, re.I):
+            inf.aviso("beneficios", f"promesa de retorno de la inversión: «{b[:60]}…»; la ficha no promete ROI (citá resultados del caso)")
+    # clases: número y temas en la ficha; título y duración desde diapositivas.json
+    mazo_clases = {}
+    try:
+        dj = json.loads((carpeta / "diapositivas.json").read_text(encoding="utf-8"))
+        mazo_clases = {c["numero"]: c for c in dj.get("clases", []) if isinstance(c, dict) and isinstance(c.get("numero"), int)}
+    except (OSError, ValueError, AttributeError):
+        inf.error("clases", f"no se pudo leer {carpeta / 'diapositivas.json'}: el título y la duración de cada clase salen de ahí")
+    clases = datos.get("clases")
+    f["clases"] = []
+    if not isinstance(clases, list) or not clases:
+        inf.error("raíz", "falta «clases» (lista de {numero, temas})")
+        clases = []
+    vistos = set()
+    for i, c in enumerate(clases, 1):
+        if not isinstance(c, dict):
+            inf.error(f"clase {i}", "debe ser un objeto {numero, temas}")
+            continue
+        for k in sorted(set(c) - {"numero", "temas"}):
+            nota = " (el título y la duración salen de diapositivas.json)" if k in ("titulo", "duracion_min") else ""
+            inf.aviso(f"clase {i}", f"clave desconocida «{k}» (se ignora){nota}")
+        num = c.get("numero")
+        temas = _lista_ficha(c.get("temas"), f"clase {num if isinstance(num, int) else i}", "temas", inf)
+        if not isinstance(num, int) or isinstance(num, bool):
+            inf.error(f"clase {i}", "«numero» debe ser un entero")
+            continue
+        if num in vistos:
+            inf.error(f"clase {num}", "«numero» repetido")
+        vistos.add(num)
+        mc = mazo_clases.get(num)
+        if mazo_clases and not mc:
+            inf.error(f"clase {num}", f"no existe en diapositivas.json (clases: {', '.join(map(str, sorted(mazo_clases)))})")
+            continue
+        if mc:
+            f["clases"].append({"numero": num, "titulo": str(mc.get("titulo", "")), "duracion_min": int(mc.get("duracion_min") or 0), "temas": temas})
+    for num in sorted(set(mazo_clases) - vistos):
+        inf.error("clases", f"falta la clase {num} de diapositivas.json (con sus «temas»)")
+    f["clases"].sort(key=lambda c: c["numero"])
+    # imagen real del caso
+    img = _subobjeto(datos, "imagen", ("ruta", "pie"), inf)
+    f["imagen"] = None
+    if img:
+        ruta_txt = img.get("ruta")
+        pie = _texto_ficha(img.get("pie"), "imagen", "pie", inf)
+        if not _texto(ruta_txt):
+            inf.error("imagen", "falta «ruta» (PNG o JPEG bajo docs/guias/img/)")
+        else:
+            ruta = resolver_imagen(ruta_txt, carpeta)
+            tam = tam_imagen(ruta) if ruta else None
+            if ruta is None:
+                inf.error("imagen", f"la imagen citada no existe: {ruta_txt} (se busca desde la raíz del repositorio)")
+            elif not tam:
+                inf.error("imagen", f"la imagen no es PNG ni JPEG: {ruta_txt}")
+            else:
+                if not ruta_txt.replace("\\", "/").startswith("docs/guias/img/"):
+                    inf.aviso("imagen", f"{ruta_txt} no está en docs/guias/img/: la ficha usa una imagen real de la corrida del caso")
+                if tam[1] > 0.8 * tam[0]:
+                    inf.aviso("imagen", f"la imagen {ruta_txt} no es apaisada ({tam[0]}×{tam[1]}): en la ficha se verá chica; preferí un PNG 16:9")
+                f["imagen"] = {"ruta": str(ruta), "rel": ruta_txt, "w": tam[0], "h": tam[1], "alt": pie, "pie": pie}
+    notas = datos.get("notas")
+    if notas is None:
+        inf.aviso("raíz", "sin «notas» del orador (lista de 1 o 2 textos: uno por diapositiva)")
+        f["notas"] = []
+    else:
+        f["notas"] = _lista_ficha(notas, "raíz", "notas", inf)
+    if inf.errores:
+        return None
+    f["convocatoria_vacia"] = not f["convocatoria"]
+    f["convocatoria"] = f["convocatoria"] or CONVOCATORIA_VACIA
+    f["duracion_txt"], f["clases_txt"] = duracion_texto(f["clases"])
+    if not f["notas"]:
+        f["notas"] = [f"Ficha del taller {f['caso']}: {f['titulo']}. {f['bajada']}"]
+    return f
+
+
+def armar_ficha_html(f, version, logo, enlaces):
+    lis = lambda xs: "".join(f"<li>{inl(x)}</li>" for x in xs)
+    im = f["imagen"]
+    clases = "".join(f'<div class="clase"><p class="cl-n">Clase {c["numero"]} · {c["duracion_min"]} min</p><h3>{inl(c["titulo"])}</h3>'
+                     f'<ul class="vin">{lis(c["temas"])}</ul></div>' for c in f["clases"])
+    objetivos = "".join(f'<li><span class="n">{i}</span><span>{inl(o)}</span></li>' for i, o in enumerate(f["objetivos"], 1))
+    nav = "".join(f'<a href="{e(h)}">{e(t)}</a>' for t, h in enlaces)
+    notas = "".join(f"<p><b>Diapositiva {i}.</b> {inl(n)}</p>" for i, n in enumerate(f["notas"], 1))
+    conv = f'<p class="conv{" vacia" if f["convocatoria_vacia"] else ""}">{inl(f["convocatoria"])}</p>'
+    cuerpo = f"""<article class="volante" aria-labelledby="t-ficha">
+<header class="cab">{logo_html(logo)}
+<p class="kicker">{e(f["kicker"])}</p>
+<h1 id="t-ficha">{e(f["titulo"])}</h1>
+<p class="bajada">{inl(f["bajada"])}</p>
+<p class="chips"><span>{e(f["duracion_txt"].split(" · ")[0])}</span><span>{e(f["clases_txt"])}</span><span>demostración real y ejercicio con tu proyecto</span></p>
+</header>
+<div class="fila a">
+<section><h2>Qué vas a poder hacer</h2><ol class="obj">{objetivos}</ol></section>
+<div class="der"><figure class="caso"><img src="{data_uri(im["ruta"])}" alt="{e(im["alt"])}" width="{im["w"]}" height="{im["h"]}"><figcaption>{inl(im["pie"])}</figcaption></figure>
+<section class="quien"><h2>Para quién es</h2><ul class="vin">{lis(f["para_quien"])}</ul></section></div>
+</div>
+<section class="agente"><h2>Cómo trabajás con el agente</h2>
+<div class="tres"><div class="c hace"><h3>Lo hace el agente <small>Claude Code con pm-method</small></h3><ul class="vin">{lis(f["agente"])}</ul></div>
+<div class="c decide"><h3>Lo decidís vos</h3><ul class="vin">{lis(f["persona"])}</ul></div>
+<div class="c control"><h3>Control humano</h3><p>{inl(f["control"])}</p></div></div></section>
+<section class="contenidos"><h2>Contenidos</h2><div class="dos">{clases}</div></section>
+<div class="fila b">
+<section class="lleva"><h2>Qué te llevás</h2><h3>Para vos</h3><ul class="vin">{lis(f["beneficios_vos"])}</ul>
+<h3>Para tu organización</h3><ul class="vin">{lis(f["beneficios_org"])}</ul></section>
+<section class="antes"><h2>Antes de inscribirte</h2><ul class="vin">{lis(f["requisitos"])}</ul>
+<p><b>Modalidad:</b> {inl(f["modalidad"])}</p>{conv}</section>
+</div>
+<footer class="pie-v"><span>pm-method {e(version)} · Webinar {e(f["caso"])} · Ficha del taller</span><span>Fuente: docs/webinar/{e(f["caso"])}/ficha.json</span></footer>
+</article>
+<details class="notas"><summary>Notas para quien presenta la ficha</summary>{notas}</details>"""
+    return PAGINA_FICHA.format(titulo=e(f"Ficha del taller {f['caso']} · {f['titulo']}"), css=G_TOKENS() + CSS_FICHA, caso=e(f["caso"]),
+                               nav=nav, cuerpo=cuerpo, js=JS_FICHA)
+
+
+def G_TOKENS():
+    """Los tokens de color (:root, claro y oscuro) del CSS de las diapositivas: misma estética, una sola fuente."""
+    return CSS.split("*{box-sizing", 1)[0]
+
+
+CSS_FICHA = r"""
+*{box-sizing:border-box}
+body{margin:0;background:var(--page);color:var(--ink);font-family:Arial,Helvetica,sans-serif;line-height:1.4}
+a{color:var(--accent)}
+code{font-family:"Courier New",monospace;font-size:.92em;background:var(--soft);padding:.05em .3em;border-radius:4px;overflow-wrap:anywhere}
+.barra{position:sticky;top:0;z-index:10;display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;padding:10px 16px;background:var(--surface);border-bottom:1px solid var(--line)}
+.barra .marca{font-weight:700;color:var(--title-ink)}
+.barra nav{display:flex;flex-wrap:wrap;gap:6px}
+.barra nav a{padding:4px 10px;border-radius:8px;background:var(--soft);text-decoration:none;font-size:.9rem;color:var(--ink)}
+.barra .ctl{display:flex;gap:6px;margin-left:auto}
+.barra button{font:inherit;font-size:.85rem;padding:4px 10px;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
+main{max-width:940px;margin:0 auto;padding:24px 16px 48px}
+.volante{background:var(--surface);border-radius:14px;box-shadow:var(--shadow);overflow:hidden}
+.cab{position:relative;background:var(--dark);color:#fff;padding:26px 30px 22px}
+.cab .logo{position:absolute;top:22px;right:26px;width:120px;height:56px;border:1px dashed #7f9bb8;border-radius:4px;display:grid;place-items:center;font-size:.8rem;color:#a9bfd6}
+.cab .logo.con-img{border:0}.cab .logo img{max-width:100%;max-height:100%}
+.kicker{margin:0 140px 8px 0;color:var(--sky);font-weight:700;font-size:.92rem}
+.cab h1{margin:0 140px 10px 0;font-size:2rem;line-height:1.15}
+.bajada{margin:0;font-size:1.08rem;color:#d6e4f0;max-width:62em}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0 0}
+.chips span{background:var(--dark2);border-radius:999px;padding:4px 12px;font-size:.85rem;color:#fff}
+.chips span:first-child{background:var(--orange);font-weight:700}
+.volante h2{margin:0 0 8px;font-size:1.12rem;color:var(--warm)}
+.volante h3{margin:0 0 6px;font-size:1rem;color:var(--title-ink)}
+.volante section,.volante figure{margin:0}
+.fila{display:grid;gap:22px;padding:22px 30px 0}
+.fila.a{grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);align-items:start}
+.fila.b{grid-template-columns:minmax(0,1fr) minmax(0,1fr);padding-bottom:0}
+.der .quien{margin-top:16px}
+ol.obj{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+ol.obj li{display:flex;gap:10px;align-items:flex-start;background:var(--tint);border-radius:8px;padding:7px 10px}
+ol.obj li:nth-child(even){background:var(--soft)}
+ol.obj .n{flex:0 0 1.6em;height:1.6em;border-radius:6px;background:var(--blue);color:#fff;font-weight:700;display:grid;place-items:center;font-size:.9em}
+ul.vin{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:5px}
+ul.vin li{position:relative;padding-left:1.2em}
+ul.vin li::before{content:"▪";position:absolute;left:0;color:var(--accent);font-weight:700}
+figure.caso img{display:block;width:100%;height:auto;border:1px solid var(--line);border-radius:8px;background:#fff}
+figure.caso figcaption{margin-top:6px;font-size:.88rem;color:var(--gray);font-style:italic}
+.agente,.contenidos{padding:22px 30px 0}
+.tres{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.c{border-radius:10px;padding:12px 14px}
+.c.hace{background:var(--tint)}
+.c.decide{background:var(--ortint)}.c.decide h3{color:var(--warm)}.c.decide ul.vin li::before{color:var(--warm)}
+.c.control{background:var(--dark);color:#fff}.c.control h3{color:var(--sky)}.c.control p{margin:0}
+.c h3 small{display:block;font-weight:400;font-size:.8em;color:var(--gray)}
+.dos{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.clase{background:var(--soft);border-radius:10px;padding:12px 14px}
+.clase .cl-n{margin:0 0 2px;font-size:.82rem;font-weight:700;color:var(--warm)}
+.lleva{background:var(--tint);border-radius:10px;padding:12px 14px}
+.lleva h3{margin-top:4px}.lleva ul+h3{margin-top:10px}
+.antes{background:var(--soft);border-radius:10px;padding:12px 14px}
+.antes p{margin:10px 0 0}
+.conv{border:1px solid var(--line);border-radius:8px;padding:8px 10px;background:var(--surface);font-weight:700;color:var(--title-ink)}
+.conv.vacia{border-style:dashed;font-weight:400;color:var(--gray)}
+.pie-v{display:flex;flex-wrap:wrap;justify-content:space-between;gap:4px 16px;margin-top:22px;padding:12px 30px;border-top:1px solid var(--line);font-size:.8rem;color:var(--gray)}
+details.notas{margin:16px 4px 0;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:8px 14px}
+details.notas summary{cursor:pointer;color:var(--accent);font-weight:700}
+@media (max-width:760px){
+main{padding:12px 0 32px}
+.volante{border-radius:0}
+.cab{padding:18px 16px}
+.cab .logo{position:static;width:100px;height:44px;margin-bottom:10px}
+.kicker,.cab h1{margin-right:0}
+.cab h1{font-size:1.5rem}
+.fila,.agente,.contenidos{padding:16px 16px 0}
+.fila.a,.fila.b,.tres,.dos{grid-template-columns:1fr}
+.pie-v{padding:12px 16px}
+.barra .ctl{margin-left:0}
+}
+@media print{
+:root,:root:not([data-theme="light"]),:root[data-theme="light"],:root[data-theme="dark"]{--page:#fff;--surface:#fff;--soft:#f4f6f8;--tint:#e9f1f8;--ortint:#fbf1e6;--line:#e2e2e6;--ink:#272425;--gray:#696969;
+--dark:#002855;--dark2:#173d66;--azul:#00629b;--title-ink:#002855;--accent:#00629b;--warm:#b5651d;color-scheme:light}
+@page{size:A4 portrait;margin:8mm}
+html{font-size:7.9pt}
+body{background:#fff;line-height:1.3}
+.barra,details.notas{display:none}
+main{max-width:none;padding:0}
+.volante{box-shadow:none;border-radius:0}
+.volante,.volante *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.cab{padding:12px 16px 10px}.cab .logo{top:10px;right:14px;width:96px;height:42px}
+.cab h1{font-size:1.95rem;margin-bottom:6px}.kicker{margin-bottom:4px}.chips{margin-top:8px}
+.volante h2{margin-bottom:5px}.volante h3{margin-bottom:3px}
+.fila{padding:10px 16px 0;gap:12px}.agente,.contenidos{padding:10px 16px 0}
+.fila.a{grid-template-columns:minmax(0,1.25fr) minmax(0,1fr)}
+ol.obj{gap:4px}ol.obj li{padding:5px 8px}ul.vin{gap:2px}
+.c,.clase,.lleva,.antes{padding:8px 10px}.tres,.dos{gap:8px}
+.der .quien{margin-top:10px}.antes p{margin-top:6px}.lleva ul+h3{margin-top:6px}
+.pie-v{margin-top:10px;padding:6px 16px}
+section,figure,.c,.clase{break-inside:avoid}
+}
+"""
+
+JS_FICHA = r"""
+(function(){
+  var raiz=document.documentElement;
+  function guardar(k,v){try{localStorage.setItem(k,v)}catch(e){}}
+  function leer(k){try{return localStorage.getItem(k)}catch(e){return null}}
+  var tema=leer('webinar-tema'); if(tema==='light'||tema==='dark') raiz.setAttribute('data-theme',tema);
+  var b=document.getElementById('b-tema');
+  function rot(){var t=raiz.getAttribute('data-theme'); b.textContent=t==='dark'?'Tema: oscuro':(t==='light'?'Tema: claro':'Tema: automático');}
+  rot();
+  b.addEventListener('click',function(){var t=raiz.getAttribute('data-theme'); var s=!t?'light':(t==='light'?'dark':'');
+    if(s){raiz.setAttribute('data-theme',s)}else{raiz.removeAttribute('data-theme')} guardar('webinar-tema',s); rot();});
+  document.getElementById('b-imprimir').addEventListener('click',function(){window.print()});
+})();
+"""
+
+PAGINA_FICHA = """<!DOCTYPE html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{titulo}</title><style>{css}</style></head>
+<body>
+<header class="barra">
+  <span class="marca">Ficha del taller {caso}</span>
+  <nav aria-label="Material del caso">{nav}</nav>
+  <div class="ctl"><button type="button" id="b-imprimir" title="Imprimir como volante A4">Imprimir</button><button type="button" id="b-tema">Tema: automático</button></div>
+</header>
+<main>{cuerpo}</main>
+<script>{js}</script>
+</body></html>"""
+
+
+def procesar_ficha(carpeta, salida, logo, solo_validar, version):
+    carpeta = Path(carpeta).resolve()
+    archivo = carpeta / "ficha.json"
+    inf = Informe(carpeta.name)
+    print(f"== {carpeta.name} · ficha ({archivo})")
+    if not archivo.is_file():
+        print(f"  ERROR: no existe {archivo}")
+        return False
+    try:
+        datos = json.loads(archivo.read_text(encoding="utf-8"))
+    except ValueError as ex:
+        print(f"  ERROR: JSON inválido en {archivo}: {ex}")
+        return False
+    f = validar_ficha(datos, carpeta, inf)
+    for a in inf.avisos:
+        print(f"  AVISO: {a}")
+    for er in inf.errores:
+        print(f"  ERROR: {er}")
+    if f is None:
+        print(f"  {len(inf.errores)} error(es): no se genera nada")
+        return False
+    print(f"  válida: {len(f['objetivos'])} objetivos, {len(f['clases'])} clase(s) ({f['duracion_txt'].split(' · ')[0]}), "
+          f"imagen {f['imagen']['rel']}, {len(inf.avisos)} aviso(s)")
+    if solo_validar:
+        return True
+    f["kicker"] = f"Taller · {f['clases_txt']} · Webinar pm-method {version} · {f['caso']}"
+    destino = Path(salida).resolve() if salida else carpeta
+    destino.mkdir(parents=True, exist_ok=True)
+    base = destino / f"{f['caso']}-ficha"
+    enlaces = [("Índice", "../index.html")] + [(t, f"{f['caso']}-{n}.html") for t, n in (("Diapositivas", "diapositivas"), ("Guía", "guia"))
+                                              if (carpeta / f"{f['caso']}-{n}.html").is_file()]
+    Path(f"{base}.html").write_text(armar_ficha_html(f, version, logo, enlaces), encoding="utf-8")
+    print(f"  HTML: {base}.html")
+    ok, msgs, avisos = armar_pptx(f, version, logo, f"{base}.pptx", ficha=True)
+    for a in avisos:
+        print(f"  AVISO (PPTX): {a}")
+    if ok:
+        info = json.loads(msgs[0]) if msgs and msgs[0].startswith("{") else {}
+        print(f"  PPTX: {base}.pptx ({info.get('diapositivas', '?')} diapositivas)")
+    else:
+        for m_ in msgs:
+            print(f"  ERROR (PPTX): {m_}")
+    return ok
 
 
 # ====================================================================== principal
@@ -765,13 +1152,15 @@ def procesar(carpeta, salida, logo, solo_validar, version):
 
 
 def main(argv=None):
-    ap = argparse.ArgumentParser(description="Genera las diapositivas del webinar (PPTX + HTML) desde diapositivas.json.")
+    ap = argparse.ArgumentParser(description="Genera las diapositivas del webinar (PPTX + HTML) desde diapositivas.json, o con --ficha la ficha promocional del taller desde ficha.json.")
     g = ap.add_mutually_exclusive_group(required=True)
     g.add_argument("--caso", help="carpeta del caso, por ejemplo docs/webinar/E2E-1")
     g.add_argument("--todos", action="store_true", help="recorre docs/webinar/E2E-*/diapositivas.json")
     ap.add_argument("--salida", help="carpeta de salida (por defecto, la del caso)")
     ap.add_argument("--logo", help="PNG del logo de IEEE (opcional; sin él se deja un recuadro rotulado «Logo IEEE»)")
     ap.add_argument("--validar", action="store_true", help="solo valida el JSON; no escribe archivos")
+    ap.add_argument("--ficha", action="store_true",
+                    help="ficha promocional del taller desde ficha.json (E2E-N-ficha.pptx y .html) en lugar de las diapositivas")
     a = ap.parse_args(argv)
     logo = None
     if a.logo:
@@ -781,14 +1170,16 @@ def main(argv=None):
             return 2
     version = version_paquete()
     if a.todos:
-        carpetas = sorted({str(Path(p).parent) for p in glob.glob(str(RAIZ / "docs" / "webinar" / "E2E-*" / "diapositivas.json"))},
+        fuente = "ficha.json" if a.ficha else "diapositivas.json"
+        carpetas = sorted({str(Path(p).parent) for p in glob.glob(str(RAIZ / "docs" / "webinar" / "E2E-*" / fuente))},
                           key=lambda s: [int(x) if x.isdigit() else x for x in re.split(r"(\d+)", s)])
         if not carpetas:
-            print("No hay casos con diapositivas.json en docs/webinar/E2E-*/")
+            print(f"No hay casos con {fuente} en docs/webinar/E2E-*/")
             return 1
     else:
         carpetas = [a.caso]
-    oks = [procesar(c, a.salida, logo, a.validar, version) for c in carpetas]
+    paso = procesar_ficha if a.ficha else procesar
+    oks = [paso(c, a.salida, logo, a.validar, version) for c in carpetas]
     print(f"Resultado: {sum(oks)}/{len(oks)} caso(s) sin errores")
     return 0 if all(oks) else 1
 

@@ -117,46 +117,58 @@ Sanidad de 'Portal de autoservicio para socios' (pre-proyecto/SU): 0 ERROR · 0 
 
 ## Paso 3 · Estimación de esfuerzo: PERT de tres puntos por actividad y reserva de cronograma
 ```
-$ (estimacion-pert.csv que calcula pm-cronograma-estimacion: tE=(O+4M+P)/6, σ=(P−O)/6)
-id,nombre,optimista,mas_probable,pesimista,tE,sigma
-A01,Brief PRD UX y arquitectura (BMAD),8,10,15,10.5,1.17
-A02,Spike de integración con el núcleo,5,8,14,8.5,1.50
-A03,Sprints acceso seguro,20,28,40,28.7,3.33
-A04,Sprints consulta y constancias,18,25,38,26.0,3.33
-A05,Sprints consola de operador,20,28,42,29.0,3.67
-A06,Release 1 aceptada,0,0,0,0.0,0.00
-A07,Sprints solicitudes del socio,22,30,45,31.2,3.83
-A08,UAT prueba de carga y capacitación,8,10,16,10.7,1.33
-A09,Puesta en producción,0,0,0,0.0,0.00
-```
-
-```
-$ python3 $EST/cpm.py gestion/02-planificacion/actividades.csv --inicio 2026-11-30 --titulo "Portal de autoservicio para socios" --mermaid gestion/02-planificacion/cronograma.md --mspdi gestion/02-planificacion/cronograma.xml --wbs gestion/02-planificacion/wbs.csv
-Duración total (días laborables): 110  · Fin previsto: 2027-05-03
+$ python3 $EST/cpm.py gestion/02-planificacion/actividades.csv --inicio 2026-11-30 --titulo "Portal de autoservicio para socios" --mermaid gestion/02-planificacion/cronograma.md --mspdi gestion/02-planificacion/cronograma.xml --wbs gestion/02-planificacion/wbs.csv --estimacion gestion/02-planificacion/estimacion-pert.csv
+Duración total (días laborables): 112  · Fin previsto: 2027-05-05
 Camino crítico: A01 -> A03 -> A05 -> A06 -> A07 -> A08 -> A09
 id      dur   ES   EF   LS   LF   HT   HL  nombre   (HT holgura total, HL libre, * crítica)
-A01      10    0   10    0   10    0    0  Brief PRD UX y arquitectura (BMAD)  *
-A02       8    0    8   34   42   34   31  Spike de integración con el núcleo
-A03      29   10   39   10   39    0    0  Sprints acceso seguro  *
-A04      26   39   65   42   68    3    3  Sprints consulta y constancias
-A05      29   39   68   39   68    0    0  Sprints consola de operador  *
-A06       0   68   68   68   68    0    0  Release 1 aceptada [hito]  *
-A07      31   68   99   68   99    0    0  Sprints solicitudes del socio  *
-A08      11   99  110   99  110    0    0  UAT prueba de carga y capacitación  *
-A09       0  110  110  110  110    0    0  Puesta en producción [hito]  *
-Carga por recurso (días): {'PO + arquitecto': 10, 'Proveedor': 123, 'Usuario sénior': 11}
+A01      11    0   11    0   11    0    0  Brief PRD UX y arquitectura (BMAD)  *
+A02       9    0    9   34   43   34   31  Spike de integración con el núcleo
+A03      29   11   40   11   40    0    0  Sprints acceso seguro  *
+A04      26   40   66   43   69    3    3  Sprints consulta y constancias
+A05      29   40   69   40   69    0    0  Sprints consola de operador  *
+A06       0   69   69   69   69    0    0  Release 1 aceptada [hito]  *
+A07      32   69  101   69  101    0    0  Sprints solicitudes del socio  *
+A08      11  101  112  101  112    0    0  UAT prueba de carga y capacitación  *
+A09       0  112  112  112  112    0    0  Puesta en producción [hito]  *
+Carga por recurso (días): {'PO + arquitecto': 11, 'Proveedor': 125, 'Usuario sénior': 11}
+Tres valores · beta-PERT: tE = (O + 4M + P)/6, σ = (P − O)/6 (práctica habitual; la Guía PMBOK cita la triangular); duración = tE redondeada hacia arriba
+id         O     M     P     tE     σ
+A01        8    10    15  10,50  1,17  *
+A02        5     8    14   8,50  1,50
+A03       20    28    40  28,67  3,33  *
+A04       18    25    38  26,00  3,33
+A05       20    28    42  29,00  3,67  *
+A06        0     0     0   0,00  0,00  *
+A07       22    30    45  31,17  3,83  *
+A08        8    10    16  10,67  1,33  *
+A09        0     0     0   0,00  0,00  *
+σ del camino crítico = √(1,17² + 3,33² + 3,67² + 3,83² + 1,33²) = 6,51 días
+Reserva de cronograma a 2σ = 13,0 días laborables (≈ 95 %) · fin con reserva 2027-05-24 (+13)
+Estimación escrita en gestion/02-planificacion/estimacion-pert.csv (la lee impacto.py --pert)
 Gantt escrito en gestion/02-planificacion/cronograma.md
 MSPDI escrito en gestion/02-planificacion/cronograma.xml
 ```
 
 ```
-$ (reserva de cronograma que calcula pm-cronograma-estimacion: σ del camino crítico = √Σσ² de sus actividades; reserva a 2σ)
-Camino crítico: A01 → A03 → A05 → A06 → A07 → A08 → A09
-σ = √(1,17² + 3,33² + 3,67² + 3,83² + 1,33²) = 6,51 días
-Reserva a 2σ = 13,0 días laborables · tolerancia de tiempo del proyecto ±3 semanas = 15 días laborables (la fija la junta en el paso 5) → la reserva entra en la tolerancia
+$ (02-planificacion/estimacion-pert.csv que escribió cpm.py --estimacion; lo lee impacto.py --pert en los pasos 7 y 10)
+id,nombre,optimista,mas_probable,pesimista,tE,sigma,distribucion
+A01,Brief PRD UX y arquitectura (BMAD),8,10,15,10.50,1.17,beta
+A02,Spike de integración con el núcleo,5,8,14,8.50,1.50,beta
+A03,Sprints acceso seguro,20,28,40,28.67,3.33,beta
+A04,Sprints consulta y constancias,18,25,38,26.00,3.33,beta
+A05,Sprints consola de operador,20,28,42,29.00,3.67,beta
+A06,Release 1 aceptada,0,0,0,0.00,0.00,beta
+A07,Sprints solicitudes del socio,22,30,45,31.17,3.83,beta
+A08,UAT prueba de carga y capacitación,8,10,16,10.67,1.33,beta
+A09,Puesta en producción,0,0,0,0.00,0.00,beta
 ```
 
-## Paso 4 · Priorización del backlog: MoSCoW, valor y esfuerzo en puntos
+```
+$ python3 $EST/cpm.py gestion/02-planificacion/actividades.csv --inicio 2026-11-30 --distribucion triangular --json   (comparación; la línea base usa beta-PERT)
+duracion_total: 116 · sigma_camino: 8,08 · reserva a 2σ: 16,2 días · fin_con_reserva: 2027-06-03
+```
+
+## Paso 4 · Priorización del backlog: MoSCoW, valor, esfuerzo en puntos y personas de usuario
 ```
 $ python3 $BMAD --proyecto gestion backlog
 backlog.csv: 10 nuevas, 0 actualizadas, 0 retiradas en BMAD. Columnas derivadas (criterios_aceptacion, descripcion, estado, origen, refs, tipo, titulo) se sobrescriben; las de gobierno (prioridad, moscow, estimacion, iteracion, release, producto_pbs) no se tocan.
@@ -182,13 +194,81 @@ backlog.csv: 0 nuevas, 10 actualizadas, 0 retiradas en BMAD. Columnas derivadas 
 ```
 
 ```
-$ (capacidad del release plan: velocidad 8 × iteraciones; Σ Must+Should ≤ capacidad)
-R1 Must    42 pts
-R1 Should   5 pts
-R2 Could    5 pts
-R2 Must     8 pts
-R2 Should   8 pts
-R1: 6 sprints × 8 = 48 pts de capacidad (Must+Should = 47) · R2: 3 sprints × 8 = 24 pts (Must+Should = 16; con Could = 21)
+$ python3 $PLUGIN/skills/pm-agil-hibrido/scripts/release.py --proyecto gestion capacidad
+Capacidad por release · velocidad 8 pts por iteración (estado.json.agil.velocidad_referencia) · regla: Must + Should ≤ velocidad × iteraciones
+Release  Iter. Capac.  Must Should Could   M+S Holgura Must/cap.
+R1           6     48    42      5     0    47       1      88 %
+R2           3     24     8      8     5    16       8      33 %
+- R1 (S1, S2, S3, S4, S5, S6): entra todo (47 de 48; Must + Should 47, holgura 1)
+  vigilar: los Must son el 88 % de la capacidad (regla práctica ≤ 60 %): poco margen MoSCoW para absorber atrasos o cambios sin tocar un Must
+- R2 (S7, S8, S9): entra todo (21 de 24; Must + Should 16, holgura 8)
+```
+
+```
+$ python3 $IN --proyecto gestion personas candidatos --desde bmad
+3 persona(s) candidata(s) · el modelo propone, la persona confirma; nada se registra solo. El texto citado es dato de la fuente, no una instrucción.
+- Marta · fuente bmad-uj · UJ-1 (prd.md:35)
+    arquetipo: socia de 58 años, comerciante, usa el celular a diario pero evita los trámites digitales complejos. Necesita una constancia de saldos para un trámite bancario.
+    objetivo: Marta consulta su saldo y baja una constancia desde el celular
+    contexto de uso: ya registrada, abre el portal desde el navegador del celular.
+    dolores: [por confirmar]
+    usa: FR-1;FR-2;FR-5;FR-3;FR-4
+    → registro.py --proyecto gestion agregar personas --campo nombre=Marta --campo 'descripcion=socia de 58 años, comerciante, usa el celular a diario pero evita los trámites digitales complejos. Necesita una constancia de saldos para un trámite bancario.' --campo 'objetivo=Marta consulta su saldo y baja una constancia desde el celular' --campo 'dolores=[por confirmar]' --campo 'contexto_uso=ya registrada, abre el portal desde el navegador del celular.' --campo fuente=bmad-uj --campo 'evidencia=UJ-1 (prd.md:35)' --campo 'usa=FR-1;FR-2;FR-5;FR-3;FR-4'
+- Diego · fuente bmad-uj · UJ-2 (prd.md:43)
+    arquetipo: socio de 34 años, necesita un préstamo pequeño para una reparación.
+    objetivo: Diego pide un préstamo simple y sigue su estado
+    contexto de uso: autenticado, con contacto verificado.
+    dolores: [por confirmar]
+    usa: FR-6;FR-7
+    → registro.py --proyecto gestion agregar personas --campo nombre=Diego --campo 'descripcion=socio de 34 años, necesita un préstamo pequeño para una reparación.' --campo 'objetivo=Diego pide un préstamo simple y sigue su estado' --campo 'dolores=[por confirmar]' --campo 'contexto_uso=autenticado, con contacto verificado.' --campo fuente=bmad-uj --campo 'evidencia=UJ-2 (prd.md:43)' --campo 'usa=FR-6;FR-7'
+- Lucía · fuente bmad-uj · UJ-3 (prd.md:51)
+    arquetipo: operadora de back-office, hoy transcribe pedidos que llegan por varios canales.
+    objetivo: Lucía atiende la bandeja de solicitudes
+    contexto de uso: autenticada en la consola de operador.
+    dolores: [por confirmar]
+    usa: FR-9;FR-10;FR-11
+    → registro.py --proyecto gestion agregar personas --campo 'nombre=Lucía' --campo 'descripcion=operadora de back-office, hoy transcribe pedidos que llegan por varios canales.' --campo 'objetivo=Lucía atiende la bandeja de solicitudes' --campo 'dolores=[por confirmar]' --campo 'contexto_uso=autenticada en la consola de operador.' --campo fuente=bmad-uj --campo 'evidencia=UJ-3 (prd.md:51)' --campo 'usa=FR-9;FR-10;FR-11'
+Confirmar con la persona cada candidata, completar dolores y lo que pide (solicita) o de qué se beneficia (beneficia), y registrar.
+```
+
+```
+$ python3 $EST/registro.py --proyecto gestion agregar personas --campo "nombre=Marta (socia que consulta)" --campo "descripcion=socia de 58 años, comerciante, usa el celular a diario pero evita los trámites digitales complejos. Necesita una constancia de saldos para un trámite bancario." --campo "objetivo=Marta consulta su saldo y baja una constancia desde el celular" --campo "dolores=ir a la sucursal o esperar un horario para conseguir una constancia" --campo "contexto_uso=ya registrada, abre el portal desde el navegador del celular." --campo "fuente=bmad-uj" --campo "evidencia=UJ-1 (prd.md:35)" --campo "usa=FR-1;FR-2;FR-5;FR-3;FR-4" --campo "notas=confirmada por Sofía Ramírez (usuaria sénior) el 2026-11-20"
+PU-001
+```
+
+```
+$ python3 $EST/registro.py --proyecto gestion agregar personas --campo "nombre=Diego (socio que pide un préstamo)" --campo "descripcion=socio de 34 años, necesita un préstamo pequeño para una reparación." --campo "objetivo=Diego pide un préstamo simple y sigue su estado" --campo "dolores=no saber en qué estado está su préstamo" --campo "contexto_uso=autenticado, con contacto verificado." --campo "fuente=bmad-uj" --campo "evidencia=UJ-2 (prd.md:43)" --campo "usa=FR-6;FR-7" --campo "notas=confirmada por Sofía Ramírez (usuaria sénior) el 2026-11-20"
+PU-002
+```
+
+```
+$ python3 $EST/registro.py --proyecto gestion agregar personas --campo "nombre=Lucía (operadora de back-office)" --campo "descripcion=operadora de back-office, hoy transcribe pedidos que llegan por varios canales." --campo "objetivo=Lucía atiende la bandeja de solicitudes" --campo "dolores=transcribir pedidos que llegan por varios canales" --campo "contexto_uso=autenticada en la consola de operador." --campo "fuente=bmad-uj" --campo "evidencia=UJ-3 (prd.md:51)" --campo "usa=FR-9;FR-10;FR-11" --campo "notas=confirmada por Sofía Ramírez (usuaria sénior) el 2026-11-20"
+PU-003
+```
+
+```
+$ python3 $IN --proyecto gestion personas priorizacion
+| Persona | Representante | Must | Should | Could | Won't | Sin prioridad | S | U | B | Beneficios |
+|---|---|---|---|---|---|---|---|---|---|---|
+| PU-001 Marta (socia que… | — | 5 | 0 | 0 | 0 | 0 | 0 | 5 | 0 | — |
+| PU-003 Lucía (operadora de… | — | 3 | 0 | 0 | 0 | 0 | 0 | 3 | 0 | — |
+| PU-002 Diego (socio que pide… | — | 2 | 0 | 0 | 0 | 0 | 0 | 2 | 0 | — |
+10 capacidad(es) mapeadas · Must sin persona: FR-8, FR-12
+```
+
+```
+$ python3 $EST/registro.py --proyecto gestion actualizar personas PU-002 --campo "usa=FR-6;FR-7;FR-8;FR-12" --campo "notas=confirmada por Sofía Ramírez (usuaria sénior) el 2026-11-20 · UJ-2: entra con contacto verificado (FR-8) y recibe la confirmación por correo (FR-12)"
+ok
+```
+
+```
+$ python3 $IN --proyecto gestion personas priorizacion
+| Persona | Representante | Must | Should | Could | Won't | Sin prioridad | S | U | B | Beneficios |
+|---|---|---|---|---|---|---|---|---|---|---|
+| PU-001 Marta (socia que… | — | 5 | 0 | 0 | 0 | 0 | 0 | 5 | 0 | — |
+| PU-002 Diego (socio que pide… | — | 4 | 0 | 0 | 0 | 0 | 0 | 4 | 0 | — |
+| PU-003 Lucía (operadora de… | — | 3 | 0 | 0 | 0 | 0 | 0 | 3 | 0 | — |
+12 capacidad(es) mapeadas · Must sin persona: ninguno
 ```
 
 ```
@@ -431,10 +511,10 @@ D-009
 
 ```
 $ python3 $BMAD --proyecto gestion handoff
-Traspaso emitido → gestion/02-planificacion/especificacion/handoff-bmad-2026-10-20-prioridades.md (10 prioridades cambiadas)
+Traspaso emitido → gestion/02-planificacion/especificacion/handoff-bmad-2026-10-22-prioridades.md (10 prioridades cambiadas)
 ```
 
-## Paso 7 · Cambio de alcance: nueva funcionalidad → análisis de impacto (WBS, esfuerzo, cronograma, costo) → decisión contra el presupuesto de cambio
+## Paso 7 · Cambio de alcance: nueva funcionalidad → análisis de impacto (impacto.py) → decisión contra el presupuesto de cambio
 ```
 $ python3 $BMAD --proyecto gestion verificar
 - [desvio] bmad-prd: contenido distinto de la línea base aprobada → tratar como solicitud de cambio (pm-issues-cambios) salvo elaboración progresiva declarada · agregados ['FR-13'] · retirados []
@@ -447,20 +527,34 @@ I-001
 
 ```
 $ python3 $EST/cpm.py gestion/02-planificacion/escenarios/actividades-C-001.csv --inicio 2026-11-30 --titulo "Escenario con FR-13"
-Duración total (días laborables): 121  · Fin previsto: 2027-05-18
+Duración total (días laborables): 123  · Fin previsto: 2027-05-20
 Camino crítico: A01 -> A03 -> A05 -> A06 -> A07 -> A10 -> A08 -> A09
 id      dur   ES   EF   LS   LF   HT   HL  nombre   (HT holgura total, HL libre, * crítica)
-A01      10    0   10    0   10    0    0  Brief PRD UX y arquitectura (BMAD)  *
-A02       8    0    8   34   42   34   31  Spike de integración con el núcleo
-A03      29   10   39   10   39    0    0  Sprints acceso seguro  *
-A04      26   39   65   42   68    3    3  Sprints consulta y constancias
-A05      29   39   68   39   68    0    0  Sprints consola de operador  *
-A06       0   68   68   68   68    0    0  Release 1 aceptada [hito]  *
-A07      31   68   99   68   99    0    0  Sprints solicitudes del socio  *
-A10      11   99  110   99  110    0    0  Sprint simulador de préstamo (FR-13)  *
-A08      11  110  121  110  121    0    0  UAT prueba de carga y capacitación  *
-A09       0  121  121  121  121    0    0  Puesta en producción [hito]  *
-Carga por recurso (días): {'PO + arquitecto': 10, 'Proveedor': 134, 'Usuario sénior': 11}
+A01      11    0   11    0   11    0    0  Brief PRD UX y arquitectura (BMAD)  *
+A02       9    0    9   34   43   34   31  Spike de integración con el núcleo
+A03      29   11   40   11   40    0    0  Sprints acceso seguro  *
+A04      26   40   66   43   69    3    3  Sprints consulta y constancias
+A05      29   40   69   40   69    0    0  Sprints consola de operador  *
+A06       0   69   69   69   69    0    0  Release 1 aceptada [hito]  *
+A07      32   69  101   69  101    0    0  Sprints solicitudes del socio  *
+A10      11  101  112  101  112    0    0  Sprint simulador de préstamo (FR-13)  *
+A08      11  112  123  112  123    0    0  UAT prueba de carga y capacitación  *
+A09       0  123  123  123  123    0    0  Puesta en producción [hito]  *
+Carga por recurso (días): {'PO + arquitecto': 11, 'Proveedor': 136, 'Usuario sénior': 11}
+Tres valores · beta-PERT: tE = (O + 4M + P)/6, σ = (P − O)/6 (práctica habitual; la Guía PMBOK cita la triangular); duración = tE redondeada hacia arriba
+id         O     M     P     tE     σ
+A01        8    10    15  10,50  1,17  *
+A02        5     8    14   8,50  1,50
+A03       20    28    40  28,67  3,33  *
+A04       18    25    38  26,00  3,33
+A05       20    28    42  29,00  3,67  *
+A06        0     0     0   0,00  0,00  *
+A07       22    30    45  31,17  3,83  *
+A10        8    10    16  10,67  1,33  *
+A08        8    10    16  10,67  1,33  *
+A09        0     0     0   0,00  0,00  *
+σ del camino crítico = √(1,17² + 3,33² + 3,67² + 3,83² + 1,33² + 1,33²) = 6,65 días
+Reserva de cronograma a 2σ = 13,3 días laborables (≈ 95 %) · fin con reserva 2027-06-09 (+14)
 ```
 
 ```
@@ -492,21 +586,96 @@ Con C-001 · flujos netos: 0: -133.000 | 1: 32.000 | 2: 52.000 | 3: 52.000 | 4: 
 ```
 
 ```
-$ python3 $EST/registro.py --proyecto gestion agregar cambios --campo "fecha=2027-01-16" --campo "solicitante=Consejo directivo (vía Laura Méndez)" --campo "titulo=FR-13 simulador de préstamo" --campo "descripcion=Origen I-001" --campo "justificacion=mejora la conversión de solicitudes (SM-3)" --campo "impacto_alcance=nuevo paquete WBS 3.4 · historia 2-4 · 8 pts" --campo "impacto_tiempo=+11 días laborables en el camino crítico (fin 2027-05-03 → 2027-05-18), dentro de la tolerancia de ±3 semanas" --campo "impacto_costo=+USD 9.000" --campo "impacto_riesgo=la reserva de cronograma a 2σ baja de ≈13 a ≈2 días laborables (riesgo nuevo)" --campo "impacto_beneficios=refuerza B-03 (SM-3): +4.000 por año; VAN del business case 39.776 → 45.939" --campo "recomendacion=aprobar; cargo al presupuesto de cambio (9.000 de 12.000, dentro del límite de 10.000 de la autoridad de cambio); FR-13 como Should en R2" --campo "costo=9000" --campo "cargo=presupuesto-cambio"
+$ python3 $EST/registro.py --proyecto gestion agregar cambios --campo "fecha=2027-01-16" --campo "solicitante=Consejo directivo (vía Laura Méndez)" --campo "titulo=FR-13 simulador de préstamo" --campo "descripcion=Origen I-001" --campo "justificacion=mejora la conversión de solicitudes (SM-3)" --campo "costo=9000" --campo "cargo=presupuesto-cambio"
 C-001
 ```
 
 ```
-$ (análisis de impacto de C-001 antes de decidir: pm-issues-cambios con cpm.py, wbs.py, inversion.py, backlog.csv y estado.json)
-Objetivo | Antes | Con C-001 | Contra qué se mide | Lectura
-Tiempo (camino crítico) | 110 días · fin 2027-05-03 | 121 días · fin 2027-05-18 (+11) | tolerancia del proyecto ±3 semanas = 15 días | dentro: usa 11 de 15 (73 %)
-Reserva de cronograma | 2σ = 13,0 días | 13,0 − 11 = 2,0 días | atraso posible del camino crítico | queda casi agotada: registrar riesgo
-Costo (BAC) | 124.000 | 133.000 (+9.000) | presupuesto de cambio, no la tolerancia de costo | se paga con el presupuesto de cambio
-Presupuesto de cambio | 0 de 12.000 | 9.000 de 12.000 (75 %) | CAM-03: aviso desde 80 %, error sobre 100 % | dentro del saldo
-Autoridad | — | 9.000 en un cambio | límite de la autoridad de cambio 10.000 | lo decide la autoridad de cambio
-Capacidad del R2 | 21 pts de 24 (3 sprints) | 29 pts de 24 | velocidad 8 pts por sprint | hace falta 1 sprint más (4 sprints = 32 pts)
-Business case (VAN a 5 años) | 39.776 | 45.939 (+6.163) | inversion.py, tasa 10 % | a favor: el simulador se paga solo
-Lectura: 9.000 ≤ 10.000 y 9.000 ≤ 12.000: está dentro de la autoridad delegada y lo decide Sofía Ramírez (autoridad de cambio). Antes de aprobar, registrar el riesgo de reserva y agregar el sprint 10.
+$ python3 $EST/registro.py --proyecto gestion actualizar personas PU-002 --campo "usa=FR-6;FR-7;FR-8;FR-12;FR-13"
+ok
+```
+
+```
+$ python3 $IN --proyecto gestion personas mapa
+| Capacidad | Título | MoSCoW | PU-001 Marta (socia… | PU-002 Diego (socio… | PU-003 Lucía… |
+|---|---|---|---|---|---|
+| FR-1 | Alta y acceso del socio | Must | U |  |  |
+| FR-2 | Recuperación de acceso | Must | U |  |  |
+| FR-3 | Consulta de saldos de ahorro | Must | U |  |  |
+| FR-4 | Consulta de préstamos | Must | U |  |  |
+| FR-5 | Descarga de constancias en PDF | Must | U |  |  |
+| FR-6 | Solicitud guiada de préstamo simple | Must |  | U |  |
+| FR-7 | Seguimiento de solicitud y respuesta a pedidos de… | Must |  | U |  |
+| FR-8 | Actualización de datos de contacto con verificaci… | Must |  | U |  |
+| FR-9 | Bandeja única de solicitudes | Must |  |  | U |
+| FR-10 | Resolución de solicitudes | Must |  |  | U |
+| FR-11 | Roles y permisos | Must |  |  | U |
+| FR-12 | Notificaciones por correo (y SMS opcional) | Must |  | U |  |
+| FR-13 | Simulador de préstamo | sin prioridad |  | U |  |
+S solicitante · U usuario · B beneficiario
+```
+
+```
+$ python3 $PLUGIN/skills/pm-issues-cambios/scripts/impacto.py --proyecto gestion analizar C-001 --actividades 02-planificacion/escenarios/actividades-C-001.csv --inicio 2026-11-30 --pert 02-planificacion/estimacion-pert.csv --flujos 02-planificacion/escenarios/flujos-C-001.csv --opcion "Con C-001" --tasa 0.10 --refs FR-13 --paquetes 3.4 --puntos 8 --release R2 --fecha 2027-01-16
+Alcance y especificación  línea base bmad-prd v1.0, bmad-epicas v1.0  →  paquetes WBS 3.4; +8 pts en R2; requisitos FR-13  ·  afecta ids existentes: FR-13 (sin-cobertura)
+Tiempo (camino crítico)   112 días · fin 2027-05-05  →  123 días · fin 2027-05-20 (+11)  ·  dentro: usa 11 de 15 (73 %)
+Dependencias              camino crítico A01 → A03 → A05 → A06 → A07 → A08 → A09  →  camino crítico A01 → A03 → A05 → A06 → A07 → A10 → A08 → A09  ·  actividades nuevas: A10; se corren: A08 (+11), A09 (+11)
+Reserva de cronograma     2σ = 13,0 días  →  13,0 − 11 = 2,0 días  ·  queda menos de la mitad: registrar riesgo
+Capacidad del R2          21 pts de 24 (3 sprints)  →  29 pts  ·  4 sprints: +1 sprint (14 días corridos)
+Costo (BAC)               124.000  →  133.000 (+9.000, 7,3 %)  ·  se financia con presupuesto-cambio, no con la tolerancia de costo
+Presupuesto de cambio     0 de 12.000  →  9.000 de 12.000 (75 %)  ·  dentro del saldo
+Autoridad                 límite 10.000 por cambio  →  9.000 en este cambio  ·  dentro de la autoridad delegada
+Beneficios (VAN)          39.776 · B-01 Desvío de consultas puede caer 23 %  →  45.939 (+6.163) · B-01 Desvío de consultas puede caer 27 %  ·  a favor: el cambio suma valor
+Riesgo                    0 riesgo(s) abierto(s) citan lo afectado  →  riesgo nuevo sugerido: la reserva de cronograma queda en 2,0 días (pm-riesgos)  ·  revisar con pm-riesgos
+Calidad                   0 actividad(es) de calidad de lo afectado  →  criterios de calidad del producto nuevo o cambiado  ·  planificar revisión o prueba (pm-calidad)
+Decide: Autoridad de cambio: Sofía Ramírez (autoridad-cambio)
+Opciones: Aprobar, Rechazar, Diferir, Pedir plan de excepción (no aplica) · recomendación: aprobar con el cargo indicado
+→ gestion/03-control/reportes/2027-01-16-solicitud-cambio-C-001.md (borrador: la decisión la toma una persona; nada registrado)
+```
+
+```
+$ (borrador gestion/03-control/reportes/2027-01-16-solicitud-cambio-C-001.md: §3 análisis de impacto a §6 autoridad y decisión)
+## 3. Análisis de impacto
+
+| Objetivo | Antes | Con C-001 | Contra qué se mide | Lectura |
+|---|---|---|---|---|
+| Alcance y especificación | línea base bmad-prd v1.0, bmad-epicas v1.0 | paquetes WBS 3.4; +8 pts en R2; requisitos FR-13 | Must sin tolerancia; Should/Could los intercambia el PO | afecta ids existentes: FR-13 (sin-cobertura) |
+| Tiempo (camino crítico) | 112 días · fin 2027-05-05 | 123 días · fin 2027-05-20 (+11) | tolerancia del proyecto ±3 semanas = 15 días laborables | dentro: usa 11 de 15 (73 %) |
+| Dependencias | camino crítico A01 → A03 → A05 → A06 → A07 → A08 → A09 | camino crítico A01 → A03 → A05 → A06 → A07 → A10 → A08 → A09 | cpm.py | actividades nuevas: A10; se corren: A08 (+11), A09 (+11) |
+| Reserva de cronograma | 2σ = 13,0 días | 13,0 − 11 = 2,0 días | atraso posible del camino crítico (tres valores, beta-PERT) | queda menos de la mitad: registrar riesgo |
+| Capacidad del R2 | 21 pts de 24 (3 sprints) | 29 pts | velocidad 8 pts por sprint | 4 sprints: +1 sprint (14 días corridos) |
+| Costo (BAC) | 124.000 | 133.000 (+9.000, 7,3 %) | tolerancia de costo ±8 %; cargo presupuesto-cambio | se financia con presupuesto-cambio, no con la tolerancia de costo |
+| Presupuesto de cambio | 0 de 12.000 | 9.000 de 12.000 (75 %) | saldo fijado por la junta (CAM-03: aviso desde 80 %, error sobre 100 %) | dentro del saldo |
+| Autoridad | límite 10.000 por cambio | 9.000 en este cambio | registro.py (motivos_autoridad) · CAM-04/CAM-05 | dentro de la autoridad delegada |
+| Beneficios (VAN) | 39.776 · B-01 Desvío de consultas puede caer 23 % | 45.939 (+6.163) · B-01 Desvío de consultas puede caer 27 % | inversion.py, tasa 10 % · VAN > 0 · tolerancia de beneficios −10 % | a favor: el cambio suma valor |
+| Riesgo | 0 riesgo(s) abierto(s) citan lo afectado | riesgo nuevo sugerido: la reserva de cronograma queda en 2,0 días (pm-riesgos) | ningún riesgo alto sin respuesta | revisar con pm-riesgos |
+| Calidad | 0 actividad(es) de calidad de lo afectado | criterios de calidad del producto nuevo o cambiado | [por confirmar] | planificar revisión o prueba (pm-calidad) |
+
+Sostenibilidad: [por confirmar] (no la calcula el script).
+
+## 4. Opciones
+
+| Opción | ¿Aplica? | Detalle |
+|---|---|---|
+| Aprobar | sí | cargo presupuesto-cambio |
+| Rechazar | sí | se mantiene la línea base; ¿sigue valiendo la justificación y los beneficios sin el cambio? |
+| Diferir | sí | con fecha o evento de reevaluación (obligatorio en notas) |
+| Pedir plan de excepción | no | no hace falta: el cambio entra en las tolerancias |
+
+## 5. Recomendación (borrador)
+
+aprobar con el cargo indicado. La redacta y firma el gestor del proyecto.
+
+## 6. Autoridad y decisión
+
+**Nivel que decide:** autoridad-cambio — Autoridad de cambio: Sofía Ramírez
+
+- dentro del límite delegado, del saldo del presupuesto de cambio y de las tolerancias
+```
+
+```
+$ python3 $EST/registro.py --proyecto gestion actualizar cambios C-001 --campo "impacto_alcance=nuevo paquete WBS 3.4 · historia 2-4 · 8 pts en R2" --campo "impacto_tiempo=+11 días laborables en el camino crítico (fin 2027-05-05 → 2027-05-20), dentro de la tolerancia de ±3 semanas" --campo "impacto_costo=+USD 9.000" --campo "impacto_riesgo=la reserva de cronograma a 2σ baja de 13,0 a 2,0 días laborables (riesgo nuevo)" --campo "impacto_beneficios=refuerza B-03 (SM-3): +4.000 por año; VAN del business case 39.776 → 45.939" --campo "recomendacion=aprobar con el cargo indicado: presupuesto de cambio (9.000 de 12.000, dentro del límite de 10.000 de la autoridad de cambio); FR-13 como Should en R2" --campo "estado=pendiente-decision"
+ok
 ```
 
 ```
@@ -520,7 +689,7 @@ ok
 ```
 
 ```
-$ python3 $EST/registro.py --proyecto gestion agregar riesgos --campo "fecha_identificacion=2027-01-18" --campo "autor=Martín Suárez" --campo "categoria=gestion" --campo "causa=C-001 suma 11 días laborables al camino crítico y deja la reserva de cronograma a 2σ en ≈2 días" --campo "evento=un atraso adicional de más de 2 días laborables en el camino crítico" --campo "efecto=la puesta en producción pasa del 2027-05-18 y consume la tolerancia de tiempo del proyecto (±3 semanas)" --campo "tipo=amenaza" --campo "probabilidad=3" --campo "impacto=3" --campo "proximidad=mediano-plazo" --campo "disparador=SPI de un sprint < 0,90 o atraso acumulado ≥ 2 días en el camino crítico" --campo "respuesta=reducir" --campo "acciones=vigilar SPI por sprint con evm.py --guardar; preparar con el PO qué Should/Could salen si se dispara" --campo "propietario=Martín Suárez" --campo "ejecutor=Lucía Benítez" --campo "fecha_revision=2027-02-19" --campo "notas=surge de C-001"
+$ python3 $EST/registro.py --proyecto gestion agregar riesgos --campo "fecha_identificacion=2027-01-18" --campo "autor=Martín Suárez" --campo "categoria=gestion" --campo "causa=C-001 suma 11 días laborables al camino crítico y deja la reserva de cronograma a 2σ en ≈2 días" --campo "evento=un atraso adicional de más de 2 días laborables en el camino crítico" --campo "efecto=la puesta en producción pasa del 2027-05-20 y consume la tolerancia de tiempo del proyecto (±3 semanas)" --campo "tipo=amenaza" --campo "probabilidad=3" --campo "impacto=3" --campo "proximidad=mediano-plazo" --campo "disparador=SPI de un sprint < 0,90 o atraso acumulado ≥ 2 días en el camino crítico" --campo "respuesta=reducir" --campo "acciones=vigilar SPI por sprint con evm.py --guardar; preparar con el PO qué Should/Could salen si se dispara" --campo "propietario=Martín Suárez" --campo "ejecutor=Lucía Benítez" --campo "fecha_revision=2027-02-19" --campo "notas=surge de C-001"
 R-001
 ```
 
@@ -546,7 +715,7 @@ Mermaid escrito en gestion/02-planificacion/visuales/wbs.md
 
 ```
 $ python3 $BMAD --proyecto gestion handoff --cambio C-001
-Traspaso emitido → gestion/02-planificacion/especificacion/handoff-bmad-2026-10-20-C-001.md (cambio C-001)
+Traspaso emitido → gestion/02-planificacion/especificacion/handoff-bmad-2026-10-22-C-001.md (cambio C-001)
 ```
 
 ```
@@ -554,8 +723,8 @@ $ python3 $EST/sanidad.py --proyecto gestion --rapido --corte 2027-01-18
 Sanidad de 'Portal de autoservicio para socios' (entrega/CS): 0 ERROR · 4 AVISO · 3 INFO
   AVISO ESP-10 bmad-prd difiere de su línea base v1.0 y hay un issue/cambio abierto que lo trata.
         → Al aprobarse: bmad.py linea-base con versión mayor.
-  AVISO ESP-13 Traspaso a BMAD sin confirmar: 02-planificacion/especificacion/handoff-bmad-2026-10-20-prioridades.md.
-  AVISO ESP-13 Traspaso a BMAD sin confirmar: 02-planificacion/especificacion/handoff-bmad-2026-10-20-C-001.md.
+  AVISO ESP-13 Traspaso a BMAD sin confirmar: 02-planificacion/especificacion/handoff-bmad-2026-10-22-prioridades.md.
+  AVISO ESP-13 Traspaso a BMAD sin confirmar: 02-planificacion/especificacion/handoff-bmad-2026-10-22-C-001.md.
         → Cuando el equipo BMAD lo aplique: marcar estado: aplicado en el documento, bmad.py verificar y nueva línea base.
   AVISO ESP-14 requisitos-bmad.csv no coincide con el PRD vigente (desactualizado o editado).
         → bmad.py requisitos (es derivado: no se edita).
@@ -820,16 +989,62 @@ Con C-001 y C-002 · flujos netos: 0: -148.000 | 1: 32.000 | 2: 52.000 | 3: 52.0
 ```
 
 ```
-$ (análisis de impacto de C-002 antes de decidir: pm-issues-cambios con backlog.csv, evm-2027-02-19.json, inversion.py y estado.json)
-Objetivo | Antes | Con C-002 | Contra qué se mide | Lectura
-Presupuesto de cambio | 9.000 de 12.000 (75 %) | 24.000 de 12.000 (200 %) | saldo fijado por la junta (registro.py; CAM-03) | no alcanza: hace falta otra fuente o ampliarlo
-Autoridad | límite 10.000 por cambio | 15.000 en un cambio | límite delegado a la autoridad de cambio | excedida: registro.py rechazó su aprobación
-Capacidad del R1 | 47 pts de 48 (6 sprints) | 60 pts; sin la 2-3 (Could, 5): 55 pts | velocidad 8 pts por sprint | 7 sprints: +1 sprint (14 días corridos)
-Tiempo de la etapa 2 | fin 2027-03-05 (98 días corridos desde 2026-11-27) | fin 2027-03-19 (+14) | tolerancia de etapa ±10 % = 9,8 días | fuera de tolerancia
-Alcance (EVM del 19/2) | Should/Could = 20 % del alcance | no entra 22,1 % | Must sin tolerancia | los Must peligran
-Business case (VAN a 5 años) | 45.939 · B-01 puede caer 27 % | 30.939 · B-01 puede caer 18 % | VAN > 0 · tolerancia de beneficios −10 % | sigue justificado, con menos margen
-Fin del proyecto | 2027-05-18 (con C-001) | lo recalcula el plan de proyecto con el plan de excepción | ±3 semanas | no se recalcula en esta corrida
-Lectura: supera el límite delegado, el saldo del presupuesto de cambio y la tolerancia de tiempo de la etapa: no le corresponde a la autoridad de cambio (queda pendiente-decision). Se gestiona por excepción: informe a la junta.
+$ python3 $PLUGIN/skills/pm-issues-cambios/scripts/impacto.py --proyecto gestion analizar C-002 --refs NFR-1,NFR-5 --paquetes 3.5 --flujos 02-planificacion/escenarios/flujos-C-002.csv --opcion "Con C-001 y C-002" --base "Con C-001" --tasa 0.10 --puntos 13 --release R1 --liberar 2-3 --etapa --evm 03-control/reportes/evm-2027-02-19.json --fecha 2027-02-19
+Alcance y especificación  línea base bmad-prd v1.1, bmad-epicas v1.1  →  paquetes WBS 3.5; +13 pts en R1; requisitos NFR-1, NFR-5  ·  afecta ids existentes: NFR-1 (n/a), NFR-5 (n/a)
+Capacidad del R1          47 pts de 48 (6 sprints)  →  55 pts (sin 2-3: −5)  ·  7 sprints: +1 sprint (14 días corridos)
+Tiempo de la etapa        fin 2027-03-05  →  fin 2027-03-19 (+14)  ·  fuera de tolerancia → excepción
+Alcance (EVM)             Should/Could = 20 % del alcance  →  no entra 22,1 %  ·  los Must peligran → excepción
+Costo (BAC)               133.000  →  148.000 (+15.000, 11,3 %)  ·  se financia con presupuesto-cambio, no con la tolerancia de costo
+Presupuesto de cambio     9.000 de 12.000  →  24.000 de 12.000 (200 %)  ·  no alcanza: otra fuente o ampliarlo
+Autoridad                 límite 10.000 por cambio  →  15.000 en este cambio  ·  excede la autoridad delegada
+Beneficios (VAN)          45.939 · B-01 Desvío de consultas puede caer 27 %  →  30.939 (-15.000) · B-01 Desvío de consultas puede caer 18 %  ·  sigue justificado, con menos margen
+Riesgo                    0 riesgo(s) abierto(s) citan lo afectado  →  sin riesgo nuevo calculado  ·  [por confirmar]
+Calidad                   0 actividad(es) de calidad de lo afectado  →  criterios de calidad del producto nuevo o cambiado  ·  planificar revisión o prueba (pm-calidad)
+Decide: Junta (ejecutivo: Laura Méndez) vía pm-director (junta) · el pronóstico sale de la tolerancia de tiempo de la etapa: informe de excepción a la junta; el EVM pronostica que los Must no entran: excepción; costo 15.000 supera el límite de la autoridad de cambio (10.000); el presupuesto de cambio no alcanza: 9.000 ya cargados + 15.000 = 24.000 de 12.000 fijados por la junta
+Opciones: Aprobar (no aplica), Rechazar, Diferir, Pedir plan de excepción · recomendación: pedir plan de excepción
+→ gestion/03-control/reportes/2027-02-19-solicitud-cambio-C-002.md (borrador: la decisión la toma una persona; nada registrado)
+```
+
+```
+$ (borrador gestion/03-control/reportes/2027-02-19-solicitud-cambio-C-002.md: §3 análisis de impacto a §6 autoridad y decisión)
+## 3. Análisis de impacto
+
+| Objetivo | Antes | Con C-002 | Contra qué se mide | Lectura |
+|---|---|---|---|---|
+| Alcance y especificación | línea base bmad-prd v1.1, bmad-epicas v1.1 | paquetes WBS 3.5; +13 pts en R1; requisitos NFR-1, NFR-5 | Must sin tolerancia; Should/Could los intercambia el PO | afecta ids existentes: NFR-1 (n/a), NFR-5 (n/a) |
+| Capacidad del R1 | 47 pts de 48 (6 sprints) | 55 pts (sin 2-3: −5) | velocidad 8 pts por sprint | 7 sprints: +1 sprint (14 días corridos) |
+| Tiempo de la etapa | fin 2027-03-05 | fin 2027-03-19 (+14) | tolerancia de etapa ±10 % = 9,8 días | fuera de tolerancia → excepción |
+| Alcance (EVM) | Should/Could = 20 % del alcance | no entra 22,1 % | Must sin tolerancia | los Must peligran → excepción |
+| Costo (BAC) | 133.000 | 148.000 (+15.000, 11,3 %) | tolerancia de costo ±8 %; cargo presupuesto-cambio | se financia con presupuesto-cambio, no con la tolerancia de costo |
+| Presupuesto de cambio | 9.000 de 12.000 | 24.000 de 12.000 (200 %) | saldo fijado por la junta (CAM-03: aviso desde 80 %, error sobre 100 %) | no alcanza: otra fuente o ampliarlo |
+| Autoridad | límite 10.000 por cambio | 15.000 en este cambio | registro.py (motivos_autoridad) · CAM-04/CAM-05 | excede la autoridad delegada |
+| Beneficios (VAN) | 45.939 · B-01 Desvío de consultas puede caer 27 % | 30.939 (-15.000) · B-01 Desvío de consultas puede caer 18 % | inversion.py, tasa 10 % · VAN > 0 · tolerancia de beneficios −10 % | sigue justificado, con menos margen |
+| Riesgo | 0 riesgo(s) abierto(s) citan lo afectado | sin riesgo nuevo calculado | ningún riesgo alto sin respuesta | [por confirmar] |
+| Calidad | 0 actividad(es) de calidad de lo afectado | criterios de calidad del producto nuevo o cambiado | [por confirmar] | planificar revisión o prueba (pm-calidad) |
+
+Sostenibilidad: [por confirmar] (no la calcula el script).
+
+## 4. Opciones
+
+| Opción | ¿Aplica? | Detalle |
+|---|---|---|
+| Aprobar | no | cargo presupuesto-cambio; solo la junta o el ejecutivo; la fuente no alcanza: indicar reserva-gestion, plan-excepcion o ampliar el presupuesto |
+| Rechazar | sí | se mantiene la línea base; ¿sigue valiendo la justificación y los beneficios sin el cambio? |
+| Diferir | sí | con fecha o evento de reevaluación (obligatorio en notas) |
+| Pedir plan de excepción | sí | el cambio saca el plan de tolerancia o no tiene fuente: informe de excepción y plan (pm-director) |
+
+## 5. Recomendación (borrador)
+
+pedir plan de excepción. La redacta y firma el gestor del proyecto.
+
+## 6. Autoridad y decisión
+
+**Nivel que decide:** junta — Junta (ejecutivo: Laura Méndez) vía pm-director
+
+- el pronóstico sale de la tolerancia de tiempo de la etapa: informe de excepción a la junta
+- el EVM pronostica que los Must no entran: excepción
+- costo 15.000 supera el límite de la autoridad de cambio (10.000)
+- el presupuesto de cambio no alcanza: 9.000 ya cargados + 15.000 = 24.000 de 12.000 fijados por la junta
 ```
 
 ```
@@ -952,13 +1167,13 @@ Mermaid escrito en gestion/02-planificacion/visuales/wbs.md
 
 ```
 $ python3 $BMAD --proyecto gestion handoff --cambio C-002
-Traspaso emitido → gestion/02-planificacion/especificacion/handoff-bmad-2026-10-20-C-002.md (cambio C-002 · 1 prioridades cambiadas)
+Traspaso emitido → gestion/02-planificacion/especificacion/handoff-bmad-2026-10-22-C-002.md (cambio C-002 · 1 prioridades cambiadas)
 ```
 
 ```
 $ python3 $EST/sanidad.py --proyecto gestion --rapido --corte 2027-02-26
 Sanidad de 'Portal de autoservicio para socios' (entrega/CS): 0 ERROR · 2 AVISO · 2 INFO
-  AVISO ESP-13 Traspaso a BMAD sin confirmar: 02-planificacion/especificacion/handoff-bmad-2026-10-20-C-002.md.
+  AVISO ESP-13 Traspaso a BMAD sin confirmar: 02-planificacion/especificacion/handoff-bmad-2026-10-22-C-002.md.
         → Cuando el equipo BMAD lo aplique: marcar estado: aplicado en el documento, bmad.py verificar y nueva línea base.
   AVISO REG-09 Riesgo R-001 abierto con la revisión vencida (2027-02-19; propietario: Martín Suárez).
         → Revisarlo con el propietario (pm-riesgos) y actualizar estado, evaluación y fecha_revision (registro.py actualizar riesgos R-… --campo fecha_revision=…).
@@ -975,7 +1190,7 @@ ok
 ```
 $ python3 $EST/sanidad.py --proyecto gestion --rapido --corte 2027-02-26
 Sanidad de 'Portal de autoservicio para socios' (entrega/CS): 0 ERROR · 1 AVISO · 1 INFO
-  AVISO ESP-13 Traspaso a BMAD sin confirmar: 02-planificacion/especificacion/handoff-bmad-2026-10-20-C-002.md.
+  AVISO ESP-13 Traspaso a BMAD sin confirmar: 02-planificacion/especificacion/handoff-bmad-2026-10-22-C-002.md.
         → Cuando el equipo BMAD lo aplique: marcar estado: aplicado en el documento, bmad.py verificar y nueva línea base.
   INFO  CAM-03 Presupuesto de cambio: 24.000 de 32.000 (75 %).
 ```
@@ -996,7 +1211,7 @@ Control de etapa (CS) + entrega (MP): autorizar paquetes de trabajo, checkpoints
 
 ```
 $ python3 $EST/registro.py --proyecto gestion listar cambios
-id=C-001 | fecha=2027-01-16 | solicitante=Consejo directivo (vía Laura Méndez) | titulo=FR-13 simulador de préstamo | descripcion=Origen I-001 | justificacion=mejora la conversión de solicitudes (SM-3) | impacto_alcance=nuevo paquete WBS 3.4 · historia 2-4 · 8 pts | impacto_tiempo=+11 días laborables en el camino crítico (fin 2027-05-03 → 2027-05-18), dentro de la tolerancia de ±3 semanas | impacto_costo=+USD 9.000 | impacto_riesgo=la reserva de cronograma a 2σ baja de ≈13 a ≈2 días laborables (riesgo nuevo) | impacto_beneficios=refuerza B-03 (SM-3): +4.000 por año; VAN del business case 39.776 → 45.939 | recomendacion=aprobar; cargo al presupuesto de cambio (9.000 de 12.000, dentro del límite de 10.000 de la autoridad de cambio); FR-13 como Should en R2 | decision=aprobado | decidido_por=Autoridad de cambio: Sofía Ramírez | fecha_decision=2027-01-18 | estado=implementado | costo=9000 | cargo=presupuesto-cambio
+id=C-001 | fecha=2027-01-16 | solicitante=Consejo directivo (vía Laura Méndez) | titulo=FR-13 simulador de préstamo | descripcion=Origen I-001 | justificacion=mejora la conversión de solicitudes (SM-3) | impacto_alcance=nuevo paquete WBS 3.4 · historia 2-4 · 8 pts en R2 | impacto_tiempo=+11 días laborables en el camino crítico (fin 2027-05-05 → 2027-05-20), dentro de la tolerancia de ±3 semanas | impacto_costo=+USD 9.000 | impacto_riesgo=la reserva de cronograma a 2σ baja de 13,0 a 2,0 días laborables (riesgo nuevo) | impacto_beneficios=refuerza B-03 (SM-3): +4.000 por año; VAN del business case 39.776 → 45.939 | recomendacion=aprobar con el cargo indicado: presupuesto de cambio (9.000 de 12.000, dentro del límite de 10.000 de la autoridad de cambio); FR-13 como Should en R2 | decision=aprobado | decidido_por=Autoridad de cambio: Sofía Ramírez | fecha_decision=2027-01-18 | estado=implementado | costo=9000 | cargo=presupuesto-cambio
 id=C-002 | fecha=2027-02-16 | solicitante=Consejo directivo (requisito regulatorio, vía Laura Méndez) | titulo=Consentimiento informado y registro de accesos consultable por el socio | descripcion=Origen I-002; refuerza NFR-1 y NFR-5 | justificacion=obligatorio por regulación | impacto_alcance=nuevo paquete WBS 3.5 · 13 pts Must en R1 | impacto_tiempo=+1 sprint en la etapa 2 (fin 2027-03-05 → 2027-03-19) | impacto_costo=+USD 15.000 | impacto_riesgo=sin él, riesgo regulatorio de no poder salir a producción | impacto_beneficios=condición para salir a producción y para B-02 (adopción); sin beneficio propio | recomendacion=aprobar: es obligatorio; Must en R1 | decision=aprobado | decidido_por=Junta: Laura Méndez (ejecutiva) · plan de excepción X-001 | fecha_decision=2027-02-26 | estado=aprobado | notas=la autoridad de cambio no podía aprobarlo (límite de 10.000 y saldo del presupuesto de cambio); lo aprueba la junta con el presupuesto de cambio ampliado a 32.000 (plan de excepción X-001) | costo=15000 | cargo=presupuesto-cambio
 ```
 

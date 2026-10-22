@@ -2,7 +2,8 @@
 """Hook SessionStart de pm-method (inicio, reanudación, /clear y después de compactar): si la carpeta de trabajo contiene
 un proyecto (estado.json a ≤2 niveles, hasta 3 proyectos), agrega al contexto, por proyecto, la línea de estado (fase,
 etapa, sanidad rápida), el resumen de contexto derivado de los registros (`estado.py contexto`: conteos abiertos, ids
-críticos, condiciones de puertas y próxima puerta) y, una vez, las reglas de enrutamiento, la precedencia de los
+críticos, condiciones de puertas y próxima puerta), una línea de radar (`estado.py radar --linea`: cuántos ítems hay que
+decidir, escalar, desbloquear y vigilar, con el primer id de cada grupo) y, una vez, las reglas de enrutamiento, la precedencia de los
 registros sobre la memoria del cliente y la ruta de los scripts. Si no hay proyecto, no imprime nada.
 Presupuesto: ≤ 2.000 caracteres de contexto derivado con un proyecto (≤ 4.500 en total entre varios) y texto total
 muy por debajo del tope de 10.000 caracteres que Claude Code admite por hook (docs/PRUEBAS.md, control del contexto).
@@ -52,6 +53,11 @@ def main():
         try:
             r = subprocess.run([sys.executable, os.path.join(sdir, "estado.py"), "--proyecto", proy, "contexto", "--max", str(tope)], capture_output=True, text=True, timeout=max(1, min(8, PLAZO - (time.time() - t0))))
             if r.returncode == 0 and r.stdout.strip(): lineas.append(r.stdout.strip()[:tope])
+        except Exception:
+            pass
+        try:   # una línea de radar (decidir, escalar, desbloquear, vigilar) con el primer id de cada grupo
+            r = subprocess.run([sys.executable, os.path.join(sdir, "estado.py"), "--proyecto", proy, "radar", "--linea"], capture_output=True, text=True, timeout=max(1, min(6, PLAZO - (time.time() - t0))))
+            if r.returncode == 0 and r.stdout.strip(): lineas.append(linea(r.stdout.strip(), 320))
         except Exception:
             pass
     if lineas:

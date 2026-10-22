@@ -1,4 +1,4 @@
-# Integraciones · pm-method 2.3.0
+# Integraciones · pm-method 2.4.0
 
 Qué necesita pm-method para funcionar, con qué herramientas externas puede integrarse, qué se decidió incorporar (y
 qué no) y cómo agregar una integración nueva sin romper el ecosistema.
@@ -179,7 +179,7 @@ informan.
 | INT-04 | AVISO | instantánea sin fecha en el nombre (`<sistema>-AAAA-MM-DD.<ext>`) |
 | ESP-01…15 | ERROR / AVISO | especificación legible, cobertura, ids, versión de BMAD probada, carpeta fuera de BMAD, líneas base vs especificación (cambio no controlado), traspasos pendientes, derivados desactualizados |
 | STK-07 | AVISO | envío de la capa de canales en estado `fallido` o `pendiente` (por ejemplo, `.eml` generado sin registrar) |
-| STK-00…11 | ERROR / AVISO / INFO | integridad del maestro de interesados (detalle en [SANIDAD.md §2.1](SANIDAD.md)) |
+| STK-00…16 | ERROR / AVISO / INFO | integridad del maestro de interesados, cadencia de contacto y personas de usuario (detalle en [SANIDAD.md §2.1](SANIDAD.md)) |
 
 Controles adicionales:
 - **Hook `PreToolUse`** (plugin de Claude Code): impide editar a mano los derivados de la especificación y que los
@@ -187,7 +187,7 @@ Controles adicionales:
 - **`pm-puerta` / `pm-director`**: ninguna puerta con ERROR sin decisión humana registrada como condición.
 - **`compatibilidad.json`**: declara versiones probadas de BMAD (4.x, 6.11, 6.12), integraciones externas opcionales y
   comportamiento por cliente.
-- **`scripts/probar_paquete.py`**: regresión de punta a punta (223 pruebas: BMAD v6, v6.12.4 real, v4, nativo, hook guardian, ciclo de puertas, regresiones, el caso H con maestro de interesados, capa de canales contra servidores SMTP y HTTP locales y OKR, el caso I con candidatos de riesgo desde BMAD, transcripciones, una instantánea de Jira y artefactos, el caso J con los controles permanentes y el caso X con la integración cruzada; detalle en [PRUEBAS §2](PRUEBAS.md)).
+- **`scripts/probar_paquete.py`**: regresión de punta a punta (353 pruebas: BMAD v6, v6.12.4 real, v4, nativo, hook guardian, ciclo de puertas, regresiones, el caso H con maestro de interesados, capa de canales contra servidores SMTP y HTTP locales y OKR, el caso I con candidatos de riesgo desde BMAD, transcripciones, una instantánea de Jira y artefactos, el caso J con los controles permanentes y el caso X con la integración cruzada; detalle en [PRUEBAS §2](PRUEBAS.md)).
 
 Observación: INT-01 valida también `diagramas` (acepta listas de valores conocidos), `cronograma` y `export`; la instalación de las skills externas la controla INS-03.
 

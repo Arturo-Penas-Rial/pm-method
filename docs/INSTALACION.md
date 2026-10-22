@@ -1,4 +1,4 @@
-# Instalación y configuración · pm-method 2.3.0
+# Instalación y configuración · pm-method 2.4.0
 
 Guía para instalar, configurar, verificar, actualizar y desinstalar el paquete de agentes y skills **pm-method** en
 Claude Code, Cowork y Hermes Agent, y para instalar y conectar de punta a punta sus dependencias: Python y sus paquetes,
@@ -53,7 +53,7 @@ actualizaciones con dos comandos.
 ### 0.2 Publicar el repositorio (lo hace el responsable del paquete)
 ```bash
 # en la carpeta del paquete
-git init && git add . && git commit -m "pm-method 2.3.0"
+git init && git add . && git commit -m "pm-method 2.4.0"
 gh auth login                       # inicia sesión en el navegador
 gh repo create <usuario>/pm-method --public --source . --push
 ```
@@ -66,7 +66,7 @@ que muestra `claude plugin list` y la que usa `claude plugin update` para decidi
 ```bash
 claude plugin marketplace add Arturo-Penas-Rial/pm-method   # acepta owner/repo de GitHub; necesita git
 claude plugin install pm-method@pm-method                   # alcance por defecto: user
-claude plugin list                                          # pm-method@pm-method · Version: 2.3.0 · Status: enabled
+claude plugin list                                          # pm-method@pm-method · Version: 2.4.0 · Status: enabled
 ```
 - Dentro de una sesión: `/plugin marketplace add Arturo-Penas-Rial/pm-method` y `/plugin install pm-method@pm-method`.
 - Alcances: `claude plugin marketplace add … --scope user|project|local` (por defecto `user`) y
@@ -386,7 +386,7 @@ Origen, licencia y versión probada de cada uno: [DEPENDENCIAS.md](DEPENDENCIAS.
 ### 2.1 Como plugin desde el marketplace local
 
 Alternativa a §0 cuando se trabaja con una copia local (por ejemplo, el mantenedor). La carpeta del paquete es a la vez
-un plugin (`.claude-plugin/plugin.json`, nombre `pm-method`, versión 2.3.0) y un marketplace local
+un plugin (`.claude-plugin/plugin.json`, nombre `pm-method`, versión 2.4.0) y un marketplace local
 (`.claude-plugin/marketplace.json`, nombre `pm-method`). Junto con §0, es la única modalidad que activa los **hooks** de
 protección y de sanidad (§9).
 
@@ -743,7 +743,7 @@ directo sirve para la carga inicial o una corrección. Tiempo y costo son el mí
 ### 7.4 Settings recomendados en Claude Code
 
 El listado de descripciones de skills de Claude Code tiene un presupuesto de ≈1 % de la ventana de contexto. Las 33
-skills de pm-method que el modelo puede activar suman 6.817 caracteres según `validar_paquete.py`; con BMAD u otros repositorios de skills en la misma sesión el total puede superar el presupuesto (en la
+skills de pm-method que el modelo puede activar suman 6.957 caracteres según `validar_paquete.py`; con BMAD u otros repositorios de skills en la misma sesión el total puede superar el presupuesto (en la
 prueba con BMAD 6.12.4 instalado, ≈23.000 caracteres) y el listado se recorta. Con solo el módulo `bmm` de BMAD 6.12.4
 (29 skills, 6.912 caracteres) el total ronda 13.700 y el enrutamiento en vivo dio 25/25 en las frases vecinas
 (`docs/evaluacion/resultados/2026-10-18-enrutamiento-con-bmad-v2.2.md`). Si se recorta, en `settings.json`:
@@ -778,11 +778,11 @@ Secuencia final, en este orden. `<raíz>` es la carpeta del paquete: un clon del
 
 | # | Paso | Comando | Resultado esperado |
 |---|---|---|---|
-| 1 | Plugin instalado y versión | `claude plugin list` | `pm-method@pm-method` · `Version: 2.3.0` · `Status: enabled` |
+| 1 | Plugin instalado y versión | `claude plugin list` | `pm-method@pm-method` · `Version: 2.4.0` · `Status: enabled` |
 | 2 | Manifiestos | `claude plugin validate <raíz>` | `Validation passed` |
 | 3 | Python y paquetes | `python3 --version` y `python3 -c "import yaml, docx, openpyxl; print('ok')"` | 3.9 o superior; `ok` |
 | 4 | Estructura del paquete | `python3 <raíz>/scripts/validar_paquete.py` | `Skills: 39 (33 invocables por el modelo, listado <n> caracteres) · Agentes: 6` y `OK` |
-| 5 | Regresión de punta a punta (requiere PyYAML; trabaja en una carpeta temporal) | `python3 <raíz>/scripts/probar_paquete.py` | `Resultado: <n> OK · 0 FALLO` (223 OK en la corrida del 2026-10-20, versión 2.3.0) |
+| 5 | Regresión de punta a punta (requiere PyYAML; trabaja en una carpeta temporal) | `python3 <raíz>/scripts/probar_paquete.py` | `Resultado: <n> OK · 0 FALLO` (353 OK en la corrida del 2026-10-22, versión 2.4.0) |
 | 6 | Skills visibles | `/pm-method:pm-ayuda` en una sesión | tabla "qué escribir", catálogo de skills y comandos |
 | 7 | Proyecto de prueba | `nuevo_proyecto.py --ruta <tmp>/prueba --nombre "Prueba"` y `estado.py --proyecto <tmp>/prueba siguiente` | carpeta creada y siguiente paso del método |
 | 8 | BMAD (si se instaló) | `bmad.py --proyecto ./gestion detectar` | layout `v6`, `version` 6.12.x, `soporte: soportada` |
@@ -809,8 +809,8 @@ evalúan INS-01 e INS-02):
 
 | Hook | Disparo | Qué hace |
 |---|---|---|
-| `PreToolUse` → `hooks/guardian.py` | cada `Write`, `Edit`, `MultiEdit`, `NotebookEdit` y `Bash` | niega (`permissionDecision: "deny"`) con el motivo: modificar `estado.json` sin `estado.py`, `nuevo_proyecto.py` o `bmad.py`; los registros CSV de `03-control/registros/` (los 9 base y los opcionales `estereotipos.csv`, `preferencias.csv`, `raci.csv` y `envios.csv`) sin `registro.py` (o `interesados.py` / `envios.py`, que también figuran entre los scripts permitidos); los derivados de especificación (`spec-index.json`, `requisitos-bmad.csv`, `matriz-trazabilidad-bmad.csv`, `inventario-bmad.json`, `avance-bmad.csv`), las copias congeladas de `00-direccion/historial/` o una instantánea existente de `03-control/fuentes/` — tanto con Write/Edit como con Bash (`sed -i`, `>`/`>>`, `tee`, `cp`/`mv`/`rm`, Python en línea); que un subagente `pm-*` escriba en `_bmad/`, `_bmad-output/` o `.bmad-core/`; y que el hilo principal o un subagente distinto de pm-director ejecute `estado.py puerta|rol|tolerancia|agil|umbrales-riesgo|cumplir-condiciones`, `limite-etapa --excepcion`, `set --forzar` o `aprobar`/`set` con `--nivel` superior a gestor. El comando de Bash se evalúa por segmento (`;`, `&&`, `\|\|`, `\|`, `&`, saltos de línea): solo el segmento que ejecuta un script del paquete queda exento, y ni ese puede redirigir su salida a un archivo protegido. Además pide confirmación (`permissionDecision: "ask"`) para `envios.py aprobar` y `envios.py enviar … --confirmar`, también desde pm-director |
-| `SessionStart` → `hooks/inicio.py` | `startup`, `resume`, `clear`, `compact` | si hay un `estado.json` a ≤ 2 niveles de la carpeta de trabajo (hasta 3 proyectos), agrega al contexto, por proyecto, fase, proceso, etapa y el resultado de `sanidad.py --rapido` con los primeros ERROR, más el **resumen de contexto derivado** de `estado.py contexto` (conteos abiertos sin los registros de catálogo, riesgos altos sin respuesta, riesgos con la revisión vencida, issues abiertos, acciones vencidas, supuestos críticos sin validar, condiciones abiertas y próxima puerta, con ids; ≤ 2.000 caracteres con un proyecto); y, una vez, una guía de enrutamiento, la precedencia de los registros sobre la memoria del cliente y la ruta absoluta de los scripts |
+| `PreToolUse` → `hooks/guardian.py` | cada `Write`, `Edit`, `MultiEdit`, `NotebookEdit` y `Bash` | niega (`permissionDecision: "deny"`) con el motivo: modificar `estado.json` sin `estado.py`, `nuevo_proyecto.py` o `bmad.py`; los registros CSV de `03-control/registros/` (los 9 base y los opcionales `estereotipos.csv`, `preferencias.csv`, `raci.csv`, `envios.csv` y `personas.csv`) sin `registro.py` (o `interesados.py` / `envios.py`, que también figuran entre los scripts permitidos); los derivados de especificación (`spec-index.json`, `requisitos-bmad.csv`, `matriz-trazabilidad-bmad.csv`, `inventario-bmad.json`, `avance-bmad.csv`), las copias congeladas de `00-direccion/historial/` o una instantánea existente de `03-control/fuentes/` — tanto con Write/Edit como con Bash (`sed -i`, `>`/`>>`, `tee`, `cp`/`mv`/`rm`, Python en línea); que un subagente `pm-*` escriba en `_bmad/`, `_bmad-output/` o `.bmad-core/`; y que el hilo principal o un subagente distinto de pm-director ejecute `estado.py puerta|rol|tolerancia|agil|umbrales-riesgo|cumplir-condiciones`, `limite-etapa --excepcion`, `set --forzar` o `aprobar`/`set` con `--nivel` superior a gestor. El comando de Bash se evalúa por segmento (`;`, `&&`, `\|\|`, `\|`, `&`, saltos de línea): solo el segmento que ejecuta un script del paquete queda exento, y ni ese puede redirigir su salida a un archivo protegido. Además pide confirmación (`permissionDecision: "ask"`) para `envios.py aprobar` y `envios.py enviar … --confirmar`, también desde pm-director |
+| `SessionStart` → `hooks/inicio.py` | `startup`, `resume`, `clear`, `compact` | si hay un `estado.json` a ≤ 2 niveles de la carpeta de trabajo (hasta 3 proyectos), agrega al contexto, por proyecto, fase, proceso, etapa y el resultado de `sanidad.py --rapido` con los primeros ERROR, más el **resumen de contexto derivado** de `estado.py contexto` (conteos abiertos sin los registros de catálogo, riesgos altos sin respuesta, riesgos con la revisión vencida, issues abiertos, acciones vencidas, supuestos críticos sin validar, condiciones abiertas y próxima puerta, con ids; ≤ 2.000 caracteres con un proyecto) y una línea de radar (`estado.py radar --linea`: cuánto hay que decidir, escalar, desbloquear y vigilar, con el primer id de cada grupo); y, una vez, una guía de enrutamiento, la precedencia de los registros sobre la memoria del cliente y la ruta absoluta de los scripts |
 | `UserPromptSubmit` → `hooks/idioma.py` | cada pedido del usuario | si hay proyecto pm-method y el pedido está en otro idioma que `estado.json.idioma` (español/inglés), agrega al contexto la instrucción de responder en el idioma del pedido; no bloquea nada |
 
 Comportamiento relevante:
@@ -844,7 +844,7 @@ aprobaciones o decisiones. El hook de inicio lo declara en cada sesión junto al
   registros no se ajustan a la nota.
 - Desactivar la memoria automática (`autoMemoryEnabled: false` o `CLAUDE_CODE_DISABLE_AUTO_MEMORY=1`) es una decisión
   de cada persona; pm-method no lo requiere.
-- En Hermes no corren los hooks: el resumen equivalente se obtiene con `estado.py --proyecto <dir> contexto`.
+- En Hermes no corren los hooks: el resumen equivalente se obtiene con `estado.py --proyecto <dir> contexto` y el radar con `estado.py --proyecto <dir> radar`.
 
 **Cómo prescindir de los hooks.** El paquete no ofrece una opción para desactivarlos por separado. Las vías son:
 - deshabilitar el plugin: `claude plugin disable pm-method` (y `claude plugin enable pm-method` para volver);
@@ -866,7 +866,7 @@ skills y de la sanidad.
 2. Copia manual: volver a copiar `skills/` y `agents/`. Hermes: `git pull` y volver a correr
    `scripts/instalar_hermes.py` (§3.3); luego `/reload-skills`.
 3. **Proyectos existentes:** `estado.json` y los registros migran solos al leerse (esquema `estado.json` v2 desde v1;
-   `esquema.py` con 9 registros base y 4 opcionales del maestro de interesados que se crean al primer uso; columnas
+   `esquema.py` con 9 registros base y 5 opcionales del maestro de interesados que se crean al primer uso; columnas
    nuevas, como las de validación de `supuestos.csv`, se agregan sin perder datos). La sanidad avisa la diferencia de versión como **INS-02**.
 4. Skills externas y BMAD: §6.1 (actualizar skills y plugins externos) y §4.3 (BMAD).
 5. Después de actualizar pm-method o BMAD: correr la sanidad completa en cada proyecto activo y, si BMAD cambió de
@@ -899,7 +899,7 @@ claude plugin marketplace remove pm-method
 | Síntoma | Causa probable | Solución |
 |---|---|---|
 | `/pm-method:…` no aparece | plugin no instalado o deshabilitado | `claude plugin list`; `claude plugin enable pm-method`; reiniciar la sesión |
-| `claude plugin list` muestra una versión anterior a 2.3.0 | catálogo sin refrescar o versión aún no publicada | §0.4; si persiste, el repositorio publicado no tiene la versión nueva |
+| `claude plugin list` muestra una versión anterior a 2.4.0 | catálogo sin refrescar o versión aún no publicada | §0.4; si persiste, el repositorio publicado no tiene la versión nueva |
 | El modelo no activa la skill esperada | listado recortado por presupuesto (BMAD u otros repos) | `"skillListingBudgetFraction": 0.02` (§7.4); sanidad INS-05; invocar la skill por comando |
 | Responde una skill de otro repositorio | colisión de disparadores | sanidad INS-06; ajustar la descripción local u ocultar la externa con `skillOverrides`; ver `docs/colisiones.md` |
 | Windows: las ediciones o comandos quedan bloqueados por un hook, o no aparece el resumen de inicio | falta Git for Windows, no hay Python 3.9+ en Git Bash (`py.sh` lo avisa) o el clon tiene finales de línea CRLF en `hooks/py.sh` (volver a clonar con el `.gitattributes` vigente) | §1.2 |

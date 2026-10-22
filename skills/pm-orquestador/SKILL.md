@@ -1,7 +1,7 @@
 ---
 name: pm-orquestador
-description: "Orquestador en el hilo principal: lee el estado, pregunta, delega en agentes de fase y presenta puertas. Usar: qué sigue, cómo venimos, next step, how are we doing, gestionar el proyecto. No: producto concreto→su skill."
-version: 2.3.0
+description: "Orquestador en el hilo principal: lee el estado, delega en agentes de fase y presenta puertas. Usar: qué sigue, cómo venimos, qué decido hoy, radar, next step, how are we doing, gestionar el proyecto. No: producto concreto→su skill."
+version: 2.4.0
 author: pm-method
 license: MIT
 metadata:
@@ -27,7 +27,7 @@ metadata:
 Detectar el idioma del usuario; si `estado.json.idioma` difiere, preguntar una vez en cuál generar los artefactos y mantener la elección. Responder siempre en el idioma del usuario.
 
 ## Conocimiento
-- `SPEC.md` §1.11 (orquestador en el hilo principal, subagentes, protocolo de retorno), §1.12–§1.13, §1.15.
+- `SPEC.md` §1.11 (hilo principal, subagentes, retorno), §1.12–§1.13, §1.15.
 - `references/guia.md` (este skill): §1 modos de ejecución, §2 plantilla de encargo, §3 cómo presentar decisiones, §4 secuencias, §5 perfil ágil mínimo.
 - `pm-knowledge/references/prince2-principios-personas-procesos.md` — `### 4.4` (disparadores entre procesos), `### 4.5` (etapas y puertas), `### 6.10` (quién decide qué).
 - `pm-knowledge/references/prince2-practicas-riesgo-issues-progreso-productos.md` — `## 6.` (flujo de excepciones).
@@ -36,13 +36,13 @@ Detectar el idioma del usuario; si `estado.json.idioma` difiere, preguntar una v
 - Carpeta del proyecto con `estado.json`. Si no existe, proponer crearla (`pm-estado-proyecto` o el comando `pm-nuevo`) preguntando nombre, idioma y enfoque de entrega.
 - Documento suelto sin proyecto → SU.
 - Modo: corre en el **hilo principal** (invocación por entorno: guía §1 y EN summary).
-- Integraciones: ninguna obligatoria; conectores vía `pm-integraciones`; BMAD, `pm-bmad-puente`.
+- Integraciones: ninguna obligatoria (`pm-integraciones`, `pm-bmad-puente`).
 
 ## Procedimiento
 1. **Situar**: `python3 ${CLAUDE_SKILL_DIR}/../pm-estado-proyecto/scripts/estado.py --proyecto <dir> ver` y `siguiente`; resumir en 3 líneas: fase, proceso, etapa (0 SU, 1 iniciación, 2…n entrega), puertas pendientes y condiciones, excepción abierta, enfoque, integraciones activas.
-2. **Preguntar lo que falte antes de delegar**: el orquestador es el **único que conversa con el usuario**. Usar `AskUserQuestion` cuando esté disponible (opciones concretas, una pregunta por dato); si no, una pregunta breve en texto. Petición ambigua entre dos procesos → una sola pregunta de desambiguación.
+2. **Preguntar lo que falte antes de delegar**: el orquestador es el **único que conversa con el usuario**. Usar `AskUserQuestion` si existe (opciones concretas, una pregunta por dato); si no, una pregunta breve. Petición ambigua entre dos procesos → una sola pregunta de desambiguación.
 3. **Clasificar y planificar** con la tabla de enrutamiento. Si cruza procesos, mostrar la secuencia (subagentes, transiciones y puertas 🔒 con el rol que decide) y pedir conformidad antes de ejecutar.
-4. **Verificar precondiciones** del método (no hay plan de etapa sin business case; no hay paquete de trabajo sin etapa autorizada; no hay cierre sin aceptación). Si falta algo, decirlo y ofrecer producirlo.
+4. **Verificar precondiciones** del método (sin business case no hay plan de etapa; sin etapa autorizada, paquete; sin aceptación, cierre). Si falta algo, decirlo y ofrecer producirlo.
 5. **Delegar** al subagente de fase (`pm-inicio`, `pm-planificacion`, `pm-control`, `pm-cierre`; en el plugin `pm-method:<agente>`) con un encargo autocontenido (plantilla en guía §2): carpeta, objetivo, skills, respuestas ya obtenidas, restricciones (no registrar puertas ni escribir afuera) y la exigencia del bloque "Retorno al orquestador" (SPEC §1.11). Los subagentes no preguntan al usuario ni delegan.
 6. **Recibir el retorno** y leer sus cuatro campos: *Hecho* (verificar rutas y estado con `estado.py ver`; ninguna puerta registrada fuera de pm-director), *Decisiones humanas requeridas*, *Datos faltantes*, *Siguiente paso sugerido*.
 7. **Datos faltantes** → preguntarlos (paso 2) y volver a delegar.
@@ -61,16 +61,17 @@ Detectar el idioma del usuario; si `estado.json.idioma` difiere, preguntar una v
 | riesgos iniciales, hacer o comprar, adquisiciones; mapa de Wardley, journey | SU, IP | pm-inicio | pm-riesgos, pm-adquisiciones, pm-mapas-estrategicos |
 | riesgo, issue o incidencia, cambio, acción, paquete de trabajo, highlight, EVM, calidad, proveedor | CS, MP | pm-control | pm-registros, pm-riesgos, pm-issues-cambios, pm-paquetes-trabajo, pm-progreso-reportes, pm-calidad, pm-adquisiciones |
 | sprint, iteración, review, retro de sprint, swap de backlog, burn-up | CS, MP | pm-control | pm-agil-hibrido |
-| reunión, transcripción, acta, acciones acordadas, clima | CS | pm-control | pm-reuniones |
-| interesados, matriz poder/interés, RACI, estereotipos, preferencias | SU, IP, CS | pm-inicio / pm-control | pm-interesados |
+| reunión, transcripción, acta, acuerdos, retrospectiva | CS | pm-control | pm-reuniones, pm-lecciones-aprendidas |
+| interesados, matriz poder/interés, RACI, estereotipos, preferencias, personas de usuario | SU, IP, CS | pm-inicio / pm-control | pm-interesados |
 | plan de comunicación, mensajes por audiencia, enviar a interesados | IP, CS | pm-control | pm-comunicacion-stakeholders (envío: pm-integraciones) |
 | Jira, Slack, Teams, Confluence, sincronizar, publicar | transversal | subagente de la fase | pm-integraciones (escritura con confirmación) |
-| tablero, diagrama, Gantt visual; exportar Office o ZIP | transversal | subagente de la fase | pm-visuales; pm-exportar |
+| tablero, diagrama, Gantt; exportar Office, ZIP, auditoría | transversal | subagente de la fase | pm-visuales; pm-exportar |
 | pronóstico fuera de tolerancia, excepción | CS → DP | pm-control → pm-director | pm-progreso-reportes, pm-issues-cambios, pm-direccion-decisiones |
 | fin de etapa, siguiente etapa | SB (`estado.py limite-etapa`) | pm-control + pm-planificacion → pm-director | pm-progreso-reportes, pm-lecciones-aprendidas, pm-plan-etapa-y-limites, pm-direccion-decisiones |
 | cerrar, cierre prematuro, aceptación final, lecciones | CP (`estado.py cierre`) | pm-cierre | pm-cierre-proyecto, pm-lecciones-aprendidas, pm-adquisiciones |
 | aprobar, autorizar, tolerancias, junta o comité de dirección | DP | pm-director (tras la respuesta humana) | pm-direccion-decisiones |
 | sanidad, consistencia, "algo no cuadra", antes de una puerta | transversal | ninguno (hilo principal) | pm-sanidad |
+| «¿qué decido hoy?», radar; briefing de incorporación | transversal | hilo principal (briefing: pm-control) | `estado.py radar` (guía §4); pm-progreso-reportes |
 | "¿qué es…?", "¿quién aprueba…?", glosario | — | ninguno (hilo principal) | pm-knowledge |
 | "somos ágiles", proyecto chico | cualquiera | de la fase | perfil ágil mínimo (SPEC §1.10.12) |
 
@@ -81,7 +82,7 @@ Detectar el idioma del usuario; si `estado.json.idioma` difiere, preguntar una v
 Arranque, fin de etapa, excepción, cierre, BMAD y reunión de la junta: `references/guia.md` §4. En cada 🔒: retorno del subagente → el orquestador pregunta al humano → pm-director registra.
 
 ### Fuente única de la especificación (SPEC §1.16)
-Cada dato tiene un solo dueño que lo escribe: requisitos, épicas e historias → BMAD (sin BMAD, `requisitos.md`/`backlog.csv`); prioridad y release → `backlog.csv`; beneficios → business case. Toda skill lee la especificación solo con `${CLAUDE_SKILL_DIR}/../pm-estado-proyecto/scripts/especificacion.py` (`resumen|consultar <id>|listar …`) y cita ids; nadie abre BMAD ni copia. Las decisiones vuelven a BMAD con `bmad.py handoff`; luego `verificar` y nueva línea base por pm-director. EN: one owner per datum, one read façade, decisions handed back.
+Cada dato tiene un solo dueño que lo escribe: requisitos, épicas e historias → BMAD (sin BMAD, `requisitos.md`/`backlog.csv`); prioridad y release → `backlog.csv`; beneficios → business case. Toda skill lee la especificación solo con `${CLAUDE_SKILL_DIR}/../pm-estado-proyecto/scripts/especificacion.py` (`resumen|consultar <id>|listar …`) y cita ids; nadie abre BMAD ni copia. Las decisiones vuelven a BMAD con `bmad.py handoff`; luego `verificar` y nueva línea base por pm-director. EN: one owner per datum, decisions handed back.
 
 ## Reglas del método
 1. [PRINCE2] El ciclo de vida por etapas es el modo por defecto; ágil o híbrido se aplican dentro de las etapas, sin quitar puertas.
@@ -101,7 +102,7 @@ No produce artefactos propios: produce el plan de secuencia en la respuesta y co
 
 ## Calidad
 - [ ] Estado leído y resumido antes de actuar.
-- [ ] Preguntas en el hilo principal (`AskUserQuestion` si existe), nunca delegadas.
+- [ ] Preguntas en el hilo principal, nunca delegadas.
 - [ ] Encargo autocontenido con exigencia de bloque de retorno.
 - [ ] Decisiones humanas presentadas con opciones y rol; pm-director invocado solo después de la respuesta.
 - [ ] Transiciones con `limite-etapa` / `cierre`; siguiente paso y próxima puerta al final.
@@ -113,9 +114,9 @@ No produce artefactos propios: produce el plan de secuencia en la respuesta y co
 ## Ejemplos de invocación
 - "Quiero gestionar el proyecto Faro con el método; ¿por dónde empiezo?"
 - "Cerrá la etapa 2 y preparame la etapa 3."
-- EN: "What's the next step and who needs to approve it?"
+- EN: "What do I need to decide or unblock today?"
 - EN: "We are over the cost tolerance for this stage; what should happen now?"
 - No activa: "¿Qué es un informe de destacados?" → `pm-knowledge`.
 
 ## EN summary
-Main-thread entry point (`/pm-method:pm-orquestador`, optionally `claude --agent pm-method:pm-orquestador`; `/pm-orquestador` in Hermes). The only component that talks to the user (AskUserQuestion when available); routes to phase subagents and skills, enforces the single-source rule (`especificacion.py` façade, `bmad.py handoff`), reads their Return block, presents human decisions and only then invokes pm-director to record gates.
+Main-thread entry point (`/pm-method:pm-orquestador`; `/pm-orquestador` in Hermes). The only component that talks to the user; runs the daily radar (`estado.py radar`); routes to phase subagents and skills, enforces the single-source rule (`especificacion.py` façade, `bmad.py handoff`), reads their Return block, presents human decisions and only then invokes pm-director to record gates.

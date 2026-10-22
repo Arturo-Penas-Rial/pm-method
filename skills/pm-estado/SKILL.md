@@ -3,7 +3,7 @@ name: pm-estado
 description: "Estado del proyecto: fase, etapa, tolerancias, puertas pendientes, registros abiertos, avance BMAD y siguiente paso. Uso manual: /pm-estado [carpeta]. Project status."
 disable-model-invocation: true
 argument-hint: "[carpeta del proyecto / project folder]"
-version: 2.3.0
+version: 2.4.0
 author: pm-method
 license: MIT
 metadata:
@@ -39,6 +39,7 @@ Scripts en `${CLAUDE_PLUGIN_ROOT}/skills/<skill>/scripts/` (manual/Hermes: `~/.c
 2. `python3 ${CLAUDE_SKILL_DIR}/../pm-estado-proyecto/scripts/registro.py --proyecto <dir> resumen`.
 2b. `python3 ${CLAUDE_SKILL_DIR}/../pm-estado-proyecto/scripts/sanidad.py --proyecto <dir> --rapido` (`pm-sanidad`): contar ERROR/AVISO y mostrar los ERROR.
 3. Si `integraciones.especificacion = bmad`: `python3 ${CLAUDE_SKILL_DIR}/../pm-bmad-puente/scripts/bmad.py --proyecto <dir> avance` (solo lectura del avance; agrega una fila a `avance-bmad.csv`).
+3b. Si piden «hoy», «radar» o qué decidir: `python3 ${CLAUDE_SKILL_DIR}/../pm-estado-proyecto/scripts/estado.py --proyecto <dir> radar` (solo lectura; decidir, escalar, desbloquear y vigilar con quién decide y el siguiente paso).
 4. Responder: tres líneas (fase/proceso y etapa · tolerancias y excepción abierta · puertas pendientes y condiciones) + tabla corta (riesgos altos sin respuesta, issues abiertos, acciones vencidas por responsable, avance BMAD) + siguiente paso con agente/skill y rol que decide.
 
 ## Reglas del método

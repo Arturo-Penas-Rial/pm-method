@@ -27,23 +27,23 @@
  },
  "casos": {
   "E2E-1": {
-   "imagen": "g1-consumo-reserva.png",
+   "imagen": "g1-opciones-valor-neto.png",
    "indicadores": [
-    "g1-mapa-inherente-residual.png",
+    "g1-opciones-valor-neto.png",
     "g1-consumo-reserva.png",
     "g1-tarjetas-etapa.png"
    ]
   },
   "E2E-2": {
-   "imagen": "g2-consumo-cambio.png",
+   "imagen": "g2-impacto-c002.png",
    "indicadores": [
-    "g2-consumo-cambio.png",
+    "g2-impacto-c002.png",
     "g2-alcance-evm.png",
     "g2-indicadores.png"
    ]
   },
   "E2E-3": {
-   "imagen": "g3-cadencia-stk12.png",
+   "imagen": "g3-highlight-indicadores.png",
    "indicadores": [
     "g3-highlight-indicadores.png",
     "g3-cadencia-stk12.png",
@@ -51,11 +51,11 @@
    ]
   },
   "E2E-4": {
-   "imagen": "g4-calidad-entregas.png",
+   "imagen": "g4-cierre.png",
    "indicadores": [
     "g4-calidad-entregas.png",
-    "g4-cierre.png",
-    "g4-beneficios.png"
+    "g4-lecciones-ciclo.png",
+    "g4-expediente.png"
    ]
   },
   "E2E-5": {
@@ -63,7 +63,7 @@
    "indicadores": [
     "g5-mapa-supuestos.png",
     "g5-van-opciones.png",
-    "g5-presupuesto.png"
+    "g5-personas-mapa.png"
    ]
   }
  },
@@ -285,7 +285,7 @@
   "portada": {
    "kicker": "Resumen ejecutivo · pm-method {version}",
    "titulo": "Gestión de proyectos con IA, con método, gobierno y controles permanentes",
-   "subtitulo": "Un plugin para Claude Code y Cowork. PRINCE2 7 manda, PMBOK 8 aporta las técnicas y BMAD es la especificación del producto, de solo lectura.",
+   "subtitulo": "Un plugin para Claude Code y Cowork. PRINCE2 7 manda, PMBOK 8 aporta las técnicas y BMAD es la especificación del producto, de solo lectura. Con la versión {version}: opciones e impacto medidos antes de decidir, un radar de lo que hay que decidir hoy e informes verificados contra el dato.",
    "cifras": [
     [
      "{agentes}",
@@ -321,8 +321,13 @@
      "REG-06 · REG-09"
     ],
     [
+     "La respuesta a un riesgo se elige por intuición y la contingencia se improvisa",
+     "Opciones comparadas por valor neto; decide el propietario y el plan de contingencia queda listo",
+     "REG-10"
+    ],
+    [
      "Los cambios se aprueban uno a uno y nadie suma lo comprometido",
-     "Cada cambio se carga contra el presupuesto de la junta; excedido, bloquea la puerta",
+     "Cada cambio se mide antes de decidirlo y se carga contra el presupuesto de la junta",
      "CAM-03 · CAM-04"
     ],
     [
@@ -331,19 +336,14 @@
      "EST-12 · G-01"
     ],
     [
-     "La calidad se revisa al final, si se revisa",
-     "Cada historia terminada necesita su revisión aprobada, en cada entrega",
-     "QUA-01 · QUA-02"
+     "La calidad se revisa al final y el cierre se firma de memoria",
+     "Cada historia terminada necesita su revisión, y el cierre lista por id lo que falta aceptar",
+     "QUA-01 · C-07"
     ],
     [
-     "El pronóstico de valor ganado no se vuelve a mirar",
-     "Un pronóstico fuera de tolerancia sin excepción abierta genera aviso",
-     "TOL-01"
-    ],
-    [
-     "El plan de comunicaciones promete una frecuencia que nadie verifica",
-     "La cadencia de contacto de cada interesado clave queda vigilada",
-     "STK-12"
+     "Las lecciones se archivan en un informe que nadie vuelve a leer",
+     "Cada lección de impacto alto se acciona, se verifica que funcionó y alimenta a otros proyectos",
+     "REG-11 · REG-12"
     ]
    ],
    "en": "EN: what is usually checked by hand, once or never becomes a permanent control that runs in every session."
@@ -441,11 +441,6 @@
    "ejemplos": [
     {
      "codigo": "CAM-03",
-     "caso": "E2E-2",
-     "imagen": "g2-consumo-cambio.png"
-    },
-    {
-     "codigo": "CAM-03",
      "caso": "E2E-1",
      "imagen": "g1-consumo-reserva.png"
     },
@@ -458,6 +453,11 @@
      "codigo": "QUA-01",
      "caso": "E2E-4",
      "imagen": "g4-calidad-entregas.png"
+    },
+    {
+     "codigo": "REG-11",
+     "caso": "E2E-4",
+     "imagen": "g4-lecciones-ciclo.png"
     }
    ],
    "en": "EN: automatic controls watch what nobody checks by hand."
@@ -480,7 +480,7 @@
     {
      "nombre": "Transcripciones",
      "clave": "reuniones",
-     "texto": "Actas con acciones, riesgos, decisiones y preferencias declaradas, confirmadas por una persona."
+     "texto": "Acuerdos con cita: decisiones, compromisos, supuestos, riesgos y lecciones propuestos desde la transcripción y registrados solo si una persona los confirma."
     },
     {
      "nombre": "Correo, Slack y Teams",
@@ -537,11 +537,11 @@
    "material": "Material por caso: guía paso a paso por prompts, guion del instructor minuto a minuto, ejercicio autocontenido con ejemplo resuelto y diapositivas PPTX y HTML que regenera un script.",
    "induccion": "Inducción sugerida: instalar → recorrer una guía sobre la copia del proyecto de prueba con BMAD real → dictar su clase → piloto en paralelo con un proyecto real.",
    "recorre": {
-    "E2E-1": "Riesgos desde cuatro fuentes, respuestas costeadas, reserva vigilada y escalamiento a la junta",
-    "E2E-2": "Alcance por productos, estimación, priorización, cambio con presupuesto y excepción",
-    "E2E-3": "Interesados, preferencias, RACI, OKR, highlight desde el dato y envío por canales",
-    "E2E-4": "Producto con BMAD: condiciones formales, calidad a volumen, cierre y beneficios",
-    "E2E-5": "De la idea al proyecto diseñado: supuestos, opciones con VAN, enfoque y mapas"
+    "E2E-1": "Riesgos desde cuatro fuentes, opciones por valor neto, plan de contingencia y reserva vigilada",
+    "E2E-2": "Alcance, tres valores, capacidad del release, impacto de cada cambio y excepción",
+    "E2E-3": "Interesados, acuerdos de reunión, radar, highlight desde el dato y envío por canales",
+    "E2E-4": "Producto con BMAD: calidad a volumen, ciclo de las lecciones, cierre por id y auditoría",
+    "E2E-5": "De la idea al proyecto: lecciones previas, supuestos, VAN, personas de usuario y mapas"
    },
    "en": "EN: end-to-end cases, each one also a training module."
   },
@@ -551,44 +551,44 @@
     "problema": "El registro de riesgos nace en un taller y se congela. Las respuestas no se costean y la reserva se usa como bolsa general.",
     "muestra": [
      "Riesgos candidatos desde BMAD, transcripciones, Jira y artefactos, con cita de origen",
-     "Respuestas justificadas por su costo frente a la reducción del valor monetario esperado",
-     "Reserva de riesgo vigilada como presupuesto vivo de la junta"
+     "Opciones de respuesta comparadas por valor neto; decide el propietario y el plan de contingencia queda listo",
+     "Presupuesto de riesgo vigilado y reserva de gestión de la junta para lo no identificado"
     ]
    },
    "E2E-2": {
     "titulo": "E2E-2 · Alcance y cambio: el desvío se ve el mismo día, no al cerrar la etapa",
     "problema": "El alcance se define bien una vez y se controla mal después. Los cambios se aprueban «porque son razonables» y nadie suma lo comprometido.",
     "muestra": [
-     "Alcance por productos trazado a requisitos e historias",
-     "Presupuesto y límite de la autoridad de cambio registrados por la junta",
+     "Tres valores, reserva de cronograma y capacidad del release por MoSCoW",
+     "Análisis de impacto antes de decidir: tiempo, capacidad, presupuesto, VAN y quién decide",
      "Excepción completa: detectada, informada, replanificada y autorizada"
     ]
    },
    "E2E-3": {
-    "titulo": "E2E-3 · Interesados y OKR: el compromiso se mide en cada período",
+    "titulo": "E2E-3 · Interesados y avance: compromiso y cifras verificados cada período",
     "problema": "El mapa de interesados se arma una vez, el highlight se copia a mano y los OKR se miran al final.",
     "muestra": [
-     "Maestro único de interesados: matriz, preferencias con cita y RACI",
-     "Highlight armado desde el dato y enviado por la capa de canales",
+     "Acuerdos del taller propuestos con cita y registrados solo al confirmarlos",
+     "Radar de lo que hay que decidir hoy y highlight con las cifras verificadas contra el EVM",
      "Cadencia de contacto y brecha de compromiso como control permanente"
     ]
    },
    "E2E-4": {
-    "titulo": "E2E-4 · Producto con BMAD: calidad a volumen y beneficios medidos después del cierre",
+    "titulo": "E2E-4 · Producto con BMAD: calidad, cierre por id y beneficios medidos",
     "problema": "Con decenas de historias terminadas nadie verifica cada revisión, las condiciones de la junta se olvidan y los beneficios no se miden.",
     "muestra": [
      "El CONCERNS del gate de BMAD se vuelve una condición formal que bloquea el cierre",
-     "Cada historia terminada con su revisión de calidad, incluido un rechazo",
-     "Beneficios medidos después del cierre contra trayectoria y tolerancia"
+     "Retrospectiva con cita y ciclo de las lecciones: acción, verificación e índice de la organización",
+     "Cierre verificado por id y expediente de auditoría con integridad comprobable"
     ]
    },
    "E2E-5": {
     "titulo": "E2E-5 · De la idea al proyecto: los supuestos se validan antes de invertir",
     "problema": "El caso de negocio se escribe una vez, con el supuesto más optimista, y el enfoque de entrega se elige por costumbre.",
     "muestra": [
-     "Mapa de supuestos y experimentos baratos antes de comprometer dinero",
+     "Lecciones de otros proyectos y mapa de supuestos antes de comprometer dinero",
      "Opciones comparadas con VAN y enfoque de entrega elegido con criterios",
-     "Mapa de Wardley y recorrido del paciente para decidir qué construir"
+     "Personas de usuario ligadas a cada requisito Must, y mapas para decidir qué construir"
     ]
    },
    "rotulos": {

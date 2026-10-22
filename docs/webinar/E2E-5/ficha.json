@@ -1,0 +1,74 @@
+{
+  "caso": "E2E-5",
+  "titulo": "¿Vale la pena? Validar la idea antes de invertir y diseñar el proyecto",
+  "bajada": "Supuestos con experimento, opciones comparadas con VAN, el enfoque de entrega elegido con criterios y una junta que decide sabiendo qué acepta sin validar.",
+  "para_quien": [
+    "Gestores de proyecto y analistas de negocio que preparan casos de negocio",
+    "Patrocinadores y juntas que autorizan inversiones",
+    "Equipos de PMO que definen cómo adaptar la gestión a cada proyecto"
+  ],
+  "objetivos": [
+    "Armar un mapa de supuestos y elegir dónde invertir primero en aprender",
+    "Diseñar un experimento barato con el criterio de decisión fijado antes de ver el resultado",
+    "Comparar opciones contra no hacer nada con VAN, TIR, repago y punto de equilibrio",
+    "Elegir el enfoque de entrega por entregable con criterios explícitos",
+    "Separar contingencia, reserva de gestión y presupuesto de cambio, y adaptar la gestión"
+  ],
+  "sistema_agentico": {
+    "agente": [
+      "Busca lecciones aprobadas de otros proyectos, en solo lectura",
+      "Calcula VAN, TIR, repago y sensibilidad desde los flujos de cada opción",
+      "Avisa de supuestos sin experimento, fechas vencidas y resultados sin tratar"
+    ],
+    "persona": [
+      "El equipo fija el criterio de cada experimento antes del resultado",
+      "La junta elige la opción y acepta por escrito lo que no se validó",
+      "El gestor adapta la formalidad de la gestión al contexto"
+    ],
+    "control": "El agente calcula y verifica; la junta decide. Un supuesto crítico sin validar queda como condición de la puerta hasta que la junta lo acepta."
+  },
+  "beneficios": {
+    "para_vos": [
+      "Un caso de negocio que resiste preguntas difíciles",
+      "Tu hoja de trabajo aplicada a una idea o un proyecto propio"
+    ],
+    "para_la_organizacion": [
+      "Inversiones con la evidencia a la vista: en el caso, un piloto corrigió el VAN antes",
+      "Presupuestos y tolerancias de la junta fijados antes de ejecutar"
+    ]
+  },
+  "clases": [
+    {
+      "numero": 1,
+      "temas": [
+        "Mandato y lecciones de otros proyectos",
+        "Mapa de supuestos y experimentos baratos",
+        "Opciones de negocio con VAN, TIR y repago",
+        "Enfoque de entrega, mapa de valor y recorrido"
+      ]
+    },
+    {
+      "numero": 2,
+      "temas": [
+        "Beneficios con dueño y producto del proyecto",
+        "Presupuesto con reservas y presupuestos de la junta",
+        "Interesados, personas de usuario y enfoques adaptados",
+        "PID, supuestos sin validar y autorizar-proyecto"
+      ]
+    }
+  ],
+  "requisitos": [
+    "Saber qué es un caso de negocio y un presupuesto; no hace falta calcular VAN a mano",
+    "Una idea o un proyecto propio en evaluación, o el escenario del caso",
+    "Nada que instalar ni programar; para practicar después, Claude Code con pm-method"
+  ],
+  "modalidad": "Dos clases en vivo de 90 minutos: demostración sobre un caso real y ejercicio de 10 minutos al cierre de cada una.",
+  "imagen": {
+    "ruta": "docs/guias/img/g5-van-opciones.png",
+    "pie": "Del caso: el piloto bajó el VAN de las dos opciones; la opción 2 sigue siendo la mejor."
+  },
+  "notas": [
+    "Abrí con una pregunta: en el último proyecto que viste aprobar, ¿cuántos números del caso de negocio descansaban en un supuesto que nadie había verificado? El taller muestra cómo validar antes de invertir. La imagen es real, de la corrida del caso: un piloto de cuatro semanas bajó el VAN de las dos opciones; la idea sobrevive, con otro tamaño, y la junta lo sabe antes de invertir. Cerrá con los objetivos y con para quién es.",
+    "Explicá la división del trabajo: el agente busca lecciones, calcula y verifica; el equipo fija los criterios y la junta decide, incluso qué supuestos acepta sin validar. La primera clase responde «¿vale la pena?»; la segunda diseña el proyecto hasta su autorización. Es el primer caso del ciclo de vida: no hace falta haber visto otro."
+  ]
+}

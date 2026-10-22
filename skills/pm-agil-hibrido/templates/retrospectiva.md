@@ -19,8 +19,8 @@ idioma: "{{idioma}}"
 **Facilitador / Facilitator:** {{facilitador}} · **Participantes / Participants:** {{participantes}}
 *Facilitador neutral cuando sea posible; si facilita el gestor o el scrum master, anotarlo como posible sesgo. Participan el equipo y el PO.*
 
-**Caja de tiempo / Timebox:** {{duracion}} · **Formato / Format:** estrella de mar · 4 L · bien/mejorar/acciones
-*Rotar formatos para evitar rutina.*
+**Caja de tiempo / Timebox:** {{duracion}} · **Formato / Format:** qué funcionó · qué no funcionó · qué probamos · estrella de mar · 4 L
+*Rotar formatos para evitar rutina. Es una reunión propia, distinta de la planificación del sprint siguiente (qué se hará) y del seguimiento (cómo vamos): mira el proceso con hechos y evidencia, sin culpables, y no decide por la junta. Con transcripción: `extraccion.py candidatos --tipo retrospectiva` (pm-reuniones) propone lecciones (CL) y acciones de mejora (CM) con cita; se registra lo confirmado.*
 
 ## 1. Métricas de la iteración / Iteration metrics
 | Métrica / Metric | Valor / Value | Fuente / Source |
@@ -43,7 +43,7 @@ idioma: "{{idioma}}"
 | Empezar / Start | Dejar de hacer / Stop | Mantener / Keep | Más / More | Menos / Less |
 |---|---|---|---|---|
 | {{empezar}} | {{dejar}} | {{mantener}} | {{mas}} | {{menos}} |
-*Alternativa 4 L: Gustó / Liked, Aprendió / Learned, Faltó / Lacked, Anheló / Longed for. Alternativa mínima: bien / mejorar / acciones.*
+*Alternativa 4 L: Gustó / Liked, Aprendió / Learned, Faltó / Lacked, Anheló / Longed for. Alternativa mínima: qué funcionó / qué no funcionó / qué probamos (What went well / What didn't / What we'll try).*
 
 ## 4. Acciones de mejora / Improvement actions
 | Acción / Action | Responsable / Owner | Fecha / Due date | Registro / Record |
@@ -52,10 +52,10 @@ idioma: "{{idioma}}"
 *Una a tres acciones concretas. Las del equipo entran al backlog (accion_retro) para competir por capacidad; los compromisos de alguien fuera del equipo van a acciones.csv (`registro.py agregar acciones`).*
 
 ## 5. Lecciones trasladables / Transferable lessons
-| Lección / Lesson | Alcance / Scope | Registro / Register |
-|---|---|---|
-| {{leccion}} | equipo · proyecto · organización | L-{{id}} (lecciones.csv, estado registrada) |
-*Lo que sirve más allá del equipo va al registro de lecciones (con confirmación); el taller de lecciones de etapa las consolida.*
+| Lección / Lesson | Alcance / Scope | Impacto · aplica en / Impact · apply in | Registro / Register |
+|---|---|---|---|
+| {{leccion}} | equipo · proyecto · organización | alto · medio · bajo · ideacion · descubrimiento · planificacion · seguimiento | L-{{id}} (lecciones.csv, estado registrada) |
+*Lo que sirve más allá del equipo va al registro de lecciones (con confirmación) y se clasifica por impacto y proceso con `lecciones.py clasificar` (pm-lecciones-aprendidas §12); el taller de lecciones de etapa las consolida.*
 
 ## 6. Señales para el método / Signals for the method
 - Riesgos nuevos / New risks: R-{{ids}}

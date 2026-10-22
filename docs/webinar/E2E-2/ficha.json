@@ -1,0 +1,74 @@
+{
+  "caso": "E2E-2",
+  "titulo": "Cada cambio, con su impacto medido antes de decidir",
+  "bajada": "Fijá una línea base contra la que medir, sabé quién decide cada cambio y detectá el mismo día el que excede la autoridad delegada.",
+  "para_quien": [
+    "Gestores de proyecto y product owners que reciben pedidos de cambio",
+    "Autoridades de cambio y juntas que aprueban alcance, plazo y presupuesto",
+    "Líderes de negocio que necesitan saber qué le hace un cambio al business case"
+  ],
+  "objetivos": [
+    "Leer un alcance por productos, su trazabilidad y a qué persona de usuario sirve cada Must",
+    "Leer un camino crítico y una reserva de cronograma calculados con tres valores",
+    "Distinguir los tres caminos de un cambio y decir quién decide cada uno",
+    "Leer el análisis de impacto de un cambio antes de decidirlo, con el VAN del business case",
+    "Reconocer una excepción y recorrer su ruta hasta la puerta de la junta"
+  ],
+  "sistema_agentico": {
+    "agente": [
+      "Recalcula la trazabilidad requisito → historia → paquete en cada sincronización",
+      "Calcula camino crítico, reserva, capacidad del release e impacto de cada cambio",
+      "Rechaza registrar una aprobación de quien no tiene autoridad para darla"
+    ],
+    "persona": [
+      "El product owner decide los intercambios dentro del release",
+      "La autoridad de cambio decide dentro de su límite; lo que lo excede va a la junta",
+      "La junta aprueba el plan de excepción"
+    ],
+    "control": "El agente mide e informa quién tiene que decidir; no aprueba cambios. Cada decisión queda registrada con su autor y su motivo."
+  },
+  "beneficios": {
+    "para_vos": [
+      "Una tabla de impacto que podés llevar a cualquier comité de cambios",
+      "Un criterio para decir, con datos, quién decide cada pedido"
+    ],
+    "para_la_organizacion": [
+      "Cambios que no se aprueban de palabra: en el caso, C-002 se frenó el mismo día",
+      "Un business case que se revisa con cada cambio, no solo para aprobar el proyecto"
+    ]
+  },
+  "clases": [
+    {
+      "numero": 1,
+      "temas": [
+        "Alcance por productos, WBS y trazabilidad a BMAD",
+        "Tres valores, camino crítico y reserva de cronograma",
+        "MoSCoW, capacidad del release y personas de usuario",
+        "Presupuesto, business case, tolerancias y autoridad"
+      ]
+    },
+    {
+      "numero": 2,
+      "temas": [
+        "Intercambio del product owner sin solicitud de cambio",
+        "Cambio de alcance con análisis de impacto y decisión",
+        "Nuevas líneas base, trazabilidad y valor ganado ágil",
+        "Excepción: informe, plan y puerta de la junta"
+      ]
+    }
+  ],
+  "requisitos": [
+    "Saber qué es una WBS, un backlog y un presupuesto; no hace falta programar",
+    "Un proyecto propio con un cambio de alcance reciente, o el escenario del caso",
+    "Nada que instalar para las clases; para practicar, Claude Code con pm-method"
+  ],
+  "modalidad": "Dos clases en vivo de 90 minutos: demostración sobre un caso real y ejercicio de 10 minutos al cierre de cada una.",
+  "imagen": {
+    "ruta": "docs/guias/img/g2-impacto-c002.png",
+    "pie": "Del caso: C-002 supera los cinco límites del análisis de impacto; lo decide la junta."
+  },
+  "notas": [
+    "Abrí con una pregunta: ¿quién aprobó el último cambio de tu proyecto y contra qué lo midió? El taller muestra cómo medir el impacto antes de decidir. La imagen es real, de la corrida del caso: un cambio «obligatorio» aprobado de palabra usaría el 200 % del presupuesto de cambio y el 150 % del límite de quien lo aprobó; por eso lo decide la junta. Cerrá con los objetivos y con para quién es.",
+    "Explicá la división del trabajo: el agente calcula el impacto y dice quién decide; las personas deciden. La primera clase construye la línea base contra la que se mide todo cambio; la segunda recorre tres cambios de distinto tamaño, hasta la excepción. Subrayá que no hace falta programar ni instalar nada para las clases y que las cifras citadas salen del propio caso."
+  ]
+}

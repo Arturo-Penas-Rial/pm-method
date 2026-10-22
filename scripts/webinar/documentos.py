@@ -25,7 +25,7 @@ Uso:
 
 Requiere Python 3.9+ (solo biblioteca estándar) y, para los diagramas, mermaid-cli (`mmdc`); sin `mmdc`, error
 (o --sin-mermaid: el bloque queda como código, con aviso). Con --salida, la carpeta repite la estructura de
-docs/webinar/ (E2E-N/… e index.html) y copia las diapositivas ya generadas, para repartir el conjunto.
+docs/webinar/ (E2E-N/… e index.html) y copia las diapositivas y las fichas del taller ya generadas, para repartir el conjunto.
 Salida: 0 sin errores (puede haber avisos), 1 con errores (con errores no se escribe el caso), 2 uso incorrecto.
 EN: Self-contained HTML handouts (guide, instructor script, exercise with a folded worked example) and an index page.
 """
@@ -1006,6 +1006,8 @@ def armar_documento(doc, conjunto, svgs, version, logo, sin_mermaid, existentes)
 def armar_indice(casos, version, logo):
     """docs/webinar/index.html: los cinco casos con todo su material y para quién es cada archivo."""
     leyenda = [
+        ("Ficha del taller (HTML y PPTX)", "posibles asistentes e interesados; quien organiza",
+         "antes del taller, para difundirlo: el HTML se imprime como volante A4"),
         ("Diapositivas (HTML y PPTX)", "instructor (proyectar); el HTML también sirve para repartir", "en clase"),
         ("Guía paso a paso", "asistentes e instructor", "práctica individual, antes o después de clase"),
         ("Guion del instructor", "instructor", "preparar y dar la clase (agenda, mensajes, preguntas, plan B)"),
@@ -1023,11 +1025,16 @@ def armar_indice(casos, version, logo):
                 diap.append(f'<li><a href="{e(caso)}/{e(caso)}-diapositivas.{ext}">{rot}</a></li>')
             else:
                 diap.append(f'<li><span>{rot}: sin generar</span></li>')
+        ficha = []
+        for ext, rot in (("html", "Ficha del taller (HTML, volante A4)"), ("pptx", "Ficha del taller (PPTX)")):
+            if c["ficha"].get(ext):
+                ficha.append(f'<li><a href="{e(caso)}/{e(caso)}-ficha.{ext}">{rot}</a></li>')
         clases = " · ".join(f"Clase {k['numero']}: {e(k['titulo'])} ({k['duracion_min']} min)" for k in c["clases"])
         tarjetas.append(
             f'<section class="caso" id="{e(caso)}"><h2>{e(caso)} · {e(c["titulo"])}</h2>'
             + (f'<p class="sub">{e(c["subtitulo"])}</p>' if c["subtitulo"] else "")
             + (f'<p class="clases">{clases}</p>' if clases else "")
+            + ('<h3>Para difundir</h3><ul class="enlaces">' + "".join(ficha) + "</ul>" if ficha else "")
             + '<h3>En clase</h3><ul class="enlaces">' + "".join(diap) + "</ul>"
             + '<h3>Para asistentes</h3><ul class="enlaces">'
             + f'<li><a href="{ruta("guia")}">Guía paso a paso</a></li>'
@@ -1037,7 +1044,7 @@ def armar_indice(casos, version, logo):
     cuerpo = (
         '<section class="intro"><p>Material del webinar de pm-method por caso de punta a punta (E2E): dos clases de 90 '
         'minutos por caso. Todos los archivos son HTML de un solo archivo (sin conexión, imprimibles en A4, con tema claro '
-        'u oscuro) salvo el PPTX de las diapositivas.</p><div class="tabla"><table><thead><tr><th>Material</th><th>Para quién</th>'
+        'u oscuro) salvo los PPTX de la ficha y de las diapositivas.</p><div class="tabla"><table><thead><tr><th>Material</th><th>Para quién</th>'
         f'<th>Cuándo se usa</th></tr></thead><tbody>{filas}</tbody></table></div></section>'
         f'<div class="casos">{"".join(tarjetas)}</div>')
     nav = "".join(f'<a href="#{e(c["caso"])}">{e(c["caso"])}</a>' for c in casos)
@@ -1048,7 +1055,7 @@ def armar_indice(casos, version, logo):
         version=e(version), titulo=e(f"Webinar pm-method {version} · material por caso"), css=css_familia(), js=JS_DOC,
         clase_body="doc doc-indice", indice="#", marca="Webinar pm-method", nav=nav, marco_cls=" sin-toc", lateral="",
         logo=logo_cab(logo), kicker=e(f"Webinar · pm-method {version}"), h1="Material del webinar por caso",
-        meta=f'<span class="etiqueta">Índice</span><span>{len(casos)} casos · diapositivas, guía, guion y ejercicio</span>',
+        meta=f'<span class="etiqueta">Índice</span><span>{len(casos)} casos · ficha del taller, diapositivas, guía, guion y ejercicio</span>',
         aviso="", cuerpo=cuerpo, pie=pie)
 
 
@@ -1070,7 +1077,7 @@ def documentos_del_caso(carpeta):
 
 def datos_indice(carpeta):
     caso = carpeta.name
-    info = {"caso": caso, "titulo": "", "subtitulo": "", "clases": [], "diapositivas": {}}
+    info = {"caso": caso, "titulo": "", "subtitulo": "", "clases": [], "diapositivas": {}, "ficha": {}}
     try:
         j = json.loads((carpeta / "diapositivas.json").read_text(encoding="utf-8"))
         info.update(titulo=j.get("titulo", ""), subtitulo=j.get("subtitulo", ""),
@@ -1079,6 +1086,7 @@ def datos_indice(carpeta):
         pass
     for ext in ("html", "pptx"):
         info["diapositivas"][ext] = (carpeta / f"{caso}-diapositivas.{ext}").is_file()
+        info["ficha"][ext] = (carpeta / f"{caso}-ficha.{ext}").is_file()
     return info
 
 
@@ -1189,8 +1197,8 @@ def main(argv=None):
             print(f"  HTML: {destino} ({len(d.toc)} secciones, {n_m} diagrama(s) Mermaid, {destino.stat().st_size // 1024} KB)")
         if not a.validar and not a.archivo and a.salida and docs:
             caso = docs[0].caso
-            for ext in ("html", "pptx"):
-                src = RAIZ / WEB / caso / f"{caso}-diapositivas.{ext}"
+            for nombre in (f"{caso}-diapositivas.html", f"{caso}-diapositivas.pptx", f"{caso}-ficha.html", f"{caso}-ficha.pptx"):
+                src = RAIZ / WEB / caso / nombre
                 if src.is_file():
                     shutil.copy2(src, raiz_salida / caso / src.name)
                     print(f"  copia: {raiz_salida / caso / src.name}")

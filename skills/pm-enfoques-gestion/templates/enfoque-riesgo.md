@@ -101,6 +101,9 @@ idioma: "{{idioma}}"
 
 *Contingencia ≠ reserva de gestión; presupuesto autorizado = BAC + reserva de gestión. No sumar contingencia dentro de cada paquete y otra vez por etapa. Si se usa valor monetario esperado (EMV) para dimensionar, escribir la fórmula y los riesgos incluidos.*
 
+**Provisión para riesgos no identificados / Provision for unidentified risks:** {{provision_no_identificados}} · **Destino / Goes to:** {{destino_provision}}
+*Monto o criterio (p. ej. 5 % del costo de la WBS). Destino por defecto del paquete: `reserva-gestion` — la provisión para riesgos no identificados va a la reserva de gestión, que solo libera la junta; el presupuesto de riesgo financia las respuestas y contingencias de los riesgos identificados (PMBOK: reserva de gestión para lo desconocido-desconocido). Alternativa: `presupuesto-riesgo`, si la organización sigue la sugerencia de PRINCE2 de incluirla en el presupuesto de riesgo (R-18); entonces lo declara aquí y el presupuesto de riesgo la muestra como renglón propio. Nunca en los dos.*
+
 ## 8. Respuestas y roles / Responses and roles
 
 **Tipos de respuesta / Response types:** {{tipos_respuesta}}
@@ -143,7 +146,7 @@ idioma: "{{idioma}}"
 - [ ] Zonas de la matriz con tratamiento (por defecto alto ≥ 15, medio 6–12, bajo ≤ 5); EMV con la convención de probabilidades; residual y disparador definidos.
 - [ ] Categorías que cubren todos los riesgos conocidos.
 - [ ] Apetito y tolerancia por objetivo, coherentes con el business case y `estado.json`.
-- [ ] Reservas con tamaño, criterio y autoridad de liberación; contingencia separada de gestión.
+- [ ] Reservas con tamaño, criterio y autoridad de liberación; contingencia separada de gestión; destino de la provisión para no identificados declarado (por defecto, reserva de gestión).
 - [ ] Todo paso del procedimiento con rol; dueño y ejecutor por riesgo.
 - [ ] Cadencia compatible con el enfoque de entrega; ágil: iteración y retrospectiva.
 - [ ] Desviaciones del estándar corporativo justificadas.

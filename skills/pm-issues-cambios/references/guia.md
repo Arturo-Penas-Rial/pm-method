@@ -29,6 +29,34 @@ Términos EN la primera vez: request for change (RFC), off-specification, conces
 - Causa raíz, no síntoma: "retraso" o "falta de tiempo" no son causas.
 - Es legítimo pedir consejo a la junta antes de completar la evaluación.
 
+### 3.1 Análisis de impacto con impacto.py
+`python3 ${CLAUDE_SKILL_DIR}/../pm-issues-cambios/scripts/impacto.py --proyecto <dir> analizar C-### [escenario]` arma la
+tabla de impacto antes de pedir la decisión y el borrador de la solicitud de cambio
+(`03-control/reportes/<fecha>-solicitud-cambio-C-###.md`, `borrador`, secciones de `templates/solicitud-cambio.md`). No
+escribe registros: los comandos para dejar el análisis en `cambios.csv` se muestran para después de la decisión.
+
+El escenario lo prepara la persona o el modelo (el script no inventa cifras) y cada parte es opcional:
+
+| Entrada | Qué calcula | Contra qué |
+|---|---|---|
+| `--actividades <csv con el cambio>` (`--actividades-base`, por defecto `02-planificacion/actividades.csv`; `--inicio`) | duración y fin con `cpm.py`, camino crítico antes y después, actividades nuevas y las que se corren (dependencias) | tolerancia de tiempo del proyecto ("±N semanas" = 5·N días laborables; "±N %" de la duración base; `--tol-dias` la fija) |
+| `--pert <estimacion-pert.csv> [--confianza k]` | reserva de cronograma a kσ (por defecto 2σ) del camino crítico base con la distribución del archivo que escribe `cpm.py --estimacion` (beta-PERT si falta: σ = (P − O)/6) y lo que queda | menos de la mitad → riesgo sugerido para `pm-riesgos` |
+| `--puntos N --release R [--liberar ids] [--etapa]` | capacidad del release en `backlog.csv` con `agil.velocidad_referencia` (misma función que `pm-agil-hibrido/scripts/release.py capacidad`); sprints extra × `cadencia_iteracion_dias` | con `--etapa`, tolerancia de tiempo de la etapa ("±N %" de su duración en días corridos) |
+| `--evm <evm-AAAA-MM-DD.json>` | alcance que no entra (modo ágil) o excepción prevista | Must sin tolerancia |
+| costo y cargo de `cambios.csv` (o `--costo`, `--cargo`) | BAC de `wbs.csv` (paquetes) y variación relativa; consumo del presupuesto de cambio con la regla de CAM-03 | tolerancia de costo; saldo y límite de la autoridad de cambio con `registro.py` (`motivos_autoridad`, §4.1) |
+| `--flujos <csv> --opcion "Con C-###" [--base] --tasa` | VAN de la base y con el cambio (`inversion.py`), VAN incremental y cuánto puede caer el beneficio principal | VAN > 0 y tolerancia de beneficios ("−N %" o `--variacion`) |
+| `--refs FR-13,E-2 --paquetes 3.4` | estado en la especificación (fachada; un id nuevo pide traspaso y nueva línea base), riesgos abiertos y actividades de calidad que los citan | tolerancias de riesgo y calidad |
+
+Quién decide (tabla §4): fuera de la tolerancia de tiempo del proyecto → capa de negocio vía la junta; fuera de la de la
+etapa, Must en peligro (EVM), costo sin fuente o business case que deja de justificarse → junta con informe de excepción
+(§6); costo sobre el límite delegado o sin saldo → junta (la autoridad de cambio no puede aprobarlo: `registro.py` lo
+rechazaría con los mismos motivos); si no, la autoridad de cambio de `estado.json.roles`. Opciones del borrador: aprobar
+(con la fuente), rechazar, diferir (con fecha) y pedir plan de excepción, cada una marcada si aplica; la recomendación es un
+borrador que firma el gestor. Respaldo: PRINCE2 7 issues, pasos Evaluar, Recomendar y Decidir, autoridad y presupuesto de
+cambio (`pm-knowledge/references/prince2-practicas-riesgo-issues-progreso-productos.md` §3.c.1–§3.c.3) y gestión por
+excepción (§4.c.2); PMBOK 8 "Evaluar e implementar cambios" (`pmbok8-dominios-procesos-adaptacion.md` §2.1.b.8: aprobar,
+rechazar, diferir o pedir más información; impacto sobre alcance, cronograma, finanzas y riesgo).
+
 ## 4. Tabla de autoridad (referencia configurable en el enfoque de issues)
 | Situación | Decide | Registro |
 |---|---|---|

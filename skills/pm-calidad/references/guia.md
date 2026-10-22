@@ -33,7 +33,7 @@ Estructura propuesta por el paquete (compatible con el método; la fuente no la 
 ## 5. Aceptación
 - Dos evidencias: información de control (filas Q-nnn aprobadas, acciones cerradas) y revisión independiente contra expectativas y criterios de aceptación. La aceptación transfiere la propiedad a la junta en nombre del usuario.
 - Claves: `aceptacion-<producto>` para intermedios (`03-control/reportes/AAAA-MM-DD-aceptacion-<producto>.md`); `registro-aceptacion` reservada para el producto del proyecto (`04-cierre/registro-aceptacion.md`, conduce `pm-cierre-proyecto`, puerta `autorizar-cierre` por `pm-director`).
-- Registro: `estado.py aprobar aceptacion-<producto> --por "<rol: nombre>" --nivel gestor|junta`; actualizar el product status account (`pm-paquetes-trabajo`). Si acepta la junta en una puerta, lo registra `pm-director`.
+- Registro: `estado.py aprobar aceptacion-<producto> --por "<rol: nombre>" --nivel gestor|junta` (`<producto>`: id o clave corta `N-M` de la historia, código de la WBS); el estado de productos (`estado.py productos`, guía de `pm-paquetes-trabajo` §5) lo toma de ahí. `registro-aceptacion` aprobado acepta los productos con revisión aprobada a esa fecha; los demás quedan sin aceptar (C-07 en `autorizar-cierre`). Si acepta la junta en una puerta, lo registra `pm-director`.
 - Comercial: el contrato prevé acceso, inspección y pruebas independientes; los criterios contractuales no contradicen las descripciones; la aceptación contractual precede a la del proyecto y se registran por separado.
 
 ## 6. Aceptación por requisito con BMAD (`integraciones.especificacion = bmad`)
@@ -64,6 +64,9 @@ aceptación o en producción. La sanidad lo controla en cada corrida (`sanidad.p
   prometida para cumplir una condición de puerta).
 - **QUA-03** (AVISO): revisión `rechazado` sin issue, acción o cambio que cite su Q-### → `pm-issues-cambios`
   (fuera de especificación) o acción correctiva con `origen=Q-nnn`.
+- **QUA-04** (AVISO, productos de la WBS, proyectos predictivos): elemento de `wbs.csv` aceptado (`aceptacion-<código>`) o
+  con su paquete recibido sin una revisión aprobada que lo cite ("producto 3.1", "paquete 3.1" o "WBS 3.1"). Misma
+  derivación que el estado de productos (`estado.py productos`, guía de `pm-paquetes-trabajo` §5).
 - Corrección en lote: una fila por historia, citándola en `producto` (`registro.py agregar calidad --campo "producto=Release 1 · historia 1-3 …" --campo resultado=aprobado --campo estado=completada …`), con el aprobador que corresponda. El control no aprueba nada: señala lo que falta.
 
 ## 9. Columnas de `calidad.csv`

@@ -195,6 +195,13 @@ def controles(proyecto, e, tipo, tol_nueva=None):
         altos = [f for f in abiertos(proyecto, "riesgos") if (f.get("puntuacion") or "0").replace(".", "").isdigit()
                  and float(f.get("puntuacion") or 0) >= float(e.get("umbrales_riesgo", {}).get("alto", 15)) and not f.get("respuesta")]
         if altos: add("condicion", "E-06", f"riesgos altos sin respuesta: {', '.join(f['id'] for f in altos[:8])}")
+        # E-11 (PRINCE2 SB, preparar el plan de la siguiente etapa: revisar el registro de lecciones; §4.c.7 lecciones incorporadas):
+        # lecciones clasificadas para planificación que siguen abiertas sin acción (pm-lecciones-aprendidas, lecciones.py)
+        plan_l = [f for f in leer_csv(proyecto, "lecciones") if "planificacion" in re.split(r"[;,]\s*", f.get("aplicar_en") or "")
+                  and f.get("estado") in ("registrada", "revisada") and not (f.get("accion") or "").strip()]
+        if plan_l:
+            plan_l.sort(key=lambda f: ({"alto": 0, "medio": 1, "bajo": 2}.get(f.get("impacto"), 3), f.get("id", "")))
+            add("aviso", "E-11", f"lecciones para planificación sin considerar en el plan de la etapa: {', '.join(f['id'] + (' (' + f['impacto'] + ')' if f.get('impacto') else '') for f in plan_l[:8])}{' …' if len(plan_l) > 8 else ''} (accionarlas en el plan o descartarlas con motivo: lecciones.py accionar|descartar)")
         if bm:
             if "bmad-prd" not in e.get("artefactos", {}): add("bloqueo", "E-07", "sin línea base del PRD de BMAD: bmad.py linea-base prd --version 1.0 --por …")
             if bm["prd"] not in ("final", "approved"): add("bloqueo", "E-08", f"el PRD de BMAD no está final (status: {bm['prd'] or 'sin estado'})")
@@ -210,14 +217,67 @@ def controles(proyecto, e, tipo, tol_nueva=None):
     elif tipo == "autorizar-cierre":
         for art, i in (("informe-fin-proyecto", "C-01"), ("registro-aceptacion", "C-02")):
             if not art_ok(proyecto, e, art): add("bloqueo", i, f"falta {art}")
+        # C-03 por id (PRINCE2 CP, recomendar el cierre: issues y riesgos abiertos → recomendaciones de seguimiento con dueño)
         ab = abiertos(proyecto, "issues") + abiertos(proyecto, "riesgos")
-        if ab and not art_ok(proyecto, e, "recomendaciones-seguimiento"):
-            add("bloqueo", "C-03", f"{len(ab)} issues/riesgos abiertos sin recomendaciones de seguimiento")
+        faltan = sin_recomendacion(proyecto, e, [f["id"] for f in ab]) if ab else {}
+        if faltan == "externo":
+            add("aviso", "C-03", f"recomendaciones de seguimiento externas: comprobar a mano que citen con responsable {lista_ids(sorted(f['id'] for f in ab))}")
+        elif faltan is None:
+            add("bloqueo", "C-03", f"{len(ab)} issues/riesgos abiertos sin recomendaciones de seguimiento: {lista_ids(sorted(f['id'] for f in ab))}")
+        elif faltan:
+            add("bloqueo", "C-03", "issues/riesgos abiertos sin recomendación de seguimiento con responsable: "
+                + lista_ids([f"{i} ({m})" for i, m in sorted(faltan.items())]) + " (citarlos por id en recomendaciones-seguimiento, con responsable)")
         q = abiertos(proyecto, "calidad")
         if q: add("bloqueo", "C-04", f"revisiones de calidad sin cerrar: {', '.join(f['id'] for f in q[:8])}")
         if not art_ok(proyecto, e, "informe-lecciones"): add("condicion", "C-05", "sin informe de lecciones")
         if not art_ok(proyecto, e, "plan-revision-beneficios"): add("condicion", "C-06", "sin plan de revisión de beneficios (criterios de éxito posteriores al proyecto)")
+        # C-07 (PRINCE2 CP, confirmar la aceptación de los productos; registro de productos A13): requisitos y productos Must
+        # cuyo estado derivado (estado.py productos) no es aceptado ni con concesión
+        try:
+            import estado as ES_
+            m = ES_.productos(proyecto, e)["must"]
+        except Exception:
+            m = {"requisitos": [], "productos": []}
+        if m["requisitos"] or m["productos"]:
+            add("condicion", "C-07", "Must sin aceptar: " + "; ".join(([f"requisitos {lista_ids([r['id'] for r in m['requisitos']])}"] if m["requisitos"] else [])
+                                                                     + ([f"productos {lista_ids(m['productos'])}"] if m["productos"] else []))
+                + " (registrar la aceptación: registro-aceptacion o aceptacion-<producto>, o la concesión; detalle: estado.py productos)")
     return out
+
+def lista_ids(xs, n=8):
+    return ", ".join(xs[:n]) + (f" … y {len(xs) - n} más" if len(xs) > n else "")
+
+VACIO_CELDA = re.compile(r"^\s*(?:|—|-|\{\{.*\}\}|\[por confirmar\]|\[to be confirmed\])\s*$", re.I)
+CAB_RESPONSABLE = re.compile(r"^(?:responsable|destinatario|dueñ[oa]|owner|addressee|proposed owner|responsible)", re.I)
+
+def sin_recomendacion(proyecto, e, ids):
+    """C-03 por id: {id: motivo} de los issues y riesgos abiertos que `recomendaciones-seguimiento` no cita con un
+    responsable (fila de tabla con la columna Responsable o Destinatario llena, o línea «… Responsable: <nombre>»).
+    None si falta el artefacto; "externo" si es un enlace que no se puede leer."""
+    a = e.get("artefactos", {}).get("recomendaciones-seguimiento")
+    if not art_ok(proyecto, e, "recomendaciones-seguimiento"): return None
+    if a.get("externo"): return "externo"
+    try: lineas = open(os.path.join(proyecto, a["ruta"]), encoding="utf-8", errors="replace").read().splitlines()
+    except OSError: return None
+    estado = {}; cols = None
+    for l in lineas:
+        if l.lstrip().startswith("|"):
+            celdas = [c.strip() for c in l.strip().strip("|").split("|")]
+            if all(re.match(r"^:?-{3,}:?$", c) for c in celdas if c): continue
+            citados = [i for i in ids if re.search(rf"(?<![\w-]){re.escape(i)}(?![\w-])", l)]
+            if not citados:
+                cs = [j for j, c in enumerate(celdas) if CAB_RESPONSABLE.match(c)]
+                if cs: cols = cs
+                continue
+            con = bool(cols) and any(j < len(celdas) and not VACIO_CELDA.match(celdas[j]) for j in cols)
+        else:
+            cols = None
+            citados = [i for i in ids if re.search(rf"(?<![\w-]){re.escape(i)}(?![\w-])", l)]
+            con = bool(re.search(r"(?i)\b(?:responsable|owner|dueñ[oa])\s*:\s*[^\s\[{—-]", l))
+        for i in citados:
+            if con: estado[i] = "ok"
+            else: estado.setdefault(i, "citado sin responsable")
+    return {i: estado.get(i, "no citado") for i in ids if estado.get(i) != "ok"}
 
 # ------------------------------------------------------------------ lista de control (capa 3)
 def ruta_lista(proyecto, tipo):

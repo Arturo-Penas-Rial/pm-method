@@ -17,8 +17,10 @@
 | ART-01…04 | ERROR/AVISO | artefactos registrados existen; estado coherente con el documento; huella de externos | archivos movidos, edición sin script | `estado.py artefacto/aprobar`, `bmad.py linea-base` |
 | REG-01…05 | ERROR/AVISO | registros completos, ids y valores del esquema | edición manual de CSV | `registro.py` |
 | REG-06/07 | AVISO | riesgos altos sin respuesta, acciones vencidas | seguimiento | pm-riesgos, pm-registros |
-| REG-08 | AVISO | referencias entre registros (R-, I-, C-, D-, S-, L-, ST-, Q-, A-, ET-, PF-, RC-, EN-) | id mal escrito | corregir |
+| REG-08 | AVISO | referencias entre registros (R-, I-, C-, D-, S-, L-, ST-, Q-, A-, ET-, PF-, RC-, EN-, PU-) | id mal escrito | corregir |
 | REG-09 | AVISO | riesgo abierto con `fecha_revision` anterior al corte | la revisión del riesgo se agenda y se olvida | pm-riesgos: revisarlo con el propietario y actualizar `fecha_revision` |
+| REG-11 | AVISO | lección de impacto alto en `registrada` o `revisada` sin `accion` | la lección se anota y nadie cambia nada | pm-lecciones-aprendidas: `lecciones.py accionar` (o `descartar` con motivo) |
+| REG-12 | AVISO | lección accionada con `verificar_en` anterior al corte, o de impacto alto sin `verificar_en` | nadie comprueba si la acción funcionó | `lecciones.py verificar --resultado efectiva\|no-efectiva --evidencia …` |
 | CAM-01 | AVISO | cambio aprobado (o implementado, cerrado, `decision=aprobado`) con impacto de costo sin `costo` ni `cargo`, o con costo sin cargo | el costo quedó solo en el texto de `impacto_costo` | `registro.py actualizar cambios C-… --campo costo=… --campo cargo=…` |
 | CAM-02 | AVISO | `cargo=reserva-riesgo` sin citar un R-### | la contingencia usada como bolsa general | citar el riesgo, o cargar al presupuesto de cambio o a la junta |
 | CAM-03 | INFO/AVISO/ERROR | consumo del presupuesto de cambio y de la reserva de riesgo contra `estado.json.presupuestos`: < 80 % INFO, ≥ 80 % AVISO, > 100 % ERROR (bloquea puertas); AVISO si se cargó sin presupuesto fijado | nadie suma lo que consumen los cambios aprobados | avisar a la junta; excedido: excepción o `estado.py presupuesto … --por` (pm-director) |
@@ -27,6 +29,7 @@
 | QUA-01 | AVISO | elemento terminado de `02-planificacion/backlog.csv` sin revisión completada y aprobada en `calidad.csv` que lo cite (id o clave corta `N-M`) | con decenas de historias `done`, nadie verifica una por una | pm-calidad: registrar la revisión (también en lote) o reabrir |
 | QUA-02 | AVISO | revisión planificada o en curso con `fecha_prevista` vencida al corte | la revisión prometida (p. ej. para cumplir una condición) se olvida | realizarla o replanificarla |
 | QUA-03 | AVISO | revisión rechazada sin issue, acción o cambio que cite su Q-### | el rechazo queda sin tratamiento | pm-issues-cambios (fuera de especificación) o acción correctiva |
+| QUA-04 | AVISO | elemento de la WBS (proyecto predictivo) aceptado, o con su paquete recibido, sin revisión aprobada que lo cite («producto 3.1») | la aceptación se registra sin la evidencia de calidad | registrar la revisión (`pm-calidad`) o revisar la aceptación; detalle con `estado.py productos --fuente wbs` |
 | TOL-01 | AVISO | el último corte de `evm.py --guardar` (≤ corte) pronostica excepción y no hay excepción abierta ni `autorizar-plan-excepcion` posterior | el pronóstico se calcula para el informe y nadie lo vuelve a mirar | informe de excepción (pm-progreso-reportes) y pm-director |
 | TOL-02/03 | INFO | último corte en ámbar; etapa de entrega sin corte guardado o con el último de más de 31 días | EVM sin guardar | `evm.py … --proyecto <dir> --guardar --corte …` en cada período |
 | ESP-01/02 | ERROR/INFO | especificación legible; índice vigente | ruta BMAD movida | `bmad.py detectar`, `especificacion.py indice` |
@@ -41,6 +44,7 @@
 | ESP-14/15 | AVISO | derivados desactualizados o editados; backlog vs estado BMAD | falta sincronizar | `bmad.py requisitos/backlog` |
 | STK-00…11 | ERROR/AVISO/INFO | maestro de interesados (claves foráneas, RACI, preferencias, envíos, OKR); solo si existe algún registro opcional | ver `docs/SANIDAD.md` §2.1 | pm-interesados |
 | STK-12 | AVISO | interesado de gestionar de cerca, mantener satisfecho o mantener informado cuyo último envío `enviado` supera 1,5 × su frecuencia (diaria 1, semanal 7, quincenal 14, mensual 31, trimestral 92 días) | con muchos interesados, la cadencia prometida se pierde | contactarlo (`envios.py`, o reunión o llamada como envío manual) o revisar la frecuencia |
+| STK-13…16 | AVISO | personas de usuario (`personas.csv`): Must sin persona (13), persona sin capacidades (14), sin fuente o evidencia (15), recorrido con una persona no registrada (16) | requisitos priorizados sin saber para quién; personas inventadas o sin uso | mapear o registrar la persona (`interesados.py personas mapa`, `candidatos`) |
 | MAP-00…05 | AVISO | mapas de Wardley y de recorrido (`02-planificacion/mapas/`): mapa inválido, producto o commodity marcado construir sin decisión, inercia sin riesgo, dolor sin tratamiento, posición o emoción sin evidencia, id roto | el mapa se dibuja una vez y nadie vuelve a contrastarlo con los registros | pm-mapas-estrategicos (`mapas.py … vincular`), pm-adquisiciones, pm-riesgos |
 | INT-01…04 | AVISO | valores de integración conocidos, instantáneas fechadas y recientes | tracker sin leer | pm-integraciones |
 

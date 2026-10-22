@@ -1,15 +1,16 @@
 # Guía E2E-2 · Alcance y su cambio, estimación de esfuerzo, priorización y mapa de ruta
 
 **Qué vas a probar:** cómo se define el alcance por productos, se traza a los requisitos de BMAD, se estima y se
-programa, se prioriza contra la capacidad del equipo y se fija como línea base con tolerancias, una autoridad de
-cambio con presupuesto propio y un business case con su VAN. Después, cómo se gestionan tres tipos de cambio: el
-**intercambio** que decide el product owner, el **cambio de alcance** que decide la autoridad de cambio dentro de su
-límite y el cambio que **excede la autoridad delegada**, que se gestiona por excepción.
+programa, se prioriza contra la capacidad del equipo y contra las personas de usuario a las que sirve, y se fija como
+línea base con tolerancias, una autoridad de cambio con presupuesto propio y un business case con su VAN. Después, cómo
+se gestionan tres tipos de cambio: el **intercambio** que decide el product owner, el **cambio de alcance** que decide
+la autoridad de cambio dentro de su límite y el cambio que **excede la autoridad delegada**, que se gestiona por
+excepción. Cada cambio pasa antes por un **análisis de impacto** que dice quién tiene que decidirlo.
 
 **Skills y agentes:** pm-orquestador · pm-planificacion → `pm-planificacion-por-productos`,
 `pm-cronograma-estimacion`, `pm-costos-presupuesto`, `pm-agil-hibrido`, `pm-enfoques-gestion`, `pm-plan-etapa-y-limites`
-· pm-control → `pm-issues-cambios`, `pm-riesgos`, `pm-progreso-reportes`, `pm-calidad` · pm-inicio → `pm-caso-de-negocio` ·
-`pm-bmad-puente` · `pm-visuales` · `pm-director` (`pm-direccion-decisiones`).
+· pm-control → `pm-issues-cambios`, `pm-riesgos`, `pm-progreso-reportes`, `pm-calidad` · pm-inicio → `pm-caso-de-negocio`,
+`pm-interesados` · `pm-bmad-puente` · `pm-visuales` · `pm-director` (`pm-direccion-decisiones`).
 
 **Duración:** 10 pasos, 85–115 minutos de recorrido; en el webinar, dos clases de 90 minutos.
 **Preparación:** [README de las guías](README.md#cómo-usar-las-guías) (copia del fixture en
@@ -29,29 +30,32 @@ Y nadie suma lo que ya se comprometió: el desvío aparece al cerrar la etapa, c
 El escenario de esta guía lo muestra con cifras. Un cambio razonable (C-001, 9.000) corre 11 días la puesta en
 producción y deja la reserva de cronograma en 2 días, aunque suma valor: el VAN pasa de 39.776 a 45.939. Un segundo
 cambio "obligatorio" (C-002, 15.000) llega aprobado de palabra, sin análisis, por quien tenía un límite de 10.000:
-llevaría el presupuesto de cambio al 200 % y resta 15.000 de VAN. Con pm-method esa aprobación **no se puede
-registrar**: el cambio queda pendiente de la junta el mismo día, con el impacto calculado y una ruta de decisión.
+llevaría el presupuesto de cambio al 200 %, saca la etapa de su tolerancia y resta 15.000 de VAN. Con pm-method esa
+aprobación **no se puede registrar**, y el análisis de impacto de ese mismo día dice por qué: supera cinco límites, así
+que decide la junta y lo que corresponde es pedir un plan de excepción.
 
 ## Qué vas a lograr
 
 1. Un alcance por productos con criterios de calidad medibles, trazado a requisitos e historias, y una cobertura de
    trazabilidad que se **recalcula en cada sincronización** con BMAD.
-2. Un cronograma con camino crítico y reserva calculados por script, y un backlog priorizado que entra en la capacidad.
+2. Un cronograma con camino crítico y reserva calculados por script, y un backlog priorizado que entra en la capacidad
+   y en el que **cada Must sirve a una persona de usuario**.
 3. Una línea base con tolerancias, autoridad de cambio, **presupuesto de cambio** y business case registrados, que
    sanidad vigila.
-4. Un **análisis de impacto antes de cada decisión**: tiempo, reserva, costo, presupuesto, autoridad, capacidad y VAN.
+4. Un **análisis de impacto antes de cada decisión** (`impacto.py`): tiempo, reserva, capacidad, costo, presupuesto,
+   autoridad y VAN, con el borrador de la solicitud de cambio y **quién decide**.
 5. Una **excepción completa**: detectada el mismo día, informada, replanificada con el business case actualizado y
    autorizada por la junta.
 
 ## Indicadores que vas a ver
 
 ![Tarjetas de indicadores del caso](img/g2-indicadores.png)
-Resumen al 26/2: VAN de 30.939 con los dos cambios, puesta en producción el 18/5, 2 días de reserva, presupuesto de
+Resumen al 26/2: VAN de 30.939 con los dos cambios, puesta en producción el 20/5, 2 días de reserva, presupuesto de
 cambio al 75 % tras la ampliación, 22,1 % del alcance en riesgo en el corte del 19/2 y 13 de 13 requisitos trazados.
 
-![Consumo del presupuesto de cambio en tres cortes](img/g2-consumo-cambio.png)
-El presupuesto de cambio queda en 75 % tras C-001; con C-002 llegaría al 200 %, por eso C-002 espera a la junta, que
-amplía el presupuesto y lo aprueba: vuelve a 75 % (paso 10).
+![Límites que usaría C-002, según su análisis de impacto](img/g2-impacto-c002.png)
+C-002 usaría el 200 % del presupuesto de cambio, el 150 % del límite de quien lo aprobó de palabra y el 143 % de la
+tolerancia de tiempo de la etapa: no lo puede decidir la autoridad de cambio, lo decide la junta (paso 10).
 
 ![Alcance que no entra frente al margen de Should/Could](img/g2-alcance-evm.png)
 El 29/1 no entra el 10,3 % del alcance (ámbar, lo gestiona el PO); el 19/2 no entra el 22,1 %, más que el 20 % de
@@ -65,7 +69,7 @@ C-001 suma 6.163 de VAN y C-002 resta 15.000; con los dos, el VAN sigue en 30.93
 
 | Clase (90 min) | Pasos | Pregunta que responde |
 |---|---|---|
-| **1 · Del alcance a la línea base** | 1 a 5: alcance por productos, trazabilidad, PERT y camino crítico, MoSCoW y capacidad, presupuesto, business case, tolerancias y autoridad de cambio | ¿Contra qué vamos a medir cada cambio? |
+| **1 · Del alcance a la línea base** | 1 a 5: alcance por productos, trazabilidad, tres valores y camino crítico, MoSCoW, capacidad del release y personas de usuario, presupuesto, business case, tolerancias y autoridad de cambio | ¿Contra qué vamos a medir cada cambio? |
 | **2 · El cambio bajo control** | 6 a 10: intercambio del PO, cambio con análisis de impacto, nuevas líneas base y trazabilidad, EVM guardado, excepción | ¿Quién decide cada cambio y cómo nos enteramos a tiempo? |
 
 Son dos clases porque la segunda solo tiene sentido con la línea base de la primera: sin presupuesto de cambio, límite
@@ -76,8 +80,11 @@ delegado, tolerancias y VAN registrados, no hay contra qué medir el impacto. El
 | Actividad | Cómo se hace hoy | Con pm-method (frecuencia · control) | Indicador |
 |---|---|---|---|
 | Trazabilidad requisito → historia → paquete | Una matriz armada una vez, que se desactualiza con el primer cambio | Se recalcula en cada sincronización con BMAD (pasos 2 y 8) · `bmad.py trazabilidad`, ESP-03 | Cobertura: 13 de 13 requisitos con historia y paquete |
+| Priorizar para usuarios reales | MoSCoW por opinión; nadie pregunta a quién sirve cada Must | Personas de usuario desde los recorridos de BMAD y mapa capacidad × persona en cada priorización · STK-13 | Must sin persona: 2 → 0 (paso 4) |
+| Estimar y reservar tiempo para la incertidumbre | Un número por actividad y un colchón sin cálculo | Tres valores por actividad en `actividades.csv`; `cpm.py --estimacion` calcula tE, σ del camino crítico y la reserva a 2σ con la fórmula declarada, y `impacto.py --pert` mide cuánto consume cada cambio (pasos 3 y 7) | Reserva 13,0 días → 2,0 tras C-001 |
+| Capacidad del release | Una suma de puntos en una planilla, al planificar | `release.py capacidad` por MoSCoW contra velocidad × iteraciones en cada replanificación; la misma regla mide cada cambio en `impacto.py` (pasos 4, 7 y 10) | R1: 47 de 48 con 88 % de Must (vigilar) |
 | Detectar cambios en la especificación | Se descubren en la demo o en la UAT | `bmad.py verificar` contra la línea base en cada sincronización · ESP-10 | FR-13 detectado como desvío (paso 7) |
-| Análisis de impacto de un cambio | A ojo, o nunca si "es obligatorio" | Tabla de impacto antes de decidir: escenario de `cpm.py`, capacidad, presupuesto, autoridad y VAN (pasos 7 y 10) | +11 días de camino crítico; 200 % del presupuesto |
+| Análisis de impacto de un cambio | A ojo, o nunca si "es obligatorio" | `impacto.py analizar` antes de cada decisión: escenario de `cpm.py`, capacidad, presupuesto, autoridad, VAN, borrador de la solicitud y nivel que decide (pasos 7 y 10) | C-001: decide la autoridad de cambio · C-002: decide la junta |
 | Justificación del negocio | El VAN se calcula una vez, para aprobar el proyecto | VAN antes y después de cada cambio con `inversion.py`; la junta lo revisa en la puerta del plan de excepción (pasos 5, 7 y 10) | VAN 39.776 → 45.939 → 30.939 |
 | Consumo del presupuesto de cambio | Nadie lo suma hasta el cierre de la etapa | Al registrar cada aprobación (`registro.py` no la acepta sin saldo) y en cada corrida de sanidad · CAM-03: INFO < 80 %, AVISO ≥ 80 %, ERROR > 100 % | 75 % → 75 % (con C-002 sería 200 %) → 75 % |
 | Respetar la autoridad delegada | Se "aprueba lo razonable", sin tope escrito | Límite en `estado.json`: `registro.py` rechaza la aprobación de quien no tiene autoridad; CAM-04 vigila los datos anteriores al límite | C-002: 15.000 sobre un límite de 10.000, no registrado como aprobado |
@@ -95,14 +102,14 @@ pm-control la corre con la fecha de cada checkpoint y highlight, junto con el co
 flowchart TB
     subgraph c1["Clase 1 · del alcance a la línea base"]
         a["1 · Proyecto y<br/>enunciado de alcance"] --> b["2 · PBS, WBS, descripciones<br/>de producto y trazabilidad"]
-        b --> c["3 · PERT, camino crítico<br/>y reserva"] --> d["4 · MoSCoW, valor<br/>y capacidad"]
+        b --> c["3 · Tres valores, camino<br/>crítico y reserva"] --> d["4 · MoSCoW, capacidad del<br/>release y personas de usuario"]
         d --> e["5 · Presupuesto, business case,<br/>tolerancias, autoridad y línea base"]
     end
     subgraph c2["Clase 2 · el cambio bajo control"]
-        f["6 · Intercambio del PO<br/>sin solicitud de cambio"] --> g["7 · Cambio de alcance:<br/>impacto, VAN y decisión"]
+        f["6 · Intercambio del PO<br/>sin solicitud de cambio"] --> g["7 · Cambio de alcance:<br/>análisis de impacto y decisión"]
         g --> h["8 · BMAD aplica, líneas base<br/>y trazabilidad recalculada"]
         h --> i["9 · EVM ágil guardado<br/>y calidad de lo terminado"]
-        i --> j["10 · Excepción: impacto, informe,<br/>plan, business case y puerta"]
+        i --> j["10 · Excepción: análisis de impacto,<br/>informe, plan y puerta"]
     end
     e --> f
 ```
@@ -184,17 +191,20 @@ auditoría de todos los accesos (NFR-5) y cero vulnerabilidades altas en la prue
 
 ---
 
-## Paso 3 · Estimación de esfuerzo (PERT), camino crítico y reserva de cronograma
+## Paso 3 · Estimación de tres valores, camino crítico y reserva de cronograma
 
-**PERT de tres puntos:** para cada actividad se estiman los días optimista (O), más probable (M) y pesimista (P); la
-duración esperada es tE = (O + 4M + P)/6 y la desviación, σ = (P − O)/6. El **camino crítico** es la cadena de
-actividades sin holgura: si una se atrasa, se atrasa el fin. La **reserva de cronograma** a 2σ cubre la incertidumbre de
-ese camino.
+**Estimación de tres valores:** para cada actividad se estiman los días optimista (O), más probable (M) y pesimista
+(P). La Guía PMBOK cita la distribución **triangular**, tE = (O + M + P)/3; la práctica difundida es la **beta-PERT**,
+tE = (O + 4M + P)/6 con σ = (P − O)/6, que da más peso al valor más probable. La fórmula se declara al planificar (plan de
+gestión del cronograma y los costos, de `pm-enfoques-gestion`); acá, beta-PERT, la que el paquete usa por defecto. El **camino crítico** es la cadena de
+actividades sin holgura: si una se atrasa, se atrasa el fin. La **reserva de cronograma** a 2σ del camino crítico
+(σ = √Σσ² de sus actividades) cubre su incertidumbre con una confianza aproximada del 95 %.
 
 **Prompt**
 ```text
-Estimá con PERT de tres puntos las actividades y armá el cronograma con camino crítico desde el 30/11, con exportación a
-MS Project. Lucía va a validar los valores. Calculá la reserva de cronograma a 2σ del camino crítico.
+Estimá con tres valores las actividades, con la fórmula beta-PERT que fijamos para el proyecto, y armá el cronograma
+con camino crítico desde el 30/11, con exportación a MS Project. Lucía va a validar los valores. Calculá la reserva de
+cronograma a 2σ del camino crítico.
 ```
 
 **Si te pregunta** por O, M y P (días): Lucía Benítez, jefa de equipo, responde:
@@ -211,61 +221,111 @@ MS Project. Lucía va a validar los valores. Calculá la reserva de cronograma a
 | A08 UAT, prueba de carga y capacitación | 8 | 10 | 16 | A07 |
 | A09 Puesta en producción (hito) | 0 | 0 | 0 | A08 |
 
-**Qué hace el sistema:** `pm-cronograma-estimacion` calcula tE y σ en `estimacion-pert.csv`, escribe `actividades.csv`
-con tE redondeado, corre `cpm.py … --inicio 2026-11-30 --mermaid … --mspdi cronograma.xml --wbs wbs.csv` y calcula la
-reserva: σ del camino crítico = √Σσ² de sus actividades.
+**Qué hace el sistema:** `pm-cronograma-estimacion` escribe `actividades.csv` con O, M y P de cada actividad (la
+columna de duración queda vacía) y corre `cpm.py … --inicio 2026-11-30 --mermaid … --mspdi cronograma.xml --wbs wbs.csv
+--estimacion estimacion-pert.csv`. El script calcula tE y σ de cada actividad con la fórmula declarada, toma como
+duración tE redondeada hacia arriba (10,5 → 11 días: un cronograma por días enteros no empieza la actividad siguiente a
+mitad de día), arma el camino crítico y calcula σ del camino, la reserva a 2σ y el fin con reserva. Escribe
+`estimacion-pert.csv`, que `impacto.py --pert` lee en los pasos 7 y 10. El modelo no hace ninguna de estas cuentas.
 
 **Qué deberías ver:**
-- "Duración total (días laborables): 110 · Fin previsto: 2027-05-03 · Camino crítico: A01 -> A03 -> A05 -> A06 -> A07 ->
+- "Duración total (días laborables): 112 · Fin previsto: 2027-05-05 · Camino crítico: A01 -> A03 -> A05 -> A06 -> A07 ->
   A08 -> A09"; A04 con 3 días de holgura y A02 con 34.
-- "σ = √(1,17² + 3,33² + 3,67² + 3,83² + 1,33²) = 6,51 días · Reserva a 2σ = 13,0 días laborables", dentro de la
-  tolerancia de ±3 semanas (15 días laborables) que la junta fija en el paso 5.
+- "Tres valores · beta-PERT: tE = (O + 4M + P)/6, σ = (P − O)/6 (práctica habitual; la Guía PMBOK cita la triangular)".
+- "σ del camino crítico = √(1,17² + 3,33² + 3,67² + 3,83² + 1,33²) = 6,51 días" y "Reserva de cronograma a 2σ = 13,0
+  días laborables (≈ 95 %) · fin con reserva 2027-05-24 (+13)", dentro de la tolerancia de ±3 semanas (15 días
+  laborables) que la junta fija en el paso 5.
 
 ![Gantt de la línea base con el camino crítico](img/g2-gantt.png)
-Cinco actividades sin holgura (naranja) fijan el fin del 3/5/2027; A04 y A02 pueden moverse sin atrasarlo.
+Cinco actividades sin holgura (naranja) fijan el fin del 5/5/2027; A04 y A02 pueden moverse sin atrasarlo.
 
-**Dónde verificar:** `02-planificacion/estimacion-pert.csv` · `02-planificacion/cronograma.md` (Gantt) ·
-`02-planificacion/cronograma.xml` (abrilo en MS Project o ProjectLibre).
+> **Por qué se declara la fórmula.** La misma red con la triangular (`--distribucion triangular`) da 116 días y una
+> reserva a 2σ de 16,2 días, más que la tolerancia de ±3 semanas. La fórmula cambia la línea base: por eso se declara
+> en el plan de gestión y no la elige el modelo en cada estimación.
+
+**Dónde verificar:** `02-planificacion/actividades.csv` (O, M y P) · `02-planificacion/estimacion-pert.csv` (tE, σ y
+distribución) · `02-planificacion/cronograma.md` (Gantt con la reserva aparte) · `02-planificacion/cronograma.xml`
+(abrilo en MS Project o ProjectLibre).
 
 ---
 
-## Paso 4 · Priorización del backlog: MoSCoW, valor y esfuerzo
+## Paso 4 · Priorización del backlog: MoSCoW, valor, esfuerzo y personas de usuario
 
 **MoSCoW** clasifica cada historia en Must (sin ella no hay producto), Should, Could y Won't. En un proyecto de costo y
-fecha fijos, Should y Could son el margen que el PO puede mover sin pedir permiso.
+fecha fijos, Should y Could son el margen que el PO puede mover sin pedir permiso. Una **persona de usuario** (*user
+persona*) es un arquetipo de quien va a usar el producto, con su objetivo, su contexto y sus dolores. No es un
+interesado ni un miembro del equipo: la usuaria sénior representa a esos usuarios ante la junta, y las personas
+muestran a quién sirve cada capacidad.
 
 **Prompt**
 ```text
 Sincronizá el backlog con BMAD y priorizalo con MoSCoW y valor/esfuerzo. Sofía, como PO, da el valor (1-10) y el equipo
 los puntos. Ordená: primero MoSCoW y dentro de cada grupo por valor/puntos. Repartí en dos releases (R1: sprints 1-6;
-R2: sprints 7-9) y verificá que los Must y Should entran en la capacidad.
+R2: sprints 7-9) y verificá que los Must y Should entran en la capacidad. Proponé las personas de usuario desde los
+recorridos de BMAD para que Sofía las confirme, y decime si queda algún Must que no le sirva a ninguna.
 ```
 
-**Si te pregunta** valores y puntos: Sofía Ramírez (PO) y Lucía Benítez (equipo) responden:
+**Si te pregunta** valores y puntos: Sofía Ramírez (PO) y Lucía Benítez (equipo) responden (la columna de personas
+sale de los recorridos de BMAD: cada épica realiza uno):
 
-| Historia | MoSCoW | Valor | Puntos |
-|---|---|---|---|
-| 1.1 Alta y acceso con segundo factor | Must | 9 | 8 |
-| 1.2 Recuperación de acceso | Must | 6 | 5 |
-| 1.3 Consulta de saldos y préstamos | Must | 10 | 8 |
-| 1.4 Constancias en PDF | Should | 7 | 5 |
-| 2.1 Solicitud guiada de préstamo | Must | 9 | 8 |
-| 2.2 Seguimiento de solicitudes | Should | 6 | 8 |
-| 2.3 Actualización de contacto | Could | 4 | 5 |
-| 3.1 Acceso y roles de la consola | Must | 6 | 5 |
-| 3.2 Bandeja única | Must | 8 | 8 |
-| 3.3 Resolución de solicitudes | Must | 8 | 8 |
+| Historia | MoSCoW | Valor | Puntos | Persona (recorrido) |
+|---|---|---|---|---|
+| 1.1 Alta y acceso con segundo factor | Must | 9 | 8 | Marta (UJ-1) |
+| 1.2 Recuperación de acceso | Must | 6 | 5 | Marta (UJ-1) |
+| 1.3 Consulta de saldos y préstamos | Must | 10 | 8 | Marta (UJ-1) |
+| 1.4 Constancias en PDF | Should | 7 | 5 | Marta (UJ-1) |
+| 2.1 Solicitud guiada de préstamo | Must | 9 | 8 | Diego (UJ-2) |
+| 2.2 Seguimiento de solicitudes | Should | 6 | 8 | Diego (UJ-2) |
+| 2.3 Actualización de contacto | Could | 4 | 5 | Diego (UJ-2) |
+| 3.1 Acceso y roles de la consola | Must | 6 | 5 | Lucía (UJ-3) |
+| 3.2 Bandeja única | Must | 8 | 8 | Lucía (UJ-3) |
+| 3.3 Resolución de solicitudes | Must | 8 | 8 | Lucía (UJ-3) |
 
-**Qué hace el sistema:** `bmad.py backlog` crea `backlog.csv` con las columnas **derivadas** de BMAD; `pm-agil-hibrido`
-completa solo las columnas de **gobierno** (`prioridad`, `moscow`, `estimacion`, `iteracion`, `release`, `producto_pbs`),
-que el puente nunca sobrescribe; vuelve a correr `bmad.py backlog` ("0 nuevas, 10 actualizadas").
+Sobre las personas, Sofía Ramírez, usuaria sénior, confirma las tres y agrega sus dolores con lo que dice el PRD: Marta
+"ir a la sucursal o esperar un horario para conseguir una constancia"; Diego "no saber en qué estado está su
+préstamo"; Lucía "transcribir pedidos que llegan por varios canales". Si te avisa de Must sin persona: "según UJ-2,
+Diego entra con el contacto verificado (FR-8) y recibe la confirmación por correo (FR-12): vinculalos a él".
 
-**Qué deberías ver:** orden 1.3 (1,25) · 1.2 (1,20) · 3.1 (1,20) · 1.1 (1,12) · 2.1 (1,12) · 3.2 (1,00) · 3.3 (1,00)
-· 1.4 Should · 2.2 Should · 2.3 Could. Capacidad: **R1** 6 sprints × 8 = 48 puntos para Must 42 + Should 5 = 47;
-**R2** 3 sprints × 8 = 24 para Must 8 + Should 8 + Could 5 = 21.
+**Qué hace el sistema:**
+- `bmad.py backlog` crea `backlog.csv` con las columnas **derivadas** de BMAD; `pm-agil-hibrido` completa solo las
+  columnas de **gobierno** (`prioridad`, `moscow`, `estimacion`, `iteracion`, `release`, `producto_pbs`), que el puente
+  nunca sobrescribe; vuelve a correr `bmad.py backlog` ("0 nuevas, 10 actualizadas").
+- `pm-agil-hibrido` corre `release.py capacidad`: por release, puntos Must, Should y Could contra la capacidad =
+  velocidad de referencia (`estado.json.agil`, 8) × iteraciones del release, con la regla del release plan
+  (Must + Should ≤ capacidad), la holgura y la proporción de Must contra la regla práctica de ≤ 60 %. Es la misma
+  función con la que `impacto.py` mide cada cambio en los pasos 7 y 10.
+- `pm-interesados` corre `interesados.py personas candidatos --desde bmad`: propone una persona por recorrido (UJ-1 a
+  UJ-3) con su arquetipo, objetivo, contexto y los requisitos que realiza; **no registra nada**. Con la confirmación de
+  Sofía registra **PU-001** a **PU-003** con `registro.py agregar personas` (fuente `bmad-uj`, evidencia "UJ-n
+  (prd.md:línea)"). El nombre lleva el rol, "Diego (socio que pide un préstamo)", para no confundir a la persona con
+  la gente del equipo.
+- `interesados.py personas priorizacion` cruza las personas con la prioridad de cada requisito y avisa de los Must sin
+  persona (la regla de sanidad **STK-13**); tras la respuesta de Sofía, `registro.py actualizar personas PU-002 --campo
+  usa=FR-6;FR-7;FR-8;FR-12` y otra vez `personas priorizacion`.
 
-**Dónde verificar:** `02-planificacion/backlog.csv` (abrilo en Excel) · prompt: "Mostrame el backlog ordenado con
-MoSCoW, puntos y release".
+**Qué deberías ver:**
+- Orden 1.3 (1,25) · 1.2 (1,20) · 3.1 (1,20) · 1.1 (1,12) · 2.1 (1,12) · 3.2 (1,00) · 3.3 (1,00) · 1.4 Should · 2.2
+  Should · 2.3 Could.
+- Capacidad: "R1 (S1, S2, S3, S4, S5, S6): entra todo (47 de 48; Must + Should 47, holgura 1)" con "vigilar: los Must
+  son el 88 % de la capacidad (regla práctica ≤ 60 %)"; "R2 (S7, S8, S9): entra todo (21 de 24; Must + Should 16,
+  holgura 8)".
+- "3 persona(s) candidata(s) · el modelo propone, la persona confirma; nada se registra solo".
+- Primera priorización por persona: "10 capacidad(es) mapeadas · Must sin persona: FR-8, FR-12". Tras vincularlos a
+  Diego: Marta 5 Must, Diego 4 Must, Lucía 3 Must y "12 capacidad(es) mapeadas · Must sin persona: ninguno". La
+  priorización cuenta requisitos: como BMAD los traza a nivel de épica, cada requisito toma la prioridad más alta de las
+  historias de su épica.
+
+> **Por qué importa.** Un Must sin una persona que lo necesite es una señal: o falta esa persona en el análisis o
+> sobra la prioridad. Acá faltaba el vínculo, y estaba escrito en el propio recorrido UJ-2. Con las personas
+> registradas, sanidad repite el control (STK-13) cada vez que cambian el backlog o las personas, y cada cambio de
+> alcance puede decir a quién afecta (paso 7).
+
+![Capacidad de cada release por MoSCoW](img/g2-capacidad-release.png)
+El R1 entra, pero con 1 punto de holgura y 88 % de Must: casi no queda margen de Should o Could para absorber un
+cambio sin tocar un Must. Es lo que pasa en el paso 10.
+
+**Dónde verificar:** `02-planificacion/backlog.csv` (abrilo en Excel) · `03-control/registros/personas.csv` · prompt:
+"Mostrame el backlog ordenado con MoSCoW, puntos y release, la capacidad de cada release y los Must de cada persona".
 
 ---
 
@@ -364,44 +424,72 @@ con 21.
 En BMAD, el PM de producto agrega **FR-13 "Simulador de préstamo"** al PRD por pedido del Consejo, sin pasar por la
 autoridad de cambio. Para simularlo en tu copia, pedíselo a BMAD con `bmad-prd` en modo edición, o editá el PRD.
 
+El **análisis de impacto** (*impact assessment*) mide el cambio contra cada objetivo **antes** de decidir y dice qué
+nivel tiene que decidirlo: la autoridad de cambio si entra en su límite, en el presupuesto de cambio y en las
+tolerancias; la junta si no.
+
 **Prompt**
 ```text
 Verificá la especificación contra la línea base. Si hay algo nuevo, registralo como solicitud de cambio y analizá el
 impacto antes de decidir: paquete de la WBS nuevo, esfuerzo, camino crítico, reserva de cronograma, costo, presupuesto
-de cambio, autoridad, capacidad del release y business case. Estimá el simulador en O 8, M 10, P 16 días después de los
-sprints de solicitudes; Sofía estima que suma 4.000 por año al beneficio B-03. Si la reserva de cronograma queda chica,
-registralo como riesgo.
+de cambio, autoridad, capacidad del release, business case y a qué personas de usuario afecta. Estimá el simulador en
+O 8, M 10, P 16 días después de los sprints de solicitudes; Sofía estima que suma 4.000 por año al beneficio B-03. Si
+la reserva de cronograma queda chica, registralo como riesgo.
 ```
 
-**Si te pregunta** la decisión: "Sofía Ramírez, autoridad de cambio: aprobado; se carga al presupuesto de cambio".
+**Si te pregunta:** a quién afecta: "Sofía Ramírez, usuaria sénior: el simulador lo usa Diego, antes de pedir el
+préstamo (UJ-2)". La decisión: "Sofía Ramírez, autoridad de cambio: aprobado; se carga al presupuesto de cambio".
 
 **Qué hace el sistema:**
 1. `bmad.py verificar` → desvío. Sin un issue que lo cite, sanidad lo marcaría **ERROR ESP-10** ("Cambio no
    controlado"); con I-001 baja a AVISO hasta que se fije la nueva línea base (paso 8).
-2. `pm-issues-cambios` registra **I-001** `solicitud-cambio`.
+2. `pm-issues-cambios` registra **I-001** `solicitud-cambio` y **C-001** con quién lo pide, el monto y su cargo
+   (`--campo solicitante=… --campo costo=9000 --campo cargo=presupuesto-cambio`).
 3. `pm-cronograma-estimacion` corre `cpm.py` sobre un **escenario** (`02-planificacion/escenarios/actividades-C-001.csv`)
    y `pm-caso-de-negocio` corre `inversion.py` sobre otro (`escenarios/flujos-C-001.csv`), sin tocar las líneas base.
-4. `pm-issues-cambios` registra **C-001** con el impacto en los objetivos, el monto y su cargo (`--campo costo=9000
-   --campo cargo=presupuesto-cambio`) y arma la **tabla de impacto** (abajo) **antes** de la decisión.
+   `pm-interesados` vincula FR-13 a Diego (`registro.py actualizar personas PU-002 --campo usa=…;FR-13`) y muestra el
+   mapa capacidad × persona (`interesados.py personas mapa`).
+4. `pm-issues-cambios` corre el análisis de impacto **antes** de la decisión:
+   ```bash
+   impacto.py --proyecto gestion analizar C-001 --actividades 02-planificacion/escenarios/actividades-C-001.csv \
+     --inicio 2026-11-30 --pert 02-planificacion/estimacion-pert.csv --flujos 02-planificacion/escenarios/flujos-C-001.csv \
+     --opcion "Con C-001" --tasa 0.10 --refs FR-13 --paquetes 3.4 --puntos 8 --release R2 --fecha 2027-01-16
+   ```
+   Compara los dos cronogramas con `cpm.py`, toma la reserva a 2σ de `estimacion-pert.csv` (paso 3), mide la capacidad
+   del R2 con la velocidad de `estado.json` (la regla de `release.py capacidad`), el BAC desde la WBS, el VAN con
+   `inversion.py` y quién decide con la misma regla de autoridad y presupuesto de cambio que aplica `registro.py`. Escribe el borrador de la **solicitud de cambio**
+   (`03-control/reportes/2027-01-16-solicitud-cambio-C-001.md`, estado borrador) con la tabla, las opciones aprobar,
+   rechazar, diferir o pedir plan de excepción, y el nivel que decide. **No escribe registros**: el gestor deja el
+   impacto y la recomendación en `cambios.csv` con `registro.py actualizar` y C-001 queda `pendiente-decision`.
 5. Decide la autoridad de cambio; `pm-riesgos` registra **R-001** (probabilidad 3 × impacto 3, respuesta reducir,
    disparador SPI < 0,90, revisión el 19/2); `wbs.py` suma el paquete **3.4**; `bmad.py handoff --cambio C-001`;
    `sanidad.py --rapido --corte 2027-01-18`.
 
 **Qué deberías ver:**
-- "agregados ['FR-13']"; escenario: "Duración total (días laborables): 121 · Fin previsto: 2027-05-18"; en el business
-  case, la fila "Con C-001" da VAN 45.939, TIR 21,8 % y 6.163 más que la línea base.
-- La tabla de impacto de C-001 (en la evidencia, tal cual):
+- "agregados ['FR-13']"; escenario: "Duración total (días laborables): 123 · Fin previsto: 2027-05-20" (el escenario
+  muestra también su propia reserva, 13,3 días; el análisis de impacto mide cuánto consume el cambio de la reserva de la
+  línea base, 13,0); en el business case, la fila "Con C-001" da VAN 45.939, TIR 21,8 % y 6.163 más que la línea base.
+- Mapa capacidad × persona: "FR-13 | Simulador de préstamo | sin prioridad" con Diego como usuario (U). FR-13 todavía no
+  tiene historia, por eso no tiene prioridad: la recibe en el paso 8.
+- La tabla de impacto de C-001 (§3 del borrador, en la evidencia tal cual):
 
 | Objetivo | Antes | Con C-001 | Contra qué se mide | Lectura |
 |---|---|---|---|---|
-| Tiempo (camino crítico) | 110 días · fin 2027-05-03 | 121 días · fin 2027-05-18 (+11) | tolerancia del proyecto ±3 semanas = 15 días | dentro: usa 11 de 15 (73 %) |
-| Reserva de cronograma | 2σ = 13,0 días | 13,0 − 11 = 2,0 días | atraso posible del camino crítico | queda casi agotada: registrar riesgo |
-| Costo (BAC) | 124.000 | 133.000 (+9.000) | presupuesto de cambio, no la tolerancia de costo | se paga con el presupuesto de cambio |
-| Presupuesto de cambio | 0 de 12.000 | 9.000 de 12.000 (75 %) | CAM-03: aviso desde 80 %, error sobre 100 % | dentro del saldo |
-| Autoridad | — | 9.000 en un cambio | límite de la autoridad de cambio 10.000 | lo decide la autoridad de cambio |
-| Capacidad del R2 | 21 pts de 24 (3 sprints) | 29 pts de 24 | velocidad 8 pts por sprint | hace falta 1 sprint más (4 sprints = 32 pts) |
-| Business case (VAN a 5 años) | 39.776 | 45.939 (+6.163) | inversion.py, tasa 10 % | a favor: el simulador se paga solo |
+| Alcance y especificación | línea base bmad-prd v1.0, bmad-epicas v1.0 | paquetes WBS 3.4; +8 pts en R2; requisitos FR-13 | Must sin tolerancia; Should/Could los intercambia el PO | afecta ids existentes: FR-13 (sin-cobertura) |
+| Tiempo (camino crítico) | 112 días · fin 2027-05-05 | 123 días · fin 2027-05-20 (+11) | tolerancia del proyecto ±3 semanas = 15 días laborables | dentro: usa 11 de 15 (73 %) |
+| Dependencias | camino crítico A01 → A03 → A05 → A06 → A07 → A08 → A09 | camino crítico A01 → A03 → A05 → A06 → A07 → A10 → A08 → A09 | cpm.py | actividades nuevas: A10; se corren: A08 (+11), A09 (+11) |
+| Reserva de cronograma | 2σ = 13,0 días | 13,0 − 11 = 2,0 días | atraso posible del camino crítico (tres valores, beta-PERT) | queda menos de la mitad: registrar riesgo |
+| Capacidad del R2 | 21 pts de 24 (3 sprints) | 29 pts | velocidad 8 pts por sprint | 4 sprints: +1 sprint (14 días corridos) |
+| Costo (BAC) | 124.000 | 133.000 (+9.000, 7,3 %) | tolerancia de costo ±8 %; cargo presupuesto-cambio | se financia con presupuesto-cambio, no con la tolerancia de costo |
+| Presupuesto de cambio | 0 de 12.000 | 9.000 de 12.000 (75 %) | saldo fijado por la junta (CAM-03: aviso desde 80 %, error sobre 100 %) | dentro del saldo |
+| Autoridad | límite 10.000 por cambio | 9.000 en este cambio | registro.py (motivos_autoridad) · CAM-04/CAM-05 | dentro de la autoridad delegada |
+| Beneficios (VAN) | 39.776 · B-01 Desvío de consultas puede caer 23 % | 45.939 (+6.163) · B-01 Desvío de consultas puede caer 27 % | inversion.py, tasa 10 % · VAN > 0 · tolerancia de beneficios −10 % | a favor: el cambio suma valor |
+| Riesgo | 0 riesgo(s) abierto(s) citan lo afectado | riesgo nuevo sugerido: la reserva de cronograma queda en 2,0 días (pm-riesgos) | ningún riesgo alto sin respuesta | revisar con pm-riesgos |
+| Calidad | 0 actividad(es) de calidad de lo afectado | criterios de calidad del producto nuevo o cambiado | [por confirmar] | planificar revisión o prueba (pm-calidad) |
 
+- "Decide: Autoridad de cambio: Sofía Ramírez (autoridad-cambio)" · "Opciones: Aprobar, Rechazar, Diferir, Pedir plan de
+  excepción (no aplica) · recomendación: aprobar con el cargo indicado". "FR-13 (sin-cobertura)" indica que FR-13 ya
+  está en el PRD (por eso el desvío) pero todavía sin historia.
 - C-001 aprobado; R-001; WBS "14 elementos, 9 hojas · esfuerzo 2660 h · costo 133,000"; el traspaso
   `handoff-bmad-<fecha>-C-001.md`.
 - Sanidad "0 ERROR · 4 AVISO · 3 INFO" con **"INFO CAM-03 Presupuesto de cambio: 9.000 de 12.000 (75 %)"**. Los avisos son
@@ -411,18 +499,20 @@ registralo como riesgo.
 ![Fin de cada hito antes y después de C-001](img/g2-roadmap-c001.png)
 El Release 1 sigue en el día 68; UAT y puesta en producción se corren 11 días, dentro de la tolerancia de 15.
 
-> **Más desarrollo: el impacto se mira antes, y en todos los objetivos.** La pregunta habitual es "¿cuánto cuesta?".
-> La tabla agrega las que se olvidan: qué le hace al camino crítico, cuánto queda de reserva, si entra en la capacidad
-> del release, si está dentro del límite de quien decide, cuánto queda del presupuesto y si el cambio crea valor. Con
-> esa tabla, la decisión de Sofía es informada y queda registrada con sus condiciones (riesgo R-001 y sprint 10).
+> **Más desarrollo: el impacto se mira antes, en todos los objetivos, y dice quién decide.** La pregunta habitual es
+> "¿cuánto cuesta?". El análisis agrega las que se olvidan: qué le hace al camino crítico, cuánto queda de reserva, si
+> entra en la capacidad del release, si está dentro del límite de quien decide, cuánto queda del presupuesto, si el
+> cambio crea valor y a quién sirve (lo pide el Consejo directivo, lo usa Diego). Con esa tabla, la decisión de Sofía
+> es informada y queda registrada con sus condiciones (riesgo R-001 y sprint 10).
 
 > **Por qué no "contra la contingencia".** Este proyecto no tiene contingencia definida, y la reserva de riesgo solo
 > financia respuestas a riesgos. Un cambio aprobado se paga con el **presupuesto de cambio** del paso 5: por eso el BAC
 > pasa de 124.000 a 133.000 y el saldo baja a 3.000. Sin monto ni cargo, sanidad lo marcaría CAM-01.
 
-**Dónde verificar:** `issues.csv` · `cambios.csv` (columnas `impacto_*`, `decision`, `decidido_por`, `costo`, `cargo`)
-· `riesgos.csv` · `02-planificacion/escenarios/` (cronograma y flujos de C-001) · la tabla de impacto en la evidencia ·
-prompt: "¿Qué impacto tiene C-001 en fecha, costo, capacidad y VAN, y cuánto queda del presupuesto de cambio?".
+**Dónde verificar:** `issues.csv` · `cambios.csv` (columnas `solicitante`, `impacto_*`, `decision`, `decidido_por`,
+`costo`, `cargo`) · `riesgos.csv` · `personas.csv` (PU-002) · `02-planificacion/escenarios/` (cronograma y flujos de
+C-001) · `03-control/reportes/2027-01-16-solicitud-cambio-C-001.md` · prompt: "¿Qué impacto tiene C-001 en fecha, costo,
+capacidad y VAN, quién lo decide y cuánto queda del presupuesto de cambio?".
 
 ---
 
@@ -451,7 +541,7 @@ la 2.4 · recalcula la cobertura · `pm-visuales` actualiza el roadmap · `pm-di
 - Sanidad "0 ERROR · 0 AVISO · 3 INFO": CAM-03 (9.000 de 12.000, 75 %), ESP-02 (índice de especificación que se
   reconstruye solo) y **TOL-03** ("Etapa de entrega sin corte de EVM guardado: el pronóstico contra tolerancias no se
   vigila"), que se corrige en el paso 9.
-- R2 pasa a 29 puntos: se agrega el sprint 10 y la capacidad sube a 32. El roadmap cambia de fin 2027-05-03 a 2027-05-18.
+- R2 pasa a 29 puntos: se agrega el sprint 10 y la capacidad sube a 32. El roadmap cambia de fin 2027-05-05 a 2027-05-20.
 
 ![Cobertura de trazabilidad tras C-001](img/g2-trazabilidad.png)
 Tras el cambio, la cobertura sigue completa. La única barra en ámbar señala que BMAD traza 12 requisitos a nivel de
@@ -526,9 +616,9 @@ consentimiento informado y poder consultar el registro de sus accesos. El Consej
 ```text
 Registrá el requisito regulatorio como solicitud de cambio: paquete nuevo 3.5, 13 puntos Must en R1, +1 sprint en la
 etapa 2, USD 15.000, sin beneficio propio. Sofía lo aprobó el 17/2 porque es obligatorio: registralo. Guardá el corte de EVM del
-19/2 (PV 75.000, EV 60.000, AC 77.000, BAC 133.000, ágil, 20 % Should/Could), corré sanidad al 19/2 y armá la tabla de
-impacto de C-002 con su efecto en el business case. Si hay excepción, prepará el informe de excepción para la junta y
-registrá el issue.
+19/2 (PV 75.000, EV 60.000, AC 77.000, BAC 133.000, ágil, 20 % Should/Could), corré sanidad al 19/2 y analizá el
+impacto de C-002 (refuerza NFR-1 y NFR-5; para hacerle lugar en R1 saldría la 2.3) con su efecto en el business case:
+decime quién tiene que decidirlo. Si hay excepción, prepará el informe de excepción para la junta y registrá el issue.
 ```
 **Prompt 2 (22/2, junta)**
 ```text
@@ -557,8 +647,13 @@ próxima revisión el 19/3, al fin de la etapa".
   3. `sanidad.py --rapido --corte 2027-02-19` detecta la excepción prevista del EVM (TOL-01); el presupuesto de cambio
      sigue en 75 % porque C-002 no se aprobó (ver abajo).
   4. `pm-caso-de-negocio` corre `inversion.py` sobre `escenarios/flujos-C-002.csv` con el plan vigente como base
-     (`--base "Con C-001"`), y `pm-issues-cambios` arma la **tabla de impacto de C-002**, que muestra lo que la
-     aprobación de palabra del 17/2 no miró.
+     (`--base "Con C-001"`), y `pm-issues-cambios` corre el **análisis de impacto de C-002**, que muestra lo que la
+     aprobación de palabra del 17/2 no miró: `impacto.py --proyecto gestion analizar C-002 --refs NFR-1,NFR-5
+     --paquetes 3.5 --flujos 02-planificacion/escenarios/flujos-C-002.csv --opcion "Con C-001 y C-002" --base "Con
+     C-001" --tasa 0.10 --puntos 13 --release R1 --liberar 2-3 --etapa --evm 03-control/reportes/evm-2027-02-19.json
+     --fecha 2027-02-19`. `--liberar 2-3` descuenta la historia que sale del R1; `--etapa` mide el sprint de más contra
+     la tolerancia de tiempo de la etapa, porque el R1 cierra la etapa 2; `--evm` suma el pronóstico del corte. El
+     borrador queda en `03-control/reportes/2027-02-19-solicitud-cambio-C-002.md`.
   5. `pm-progreso-reportes` redacta el **informe de excepción X-001** (plantilla `informe-excepcion.md`, con el impacto
      en el business case) y lo registra como `informe-excepcion-X-001`; `pm-issues-cambios` registra **I-003**
      `problema-preocupacion` (severidad crítica, `escalado`) e I-002 pasa a `escalado`.
@@ -575,7 +670,7 @@ próxima revisión el 19/3, al fin de la etapa".
   8. `pm-director`: `puertas.py verificar autorizar-plan-excepcion` → bloqueada solo por la lista de control (L-01).
      La junta decide: primero `estado.py presupuesto cambio=32000 --por "Ejecutiva: Laura Méndez"` (queda en
      `decisiones.csv`) y después C-002 `aprobado` con `decidido_por=Junta: Laura Méndez (ejecutiva) · plan de excepción
-     X-001` y `cargo=presupuesto-cambio`, que ahora tiene saldo (24.000 de 32.000). Sin la ampliación, `registro.py`
+     X-001` y `cargo=presupuesto-cambio`, que ya tiene saldo (24.000 de 32.000). Sin la ampliación, `registro.py`
      también rechazaría la aprobación de la junta y pediría la fuente: `reserva-gestion`, `plan-excepcion` o ampliar el
      presupuesto. Después: `verificar`, `puertas.py lista … --fecha 2027-02-26`, `confirmar … --fecha 2027-02-26` y
      `estado.py puerta autorizar-plan-excepcion --decision aprobado --por "Ejecutiva: Laura Méndez" --fecha 2027-02-26
@@ -601,17 +696,31 @@ próxima revisión el 19/3, al fin de la etapa".
     pendiente, y sin CAM-04 porque ninguna aprobación quedó fuera de la autoridad.
 - Business case (fila "Con C-001 y C-002"): VAN 30.939, TIR 17,3 %, repago en 3,23 años y 15.000 menos que el plan
   vigente; el punto de equilibrio de B-01 sube a "81,9 % del valor estimado".
-- La tabla de impacto de C-002 (en la evidencia, tal cual):
+- La tabla de impacto de C-002 (§3 del borrador, en la evidencia tal cual):
 
 | Objetivo | Antes | Con C-002 | Contra qué se mide | Lectura |
 |---|---|---|---|---|
-| Presupuesto de cambio | 9.000 de 12.000 (75 %) | 24.000 de 12.000 (200 %) | saldo fijado por la junta (registro.py; CAM-03) | no alcanza: hace falta otra fuente o ampliarlo |
-| Autoridad | límite 10.000 por cambio | 15.000 en un cambio | límite delegado a la autoridad de cambio | excedida: registro.py rechazó su aprobación |
-| Capacidad del R1 | 47 pts de 48 (6 sprints) | 60 pts; sin la 2-3 (Could, 5): 55 pts | velocidad 8 pts por sprint | 7 sprints: +1 sprint (14 días corridos) |
-| Tiempo de la etapa 2 | fin 2027-03-05 (98 días corridos desde 2026-11-27) | fin 2027-03-19 (+14) | tolerancia de etapa ±10 % = 9,8 días | fuera de tolerancia |
-| Alcance (EVM del 19/2) | Should/Could = 20 % del alcance | no entra 22,1 % | Must sin tolerancia | los Must peligran |
-| Business case (VAN a 5 años) | 45.939 · B-01 puede caer 27 % | 30.939 · B-01 puede caer 18 % | VAN > 0 · tolerancia de beneficios −10 % | sigue justificado, con menos margen |
-| Fin del proyecto | 2027-05-18 (con C-001) | lo recalcula el plan de proyecto con el plan de excepción | ±3 semanas | no se recalcula en esta corrida |
+| Alcance y especificación | línea base bmad-prd v1.1, bmad-epicas v1.1 | paquetes WBS 3.5; +13 pts en R1; requisitos NFR-1, NFR-5 | Must sin tolerancia; Should/Could los intercambia el PO | afecta ids existentes: NFR-1 (n/a), NFR-5 (n/a) |
+| Capacidad del R1 | 47 pts de 48 (6 sprints) | 55 pts (sin 2-3: −5) | velocidad 8 pts por sprint | 7 sprints: +1 sprint (14 días corridos) |
+| Tiempo de la etapa | fin 2027-03-05 | fin 2027-03-19 (+14) | tolerancia de etapa ±10 % = 9,8 días | fuera de tolerancia → excepción |
+| Alcance (EVM) | Should/Could = 20 % del alcance | no entra 22,1 % | Must sin tolerancia | los Must peligran → excepción |
+| Costo (BAC) | 133.000 | 148.000 (+15.000, 11,3 %) | tolerancia de costo ±8 %; cargo presupuesto-cambio | se financia con presupuesto-cambio, no con la tolerancia de costo |
+| Presupuesto de cambio | 9.000 de 12.000 | 24.000 de 12.000 (200 %) | saldo fijado por la junta (CAM-03: aviso desde 80 %, error sobre 100 %) | no alcanza: otra fuente o ampliarlo |
+| Autoridad | límite 10.000 por cambio | 15.000 en este cambio | registro.py (motivos_autoridad) · CAM-04/CAM-05 | excede la autoridad delegada |
+| Beneficios (VAN) | 45.939 · B-01 Desvío de consultas puede caer 27 % | 30.939 (-15.000) · B-01 Desvío de consultas puede caer 18 % | inversion.py, tasa 10 % · VAN > 0 · tolerancia de beneficios −10 % | sigue justificado, con menos margen |
+| Riesgo | 0 riesgo(s) abierto(s) citan lo afectado | sin riesgo nuevo calculado | ningún riesgo alto sin respuesta | [por confirmar] |
+| Calidad | 0 actividad(es) de calidad de lo afectado | criterios de calidad del producto nuevo o cambiado | [por confirmar] | planificar revisión o prueba (pm-calidad) |
+
+- "Decide: Junta (ejecutivo: Laura Méndez) vía pm-director (junta)", con cuatro motivos: el pronóstico sale de la
+  tolerancia de tiempo de la etapa, el EVM pronostica que los Must no entran, "costo 15.000 supera el límite de la
+  autoridad de cambio (10.000)" y "el presupuesto de cambio no alcanza: 9.000 ya cargados + 15.000 = 24.000 de 12.000
+  fijados por la junta". "Opciones: Aprobar (no aplica), Rechazar, Diferir, Pedir plan de excepción · recomendación:
+  pedir plan de excepción". Los dos últimos motivos son los mismos con los que `registro.py` rechazó la aprobación de
+  Sofía.
+
+![Límites que usaría C-002](img/g2-impacto-c002.png)
+Cada barra es cuánto del límite usaría C-002: 200 % del presupuesto de cambio, 150 % del límite de la autoridad de
+cambio, 143 % de la tolerancia de tiempo de la etapa, 115 % de la capacidad del R1 y 110 % del margen de Should/Could.
 
 - `limite-etapa`: "Proceso: SB" y "Límite de etapa por excepción X-001: plan de excepción (reemplaza el plan vigente),
   actualizar plan de proyecto, business case y riesgos. Puerta: autorizar-plan-excepcion".
@@ -644,16 +753,16 @@ Should/Could y dispara TOL-01.
 C-002 no suma beneficio propio y resta 15.000 de VAN, pero el caso sigue justificado: B-01 puede caer 18 % antes de que
 el VAN llegue a 0, más que su tolerancia de −10 %.
 
-> **Más desarrollo: excepción con impacto calculado.** La tabla de C-002 da a la junta lo que necesita para decidir:
-> tres límites superados (autoridad, saldo del presupuesto y tolerancia de tiempo de la etapa), uno en riesgo (los Must) y la
-> respuesta a la pregunta que PRINCE2 hace en cada puerta, ¿sigue valiendo la pena el proyecto? Con VAN de 30.939, sí,
-> con menos margen. El fin del proyecto no se recalcula en esta guía: lo debe actualizar el plan de proyecto junto con
-> el plan de excepción, como pide `limite-etapa`. Si quedara fuera de ±3 semanas, la junta tampoco podría aprobarlo
-> sola.
+> **Más desarrollo: excepción con impacto calculado.** El análisis de C-002 da a la junta lo que necesita para
+> decidir: cuatro motivos por los que no decide la autoridad de cambio (límite, saldo del presupuesto, tolerancia de
+> tiempo de la etapa y Must en riesgo), las opciones con la recomendada (pedir plan de excepción) y la respuesta a la
+> pregunta que PRINCE2 hace en cada puerta, ¿sigue valiendo la pena el proyecto? Con VAN de 30.939, sí, con menos
+> margen. El fin del proyecto no se recalcula en este análisis: lo debe actualizar el plan de proyecto junto con el
+> plan de excepción, como pide `limite-etapa`. Si quedara fuera de ±3 semanas, la junta tampoco podría aprobarlo sola.
 
 **Dónde verificar:** `03-control/reportes/evm-2027-02-19.json` · `03-control/reportes/2027-02-19-informe-excepcion-X-001.md`
-· `02-planificacion/plan-excepcion-X-001.md` · `00-direccion/business-case.md` · `02-planificacion/escenarios/flujos-C-002.csv`
-· `00-direccion/decisiones/2027-02-26-verificacion-autorizar-plan-excepcion.md` · `cambios.csv` (C-002:
+· `03-control/reportes/2027-02-19-solicitud-cambio-C-002.md` · `02-planificacion/plan-excepcion-X-001.md` ·
+`00-direccion/business-case.md` · `02-planificacion/escenarios/flujos-C-002.csv` · `00-direccion/decisiones/2027-02-26-verificacion-autorizar-plan-excepcion.md` · `cambios.csv` (C-002:
 `decidido_por`, `notas`, `costo`, `cargo`) · `issues.csv` (I-002, I-003) · `riesgos.csv` (R-001) · `decisiones.csv` ·
 prompt: "¿Cuánto queda del presupuesto de cambio, qué decidió la junta sobre X-001 y sigue justificado el proyecto?".
 
@@ -667,7 +776,7 @@ prompt: "¿Cuánto queda del presupuesto de cambio, qué decidió la junta sobre
 |---|---|---|---|
 | Alcance | 10 historias · 68 puntos · 12 FR · WBS 124.000 | 11 historias · 76 puntos · 13 FR (C-001) · WBS 133.000 | + C-002 regulatorio (Must, 13 puntos) aprobado por la junta · WBS 148.000; traspaso a BMAD pendiente |
 | Releases | R1 47 pts / 48 · R2 21 pts / 24 | R1 47 pts (intercambio D-009) · R2 29 pts / 32 (sprint 10 agregado) | plan de excepción X-001: C-002 en R1, sale la 2.3 |
-| Cronograma | fin 2027-05-03 · reserva 2σ = 13,0 días | fin 2027-05-18 (+11 días) · reserva remanente 2,0 días (R-001, disparador activado) | fin de etapa 2: 2027-03-05 → 2027-03-19 · R-001 revisado (probabilidad 4) |
+| Cronograma | fin 2027-05-05 · reserva 2σ = 13,0 días | fin 2027-05-20 (+11 días) · reserva remanente 2,0 días (R-001, disparador activado) | fin de etapa 2: 2027-03-05 → 2027-03-19 · R-001 revisado (probabilidad 4) |
 | Avance | — | 34,2 % de puntos · SPI 0,87 · CPI 0,90 · alcance que no entra 10,3 % (ámbar) | corte 19/2: SPI 0,80 · CPI 0,78 · 22,1 % que no entra (rojo) |
 | Presupuesto de cambio | 12.000 · límite 10.000 por cambio | 9.000 usados (75 %) | 24.000 de 32.000 (75 %) tras la ampliación |
 | Business case | VAN 39.776 · TIR 21,0 % | VAN 45.939 con C-001 | VAN 30.939 con C-001 y C-002 · B-01 puede caer 18 % |
@@ -723,8 +832,8 @@ gantt
     Release 1                  :milestone, m2, 2027-03-05, 0d
     section Etapa 3 · Release 2
     Sprints 7 a 9 (21 pts)     :r2, 2027-03-08, 2027-04-16
-    UAT y capacitación         :u, 2027-04-19, 2027-05-03
-    Puesta en producción       :milestone, m3, 2027-05-03, 0d
+    UAT y capacitación         :u, 2027-04-21, 2027-05-05
+    Puesta en producción       :milestone, m3, 2027-05-05, 0d
 ```
 ```mermaid
 gantt
@@ -741,15 +850,15 @@ gantt
     Release 1                  :milestone, m2, 2027-03-05, 0d
     section Etapa 3 · Release 2
     Sprints 7 a 9 (21 pts)     :r2, 2027-03-08, 2027-04-16
-    Sprint 10 simulador (C-001) :crit, s10, 2027-04-19, 2027-05-03
-    UAT y capacitación         :u, 2027-05-04, 2027-05-18
-    Puesta en producción       :milestone, m3, 2027-05-18, 0d
+    Sprint 10 simulador (C-001) :crit, s10, 2027-04-21, 2027-05-05
+    UAT y capacitación         :u, 2027-05-06, 2027-05-20
+    Puesta en producción       :milestone, m3, 2027-05-20, 0d
 ```
 
 **Trazabilidad del cambio:**
 ```mermaid
 flowchart TB
-    i1["I-001 · solicitud de cambio<br/>(desvío FR-13 detectado)"] --> c1["C-001 · tabla de impacto<br/>tiempo, reserva, costo, capacidad, VAN"]
+    i1["I-001 · solicitud de cambio<br/>(desvío FR-13 detectado)"] --> c1["C-001 · impacto.py<br/>tiempo, reserva, capacidad, VAN<br/>persona afectada: Diego"]
     c1 --> dec{"Autoridad de cambio<br/>Sofía Ramírez"}
     dec -->|"aprobado · 9.000 de 12.000"| w34["WBS 3.4<br/>Simulador · USD 9.000"]
     dec --> h["bmad.py handoff<br/>--cambio C-001"]
@@ -757,14 +866,14 @@ flowchart TB
     h --> bm["Equipo BMAD:<br/>historia 2.4"]
     bm --> lb["Líneas base<br/>PRD y épicas 1.1"]
     bm --> tz["Trazabilidad recalculada<br/>13 de 13 FR"]
-    w34 --> rm["Roadmap: fin<br/>2027-05-18"]
+    w34 --> rm["Roadmap: fin<br/>2027-05-20"]
 ```
 
 **Gestión por excepción (paso 10):**
 ```mermaid
 flowchart TB
     c2["C-002 · requisito regulatorio<br/>15.000, aprobado de palabra por Sofía"] --> rg{"registro.py<br/>límite y saldo"}
-    rg -->|"rechaza<br/>pendiente-decision"| ti["Tabla de impacto de C-002<br/>con VAN 30.939"]
+    rg -->|"rechaza<br/>pendiente-decision"| ti["impacto.py C-002 · decide la junta<br/>pedir plan de excepción"]
     ev["evm.py --guardar<br/>corte 19/2 · alcance rojo"] --> s1{"sanidad<br/>corte 19/2"}
     s1 -->|"TOL-01<br/>CAM-03 al 75 %"| ti
     ti --> x["Informe de excepción<br/>X-001 e issue I-003"]
@@ -784,24 +893,30 @@ flowchart TB
 - [ ] WBS por productos con `ref` a FR, historias y UJ; trazabilidad sin huecos ni ids inexistentes.
 - [ ] Descripción del producto del proyecto y descripción de producto 3.1 con especificaciones de calidad, métodos y
       autoridad de aceptación, registradas como artefactos.
-- [ ] PERT de tres puntos, camino crítico y reserva a 2σ calculados por script; exportación MSPDI; Gantt `g2-gantt.png`.
-- [ ] Backlog con columnas derivadas de BMAD y de gobierno separadas; MoSCoW y valor/esfuerzo; capacidad verificada.
+- [ ] Tres valores (beta-PERT declarada), camino crítico y reserva a 2σ calculados por `cpm.py --estimacion`; exportación
+      MSPDI; Gantt `g2-gantt.png`.
+- [ ] Backlog con columnas derivadas de BMAD y de gobierno separadas; MoSCoW y valor/esfuerzo; capacidad por release con
+      `release.py capacidad` (`g2-capacidad-release.png`).
+- [ ] Personas de usuario propuestas desde los recorridos de BMAD y confirmadas por la usuaria sénior; ningún Must sin
+      persona (STK-13).
 - [ ] Business case con flujos en CSV y VAN, TIR, repago y sensibilidad de `inversion.py`.
 - [ ] Tolerancias y autoridad delegada documentadas; presupuesto de cambio y límite de la autoridad de cambio en
       `estado.json` con la decisión en `decisiones.csv`; enfoque de beneficios registrado (sin aviso P-04).
 - [ ] Línea base de PRD, épicas y backlog con copia congelada; roadmap registrado.
 - [ ] Intercambio Should/Could decidido por el PO sin solicitud de cambio, traspasado a BMAD.
-- [ ] Cambio de alcance detectado por `bmad.py verificar`, con escenarios de cronograma y de flujos y **tabla de
-      impacto antes de decidir**, monto cargado al presupuesto de cambio (CAM-03 INFO), riesgo derivado, decisión de la
-      autoridad de cambio, traspaso, nuevas líneas base y roadmap actualizado (`g2-roadmap-c001.png`).
+- [ ] Cambio de alcance detectado por `bmad.py verificar`, con escenarios de cronograma y de flujos, persona afectada
+      y **análisis de impacto antes de decidir** (`impacto.py analizar`: tabla, borrador de la solicitud y nivel que
+      decide), monto cargado al presupuesto de cambio (CAM-03 INFO), riesgo derivado, decisión de la autoridad de
+      cambio, traspaso, nuevas líneas base y roadmap actualizado (`g2-roadmap-c001.png`).
 - [ ] Cobertura de trazabilidad recalculada en los pasos 2 y 8 (`g2-trazabilidad.png`).
 - [ ] EVM ágil guardado por corte que separa alcance que no entra de sobrecosto (TOL-02 en ámbar) y disparador de R-001
       anotado.
 - [ ] Revisión de calidad que cubre las historias terminadas (sin QUA-01).
 - [ ] Excepción completa: aprobación de C-002 fuera de la autoridad rechazada por `registro.py` (queda
-      `pendiente-decision`) y TOL-01 detectado el mismo día; tabla de impacto de C-002 con su VAN; informe e issue de
-      la excepción; `limite-etapa --excepcion`; plan de excepción y business case actualizado; ampliación del
-      presupuesto antes de que la junta apruebe C-002; `autorizar-plan-excepcion` aprobada; REG-09 resuelto con la
+      `pendiente-decision`) y TOL-01 detectado el mismo día; análisis de impacto de C-002 que deriva a la junta y
+      recomienda plan de excepción (`g2-impacto-c002.png`); informe e issue de la excepción; `limite-etapa
+      --excepcion`; plan de excepción y business case actualizado; ampliación del presupuesto antes de que la junta
+      apruebe C-002; `autorizar-plan-excepcion` aprobada; REG-09 resuelto con la
       revisión de R-001; sanidad final sin CAM-03 ERROR, CAM-04, TOL-01 ni REG-09 (`g2-consumo-cambio.png`,
       `g2-alcance-evm.png`, `g2-business-case.png`).
 - [ ] Todas las llamadas a sanidad con `--corte` de la fecha del paso; dos corridas seguidas del driver con evidencia

@@ -486,11 +486,6 @@ Q-003
 ```
 
 ```
-$ (foto de calidad «23/12 · Sprint 1» para g4-calidad-entregas.png: historias done en backlog.csv contra historias con revisión aprobada en calidad.csv)
-terminadas 2 · con revisión aprobada 2 · sin revisión aprobada 0
-```
-
-```
 $ (pm-progreso-reportes, templates/checkpoint-report.md → gestion/03-control/reportes/2026-12-23-checkpoint-WP-001.md)
 # Informe de punto de control · WP-001 (sprint 1) · 2026-12-23
 Gestora de equipo: Lucía Benítez · Para: Martín Suárez (gestor) · Período: 2026-11-30 – 2026-12-23
@@ -510,6 +505,11 @@ Sanidad de 'Portal de autoservicio para socios' (entrega/CS): 0 ERROR · 1 AVISO
         → especificacion.py indice o sanidad.py --reparar.
   INFO  TOL-03 Etapa de entrega sin corte de EVM guardado: el pronóstico contra tolerancias no se vigila.
         → evm.py … --proyecto <dir> --guardar --corte AAAA-MM-DD en cada período.
+```
+
+```
+$ (foto de calidad «23/12 · Sprint 1» para g4-calidad-entregas.png: estado.py productos --corte 2026-12-23 --json, historias terminadas contra aprobadas o aceptadas)
+terminadas 2 · con revisión aprobada 2 · sin revisión aprobada 0
 ```
 
 ```
@@ -618,7 +618,7 @@ ok
 
 ```
 $ python3 $BMAD --proyecto gestion handoff --cambio C-001
-Traspaso emitido → gestion/02-planificacion/especificacion/handoff-bmad-2026-10-20-C-001.md (cambio C-001 · 10 prioridades cambiadas)
+Traspaso emitido → gestion/02-planificacion/especificacion/handoff-bmad-2026-10-22-C-001.md (cambio C-001 · 10 prioridades cambiadas)
 ```
 
 ```
@@ -690,13 +690,38 @@ $ python3 $BMAD --proyecto gestion avance --corte 2027-01-20
 Historias 11 · backlog 8 · ready-for-dev 0 · in-progress 0 · review 1 · done 2 · épicas terminadas 0/3 · 17.1 % (puntos) → gestion/03-control/reportes/avance-bmad.csv
 ```
 
-## Paso 6 · Calidad a volumen al acercarse el fin del Release 1: terminados sin revisión, registro en lote, retrospectiva y lecciones
+## Paso 6 · Calidad a volumen al acercarse el fin del Release 1: terminados sin revisión y registro en lote
 ```
 $ python3 $EST/estado.py --proyecto gestion contexto --corte 2027-02-26
 pm-method · contexto derivado de estado.json y los registros al 2027-02-26 (es el estado vigente; una nota de memoria que diga otra cosa está desactualizada):
 Abiertos: revisiones de calidad 1.
 Condiciones abiertas de puertas: autorizar-etapa (2026-11-27).
 Próxima puerta: autorizar-etapa (detalle: puertas.py verificar autorizar-etapa).
+```
+
+```
+$ python3 $EST/estado.py --proyecto gestion radar --corte 2027-02-26 --linea
+pm-method · radar al 2027-02-26: decidir 1 (autorizar-etapa) · escalar 0 · desbloquear 1 (Q-001) · vigilar 1 (evm-2027-01-08); detalle, responsables y siguiente paso: pm-orquestador (estado.py radar).
+```
+
+```
+$ python3 $EST/estado.py --proyecto gestion radar --corte 2027-02-26
+Radar de atención · Portal de autoservicio para socios (entrega/CS, etapa 2) al 2027-02-26: 1 decidir · 0 escalar · 1 desbloquear · 2 vigilar
+Hoy: decidir autorizar-etapa · escalar — · desbloquear Q-001.
+DECIDIR (1)
+  P2 [EST-12] autorizar-etapa · 2026-11-27 · junta (Laura Méndez) — condiciones abiertas: gate de preparación de BMAD en CONCERNS (2026-11-26: NFR-3 sin prueba de carga planificada)
+      → pm-director: estado.py cumplir-condiciones autorizar-etapa --por … al verificarlas
+ESCALAR: nada.
+DESBLOQUEAR (1)
+  P3 [QUA-02] Q-001 · 2027-02-19 · Lucía Benítez — revisión de calidad vencida · «NFR-3 prueba de carga (consultas de saldos y préstamos)»
+      → pm-calidad: realizarla o replanificarla; si se rechazó, pm-issues-cambios (fuera de especificación)
+VIGILAR (2)
+  P3 [RAD-07] autorizar-etapa · Martín Suárez — 2 bloqueo(s) de la próxima puerta: E-01, E-04
+      → pm-puerta: puertas.py verificar autorizar-etapa
+  P4 [TOL-03] evm-2027-01-08 · 2027-01-08 · Martín Suárez — sin corte de EVM reciente: el pronóstico no se vigila
+      → evm.py … --proyecto <dir> --guardar --corte AAAA-MM-DD (pm-progreso-reportes)
+Opciones: generar el highlight del período (pm-progreso-reportes) · escalar una excepción no corresponde: ningún pronóstico fuera de tolerancia ni presupuesto agotado.
+Prioridad: 1 hoy (vencido, fuera de tolerancia o presupuesto agotado) · 2 espera una decisión o bloquea · 3 pendiente · 4 vigilar; orden: prioridad, fecha, id.
 ```
 
 ```
@@ -725,7 +750,28 @@ Sanidad de 'Portal de autoservicio para socios' (entrega/CS): 0 ERROR · 7 AVISO
 ```
 
 ```
-$ (foto de calidad «26/2 · antes del lote» para g4-calidad-entregas.png: historias done en backlog.csv contra historias con revisión aprobada en calidad.csv)
+$ python3 $EST/estado.py --proyecto gestion productos --corte 2027-02-26 --alcance R1
+Estado de productos al 2027-02-26 · fuente backlog.csv · alcance R1 · 7 productos
+no iniciado 0 · en desarrollo 0 · en revisión 5 · aprobado 2 · aceptado 0 · con concesión 0 · fuera de especificación 0 = 7
+Diferencias entre lo registrado y lo físico: 5
+  1-3 · terminado en backlog.csv sin revisión de calidad aprobada (QUA-01)
+  1-4 · terminado en backlog.csv sin revisión de calidad aprobada (QUA-01)
+  3-1 · terminado en backlog.csv sin revisión de calidad aprobada (QUA-01)
+  3-2 · terminado en backlog.csv sin revisión de calidad aprobada (QUA-01)
+  3-3 · terminado en backlog.csv sin revisión de calidad aprobada (QUA-01)
+Must sin aceptar (C-07 en autorizar-cierre): requisitos FR-1, FR-2, FR-3, FR-4, FR-5, FR-9, FR-10, FR-11 … y 1 más; productos 1-1, 1-2, 1-3, 3-1, 3-2, 3-3
+Detalle:
+  1-1 · Alta y acceso del socio con segundo fac… · Must · WP-001 · done → aprobado · Q-002 aprobado
+  1-2 · Recuperación de acceso · Must · WP-001 · done → aprobado · Q-003 aprobado
+  1-3 · Consulta de saldos de ahorro y préstamos · Must · done → en revisión · sin revisión
+  1-4 · Descarga de constancias en PDF · Should · done → en revisión · sin revisión
+  3-1 · Acceso y roles de la consola de operador · Must · done → en revisión · sin revisión
+  3-2 · Bandeja única de solicitudes · Must · done → en revisión · sin revisión
+  3-3 · Resolución de solicitudes · Must · done → en revisión · sin revisión
+```
+
+```
+$ (foto de calidad «26/2 · antes del lote» para g4-calidad-entregas.png: estado.py productos --corte 2027-02-26 --json, historias terminadas contra aprobadas o aceptadas)
 terminadas 7 · con revisión aprobada 2 · sin revisión aprobada 5
 ```
 
@@ -767,18 +813,8 @@ Sanidad de 'Portal de autoservicio para socios' (entrega/CS): 0 ERROR · 2 AVISO
 ```
 
 ```
-$ (foto de calidad «26/2 · después del lote» para g4-calidad-entregas.png: historias done en backlog.csv contra historias con revisión aprobada en calidad.csv)
+$ (foto de calidad «26/2 · después del lote» para g4-calidad-entregas.png: estado.py productos --corte 2027-02-26 --json, historias terminadas contra aprobadas o aceptadas)
 terminadas 7 · con revisión aprobada 7 · sin revisión aprobada 0
-```
-
-```
-$ python3 $EST/registro.py --proyecto gestion agregar lecciones --campo "etapa=2" --campo "categoria=especificacion" --campo "situacion=FR-13 entró al PRD por correct-course sin pasar por la autoridad de cambio" --campo "efecto=sanidad ESP-10 bloqueó la puerta hasta tramitar C-001" --campo "recomendacion=toda Sprint Change Proposal se presenta primero como issue" --campo "prioridad=alta" --campo "responsable_seguimiento=Martín Suárez"
-L-001
-```
-
-```
-$ python3 $EST/registro.py --proyecto gestion agregar lecciones --campo "etapa=2" --campo "categoria=calidad" --campo "situacion=cinco historias del Release 1 llegaron a done sin revisión de calidad registrada" --campo "efecto=sanidad QUA-01 lo detectó antes del fin de etapa y se registraron en lote" --campo "recomendacion=la revisión registrada es parte de la definición de terminado; sanidad con --corte en cada checkpoint" --campo "prioridad=media" --campo "responsable_seguimiento=Lucía Benítez"
-L-002
 ```
 
 ## Paso 6b · El recorrido de la socia sobre lo entregado: mapa de UJ-1 desde BMAD, dolores con tratamiento (MAP-03)
@@ -855,7 +891,117 @@ $ python3 $PLUGIN/skills/pm-mapas-estrategicos/scripts/mapas.py --proyecto gesti
 0 aviso(s) de la familia MAP
 ```
 
-## Paso 7 · Fin de la etapa 2 (Release 1): prueba de carga NFR-3, condición cumplida, business case 1.1 y puerta autorizar-etapa (Release 2)
+## Paso 6c · Retrospectiva del sprint 4 (reunión propia): lecciones con cita, clasificadas por impacto y ámbito, y una acción para el sprint siguiente
+```
+$ (la reunión grabada por el equipo, facilitada por aseguramiento → gestion/03-control/reuniones/2027-02-26-retro-sprint-4-original.vtt)
+WEBVTT
+
+00:00:05.000 --> 00:00:30.000
+<v Andrea Costa>Arrancamos con las tres preguntas de siempre sobre el proceso del sprint 4 (qué anduvo, qué no y qué probamos), sin buscar culpables.
+
+00:00:40.000 --> 00:01:20.000
+<v Sofía Ramírez>La revisión con seis socios del 25/2 funcionó muy bien, aprendimos que mirar el recorrido con socios reales antes de cerrar un release encuentra dolores que las pruebas no ven.
+
+00:01:30.000 --> 00:02:05.000
+<v Lucía Benítez>No funcionó lo de siempre: otra vez llegaron historias a done sin la revisión registrada, cinco desde el sprint 2.
+
+00:02:10.000 --> 00:02:55.000
+<v Martín Suárez>Tampoco funcionó cómo entró FR-13: la Sprint Change Proposal llegó al PRD sin pasar por la autoridad de cambio y la sanidad marcó el cambio no controlado hasta tramitar C-001.
+
+00:03:40.000 --> 00:04:15.000
+<v Lucía Benítez>Probemos en el sprint 5 que ninguna historia pase a done sin su revisión registrada: yo actualizo la definición de terminado para el 3/3.
+
+00:04:20.000 --> 00:04:50.000
+<v Martín Suárez>Acordamos que toda Sprint Change Proposal entra primero como issue, yo armo la plantilla del issue para el 3/3.
+
+00:05:00.000 --> 00:05:20.000
+<v Andrea Costa>Las acciones de la retrospectiva del sprint 3 quedaron hechas; gracias a todos.
+```
+
+```
+$ python3 $PLUGIN/skills/pm-reuniones/scripts/transcripcion.py gestion/03-control/reuniones/2027-02-26-retro-sprint-4-original.vtt --salida gestion/03-control/reuniones/2027-02-26-retro-sprint-4-transcripcion.md
+7 intervenciones de 4 hablantes → gestion/03-control/reuniones/2027-02-26-retro-sprint-4-transcripcion.md
+```
+
+```
+$ python3 $PLUGIN/skills/pm-reuniones/scripts/extraccion.py --proyecto gestion candidatos --transcripcion gestion/03-control/reuniones/2027-02-26-retro-sprint-4-transcripcion.md
+CL-01 [leccion] gestion/03-control/reuniones/2027-02-26-retro-sprint-4-transcripcion.md [00:00:40] · Sofía Ramírez: «La revisión con seis socios del 25/2 funcionó muy bien, aprendimos que mirar el recorrido con socios reales antes de cerrar  · funcionó · recomendación: mirar el recorrido con socios reales antes de cerrar un release encuentra dolore
+CL-02 [leccion] gestion/03-control/reuniones/2027-02-26-retro-sprint-4-transcripcion.md [00:01:30] · Lucía Benítez: «No funcionó lo de siempre: otra vez llegaron historias a done sin la revisión registrada, cinco desde el sprint 2.» · no funcionó · recurrencia alta · recomendación: [por confirmar]
+CL-03 [leccion] gestion/03-control/reuniones/2027-02-26-retro-sprint-4-transcripcion.md [00:02:10] · Martín Suárez: «Tampoco funcionó cómo entró FR-13: la Sprint Change Proposal llegó al PRD sin pasar por la autoridad de cambio y la sanidad  · no funcionó · recomendación: [por confirmar]
+CM-01 [mejora] gestion/03-control/reuniones/2027-02-26-retro-sprint-4-transcripcion.md [00:03:40] · Lucía Benítez: «Probemos en el sprint 5 que ninguna historia pase a done sin su revisión registrada: yo actualizo la definición de terminado · Lucía Benítez · 2027-03-03
+CM-02 [mejora] gestion/03-control/reuniones/2027-02-26-retro-sprint-4-transcripcion.md [00:04:20] · Martín Suárez: «Acordamos que toda Sprint Change Proposal entra primero como issue, yo armo la plantilla del issue para el 3/3.» · Martín Suárez · 2027-03-03
+Retrospectiva: se detectaron 3 lecciones candidatas, 2 acciones de mejora, 0 supuestos y 0 riesgos nuevos (sin decisiones de gobierno). ¿Los registro? Confirmar los ids con: extraccion.py --proyecto gestion registrar --candidatos gestion/03-control/reuniones/2027-02-26-retro-sprint-4-candidatos.json --confirmar <ids> --por "<rol: nombre>"
+→ gestion/03-control/reuniones/2027-02-26-retro-sprint-4-candidatos.md (borrador, nada registrado)
+```
+
+```
+$ python3 $PLUGIN/skills/pm-reuniones/scripts/extraccion.py --proyecto gestion registrar --candidatos gestion/03-control/reuniones/2027-02-26-retro-sprint-4-candidatos.json --confirmar CL-01,CL-02,CL-03,CM-01,CM-02 --por "Gestor: Martín Suárez" --campo "CL-01:efecto=dos dolores del recorrido UJ-1 que las pruebas no habían mostrado (R-001 y la espera del resumen)" --campo "CL-01:categoria=acierto" --campo "CL-01:responsable_seguimiento=Sofía Ramírez" --campo "CL-02:efecto=QUA-01 marcó cinco historias el 26/2 y hubo que registrar las revisiones en lote" --campo "CL-02:recomendacion=la revisión registrada es parte de la definición de terminado: ninguna historia pasa a done sin ella" --campo "CL-02:categoria=calidad" --campo "CL-02:responsable_seguimiento=Lucía Benítez" --campo "CL-03:efecto=ESP-10 en la sanidad del 12/1: la puerta quedaba bloqueada hasta tramitar C-001 y una línea base nueva" --campo "CL-03:recomendacion=toda Sprint Change Proposal entra primero como issue y pasa por la autoridad de cambio antes de tocar el PRD" --campo "CL-03:categoria=especificacion" --campo "CL-03:responsable_seguimiento=Martín Suárez"
+CL-01 → L-001 (lecciones.csv)
+CL-02 → L-002 (lecciones.csv)
+CL-03 → L-003 (lecciones.csv)
+CM-01 → A-001 (acciones.csv)
+CM-02 → A-002 (acciones.csv)
+Lecciones L-001, L-002, L-003 (registradas): clasificarlas por impacto y proceso con lecciones.py clasificar.
+Anotar los ids en el acta.
+```
+
+```
+$ python3 $PLUGIN/skills/pm-lecciones-aprendidas/scripts/lecciones.py clasificar L-003 --proyecto gestion --impacto alto --recurrencia media --aplicar-en planificacion,seguimiento --por "Gestor: Martín Suárez" --fecha 2027-02-26
+L-003 clasificada: impacto alto, recurrencia media, aplicar en planificacion;seguimiento · estado revisada.
+Impacto alto: la sanidad la marca (REG-11) hasta que tenga acción (lecciones.py accionar L-003 …) o se descarte con motivo.
+```
+
+```
+$ python3 $PLUGIN/skills/pm-lecciones-aprendidas/scripts/lecciones.py clasificar L-002 --proyecto gestion --impacto medio --recurrencia alta --aplicar-en seguimiento --por "Gestor: Martín Suárez" --fecha 2027-02-26
+L-002 clasificada: impacto medio, recurrencia alta, aplicar en seguimiento · estado revisada.
+```
+
+```
+$ python3 $PLUGIN/skills/pm-lecciones-aprendidas/scripts/lecciones.py clasificar L-001 --proyecto gestion --impacto medio --recurrencia baja --aplicar-en descubrimiento --por "Gestor: Martín Suárez" --fecha 2027-02-26
+L-001 clasificada: impacto medio, recurrencia baja, aplicar en descubrimiento · estado revisada.
+```
+
+```
+$ python3 $PLUGIN/skills/pm-lecciones-aprendidas/scripts/lecciones.py listar --proyecto gestion --corte 2027-02-26
+Lecciones del proyecto: 3 de 3 · por impacto (alto primero), recurrencia y estado
+- L-003 · alto · recurrencia media · revisada · Martín Suárez · sin acción
+    recomendación: toda Sprint Change Proposal entra primero como issue y pasa por la autoridad de cambio antes de tocar el PRD · aplicar en planificacion; seguimiento
+- L-002 · medio · recurrencia alta · revisada · Lucía Benítez · sin acción
+    recomendación: la revisión registrada es parte de la definición de terminado: ninguna historia pasa a done sin ella · aplicar en seguimiento
+- L-001 · medio · recurrencia baja · revisada · Sofía Ramírez · sin acción
+    recomendación: mirar el recorrido con socios reales antes de cerrar un release encuentra dolores que las pruebas no ven · aplicar en descubrimiento
+```
+
+```
+$ python3 $EST/sanidad.py --proyecto gestion --rapido --corte 2027-02-26
+Sanidad de 'Portal de autoservicio para socios' (entrega/CS): 0 ERROR · 3 AVISO · 2 INFO
+  AVISO EST-12 Condiciones abiertas de autorizar-etapa: gate de preparación de BMAD en CONCERNS (2026-11-26: NFR-3 sin prueba de carga planificada).
+        → estado.py cumplir-condiciones <tipo> cuando se cumplan.
+  AVISO QUA-02 Revisión de calidad vencida Q-001 (NFR-3 prueba de carga (consultas de saldos y préstamos), prevista 2027-02-19).
+        → Realizarla o replanificarla.
+  AVISO REG-11 Lección L-003 de impacto alto sin acción ni decisión (revisada; aplicar en planificacion; seguimiento).
+        → lecciones.py accionar L-003 --accion <A-###|R-###|plan-etapa-n> --verificar-en AAAA-MM-DD --por … (o descartar L-003 --motivo … --por …).
+  INFO  CAM-03 Presupuesto de cambio: 6.000 de 15.000 (40 %).
+  INFO  TOL-03 Último corte de EVM guardado el 2027-01-08 (más de 31 días).
+        → evm.py … --guardar en cada período de informe.
+```
+
+```
+$ python3 $PLUGIN/skills/pm-lecciones-aprendidas/scripts/lecciones.py accionar L-002 --proyecto gestion --accion "A-001; definición de terminado del sprint 5" --verificar-en 2027-03-19 --por "Gestor: Martín Suárez" --fecha 2027-02-26
+L-002 accionada-proyecto: acción A-001; definición de terminado del sprint 5 · verificar el efecto el 2027-03-19.
+```
+
+## Paso 7 · Fin de la etapa 2 (Release 1): prueba de carga NFR-3, condición cumplida, lecciones en el plan de la etapa 3, business case 1.1 y puerta autorizar-etapa (Release 2)
+```
+$ python3 $EST/registro.py --proyecto gestion actualizar acciones A-001 --campo "estado=completada" --campo "fecha_cierre=2027-03-03" --campo "notas=definición de terminado actualizada: ninguna historia pasa a done sin su revisión registrada en calidad.csv"
+ok
+```
+
+```
+$ python3 $EST/registro.py --proyecto gestion actualizar acciones A-002 --campo "estado=completada" --campo "fecha_cierre=2027-03-03" --campo "notas=plantilla del issue para toda Sprint Change Proposal (antes de tocar el PRD)"
+ok
+```
+
 ```
 $ python3 $EST/registro.py --proyecto gestion actualizar calidad Q-001 --campo "resultado=aprobado" --campo "estado=completada" --campo "fecha_real=2027-03-02" --campo "notas=p95 2,4 s con 400 sesiones concurrentes (meta menor a 3 s)"
 ok
@@ -919,6 +1065,13 @@ ok
 ```
 
 ```
+$ python3 $PLUGIN/skills/pm-lecciones-aprendidas/scripts/lecciones.py listar --proyecto gestion --para planificacion --corte 2027-03-05
+Lecciones que aplican a planificacion: 1 de 3 · por impacto (alto primero), recurrencia y estado
+- L-003 · alto · recurrencia media · revisada · Martín Suárez · sin acción
+    recomendación: toda Sprint Change Proposal entra primero como issue y pasa por la autoridad de cambio antes de tocar el PRD
+```
+
+```
 $ python3 $EST/estado.py --proyecto gestion artefacto business-case --ruta 00-direccion/business-case.md --estado en-revision --version 1.1
 ok
 ```
@@ -935,9 +1088,42 @@ Veredicto: sigue deseable, viable y alcanzable → continuar con la etapa 3.
 
 ```
 $ python3 $EST/puertas.py --proyecto gestion verificar autorizar-etapa
-Puerta autorizar-etapa: 0 bloqueo(s) · 1 condición(es) · 0 aviso(s)
+Puerta autorizar-etapa: 0 bloqueo(s) · 1 condición(es) · 1 aviso(s)
   condición G-01 condiciones abiertas de puertas anteriores: autorizar-etapa 2026-11-27 (verificarlas y registrar estado.py cumplir-condiciones, o traspasarlas como recomendación)
+  aviso     E-11 lecciones para planificación sin considerar en el plan de la etapa: L-003 (alto) (accionarlas en el plan o descartarlas con motivo: lecciones.py accionar|descartar)
   → aprobado posible
+```
+
+```
+$ python3 $EST/estado.py --proyecto gestion artefacto plan-etapa-3 --ruta 02-planificacion/plan-etapa-3.md --estado en-revision
+ok
+```
+
+```
+$ (pm-plan-etapa-y-limites → gestion/02-planificacion/plan-etapa-3.md, sección «Lecciones incorporadas»)
+# Plan de la etapa 3 (Release 2)
+Sprints 5 a 7 (historias 2-1 a 2-4, con FR-13 de C-001).
+## Lecciones incorporadas
+| Lección | Qué cambia en este plan | Acción | Verificación |
+|---|---|---|---|
+| L-003 (impacto alto) | toda Sprint Change Proposal de la etapa entra primero como issue y pasa por la autoridad de cambio antes de tocar el PRD | A-002 plantilla del issue | 12/5, al cerrar el Release 2 |
+| L-002 (impacto medio) | la definición de terminado exige la revisión registrada (seguimiento en cada sprint) | A-001 | 19/3, fin del sprint 5 |
+```
+
+```
+$ python3 $PLUGIN/skills/pm-lecciones-aprendidas/scripts/lecciones.py accionar L-003 --proyecto gestion --accion "A-002; plan-etapa-3" --verificar-en 2027-05-12 --por "Gestor: Martín Suárez" --fecha 2027-03-05
+L-003 accionada-proyecto: acción A-002; plan-etapa-3 · verificar el efecto el 2027-05-12.
+```
+
+```
+$ python3 $PLUGIN/skills/pm-lecciones-aprendidas/scripts/lecciones.py informe --proyecto gestion --etapa 2 --corte 2027-03-05
+Informe de lecciones (etapa 2): gestion/03-control/reportes/2027-03-05-informe-lecciones-etapa-2.md · 3 lecciones (alto 1, medio 2, bajo 0) · 0 pendientes · 3 para el índice.
+Siguiente: estado.py artefacto informe-lecciones-etapa-2 --ruta 03-control/reportes/2027-03-05-informe-lecciones-etapa-2.md --estado en-revision; tras la revisión de la junta, estado.py aprobar informe-lecciones-etapa-2 --por "<rol: nombre>".
+```
+
+```
+$ python3 $EST/estado.py --proyecto gestion artefacto informe-lecciones-etapa-2 --ruta 03-control/reportes/2027-03-05-informe-lecciones-etapa-2.md --estado en-revision
+ok
 ```
 
 ```
@@ -952,13 +1138,30 @@ Sanidad de 'Portal de autoservicio para socios' (entrega/SB): 0 ERROR · 0 AVISO
 ```
 
 ```
-$ python3 $EST/estado.py --proyecto gestion artefacto tablero-avance --ruta 03-control/reportes/2027-03-05-tablero-avance.html --estado en-revision
-ok
+$ (juicio del gestor para el tablero → gestion/03-control/reportes/2027-03-05-juicio-gestor.json)
+"objetivos": {"alcance": {"rag": "verde", "pronostico": "Release 1 completa; FR-13 aprobado (C-001) para R2", "tol_etapa": "PO intercambia Should/Could", "tol_proyecto": "Must sin tolerancia"}, "calidad": {"pronostico": "7 historias + NFR-3", "tol_proyecto": "cada historia con revisión"}, "beneficios": {"rag": "na", "pronostico": "se miden desde el 30/6/2027", "tol_proyecto": "-10 %"}, "riesgo": {"pronostico": "R-001 (medio) con respuesta"}, "sostenibilidad": {"rag": "verde", "pronostico": "S-1 a S-3 sin desvíos previstos", "tol_proyecto": "-10 % sobre metas"}}
+"hitos": [{"hito": "Release 1 aceptada", "base": "2027-03-05", "actual": "2027-03-05", "var_dias": 0, "rag": "verde", "comentario": "épicas 1 y 3 terminadas"}, {"hito": "Release 2 (incluye FR-13)", "base": "2027-05-14", "actual": "2027-05-14", "var_dias": 0, "rag": "verde", "comentario": "C-001 aprobado"}]
+"decisiones": [{"id": "autorizar-etapa", "texto": "autorizar la etapa 3 (Release 2) con el plan, el informe de fin de etapa y el business case 1.1", "fecha_limite": "2027-03-05"}]
+"comentario": "Release 1 entregada; la condición de NFR-3 se cumplió con la prueba de carga; el cambio FR-13 entró por control de cambios."
+"agil": {"iteraciones": [{"fecha": "2026-12-23", "nombre": "2026-12-23", "planificado": 16}, {"fecha": "2027-03-05", "nombre": "2027-03-05", "planificado": 34}], "fecha_fija": "2027-05-14", "fecha_pronostico": "2027-05-14"}
+"moneda": "USD"
 ```
 
 ```
-$ (pm-visuales arma el tablero con la receta de references/guia.md §3 → gestion/03-control/reportes/2027-03-05-tablero-avance.html)
-riesgos abiertos 1 · issues 0 · acciones 0 · iteraciones 2
+$ python3 $EST/estado.py --proyecto gestion periodo --desde 2027-02-19 --corte 2027-03-05 --proximo 2027-03-19 --juicio gestion/03-control/reportes/2027-03-05-juicio-gestor.json --tablero
+Período 2027-02-19 – 2027-03-05 · estado general verde · EVM: evm-2027-03-05.json · umbral alto P×I ≥ 15
+  Tiempo          verde            SPI 0,976; desvío de 2,4 % del PV contra una tolerancia de 10 % (ámbar = 50–100 %) [regla]
+  Costo           verde            CPI 0,958; EAC USD 135.688, sobrecosto de 4,4 % contra 10 % [regla]
+  Alcance         verde            Release 1 completa; FR-13 aprobado (C-001) para R2 (pronóstico del gestor sobre el burn-up: 47 de 76 puntos) [juicio]
+  Calidad         verde            8 revisiones completadas y aprobadas, 0 abiertas [regla]
+  Beneficios      [por confirmar]  se miden desde el 30/6/2027 (pronóstico del gestor contra la tolerancia de -10 %) [juicio]
+  Riesgo          verde            1 riesgo(s) abierto(s), 0 alto(s) (P×I ≥ 15), 0 sin respuesta, 0 sin propietario [regla]
+  Sostenibilidad  verde            S-1 a S-3 sin desvíos previstos (pronóstico del gestor) [juicio]
+Productos aceptados en el período: Q-004, Q-005, Q-006, Q-007, Q-008, Q-001
+Cambios del período: ninguno · fuera de especificación: ninguno
+Decisiones para la junta: autorizar-etapa
+Iteraciones: 2026-12-23 13/16, 2027-03-05 34/34
+Tablero: 03-control/reportes/2027-03-05-tablero-avance.html (registrado tablero-avance, en-revision) · riesgos abiertos 1 · issues 0 · acciones 2 · iteraciones 2
 ```
 
 ```
@@ -996,15 +1199,92 @@ Copia congelada / frozen copy: 00-direccion/historial/business-case-v1.1.md
 ok
 ```
 
-## Paso 8 · Release 2: revisiones en lote con un rechazo tratado (QUA-01 y QUA-03) y valor ganado final
+## Paso 8 · Release 2: la acción de la retro se verifica en el sprint 5 (REG-12), revisiones con un rechazo tratado (QUA-01 y QUA-03), la lección de impacto alto verificada y valor ganado final
+```
+$ (la planificación del sprint 5, otra reunión → gestion/03-control/reuniones/2027-03-08-planificacion-sprint-5-original.vtt)
+WEBVTT
+
+00:00:05.000 --> 00:00:25.000
+<v Sofía Ramírez>Para el sprint 5 tomamos la historia 2-1, la solicitud guiada de préstamo, con sus ocho puntos.
+
+00:00:30.000 --> 00:00:55.000
+<v Lucía Benítez>Me encargo de la 2-1 y la llevo a revisión el 19/3, con la definición de terminado nueva.
+
+00:01:00.000 --> 00:01:20.000
+<v Martín Suárez>Decidimos que la 2-2 queda para el sprint 6.
+```
+
+```
+$ python3 $PLUGIN/skills/pm-reuniones/scripts/transcripcion.py gestion/03-control/reuniones/2027-03-08-planificacion-sprint-5-original.vtt --salida gestion/03-control/reuniones/2027-03-08-planificacion-sprint-5-transcripcion.md
+3 intervenciones de 3 hablantes → gestion/03-control/reuniones/2027-03-08-planificacion-sprint-5-transcripcion.md
+```
+
+```
+$ python3 $PLUGIN/skills/pm-reuniones/scripts/extraccion.py --proyecto gestion candidatos --transcripcion gestion/03-control/reuniones/2027-03-08-planificacion-sprint-5-transcripcion.md
+CD-01 [decision] gestion/03-control/reuniones/2027-03-08-planificacion-sprint-5-transcripcion.md [00:01:00] · Martín Suárez: «Decidimos que la 2-2 queda para el sprint 6.» · tomada · nivel gestor
+CA-01 [accion] gestion/03-control/reuniones/2027-03-08-planificacion-sprint-5-transcripcion.md [00:00:30] · Lucía Benítez: «Me encargo de la 2-1 y la llevo a revisión el 19/3, con la definición de terminado nueva.» · Lucía Benítez · 2027-03-19
+Se detectaron 1 compromiso, 0 decisiones pendientes, 1 decisión tomada, 0 supuestos y 0 riesgos nuevos. ¿Los registro? Confirmar los ids con: extraccion.py --proyecto gestion registrar --candidatos gestion/03-control/reuniones/2027-03-08-planificacion-sprint-5-candidatos.json --confirmar <ids> --por "<rol: nombre>"
+→ gestion/03-control/reuniones/2027-03-08-planificacion-sprint-5-candidatos.md (borrador, nada registrado)
+```
+
 ```
 $ python3 $BMAD --proyecto gestion backlog
 backlog.csv: 0 nuevas, 11 actualizadas, 0 retiradas en BMAD. Columnas derivadas (criterios_aceptacion, descripcion, estado, origen, refs, tipo, titulo) se sobrescriben; las de gobierno (prioridad, moscow, estimacion, iteracion, release, producto_pbs) no se tocan.
 ```
 
 ```
-$ python3 $EST/registro.py --proyecto gestion agregar calidad --campo "producto=Release 2 · historia 2-1 Solicitud guiada de préstamo simple" --campo "metodo_verificacion=prueba" --campo "criterios=criterios de aceptación de la historia 2-1 (epics.md)" --campo "responsable_productor=Lucía Benítez" --campo "revisores=Andrea Costa" --campo "aprobador=Sofía Ramírez" --campo "fecha_prevista=2027-05-06" --campo "fecha_real=2027-05-06" --campo "resultado=aprobado" --campo "estado=completada"
+$ python3 $EST/registro.py --proyecto gestion agregar calidad --campo "producto=Sprint 5 · historia 2-1 Solicitud guiada de préstamo simple" --campo "metodo_verificacion=prueba" --campo "criterios=criterios de aceptación de la historia 2-1 (epics.md)" --campo "responsable_productor=Lucía Benítez" --campo "revisores=Andrea Costa" --campo "aprobador=Sofía Ramírez" --campo "fecha_prevista=2027-03-19" --campo "fecha_real=2027-03-19" --campo "resultado=aprobado" --campo "estado=completada" --campo "notas=revisión registrada el día del done (definición de terminado, A-001)"
 Q-009
+```
+
+```
+$ python3 $BMAD --proyecto gestion avance --corte 2027-03-22
+Historias 11 · backlog 3 · ready-for-dev 0 · in-progress 0 · review 0 · done 8 · épicas terminadas 2/3 · 72.4 % (puntos) → gestion/03-control/reportes/avance-bmad.csv
+```
+
+```
+$ python3 $EST/sanidad.py --proyecto gestion --rapido --corte 2027-03-22
+Sanidad de 'Portal de autoservicio para socios' (entrega/CS): 0 ERROR · 1 AVISO · 2 INFO
+  AVISO REG-12 Lección L-002 accionada sin verificar su efecto (verificar_en 2027-03-19; acción: A-001; definición de terminado del sprint 5).
+        → lecciones.py verificar L-002 --resultado efectiva|no-efectiva --evidencia … --por … (o reprogramar verificar_en con registro.py).
+  INFO  CAM-03 Presupuesto de cambio: 6.000 de 15.000 (40 %).
+  INFO  ESP-02 El índice de especificación está desactualizado (se reconstruye solo al consultarlo).
+        → especificacion.py indice o sanidad.py --reparar.
+```
+
+```
+$ python3 $EST/estado.py --proyecto gestion radar --corte 2027-03-22
+Radar de atención · Portal de autoservicio para socios (entrega/CS, etapa 3) al 2027-03-22: 0 decidir · 0 escalar · 0 desbloquear · 2 vigilar
+Hoy: decidir — · escalar — · desbloquear —.
+DECIDIR: nada.
+ESCALAR: nada.
+DESBLOQUEAR: nada.
+VIGILAR (2)
+  P3 [REG-12] L-002 · 2027-03-19 · Lucía Benítez — lección accionada sin verificar su efecto · acción A-001; definición de terminado del spri…
+      → pm-lecciones-aprendidas: lecciones.py verificar L-002 --resultado …
+  P3 [RAD-07] autorizar-etapa · Martín Suárez — 2 bloqueo(s) de la próxima puerta: E-01, E-04
+      → pm-puerta: puertas.py verificar autorizar-etapa
+Opciones: generar el highlight del período (pm-progreso-reportes) · escalar una excepción no corresponde: ningún pronóstico fuera de tolerancia ni presupuesto agotado.
+Prioridad: 1 hoy (vencido, fuera de tolerancia o presupuesto agotado) · 2 espera una decisión o bloquea · 3 pendiente · 4 vigilar; orden: prioridad, fecha, id.
+```
+
+```
+$ python3 $PLUGIN/skills/pm-lecciones-aprendidas/scripts/lecciones.py listar --proyecto gestion --para seguimiento --corte 2027-03-22
+Lecciones que aplican a seguimiento: 2 de 3 · por impacto (alto primero), recurrencia y estado
+- L-003 · alto · recurrencia media · accionada-proyecto · Martín Suárez · acción A-002; plan-etapa-3 · verificar el 2027-05-12
+    recomendación: toda Sprint Change Proposal entra primero como issue y pasa por la autoridad de cambio antes de tocar el PRD
+- L-002 · medio · recurrencia alta · accionada-proyecto · Lucía Benítez · acción A-001; definición de terminado del sprint 5 · verificación vencida 2027-03-19
+    recomendación: la revisión registrada es parte de la definición de terminado: ninguna historia pasa a done sin ella
+```
+
+```
+$ python3 $PLUGIN/skills/pm-lecciones-aprendidas/scripts/lecciones.py verificar L-002 --proyecto gestion --resultado efectiva --evidencia "sprint 5: la historia 2-1 pasó a done con Q-009 registrada el mismo día (19/3); sanidad del 22/3 sin QUA-01" --por "Gestor: Martín Suárez" --fecha 2027-03-22
+L-002 verificada · 2027-03-22 · efectiva · sprint 5: la historia 2-1 pasó a done con Q-009 registrada el mismo día (19/3); sanidad del 22/3 sin QUA-01 · Gestor: Martín Suárez
+```
+
+```
+$ python3 $BMAD --proyecto gestion backlog
+backlog.csv: 0 nuevas, 11 actualizadas, 0 retiradas en BMAD. Columnas derivadas (criterios_aceptacion, descripcion, estado, origen, refs, tipo, titulo) se sobrescriben; las de gobierno (prioridad, moscow, estimacion, iteracion, release, producto_pbs) no se tocan.
 ```
 
 ```
@@ -1037,7 +1317,7 @@ Sanidad de 'Portal de autoservicio para socios' (entrega/CS): 0 ERROR · 2 AVISO
 ```
 
 ```
-$ (foto de calidad «7/5 · Release 2, un rechazo» para g4-calidad-entregas.png: historias done en backlog.csv contra historias con revisión aprobada en calidad.csv)
+$ (foto de calidad «7/5 · Release 2, un rechazo» para g4-calidad-entregas.png: estado.py productos --corte 2027-05-07 --json, historias terminadas contra aprobadas o aceptadas)
 terminadas 11 · con revisión aprobada 10 · sin revisión aprobada 1
 ```
 
@@ -1102,8 +1382,13 @@ Sanidad de 'Portal de autoservicio para socios' (entrega/CS): 0 ERROR · 0 AVISO
 ```
 
 ```
-$ (foto de calidad «12/5 · fin del Release 2» para g4-calidad-entregas.png: historias done en backlog.csv contra historias con revisión aprobada en calidad.csv)
+$ (foto de calidad «12/5 · fin del Release 2» para g4-calidad-entregas.png: estado.py productos --corte 2027-05-12 --json, historias terminadas contra aprobadas o aceptadas)
 terminadas 11 · con revisión aprobada 11 · sin revisión aprobada 0
+```
+
+```
+$ python3 $PLUGIN/skills/pm-lecciones-aprendidas/scripts/lecciones.py verificar L-003 --proyecto gestion --resultado efectiva --evidencia "Release 2: el rechazo de la historia 2-4 entró como I-002 y se corrigió sin tocar la especificación; ninguna Sprint Change Proposal llegó al PRD sin issue (sanidades del 7/5 y del 12/5 sin ESP-10)" --por "Gestor: Martín Suárez" --fecha 2027-05-12
+L-003 verificada · 2027-05-12 · efectiva · Release 2: el rechazo de la historia 2-4 entró como I-002 y se corrigió sin tocar la especificación; ninguna Sprint Change Proposal llegó al PRD sin issue (sanidades del 7/5 y del 12/5 sin ESP-10) · Gestor: Martín Suárez
 ```
 
 ## Paso 9 · Aceptación, traspaso a operación, business case confirmado y puerta autorizar-cierre
@@ -1127,6 +1412,19 @@ Cierre (CP): confirmar aceptación de productos, traspaso a operaciones, evaluar
 ```
 
 ```
+$ python3 $EST/puertas.py --proyecto gestion verificar autorizar-cierre
+Puerta autorizar-cierre: 4 bloqueo(s) · 3 condición(es) · 0 aviso(s)
+  BLOQUEO   C-01 falta informe-fin-proyecto
+  BLOQUEO   C-02 falta registro-aceptacion
+  BLOQUEO   C-03 1 issues/riesgos abiertos sin recomendaciones de seguimiento: R-001
+  BLOQUEO   L-01 falta la lista de control de la junta: puertas.py --proyecto <dir> lista autorizar-cierre y confirmarla (puertas.py confirmar …)
+  condición C-05 sin informe de lecciones
+  condición C-06 sin plan de revisión de beneficios (criterios de éxito posteriores al proyecto)
+  condición C-07 Must sin aceptar: requisitos FR-1, FR-2, FR-3, FR-4, FR-5, FR-6, FR-7, FR-8 … y 4 más; productos 1-1, 1-2, 1-3, 2-1, 3-1, 3-2, 3-3 (registrar la aceptación: registro-aceptacion o aceptacion-<producto>, o la concesión; detalle: estado.py productos)
+  → 'aprobado' no se registra: corregir, o decisión 'condicionado' (o --forzar) de la junta
+```
+
+```
 $ python3 $EST/estado.py --proyecto gestion artefacto registro-aceptacion --ruta 04-cierre/registro-aceptacion.md --estado en-revision
 ok
 ```
@@ -1135,6 +1433,30 @@ ok
 $ python3 $EST/estado.py --proyecto gestion aprobar registro-aceptacion --por "Usuario sénior: Sofía Ramírez; Ejecutivo: Laura Méndez" --version 1.0 --fecha 2027-05-12
 Copia congelada / frozen copy: 00-direccion/historial/registro-aceptacion-v1.0.md
 ok
+```
+
+```
+$ python3 $EST/estado.py --proyecto gestion productos --corte 2027-05-12 --markdown gestion/04-cierre/product-status-account-final.md
+Estado de productos al 2027-05-12 · fuente backlog.csv · alcance proyecto · 11 productos
+no iniciado 0 · en desarrollo 0 · en revisión 0 · aprobado 0 · aceptado 11 · con concesión 0 · fuera de especificación 0 = 11
+Product status account: gestion/04-cierre/product-status-account-final.md (borrador; registrarlo con estado.py artefacto product-status-account --ruta … --estado en-revision).
+```
+
+```
+$ python3 $EST/estado.py --proyecto gestion artefacto product-status-account-final --ruta 04-cierre/product-status-account-final.md --estado en-revision
+ok
+```
+
+```
+$ (estado.py productos --markdown → gestion/04-cierre/product-status-account-final.md: resumen y desviaciones)
+| No iniciado / Not started | 0 |
+| En revisión / In quality review | 0 |
+| Aprobado / Approved | 0 |
+| Aceptado / Accepted | 11 |
+| Fuera de especificación / Off-specification | 0 |
+| **Total** | **11** |
+**Fuera de especificación / Off-specifications:** I-002
+**Discrepancias entre registro y estado físico / Register vs. physical state discrepancies:** ninguna
 ```
 
 ```
@@ -1164,8 +1486,86 @@ ok
 ```
 
 ```
+$ python3 $PLUGIN/skills/pm-lecciones-aprendidas/scripts/lecciones.py accionar L-001 --proyecto gestion --accion "propuesta a la PMO: revisar el recorrido con usuarios reales antes de cerrar cada release" --destino organizacion --por "Ejecutivo: Laura Méndez" --fecha 2027-05-12
+L-001 accionada-organizacion: acción propuesta a la PMO: revisar el recorrido con usuarios reales antes de cerrar cada release.
+```
+
+```
+$ python3 $PLUGIN/skills/pm-lecciones-aprendidas/scripts/lecciones.py informe --proyecto gestion --corte 2027-05-12 --exportar pmo/lecciones-indice.csv --por "Ejecutivo: Laura Méndez"
+Informe de lecciones (proyecto): gestion/04-cierre/informe-lecciones.md · 3 lecciones (alto 1, medio 2, bajo 0) · 0 pendientes · 3 para el índice.
+Índice: pmo/lecciones-indice.csv (3 lecciones aprobadas; total 3).
+Siguiente: estado.py artefacto informe-lecciones --ruta 04-cierre/informe-lecciones.md --estado en-revision; tras la revisión de la junta, estado.py aprobar informe-lecciones --por "<rol: nombre>".
+```
+
+```
+$ (lecciones.py informe → gestion/04-cierre/informe-lecciones.md)
+---
+tipo: informe-lecciones
+proyecto: "Portal de autoservicio para socios"
+alcance: "Proyecto completo"
+fecha: "2027-05-12"
+fuente: 03-control/registros/lecciones.csv
+estado: borrador
+aprobado_por: ""
+idioma: "es"
+---
+
+# Informe de lecciones · Lessons report — Portal de autoservicio para socios — Proyecto completo
+
+> Borrador generado desde `lecciones.csv` al 2027-05-12 (lecciones.py informe). Cada fila cita su L-### y la acción que la convirtió en cambio; aseguramiento confirma responsables y la junta lo revisa antes de aprobarlo (estado.py aprobar). Lo que no sale del registro (análisis por área, proveedores, desempeño excepcional) se completa con templates/informe-lecciones.md.
+
+## 1. Resumen
+
+- Lecciones en el alcance: **3** (0 descartadas con motivo) · aciertos: 1
+- Por impacto: alto 1 · medio 2 · bajo 0 · sin clasificar 0
+- Ciclo: registradas 0 · revisadas 0 · accionadas 1 · verificadas 2
+
+| Impacto | ideacion | descubrimiento | planificacion | seguimiento |
+|---|---:|---:|---:|---:|
+| alto | 0 | 0 | 1 | 1 |
+| medio | 0 | 1 | 0 | 1 |
+| bajo | 0 | 0 | 0 | 0 |
+
+*Una lección puede aplicar a más de un proceso (columna `aplicar_en`).*
+
+## 2. Lecciones por impacto
+
+| Id | Impacto · recurrencia | Aplica en | Situación | Recomendación | Acción | Verificación | Estado |
+|---|---|---|---|---|---|---|---|
+| L-003 | alto · media | planificacion; seguimiento | Tampoco funcionó cómo entró FR-13: la Sprint Change Proposal llegó al PRD sin pasar por la autoridad de cambio y la sanidad marcó el cambio… | toda Sprint Change Proposal entra primero como issue y pasa por la autoridad de cambio antes de tocar el PRD | A-002; plan-etapa-3 | 2027-05-12 · efectiva · Release 2: el rechazo de la historia 2-4 entró como I-002 y se corrigió sin tocar la especifica… | verificada |
+| L-002 | medio · alta | seguimiento | No funcionó lo de siempre: otra vez llegaron historias a done sin la revisión registrada, cinco desde el sprint 2. | la revisión registrada es parte de la definición de terminado: ninguna historia pasa a done sin ella | A-001; definición de terminado del sprint 5 | 2027-03-22 · efectiva · sprint 5: la historia 2-1 pasó a done con Q-009 registrada el mismo día (19/3); sanidad del 22/… | verificada |
+| L-001 | medio · baja | descubrimiento | La revisión con seis socios del 25/2 funcionó muy bien, aprendimos que mirar el recorrido con socios reales antes de cerrar un release encu… | mirar el recorrido con socios reales antes de cerrar un release encuentra dolores que las pruebas no ven | propuesta a la PMO: revisar el recorrido con usuarios reale… | — | accionada-organizacion |
+
+## 3. Pendientes al corte
+
+Ninguno: cada lección de impacto alto tiene acción y cada acción vencida está verificada (REG-11 y REG-12 en cero).
+
+## 4. Para la organización (índice de lecciones)
+
+Lecciones aprobadas que se comparten en el índice de la organización (3); las consultan la ideación y el descubrimiento de los proyectos siguientes (`lecciones.py buscar --indice <índice> --para ideacion|descubrimiento`):
+- L-003 (alto; planificacion; seguimiento; verificada): toda Sprint Change Proposal entra primero como issue y pasa por la autoridad de cambio antes de tocar el PRD
+- L-002 (medio; seguimiento; verificada): la revisión registrada es parte de la definición de terminado: ninguna historia pasa a done sin ella
+- L-001 (medio; descubrimiento; accionada-organizacion): mirar el recorrido con socios reales antes de cerrar un release encuentra dolores que las pruebas no ven
+
+## Revisión
+
+- Aseguramiento (confirma responsables): [por confirmar]
+- Junta (revisa y aprueba): [por confirmar]
+- Exportado al índice de la organización: `pmo/lecciones-indice.csv` (3 lecciones; total del índice 3) · 2027-05-12 · Ejecutivo: Laura Méndez
+```
+
+```
 $ python3 $EST/estado.py --proyecto gestion artefacto informe-lecciones --ruta 04-cierre/informe-lecciones.md --estado en-revision
 ok
+```
+
+```
+$ python3 $PLUGIN/skills/pm-lecciones-aprendidas/scripts/lecciones.py buscar --indice pmo/lecciones-indice.csv --para descubrimiento
+Lecciones aprobadas que coinciden: 1 de 3 (omitidas: 0 sin aprobar, 0 copias).
+- portal-de-autoservicio-para-socios:L-001 · Portal de autoservicio para socios · 2027-02-26 · acierto · accionada-organizacion · impacto medio · aplicar en descubrimiento
+    situación: La revisión con seis socios del 25/2 funcionó muy bien, aprendimos que mirar el recorrido con socios reales antes de cerrar un release encu…
+    recomendación: mirar el recorrido con socios reales antes de cerrar un release encuentra dolores que las pruebas no ven
+Para proponerlas como lecciones previas: lecciones.py incorporar --proyecto <dir> … --ids <ref,ref> (vista previa; registra solo con --confirmar --por).
 ```
 
 ```
@@ -1287,7 +1687,7 @@ ok
 
 ```
 $ python3 $PAQ --proyecto gestion cierre --extra gestion/00-direccion/historial/bmad-prd-v1.1/prd.md _bmad-output/planning-artifacts/prds/prd-portal-socios-2026-10-17/prd.md
-Escrito gestion/exportados/2026-10-20-paquete-cierre-v1.zip
+Escrito gestion/exportados/2026-10-22-paquete-cierre-v1.zip
 Excluidos por estar fuera del proyecto (usar --permitir-externos para incluirlos) / outside the project, excluded: extra: _bmad-output/planning-artifacts/prds/prd-portal-socios-2026-10-17/prd.md
 ```
 
@@ -1301,7 +1701,7 @@ $ (MANIFIESTO.md dentro del ZIP: estado del paquete, filas de --extra y nota de 
 
 ```
 $ python3 $EST/exportar.py xlsx --proyecto gestion
-Escrito gestion/exportados/2026-10-20-registros.xlsx
+Escrito gestion/exportados/2026-10-22-registros.xlsx
 ```
 
 ```
@@ -1311,10 +1711,42 @@ Autorizado: sí
 Roles: ejecutivo=Laura Méndez; usuario_senior=Sofía Ramírez; proveedor_senior=Diego Ferreira; gestor_proyecto=Martín Suárez; aseguramiento=Andrea Costa; autoridad_cambio=Sofía Ramírez; product_owner=Sofía Ramírez; jefes_equipo=Lucía Benítez
 Tolerancias: proyecto: tiempo=±3 semanas, costo=±8 %, alcance=Must sin tolerancia, calidad=NFR sin tolerancia; cada historia terminada con revisión aprobada, beneficios=-10 %, riesgo=ningún riesgo alto sin respuesta, sostenibilidad=-10 % sobre las metas del enfoque de sostenibilidad | etapa: tiempo=±10 %, costo=±10 %
 Presupuestos: cambio=15000, limite_autoridad_cambio=8000
-Artefactos: 25 (11 aprobados)
+Artefactos: 27 (11 aprobados)
 Última puerta: autorizar-cierre · aprobado · 2027-05-14 · Ejecutivo: Laura Méndez
 Fase: cerrado · Proceso: CP · Etapa 3: Release 2 · Enfoque: hibrido
 Proyecto cerrado. Pendiente fuera del proyecto: revisiones de beneficios según el plan (responsable: usuario sénior / capa de negocio).
+```
+
+## Paso 9b · Expediente de auditoría para la auditoría externa y verificación de integridad
+```
+$ HOME="$(mktemp -d)" python3 $PAQ --proyecto gestion auditoria --hasta 2027-05-14 --proposito "auditoría externa" --externo
+Escrito gestion/exportados/2026-10-22-expediente-auditoria-inicio_2027-05-14.zip: 44 archivos · 41 eventos en la cronología · registros 8 · sanidad ERROR 0 AVISO 0
+  aceptaciones 1 · comunicaciones 7 · cronologia 1 · estado 1 · indice 2 · lineas-base 16 · manifiesto 1 · puertas 5 · registros 8 · sanidad 1
+Integridad: paquete.py --proyecto gestion verificar gestion/exportados/2026-10-22-expediente-auditoria-inicio_2027-05-14.zip
+```
+
+```
+$ python3 $PAQ --proyecto gestion verificar gestion/exportados/2026-10-22-expediente-auditoria-inicio_2027-05-14.zip
+INTEGRIDAD: OK · 43 archivos coinciden con SHA256SUMS
+```
+
+```
+$ (INDICE.md dentro del ZIP: propósito, conteo de la cronología, registros omitidos por destinatario externo y hallazgos de sanidad al corte)
+Proyecto: Portal de autoservicio para socios · propósito: auditoría externa · período: inicio → 2027-05-14 · corte: 2027-05-14 · generado: <fecha de la corrida> con asistencia de IA (consolidación de archivos existentes).
+41 eventos (también en cronologia.csv).
+Copia de los registros al corte; con período, las filas cuya fecha cae en él y las que no tienen fecha. Destinatario externo: sin 03-control/registros/stakeholders.csv (valoraciones de interesados) y sin el destino de los envíos.
+ERROR 0 · AVISO 0 · INFO 1 · sanidad-2027-05-14.json
+```
+
+```
+$ (copia del expediente que llega a la auditoría: una sola edición en decisiones.csv; el resto, idéntico)
+03-control/registros/decisiones.csv, fila D-013: «autorizar-etapa: condicionado — condiciones: …» → «autorizar-etapa: aprobado — condiciones: …»
+```
+
+```
+$ python3 $PAQ --proyecto gestion verificar copia-auditoria/expediente-recibido.zip
+INTEGRIDAD: FALLA · 1 problema(s) en copia-auditoria/expediente-recibido.zip
+  alterado: 03-control/registros/decisiones.csv
 ```
 
 ## Paso 10 · Después del proyecto: primera revisión de beneficios del negocio (30/6/2027)

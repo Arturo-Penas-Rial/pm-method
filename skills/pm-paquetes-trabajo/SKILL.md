@@ -1,7 +1,7 @@
 ---
 name: pm-paquetes-trabajo
 description: "Paquetes de trabajo (WP) y product status account. Usar: autorizar paquete, work package, plan de equipo, recibir paquete, sprint como paquete, team plan. No: plan de etapa→pm-plan-etapa-y-limites."
-version: 2.3.0
+version: 2.4.0
 author: pm-method
 license: MIT
 metadata:
@@ -53,7 +53,7 @@ metadata:
 8. **Tratar desviaciones.** Dentro de tolerancia del paquete → acción correctiva anotada en el checkpoint. Fuera → issue al gestor del proyecto (`pm-issues-cambios`), que decide dentro de la tolerancia de etapa o escala como excepción. Producto que no alcanzará su especificación → off-specification: completar o concesión.
 9. **Verificar antes de entregar.** Por producto: actividad de calidad `aprobado` en `calidad.csv`, aprobación fechada de la autoridad nombrada y estado actualizado en el product status account. Si falta algo, el paquete no está completo (criterios en guía §4).
 10. **PUERTA HUMANA — Notificar y recibir.** El gestor de equipo notifica con desempeño contra lo acordado, issues, riesgos y lecciones. El gestor del proyecto comprueba, actualiza el plan de etapa y registra la recepción (`decisiones.csv`, `nivel=gestor`); `estado_paquete: completado` (estado operativo vs documental: guía §2).
-11. **Product status account** cuando se pida (fin de etapa, cierre, excepción, auditoría): `templates/product-status-account.md`, fuente por fila (guía §5).
+11. **Product status account** cuando se pida (fin de etapa, cierre, excepción, auditoría): `python3 ${CLAUDE_SKILL_DIR}/../pm-estado-proyecto/scripts/estado.py --proyecto <dir> productos [--corte] [--alcance WP-###] [--markdown]` deriva el estado de cada producto y las diferencias registrado/físico (guía §5); la persona completa lo que queda `[por confirmar]`.
 12. **Variantes.** Ágil/híbrido: la iteración es el paquete, DoD = criterios de calidad, intercambios del PO dentro de tolerancia sin cambio (guía §7). Con BMAD: sprint = paquete, historias = productos (estado por la fachada), DoD y code review como métodos de calidad (guía §8). Proveedores: guía §9.
 13. **Cerrar** con ids creados (WP-nnn, Q-, D-), estado de cada producto, próxima puerta y quién decide; como subagente, bloque de retorno (SPEC §1.11).
 
@@ -78,7 +78,7 @@ metadata:
 |---|---|---|---|
 | Descripción de paquete de trabajo | `templates/paquete-trabajo.md` | `03-control/paquetes-trabajo/WP-nnn-<nombre>.md` | `artefactos["WP-nnn"]` (documental); avance en `estado_paquete` del WP |
 | Plan de equipo o extracto de hitos | sección del WP o archivo propio | `03-control/paquetes-trabajo/WP-nnn-plan-equipo.md` | anexo del WP-nnn |
-| Product status account | `templates/product-status-account.md` | `03-control/reportes/AAAA-MM-DD-product-status-account.md` | `product-status-account` |
+| Product status account | `templates/product-status-account.md` (`estado.py productos --markdown`) | `03-control/reportes/AAAA-MM-DD-product-status-account.md` | `product-status-account` |
 | Estado de paquetes | tabla en la respuesta o al pie del anterior | `03-control/reportes/AAAA-MM-DD-estado-paquetes.md` | — |
 | Actividades de calidad | `registro.py agregar calidad` | `03-control/registros/calidad.csv` | — |
 | Autorización, aceptación, recepción | `registro.py agregar decisiones` / `estado.py aprobar` | `03-control/registros/decisiones.csv` | puertas de junta: solo `pm-director` |

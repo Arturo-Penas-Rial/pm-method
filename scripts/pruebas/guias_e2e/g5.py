@@ -6,6 +6,9 @@ Variante a) con BMAD: los supuestos y requisitos salen del fixture BMAD real (po
 Bloque C: el mismo proyecto con tres diseños (interno pequeño, regulado, producto digital ágil), cada uno con su estado.json.
 Los mapas de Wardley y de recorrido de cada variante terminan en su tablero de mapas (mapas.py tablero):
 g5-tablero-mapas.png (y el recorte 16:9 g5-tablero-mapas-169.png) y g5-tablero-mapas-bmad.png.
+Lecciones previas desde el índice de la red (lecciones.py, paso 1; accionadas con su control en el paso 6); personas de
+usuario y capacidad × persona en las dos variantes (interesados.py personas, pasos 10b y 16b: g5-personas-mapa.png y
+g5-personas-mapa-bmad.png); línea de radar del hook al retomar (paso 7) y radar al 2027-02-01 (estado.py radar, paso 14).
 """
 from comun import *
 import io
@@ -63,6 +66,69 @@ def inversion(r, rel, filas, mostrar=True):
 def csv_filas(r, rel):
     return list(csv.DictReader(open(os.path.join(r, G, rel), encoding="utf-8")))
 
+def personas_json(r, accion, *extra):
+    """interesados.py personas candidatos|mapa|priorizacion --json (cifras para el gráfico capacidad × persona)."""
+    return json.loads(subprocess.run(["python3", IN, "--proyecto", G, "personas", accion, *extra, "--json"], cwd=r, capture_output=True, text=True).stdout)
+
+def matriz_personas(m, prio, ruta, titulo, subtitulo="", fuente=""):
+    """Capacidad × persona (personas mapa --json): prioridad MoSCoW de cada capacidad, el rol de cada persona con letra y
+    color (S pide, U usa, B aprovecha), cuántas personas toca cada capacidad y, al pie, lo de cada persona según
+    personas priorizacion --json. Paleta, tipografía, tamaño (1600×900) y pie de fuente de visuales.py."""
+    import textwrap, matplotlib.lines as ml
+    from matplotlib.patches import FancyBboxPatch
+    ROL = {"solicitante": "S", "usuario": "U", "beneficiario": "B"}; COL = {"S": V.SERIE[1], "U": V.SERIE[0], "B": V.SERIE[2]}
+    MOS = {"must": "Must", "should": "Should", "could": "Could", "wont": "Won't"}
+    recortar = lambda x, n: x if len(x) <= n else x[:n - 1].rstrip() + "…"
+    pers, caps = m["personas"], m["capacidades"]; pp_ = {x["id"]: x for x in prio["personas"]}
+    fig = V._fig(titulo, subtitulo)
+    n, k = len(caps), len(pers)
+    x_id, x_tit, x_mo, x_n = 0.04, 0.105, 0.43, 0.87
+    ancho = min(0.13, 0.39 / max(k, 1)); x_p0 = 0.475 + (0.39 - k * ancho) / 2
+    arriba, abajo, hc = 0.735, 0.235, 0.05
+    h = min(0.0625, (arriba - hc - abajo) / n)
+    linea = lambda y: fig.add_artist(ml.Line2D([0.04, x_n + 0.06], [y, y], transform=fig.transFigure, color=V.EJE, linewidth=0.8))
+    for x, t_, ha in ((x_id, "Capacidad", "left"), (x_mo, "MoSCoW", "center"), (x_n + 0.03, "Personas", "center")):
+        fig.text(x, arriba - hc / 2, t_, fontsize=12, color=V.TINTA2, fontweight="bold", va="center", ha=ha)
+    nl = max(len(textwrap.wrap(p_["nombre"], 20)[:2]) for p_ in pers)
+    for j, p_ in enumerate(pers):
+        cx = x_p0 + (j + 0.5) * ancho
+        fig.text(cx, arriba + 0.012, "\n".join(textwrap.wrap(p_["nombre"], 20)[:2]), fontsize=10.5, color=V.TINTA, va="bottom", ha="center", linespacing=1.15)
+        fig.text(cx, arriba + 0.018 + 0.0265 * nl, p_["id"], fontsize=11, color=V.TINTA, fontweight="bold", va="bottom", ha="center")
+    linea(arriba - hc)
+    for i, c in enumerate(caps):
+        y = arriba - hc - h * (i + 0.5); must = c["prioridad"] == "must"
+        if i % 2 == 0:
+            fig.add_artist(FancyBboxPatch((0.035, y - h / 2), x_n + 0.03, h, boxstyle="square,pad=0", transform=fig.transFigure, facecolor="#f0efec", edgecolor="none", zorder=0))
+        fig.text(x_id, y, c["id"], fontsize=11.5, color=V.TINTA, fontweight="bold" if must else "normal", va="center")
+        fig.text(x_tit, y, recortar(" ".join(str(c["titulo"] or "").split()), 40), fontsize=11.5, color=V.TINTA, va="center")
+        fig.text(x_mo, y, MOS.get(c["prioridad"], "—"), fontsize=11.5, color=V.TINTA if must else V.TINTA2, fontweight="bold" if must else "normal", va="center", ha="center")
+        for j, p_ in enumerate(pers):
+            roles = [ROL[r] for r in c["personas"].get(p_["id"], [])]
+            if not roles: continue
+            cx = x_p0 + (j + 0.5) * ancho; w_ = 0.026 + 0.018 * (len(roles) - 1)
+            fig.add_artist(FancyBboxPatch((cx - w_ / 2, y - h * 0.34), w_, h * 0.68, boxstyle="round,pad=0,rounding_size=0.006", transform=fig.transFigure,
+                                          facecolor=COL[roles[0]], edgecolor="none", zorder=2))
+            fig.text(cx, y, "·".join(roles), fontsize=12, color="white", fontweight="bold", va="center", ha="center", zorder=3)
+        fig.text(x_n + 0.03, y, str(len(c["personas"])), fontsize=12, color=V.TINTA, va="center", ha="center", fontweight="bold" if len(c["personas"]) == k else "normal")
+    yb = arriba - hc - h * n; linea(yb); yp = yb - 0.045
+    hay_pr = any(x["por_prioridad"].get(q) for x in prio["personas"] for q in MOS)
+    hay_rep = any(x.get("representante") for x in prio["personas"]); hay_ben = any(x.get("beneficios") for x in prio["personas"])
+    fig.text(x_id, yp, "Por persona", fontsize=12, color=V.TINTA2, fontweight="bold", va="center")
+    for j, p_ in enumerate(pers):
+        x = pp_.get(p_["id"]) or {}; pr = x.get("por_prioridad", {})
+        partes = [f"{pr[q]} {MOS[q]}" for q in MOS if pr.get(q)] + ([f"{pr['sin']} sin prioridad"] if pr.get("sin") else [])
+        rr = x.get("por_rol", {})
+        roles = " · ".join(f"{et} {rr[r]}" for r, et in (("solicitante", "pide"), ("usuario", "usa"), ("beneficiario", "aprovecha")) if rr.get(r))
+        lin = ([" · ".join(partes)] if hay_pr else [roles]) + ([f"representa {(x.get('representante') or {}).get('id', '—')}"] if hay_rep else []) \
+            + ([" · ".join(b["id"] for b in x.get("beneficios", [])) or "—"] if hay_ben else [])
+        fig.text(x_p0 + (j + 0.5) * ancho, yp, "\n".join(lin), fontsize=10.5,
+                 color=V.TINTA, va="top", ha="center", linespacing=1.3)
+    pie = ", ".join((["capacidades por prioridad"] if hay_pr else ["capacidades por rol (el PRD no prioriza)"]) + (["interesado que la representa"] if hay_rep else [])
+                    + (["beneficios"] if hay_ben else []))
+    fig.text(x_id, yp - 0.04, "S pide · U usa · B aprovecha sin usarla" + (" · Must en negrita" if hay_pr else "") + "\n"
+             + "\n".join(textwrap.wrap("Al pie, por persona: " + pie, 60)), fontsize=10.5, color=V.TINTA2, va="top", linespacing=1.3)
+    return V._guardar(fig, ruta, fuente)
+
 # ===================================================================================== variante b) sin BMAD
 base = tempfile.mkdtemp(prefix="e2e-")
 repo = os.path.join(base, "turnos-policlinicas"); os.makedirs(repo); print("REPO", repo)
@@ -92,12 +158,34 @@ Autoridad emisora y ejecutiva prospectiva: Carmen Olivera. Gestor propuesto: Pab
 ## 5. Anotaciones del gestor
 Faltan: presupuesto disponible y fecha deseada [por confirmar con la ejecutiva].
 """, origen="pm-mandato-y-brief, templates/mandato.md")
-L = {}
-for k, sit, efe, rec in (
-        ("L1", "App de resultados de laboratorio (2024): 11 % de uso en pacientes mayores de 65", "la app no redujo las llamadas de ese grupo", "mantener un canal asistido y medir la adopción por franja de edad desde el día 1"),
-        ("L2", "Historia clínica (2025): la integración con la agenda clínica se estimó en 4 semanas y llevó 14", "el proveedor no tenía una interfaz documentada; atraso de 10 semanas", "validar la interfaz del proveedor con una prueba técnica antes de comprometer fechas"),
-        ("L3", "Piloto de recordatorios por SMS en odontología (2025)", "bajó el ausentismo pero nadie midió la línea base y no se pudo justificar la extensión", "medir la línea base antes de cualquier piloto")):
-    L[k] = reg(repo, "lecciones", fecha="2026-11-02", etapa="0", categoria="proyectos anteriores", situacion=sit, efecto=efe, recomendacion=rec, prioridad="alta", responsable_seguimiento="Pablo Rinaldi")
+# índice de lecciones de la red, exportado por la PMO con `lecciones.py buscar --exportar` (fuera de gestion/): tres lecciones
+# aprobadas que aplican, una aprobada de otro tema y una sin aprobar (no se devuelve)
+LECC = f"python3 {RAIZ}/skills/pm-lecciones-aprendidas/scripts/lecciones.py"
+IDX = "pmo-altamar/lecciones-indice.csv"
+os.makedirs(os.path.join(repo, "pmo-altamar"))
+escribir_csv(os.path.join(repo, IDX), ["proyecto", "ref", "id", "fecha", "etapa", "categoria", "etiquetas", "situacion", "efecto", "recomendacion", "prioridad", "estado"], [
+    dict(proyecto="App de resultados de laboratorio", ref="app-de-resultados-de-laboratorio:L-004", id="L-004", fecha="2024-11-20", etapa="3", categoria="adopcion",
+         etiquetas="pacientes;adopcion;canal-digital", situacion="App de resultados de laboratorio (2024): 11 % de uso en pacientes mayores de 65",
+         efecto="la app no redujo las llamadas de ese grupo", recomendacion="mantener un canal asistido y medir la adopción por franja de edad desde el día 1", prioridad="alta", estado="accionada-organizacion"),
+    dict(proyecto="Historia clínica electrónica", ref="historia-clinica-electronica:L-007", id="L-007", fecha="2025-06-30", etapa="2", categoria="tecnica",
+         etiquetas="agenda-clinica;integracion;proveedor", situacion="Historia clínica (2025): la integración con la agenda clínica se estimó en 4 semanas y llevó 14",
+         efecto="el proveedor no tenía una interfaz documentada; atraso de 10 semanas", recomendacion="validar la interfaz del proveedor con una prueba técnica antes de comprometer fechas", prioridad="alta", estado="revisada"),
+    dict(proyecto="Historia clínica electrónica", ref="historia-clinica-electronica:L-009", id="L-009", fecha="2025-07-14", etapa="2", categoria="datos",
+         etiquetas="agenda-clinica;migracion", situacion="La migración de los turnos históricos a la agenda llevó dos fines de semana",
+         efecto="sin efecto en el plan", recomendacion="planificar la migración fuera del horario de atención", prioridad="baja", estado="registrada"),
+    dict(proyecto="Piloto de recordatorios de odontología", ref="piloto-de-recordatorios-de-odontologia:L-002", id="L-002", fecha="2025-09-15", etapa="1", categoria="beneficios",
+         etiquetas="recordatorios;ausentismo;linea-base", situacion="Piloto de recordatorios por SMS en odontología (2025)",
+         efecto="bajó el ausentismo pero nadie midió la línea base y no se pudo justificar la extensión", recomendacion="medir la línea base antes de cualquier piloto", prioridad="alta", estado="accionada-proyecto"),
+    dict(proyecto="Mudanza del laboratorio central", ref="mudanza-del-laboratorio-central:L-003", id="L-003", fecha="2025-03-10", etapa="2", categoria="adquisiciones",
+         etiquetas="compras;equipamiento", situacion="El equipamiento se adjudicó sin pliego técnico revisado por los usuarios",
+         efecto="dos equipos devueltos y un mes de atraso", recomendacion="pliego técnico firmado por el usuario antes de licitar", prioridad="media", estado="revisada")])
+LOG.append((f"(índice de lecciones de la red, exportado por la PMO con lecciones.py buscar --exportar → {IDX})", f"5 lecciones de 4 proyectos (una sin aprobar)"))
+run(f'{LECC} buscar --indice {IDX} --texto "pacientes turnos agenda recordatorios"', repo)
+REFS_L = "app-de-resultados-de-laboratorio:L-004,historia-clinica-electronica:L-007,piloto-de-recordatorios-de-odontologia:L-002"
+run(f'{LECC} incorporar --proyecto {G} --indice {IDX} --ids {REFS_L}', repo)
+out_l = run(f'{LECC} incorporar --proyecto {G} --indice {IDX} --ids {REFS_L} --confirmar --por "Gestor: Pablo Rinaldi" --fecha 2026-11-02', repo)
+L = dict(zip(("L1", "L2", "L3"), re.findall(r"\b(L-\d{3}) ←", out_l)))
+run(E(f'registro.py --proyecto {G} listar lecciones'), repo)
 
 P("Paso 2 · Mapa de supuestos: criticidad y certeza (deseabilidad, viabilidad, factibilidad)")
 run(f'python3 {RAIZ}/skills/pm-riesgos/scripts/riesgos.py --proyecto {G} candidatos --fuentes artefactos --fecha 2026-11-04', repo)
@@ -413,6 +501,10 @@ Supuestos críticos: {', '.join(crit_baja)} · Experimentos: prueba de humo, pil
 Costos: 180.000 (orden de magnitud) · Restricción: se mantienen teléfono y presencial.
 """, origen="pm-mandato-y-brief, templates/canvas-arranque.md")
 doc(repo, "plan-etapa-1", "02-planificacion/plan-etapa-1.md", f"# Plan de la etapa 1 (iniciación) · 2026-12-11 a 2027-01-15\n\nBusiness case completo, PBS y WBS, presupuesto, enfoques, PID; prueba técnica de {S[2]} (2027-01-14).\n", origen="pm-plan-etapa-y-limites")
+# cada lección previa ya tiene su control temprano (brief §7): pm-lecciones-aprendidas la marca accionada-proyecto con el artefacto
+for k_, ctl in (("L1", "project-brief §7, canal asistido"), ("L2", f"project-brief §7 y plan-etapa-1, prueba técnica de {S[2]} antes de fechas"),
+                ("L3", f"{S[1]}, línea base medida antes del piloto (ausentismo 18 %)")):
+    act(repo, "lecciones", L[k_], estado="accionada-proyecto", notas=f"incorporada: {ctl}")
 run(E(f'estado.py --proyecto {G} tolerancia --nivel proyecto "tiempo=±4 semanas" "costo=±10 %" "alcance=Must sin tolerancia" "beneficios=-15 %" "riesgo=ningún riesgo alto sin respuesta"'), repo)
 puerta_f(repo, "autorizar-inicio", EJ, "2026-12-11", "--fin 2027-01-15")
 for c in ("project-brief", "business-case-esquematico"):
@@ -422,6 +514,7 @@ run(E(f'estado.py --proyecto {G} resumen'), repo)
 # ------------------------------------------------------------------------------------------- clase 2
 P("Paso 7 · Retomar la sesión, mapa de beneficios y enfoque de beneficios (P-04)")
 run(E(f'estado.py --proyecto {G} contexto --corte 2027-01-08'), repo)
+run(E(f'estado.py --proyecto {G} radar --linea --corte 2027-01-08'), repo)   # la línea que el hook de inicio agrega a la sesión
 doc(repo, "business-case", "00-direccion/business-case.md", f"""# Business case · Turnos en línea (v0.9, completo)
 
 ## 3. Cadena de valor
@@ -557,6 +650,35 @@ LOG.append((f"(pm-interesados registra la matriz RACI en raci.csv con registro.p
 run(f'python3 {IN} --proyecto {G} --medio bajo matriz', repo)
 run(f'python3 {IN} --proyecto {G} --medio bajo raci', repo)
 
+P("Paso 10b · Personas de usuario: quién pide, usa o aprovecha cada capacidad")
+run(f'python3 {IN} --proyecto {G} personas candidatos', repo)
+cand = personas_json(repo, "candidatos")[0]
+# Inés Ferrer confirma la candidata y completa lo que usa y sus beneficios; agrega dos personas que el recorrido no muestra
+PU = [reg(repo, "personas", nombre=cand["nombre"], descripcion="Adulto que hoy saca, confirma y cancela el turno llamando al call center", objetivo=cand["objetivo"],
+          dolores=cand["dolores"], contexto_uso=cand["contexto_uso"], fuente=cand["fuente"], evidencia=cand["evidencia"], stakeholder_id=cand["stakeholder_id"],
+          usa=";".join(sorted(set(cand["usa"].split(";")) | {"REQ-001", "REQ-004"})), beneficios="B-01;B-02"),
+      reg(repo, "personas", nombre="Recepcionista del call center", descripcion="Atiende el teléfono en las horas pico y libera a mano los turnos que se cancelan",
+          objetivo="Atender a quien llama sin colas y no perder los turnos que se liberan", dolores="Colas en las horas pico; libera los turnos cancelados al día siguiente, a mano",
+          contexto_uso="Puesto de recepción y call center, en horario de atención", fuente="supuesto",
+          evidencia="backstage de P1 y P5 en recorrido-paciente.json; a validar con entrevistas en recepción", stakeholder_id=ST["Recepción y call center"],
+          solicita="REQ-003", usa="REQ-002", beneficia="REQ-004", beneficios="B-02;DB-01"),
+      reg(repo, "personas", nombre="Paciente mayor de 65", descripcion="Prefiere el teléfono; usa el celular para mensajes, no para aplicaciones",
+          objetivo="No perder el turno sin tener que usar una aplicación", dolores="No usa aplicaciones; necesita que alguien lo atienda",
+          contexto_uso="Recibe mensajes en el celular; agenda por teléfono o en recepción", fuente="documento",
+          evidencia=f"{L['L1']} (App de resultados de laboratorio, 2024: 11 % de uso en mayores de 65)", stakeholder_id=ST["Comisión de usuarios"],
+          solicita="REQ-007", usa="REQ-001;REQ-003", beneficios="B-01")]
+sanidad(repo, "2027-01-12")
+act(repo, "personas", PU[0], beneficia="REQ-006")
+run(f'python3 {IN} --proyecto {G} personas mapa', repo)
+run(f'python3 {IN} --proyecto {G} personas priorizacion', repo)
+mp, pp = personas_json(repo, "mapa"), personas_json(repo, "priorizacion")
+todas = [c["id"] for c in mp["capacidades"] if len(c["personas"]) == len(mp["personas"])]
+musts = [c for c in mp["capacidades"] if c["prioridad"] == "must"]
+matriz_personas(mp, pp, os.path.join(OUT, "g5-personas-mapa.png"),
+                f"Los {len(musts)} Must tienen persona y {', '.join(todas)} sirve a las {len(mp['personas'])}",
+                subtitulo=f"Turnos en línea · capacidad × persona al 2027-01-12 · el paciente mayor de 65 no usa el portal: lo suyo es el recordatorio",
+                fuente="interesados.py personas mapa y priorizacion --json · personas.csv · requisitos.md (MoSCoW)")
+
 P("Paso 11 · Enfoques de gestión adaptados al contexto (tailoring)")
 regs(repo, "decisiones", fecha="2027-01-12", decision="Nivel de formalidad de los enfoques: una página cada uno (riesgo, calidad, issues y cambios, comunicación); datos digitales dentro de calidad (datos de salud); sostenibilidad dentro del business case",
      decidido_por="Gestor: Pablo Rinaldi", nivel="gestor")
@@ -660,9 +782,10 @@ V.tarjetas([(f"USD {usd(van_final)}", "VAN a 5 años de la opción 2", f"TIR {pc
 run(f'{MAPAS} --proyecto {G} tablero', repo)
 captura_html(os.path.join(repo, G, "02-planificacion", "visuales", "tablero-mapas.html"), os.path.join(OUT, "g5-tablero-mapas.png"), ancho=1600)
 captura_seccion(os.path.join(repo, G, "02-planificacion", "visuales", "tablero-mapas.html"), os.path.join(OUT, "g5-tablero-mapas-169.png"), "main", ancho=1600, alto=900, escala=1.25)
-# aceptar no es olvidar: al 2027-02-01, sin dictamen y sin revisar los riesgos, la sanidad y el contexto de sesión lo muestran
+# aceptar no es olvidar: al 2027-02-01, sin dictamen y sin revisar los riesgos, la sanidad lo detecta y el radar dice qué
+# decidir, escalar, desbloquear y vigilar, con responsable y siguiente paso
 sanidad(repo, "2027-02-01")
-run(E(f'estado.py --proyecto {G} contexto --corte 2027-02-01'), repo)
+run(E(f'estado.py --proyecto {G} radar --corte 2027-02-01'), repo)
 
 # ===================================================================================== variante a) con BMAD
 P("Paso 15 · Variante a) con BMAD: supuestos, preguntas y requisitos desde los artefactos de descubrimiento")
@@ -690,9 +813,33 @@ P("Paso 16 · Variante a) con BMAD: qué controles detectan los vacíos")
 sanidad(ra, "2026-10-28")
 run(E(f'puertas.py --proyecto {G} verificar autorizar-proyecto'), ra, ok=(0, 1, 2))
 
+P("Paso 16b · Variante a) con BMAD: personas de usuario desde los recorridos UJ y capacidad × persona")
+run(f'python3 {IN} --proyecto {G} personas candidatos --desde bmad', ra)
+# Martín Suárez confirma las tres candidatas, completa los dolores con el texto del PRD y mapea los dos FR que ningún recorrido
+# realiza: FR-8 lo usan Diego (el UJ-2 parte «con contacto verificado») y Lucía (aprueba el cambio de domicilio, prd.md:158);
+# FR-12 avisa a Diego; Lucía, que hoy transcribe pedidos de varios canales, es quien pide la bandeja única (FR-9)
+DOL_A = {"Marta": "Evita los trámites digitales complejos; necesita la constancia para un trámite bancario",
+         "Diego": "No sabe en qué estado está su solicitud de préstamo", "Lucía": "Transcribe pedidos que llegan por varios canales"}
+EXTRA_A = {"Diego": {"usa": ["FR-8"], "beneficia": ["FR-12"]}, "Lucía": {"usa": ["FR-8"], "solicita": ["FR-9"]}}
+PUA = {}
+for c in personas_json(ra, "candidatos", "--desde", "bmad"):
+    campos = {k_: c[k_] for k_ in ("nombre", "descripcion", "objetivo", "contexto_uso", "fuente", "evidencia", "usa") if c[k_]}
+    campos["dolores"] = DOL_A[c["nombre"]]
+    for k_, v_ in EXTRA_A.get(c["nombre"], {}).items():
+        campos[k_] = ";".join(sorted([x for x in (campos.get(k_) or "").split(";") if x] + v_, key=lambda x: int(x.split("-")[1])))
+    PUA[c["nombre"]] = reg(ra, "personas", **campos)
+run(f'python3 {IN} --proyecto {G} personas mapa --limite 0', ra)
+run(f'python3 {IN} --proyecto {G} personas priorizacion', ra)
+mpa, ppa = personas_json(ra, "mapa"), personas_json(ra, "priorizacion")
+usos = {p_["id"]: sum(1 for c in mpa["capacidades"] if p_["id"] in c["personas"]) for p_ in mpa["personas"]}
+matriz_personas(mpa, ppa, os.path.join(OUT, "g5-personas-mapa-bmad.png"),
+                f"Los {len(mpa['capacidades'])} FR del PRD tienen persona: " + ", ".join(f"{p_['nombre']} {usos[p_['id']]}" for p_ in mpa["personas"]),
+                subtitulo="Portal de socios · personas desde los recorridos UJ-1…3 del PRD · el PRD no prioriza: MoSCoW llega con el backlog (E2E-4)",
+                fuente="interesados.py personas candidatos --desde bmad, mapa y priorizacion --json · personas.csv · prd.md (solo lectura)")
+
 P("Paso 17 · Variante a) con BMAD: recorrido y mapa de valor desde la especificación")
 run(f'python3 {BMAD} --proyecto {G} recorridos --id UJ-2', ra)
-run(f'{MAPAS} --proyecto {G} recorrido semilla --uj UJ-2 --backstage UJ-3 --fecha 2026-10-29', ra)
+run(f'{MAPAS} --proyecto {G} recorrido semilla --uj UJ-2 --backstage UJ-3 --persona {PUA["Diego"]} --fecha 2026-10-29', ra)
 EMO_A = {  # paso: (emoción, fuente, dolor, causa, oportunidad, kano, refs, frontstage, backstage, soporte)
     "P1": (1, "supuesto declarado: PRD §2.1, «quiero pedir un préstamo pequeño y saber en qué estado está»", "", "", "", "", ["FR-6"], "Formulario guiado", "", ""),
     "P2": (0, "supuesto declarado: formulario con límites por producto (pregunta abierta 3)", "", "", "", "", ["FR-6"], "Validación de límites", "", ""),

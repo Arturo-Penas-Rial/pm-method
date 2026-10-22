@@ -63,6 +63,35 @@ Con BMAD (`integraciones.especificacion = bmad`), en `autorizar-proyecto`, `auto
 `--extra` la matriz `02-planificacion/especificacion/matriz-trazabilidad-bmad.csv` y la línea base congelada
 `00-direccion/historial/bmad-prd-v<ver>/`; nunca se copian archivos de las carpetas de BMAD.
 
+### 3.1 Expediente de auditoría y verificación de integridad
+Para la PMO, una auditoría interna, una due diligence o la entrega a un cliente, el expediente reúne bajo demanda la
+evidencia que ya está en la carpeta del proyecto, sin reescribirla:
+`python3 ${CLAUDE_SKILL_DIR}/../pm-exportar/scripts/paquete.py --proyecto <dir> auditoria [--desde AAAA-MM-DD] [--hasta AAAA-MM-DD] [--proposito "…"] [--externo] [--salida …] [--extra …]`
+→ `exportados/<hoy>-expediente-auditoria[-<desde>_<hasta>].zip`.
+
+| En el ZIP | De dónde sale |
+|---|---|
+| `INDICE.md` e `INDICE.html` (escapado, con enlaces) | alcance (propósito, período, corte, fase y etapa), cronología, líneas base, registros, evidencia de puertas, comunicaciones, sanidad y manifiesto |
+| `cronologia.csv` | puertas de `estado.json` (con su D-### y la lista de control confirmada), `decisiones.csv` (aprobaciones `aprobado <clave> v<ver>`, presupuestos, decisiones de la reunión), cambios decididos, riesgos aceptados (`respuesta=aceptar`), productos aceptados (`calidad.csv`) y envíos realizados (`envios.csv`, por id de interesado) |
+| `estado.json` y `03-control/registros/*.csv` | copia byte a byte; con período, las filas cuya fecha cae en él y las que no tienen fecha |
+| `00-direccion/historial/**` | líneas base congeladas (aprobaciones de `estado.py aprobar` y de `bmad.py linea-base`) |
+| `00-direccion/decisiones/**` | listas de verificación de puertas, solicitudes y actas de junta |
+| `03-control/reuniones/*acta*`, `03-control/reportes/*` (incluidos los cortes `evm-*.json`), `03-control/comunicaciones/**`, `04-cierre/*aceptacion*` | comunicaciones, informes y aceptaciones (con período, se omiten los fechados fuera de él) |
+| `sanidad-<corte>.json` | `sanidad.py --json --corte <hasta o hoy>` (solo lectura) |
+| `MANIFIESTO.md` y `SHA256SUMS` | sha256 de cada archivo |
+
+Los paquetes de puerta ya generados (`exportados/*.zip`) se citan en el índice con su huella y no se reincluyen; una ruta
+de `--extra` fuera del proyecto se excluye y se anota. `--externo` (cliente, proveedor, due diligence) deja fuera el
+registro de interesados y sus valoraciones (`stakeholders`, `estereotipos`, `preferencias`, regla 12) y el destino de
+los envíos. El expediente no aprueba ni dictamina.
+
+**Verificar:** `paquete.py --proyecto <dir> verificar <zip>` recalcula el sha256 de cada archivo y lo compara con
+`SHA256SUMS`: informa alterados, faltantes y agregados (código 1) o `INTEGRIDAD: OK`. Respaldo: PRINCE2 7, líneas base y
+gestión de configuración (pista de auditoría de todos los cambios, archivo de versiones anteriores:
+`pm-knowledge/references/prince2-practicas-riesgo-issues-progreso-productos.md` §3.c.4), registro del proyecto (§5.4 A13)
+y enfoque de gestión de datos (integridad y auditorías de datos, §4.d); PMBOK 8, auditorías
+(`pmbok8-artefactos-tecnicas-anexos.md`, fila "Auditorías": confirmar la implementación de cambios aprobados).
+
 ## 4. Revisión del resultado
 Abrir o listar el archivo generado: tablas íntegras, frontmatter no visible, marca BORRADOR cuando corresponde, orden de
 secciones igual a la fuente, manifiesto coincidente con el contenido.

@@ -1,0 +1,301 @@
+{
+ "meta": {
+  "archivo": "pm-method-ieee-resumen-light",
+  "titulo_doc": "pm-method · Resumen light para IEEE",
+  "descripcion": "Resumen light de pm-method para miembros de IEEE: qué resuelve, cómo trabaja, ventajas y una propuesta de formación a ritmo tranquilo con su ruta de entrada.",
+  "pie": "pm-method 2.4.0 · Resumen light para IEEE · propuesta ajustable",
+  "portada_linea": "propuesta ajustable",
+  "version": "2.4.0"
+ },
+ "programa": {
+  "minutos_sesion": 90,
+  "modulos": [
+   {
+    "id": "M0",
+    "nombre": "Introducción",
+    "lema": "Las bases, sin jerga",
+    "sesiones": 2,
+    "material": "a preparar",
+    "detalle": "Qué es gestionar un proyecto con método; las siglas en simple; qué es un sistema agéntico y cómo se usa con control humano y seguridad"
+   },
+   {
+    "id": "T1",
+    "caso": "E2E-1",
+    "nombre": "Anticipar lo que puede salir mal",
+    "lema": "riesgos",
+    "sesiones": 2,
+    "material": "existente"
+   },
+   {
+    "id": "T2",
+    "caso": "E2E-2",
+    "nombre": "Cambiar el plan sin perder el control",
+    "lema": "alcance y cambios",
+    "sesiones": 2,
+    "material": "existente"
+   },
+   {
+    "id": "T3",
+    "caso": "E2E-3",
+    "nombre": "Informar a cada persona lo que necesita",
+    "lema": "interesados y avance",
+    "sesiones": 2,
+    "material": "existente"
+   },
+   {
+    "id": "T4",
+    "caso": "E2E-4",
+    "nombre": "Construir un producto de software con control",
+    "lema": "producto con IA",
+    "sesiones": 2,
+    "material": "existente"
+   },
+   {
+    "id": "T5",
+    "caso": "E2E-5",
+    "nombre": "Decidir si una idea vale la pena antes de invertir",
+    "lema": "de la idea al proyecto",
+    "sesiones": 2,
+    "material": "existente"
+   },
+   {
+    "id": "TI",
+    "nombre": "Taller integrador",
+    "lema": "un proyecto propio",
+    "sesiones": 2,
+    "material": "a preparar",
+    "detalle": "Cada participante aplica lo aprendido a un proyecto suyo, real o de práctica, con acompañamiento"
+   }
+  ],
+  "piloto": {
+   "base": [
+    "M0",
+    "T1"
+   ],
+   "extension": [
+    "T2"
+   ]
+  },
+  "ritmo_total": [
+   [
+    "1 sesión por semana",
+    "14 semanas"
+   ],
+   [
+    "2 sesiones por semana",
+    "7 semanas"
+   ]
+  ],
+  "pasos_piloto": [
+   {
+    "sesiones": "Sesiones 1–2",
+    "nombre": "Introducción",
+    "opcional": false,
+    "detalle": "Qué es gestionar un proyecto con método; las siglas en simple; qué es un sistema agéntico y cómo se usa con control humano y seguridad"
+   },
+   {
+    "sesiones": "Sesiones 3–4",
+    "nombre": "Taller: Anticipar lo que puede salir mal",
+    "opcional": false,
+    "detalle": "riesgos · caso E2E-1"
+   },
+   {
+    "sesiones": "Sesiones 5–6",
+    "nombre": "Taller: Cambiar el plan sin perder el control",
+    "opcional": true,
+    "detalle": "alcance y cambios · caso E2E-2"
+   }
+  ],
+  "calculo_piloto": [
+   {
+    "rot": "Piloto base (4 sesiones)",
+    "cuenta": "4 × 90 min = 360 min = 6 h",
+    "ritmo": "4 semanas a 1 por semana · 2 a 2 por semana"
+   },
+   {
+    "rot": "Piloto ampliado (6 sesiones)",
+    "cuenta": "6 × 90 min = 540 min = 9 h",
+    "ritmo": "6 semanas a 1 por semana · 3 a 2 por semana"
+   }
+  ]
+ },
+ "diapositivas": [
+  {
+   "tipo": "portada",
+   "kicker": "pm-method · presentación para miembros de IEEE",
+   "titulo": "Gestionar proyectos con un asistente de IA, con método y con una persona que decide",
+   "subtitulo": "Qué resuelve, cómo trabaja, qué ventajas tiene y una propuesta de formación a ritmo tranquilo",
+   "tarjetas": [
+    [
+     "Qué resuelve",
+     "Ordena el trabajo de gestión que hoy queda disperso en documentos sueltos"
+    ],
+    [
+     "Cómo trabaja",
+     "El asistente prepara, una persona decide y el sistema verifica y registra"
+    ],
+    [
+     "Formación",
+     "Propuesta: 14 sesiones de 90 min y un piloto de 4 a 6 sesiones para empezar"
+    ]
+   ],
+   "nota": "Esta presentación es para quien nunca trabajó con métodos formales de gestión de proyectos. La idea central: un asistente de IA puede ayudar mucho a gestionar un proyecto, siempre que trabaje con un método y que las decisiones las tome una persona. Al final hay una propuesta de formación, pensada para empezar despacio."
+  },
+  {
+   "tipo": "antes_despues",
+   "titulo": "Qué resuelve: la IA ya redacta planes, pero sin método nadie sabe qué está aprobado",
+   "col_hoy": "Lo que pasa hoy",
+   "col_con": "Con pm-method",
+   "filas": [
+    [
+     "Documentos sueltos: un plan por acá, un informe por allá, sin etapas",
+     "Un recorrido claro por etapas, y cada etapa termina en una decisión explícita"
+    ],
+    [
+     "La IA «aprueba» cosas que le corresponden a una persona",
+     "Solo una persona aprueba; el sistema lo hace cumplir y anota quién, cuándo y por qué"
+    ],
+    [
+     "Los requisitos del producto y el plan del proyecto se desincronizan",
+     "Los requisitos se leen de una sola fuente, sin copiarlos; cada cambio queda a la vista"
+    ],
+    [
+     "Controles que se hacen a mano, tarde o nunca",
+     "Controles automáticos en cada sesión que avisan antes de que el problema llegue a la reunión"
+    ]
+   ],
+   "lema": "El asistente prepara, la persona decide, el sistema verifica y registra.",
+   "nota": "Hoy cualquiera puede pedirle a una IA un plan de proyecto, pero ese plan queda suelto: no se sabe si alguien lo aprobó ni si sigue vigente. pm-method agrega lo que falta: etapas, decisiones explícitas de una persona y controles que corren solos. Conviene leer cada fila de izquierda a derecha: problema y respuesta."
+  },
+  {
+   "tipo": "flujo_siglas",
+   "titulo": "Cómo trabaja: el asistente prepara, una persona decide y el sistema verifica y registra",
+   "pasos": [
+    [
+     "Prepara",
+     "El asistente de IA arma planes, informes y opciones siguiendo el método"
+    ],
+    [
+     "Decide",
+     "Una persona aprueba, rechaza o pide cambios: nada avanza sin ella"
+    ],
+    [
+     "Verifica y registra",
+     "Programas comprueban los datos y guardan cada decisión con nombre y fecha"
+    ]
+   ],
+   "ventajas_titulo": "Ventajas",
+   "ventajas": [
+    [
+     "Trazabilidad",
+     "cada decisión con quién, cuándo y por qué"
+    ],
+    [
+     "Menos trabajo administrativo",
+     "informes y registros ya preparados"
+    ],
+    [
+     "Avisos tempranos",
+     "los problemas aparecen antes de la reunión"
+    ],
+    [
+     "Abierto",
+     "licencia MIT; datos en archivos de texto que se leen sin el sistema"
+    ]
+   ],
+   "nota": "El ciclo tiene tres tiempos y siempre en el mismo orden: el asistente prepara, una persona decide y el sistema verifica y deja registro. Eso es lo que significa usar IA agéntica con control humano: la IA ejecuta pasos, pero dentro de límites que fija una persona. El recuadro de la derecha traduce las siglas que van a escuchar en el curso."
+  },
+  {
+   "tipo": "programa",
+   "titulo": "Programa propuesto: 14 sesiones de 90 minutos (21 horas), de lo simple a un proyecto propio",
+   "rotulo": "propuesta ajustable: orden, ritmo y cantidad de talleres",
+   "calculo": [
+    "2 + 5 × 2 + 2 = 14 sesiones",
+    "14 × 90 min = 1.260 min = 21 h"
+   ],
+   "material": "Los 5 talleres usan el material ya listo del webinar (10 clases de 90 min = 15 h). La introducción y el taller integrador (4 sesiones = 6 h) se preparan para IEEE.",
+   "nota": "Es una propuesta, no un programa cerrado: se puede ajustar el orden, el ritmo y la cantidad de talleres. Primero una introducción sin jerga; después cinco talleres, cada uno nombrado por el problema que resuelve; y al final cada participante lo aplica a un proyecto propio. Los cinco talleres ya tienen guía, ejercicio y diapositivas; la introducción y el integrador hay que prepararlos."
+  },
+  {
+   "tipo": "piloto",
+   "titulo": "Para empezar: un piloto de 4 a 6 sesiones, y decidir con lo aprendido",
+   "imagen": "docs/guias/img/g1-mapa-inherente-residual.png",
+   "pie": "Lo que se ve en el taller «Anticipar lo que puede salir mal»: después de las respuestas, ningún riesgo queda en la zona alta (caso de práctica ficticio, corrida real)",
+   "despues": "Las sesiones del piloto cuentan para el programa completo: si funciona, se suman los talleres que faltan y el integrador.",
+   "nota": "Para empezar con IEEE conviene ir despacio: un piloto corto con la introducción y un solo taller, el de riesgos, que es el más universal para cualquier ingeniero. Si el grupo quiere más, se agrega un segundo taller y el piloto llega a seis sesiones. La imagen es real: sale de la corrida del caso de práctica que se usa en ese taller."
+  }
+ ],
+ "siglas": [
+  [
+   "PMI",
+   "Project Management Institute: asociación profesional internacional de gestión de proyectos"
+  ],
+  [
+   "PMBOK",
+   "guía del PMI con técnicas de gestión: estimar, medir el avance, analizar riesgos"
+  ],
+  [
+   "PRINCE2",
+   "método de gestión por etapas: cada etapa termina en una decisión de un comité (la «junta»)"
+  ],
+  [
+   "PMO",
+   "oficina de gestión de proyectos: el área que fija estándares y supervisa los proyectos"
+  ],
+  [
+   "BMAD",
+   "método abierto para especificar productos de software con agentes de IA"
+  ],
+  [
+   "Agente de IA",
+   "IA que no solo responde: ejecuta pasos (lee archivos, corre programas) dentro de límites que fija una persona; «agéntico» es el sistema que usa agentes"
+  ]
+ ],
+ "siglas_titulo": "¿Qué significan las siglas?",
+ "siglas_nota": "PRINCE2® y PMBOK® son marcas de sus titulares.",
+ "valores": {
+  "version": "2.4.0",
+  "minutos_sesion": 90,
+  "sesiones_total": 14,
+  "min_total_txt": "1.260",
+  "horas_total": "21",
+  "webinar_clases": 10,
+  "webinar_horas": "15",
+  "nuevas_sesiones": 4,
+  "nuevas_horas": "6",
+  "piloto_min": 4,
+  "piloto_max": 6,
+  "regresion_ok": "346",
+  "e2e_ok": "5",
+  "evidencia_fecha": "2026-10-22",
+  "talleres_n": 5,
+  "calculo_sesiones": "2 + 5 × 2 + 2 = 14"
+ },
+ "casos": [
+  {
+   "caso": "E2E-1",
+   "nombre": "Anticipar lo que puede salir mal",
+   "lema": "riesgos"
+  },
+  {
+   "caso": "E2E-2",
+   "nombre": "Cambiar el plan sin perder el control",
+   "lema": "alcance y cambios"
+  },
+  {
+   "caso": "E2E-3",
+   "nombre": "Informar a cada persona lo que necesita",
+   "lema": "interesados y avance"
+  },
+  {
+   "caso": "E2E-4",
+   "nombre": "Construir un producto de software con control",
+   "lema": "producto con IA"
+  },
+  {
+   "caso": "E2E-5",
+   "nombre": "Decidir si una idea vale la pena antes de invertir",
+   "lema": "de la idea al proyecto"
+  }
+ ]
+}

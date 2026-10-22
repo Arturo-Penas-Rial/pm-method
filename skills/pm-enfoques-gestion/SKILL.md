@@ -1,7 +1,7 @@
 ---
 name: pm-enfoques-gestion
 description: "Enfoques de gestión del PID y planes subsidiarios. Usar: enfoque de riesgos, control de cambios, enfoque de calidad, management approach, subsidiary plan. No: PID ensamblado→pm-acta-constitucion."
-version: 2.3.0
+version: 2.4.0
 author: pm-method
 license: MIT
 metadata:
@@ -47,7 +47,7 @@ Todos los enfoques salen de `templates/<clave>.md` hacia `02-planificacion/enfoq
 2. **Nivel de formalidad** por enfoque (`references/guia.md` §2). 🔒 **Puerta humana 1**: el usuario confirma nivel y alcance; "no aplica, con razón" es válido. Fila en `decisiones.csv`.
 3. **Entradas comunes**: tolerancias, estándares, roles, esquemas CSV (`registro.py esquema <registro>`); mismas escalas que los registros (`references/guia.md` §3).
 4. **Calidad** (`templates/enfoque-calidad.md`): objetivos con métrica y umbral, autoridad de aceptación, no conformidad, DoD/DoR en ágil; con BMAD, code review y gate de preparación como métodos de verificación (§1.1 de la guía).
-5. **Riesgo** (`templates/enfoque-riesgo.md`): escalas 1–5, P×I (alto ≥ 15, medio 6–12, bajo ≤ 5), EMV, residual, línea de tolerancia, contingencia vs. reserva de gestión (§1.2).
+5. **Riesgo** (`templates/enfoque-riesgo.md`): escalas 1–5, P×I (alto ≥ 15, medio 6–12, bajo ≤ 5), EMV, residual, línea de tolerancia, contingencia vs. reserva de gestión (§1.2) y destino de la provisión para no identificados (por defecto, reserva de gestión).
 6. **Issues y cambios** (`templates/enfoque-issues-cambios.md`): cinco tipos canónicos, severidad, prioridad, niveles de decisión, cuatro definiciones de cambio con umbral, autoridad y presupuesto de cambio, swap del PO. **Con BMAD**: completar la sección 5.1 —qué es elaboración progresiva y qué es cambio en PRD, arquitectura, épicas y Sprint Change Proposals— con `references/guia.md` §4; `pm-bmad-puente` la aplica en `verificar`.
 7. **Datos y tecnología digital** (`templates/enfoque-datos-digitales.md`): fuente de verdad, siete preguntas de datos, tableros, guardarraíles de IA. **Integraciones**: sección 1.1 con solo los MCP conectados, como capacidades (leer issues, publicar mensaje, leer transcripción…), escritura confirmada e instantáneas; sin conectores predefinidos (`references/guia.md` §5).
 8. **Sostenibilidad** (`templates/enfoque-sostenibilidad-gestion.md`): controles para las metas de `00-direccion/enfoque-sostenibilidad.md`.

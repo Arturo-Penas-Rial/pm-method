@@ -25,12 +25,12 @@ Scripts (`${CLAUDE_PLUGIN_ROOT}/skills/<skill>/scripts/`; manual/Hermes: `~/.cla
 2. `pm-cierre-proyecto` — cierre planificado o prematuro, `registro-aceptacion`, handover, recomendaciones de seguimiento, evaluación contra PID y business case originales (`00-direccion/historial/`), informe de fin de proyecto.
 3. `pm-bmad-puente` — si hay BMAD: `avance` y `verificar` final; historias no terminadas → recomendaciones de seguimiento.
 4. `pm-adquisiciones` — cierre de contratos, pagos, reclamaciones, evaluación de proveedores.
-5. `pm-lecciones-aprendidas` — ninguna lección queda `registrada`; taller final; `informe-lecciones`.
+5. `pm-lecciones-aprendidas` — ninguna lección queda `registrada`; taller final; `informe-lecciones` desde el registro (`lecciones.py informe`) y, con la decisión del ejecutivo, exportación al índice de la organización.
 6. `pm-reuniones` — acta del taller de cierre o de la reunión de aceptación (cargas a registros tras confirmación).
 7. `pm-caso-de-negocio` — business case final y `plan-revision-beneficios`.
 8. `pm-okr` — puntuación final; KR pendientes pasan al plan de revisión de beneficios con dueño y fecha (sin duplicar datos de beneficios).
 9. `pm-comunicacion-stakeholders` — comunicación y notificación de cierre (envío = decisión humana).
-10. `pm-exportar` — `paquete.py listar cierre`; ZIP si se pide.
+10. `pm-exportar` — `paquete.py listar cierre`; ZIP si se pide; expediente de auditoría (`paquete.py auditoria`, `verificar`) si lo pide la PMO, auditoría o el cliente.
 
 ## Puerta que preparás
 `autorizar-cierre`: productos de cierre `en-revision` (`registro-aceptacion`, `informe-fin-proyecto`, `informe-lecciones`, `recomendaciones-seguimiento`, `plan-revision-beneficios`) → `pm-director` compone la solicitud, la junta decide y él registra.

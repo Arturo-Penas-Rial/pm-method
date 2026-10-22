@@ -1,4 +1,4 @@
-# Puertas de la junta: verificación y registro · pm-method 2.3.0
+# Puertas de la junta: verificación y registro · pm-method 2.4.0
 
 Qué se verifica en cada puerta PRINCE2, cómo se integran los controles propios de BMAD y cómo queda registrada la
 decisión. EN: *board gates — health, automatic PRINCE2/BMAD checks, board checklist and decision record.*
@@ -93,6 +93,7 @@ Severidades: **bloqueo** (impide registrar `aprobado`), **condición** (queda co
 |---|---|---|---|
 | todas | S-… | `sanidad.py --rapido` sin ERROR (el id es `S-` + el código de sanidad, p. ej. `S-CAM-03`; como `registro.py` no deja aprobar un cambio sin saldo ni fuera de la autoridad delegada, S-CAM-03 aparece con cambios aprobados antes de que la junta fijara el presupuesto o con un presupuesto reducido después: [SANIDAD §1](SANIDAD.md)) | bloqueo |
 | todas | L-01 · L-02 · L-03 | lista de control de la junta generada (L-01), sin ítems "no cumple" (L-02) y confirmada (L-03) | bloqueo |
+| todas, con BMAD declarado | B-00 | la especificación de BMAD declarada en `integraciones.especificacion` se puede leer (si no, los controles BMAD de la puerta no se evalúan) | bloqueo |
 | autorizar-proyecto · autorizar-etapa · autorizar-plan-excepcion · autorizar-cierre | G-01 | condiciones abiertas de puertas anteriores (de `condicionado`, o de `aprobado` con `--condiciones`, p. ej. `decision-ad-hoc`) | condición; **bloqueo en autorizar-cierre** |
 | autorizar-inicio | I-01 · I-02 | project brief registrado · ejecutivo designado | bloqueo |
 | autorizar-inicio | I-03 | plan de la etapa de iniciación | condición |
@@ -109,10 +110,13 @@ Severidades: **bloqueo** (impide registrar `aprobado`), **condición** (queda co
 | autorizar-etapa | E-05 · E-06 | revisiones de calidad abiertas · riesgos altos sin respuesta | condición |
 | autorizar-etapa | E-07 · E-08 · E-09 | **BMAD:** línea base del PRD · PRD `final` · arquitectura existente y `final` | bloqueo |
 | autorizar-etapa | E-10 | **BMAD:** gate de preparación del sprint planning: FAIL bloquea, CONCERNS es condición, sin veredicto es aviso | según veredicto |
+| autorizar-etapa | E-11 | lecciones con `planificacion` en `aplicar_en` en `registrada` o `revisada` sin `accion`: el plan de la etapa no las consideró (PRINCE2 SB, revisar el registro de lecciones; lecciones incorporadas del plan). Se resuelve con `lecciones.py accionar` (cita en el plan) o `descartar` con motivo | aviso |
 | autorizar-plan-excepcion | X-01 · X-02 | plan de excepción (bloqueo) · informe de excepción (condición) | — |
 | autorizar-cierre | C-01 · C-02 | informe de fin de proyecto · registro de aceptación | bloqueo |
-| autorizar-cierre | C-03 · C-04 | issues/riesgos abiertos sin recomendaciones de seguimiento · revisiones de calidad abiertas | bloqueo |
+| autorizar-cierre | C-03 | cada issue y riesgo abierto **por id** en `recomendaciones-seguimiento`, en una fila de tabla con la columna Responsable o Destinatario llena (o en una línea "… Responsable: <nombre>"); lista los faltantes ("R-001 (no citado)", "I-004 (citado sin responsable)"). Sin el artefacto, lista todos los abiertos; si es un enlace externo, aviso para comprobarlo a mano (PRINCE2 CP, actividad 3: recomendaciones de seguimiento con trabajo incompleto, issues y riesgos) | bloqueo (aviso si es externo) |
+| autorizar-cierre | C-04 | revisiones de calidad abiertas | bloqueo |
 | autorizar-cierre | C-05 · C-06 | informe de lecciones · plan de revisión de beneficios | condición |
+| autorizar-cierre | C-07 | **Must sin aceptar**: requisitos Must (prioridad propia o la más alta de sus historias) y historias Must cuyo estado derivado (`estado.py productos`: revisiones de `calidad.csv`, `aceptacion-<producto>`, `registro-aceptacion`, issues fuera de especificación) no es aceptado ni con concesión. `registro-aceptacion` aprobado acepta solo los productos con revisión aprobada a esa fecha (PRINCE2 CP, actividad 3, confirmar la aceptación; registro de productos A13). Regla completa: guía de `pm-paquetes-trabajo` §5 | condición |
 
 Los criterios de éxito se tratan en dos momentos: en `autorizar-proyecto` se verifica que estén **definidos** (P-04 y
 la lista de control); en `autorizar-etapa` y `autorizar-cierre` la lista de control pide confirmar que se **cumplieron**

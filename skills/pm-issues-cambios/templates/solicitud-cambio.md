@@ -54,6 +54,8 @@ idioma: "{{idioma}}"
 
 ## 3. Análisis de impacto / Impact analysis
 
+*`impacto.py --proyecto <dir> analizar C-###` calcula tiempo y camino crítico, reserva, costo, presupuesto de cambio, autoridad, capacidad, VAN, riesgos y calidad desde los archivos del proyecto y deja un borrador de esta solicitud (guía §3.1); las cifras que no calcula van [por confirmar].*
+
 | Objetivo / Objective | Impacto / Impact | Cuantificación / Quantification | Tolerancia vigente / Current tolerance | ¿Sale de tolerancia? / Breaches tolerance? |
 |---|---|---|---|---|
 | Alcance / Scope | {{imp_alcance}} | {{cuant_alcance}} | {{tol_alcance}} | {{br_alcance}} |

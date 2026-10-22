@@ -1,6 +1,7 @@
 // Webinar pm-method · constructor del PPTX. Lo invoca generar.py (no se usa solo):
-//   node pptx.js SALIDA.pptx < mazo.json
-// mazo.json lo arma generar.py ya validado: rutas de imagen absolutas con su tamaño en píxeles, glosario ordenado.
+//   node pptx.js SALIDA.pptx < mazo.json              diapositivas del caso
+//   node pptx.js SALIDA.pptx --ficha < ficha.json     ficha promocional del taller (2 diapositivas)
+// El JSON lo arma generar.py ya validado: rutas de imagen absolutas con su tamaño en píxeles, glosario ordenado.
 // Estética del Informe 2 (docs/informe/fuente/build_pptx.js): Arial, azul marino / azul / naranja, barra de título
 // redondeada. Sin marca ni logo de empresa: recuadro rotulado "Logo IEEE" (o la imagen pasada con --logo).
 // Escribe avisos de texto que no entra con el tamaño mínimo en stderr como líneas "AVISO: …".
@@ -15,6 +16,7 @@ const APPLY_THEME = [
 const { applyTheme } = APPLY_THEME ? require(APPLY_THEME) : { applyTheme: async () => {} };
 
 const SALIDA = process.argv[2];
+const FICHA = process.argv[3] === "--ficha";
 const M = JSON.parse(fs.readFileSync(0, "utf8"));
 
 const THEME = { name: "Webinar pm-method", headFontFace: "Arial", bodyFontFace: "Arial",
@@ -26,7 +28,7 @@ const W = 13.33, H = 7.5, X0 = 0.5, CW = W - 1, TOP = 1.4, BOTTOM = 6.8;
 const pres = new pptxgen();
 pres.layout = "LAYOUT_WIDE";
 pres.theme = { headFontFace: "Arial", bodyFontFace: "Arial" };
-pres.title = `Webinar ${M.caso} · ${M.titulo}`;
+pres.title = (FICHA ? `Ficha del taller ${M.caso} · ` : `Webinar ${M.caso} · `) + M.titulo;
 pres.subject = `pm-method ${M.version}`;
 pres.author = "pm-method";
 
@@ -94,12 +96,6 @@ function layouts(clave, clase) {
       slideNumber: { x: W - 1.2, y: H - 0.48, w: 0.7, h: 0.3, fontSize: 10, color: "D6E4F0", align: "right", margin: 0 } });
   }
 }
-pres.defineSlideMaster({ title: "PORTADA", background: { color: NAVY }, objects: [
-  ...logoObj(0.6, 0.5, 2.2, 0.88, true),
-  { text: { text: pieTexto(null), options: { x: 0.6, y: H - 0.55, w: 9, h: 0.3, fontSize: 10, color: "D6E4F0", margin: 0 } } }] });
-layouts("G", null);
-M.clases.forEach(c => layouts(String(c.numero), c.numero));
-
 const nueva = (layout, seccion) => { n++; return pres.addSlide({ masterName: layout, sectionTitle: seccion }); };
 // el tamaño va en el run: las opciones del marcador de posición prevalecen sobre las de addText
 const ph = (s, t, size) => s.addText([{ text: limpio(t), options: { fontSize: size } }], { placeholder: "title" });
@@ -125,8 +121,8 @@ function filasNumeradas(s, puntos, y, hDisp, o = {}) {
 }
 function viñetas(s, puntos, x, y, w, h, o = {}) {
   if (!puntos.length) return;
-  const gap = o.gap || 8, color = o.color || CHAR, marca = o.marca || "▪", colMarca = o.colMarca || BLUE;
-  const alto = sz => puntos.reduce((a, p) => a + altoTexto("XX " + p, w, sz, 1.2, 0.53) + gap / 72, 0);
+  const gap = o.gap || 8, color = o.color || CHAR, marca = o.marca || "▪", colMarca = o.colMarca || BLUE, em = o.em || 0.53;
+  const alto = sz => puntos.reduce((a, p) => a + altoTexto("XX " + p, w, sz, 1.2, em) + gap / 72, 0);
   let size = o.max || 20;
   while (size > (o.min || 14) && alto(size) > h) size -= 0.5;
   if (alto(size) > h * 1.04) aviso(`la lista no entra ni a ${o.min || 14} pt; acortá los puntos`);
@@ -300,6 +296,14 @@ R.cierre = (s, d) => {
 };
 const LAYOUT = { seccion: "SECCION_", pregunta: "PREGUNTA_", cierre: "OSCURO_" };
 
+// ====================================================================== mazo del caso
+function mazo() {
+pres.defineSlideMaster({ title: "PORTADA", background: { color: NAVY }, objects: [
+  ...logoObj(0.6, 0.5, 2.2, 0.88, true),
+  { text: { text: pieTexto(null), options: { x: 0.6, y: H - 0.55, w: 9, h: 0.3, fontSize: 10, color: "D6E4F0", margin: 0 } } }] });
+layouts("G", null);
+M.clases.forEach(c => layouts(String(c.numero), c.numero));
+
 // ---------- portada del caso ----------
 pres.addSection({ title: "Portada" });
 {
@@ -378,6 +382,124 @@ if (M.glosario.length) {
     s.addNotes(`Glosario del caso ${M.caso}: ${M.glosario.length} términos${npag > 1 ? `, página ${k + 1} de ${npag}` : ""}.`);
   }
 }
+}
+
+// ====================================================================== ficha del taller
+// Dos diapositivas: 1) problema, objetivos, destinatarios e imagen del caso; 2) cómo se trabaja con el agente,
+// requisitos y modalidad, contenidos por clase y beneficios. Las dos columnas de la 2 usan un único tamaño de letra
+// (14 a 10,5 pt), el mayor con el que todo entra; si ni 10,5 pt alcanza, avisa.
+// ancho medio de carácter calibrado con el render (Arial / Liberation Sans, texto en castellano): 0,44–0,46 em
+const EM_FICHA = 0.46;
+const altoLista = (puntos, w, sz, gap) => puntos.reduce((a, p) => a + altoTexto("XX " + p, w, sz, 1.2, EM_FICHA) + gap / 72, 0);
+const PAD = 0.11, ROT = 0.36, SUB = sz => sz * 1.3 / 72, GAPL = 4;
+// mayor tamaño (14 a 10,5 pt) con el que entran todas las columnas: las dos columnas usan el mismo
+function tamColumnas(w, hDisp, columnas) {
+  let sz = 14;
+  while (sz > 10.5 && columnas.some(b => altoColumna(b, w, sz) > hDisp * 1.02)) sz -= 0.5;
+  return sz;
+}
+const altoParte = (p, sz, wi) => p.sub ? SUB(sz) : p.lista ? altoLista(p.lista, wi, sz, GAPL) + 0.04
+  : altoTexto((p.prefijo || "") + p.parrafo, wi, sz, 1.2, EM_FICHA) + 0.06;
+const altoBloque = (b, sz, w) => b.rotulo ? ROT : PAD * 2 + b.partes.reduce((a, p) => a + altoParte(p, sz, w - 2 * PAD), 0);
+const altoColumna = (bloques, w, sz) => bloques.reduce((a, b, i) => a + altoBloque(b, sz, w) + (i ? (b.rotulo ? 0.12 : 0.07) : 0), 0);
+function columna(s, x, y, w, hDisp, bloques, que, sz) {
+  const total = z => altoColumna(bloques, w, z);
+  if (total(sz) > hDisp * 1.03) aviso(`${que} no entra ni a 10,5 pt; acortá los textos`);
+  bloques.forEach((b, i) => {
+    if (i) y += b.rotulo ? 0.12 : 0.07;
+    if (b.rotulo) { tb(s, b.rotulo, { x, y, w, h: 0.32, fontSize: 16, bold: true, color: b.color || NAVY }); y += ROT; return; }
+    const h = altoBloque(b, sz, w), oscuro = b.fill === NAVY;
+    caja(s, x, y, w, h, b.fill, { rectRadius: 0.08 });
+    let yy = y + PAD;
+    b.partes.forEach(p => {
+      const hp = altoParte(p, sz, w - 2 * PAD);
+      if (p.sub) tb(s, p.sub, { x: x + PAD, y: yy, w: w - 2 * PAD, h: hp, fontSize: sz, bold: true, color: p.color || NAVY, valign: "top" });
+      else if (p.lista) viñetas(s, p.lista, x + PAD, yy, w - 2 * PAD, hp + 0.05, { max: sz, min: sz, gap: GAPL, em: EM_FICHA,
+        color: oscuro ? WHITE : CHAR, colMarca: oscuro ? SKY : (p.colMarca || BLUE), codeColor: oscuro ? "CFE3F3" : NAVY });
+      else tb(s, (p.prefijo ? [{ text: p.prefijo, options: { fontSize: sz, bold: true, color: oscuro ? SKY : (p.colPrefijo || NAVY) } }] : [])
+        .concat(runs(p.parrafo, { fontSize: sz, color: oscuro ? WHITE : CHAR, codeColor: oscuro ? "CFE3F3" : NAVY })), { x: x + PAD, y: yy, w: w - 2 * PAD, h: hp });
+      yy += hp;
+    });
+    y += h;
+  });
+}
+
+function ficha() {
+  const pie = `pm-method ${M.version} · Webinar ${M.caso} · Ficha del taller`, BAND = 2.3, wT = CW - LOGO_W - 0.4;
+  const num = { x: W - 1.2, y: H - 0.48, w: 0.7, h: 0.3, fontSize: 10, color: GRAY, align: "right", margin: 0 };
+  const pieObj = { text: { text: pie, options: { x: X0, y: H - 0.48, w: 9, h: 0.3, fontSize: 10, color: GRAY, margin: 0, valign: "top" } } };
+  pres.defineSlideMaster({ title: "FICHA_PORTADA", background: { color: WHITE }, objects: [
+    { rect: { x: 0, y: 0, w: W, h: BAND, fill: { color: NAVY }, line: { color: NAVY } } },
+    ...logoObj(W - X0 - LOGO_W, 0.36, LOGO_W, LOGO_H, true),
+    { placeholder: { options: { name: "title", type: "title", x: X0, y: 0.72, w: wT, h: 0.92, fontSize: 30, bold: true, color: WHITE, margin: 0, valign: "middle", align: "left", fontFace: "Arial" }, text: "" } },
+    pieObj], slideNumber: num });
+  pres.defineSlideMaster({ title: "FICHA_DETALLE", background: { color: WHITE }, margin: [0.5, 0.5, 0.9, 0.5], objects: [
+    ...logoObj(W - X0 - LOGO_W, 0.4, LOGO_W, LOGO_H, false),
+    { rect: { x: X0, y: 0.4, w: CW - LOGO_W - 0.2, h: 0.78, fill: { color: BLUE }, rectRadius: 0.1, shape: "roundRect" } },
+    { placeholder: { options: { name: "title", type: "title", x: X0 + 0.22, y: 0.4, w: CW - LOGO_W - 0.62, h: 0.78, fontSize: 24, bold: true, color: WHITE, margin: 0, valign: "middle", align: "left", fontFace: "Arial" }, text: "" } },
+    pieObj], slideNumber: num });
+  pres.addSection({ title: "Ficha del taller" });
+
+  // ---------- 1 · el problema, qué vas a poder hacer, para quién y el caso real ----------
+  etiqueta = "ficha, diapositiva 1";
+  let s = nueva("FICHA_PORTADA", "Ficha del taller");
+  tb(s, M.kicker, { x: X0, y: 0.34, w: wT, h: 0.34, fontSize: 14, bold: true, color: SKY });
+  ph(s, M.titulo, ajustar(M.titulo, wT, 0.92, 30, 22, "el título", 0.55));
+  tb(s, runs(M.bajada, { fontSize: ajustar(M.bajada, CW, 0.52, 17, 12, "la bajada"), color: "D6E4F0", codeColor: "CFE3F3" }), { x: X0, y: 1.72, w: CW, h: 0.52 });
+  const wl = 6.95, xr = X0 + wl + 0.35, wr = W - X0 - xr;
+  let y = BAND + 0.22;
+  tb(s, "Qué vas a poder hacer", { x: X0, y, w: wl, h: 0.36, fontSize: 16, bold: true, color: ORANGE });
+  y += 0.42;
+  const k = M.objetivos.length, gap = 0.08, rowH = Math.min(0.6, (2.36 - gap * (k - 1)) / k), wo = wl - 0.72;
+  let so = 15;
+  while (so > 12 && M.objetivos.some(o => altoTexto(o, wo, so, 1.2, EM_FICHA) > rowH - 0.06)) so -= 0.5;
+  M.objetivos.forEach((o, i) => {
+    const yy = y + i * (rowH + gap);
+    caja(s, X0, yy, wl, rowH, i % 2 ? LT : BLUETINT, { rectRadius: 0.06 });
+    tb(s, String(i + 1), { x: X0 + 0.1, y: yy, w: 0.42, h: rowH, fontSize: 18, bold: true, color: BLUE, align: "center", valign: "middle" });
+    if (altoTexto(o, wo, so, 1.2, EM_FICHA) > rowH * 1.04) aviso(`el objetivo ${i + 1} no entra ni a 12 pt; acortalo`);
+    tb(s, runs(o, { fontSize: so }), { x: X0 + 0.6, y: yy + 0.03, w: wo, h: rowH - 0.06, valign: "middle" });
+  });
+  y += k * rowH + (k - 1) * gap + 0.16;
+  tb(s, "Para quién es", { x: X0, y, w: wl, h: 0.36, fontSize: 16, bold: true, color: ORANGE });
+  y += 0.4;
+  viñetas(s, M.para_quien, X0, y, wl, BOTTOM + 0.05 - y, { max: 15, min: 12, gap: 6, em: EM_FICHA });
+  const im = M.imagen, yi = BAND + 0.22, hi = Math.min(2.9, wr * im.h / im.w);
+  imagen(s, im, xr, yi, wr, hi);
+  const yc = yi + hi + 0.06;
+  tb(s, runs(im.pie, { fontSize: ajustar(im.pie, wr, 0.46, 12, 10, "el pie de la imagen"), color: GRAY }), { x: xr, y: yc, w: wr, h: 0.46, italic: true });
+  const yk = yc + 0.56, hk = BOTTOM + 0.05 - yk;
+  caja(s, xr, yk, wr, hk, NAVY, { rectRadius: 0.08 });
+  tb(s, M.duracion_txt, { x: xr + 0.2, y: yk + 0.1, w: wr - 0.4, h: 0.34, fontSize: 16, bold: true, color: SKY });
+  tb(s, runs(M.convocatoria, { fontSize: ajustar(M.convocatoria, wr - 0.4, hk - 0.52, 13, 10, "la convocatoria"), color: WHITE }), { x: xr + 0.2, y: yk + 0.44, w: wr - 0.4, h: hk - 0.52 });
+  s.addNotes(limpio(M.notas[0]));
+
+  // ---------- 2 · cómo se trabaja con el agente, requisitos, contenidos y beneficios ----------
+  etiqueta = "ficha, diapositiva 2";
+  s = nueva("FICHA_DETALLE", "Ficha del taller");
+  titulo(s, "Cómo es el taller y qué te llevás");
+  const wc = (CW - 0.3) / 2, xR = X0 + wc + 0.3, y2 = TOP - 0.08, hc = H - 0.58 - y2;
+  const izq = [
+    { rotulo: "Cómo trabajás con el agente" },
+    { fill: BLUETINT, partes: [{ sub: "Lo hace el agente (Claude Code con pm-method)" }, { lista: M.agente }] },
+    { fill: ORTINT, partes: [{ sub: "Lo decidís vos", color: ORANGE }, { lista: M.persona, colMarca: ORANGE }] },
+    { fill: NAVY, partes: [{ prefijo: "Control humano: ", parrafo: M.control }] },
+    { fill: LT, partes: [{ sub: "Antes de inscribirte", color: ORANGE }, { lista: M.requisitos, colMarca: ORANGE }, { prefijo: "Modalidad: ", parrafo: M.modalidad }] },
+  ];
+  const der = [
+    { rotulo: "Contenidos" },
+    ...M.clases.map(c => ({ fill: LT, partes: [{ sub: `Clase ${c.numero} · ${c.duracion_min} min · ${limpio(c.titulo)}` }, { lista: c.temas }] })),
+    { rotulo: "Qué te llevás" },
+    { fill: BLUETINT, partes: [{ sub: "Para vos" }, { lista: M.beneficios_vos }, { sub: "Para tu organización" }, { lista: M.beneficios_org }] },
+  ];
+  const sz2 = tamColumnas(wc, hc, [izq, der]);
+  columna(s, X0, y2, wc, hc, izq, "la columna izquierda", sz2);
+  columna(s, xR, y2, wc, hc, der, "la columna derecha", sz2);
+  s.addNotes(limpio(M.notas[1] || `Cómo es el taller: el agente propone, calcula y avisa; las decisiones las toma una persona. ${M.clases.length} clases: ` +
+    M.clases.map(c => `${c.titulo} (${c.duracion_min} min)`).join(" y ") + "."));
+}
+
+FICHA ? ficha() : mazo();
 
 (async () => {
   await pres.writeFile({ fileName: SALIDA });

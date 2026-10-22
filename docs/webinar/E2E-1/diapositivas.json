@@ -1,7 +1,7 @@
 {
  "caso": "E2E-1",
  "titulo": "Ciclo completo de gestión de riesgos",
- "subtitulo": "Del taller al control continuo: respuestas costeadas, reserva vigilada y revisiones que no se saltean",
+ "subtitulo": "Del taller al control continuo: opciones de respuesta por valor neto, planes de contingencia, reserva vigilada y revisiones que no se saltean",
  "clases": [
   {
    "numero": 1,
@@ -10,20 +10,22 @@
    "objetivos": [
     "Explicar qué decide la junta antes del taller: apetito, tolerancia, reserva y cadencia",
     "Identificar riesgos con cita de origen, con y sin BMAD",
-    "Justificar respuestas por costo frente a reducción de EMV y reconocer el secundario",
+    "Comparar opciones de respuesta por valor neto y decidir con el propietario",
+    "Escribir un plan de contingencia listo para activar",
     "Calcular un presupuesto de riesgo con fórmula"
    ],
    "diapositivas": [
     {
      "tipo": "gancho",
-     "titulo": "Dos amenazas en zona alta el 29/10; ninguna el 4/11",
+     "titulo": "R-003: el SLA habitual tiene el menor valor neto",
      "puntos": [
-      "El taller deja R-001 (16) y R-003 (15) en zona alta",
-      "Cinco días después, ninguna amenaza queda en zona alta",
-      "Costo de las respuestas: USD 9.800",
-      "¿Qué tuvo que estar decidido antes para que eso fuera posible?"
+      "R-003: el proveedor de SMS del segundo factor no cumple la disponibilidad",
+      "Cinco opciones: evitar, reducir, transferir, contingencia y aceptar",
+      "El SLA con penalidad, la respuesta habitual: valor neto 700, el menor de las cuatro",
+      "La recomendada: una contingencia que hoy no cuesta nada (valor neto 2.500)",
+      "¿Cómo se elige entre opciones sin hacer la cuenta a mano?"
      ],
-     "nota": "Contar el resultado antes del método. No mostrar todavía el mapa: la imagen llega con el paso 6. Preguntar cuántos tienen un registro actualizado en las últimas dos semanas."
+     "nota": "Contar el resultado antes del método. No mostrar todavía el gráfico: llega con el paso 6a. El SLA baja la probabilidad, pero la penalidad (tope de USD 2.000 por mes) no cubre el atraso. Después, la pregunta a mano alzada."
     },
     {
      "tipo": "pregunta",
@@ -44,9 +46,15 @@
       "filas": [
        [
         "Responder los altos",
-        "una vez, en el taller",
-        "cada sanidad (REG-06) y puerta (E-06)",
-        "altos sin respuesta"
+        "la primera respuesta que surge",
+        "opciones por valor neto (REG-06, REG-10)",
+        "altos sin respuesta u opciones"
+       ],
+       [
+        "Tener lista la contingencia",
+        "una palabra en el registro",
+        "plan escrito (REG-10) y radar",
+        "contingencias sin plan o por activar"
        ],
        [
         "Cerrar acciones",
@@ -61,16 +69,10 @@
         "revisiones vencidas"
        ],
        [
-        "Consumo de la reserva",
-        "se mira al cierre",
-        "cada sanidad (CAM-03)",
-        "% consumido"
-       ],
-       [
-        "Uso de la reserva",
-        "bolsa general",
-        "cada sanidad (CAM-02)",
-        "cargos sin R-###"
+        "Reserva de riesgo",
+        "bolsa que se mira al cierre",
+        "cada sanidad (CAM-02, CAM-03)",
+        "cargos sin R-### y % consumido"
        ],
        [
         "Condiciones de la junta",
@@ -80,7 +82,7 @@
        ]
       ]
      },
-     "nota": "Esta tabla es el mapa de las dos clases. Hoy cubrimos las dos primeras filas y preparamos la reserva; la clase 2 recorre el resto. Cada fila tiene su código: el control no depende de que alguien se acuerde."
+     "nota": "Esta tabla es el mapa de las dos clases. Hoy cubrimos las dos primeras filas y preparamos la reserva; la clase 2 recorre el resto. Cada fila tiene su control: no depende de que alguien se acuerde."
     },
     {
      "tipo": "seccion",
@@ -94,7 +96,7 @@
      "puntos": [
       "Apetito: bajo en cumplimiento y seguridad; moderado en plazo y costo",
       "Tolerancia: ningún alto sin respuesta; exposición ≤ USD 60.000",
-      "Presupuesto = respuestas + EMV residual + 5 % para no identificados",
+      "Presupuesto = respuestas + EMV residual; 5 % para no identificados a la reserva de gestión",
       "Gestor hasta USD 5.000 por respuesta; por encima decide la ejecutiva",
       "Revisión en cada sprint; auditoría en cada fin de etapa"
      ],
@@ -103,7 +105,7 @@
     {
      "tipo": "demo",
      "titulo": "Demo · Paso 3: enfoque de riesgo y escala P×I",
-     "prompt": "Proponé el enfoque de gestión de riesgos del proyecto en su versión mínima, con la escala de probabilidad e impacto\n(1 a 5, umbrales del paquete y conversión a porcentaje para el valor esperado). Incluí:\n- apetito: bajo en cumplimiento (Ley 18.331) y en seguridad del acceso; moderado en plazo y costo; abierto a\n  oportunidades de reutilización;\n- tolerancia: ningún riesgo alto sin respuesta y exposición de amenazas ≤ USD 60.000; lo que quede sobre la línea va a\n  la junta con su hoja de riesgo;\n- presupuesto de riesgo = costo de las respuestas + EMV residual + provisión del 5 % del costo de la WBS para riesgos no\n  identificados; el gestor compromete hasta USD 5.000 por respuesta ya aceptada y, por encima o para un riesgo nuevo,\n  decide Laura; todo uso de la reserva va a cambios.csv con cargo reserva-riesgo y el R-### al que responde;\n- cadencia: revisión en cada sprint, reevaluación y auditoría en cada fin de etapa, vigilancia normativa mensual.\nDespués se lo llevo a Laura para aprobarlo.",
+     "prompt": "Proponé el enfoque de gestión de riesgos del proyecto en su versión mínima, con la escala de probabilidad e impacto\n(1 a 5, umbrales del paquete y conversión a porcentaje para el valor esperado). Incluí:\n- apetito: bajo en cumplimiento (Ley 18.331) y en seguridad del acceso; moderado en plazo y costo; abierto a\n  oportunidades de reutilización;\n- tolerancia: ningún riesgo alto sin respuesta y exposición de amenazas ≤ USD 60.000; lo que quede sobre la línea va a\n  la junta con su hoja de riesgo;\n- presupuesto de riesgo = costo de las respuestas + EMV residual de las amenazas identificadas; la provisión del 5 % del\n  costo de la WBS para riesgos no identificados va a la reserva de gestión, que solo libera la junta; el gestor compromete hasta USD 5.000 por respuesta ya aceptada y, por encima o para un riesgo nuevo,\n  decide Laura; todo uso de la reserva va a cambios.csv con cargo reserva-riesgo y el R-### al que responde;\n- cadencia: revisión en cada sprint, reevaluación y auditoría en cada fin de etapa, vigilancia normativa mensual.\nDespués se lo llevo a Laura para aprobarlo.",
      "nota": "En vivo. Mostrar que el sistema deja la propuesta en revisión (v0.1) y que solo con la respuesta de la ejecutiva se congela la v1.0 (D-001, D-002). Si pregunta quién aprueba: Laura Méndez, ejecutiva, hoy 2026-10-28."
     },
     {
@@ -177,67 +179,74 @@
     },
     {
      "tipo": "seccion",
-     "titulo": "Responder y presupuestar",
-     "subtitulo": "Costo frente a reducción de EMV",
-     "nota": "Pasos 6 y 7."
+     "titulo": "Elegir y preparar",
+     "subtitulo": "Opciones por valor neto y plan de contingencia",
+     "nota": "Pasos 6a, 6b y 7."
     },
     {
      "tipo": "demo",
-     "titulo": "Demo · Paso 6: respuestas con costo y secundario",
-     "prompt": "Proponé respuestas para todos los riesgos con su residual, su disparador y su costo, y justificá cada una: el costo de\nla respuesta tiene que ser menor que la reducción de EMV que logra. Mi propuesta: R-001 reducir con un spike de\nintegración con datos sintéticos en el sprint 1 (residual P2 I4, disparador \"spike sin datos del padrón al día 5\",\nUSD 2.000); R-002 reducir con un taller con operadores (P2 I3, USD 1.500); R-003 transferir con un SLA de 99,9 % con\npenalidad (P2 I4, USD 2.500); R-004 aceptar con seguimiento mensual (P2 I4, sin costo); R-005 reducir con cláusula de\npermanencia (P2 I3, USD 3.000); R-006 explotar con un spike de reutilización (P4 I3, USD 800).\nOjo con R-003: la penalidad del SLA tiene un tope de USD 2.000 por mes y no cubre el costo del atraso. Registralo como\nriesgo secundario (P2, I3, USD 6.000, aceptar; propietario Diego).\nAcciones: spike del padrón (Lucía, 11/12), taller con operadores y delegado sindical (Martín, 20/11), SLA con el proveedor\nde SMS (Diego, 25/11).",
-     "nota": "En vivo. Respuestas de los propietarios: Diego acepta R-001, R-003, R-005 y el secundario; Sofía R-002 y R-006; Laura el residual de R-004. Mostrar la tabla de justificación: todas cumplen costo menor que la reducción de EMV."
+     "titulo": "Demo · Paso 6a: opciones de R-001 y R-003",
+     "prompt": "Antes de elegir respuestas para R-001 y R-003, armá sus opciones con estos datos (evitar, reducir, transferir,\ncontingencia y aceptar), compará el valor neto de cada una y decime cuál conviene en cada riesgo.",
+     "nota": "En vivo. Pegar la tabla de datos de la guía debajo del prompt. Primero riesgos.py opciones --proponer crea las plantillas sin registrar nada; después la tabla con la recomendada marcada (★). Respuesta del propietario: Diego elige la recomendada en cada uno (D-003 y D-004). Al elegir la contingencia de R-003, el script y la sanidad avisan REG-10: falta el plan."
+    },
+    {
+     "tipo": "imagen",
+     "titulo": "R-001: reducir. R-003: preparar la contingencia",
+     "imagen": "docs/guias/img/g1-opciones-valor-neto.png",
+     "nota": "Valor neto = EMV inherente − EMV residual − EMV del secundario − costo. Evitar deja el menor residual en los dos riesgos, pero cuesta más y crea un secundario. El SLA de R-003 queda en 700. La contingencia de R-003 entra con sus 12.000 ponderados al 50 % y aun así gana. La recomendada es una propuesta: decide el propietario."
+    },
+    {
+     "tipo": "demo",
+     "titulo": "Demo · Paso 6b: el plan de contingencia de R-003",
+     "prompt": "Escribí el plan de contingencia de R-003. Disparador: dos caídas del proveedor de SMS en un mes; alerta temprana: la\nprimera caída o una disponibilidad mensual menor que 99,9 %, que vigila Lucía en cada revisión del sprint. Al disparo:\n1) Diego activa el contrato del proveedor alternativo en paralelo durante 6 meses (5 días hábiles, USD 12.000);\n2) Lucía conmuta el segundo factor detrás de IdentityPort y lo verifica con socios de prueba (3 días hábiles más), con\nel correo como factor alternativo mientras tanto. Lo paga la reserva de riesgo y, como supera mis USD 5.000, lo\nautoriza Laura. Si el proveedor alternativo también falla en las dos semanas siguientes, correo como único segundo\nfactor temporal y aviso a cumplimiento. Preparación: Diego firma el acuerdo marco antes del 25/11.",
+     "nota": "En vivo. Señalar las partes del plan: disparador y alerta temprana, acciones con ejecutor y plazo, monto y fuente, quién lo autoriza (Laura, porque 12.000 supera los 5.000 del gestor) y plan alternativo. Con el plan escrito, la sanidad del 4/11 da 0 avisos. Las respuestas de R-002, R-004, R-005 y R-006 se muestran con la evidencia."
     },
     {
      "tipo": "imagen",
      "titulo": "Después de las respuestas, ninguna amenaza queda en zona alta",
      "imagen": "docs/guias/img/g1-mapa-inherente-residual.png",
-     "nota": "Izquierda: 5 amenazas del taller, 2 en zona alta. Derecha: 6 amenazas residuales, porque aparece el secundario R-007, y ninguna en zona alta. El borde rojo marca P×I mayor o igual a 15."
-    },
-    {
-     "tipo": "imagen",
-     "titulo": "Con USD 9.800 en respuestas, la exposición baja de 53.600 a 31.800",
-     "imagen": "docs/guias/img/g1-exposicion-respuestas.png",
-     "nota": "Cada par de barras es una amenaza. R-004 no baja porque se acepta. R-007 no existía: lo crea la transferencia de R-003. Toda respuesta puede crear un riesgo nuevo."
+     "nota": "Izquierda: 5 amenazas del taller, 2 en zona alta. Derecha: las mismas 5 con las respuestas elegidas, ninguna en zona alta. Con USD 7.300 en respuestas, la exposición planificada baja de 53.600 a 32.500 (g1-exposicion-respuestas.png en la guía). El borde rojo marca P×I mayor o igual a 15."
     },
     {
      "tipo": "contenido",
-     "titulo": "Paso 7 · Presupuesto de riesgo: 47.800",
+     "titulo": "Paso 7 · Presupuesto de riesgo: 39.800",
      "puntos": [
-      "Respuestas 9.800 + EMV residual 31.800 + provisión 6.200",
-      "La transferencia de R-003 no descuenta su residual",
-      "Lo fija la ejecutiva: estado.py presupuesto riesgo=47800",
-      "C-001 carga 9.800: CAM-03 informa 21 %",
+      "Respuestas 7.300 + EMV residual 32.500; provisión 6.200 a la reserva de gestión",
+      "La contingencia de R-003 entra ponderada: 50 % × (8.000 + 12.000)",
+      "estado.py presupuesto riesgo=39800 gestion=6200 (nivel junta)",
+      "C-001 carga 7.300: CAM-03 informa 18 %",
       "REG-07: A-002 y A-003 hechas pero sin cerrar"
      ],
-     "nota": "El presupuesto sale de una fórmula escrita en el enfoque, no de un porcentaje. Desde este momento cada uso de la reserva pasa por cambios.csv con su riesgo citado, y la sanidad lo suma sola."
+     "nota": "El presupuesto sale de una fórmula escrita en el enfoque, no de un porcentaje. La contingencia no se paga hoy, pero su monto ya está previsto en la reserva. La provisión para lo no identificado no se mezcla: va a la reserva de gestión, que solo libera la junta. Desde este momento cada uso de la reserva pasa por cambios.csv con su riesgo citado, y la sanidad lo suma sola."
     },
     {
      "tipo": "pregunta",
      "titulo": "Discusión",
-     "pregunta": "R-003 se transfiere con un SLA. ¿Por qué su EMV residual sigue en el presupuesto de riesgo?",
-     "nota": "Respuesta esperada: la penalidad tiene un tope de USD 2.000 por mes y no cubre el atraso. El riesgo no salió del proyecto; por eso aparece R-007 como secundario."
+     "pregunta": "Para R-001, evitar deja el residual más bajo (P×I 3). ¿Por qué no es la opción recomendada?",
+     "nota": "Respuesta esperada: cuesta USD 6.000 y crea un riesgo secundario sobre B-01 (EMV 6.000): valor neto 7.800 frente a 10.000 de reducir. El residual más bajo no es la mejor respuesta si cuesta más de lo que ahorra."
     },
     {
      "tipo": "ejercicio",
-     "titulo": "Ejercicio · Parte A: tu enfoque y tu presupuesto",
+     "titulo": "Ejercicio · Parte A: opciones, contingencia y presupuesto",
      "puntos": [
       "A1: apetito, tolerancia, autoridad sobre la reserva y cadencia",
-      "A2: tres riesgos con respuesta, costo y EMV residual",
-      "A3: presupuesto = respuestas + residual + provisión",
-      "10 minutos; autoevaluación al final de la hoja"
+      "A2: opciones de tu riesgo más alto y su valor neto",
+      "A3: el plan de contingencia en una fila",
+      "A4: presupuesto = respuestas + residual; provisión aparte",
+      "10 minutos; A4 puede quedar para después"
      ],
-     "nota": "La hoja está en docs/webinar/E2E-1/ejercicio.md y explica la mecánica al comienzo. Pedir órdenes de magnitud, no precisión. El ejemplo resuelto está plegado al final de la hoja: mostrarlo al terminar, no antes."
+     "nota": "La hoja está en docs/webinar/E2E-1/ejercicio.md y explica la mecánica al comienzo. Quien no tenga proyecto usa las opciones de R-003 de la hoja. Pedir órdenes de magnitud, no precisión. El ejemplo resuelto está plegado al final: mostrarlo al terminar, no antes."
     },
     {
      "tipo": "cierre",
      "titulo": "Mensajes clave de la clase 1",
      "puntos": [
       "El enfoque de riesgo se aprueba antes del taller",
-      "Cada respuesta se justifica por números o por apetito, por escrito",
-      "Toda respuesta puede crear un riesgo secundario",
+      "La respuesta se elige entre opciones, por valor neto; decide el propietario",
+      "Una contingencia es un plan: disparador, monto, fuente y quién la autoriza",
       "El presupuesto de riesgo sale de una fórmula y lo fija la junta"
      ],
-     "nota": "Anticipo de la clase 2: el registro quedó listo el 27/11. Vamos a ver qué pasa con él cuando el proyecto se pone difícil."
+     "nota": "Anticipo de la clase 2: el plan de R-003 quedó escrito el 4/11. Vamos a ver qué pasa cuando llega su disparador y nadie está mirando."
     }
    ]
   },
@@ -248,24 +257,27 @@
    "objetivos": [
     "Reconocer un registro que se dejó de revisar",
     "Gestionar un riesgo que ocurre: issue y contingencia",
+    "Elegir otra opción que la recomendada, con el motivo escrito",
+    "Ordenar el día con el radar y activar un plan de contingencia",
     "Leer el consumo de la reserva y decidir al cruzar el 80 %",
     "Seguir las condiciones de la junta hasta cumplirlas"
    ],
    "diapositivas": [
     {
      "tipo": "gancho",
-     "titulo": "El 12/02, los 6 riesgos abiertos llevaban hasta 45 días sin revisar",
+     "titulo": "El 12/02, los 5 riesgos abiertos llevaban hasta 45 días sin revisar",
      "puntos": [
-      "Cinco con 45 días de atraso; uno con 17",
+      "Cuatro con 45 días de atraso; uno con 17",
       "La sanidad lo avisaba con REG-09 desde el 12/01",
       "R-003 ya había alcanzado su disparador: dos caídas en un mes",
+      "Su plan de contingencia estaba escrito desde el 4/11",
       "¿Por qué un aviso a tiempo no alcanzó?"
      ],
-     "nota": "Repasar en un minuto el presupuesto de 47.800 de la clase 1. Después contar el 12/02: el control avisó un mes entero y las urgencias lo taparon. Es lo que pasa en casi todos los proyectos."
+     "nota": "Repasar en un minuto el presupuesto de 39.800 (con la reserva de gestión de 6.200 aparte) y el plan de R-003 de la clase 1. Después contar el 12/02: el control avisó un mes entero y las urgencias lo taparon. Es lo que pasa en casi todos los proyectos."
     },
     {
      "tipo": "imagen",
-     "titulo": "Al 12/02, los 6 riesgos abiertos llevan entre 17 y 45 días sin revisar",
+     "titulo": "Al 12/02, los 5 riesgos abiertos llevan entre 17 y 45 días sin revisar",
      "imagen": "docs/guias/img/g1-revisiones-vencidas.png",
      "nota": "Cada barra es un riesgo abierto: días entre su revisión prevista y el 12/02. Rojo, más de dos sprints; naranja, más de uno. El estado va también en texto. Datos de REG-09 en la sanidad del 12/02."
     },
@@ -277,7 +289,7 @@
       "Cerrar: la oportunidad R-006 se aprovechó (60 h)",
       "Detectar: REG-07 marca A-001 vencida",
       "Fijar la próxima revisión de cada abierto: 29/12",
-      "Exposición 52.400; reserva 21 %"
+      "Exposición 50.600; reserva 18 %"
      ],
      "nota": "La revisión no solo actualiza: deja escrito cuándo se vuelve a mirar cada riesgo (fecha_revision). Esa fecha es la que después delata que nadie volvió. Si hay tiempo, abrir el tablero HTML del 15/12 (img/g1-tablero.png en la guía): la vista por actor muestra cada riesgo con su revisión del 29/12."
     },
@@ -290,56 +302,56 @@
     {
      "tipo": "demo",
      "titulo": "Demo · Paso 9: la reserva para R-001 y unas licencias",
-     "prompt": "Para no perder dos semanas, Laura aprueba pagar un entorno de pruebas temporal del padrón (copia anonimizada en la nube\ndurante 8 semanas, USD 8.000): registralo contra la reserva de riesgo como respuesta a R-001. Además, Lucía pidió dos\nlicencias de la herramienta de diseño (USD 3.000) y Martín las aprobó contra la reserva porque \"hay plata\". ¿Cómo queda\nla reserva?",
-     "nota": "En vivo. Si pregunta por las licencias tras el aviso: Sofía Ramírez, autoridad de cambio, las rechaza como cargo a la reserva. Mostrar CAM-02 y el consumo de 44 % a 37 %."
+     "prompt": "Para no perder dos semanas, Laura aprueba la opción O4 que habíamos evaluado para R-001: un entorno de pruebas temporal\ndel padrón (copia anonimizada en la nube durante 8 semanas, USD 8.000). Registralo contra la reserva de riesgo como\nrespuesta a R-001. Además, Lucía pidió dos\nlicencias de la herramienta de diseño (USD 3.000) y Martín las aprobó contra la reserva porque \"hay plata\". ¿Cómo queda\nla reserva?",
+     "nota": "En vivo. El entorno temporal es la opción O4 que se había evaluado para R-001 en el paso 6a. Si pregunta por las licencias tras el aviso: Sofía Ramírez, autoridad de cambio, las rechaza como cargo a la reserva. Mostrar CAM-02 y el consumo de 46 % a 38 %."
     },
     {
      "tipo": "contenido",
      "titulo": "El control mira el propósito, no el monto",
      "puntos": [
       "R-001 ocurre: pasa a ocurrido y se abre I-001",
-      "C-002 entorno temporal: 8.000, cita R-001, decide la ejecutiva",
+      "C-002 entorno temporal: 8.000, la opción O4 evaluada en el paso 6a",
       "C-003 licencias: 3.000, dentro del límite del gestor",
       "CAM-02: cargo a la reserva sin un R-### citado",
-      "Tras el rechazo: 17.800 de 47.800 (37 %)"
+      "Tras el rechazo: 15.300 de 39.800 (38 %)"
      ],
      "nota": "Ninguna revisión por monto frenaría las licencias: están dentro de los USD 5.000 del gestor. Lo que falla es el propósito. Lo ocurrido ya no es riesgo: es un issue."
     },
     {
      "tipo": "contenido",
-     "titulo": "Pasos 10 y 11 · Lo que decide la junta",
+     "titulo": "Pasos 10 y 11 · La junta elige otra opción, por escrito",
      "puntos": [
-      "R-008, norma de biometría: P3 × I5 = 15, EMV 20.000",
-      "Respuesta de 10.000 frente a una reducción de 8.000",
-      "Se justifica por apetito bajo en cumplimiento: decide la junta",
-      "Business case v1.1; reserva al 58 %; EST-12 vigila la condición",
-      "La misma sanidad del 12/01 trae cinco REG-09"
+      "R-007, norma de biometría: P3 × I5 = 15, EMV 20.000",
+      "Recomendada por valor neto: O3 contingencia (3.000)",
+      "La junta elige O2 reducir (−2.000) por apetito bajo en cumplimiento",
+      "Sin --motivo, --elegir no registra nada; con el motivo, D-016",
+      "Business case v1.1; reserva al 64 %; EST-12 y cuatro REG-09"
      ],
-     "nota": "La hoja de riesgo deja escrito por qué se aprueba algo que no cierra por números. La condición de la junta queda vigilada por la sanidad hasta que la ejecutiva la da por cumplida. Señalar los REG-09: la revisión del 29/12 no se hizo, y el equipo prioriza la junta."
+     "nota": "La recomendación es una propuesta: la junta puede elegir otra, y el sistema le pide que deje el motivo escrito. La hoja de riesgo muestra las opciones y la justificación regulatoria. La condición de la junta queda vigilada por la sanidad hasta que la ejecutiva la da por cumplida. Señalar los REG-09: la revisión del 29/12 no se hizo."
     },
     {
      "tipo": "seccion",
      "titulo": "Revisión periódica",
-     "subtitulo": "Un mes de avisos sin atender",
-     "nota": "Paso 12. Qué ve el gestor al abrir la sesión, qué encuentra la sanidad y qué cuesta haber postergado la revisión."
+     "subtitulo": "Un mes de avisos sin atender y qué decidir primero",
+     "nota": "Paso 12. Qué ve el gestor al abrir la sesión, qué encuentra la sanidad, qué cuesta haber postergado la revisión y qué pone primero el radar."
     },
     {
      "tipo": "contenido",
      "titulo": "Lo que ve el gestor al abrir la sesión",
      "puntos": [
-      "Conteo de la sanidad rápida: 0 ERROR · 8 AVISO",
-      "Abiertos: riesgos 6, issues 1, cambios 3, acciones 1",
-      "Seis riesgos con la revisión vencida (REG-09)",
-      "Acción vencida: A-004 (Martín Suárez, 5/2)",
+      "Conteo de la sanidad rápida: 0 ERROR · 7 AVISO",
+      "Abiertos: riesgos 5, issues 1, cambios 3, acciones 1",
+      "Cinco riesgos con la revisión vencida (REG-09) y A-004 vencida",
+      "Radar: decidir 1 · escalar 0 · desbloquear 1 · vigilar 6",
       "Condición de la junta y próxima puerta; manda sobre la memoria"
      ],
-     "nota": "El hook de inicio arma este resumen desde estado.json y los registros (estado.py contexto), en cada inicio, reanudación o compactación: los seis riesgos sin revisar aparecen antes de correr la sanidad. Si la memoria de la sesión dice otra cosa, mandan los registros. Las cifras son las del 12/02 del caso."
+     "nota": "El hook de inicio arma este resumen desde estado.json y los registros (estado.py contexto) y agrega la línea del radar, en cada inicio, reanudación o compactación: los riesgos sin revisar aparecen antes de correr la sanidad. Si la memoria de la sesión dice otra cosa, mandan los registros. Las cifras son las del 12/02 del caso."
     },
     {
      "tipo": "demo",
      "titulo": "Demo · Paso 12: qué quedó sin revisar",
      "prompt": "Revisión de riesgos del sprint, corte 12/02. Antes de actualizar nada, decime qué quedó sin revisar: riesgos con la\nrevisión vencida, acciones de respuesta vencidas, condiciones de la junta abiertas y cómo está la reserva.",
-     "nota": "En vivo. Primero la sanidad: 8 avisos, entre ellos EST-12, REG-07 para A-004 y seis REG-09 (el texto muestra cinco y la lista completa sale con --json). CAM-03 sigue en 58 %."
+     "nota": "En vivo. Primero la sanidad: 7 avisos, entre ellos EST-12, REG-07 para A-004 y cinco REG-09 (la lista completa, con los días de atraso, sale con --json). CAM-03 sigue en 64 %."
     },
     {
      "tipo": "tabla",
@@ -352,7 +364,7 @@
       ],
       "filas": [
        [
-        "6 de 6 riesgos con la revisión vencida",
+        "5 de 5 riesgos con la revisión vencida",
         "sanidad REG-09 (desde el 12/01)",
         "próxima revisión 26/2"
        ],
@@ -364,7 +376,7 @@
        [
         "Disparador de R-003 alcanzado",
         "revisión del sprint",
-        "P sube a 4: R-003 = 20"
+        "P 4, inminente: R-003 = 20"
        ],
        [
         "Condición de la junta abierta",
@@ -372,55 +384,61 @@
         "sigue hasta el 1/3"
        ],
        [
-        "Exposición 56.400",
+        "Exposición 54.600",
         "suma de EMV en riesgos.csv",
-        "a 3.600 de la tolerancia"
+        "a 5.400 de la tolerancia"
        ]
       ]
      },
      "nota": "Cinco hallazgos, y todos tenían un aviso. El más caro, el disparador de R-003, recién aparece cuando alguien abre el riesgo: por eso la revisión empieza por los REG-09 y no se saltea."
     },
     {
+     "tipo": "demo",
+     "titulo": "Demo · Paso 12: ¿qué decido hoy?",
+     "prompt": "Con la revisión hecha, ¿qué tengo que decidir, escalar y desbloquear hoy?",
+     "nota": "En vivo. estado.py radar, de solo lectura: «Hoy: decidir R-003». P1 RAD-03: contingencia por activar (inminente), propietario Diego, siguiente paso en pm-riesgos. P2: la condición de la junta. Vigilar: bloqueos de la próxima puerta y el EVM. El radar no decide: ordena lo que pide una decisión."
+    },
+    {
      "tipo": "imagen",
      "titulo": "La exposición rozó la tolerancia en febrero",
      "imagen": "docs/guias/img/g1-exposicion-tendencia.png",
-     "nota": "Azul: exposición actual. Naranja: hasta dónde baja si las respuestas funcionan. La distancia entre las dos es trabajo de respuesta pendiente. En febrero la azul llega a 56.400 contra 60.000."
+     "nota": "Azul: exposición actual. Naranja: hasta dónde baja si las respuestas funcionan. La distancia entre las dos es trabajo de respuesta pendiente. En febrero la azul llega a 54.600 contra 60.000."
     },
     {
      "tipo": "seccion",
-     "titulo": "La reserva como presupuesto vivo",
-     "subtitulo": "Contingencia y alerta al 80 %",
-     "nota": "Paso 13. La contingencia que dispara la revisión postergada consume la reserva."
+     "titulo": "El plan de contingencia en acción",
+     "subtitulo": "Activación y alerta al 80 %",
+     "nota": "Paso 13. El disparador llega, el plan del 4/11 dice qué hacer, y su costo lleva la reserva al 94 %."
     },
     {
      "tipo": "demo",
-     "titulo": "Demo · Paso 13: contingencia de R-003",
-     "prompt": "Para R-003 proponé activar la contingencia: el proveedor de SMS alternativo que evaluamos en PS-104, en paralelo durante\n6 meses, USD 11.000, con residual P2 I3. Supera mi autoridad, así que llevalo a Laura. Después decime cómo queda la\nreserva contra lo que todavía puede pasar.",
-     "nota": "En vivo. La decisión de Laura: aprobado contra la reserva; mantiene el presupuesto en 47.800 y concentra la autoridad hasta el límite de etapa. Mostrar el AVISO de CAM-03 al 81 % y D-015 con sus opciones."
+     "titulo": "Demo · Paso 13: activar el plan de R-003",
+     "prompt": "Activá el plan de contingencia de R-003: el disparador se alcanzó. Supera mi autoridad, así que llevalo a Laura como\ndice el plan. Después decime cómo queda la reserva contra lo que todavía puede pasar.",
+     "nota": "En vivo. Se sigue la sección «Activación» del plan: C-005 por 12.000, D-018 (activar, con las opciones consideradas) y A-005 (conmutación, Lucía). La decisión de Laura: aprobado contra la reserva; mantiene 39.800, concentra la autoridad hasta el límite de etapa y lleva a la junta lo que supere el remanente (D-019). Mostrar el AVISO de CAM-03 al 94 %."
     },
     {
      "tipo": "imagen",
-     "titulo": "La reserva llegó al 81 % y la sanidad avisó antes de agotarse",
+     "titulo": "La reserva llegó al 94 % y la sanidad avisó antes de agotarse",
      "imagen": "docs/guias/img/g1-consumo-reserva.png",
-     "nota": "Cada barra es una corrida de la sanidad. Verde hasta el 58 %; naranja al 81 %. Quedan 9.000 frente a un EMV residual de 34.800: la junta decide con margen, no cuando ya no queda nada. Por encima del 100 % sería ERROR y bloquearía las puertas."
+     "nota": "Cada barra es una corrida de la sanidad. Verde hasta el 64 %; naranja al 94 %, cuando se activa el plan. Quedan 2.500 frente a un EMV residual de 27.900, y la reserva de gestión (6.200) sigue intacta porque es de la junta: el aviso llega antes de que falte plata y la junta decide con su propia reserva a mano. Por encima del 100 % sería ERROR y bloquearía las puertas."
     },
     {
      "tipo": "pregunta",
      "titulo": "Discusión",
-     "pregunta": "Con la reserva al 81 % y 9.000 de remanente frente a 34.800 de EMV residual, ¿qué harías en lugar de Laura?",
-     "nota": "No hay una única respuesta. Laura mantuvo el tope y concentró la autoridad; las alternativas registradas eran ampliar con reserva de gestión o pedir un plan de excepción. Lo importante es que la decisión quede escrita con sus opciones."
+     "pregunta": "Con la reserva al 94 % y 2.500 de remanente frente a 27.900 de EMV residual, ¿qué harías en lugar de Laura?",
+     "nota": "No hay una única respuesta. Laura mantuvo el tope, concentró la autoridad y lleva a la junta lo que supere el remanente; las alternativas registradas eran pedir a la junta que pase reserva de gestión al presupuesto de riesgo o pedir un plan de excepción. Lo importante es que la decisión quede escrita con sus opciones."
     },
     {
      "tipo": "indicadores",
      "titulo": "Fin de la etapa 2: solo la reserva queda en atención",
      "imagen": "docs/guias/img/g1-tarjetas-etapa.png",
-     "nota": "Paso 14 con evidencia. Exposición 29.400, cero altos abiertos, cero acciones y revisiones vencidas, condición cumplida (D-016). Solo la reserva queda en atención, y se recalcula con el plan de la etapa 3. Lecciones L-001 y L-002."
+     "nota": "Paso 14 con evidencia. Exposición 27.600, cero altos abiertos, cero acciones y revisiones vencidas, condición cumplida (D-020). Solo la reserva queda en atención, y se recalcula con el plan de la etapa 3. Lecciones L-001 y L-002."
     },
     {
      "tipo": "ejercicio",
      "titulo": "Ejercicio · Parte B: la revisión de tu registro",
      "puntos": [
-      "B1: revisiones, acciones, disparadores y condiciones vencidas",
+      "B1: revisiones, acciones, disparadores, condiciones y lo primero de hoy",
       "B2: consumo de la reserva frente al EMV residual",
       "B3: tu regla de revisión en una línea",
       "10 minutos; autoevaluación al final de la hoja"
@@ -432,9 +450,9 @@
      "titulo": "Mensajes clave de la clase 2",
      "puntos": [
       "Un registro vale lo que su última revisión: REG-09 avisa cuando vence",
+      "Con el plan escrito, el disparador es una decisión de minutos; el radar la pone primera",
       "La reserva es un presupuesto vivo: propósito (CAM-02) y alerta (CAM-03)",
-      "Lo ocurrido es un issue; lo que no cierra por números lo decide la junta",
-      "Las condiciones de la junta no dependen de la memoria (EST-12)",
+      "Lo que no cierra por números lo decide la junta, con el motivo escrito; EST-12 lo sigue",
       "Siguiente: E2E-2, el cambio y su presupuesto"
      ],
      "nota": "Puente a E2E-2: las licencias no eran un riesgo, eran un cambio. En el próximo caso vemos quién decide cada cambio, contra qué presupuesto se cobra y qué pasa cuando excede la autoridad delegada."
@@ -481,23 +499,27 @@
   },
   {
    "termino": "Respuesta",
-   "definicion": "Acción elegida frente a un riesgo: evitar, reducir, transferir, compartir, aceptar, escalar, explotar o mejorar."
+   "definicion": "Acción elegida frente a un riesgo: evitar, reducir, transferir, compartir, preparar una contingencia, aceptar o escalar; explotar o mejorar para una oportunidad."
   },
   {
    "termino": "Riesgo residual",
    "definicion": "Probabilidad e impacto que se esperan después de aplicar la respuesta."
   },
   {
+   "termino": "Valor neto de una opción",
+   "definicion": "EMV inherente − EMV residual − EMV del riesgo secundario − costo; la de mayor valor neto bajo la línea es la recomendada, y decide el propietario."
+  },
+  {
    "termino": "Riesgo secundario (secondary risk)",
-   "definicion": "Riesgo nuevo que crea una respuesta; en el caso, R-007 nace de la transferencia de R-003."
+   "definicion": "Riesgo nuevo que crea una respuesta; su EMV se descuenta del valor neto de la opción. En el caso, la penalidad del SLA de R-003 no cubre el atraso."
   },
   {
    "termino": "Disparador (trigger)",
    "definicion": "Señal observable que indica que el riesgo está por ocurrir y activa la contingencia."
   },
   {
-   "termino": "Contingencia",
-   "definicion": "Plan que se ejecuta solo si se alcanza el disparador; se paga con la reserva de riesgo."
+   "termino": "Plan de contingencia",
+   "definicion": "Respuesta preparada que se ejecuta solo si se alcanza el disparador: acciones, monto, fuente (la reserva de riesgo) y quién la autoriza, escritos antes de necesitarla."
   },
   {
    "termino": "Propietario del riesgo (risk owner)",
@@ -505,11 +527,11 @@
   },
   {
    "termino": "Presupuesto de riesgo (risk budget)",
-   "definicion": "Monto que fija la junta para respuestas y contingencias: respuestas + EMV residual + provisión para no identificados."
+   "definicion": "Monto que fija la ejecutiva para respuestas y contingencias de riesgos identificados: respuestas + EMV residual."
   },
   {
    "termino": "Reserva de gestión (management reserve)",
-   "definicion": "Fondo para lo no previsto, fuera del presupuesto de riesgo; solo la libera la junta."
+   "definicion": "Fondo para lo no previsto, fuera del presupuesto de riesgo; recibe la provisión para riesgos no identificados y solo la libera la junta."
   },
   {
    "termino": "Hoja de riesgo",
@@ -536,8 +558,8 @@
    "definicion": "Cierre de una etapa: auditoría, lecciones, plan de la siguiente y decisión de la junta."
   },
   {
-   "termino": "Resumen de inicio de sesión",
-   "definicion": "Resumen que pm-method agrega al abrir cada sesión (estado.py contexto): abiertos, acciones vencidas, condiciones de la junta y próxima puerta. Manda sobre la memoria."
+   "termino": "Resumen de inicio de sesión y radar",
+   "definicion": "Lo que pm-method agrega al abrir cada sesión: el estado derivado de los registros (estado.py contexto) y una línea de radar con lo que hay que decidir, escalar, desbloquear y vigilar. Manda sobre la memoria."
   }
  ]
 }

@@ -395,7 +395,10 @@ X["guias_pasos"] = {}
 for g, ruta in GUIAS_E2E.items():
     txt = leer(ruta)
     X["guias_controles"][g] = tabla(txt, r"^Del uso único al control continuo")
-    X["guias_pasos"][g] = len(re.findall(r"^#{2,3} Paso (\d+[a-z]?) · ", txt, re.M))
+    # un paso partido en «6a» y «6b» (sin «6») cuenta una vez; «6b» junto a un «6» cuenta aparte (criterio de guias/README)
+    _ps = re.findall(r"^#{2,3} Paso (\d+)([a-z]?) · ", txt, re.M)
+    _base = {n for n, l in _ps if not l}
+    X["guias_pasos"][g] = len({n for n, l in _ps}) + sum(1 for n, l in _ps if l and n in _base)
 X["g1_fuentes"] = tabla(leer(GUIAS_E2E["E2E-1"]), r"^Cobertura de fuentes")
 
 # Guías E2E: indicadores (imagen + lectura), clases y pasos con los códigos que muestran
@@ -459,6 +462,82 @@ for m in re.finditer(r"^### (.+)$", s23, re.M):
     b = seccion(s23, "^" + re.escape(m.group(1)) + "$").strip()
     nov23.append({"t": m.group(1), "items": [re.sub(r"^- ", "", x).replace("\n  ", " ").strip() for x in re.split(r"\n(?=- )", b) if x.startswith("- ")]})
 X["chl23_grupos"] = nov23
+
+# CHANGELOG 2.4.0: lema, introducción, cifras y grupos (mismo formato que 2.3.0)
+s24 = seccion(CHL, r"^2\.4\.0")
+X["chl24_lema"] = re.search(r"2\.4\.0 · (\S+) — (.+)", CHL).group(2)
+X["chl24_fecha"] = re.search(r"2\.4\.0 · (\S+) — ", CHL).group(1)
+X["chl24_intro"] = s24.strip().split("\n\n")[0].replace("\n", " ")
+X["chl24_cifras"] = s24.strip().split("\n\n")[1].replace("\n", " ")
+X["chl24_grupos"] = []
+for m in re.finditer(r"^### (.+)$", s24, re.M):
+    b = seccion(s24, "^" + re.escape(m.group(1)) + "$").strip()
+    X["chl24_grupos"].append({"t": m.group(1), "items": [re.sub(r"^- ", "", x).replace("\n  ", " ").strip() for x in re.split(r"\n(?=- )", b) if x.startswith("- ")]})
+assert X["chl24_cifras"].startswith("En cifras"), X["chl24_cifras"][:60]
+
+# Todas las figuras de las guías E2E (imagen, guía, paso, texto alternativo y lectura), no solo las de «Indicadores»
+X["guias_figuras"] = {}
+for g, ruta in GUIAS_E2E.items():
+    txt = leer(ruta)
+    pasos = [(m.start(), m.group(1)) for m in re.finditer(r"^#{2,3} Paso (\d+[a-z]?) · ", txt, re.M)]
+    for m in re.finditer(r"!\[([^\]]*)\]\(img/([^)]+\.png)\)\n(.*?)(?=\n\n|\n!\[|\Z)", txt, re.S):
+        paso = [p for pos, p in pasos if pos < m.start()]
+        if m.group(2) in X["guias_figuras"]:   # citada en «Indicadores» y luego en un paso: se completa el paso
+            if not X["guias_figuras"][m.group(2)]["paso"] and paso:
+                X["guias_figuras"][m.group(2)]["paso"] = paso[-1]
+            continue
+        if not (BASE / "docs/guias/img" / m.group(2)).exists():
+            continue
+        X["guias_figuras"][m.group(2)] = {"img": m.group(2), "guia": g, "paso": paso[-1] if paso else "", "alt": m.group(1),
+                                          "lectura": m.group(3).replace("\n", " ").strip()}
+
+# Salidas reales de la evidencia para las capacidades de 2.4 (cada bloque con su comando; rutas acortadas)
+_EVB = {g: re.findall(r"```\n(\$ [^\n]*\n.*?)```", leer(f"docs/guias/evidencia/salida-g{g[-1]}.md"), re.S) for g in GUIAS_E2E}
+def _corto(b):
+    b = re.sub(r"\$PLUGIN/skills/[a-z-]+/scripts/", "", b.strip())
+    for k, v in (("$EST/", ""), ("$IN ", "interesados.py "), ("$PAQ ", "paquete.py "), ("python3 ", ""), ("--proyecto gestion ", ""),
+                 ('HOME="$(mktemp -d)" ', ""), ("gestion/03-control/reuniones/", ""), ("gestion/03-control/reportes/", ""), ("gestion/exportados/", "")):
+        b = b.replace(k, v)
+    return b
+def _ev(g, patron, k=0):
+    hs = [b for b in _EVB[g] if re.search(patron, b.split("\n")[0])]
+    assert len(hs) > k, f"evidencia {g}: no hay bloque cuyo comando coincida con {patron}"
+    return _corto(hs[k])
+EV = {
+    "opciones": _ev("E2E-1", r"riesgos\.py --proyecto gestion opciones$"),
+    "elegir": _ev("E2E-1", r"opciones --riesgo R-003 --elegir O4"),
+    "radar_linea": _ev("E2E-3", r"radar --corte 2027-01-08 --linea"),
+    "radar": _ev("E2E-3", r"radar --corte 2027-01-08$"),
+    "radar_json": _ev("E2E-3", r"radar --corte 2027-01-08 --json"),
+    "briefing": _ev("E2E-3", r"briefing --para"),
+    "verificar": _ev("E2E-3", r"periodo --verificar"),
+    "verificar_ok": _ev("E2E-3", r"periodo --verificar", 1),
+    "productos": _ev("E2E-4", r"productos --corte 2027-02-26 --alcance R1"),
+    "cierre": _ev("E2E-4", r"verificar autorizar-cierre$"),
+    "candidatos": _ev("E2E-3", r"extraccion\.py --proyecto gestion candidatos"),
+    "registrar_no": _ev("E2E-3", r"registrar .*--confirmar CD-01,IN-01"),
+    "registrar": _ev("E2E-3", r"registrar .*--confirmar CD-01,CA-01"),
+    "impacto": _ev("E2E-2", r"impacto\.py --proyecto gestion analizar C-002"),
+    "cpm": _ev("E2E-2", r"cpm\.py .*--estimacion"),
+    "capacidad": _ev("E2E-2", r"release\.py --proyecto gestion capacidad"),
+    "personas_mapa": _ev("E2E-5", r"personas mapa$"),
+    "personas_prio": _ev("E2E-5", r"personas priorizacion$"),
+    "lecciones_listar": _ev("E2E-4", r"lecciones\.py listar --proyecto gestion --corte 2027-02-26"),
+    "lecciones_buscar": _ev("E2E-5", r"lecciones\.py buscar"),
+    "auditoria": _ev("E2E-4", r"auditoria --hasta"),
+    "aud_ok": _ev("E2E-4", r"verificar gestion/exportados/.*expediente"),
+    "aud_falla": _ev("E2E-4", r"verificar copia-auditoria"),
+}
+assert "INTEGRIDAD: OK" in EV["aud_ok"] and "INTEGRIDAD: FALLA" in EV["aud_falla"] and "DIFIERE" in EV["verificar"], "evidencia 2.4: bloques inesperados"
+X["ev24"] = EV
+# E2E-1, paso 7: presupuesto de riesgo y reserva de gestión («Qué hace el sistema», tal cual)
+_p7 = seccion(leer(GUIAS_E2E["E2E-1"]), r"^Paso 7 · ")
+X["g1_presupuesto_md"] = re.search(r"\*\*Qué hace el sistema:\*\* (.*?)(?=\n\n)", _p7, re.S).group(1).replace("\n", " ")
+
+# CASOS-DE-USO, parte 7 (casos 50 en adelante): tabla con la capacidad, la frase verificada, la skill, la decisión y la guía
+X["casos_p7_titulo"] = re.search(r"^## (Parte 7 · .+)$", CU, re.M).group(1)
+X["casos_p7_intro"] = seccion(CU, r"^Parte 7 · ").strip().split("\n\n")[0].replace("\n", " ")
+X["casos_p7"] = tabla(CU, r"^Parte 7 · ")
 
 # Seguridad (docs/SEGURIDAD.md)
 SEG = leer("docs/SEGURIDAD.md")
@@ -564,7 +643,10 @@ assert CIF["validar_skills"] == CIF["skills"] and CIF["validar_invocables"] == C
 assert CIF["guias_evidencia"] if False else int(X["guias_evidencia"][1]) == CIF["imagenes_guias"], ("guías: README dice", X["guias_evidencia"], "las guías citan", CIF["imagenes_guias"])
 _rr = re.search(r"Resultado al (\d{4}-\d{2}-\d{2}) \(versión ([\d.]+), casos ([^)]+)\): \*\*(\d+) OK · 0 FALLO\*\* con Python ([\d.]+); con Python 3\.9, \*\*(\d+) OK · 0 FALLO\*\*", X["pru_regresion_res_md"])
 _ri = re.search(r"\*\*(\d+) OK · 0 FALLO en (\d+) eslabones\*\*", X["pru_integ_res"])
-_rm = re.search(r"`validar_mermaid\.py --render`: (\d+) bloques, 0 errores", CHL)
+_rm = re.search(r"`validar_mermaid\.py --render`: (?:\*\*)?(\d+)(?:\*\*)? bloques, 0 errores", s24)
+# pasos por guía: el conteo de encabezados coincide con la tabla de docs/guias/README.md («15 pasos (el 6 en 6a y 6b)»)
+_pr = {re.search(r"E2E-\d", f[0]).group(): int(re.match(r"(\d+) pasos", f[4]).group(1)) for f in X["guias"]["filas"]}
+assert _pr == X["guias_pasos"], ("pasos: guias/README.md dice", _pr, "los encabezados de las guías dan", X["guias_pasos"])
 assert _rr and _ri and _rm, "no se encontraron los resultados de pruebas en PRUEBAS.md / CHANGELOG"
 CIF.update({"pruebas_fecha": _rr.group(1), "regresion_casos": _rr.group(3), "regresion_ok": int(_rr.group(4)), "regresion_py": _rr.group(5),
             "regresion_ok39": int(_rr.group(6)), "integ_ok": int(_ri.group(1)), "integ_eslabones": int(_ri.group(2)), "mermaid_bloques": int(_rm.group(1))})
@@ -580,6 +662,17 @@ CIF.update({"vivo_contexto": re.match(r"(\d+/\d+)", _v1).group(1), "vivo_mapas":
             "vivo_integracion": re.match(r"\*\*(\d+/\d+)\*\*", _v3).group(1),
             "vivo_tokens_primera": re.search(r"primera llamada ([\d.]+) tokens", _v3).group(1), "vivo_tokens_max": re.search(r"máximo ([\d.]+)", _v3).group(1),
             "vivo_usd": re.search(r"USD ([\d,]+) en total", _v3).group(1)})
+# pruebas en vivo de la versión vigente (PRUEBAS §3.1): frases nuevas y de control, y frases de regresión
+_vv = [f for f in X["pru_resultados"]["filas"] if f[1] == COMPAT["version"]]
+assert _vv, "PRUEBAS §3.1 no registra pruebas en vivo de la versión " + COMPAT["version"]
+_ok = [re.match(r"\**(\d+)/(\d+) OK", f[3]) for f in _vv]
+_rg = [re.search(r"y (\d+)/(\d+) de regresión", f[3]) for f in _vv]
+_ids = [int(x) for f in _vv for x in re.findall(r"ids (\d+)–(\d+)", f[2])[0]] if all(re.search(r"ids \d+–\d+", f[2]) for f in _vv) else []
+_fe = sorted({f[0] for f in _vv})
+CIF.update({"vivo24_ok": sum(int(m.group(1)) for m in _ok), "vivo24_total": sum(int(m.group(2)) for m in _ok),
+            "vivo24_reg_ok": sum(int(m.group(1)) for m in _rg if m), "vivo24_reg_total": sum(int(m.group(2)) for m in _rg if m),
+            "vivo24_corridas": len(_vv), "vivo24_desde": min(_ids) if _ids else "", "vivo24_hasta": max(_ids) if _ids else "",
+            "vivo24_fechas": " y ".join(x.split("-")[2] for x in _fe) + "/" + "/".join(reversed(_fe[-1].split("-")[:2]))})
 X["validar_salida"] = "\n".join(re.sub(r"con intérprete \S+", "con intérprete 3.9", l) for l in _vp.stdout.splitlines() if l.startswith(("Skills:", "Python 3.9:", "OK", "ERROR")))
 X["cifras"] = CIF
 X["web_por_caso"] = _web
@@ -662,7 +755,7 @@ for l_m in re.finditer(r"^(## Parte .*|### (\d+)\. `([^`]+)`((?: y `[^`]+`)*) �
                   "comandos": m.group(1).rstrip() if m else "", "comandos_txt": "" if m else com,
                   "artefacto": campos.get("Salidas (qué queda y dónde verificarlo)", campos.get("Artefacto", "")), "decision": campos.get("Decisión humana", "")})
 X["casos"] = casos
-X["cifras"]["casos_uso"] = len(casos)
+X["cifras"]["casos_uso"] = len(casos) + len(tabla(CU, r"^Parte 7 · ")["filas"])   # casos con ficha + casos de la parte 7 (tabla)
 X["muestra"] = tabla(CU, r"^Proyecto de muestra")
 X["variante_a"] = {"intro": seccion(CU, r"^Variante A").split("\n\n")[0].strip() if False else seccion(CU, r"^Variante A").strip().split("\n")[0],
                    "tabla": tabla(CU, r"^Variante A")}
@@ -808,6 +901,8 @@ def _completar(v):
         return {k: _completar(x) for k, x in v.items()}
     return v
 D = _completar(D)
+# la etiqueta de la versión del informe (y de la carpeta de salida) sigue a compatibilidad.json
+assert D["meta"]["version"] == "v" + ".".join(COMPAT["version"].split(".")[:2]), ("narrativa.json meta.version", D["meta"]["version"], COMPAT["version"])
 def _donde(codigos):
     partes = []
     cods = re.findall(r"\b(?:[A-Z]{3}-\d{2}|[GPEXC]-\d{2})\b", codigos)

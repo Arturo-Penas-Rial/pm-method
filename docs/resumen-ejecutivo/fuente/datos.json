@@ -1,10 +1,10 @@
 {
- "generado": "2026-10-20T16:36:34",
+ "generado": "2026-10-22T11:07:19",
  "meta": {
-  "version": "2.3.0",
+  "version": "2.4.0",
   "licencia": "MIT",
-  "fecha": "2026-10-20",
-  "fecha_larga": "20 de octubre de 2026"
+  "fecha": "2026-10-22",
+  "fecha_larga": "22 de octubre de 2026"
  },
  "jerarquia": [
   {
@@ -264,7 +264,7 @@
     "CP"
    ],
    "comando": false,
-   "usar": "exportar a Word, Excel, PowerPoint, paquete de puerta, gate package"
+   "usar": "exportar a Word, Excel, PowerPoint, paquete de puerta, gate package, audit pack"
   },
   {
    "nombre": "pm-integraciones",
@@ -291,7 +291,7 @@
     "CP"
    ],
    "comando": false,
-   "usar": "interesados, stakeholders, RACI, poder/interés, preferencias"
+   "usar": "interesados, stakeholders, RACI, preferencias, personas"
   },
   {
    "nombre": "pm-issues-cambios",
@@ -335,7 +335,7 @@
     "CP"
    ],
    "comando": false,
-   "usar": "lección aprendida, lessons learned, lessons report, retro de etapa"
+   "usar": "lección aprendida, lessons learned, lessons report, lecciones de la retro, verificar lección, lecciones de otros proyectos"
   },
   {
    "nombre": "pm-mandato-y-brief",
@@ -410,7 +410,7 @@
     "CP"
    ],
    "comando": false,
-   "usar": "qué sigue, cómo venimos, next step, how are we doing, gestionar el proyecto"
+   "usar": "qué sigue, cómo venimos, qué decido hoy, radar, next step, how are we doing, gestionar el proyecto"
   },
   {
    "nombre": "pm-paquetes-trabajo",
@@ -458,7 +458,7 @@
     "DP"
    ],
    "comando": false,
-   "usar": "checkpoint, highlight report, status report, valor ganado, EVM, burn-up, pronóstico"
+   "usar": "checkpoint, highlight report, status report, valor ganado, EVM, burn-up, pronóstico, briefing de incorporación"
   },
   {
    "nombre": "pm-puerta",
@@ -510,7 +510,7 @@
     "CP"
    ],
    "comando": false,
-   "usar": "acta, minuta, transcripción, acciones de la reunión, action items, minutes"
+   "usar": "acta, minuta, transcripción, acuerdos, action items, minutes, meeting decisions"
   },
   {
    "nombre": "pm-riesgos",
@@ -525,7 +525,7 @@
     "CP"
    ],
    "comando": false,
-   "usar": "riesgo, risk register, matriz P×I, EMV, respuesta al riesgo, oportunidad, informe o auditoría de riesgos"
+   "usar": "riesgo, risk register, matriz P×I, EMV, respuesta al riesgo, plan de contingencia, oportunidad, informe o auditoría"
   },
   {
    "nombre": "pm-sanidad",
@@ -594,7 +594,8 @@
    "estereotipos",
    "preferencias",
    "raci",
-   "envios"
+   "envios",
+   "personas"
   ]
  },
  "puertas": [
@@ -729,7 +730,10 @@
      "REG-06",
      "REG-07",
      "REG-08",
-     "REG-09"
+     "REG-09",
+     "REG-10",
+     "REG-11",
+     "REG-12"
     ],
     "permanente": false
    },
@@ -751,7 +755,8 @@
     "codigos": [
      "QUA-01",
      "QUA-02",
-     "QUA-03"
+     "QUA-03",
+     "QUA-04"
     ],
     "permanente": true
    },
@@ -813,7 +818,11 @@
      "STK-09",
      "STK-10",
      "STK-11",
-     "STK-12"
+     "STK-12",
+     "STK-13",
+     "STK-14",
+     "STK-15",
+     "STK-16"
     ],
     "permanente": false
    },
@@ -859,13 +868,8 @@
   "ejemplos": [
    {
     "codigo": "CAM-03",
-    "caso": "E2E-2",
-    "texto": "El presupuesto de cambio queda en 75 % tras C-001; con C-002 llegaría al 200 %, por eso C-002 espera a la junta, que amplía el presupuesto y lo aprueba: vuelve a 75 % (paso 10)."
-   },
-   {
-    "codigo": "CAM-03",
     "caso": "E2E-1",
-    "texto": "La reserva pasa del 21 % al 81 % en cinco corridas de la sanidad; al cruzar el 80 %, CAM-03 deja de ser informativo y avisa."
+    "texto": "La reserva pasa del 18 % al 94 % en cinco corridas de la sanidad; al activar el plan de contingencia de R-003 cruza el 80 % y CAM-03 deja de ser informativo y avisa. La provisión para lo no identificado no está en esas barras: vive en la reserva de gestión, que solo libera la junta."
    },
    {
     "codigo": "STK-12",
@@ -875,7 +879,12 @@
    {
     "codigo": "QUA-01",
     "caso": "E2E-4",
-    "texto": "Historias terminadas contra historias con revisión aprobada en cada corte: las brechas del 26/2 y del 7/5 se cerraron antes de la puerta siguiente (paso 8)."
+    "texto": "Historias terminadas contra historias con revisión aprobada en cada corte, según el estado de productos que deriva estado.py productos: las brechas del 26/2 y del 7/5 se cerraron antes de la puerta siguiente (pasos 6 y 8)."
+   },
+   {
+    "codigo": "REG-11",
+    "caso": "E2E-4",
+    "texto": "De la retrospectiva del sprint 4 al índice de la organización: 3 lecciones con cita (1 de impacto alto), la acción de L-002 verificada en el sprint 5, L-003 cambia el plan de la etapa 3 y se verifica al cerrar el Release 2, y 3 lecciones en el índice (pasos 6c, 7, 8 y 9)."
    }
   ]
  },
@@ -887,32 +896,36 @@
    "pasos": 15,
    "clases": 2,
    "imagenes": {
+    "g1-opciones-valor-neto.png": {
+     "alt": "Valor neto de las opciones de respuesta",
+     "leyenda": "Para R-001 conviene reducir; para R-003, preparar la contingencia. En los dos, evitar deja el residual más bajo pero no el mayor valor neto: cuesta más y crea un riesgo secundario."
+    },
     "g1-mapa-inherente-residual.png": {
      "alt": "Mapa de calor inherente frente a residual",
-     "leyenda": "Dos amenazas en zona alta al salir del taller; con las respuestas del paso 6, ninguna queda en zona alta."
+     "leyenda": "Dos amenazas en zona alta al salir del taller; con las respuestas elegidas en el paso 6, ninguna queda en zona alta."
     },
     "g1-revisiones-vencidas.png": {
      "alt": "Riesgos con la revisión vencida al 12/02",
-     "leyenda": "El 12/02 los seis riesgos abiertos llevan entre 17 y 45 días sin revisar; la sanidad lo avisaba con REG-09 desde el 12/01."
+     "leyenda": "El 12/02 los cinco riesgos abiertos llevan entre 17 y 45 días sin revisar; la sanidad lo avisaba con REG-09 desde el 12/01."
     },
     "g1-consumo-reserva.png": {
      "alt": "Consumo de la reserva de riesgo",
-     "leyenda": "La reserva pasa del 21 % al 81 % en cinco corridas de la sanidad; al cruzar el 80 %, CAM-03 deja de ser informativo y avisa."
+     "leyenda": "La reserva pasa del 18 % al 94 % en cinco corridas de la sanidad; al activar el plan de contingencia de R-003 cruza el 80 % y CAM-03 deja de ser informativo y avisa. La provisión para lo no identificado no está en esas barras: vive en la reserva de gestión, que solo libera la junta."
     },
     "g1-tarjetas-etapa.png": {
      "alt": "Tarjetas del fin de etapa",
-     "leyenda": "El estado de riesgo en una sola vista para la junta del límite de etapa: lo único en atención es la reserva."
+     "leyenda": "El estado de riesgo en una sola vista para la junta del límite de etapa: lo único en atención es la reserva de riesgo; la reserva de gestión sigue intacta."
     }
    },
    "imagen": {
-    "archivo": "docs/guias/img/g1-consumo-reserva.png",
-    "alt": "Consumo de la reserva de riesgo",
-    "leyenda": "La reserva pasa del 21 % al 81 % en cinco corridas de la sanidad; al cruzar el 80 %, CAM-03 deja de ser informativo y avisa."
+    "archivo": "docs/guias/img/g1-opciones-valor-neto.png",
+    "alt": "Valor neto de las opciones de respuesta",
+    "leyenda": "Para R-001 conviene reducir; para R-003, preparar la contingencia. En los dos, evitar deja el residual más bajo pero no el mayor valor neto: cuesta más y crea un riesgo secundario."
    },
    "indicadores": [
-    "Dos amenazas en zona alta al salir del taller; con las respuestas del paso 6, ninguna queda en zona alta.",
-    "La reserva pasa del 21 % al 81 % en cinco corridas de la sanidad; al cruzar el 80 %, CAM-03 deja de ser informativo y avisa.",
-    "El estado de riesgo en una sola vista para la junta del límite de etapa: lo único en atención es la reserva."
+    "Para R-001 conviene reducir; para R-003, preparar la contingencia. En los dos, evitar deja el residual más bajo pero no el mayor valor neto: cuesta más y crea un riesgo secundario.",
+    "La reserva pasa del 18 % al 94 % en cinco corridas de la sanidad; al activar el plan de contingencia de R-003 cruza el 80 % y CAM-03 deja de ser informativo y avisa. La provisión para lo no identificado no está en esas barras: vive en la reserva de gestión, que solo libera la junta.",
+    "El estado de riesgo en una sola vista para la junta del límite de etapa: lo único en atención es la reserva de riesgo; la reserva de gestión sigue intacta."
    ]
   },
   {
@@ -924,11 +937,11 @@
    "imagenes": {
     "g2-indicadores.png": {
      "alt": "Tarjetas de indicadores del caso",
-     "leyenda": "Resumen al 26/2: VAN de 30.939 con los dos cambios, puesta en producción el 18/5, 2 días de reserva, presupuesto de cambio al 75 % tras la ampliación, 22,1 % del alcance en riesgo en el corte del 19/2 y 13 de 13 requisitos trazados."
+     "leyenda": "Resumen al 26/2: VAN de 30.939 con los dos cambios, puesta en producción el 20/5, 2 días de reserva, presupuesto de cambio al 75 % tras la ampliación, 22,1 % del alcance en riesgo en el corte del 19/2 y 13 de 13 requisitos trazados."
     },
-    "g2-consumo-cambio.png": {
-     "alt": "Consumo del presupuesto de cambio en tres cortes",
-     "leyenda": "El presupuesto de cambio queda en 75 % tras C-001; con C-002 llegaría al 200 %, por eso C-002 espera a la junta, que amplía el presupuesto y lo aprueba: vuelve a 75 % (paso 10)."
+    "g2-impacto-c002.png": {
+     "alt": "Límites que usaría C-002, según su análisis de impacto",
+     "leyenda": "C-002 usaría el 200 % del presupuesto de cambio, el 150 % del límite de quien lo aprobó de palabra y el 143 % de la tolerancia de tiempo de la etapa: no lo puede decidir la autoridad de cambio, lo decide la junta (paso 10)."
     },
     "g2-alcance-evm.png": {
      "alt": "Alcance que no entra frente al margen de Should/Could",
@@ -940,14 +953,14 @@
     }
    },
    "imagen": {
-    "archivo": "docs/guias/img/g2-consumo-cambio.png",
-    "alt": "Consumo del presupuesto de cambio en tres cortes",
-    "leyenda": "El presupuesto de cambio queda en 75 % tras C-001; con C-002 llegaría al 200 %, por eso C-002 espera a la junta, que amplía el presupuesto y lo aprueba: vuelve a 75 % (paso 10)."
+    "archivo": "docs/guias/img/g2-impacto-c002.png",
+    "alt": "Límites que usaría C-002, según su análisis de impacto",
+    "leyenda": "C-002 usaría el 200 % del presupuesto de cambio, el 150 % del límite de quien lo aprobó de palabra y el 143 % de la tolerancia de tiempo de la etapa: no lo puede decidir la autoridad de cambio, lo decide la junta (paso 10)."
    },
    "indicadores": [
-    "El presupuesto de cambio queda en 75 % tras C-001; con C-002 llegaría al 200 %, por eso C-002 espera a la junta, que amplía el presupuesto y lo aprueba: vuelve a 75 % (paso 10).",
+    "C-002 usaría el 200 % del presupuesto de cambio, el 150 % del límite de quien lo aprobó de palabra y el 143 % de la tolerancia de tiempo de la etapa: no lo puede decidir la autoridad de cambio, lo decide la junta (paso 10).",
     "El 29/1 no entra el 10,3 % del alcance (ámbar, lo gestiona el PO); el 19/2 no entra el 22,1 %, más que el 20 % de margen: los Must peligran y hay excepción (pasos 9 y 10).",
-    "Resumen al 26/2: VAN de 30.939 con los dos cambios, puesta en producción el 18/5, 2 días de reserva, presupuesto de cambio al 75 % tras la ampliación, 22,1 % del alcance en riesgo en el corte del 19/2 y 13 de 13 requisitos trazados."
+    "Resumen al 26/2: VAN de 30.939 con los dos cambios, puesta en producción el 20/5, 2 días de reserva, presupuesto de cambio al 75 % tras la ampliación, 22,1 % del alcance en riesgo en el corte del 19/2 y 13 de 13 requisitos trazados."
    ]
   },
   {
@@ -975,9 +988,9 @@
     }
    },
    "imagen": {
-    "archivo": "docs/guias/img/g3-cadencia-stk12.png",
-    "alt": "Cadencia de contacto al 5/2",
-    "leyenda": "STK-12 al 5/2: TI, Martín y Lucía superan el máximo de días sin contacto. Laura, Sofía y el sindicato están en el límite."
+    "archivo": "docs/guias/img/g3-highlight-indicadores.png",
+    "alt": "Indicadores del highlight al 8/1",
+    "leyenda": "Highlight al 8/1: plazo y costo en ámbar dentro de la tolerancia (SPI 0,933, CPI 0,942) y un compromiso vencido (A-004)."
    },
    "indicadores": [
     "Highlight al 8/1: plazo y costo en ámbar dentro de la tolerancia (SPI 0,933, CPI 0,942) y un compromiso vencido (A-004).",
@@ -989,12 +1002,12 @@
    "id": "E2E-4",
    "titulo_guia": "Gestión del producto de la idea al producto con BMAD dentro de un proyecto PRINCE2",
    "archivo": "docs/guias/E2E-4-producto-bmad.md",
-   "pasos": 12,
+   "pasos": 15,
    "clases": 2,
    "imagenes": {
     "g4-calidad-entregas.png": {
      "alt": "Calidad por entrega",
-     "leyenda": "Historias terminadas contra historias con revisión aprobada en cada corte: las brechas del 26/2 y del 7/5 se cerraron antes de la puerta siguiente (paso 8)."
+     "leyenda": "Historias terminadas contra historias con revisión aprobada en cada corte, según el estado de productos que deriva estado.py productos: las brechas del 26/2 y del 7/5 se cerraron antes de la puerta siguiente (pasos 6 y 8)."
     },
     "g4-recorrido.png": {
      "alt": "Recorrido de la socia sobre el Release 1",
@@ -1004,9 +1017,17 @@
      "alt": "El recorrido en el tablero del Release 1",
      "leyenda": "El mismo recorrido en la sección «Mapas estratégicos» del tablero de avance: curva de emoción, cada dolor con su tratamiento enlazado y 0 avisos MAP vigentes (paso 7)."
     },
+    "g4-lecciones-ciclo.png": {
+     "alt": "Ciclo de las lecciones",
+     "leyenda": "De la retrospectiva del sprint 4 al índice de la organización: 3 lecciones con cita (1 de impacto alto), la acción de L-002 verificada en el sprint 5, L-003 cambia el plan de la etapa 3 y se verifica al cerrar el Release 2, y 3 lecciones en el índice (pasos 6c, 7, 8 y 9)."
+    },
     "g4-cierre.png": {
      "alt": "Tablero de cierre",
-     "leyenda": "La puerta de cierre en una página: 11 de 11 historias con revisión aprobada, CPI 0,977, 40 % del presupuesto de cambio usado y 0 condiciones abiertas (paso 9)."
+     "leyenda": "La puerta de cierre en una página: 11 de 11 productos aceptados y 0 Must sin aceptar (estado de productos, C-07), CPI 0,977, 40 % del presupuesto de cambio usado y 0 condiciones abiertas (paso 9)."
+    },
+    "g4-expediente.png": {
+     "alt": "Expediente de auditoría",
+     "leyenda": "El expediente para la auditoría externa: 41 eventos en la cronología y 43 archivos con su huella; una sola palabra cambiada en la copia y la verificación la delata (paso 9b)."
     },
     "g4-beneficios.png": {
      "alt": "Revisión final de beneficios",
@@ -1014,21 +1035,21 @@
     }
    },
    "imagen": {
-    "archivo": "docs/guias/img/g4-calidad-entregas.png",
-    "alt": "Calidad por entrega",
-    "leyenda": "Historias terminadas contra historias con revisión aprobada en cada corte: las brechas del 26/2 y del 7/5 se cerraron antes de la puerta siguiente (paso 8)."
+    "archivo": "docs/guias/img/g4-cierre.png",
+    "alt": "Tablero de cierre",
+    "leyenda": "La puerta de cierre en una página: 11 de 11 productos aceptados y 0 Must sin aceptar (estado de productos, C-07), CPI 0,977, 40 % del presupuesto de cambio usado y 0 condiciones abiertas (paso 9)."
    },
    "indicadores": [
-    "Historias terminadas contra historias con revisión aprobada en cada corte: las brechas del 26/2 y del 7/5 se cerraron antes de la puerta siguiente (paso 8).",
-    "La puerta de cierre en una página: 11 de 11 historias con revisión aprobada, CPI 0,977, 40 % del presupuesto de cambio usado y 0 condiciones abiertas (paso 9).",
-    "Al 31/12/2027, B-02 adopción llega al 83 % de la meta y queda fuera de la tolerancia de −10 %; B-01 y B-03, dentro (paso 11)."
+    "Historias terminadas contra historias con revisión aprobada en cada corte, según el estado de productos que deriva estado.py productos: las brechas del 26/2 y del 7/5 se cerraron antes de la puerta siguiente (pasos 6 y 8).",
+    "De la retrospectiva del sprint 4 al índice de la organización: 3 lecciones con cita (1 de impacto alto), la acción de L-002 verificada en el sprint 5, L-003 cambia el plan de la etapa 3 y se verifica al cerrar el Release 2, y 3 lecciones en el índice (pasos 6c, 7, 8 y 9).",
+    "El expediente para la auditoría externa: 41 eventos en la cronología y 43 archivos con su huella; una sola palabra cambiada en la copia y la verificación la delata (paso 9b)."
    ]
   },
   {
    "id": "E2E-5",
    "titulo_guia": "De la idea al proyecto diseñado",
    "archivo": "docs/guias/E2E-5-idea-a-proyecto.md",
-   "pasos": 18,
+   "pasos": 20,
    "clases": 2,
    "imagenes": {
     "g5-mapa-supuestos.png": {
@@ -1051,6 +1072,10 @@
      "alt": "Presupuesto con reservas",
      "leyenda": "La junta autoriza USD 179.340 (BAC 170.800 + reserva de gestión 8.540) y fija aparte un presupuesto de cambio de 10.000 con tope de 3.000 por cambio (paso 9)."
     },
+    "g5-personas-mapa.png": {
+     "alt": "Capacidad × persona",
+     "leyenda": "Los 4 Must tienen persona y REQ-003 sirve al paciente, a la recepcionista y al paciente mayor de 65; el aviso STK-13 de REQ-006 se resolvió marcando al paciente como beneficiario (paso 10b)."
+    },
     "g5-tablero.png": {
      "alt": "Tablero del proyecto diseñado",
      "leyenda": "Al autorizarse el proyecto: VAN de USD 263.229 con el presupuesto real, 4 de 4 supuestos críticos tratados (uno de ellos aceptado por la junta con la decisión D-009) y la puerta autorizar-proyecto aprobada el 2027-01-15 (paso 14)."
@@ -1064,7 +1089,7 @@
    "indicadores": [
     "Tres supuestos críticos sin evidencia (S-001, S-002, S-003) sostienen los dos beneficios y la factibilidad: ahí se invierte primero en aprender (paso 2).",
     "El piloto bajó el VAN de las dos opciones; la opción 2 sigue siendo la mejor, con una TIR de 54,3 % y un repago de 1,78 años (paso 4).",
-    "La junta autoriza USD 179.340 (BAC 170.800 + reserva de gestión 8.540) y fija aparte un presupuesto de cambio de 10.000 con tope de 3.000 por cambio (paso 9)."
+    "Los 4 Must tienen persona y REQ-003 sirve al paciente, a la recepcionista y al paciente mayor de 65; el aviso STK-13 de REQ-006 se resolvió marcando al paciente como beneficiario (paso 10b)."
    ]
   }
  ],
@@ -1179,8 +1204,8 @@
    "caso": "E2E-1",
    "clases": 2,
    "minutos": 180,
-   "diapositivas": 37,
-   "glosario": 24,
+   "diapositivas": 39,
+   "glosario": 25,
    "guion": true,
    "ejercicio": true
   },
@@ -1188,7 +1213,7 @@
    "caso": "E2E-2",
    "clases": 2,
    "minutos": 180,
-   "diapositivas": 35,
+   "diapositivas": 37,
    "glosario": 25,
    "guion": true,
    "ejercicio": true
@@ -1197,7 +1222,7 @@
    "caso": "E2E-3",
    "clases": 2,
    "minutos": 180,
-   "diapositivas": 38,
+   "diapositivas": 39,
    "glosario": 25,
    "guion": true,
    "ejercicio": true
@@ -1206,7 +1231,7 @@
    "caso": "E2E-4",
    "clases": 2,
    "minutos": 180,
-   "diapositivas": 36,
+   "diapositivas": 40,
    "glosario": 25,
    "guion": true,
    "ejercicio": true
@@ -1449,53 +1474,72 @@
  },
  "vivo": [
   {
-   "fecha": "2026-10-20",
-   "prueba": "suite.py enrutamiento, 14 frases variadas, tras el resumen de contexto derivado y la precedencia en el hook de inicio",
-   "resultado": "14/14"
+   "fecha": "2026-10-21",
+   "prueba": "suite.py enrutamiento, ids 103–104 (opciones de respuesta y plan de contingencia)",
+   "resultado": "2/2"
   },
   {
-   "fecha": "2026-10-20",
-   "prueba": "suite.py enrutamiento, ids 95–102 (skill de mapas estratégicos)",
-   "resultado": "8/8"
+   "fecha": "2026-10-21",
+   "prueba": "suite.py enrutamiento, ids 105–107 (personas de usuario)",
+   "resultado": "3/3"
   },
   {
-   "fecha": "2026-10-20",
-   "prueba": "suite.py controles, tras el control de autoridad y presupuesto de cambio en registro.py",
-   "resultado": "7/7"
-  },
-  {
-   "fecha": "2026-10-20",
-   "prueba": "suite.py integracion con las 29 skills de BMAD 6.12.4 instaladas",
+   "fecha": "2026-10-21",
+   "prueba": "suite.py enrutamiento, ids 108–114 (radar, briefing y lecciones entre proyectos) con las frases de control 18, 55, 56, 86 y 92",
    "resultado": "12/12"
+  },
+  {
+   "fecha": "2026-10-21",
+   "prueba": "suite.py enrutamiento, ids 115–120 (reuniones, impacto de cambios y expediente de auditoría)",
+   "resultado": "6/6 · 8/8"
+  },
+  {
+   "fecha": "2026-10-21",
+   "prueba": "suite.py enrutamiento, ids 121–124 (ciclo de las lecciones)",
+   "resultado": "4/4 · 10/10"
+  },
+  {
+   "fecha": "2026-10-22",
+   "prueba": "suite.py enrutamiento, ids 125–126 (estado de productos y cierre)",
+   "resultado": "2/2"
+  },
+  {
+   "fecha": "2026-10-22",
+   "prueba": "suite.py enrutamiento, ids 127–128 (datos del período, highlight y tablero) con las frases de control 67 y 86",
+   "resultado": "4/4"
+  },
+  {
+   "fecha": "2026-10-22",
+   "prueba": "suite.py enrutamiento, ids 129–130 (tres valores y capacidad del release)",
+   "resultado": "2/2"
   }
  ],
- "frases_enrutamiento": 102,
+ "frases_enrutamiento": 130,
  "pruebas": {
-  "fecha": "2026-10-20",
+  "fecha": "2026-10-22",
   "validar": {
    "ok": true,
    "skills": 39,
    "invocables": 33,
-   "listado": 6817,
+   "listado": 6957,
    "agentes": 6
   },
   "regresion": {
-   "ok": 223,
+   "ok": 353,
    "fallo": 0,
-   "casos": 21
+   "casos": 33
   },
   "e2e": {
    "ok": 5,
    "total": 5
   },
   "mermaid": {
-   "bloques": 127,
+   "bloques": 128,
    "errores": 0
-  },
-  "reusado": true
+  }
  },
  "n": {
-  "version": "2.3.0",
+  "version": "2.4.0",
   "agentes": 6,
   "subagentes": 5,
   "skills": 39,
@@ -1503,38 +1547,38 @@
   "comandos": 6,
   "hooks": 3,
   "eventos_hooks": 3,
-  "registros": 13,
+  "registros": 14,
   "registros_base": 9,
-  "registros_opc": 4,
+  "registros_opc": 5,
   "puertas": 6,
-  "codigos_sanidad": 85,
+  "codigos_sanidad": 93,
   "familias_sanidad": 12,
   "codigos_puerta": 12,
-  "codigos": 97,
+  "codigos": 105,
   "casos": 5,
-  "pasos_casos": 69,
+  "pasos_casos": 74,
   "clases_webinar": 10,
-  "diapositivas_webinar": 186,
-  "pruebas_ok": 223,
+  "diapositivas_webinar": 195,
+  "pruebas_ok": 353,
   "pruebas_fallo": 0,
-  "pruebas_casos": 21,
+  "pruebas_casos": 33,
   "e2e_ok": 5,
   "e2e_total": 5,
-  "mermaid": 127,
+  "mermaid": 128,
   "mermaid_errores": 0,
-  "listado": 6817,
-  "frases": 102,
+  "listado": 6957,
+  "frases": 130,
   "familias_permanentes": 4,
   "hooks_nombres": "guardian · idioma · inicio",
   "bmad_probado": "4.x, 6.11, 6.12",
   "licencia": "MIT"
  },
  "txt": {
-  "pie": "pm-method 2.3.0 · Resumen ejecutivo",
+  "pie": "pm-method 2.4.0 · Resumen ejecutivo",
   "portada": {
-   "kicker": "Resumen ejecutivo · pm-method 2.3.0",
+   "kicker": "Resumen ejecutivo · pm-method 2.4.0",
    "titulo": "Gestión de proyectos con IA, con método, gobierno y controles permanentes",
-   "subtitulo": "Un plugin para Claude Code y Cowork. PRINCE2 7 manda, PMBOK 8 aporta las técnicas y BMAD es la especificación del producto, de solo lectura.",
+   "subtitulo": "Un plugin para Claude Code y Cowork. PRINCE2 7 manda, PMBOK 8 aporta las técnicas y BMAD es la especificación del producto, de solo lectura. Con la versión 2.4.0: opciones e impacto medidos antes de decidir, un radar de lo que hay que decidir hoy e informes verificados contra el dato.",
    "cifras": [
     [
      "6",
@@ -1549,7 +1593,7 @@
      "hooks"
     ],
     [
-     "97",
+     "105",
      "controles automáticos"
     ],
     [
@@ -1570,8 +1614,13 @@
      "REG-06 · REG-09"
     ],
     [
+     "La respuesta a un riesgo se elige por intuición y la contingencia se improvisa",
+     "Opciones comparadas por valor neto; decide el propietario y el plan de contingencia queda listo",
+     "REG-10"
+    ],
+    [
      "Los cambios se aprueban uno a uno y nadie suma lo comprometido",
-     "Cada cambio se carga contra el presupuesto de la junta; excedido, bloquea la puerta",
+     "Cada cambio se mide antes de decidirlo y se carga contra el presupuesto de la junta",
      "CAM-03 · CAM-04"
     ],
     [
@@ -1580,19 +1629,14 @@
      "EST-12 · G-01"
     ],
     [
-     "La calidad se revisa al final, si se revisa",
-     "Cada historia terminada necesita su revisión aprobada, en cada entrega",
-     "QUA-01 · QUA-02"
+     "La calidad se revisa al final y el cierre se firma de memoria",
+     "Cada historia terminada necesita su revisión, y el cierre lista por id lo que falta aceptar",
+     "QUA-01 · C-07"
     ],
     [
-     "El pronóstico de valor ganado no se vuelve a mirar",
-     "Un pronóstico fuera de tolerancia sin excepción abierta genera aviso",
-     "TOL-01"
-    ],
-    [
-     "El plan de comunicaciones promete una frecuencia que nadie verifica",
-     "La cadencia de contacto de cada interesado clave queda vigilada",
-     "STK-12"
+     "Las lecciones se archivan en un informe que nadie vuelve a leer",
+     "Cada lección de impacto alto se acciona, se verifica que funcionó y alimenta a otros proyectos",
+     "REG-11 · REG-12"
     ]
    ],
    "en": "EN: what is usually checked by hand, once or never becomes a permanent control that runs in every session."
@@ -1623,9 +1667,9 @@
      "guardian · idioma · inicio"
     ],
     [
-     "13",
+     "14",
      "registros CSV",
-     "9 base y 4 que se crean al primer uso"
+     "9 base y 5 que se crean al primer uso"
     ],
     [
      "6",
@@ -1633,9 +1677,9 @@
      "decisiones de la junta, verificadas antes"
     ],
     [
-     "97",
+     "105",
      "controles",
-     "85 de sanidad y 12 de puerta"
+     "93 de sanidad y 12 de puerta"
     ]
    ],
    "nota": "Bilingüe ES/EN. Licencia MIT. La fuente de verdad es una carpeta de Markdown, CSV y JSON que se versiona con git y se lee sin pm-method.",
@@ -1681,18 +1725,13 @@
    "en": "EN: every PRINCE2 transition goes through a board gate, verified before the decision."
   },
   "controles": {
-   "titulo": "97 controles automáticos vigilan lo que nadie revisa a mano",
+   "titulo": "105 controles automáticos vigilan lo que nadie revisa a mano",
    "grafico": "Códigos de control por familia de sanidad",
    "leyenda_perm": "control permanente",
    "leyenda_otro": "otras familias",
    "puerta": "Además, 12 controles de puerta (P y G) verifican cada decisión de la junta.",
    "ejemplos_titulo": "Lo que detectaron en los casos E2E",
    "ejemplos": [
-    {
-     "codigo": "CAM-03",
-     "caso": "E2E-2",
-     "imagen": "g2-consumo-cambio.png"
-    },
     {
      "codigo": "CAM-03",
      "caso": "E2E-1",
@@ -1707,6 +1746,11 @@
      "codigo": "QUA-01",
      "caso": "E2E-4",
      "imagen": "g4-calidad-entregas.png"
+    },
+    {
+     "codigo": "REG-11",
+     "caso": "E2E-4",
+     "imagen": "g4-lecciones-ciclo.png"
     }
    ],
    "en": "EN: automatic controls watch what nobody checks by hand."
@@ -1731,7 +1775,7 @@
     {
      "nombre": "Transcripciones",
      "clave": "reuniones",
-     "texto": "Actas con acciones, riesgos, decisiones y preferencias declaradas, confirmadas por una persona.",
+     "texto": "Acuerdos con cita: decisiones, compromisos, supuestos, riesgos y lecciones propuestos desde la transcripción y registrados solo si una persona los confirma.",
      "valores": "archivo · Fireflies · Granola · minutes · Teams · Zoom"
     },
     {
@@ -1792,11 +1836,11 @@
    "material": "Material por caso: guía paso a paso por prompts, guion del instructor minuto a minuto, ejercicio autocontenido con ejemplo resuelto y diapositivas PPTX y HTML que regenera un script.",
    "induccion": "Inducción sugerida: instalar → recorrer una guía sobre la copia del proyecto de prueba con BMAD real → dictar su clase → piloto en paralelo con un proyecto real.",
    "recorre": {
-    "E2E-1": "Riesgos desde cuatro fuentes, respuestas costeadas, reserva vigilada y escalamiento a la junta",
-    "E2E-2": "Alcance por productos, estimación, priorización, cambio con presupuesto y excepción",
-    "E2E-3": "Interesados, preferencias, RACI, OKR, highlight desde el dato y envío por canales",
-    "E2E-4": "Producto con BMAD: condiciones formales, calidad a volumen, cierre y beneficios",
-    "E2E-5": "De la idea al proyecto diseñado: supuestos, opciones con VAN, enfoque y mapas"
+    "E2E-1": "Riesgos desde cuatro fuentes, opciones por valor neto, plan de contingencia y reserva vigilada",
+    "E2E-2": "Alcance, tres valores, capacidad del release, impacto de cada cambio y excepción",
+    "E2E-3": "Interesados, acuerdos de reunión, radar, highlight desde el dato y envío por canales",
+    "E2E-4": "Producto con BMAD: calidad a volumen, ciclo de las lecciones, cierre por id y auditoría",
+    "E2E-5": "De la idea al proyecto: lecciones previas, supuestos, VAN, personas de usuario y mapas"
    },
    "en": "EN: end-to-end cases, each one also a training module."
   },
@@ -1806,44 +1850,44 @@
     "problema": "El registro de riesgos nace en un taller y se congela. Las respuestas no se costean y la reserva se usa como bolsa general.",
     "muestra": [
      "Riesgos candidatos desde BMAD, transcripciones, Jira y artefactos, con cita de origen",
-     "Respuestas justificadas por su costo frente a la reducción del valor monetario esperado",
-     "Reserva de riesgo vigilada como presupuesto vivo de la junta"
+     "Opciones de respuesta comparadas por valor neto; decide el propietario y el plan de contingencia queda listo",
+     "Presupuesto de riesgo vigilado y reserva de gestión de la junta para lo no identificado"
     ]
    },
    "E2E-2": {
     "titulo": "E2E-2 · Alcance y cambio: el desvío se ve el mismo día, no al cerrar la etapa",
     "problema": "El alcance se define bien una vez y se controla mal después. Los cambios se aprueban «porque son razonables» y nadie suma lo comprometido.",
     "muestra": [
-     "Alcance por productos trazado a requisitos e historias",
-     "Presupuesto y límite de la autoridad de cambio registrados por la junta",
+     "Tres valores, reserva de cronograma y capacidad del release por MoSCoW",
+     "Análisis de impacto antes de decidir: tiempo, capacidad, presupuesto, VAN y quién decide",
      "Excepción completa: detectada, informada, replanificada y autorizada"
     ]
    },
    "E2E-3": {
-    "titulo": "E2E-3 · Interesados y OKR: el compromiso se mide en cada período",
+    "titulo": "E2E-3 · Interesados y avance: compromiso y cifras verificados cada período",
     "problema": "El mapa de interesados se arma una vez, el highlight se copia a mano y los OKR se miran al final.",
     "muestra": [
-     "Maestro único de interesados: matriz, preferencias con cita y RACI",
-     "Highlight armado desde el dato y enviado por la capa de canales",
+     "Acuerdos del taller propuestos con cita y registrados solo al confirmarlos",
+     "Radar de lo que hay que decidir hoy y highlight con las cifras verificadas contra el EVM",
      "Cadencia de contacto y brecha de compromiso como control permanente"
     ]
    },
    "E2E-4": {
-    "titulo": "E2E-4 · Producto con BMAD: calidad a volumen y beneficios medidos después del cierre",
+    "titulo": "E2E-4 · Producto con BMAD: calidad, cierre por id y beneficios medidos",
     "problema": "Con decenas de historias terminadas nadie verifica cada revisión, las condiciones de la junta se olvidan y los beneficios no se miden.",
     "muestra": [
      "El CONCERNS del gate de BMAD se vuelve una condición formal que bloquea el cierre",
-     "Cada historia terminada con su revisión de calidad, incluido un rechazo",
-     "Beneficios medidos después del cierre contra trayectoria y tolerancia"
+     "Retrospectiva con cita y ciclo de las lecciones: acción, verificación e índice de la organización",
+     "Cierre verificado por id y expediente de auditoría con integridad comprobable"
     ]
    },
    "E2E-5": {
     "titulo": "E2E-5 · De la idea al proyecto: los supuestos se validan antes de invertir",
     "problema": "El caso de negocio se escribe una vez, con el supuesto más optimista, y el enfoque de entrega se elige por costumbre.",
     "muestra": [
-     "Mapa de supuestos y experimentos baratos antes de comprometer dinero",
+     "Lecciones de otros proyectos y mapa de supuestos antes de comprometer dinero",
      "Opciones comparadas con VAN y enfoque de entrega elegido con criterios",
-     "Mapa de Wardley y recorrido del paciente para decidir qué construir"
+     "Personas de usuario ligadas a cada requisito Must, y mapas para decidir qué construir"
     ]
    },
    "rotulos": {
@@ -1858,9 +1902,9 @@
    "titulo": "La confianza se demuestra: pruebas reproducibles, pruebas en vivo y revisión de seguridad",
    "kpis": [
     [
-     "223",
+     "353",
      "pruebas de regresión OK",
-     "0 FALLO · 21 casos"
+     "0 FALLO · 33 casos"
     ],
     [
      "5/5",
@@ -1868,12 +1912,12 @@
      "reproducen las guías con los scripts reales"
     ],
     [
-     "127",
+     "128",
      "diagramas Mermaid",
      "0 errores de lint"
     ],
     [
-     "102",
+     "130",
      "frases de enrutamiento",
      "para pruebas en vivo con Claude Code real"
     ]

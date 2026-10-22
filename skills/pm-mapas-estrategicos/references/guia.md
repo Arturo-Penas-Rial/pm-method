@@ -78,6 +78,10 @@ Describe cómo una persona concreta intenta lograr algo, paso a paso, y qué sie
 
 - **Persona y trabajo**: `persona` (arquetipo construido con datos del proyecto, no una persona real), `trabajo` (lo que
   quiere lograr, más allá de la función), `disparador` (qué la pone en marcha) y `exito` (cómo sabe que terminó bien).
+  Si el proyecto registra personas de usuario (`personas.csv`, `pm-interesados` guía §13), `recorrido semilla --persona
+  PU-###` toma de la persona el nombre, la descripción, el objetivo (`trabajo`) y el contexto (`disparador`) y deja
+  `persona_id` en el mapa; con `personas.csv`, un recorrido cuya persona no está registrada (ni por `persona_id` ni por su
+  nombre) da STK-16.
 - **Escenario**: `actual` (as-is) primero. El recorrido `futuro` (to-be) se dibuja después, con las oportunidades.
 - **Etapas y pasos**: etapas con nombre propio del servicio; en cada paso **una sola acción** en una unidad de tiempo
   (validar rechaza "elige y paga", "→" o dos oraciones). Hasta 15 pasos por mapa.

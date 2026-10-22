@@ -23,7 +23,7 @@ import json, os, re, shlex, sys
 
 DERIVADOS = ("spec-index.json", "requisitos-bmad.csv", "matriz-trazabilidad-bmad.csv", "inventario-bmad.json", "avance-bmad.csv")
 REGISTROS = ("riesgos.csv", "issues.csv", "cambios.csv", "decisiones.csv", "supuestos.csv", "lecciones.csv", "stakeholders.csv", "calidad.csv", "acciones.csv",
-             "estereotipos.csv", "preferencias.csv", "raci.csv", "envios.csv")
+             "estereotipos.csv", "preferencias.csv", "raci.csv", "envios.csv", "personas.csv")
 BMAD = ("_bmad", "_bmad-output", ".bmad-core")
 SCRIPTS = ("estado.py", "registro.py", "bmad.py", "nuevo_proyecto.py", "sanidad.py", "especificacion.py", "paquete.py", "exportar.py", "puertas.py",
            "interesados.py", "envios.py")

@@ -15,6 +15,7 @@ Paquete (base)             = Mano de obra + Materiales + Suministros + Equipos +
 Ágil, costo por iteración  = Σ personas × dedicación × días × tarifa diaria + fijos del período
 Contingencia (un nivel)    = Σ EMV amenazas (impacto monetario × prob.) + Σ costo de respuestas no incluidas en paquetes
 BAC                        = Σ paquetes base (incl. gestión) + Contingencia       (línea base de medición; total del PV)
+Reserva de gestión         = provisión para riesgos no identificados (monto o % del enfoque de riesgo §7) [+ otra reserva que fije la junta]
 Presupuesto autorizado     = BAC + Reserva de gestión  (+ presupuesto de cambio si se usa)
 PV acumulado (t)           = Σ pv_periodo hasta t ;  PV acumulado (fin) = BAC
 Verificación cruzada       |Ascendente − Analógica| / Analógica > 25 % → revisar supuestos
@@ -25,6 +26,7 @@ EMV con la convención del paquete: P 1–5 → 10/30/50/70/90 % (configurable).
 - **Contingencia**: para riesgos identificados; se calcula una vez y en un solo nivel (por etapa, recomendado; si se hace por paquete, no se repite en la etapa). Se asigna al período o etapa donde se espera el riesgo y se vincula a ids `R-###`.
 - **BAC** = Σ estimaciones base de paquetes (incluido el de gestión, W-G) + contingencia. Es la línea base de medición del desempeño y el total de la serie PV.
 - **Reserva de gestión**: fuera del BAC y del PV, para lo no identificado; la propone esta skill y solo la libera la junta (o la capa de negocio).
+- **Provisión para riesgos no identificados** (regla por defecto del paquete): la provisión para riesgos no identificados va a la **reserva de gestión**, que solo libera la junta; el presupuesto de riesgo financia las respuestas y contingencias de los riesgos identificados. Por eso la contingencia (o presupuesto de riesgo) no lleva un margen para lo no identificado y la provisión se propone como `gestion=`; su uso es un cambio con `cargo=reserva-gestion` que decide la junta (CAM-05). El enfoque de riesgo §7 puede declarar el otro destino (`presupuesto-riesgo`, sugerencia de PRINCE2): entonces la provisión es un renglón propio de la contingencia, dentro del BAC, y no se repite en la reserva de gestión. Respaldo: PRINCE2 7, presupuesto de riesgo con provisión sugerida y control fijado por el enfoque (`pm-knowledge/references/prince2-practicas-riesgo-issues-progreso-productos.md` §2.b R-18 y §2.c.6); PMBOK 8, reserva de contingencia para riesgos identificados y reserva de gestión para lo desconocido-desconocido, sin mezclarlas en una cifra (`pmbok8-dominios-procesos-adaptacion.md` §2.4.a y §5.3 punto 19; `pmbok8-artefactos-tecnicas-anexos.md` §3.2 "Análisis de reservas").
 - **Presupuesto de cambio** (PRINCE2, opcional): fuera del BAC, declarado aparte, lo administra la autoridad de cambio.
 - Nunca se quita contingencia sin cambiar la respuesta al riesgo que la sustenta.
 - **Registro en `estado.json` (control permanente):** cuando la junta aprueba los montos, pm-director los registra en

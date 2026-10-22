@@ -77,9 +77,70 @@ Riesgos: un riesgo alto sin respuesta o sin propietario rompe la línea de toler
 - Monitorear es por tiempo, decidir por eventos, reportar ambas; cadena: checkpoint → highlight → excepción.
 - Una excepción resuelta dentro de tolerancia de etapa no lleva informe de excepción, pero aparece en el siguiente highlight.
 - La frecuencia la acuerda la junta (PID); con equipo nuevo o señales de riesgo, proponer aumentarla temporalmente.
-- Validar la cadena de reporte: highlight, variaciones y EVM con las mismas cifras; si no, detener y señalar.
+- Validar la cadena de reporte: highlight, variaciones y EVM con las mismas cifras; si no, detener y señalar (`estado.py periodo --verificar`, §14).
 - Señal de sesgo (todo verde con issues acumulándose, "va bien" sin evidencia) → pedir evidencia, revisión por pares o más frecuencia.
 - Sin línea base de costo → EVM no es posible: avance por productos e hitos y derivar a `pm-costos-presupuesto`.
 
 ## 12. Transición de fin de etapa
 Si el fin de etapa se acerca (último paquete en verificación, `fin_previsto` a menos de un período, productos completos), proponer CS→SB: con confirmación del gestor, `estado.py --proyecto <dir> limite-etapa` y derivar a `pm-plan-etapa-y-limites`. Con plan de excepción pedido por la junta (decisión registrada por `pm-director`): `estado.py limite-etapa --excepcion X-###`, plan en `02-planificacion/plan-excepcion-X-###.md`. Fin de proyecto → `estado.py cierre` y `pm-cierre-proyecto`. Ninguna puerta se registra desde aquí.
+
+## 13. Briefing de incorporación
+Para quien se suma antes de una puerta (integrante de la junta o del equipo, auditor, ejecutivo, agente): una lectura de 10
+minutos que no reemplaza al PID ni al highlight, los cita. `python3 ${CLAUDE_SKILL_DIR}/../pm-estado-proyecto/scripts/estado.py
+--proyecto <dir> briefing [--para ST-###] [--corte AAAA-MM-DD] [--salida RUTA|-] [--json]` llena
+`templates/briefing-incorporacion.md` desde `estado.json`, los registros, el último corte de EVM guardado, `puertas.py` y el
+radar de atención (`estado.py radar`; reglas y prioridad en `pm-estado-proyecto/references/guia.md` §9). Secciones:
+contexto, rol y responsabilidades del interesado (`--para`: rol en el proyecto y en la junta, contacto acordado, RACI, lo que
+tiene a cargo y sus ítems del radar), decisiones clave (nivel junta, ejecutivo o capa de negocio), riesgos altos, issues y
+cambios pendientes con quién decide, desempeño contra tolerancias, artefactos aprobados con su copia congelada, próxima
+puerta con bloqueos y condiciones, y próximos pasos. A lo sumo ≈ 2 páginas (6.500 caracteres); cada cifra con su id o su
+archivo; nunca actitudes ni valoraciones de interesados.
+- [PRINCE2] Definir roles y responsabilidades y comunicación bidireccional: quien entra a la junta debe saber qué decide y
+  con qué tolerancias (`pm-knowledge/references/prince2-principios-personas-procesos.md` §2.3 y §3.4).
+- [PMBOK→Organizing] Gestión del conocimiento: lo explícito (registros, artefactos aprobados) se entrega por escrito; lo
+  tácito, en la conversación con el gestor que sigue a la lectura (`pmbok8-dominios-procesos-adaptacion.md` §2.1.b.6).
+- [Plantillas] La incorporación de personas forma parte del plan de gestión de recursos (`plantillas-inicio-y-planes.md`
+  §3.7: incorporación de personas y de contratistas externos).
+El archivo queda `borrador` en `03-control/reportes/<corte>-briefing-incorporacion[-ST-###].md`; si se distribuye, el
+gestor lo revisa y lo registra (`estado.py artefacto briefing-<fecha> --ruta … --estado en-revision`) y el envío va por
+`pm-comunicacion-stakeholders`. Con `confidencial=si` en el interesado, el briefing omite también su poder e interés.
+
+## 14. Datos del período, tablero y highlight desde el dato
+Un solo cálculo alimenta el highlight, el tablero de `pm-visuales` y lo que leen pm-director y
+`pm-comunicacion-stakeholders`: `python3 ${CLAUDE_SKILL_DIR}/../pm-estado-proyecto/scripts/estado.py --proyecto <dir>
+periodo --desde AAAA-MM-DD --corte AAAA-MM-DD [--proximo AAAA-MM-DD] [--juicio J.json] [--json] [--tablero [RUTA]]
+[--highlight [RUTA] [--forzar]]`. Sin `--tablero` ni `--highlight` solo muestra los datos (texto acotado o `--json`).
+
+**Semáforos por regla** (verde ≤ 50 % de la tolerancia, ámbar 50–100 %, rojo fuera; §8):
+| Objetivo | Regla | Fuente |
+|---|---|---|
+| Tiempo y costo | `semaforo_cronograma` y `semaforo_costo` del último corte de EVM con fecha dentro del período (uno anterior no se usa: aviso) | `evm-<corte>.json` |
+| Alcance | `semaforo_alcance` del corte con `--modo agil`; si no, juicio del gestor, citado contra el burn-up | `evm-<corte>.json` · `avance-bmad.csv` |
+| Riesgo | rojo si un riesgo abierto con P×I ≥ `estado.json.umbrales_riesgo.alto` no tiene respuesta o propietario; ámbar si hay altos abiertos; verde si no | `registro.py resumen` |
+| Calidad | ámbar con QUA-01…03 o un fuera de especificación abierto; verde si no (sin revisiones registradas, juicio) | registros · sanidad QUA |
+| Beneficios, sostenibilidad | juicio del gestor contra la tolerancia del proyecto | enfoque de beneficios |
+
+Estado general = el peor de los siete. Productos aceptados del período = revisiones `completada` con resultado aprobado y
+`fecha_real` en el período; también se listan los cambios y fuera de especificación del período, las acciones vencidas y
+las que vencen hasta `--proximo`, y las decisiones (las del juicio o, si no hay, las de «decidir» del radar; las del radar
+que el juicio deja afuera se avisan).
+
+**Juicio del gestor** (`03-control/reportes/<corte>-juicio-gestor.json`, lo propone el modelo y lo confirma el gestor;
+fuentes = datos): `objetivos` (`{clave: {rag, pronostico, detalle, tol_etapa, tol_proyecto}}`: en un objetivo con regla,
+`pronostico` es una nota y `rag` solo puede empeorarlo; las tolerancias de `estado.json` mandan), `hitos`, `decisiones`
+(`{id, texto, fecha_limite}`), `agil` (`iteraciones: [{fecha, nombre, planificado}]`, una por corte de
+`avance-bmad.csv` que cierra una iteración; `fecha_fija`, `fecha_pronostico`, `must_en_riesgo`), `comentario`, `moneda`
+y `fuentes` (se suman a las del script).
+
+**Highlight.** `--highlight` escribe el borrador de la variante mínima (`03-control/reportes/<corte>-highlight-report.md`,
+secciones [mín] de la plantilla) con las cifras, ids y puertas (`puertas.py estado`), y deja `[por redactar]` el
+principal desvío, la decisión que se pide, el próximo período y la recomendación; no pisa un archivo existente sin
+`--forzar` ni una versión aprobada. Tras redactar: `estado.py periodo --verificar <informe> [<otro> …]` (también
+comunicados y borradores por audiencia) comprueba la **cadena de reporte**: cada cifra rotulada del EVM (SPI, CPI, EAC,
+ETC, VAC, BAC, PV, EV, AC, SV, CV; «sobrecosto … %», «… % del PV») coincide con el corte guardado al redondeo citado
+(«≈» o «~»: ±1 %) y ningún semáforo con regla es mejor que el derivado; código 1 si algo difiere. Recién entonces se
+registra `highlight-<corte>` en revisión (paso 11).
+- [PRINCE2] Cadena de informes y revisión del progreso contra los siete objetivos
+  (`prince2-practicas-riesgo-issues-progreso-productos.md` §4.c.3 y §4.c.6); el gestor informa, la junta decide.
+- [Plantillas] Validar la cadena de reporte y reconciliar números (`plantillas-documentos-registros-reportes.md` §49,
+  reglas 21 y 22).

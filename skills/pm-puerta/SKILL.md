@@ -3,7 +3,7 @@ name: pm-puerta
 description: "Prepara una puerta de decisión de la junta: productos requeridos, verificación BMAD y solicitud de decisión. Uso manual: /pm-puerta <tipo> [carpeta]. Prepare a gate."
 disable-model-invocation: true
 argument-hint: "autorizar-inicio|autorizar-proyecto|autorizar-etapa|autorizar-plan-excepcion|autorizar-cierre|decision-ad-hoc [carpeta]"
-version: 2.3.0
+version: 2.4.0
 author: pm-method
 license: MIT
 metadata:

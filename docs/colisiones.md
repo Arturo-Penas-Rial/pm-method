@@ -13,7 +13,7 @@ Claude Code decide qué skill activar leyendo solo el `name` y la `description` 
 - "No:" es la pista de alcance (scope clue): nombra la colisión más probable y a qué skill corresponde.
 - Los seis comandos (`pm-ayuda`, `pm-nuevo`, `pm-estado`, `pm-reporte`, `pm-puerta`, `pm-sync`) llevan `disable-model-invocation: true`: no compiten en el enrutamiento ni consumen presupuesto, y no tienen pista "No:".
 
-**Presupuesto medido.** Las 33 descripciones invocables suman 6.817 caracteres (`validar_paquete.py`; el límite del paquete es 7.500, SPEC §3). Si conviven muchos plugins y el listado se recorta, se puede subir la fracción con `"skillListingBudgetFraction": 0.02` en `settings.json`. `skillOverrides` (`on | name-only | user-invocable-only | off`) no se aplica a skills de plugins.
+**Presupuesto medido.** Las 33 descripciones invocables suman 6.957 caracteres (`validar_paquete.py`; el límite del paquete es 7.500, SPEC §3). Si conviven muchos plugins y el listado se recorta, se puede subir la fracción con `"skillListingBudgetFraction": 0.02` en `settings.json`. `skillOverrides` (`on | name-only | user-invocable-only | off`) no se aplica a skills de plugins.
 
 ## 2. Matriz de dueños
 
@@ -147,9 +147,9 @@ sobre el canal, el envío o su registro, es pm-integraciones. En vivo, «Public�
 ## 5. Evaluación de enrutamiento
 
 ### 5.1 Método
-- **Conjunto de prueba:** `docs/evaluacion/frases-enrutamiento.tsv`, sin cabecera: `id`, frase tal como la escribiría un usuario, skill esperada y, en algunas, skills aceptables (102 frases; la evaluación ciega de §5.2 usó las 52 primeras). Frases 1–38 y 49–52 en español rioplatense (42); frases 39–48 en inglés (10).
+- **Conjunto de prueba:** `docs/evaluacion/frases-enrutamiento.tsv`, sin cabecera: `id`, frase tal como la escribiría un usuario, skill esperada y, en algunas, skills aceptables (130 frases; la evaluación ciega de §5.2 usó las 52 primeras). Frases 1–38 y 49–52 en español rioplatense (42); frases 39–48 en inglés (10).
 - **Repetición en vivo con Claude Code real:** las frases de pm-interesados, pm-organizacion-roles, pm-comunicacion-stakeholders, pm-integraciones y pm-okr (1, 2, 12, 16, 17, 40, 46, 51 y 61–66) dieron 14/14 el 18/10/2026 (`docs/evaluacion/resultados/2026-10-18-enrutamiento-v2.2.md`); las frases 1 y 40 esperan `pm-interesados` y las 61–66 cubren RACI, preferencias, envío por canales, check-ins de OKR y riesgos candidatos.
-- **Cobertura (v2.0, 31 invocables):** 30 de las 31 skills invocables tienen al menos una frase. Más frases en los temas con vecinos fuertes: pm-reuniones 4; pm-progreso-reportes, pm-cronograma-estimacion y pm-bmad-puente 3 cada una; la mayoría del resto 2 o 1. **pm-sanidad no tiene frases** (se agregó después de armar el conjunto).
+- **Cobertura (33 invocables):** 32 de las 33 skills invocables son la skill esperada de al menos una frase; `pm-organizacion-roles` figura solo como aceptable (frase 81). Más frases en los temas con vecinos fuertes: pm-interesados 12, pm-progreso-reportes 10, pm-issues-cambios 9, y pm-riesgos, pm-reuniones, pm-lecciones-aprendidas y pm-mapas-estrategicos 7 cada una.
 - **Evaluación ciega:** el modelo evaluador recibe solo el listado `- <name>: <description>` de las skills invocables (lo mismo que ve Claude Code para decidir) y las frases sin la columna esperada. Para cada frase debe nombrar una única skill. Las respuestas se comparan con la tercera columna.
 - **Qué mide y qué no:** mide si las descripciones bastan para separar vecinos. No mide el efecto del contexto de la conversación, de skills de otros plugins ni del recorte del listado si se agota el presupuesto.
 

@@ -1,7 +1,7 @@
 # Entorno Docker opcional de pm-method: Linux aislado con Claude Code CLI, Python 3 y Node.js, más todas las
 # dependencias opcionales que usan los scripts, las pruebas y los generadores de diagramas y diapositivas.
 # Guía: docs/DOCKER.md.  Construir desde la raíz del repositorio:
-#   docker build -f docker/Dockerfile -t pm-method:2.3.0 .
+#   docker build -f docker/Dockerfile -t pm-method:2.4.0 .
 #
 # Nada de credenciales en la imagen: la clave de API o el inicio de sesión se pasan al ejecutar
 # (variables de entorno o volumen de configuración). Los secretos de construcción opcionales (un certificado de
@@ -111,7 +111,7 @@ RUN chmod -R a+rX,go-w /opt/pm-method /opt/ms-playwright /etc/pm-method
 FROM base AS final
 ARG UID=1000
 ARG GID=1000
-ARG VERSION=2.3.0
+ARG VERSION=2.4.0
 LABEL org.opencontainers.image.title="pm-method" \
       org.opencontainers.image.description="Entorno aislado para usar y probar el plugin pm-method con Claude Code (Linux, Python 3, Node.js, Mermaid, Playwright)" \
       org.opencontainers.image.version="${VERSION}" \

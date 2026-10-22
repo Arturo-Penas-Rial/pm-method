@@ -4,8 +4,9 @@
 especifica y construye con BMAD**. pm-method no copia la especificación: la lee por una fachada de solo lectura y le
 devuelve decisiones por traspaso. El foco está en la ejecución: puertas con condiciones formales, paquetes de trabajo
 con punto de control, valor ganado vigilado, cambios con presupuesto, **calidad a volumen**, el **recorrido del
-cliente** sobre lo entregado, cierre con traspaso a operación y **beneficios medidos después del cierre** por el
-negocio.
+cliente** sobre lo entregado, el **ciclo completo de las lecciones** (de la retrospectiva al índice de la
+organización), cierre con traspaso a operación, **expediente de auditoría verificable** y **beneficios medidos después
+del cierre** por el negocio.
 
 **Escenario:** una cooperativa construye un portal de autoservicio para sus socios (consulta de saldos, constancias,
 solicitudes de préstamo y una consola para las operadoras). Laura Méndez es la ejecutiva; Sofía Ramírez, usuaria
@@ -26,6 +27,13 @@ el paso 1.
 - **El cambio se paga "con la contingencia".** Sin monto, sin presupuesto y sin saber cuánto queda.
 - **Todo está `done` y la socia igual pide ayuda.** Las historias pasan sus pruebas una por una, pero nadie mira el
   recorrido completo de la persona. Un dolor que nadie trata termina como beneficio que no llega.
+- **Las lecciones se anotan y nadie cambia nada.** La retrospectiva se mezcla con la planificación del sprint
+  siguiente, la planilla de lecciones se llena al cierre y nadie comprueba si la acción funcionó. En la corrida de
+  referencia, la retro del sprint 4 dice "otra vez llegaron historias a done sin la revisión registrada": el problema ya
+  había pasado y nadie lo había convertido en un cambio. Aquí cada lección sale con su cita, se clasifica por impacto,
+  llega al proceso donde se usa (el sprint siguiente, el plan de la etapa, el próximo proyecto) y se verifica.
+- **La auditoría pide la evidencia y se arma a mano.** Actas, planillas y correos juntados durante días, sin forma de
+  probar después que nadie los editó.
 - **Los beneficios se declaran y nadie los mide.** El proyecto cierra, el equipo se va y la pregunta "¿valió la pena?"
   queda sin dueño. Además, un OKR en rojo seis semanas después de salir a producción no es un desvío, y un objetivo en
   verde puede esconder un beneficio fuera de tolerancia.
@@ -37,14 +45,17 @@ el paso 1.
 3. Mantener **cada historia terminada con su revisión de calidad** en cada entrega, incluido el tratamiento de un
    rechazo.
 4. Mapear el **recorrido de la socia** sobre lo entregado y darle a cada dolor un tratamiento con dueño.
-5. Cerrar con **traspaso a operación** y medir los **beneficios después del cierre** contra la trayectoria y contra la
-   tolerancia.
+5. Llevar las **lecciones de una retrospectiva** hasta el cambio que producen: clasificadas por impacto y ámbito, una
+   acción en el sprint siguiente, otra en el plan de la etapa, las dos **verificadas**, y el informe de lecciones
+   exportado al **índice de la organización**.
+6. Cerrar con **traspaso a operación** y entregar a la auditoría un **expediente cuya integridad se verifica**.
+7. Medir los **beneficios después del cierre** contra la trayectoria y contra la tolerancia.
 
 ## Indicadores que vas a ver
 
 ![Calidad por entrega](img/g4-calidad-entregas.png)
-Historias terminadas contra historias con revisión aprobada en cada corte: las brechas del 26/2 y del 7/5 se cerraron
-antes de la puerta siguiente (paso 8).
+Historias terminadas contra historias con revisión aprobada en cada corte, según el estado de productos que deriva
+`estado.py productos`: las brechas del 26/2 y del 7/5 se cerraron antes de la puerta siguiente (pasos 6 y 8).
 
 ![Recorrido de la socia sobre el Release 1](img/g4-recorrido.png)
 El recorrido de UJ-1 con lo observado en la revisión del Release 1: dos dolores, cada uno con su tratamiento (R-001 y
@@ -54,9 +65,18 @@ NFR-3 con Q-001) (paso 6b).
 El mismo recorrido en la sección «Mapas estratégicos» del tablero de avance: curva de emoción, cada dolor con su
 tratamiento enlazado y 0 avisos MAP vigentes (paso 7).
 
+![Ciclo de las lecciones](img/g4-lecciones-ciclo.png)
+De la retrospectiva del sprint 4 al índice de la organización: 3 lecciones con cita (1 de impacto alto), la acción de
+L-002 verificada en el sprint 5, L-003 cambia el plan de la etapa 3 y se verifica al cerrar el Release 2, y 3 lecciones
+en el índice (pasos 6c, 7, 8 y 9).
+
 ![Tablero de cierre](img/g4-cierre.png)
-La puerta de cierre en una página: 11 de 11 historias con revisión aprobada, CPI 0,977, 40 % del presupuesto de cambio
-usado y 0 condiciones abiertas (paso 9).
+La puerta de cierre en una página: 11 de 11 productos aceptados y 0 Must sin aceptar (estado de productos, C-07),
+CPI 0,977, 40 % del presupuesto de cambio usado y 0 condiciones abiertas (paso 9).
+
+![Expediente de auditoría](img/g4-expediente.png)
+El expediente para la auditoría externa: 41 eventos en la cronología y 43 archivos con su huella; una sola palabra
+cambiada en la copia y la verificación la delata (paso 9b).
 
 ![Revisión final de beneficios](img/g4-beneficios.png)
 Al 31/12/2027, B-02 adopción llega al 83 % de la meta y queda fuera de la tolerancia de −10 %; B-01 y B-03, dentro
@@ -66,14 +86,14 @@ Al 31/12/2027, B-02 adopción llega al 83 % de la meta y queda fuera de la toler
 
 | Clase (90 min) | Pasos | Qué se lleva el asistente |
 |---|---|---|
-| 1 · Gobernar la construcción con BMAD | 1 (resumen, remite a E2E-5) · 2 · 3 · 4 · 5 | condición formal, paquete de trabajo con punto de control, valor ganado guardado, cambio con presupuesto y nueva línea base |
-| 2 · Calidad a volumen, recorrido, cierre y beneficios | 6 · 6b · 7 · 8 · 9 · 10 · 11 | calidad por entrega (QUA-01/02/03), recorrido del cliente con dolores tratados (MAP-03), condición cumplida, traspaso a operación y paquete de cierre, beneficios contra trayectoria y tolerancia |
+| 1 · Gobernar la construcción con BMAD | 1 (resumen, remite a E2E-5) · 2 · 3 · 4 · 5 · 6 | condición formal, paquete de trabajo con punto de control, valor ganado guardado, cambio con presupuesto y nueva línea base, radar al retomar la sesión, calidad a volumen por entrega (QUA-01/02) y estado de productos |
+| 2 · Recorrido, lecciones, cierre y beneficios | 6b · 6c · 7 · 8 · 9 · 9b · 10 · 11 | recorrido del cliente con dolores tratados (MAP-03), retrospectiva con lecciones clasificadas por impacto y ámbito, lección en el plan de la etapa (E-11) y acciones verificadas (REG-11, REG-12), condición cumplida, rechazo tratado (QUA-03), informe de lecciones e índice de la organización, traspaso y paquete de cierre con la puerta verificada por id (C-03, C-07), expediente verificado, beneficios contra trayectoria y tolerancia |
 
 Material de clase: [guion](../webinar/E2E-4/guion-instructor.md) · [ejercicio](../webinar/E2E-4/ejercicio.md) ·
 [diapositivas](../webinar/E2E-4/diapositivas.json).
 
 **Skills y agentes de pm-method:** pm-orquestador · pm-planificacion · pm-control · pm-cierre · `pm-director` ·
-`pm-bmad-puente` · `pm-paquetes-trabajo` · `pm-progreso-reportes` · `pm-issues-cambios` · `pm-calidad` ·
+`pm-bmad-puente` · `pm-paquetes-trabajo` · `pm-progreso-reportes` · `pm-issues-cambios` · `pm-calidad` · `pm-reuniones` ·
 `pm-mapas-estrategicos` · `pm-riesgos` · `pm-plan-etapa-y-limites` · `pm-caso-de-negocio` · `pm-okr` ·
 `pm-lecciones-aprendidas` · `pm-cierre-proyecto` · `pm-visuales` · `pm-exportar` (y, en el paso 1, las de arranque e
 iniciación que detalla E2E-5).
@@ -81,7 +101,7 @@ iniciación que detalla E2E-5).
 `bmad-prd`, `bmad-ux`, `bmad-architecture`, `bmad-create-epics-and-stories`, `bmad-sprint-planning`, `bmad-build`,
 `bmad-code-review`, `bmad-correct-course`, `bmad-retrospective`, `bmad-help`.
 
-**Duración:** 13 pasos (0 a 11 y 6b: diez dentro del proyecto y dos posteriores al cierre); dos clases de 90 minutos
+**Duración:** 15 pasos (0 a 11, 6b, 6c y 9b: trece dentro del proyecto y dos posteriores al cierre); dos clases de 90 minutos
 con el fixture; un día o más si producís los artefactos de BMAD desde cero.
 Evidencia de referencia: [salida-g4.md](evidencia/salida-g4.md).
 
@@ -93,11 +113,11 @@ flowchart TB
     end
     subgraph B["Clase 1 · Construcción, etapa 2"]
         direction LR
-        b1["2 · condición<br/>formal"] --> b2["3 · sprint como<br/>paquete"] --> b3["4 · valor<br/>ganado"] --> b4["5 · cambio con<br/>presupuesto"]
+        b1["2 · condición<br/>formal"] --> b2["3 · sprint como<br/>paquete"] --> b3["4 · valor<br/>ganado"] --> b4["5 · cambio con<br/>presupuesto"] --> b5["6 · calidad<br/>a volumen"]
     end
-    subgraph C["Clase 2 · Calidad, recorrido y cierre"]
+    subgraph C["Clase 2 · Recorrido, lecciones y cierre"]
         direction LR
-        c1["6 · calidad<br/>a volumen"] --> c1b["6b · recorrido<br/>de la socia"] --> c2["7 · condición<br/>cumplida"] --> c3["8 · Release 2<br/>con un rechazo"] --> c4["9 · traspaso<br/>y cierre"]
+        c1b["6b · recorrido<br/>de la socia"] --> c1c["6c · retro:<br/>lecciones"] --> c2["7 · lección en<br/>el plan, condición"] --> c3["8 · acciones<br/>verificadas"] --> c4["9 · informe e índice,<br/>traspaso y cierre"] --> c5["9b · expediente<br/>verificado"]
     end
     subgraph D["Después del proyecto · negocio"]
         direction LR
@@ -113,14 +133,21 @@ flowchart TB
 | Actividad | Cómo se hace hoy | Con pm-method (frecuencia y control) | Indicador |
 |---|---|---|---|
 | Revisar la calidad de cada historia | una revisión al final, o ninguna | en cada sanidad: toda historia `done` sin revisión aprobada aparece; registro en lote por entrega · **QUA-01** | historias terminadas contra revisadas ([g4-calidad-entregas](img/g4-calidad-entregas.png)) |
+| Saber en qué estado está cada producto | una planilla que se arma a mano para el fin de etapa | estado de productos derivado de backlog, calidad, issues, aceptaciones y paquetes, a cualquier corte, con las diferencias entre lo registrado y lo físico (`estado.py productos`; el registro de productos de PRINCE2, sin registro propio) | productos por estado; diferencias (0 al cierre) |
+| Cerrar sin productos ni riesgos sin dueño | "está todo aceptado" en el acta; las recomendaciones se escriben de memoria | en la puerta de cierre, cada issue y riesgo abierto por id con responsable en las recomendaciones (**C-03**, bloqueo) y cada requisito o historia Must con su aceptación (**C-07**, condición) | Must sin aceptar (0 al cierre, [g4-cierre](img/g4-cierre.png)) |
 | Tratar un rechazo de calidad | se corrige "de palabra" y no queda traza | en cada sanidad hasta que un issue, acción o cambio cite el Q-### · **QUA-03** | rechazos sin tratamiento (0 al cierre) |
 | Hacer la revisión prometida (prueba de carga) | se recuerda cuando ya venció | revisión planificada con fecha; aviso al vencer · **QUA-02** | revisiones vencidas |
 | Seguir una puerta "con condiciones" | queda en el acta | condición formal; aviso en cada sanidad y en la puerta siguiente; **bloqueo del cierre** · **EST-12 · G-01** | condiciones abiertas ([g4-cierre](img/g4-cierre.png)) |
-| Retomar el proyecto después de semanas | releer actas o confiar en la memoria | al abrir cada sesión, un resumen derivado de los registros (`estado.py contexto`) | condiciones abiertas y próxima puerta |
+| Retomar el proyecto después de semanas | releer actas o confiar en la memoria | al abrir cada sesión, un resumen derivado de los registros (`estado.py contexto`) y la línea del radar; a pedido, el radar completo (`estado.py radar`) · **EST-12 · QUA-02 · RAD-07 · TOL-03** | qué decidir, escalar, desbloquear y vigilar, con responsable |
 | Controlar un cambio y su costo | "contra la contingencia", sin monto | costo y cargo contra el presupuesto de cambio de la junta · **CAM-01 · CAM-03** (CAM-04 si supera el límite de la autoridad) | consumo del presupuesto de cambio (40 %) |
 | Detectar cambios en el PRD | se descubren en la demo | contra la línea base de BMAD en cada sanidad · **ESP-10 · ESP-03** (ERROR: bloquean la puerta) | desvíos de la especificación |
 | Vigilar el valor ganado | se calcula para el informe y se olvida | corte guardado y vigilado · **TOL-03** (TOL-01/02 si pronostica salir de tolerancia) | SPI, CPI y EAC por corte |
 | Mirar el recorrido del cliente | un taller de diseño, una vez | mapa sobre cada entrega; en cada sanidad, todo dolor sin tratamiento · **MAP-03** (MAP-04 sin evidencia) | dolores tratados ([g4-recorrido](img/g4-recorrido.png); en el tablero, [g4-tablero-mapas-169](img/g4-tablero-mapas-169.png)) |
+| Entregar la evidencia a una auditoría | se junta a mano cuando la piden; no hay cómo probar que no se editó | expediente bajo demanda desde los registros (cronología, copias congeladas, sha256 por archivo; `--externo` sin valoraciones de interesados) y verificación de cada copia (`paquete.py verificar`) | integridad OK o archivo alterado ([g4-expediente](img/g4-expediente.png)) |
+| Capturar lecciones | una planilla al cierre, de memoria | retrospectiva como reunión propia: lecciones y acciones de mejora propuestas con su cita (`extraccion.py --tipo retrospectiva`); se registra lo que confirma el gestor | lecciones con cita y acción ([g4-lecciones-ciclo](img/g4-lecciones-ciclo.png)) |
+| Llevar la lección al proceso donde se usa | "lo tendremos en cuenta" | clasificada por impacto y ámbito (`lecciones.py clasificar`); impacto alto sin acción en cada sanidad y en el radar · **REG-11**; lecciones de planificación sin considerar en el plan · **E-11** (`autorizar-etapa`) | lecciones abiertas sin acción (0 al cierre) |
+| Comprobar que la acción funcionó | nunca | fecha de verificación por acción; aviso al vencer, en la sanidad y en el radar · **REG-12** | acciones verificadas (2 de 2) |
+| Compartir lo aprendido con la organización | un informe que nadie busca | informe de lecciones desde el registro en cada límite de etapa y al cierre; exportación al índice de la organización que consulta el proyecto siguiente (`lecciones.py informe --exportar`, `buscar --para descubrimiento`) | lecciones en el índice (3) |
 | Saber quién mide los beneficios | nadie después del cierre | enfoque de beneficios exigido en `autorizar-proyecto` (**P-04**), traspasado al negocio en el cierre | puntaje, salud y tolerancia ([g4-beneficios](img/g4-beneficios.png)) |
 
 ---
@@ -364,7 +391,7 @@ identificadores", "19 requisitos trazados", "backlog.csv: 1 nuevas"; líneas bas
 
 ---
 
-## Paso 6 · Calidad a volumen al acercarse el fin del Release 1, retrospectiva y lecciones
+## Paso 6 · Calidad a volumen al acercarse el fin del Release 1
 
 **Problema que resuelve:** con muchas historias terminadas nadie verifica, una por una, que cada una tenga su revisión
 registrada, y nadie recuerda que la prueba prometida ya venció. La sanidad lo detecta en cada corrida (QUA-01, QUA-02)
@@ -372,36 +399,53 @@ y la corrección se hace en lote, **por entrega**, no al final del proyecto.
 
 **Al abrir la sesión.** Pasaron seis semanas desde el cambio. Antes de cualquier pedido, el hook de inicio le muestra al
 gestor un resumen derivado de `estado.json` y los registros (`estado.py contexto`): "Abiertos: revisiones de calidad 1.
-Condiciones abiertas de puertas: autorizar-etapa (2026-11-27). Próxima puerta: autorizar-etapa". Los registros mandan
-sobre la memoria: si una nota de la conversación anterior dice otra cosa, vale el resumen.
+Condiciones abiertas de puertas: autorizar-etapa (2026-11-27). Próxima puerta: autorizar-etapa", y debajo la línea del
+**radar de atención**: "decidir 1 (autorizar-etapa) · escalar 0 · desbloquear 1 (Q-001) · vigilar 1 (evm-2027-01-08)".
+Los registros mandan sobre la memoria: si una nota de la conversación anterior dice otra cosa, vale el resumen.
 
-**Prompt (equipo de producto, BMAD):** `/bmad-retrospective` al cerrar las épicas 1 y 3.
+**Prompt (pm-method, al retomar)**
+```text
+¿Qué tengo que decidir, escalar y desbloquear hoy?
+```
 
 **Prompt (pm-method)**
 ```text
 Al 26/2 el equipo terminó las historias 1.3, 1.4, 3.1, 3.2 y 3.3. Sincronizá el backlog y corré la sanidad: ¿qué
-historias terminadas no tienen revisión de calidad y qué revisiones vencieron?
+historias terminadas no tienen revisión de calidad y qué revisiones vencieron? Mostrame el estado de los productos del
+Release 1.
 ```
 **Prompt (pm-method, después de ver los avisos)**
 ```text
 Registrá en lote las revisiones del Release 1, una por historia ("Release 1 · historia N-M"): prueba contra los
 criterios de aceptación, produce Lucía, revisa Andrea, aprueba Sofía el 25/2; todas aprobadas, la 3.3 con una observación
-menor de usabilidad que va al backlog. Volvé a correr la sanidad. Registrá las lecciones de la etapa: la Sprint Change
-Proposal que entró sin pasar por la autoridad de cambio y las historias que llegaron a done sin revisión.
+menor de usabilidad que va al backlog. Volvé a correr la sanidad.
 ```
 
-**Qué hace el sistema:** `estado.py contexto --corte 2027-02-26` (lo agrega el hook de inicio); `bmad.py backlog`;
-`sanidad.py --rapido --corte 2027-02-26`; `pm-calidad`: `registro.py agregar calidad` una vez por historia (**Q-004 a
-Q-008**, citando "historia N-M", la clave corta que reconoce QUA-01); `sanidad.py` otra vez; `pm-lecciones-aprendidas`
-(**L-001** y **L-002**).
+**Qué hace el sistema:** `estado.py contexto --corte 2027-02-26` y `estado.py radar --corte 2027-02-26 --linea` (los
+agrega el hook de inicio); ante la pregunta, `pm-orquestador`: `estado.py radar --corte 2027-02-26` (solo lectura);
+`bmad.py backlog`; `sanidad.py --rapido --corte 2027-02-26`; `pm-paquetes-trabajo`: `estado.py productos --corte
+2027-02-26 --alcance R1` (estado de productos, solo lectura); `pm-calidad`: `registro.py agregar calidad` una vez por
+historia (**Q-004 a Q-008**, citando "historia N-M", la clave corta que reconoce QUA-01); `sanidad.py` otra vez.
 
-**Qué deberías ver:** la primera sanidad "0 ERROR · 7 AVISO · 3 INFO": **QUA-01** cinco veces ("1-3-consulta-de-saldos…:
-terminado sin revisión de calidad registrada", y lo mismo para 1-4, 3-1, 3-2 y 3-3), **QUA-02** "Revisión de calidad
-vencida Q-001 (…, prevista 2027-02-19)", EST-12, y como INFO CAM-03, ESP-02 y **TOL-03** ("Último corte de EVM guardado
-el 2027-01-08 (más de 31 días)"); foto de calidad "terminadas 7 · con revisión aprobada 2". Después del lote: "0 ERROR
-· 2 AVISO · 2 INFO" (quedan QUA-02 y EST-12, que se resuelven en el paso 7) y "terminadas 7 · con revisión aprobada 7".
+**Qué deberías ver:** el radar "1 decidir · 0 escalar · 1 desbloquear · 2 vigilar" con «Hoy: decidir autorizar-etapa ·
+escalar — · desbloquear Q-001»: decidir **EST-12** (la condición de la etapa 2, a cargo de la junta, Laura Méndez);
+desbloquear **QUA-02** "Q-001 · 2027-02-19 · Lucía Benítez — revisión de calidad vencida"; vigilar **RAD-07** "2
+bloqueo(s) de la próxima puerta: E-01, E-04" (faltan el plan de la etapa 3 y el informe de fin de la etapa 2, que
+llegan en el paso 7) y **TOL-03** "sin corte de EVM reciente"; y "escalar una excepción no corresponde: ningún
+pronóstico fuera de tolerancia ni presupuesto agotado". La línea del hook cuenta 1 en vigilar porque no corre la
+verificación de la próxima puerta (RAD-07), que sí corre el radar completo. Las historias terminadas sin revisión no
+son parte del radar: las lista la sanidad después de sincronizar el backlog. La primera sanidad da "0 ERROR · 7 AVISO ·
+3 INFO": **QUA-01** cinco veces ("1-3-consulta-de-saldos…: terminado sin revisión de calidad registrada", y lo mismo
+para 1-4, 3-1, 3-2 y 3-3), **QUA-02** "Revisión de calidad vencida Q-001 (…, prevista 2027-02-19)", EST-12, y como INFO
+CAM-03, ESP-02 y **TOL-03** ("Último corte de EVM guardado el 2027-01-08 (más de 31 días)"). El estado de productos
+del Release 1 da "7 productos" con "en revisión 5 · aprobado 2 · aceptado 0 … = 7", las cinco diferencias "terminado en
+backlog.csv sin revisión de calidad aprobada (QUA-01)" (1-3, 1-4, 3-1, 3-2 y 3-3), 1-1 y 1-2 aprobadas con Q-002 y
+Q-003 (WP-001) y "Must sin aceptar (C-07 en autorizar-cierre)": nada está aceptado todavía, la aceptación llega en el
+cierre. Foto de calidad "terminadas 7 · con revisión aprobada 2". Después del lote: "0 ERROR · 2 AVISO · 2 INFO" (quedan QUA-02 y EST-12, que
+se resuelven en el paso 7) y "terminadas 7 · con revisión aprobada 7".
 
-**Dónde verificar:** `calidad.csv` (Q-004…Q-008) · `lecciones.csv` (L-001, L-002).
+**Dónde verificar:** `calidad.csv` (Q-004…Q-008) · `estado.py productos --alcance R1 --json`. Que esto haya pasado "otra vez" es lo que el equipo dice en la
+retrospectiva del paso 6c.
 
 ---
 
@@ -460,11 +504,75 @@ y `.md` (vistas) · `riesgos.csv` (R-001) · prompt: "¿Qué dolores del recorri
 
 ---
 
-## Paso 7 · Fin de la etapa 2 (Release 1): prueba de carga, condición cumplida, business case 1.1 y puerta de la etapa 3
+## Paso 6c · Retrospectiva del sprint 4: lecciones con cita, impacto y ámbito, y una acción para el sprint siguiente
+
+**Problema que resuelve:** la retro se hace, pero se mezcla con la planificación del sprint siguiente y termina en una
+lista de tareas; las lecciones se escriben al cierre, de memoria, cuando ya no cambian nada, y nadie comprueba si la
+acción sirvió. Aquí la **retrospectiva** es una reunión propia: mira el proceso con hechos, sin culpables, en el formato
+qué funcionó · qué no funcionó · qué probamos. De su transcripción salen **lecciones candidatas** y **acciones de
+mejora** con la cita textual; el gestor confirma lo que se registra, cada lección se clasifica por **impacto** y por el
+**ámbito** donde se usa (ideación, descubrimiento, planificación, seguimiento) y la acción lleva la fecha en que se
+comprueba su efecto. Es el principio de PRINCE2 «aprender de la experiencia» (learn from experience): una lección
+identificada no es una lección aprendida hasta que cambia algo.
+
+**Prompt (equipo de producto, BMAD):** `/bmad-retrospective` al cerrar las épicas 1 y 3. La reunión del 26/2 la
+facilita Andrea Costa (aseguramiento) y queda grabada en
+`gestion/03-control/reuniones/2027-02-26-retro-sprint-4-original.vtt` (el texto está en la evidencia, paso 6c).
+
+**Prompt (pm-method)**
+```text
+Te dejo la transcripción de la retrospectiva del sprint 4 del 26/2. Proponeme las lecciones y las acciones de mejora,
+cada una con su cita, sin registrar nada todavía.
+```
+**Prompt (pm-method, después de ver los candidatos)**
+```text
+Confirmo las tres lecciones y las dos acciones. Completá efecto y recomendación de cada lección y clasificalas: la de la
+Sprint Change Proposal es de impacto alto (ESP-10 bloqueaba la puerta) y aplica a planificación y seguimiento; la de las
+revisiones, impacto medio y recurrencia alta, a seguimiento; la de los socios, impacto medio, al descubrimiento de los
+próximos proyectos. La acción de Lucía (definición de terminado) se verifica al cerrar el sprint 5, el 19/3.
+```
+**Si te pregunta:** "Martín Suárez, gestor: confirmo CL-01, CL-02, CL-03, CM-01 y CM-02".
+
+**Qué hace el sistema:** `pm-reuniones`: `transcripcion.py` → `extraccion.py candidatos` (tipo `retrospectiva` por el
+nombre del archivo: propone lecciones **CL** y acciones de mejora **CM**, no decisiones ni compromisos del plan) →
+`extraccion.py registrar --confirmar CL-01,CL-02,CL-03,CM-01,CM-02 --por "Gestor: Martín Suárez" --campo …`
+(**L-001…L-003** en `lecciones.csv`, **A-001** y **A-002** en `acciones.csv`); `pm-lecciones-aprendidas`:
+`lecciones.py clasificar` una vez por lección (→ `revisada`) y `listar`; `sanidad.py --rapido --corte 2027-02-26`;
+`lecciones.py accionar L-002 --accion "A-001; definición de terminado del sprint 5" --verificar-en 2027-03-19`.
+
+**Qué deberías ver:** "7 intervenciones de 4 hablantes"; "Retrospectiva: se detectaron 3 lecciones candidatas, 2
+acciones de mejora, 0 supuestos y 0 riesgos nuevos (sin decisiones de gobierno)"; cada candidata con hablante y hora, por
+ejemplo "CL-02 … [00:01:30] · Lucía Benítez: «No funcionó lo de siempre: otra vez llegaron historias a done sin la
+revisión registrada…» · no funcionó · recurrencia alta" y "CM-01 … · Lucía Benítez · 2027-03-03" (el "3/3" dicho,
+resuelto contra la fecha de la reunión). Al registrar, "CL-01 → L-001 … CM-02 → A-002". El listado queda ordenado por
+impacto: "L-003 · alto · recurrencia media · revisada · Martín Suárez · sin acción", luego L-002 y L-001. La sanidad
+suma **REG-11** "Lección L-003 de impacto alto sin acción ni decisión (revisada; aplicar en planificacion;
+seguimiento)" ("0 ERROR · 3 AVISO · 2 INFO", con EST-12 y QUA-02, que se resuelven en el paso 7). L-002 queda
+"accionada-proyecto: acción A-001; definición de terminado del sprint 5 · verificar el efecto el 2027-03-19".
+
+| Lección | Qué se dijo | Impacto · recurrencia | Ámbito | Adónde va |
+|---|---|---|---|---|
+| L-003 | FR-13 llegó al PRD sin pasar por la autoridad de cambio | alto (bloqueó la puerta) · media | planificación, seguimiento | plan de la etapa 3 (paso 7) |
+| L-002 | otra vez historias a done sin la revisión registrada | medio (retrabajo en lote) · alta | seguimiento | A-001 en el sprint 5 (paso 8) |
+| L-001 | la revisión con seis socios encontró dolores que las pruebas no ven | medio (acierto) · baja | descubrimiento | PMO e índice de la organización (paso 9) |
+
+Criterio de impacto (guía de `pm-lecciones-aprendidas` §12): **alto** si afectó o puede afectar una tolerancia, un
+beneficio o un riesgo alto, o bloqueó una puerta; **medio** si consumió margen u obligó a retrabajo sin salir de
+tolerancia; **bajo** si su efecto fue local.
+
+**Dónde verificar:** `03-control/reuniones/2027-02-26-retro-sprint-4-candidatos.md` · `lecciones.csv` (L-001…L-003:
+`impacto`, `recurrencia`, `aplicar_en`, `accion`, `verificar_en`) · `acciones.csv` (A-001, A-002).
+
+---
+
+## Paso 7 · Fin de la etapa 2 (Release 1): prueba de carga, condición cumplida, lecciones en el plan, business case 1.1 y puerta de la etapa 3
 
 **Problema que resuelve:** la condición no se cierra sola aunque la prueba esté aprobada: la puerta siguiente la muestra
 como G-01 hasta que alguien con rol verifica el cumplimiento y lo registra. El business case se revisa en el límite de
-etapa con reales y pronóstico, no solo al inicio.
+etapa con reales y pronóstico, no solo al inicio. Y el plan de la etapa siguiente se arma **revisando el registro de
+lecciones** (PRINCE2, límite de etapa): si una lección clasificada para planificación sigue sin acción, la verificación de
+la puerta lo avisa (**E-11**) hasta que el plan la incorpore o alguien la descarte con motivo. El informe de lecciones de
+la etapa sale del registro.
 
 **Prompt (pm-method)**
 ```text
@@ -474,22 +582,35 @@ el valor ganado (PV 82.000, EV 80.000, AC 83.500, BAC 130.000) y guardá el cort
 pronóstico y riesgos, armá el informe de fin de etapa, el plan de la etapa 3 y el tablero con el recorrido de la socia,
 y preparame la puerta.
 ```
+**Prompt (pm-method, al ver el aviso de lecciones)**
+```text
+¿Qué lecciones tiene que considerar el plan de la etapa 3? Incorporalas en «Lecciones incorporadas» con su acción y la
+fecha de verificación (L-003: al cerrar el Release 2, el 12/5) y armá el informe de lecciones de la etapa 2.
+```
 **Si te pregunta:** "Laura Méndez, ejecutiva: verifiqué la condición de la etapa 2 (Q-001 aprobada y gate en PASS):
 dala por cumplida" · "aprobado; etapa 3 Release 2 hasta el 14/5 con ±10 % en tiempo y costo; apruebo el business case
 1.1".
 
-**Qué hace el sistema:** `pm-calidad`: Q-001 `completada`, `aprobado`; `puertas.py preparacion-bmad --resultado PASS`;
+**Qué hace el sistema:** `pm-registros`: A-001 y A-002 (acciones de la retro) `completada` el 3/3; `pm-calidad`: Q-001 `completada`, `aprobado`; `puertas.py preparacion-bmad --resultado PASS`;
 `bmad.py avance --corte 2027-03-05`; `estado.py limite-etapa`; `evm.py … --guardar --corte 2027-03-05`;
 `pm-plan-etapa-y-limites`; `pm-caso-de-negocio` en modo **mantener** (business case 1.1, que incluye R-001 entre los
-riesgos); `puertas.py verificar autorizar-etapa` (**G-01**) → `pm-director`: `estado.py cumplir-condiciones
+riesgos); `pm-lecciones-aprendidas`: `lecciones.py listar --para planificacion --corte 2027-03-05`; `puertas.py verificar
+autorizar-etapa` (**G-01** y **E-11**) → `pm-plan-etapa-y-limites`: plan de la etapa 3 con «Lecciones incorporadas» →
+`lecciones.py accionar L-003 --accion "A-002; plan-etapa-3" --verificar-en 2027-05-12` → `lecciones.py informe --etapa 2
+--corte 2027-03-05` (clave `informe-lecciones-etapa-2`, en revisión) → `pm-director`: `estado.py cumplir-condiciones
 autorizar-etapa --fecha 2027-03-05 --por "Ejecutivo: Laura Méndez" --nota "Q-001 prueba de carga NFR-3 aprobada el
 2027-03-02 (p95 2,4 s); gate de preparación de BMAD en PASS el 2027-03-03"`; `sanidad.py --rapido --corte 2027-03-05`;
-`pm-visuales` (tablero) → `pm-mapas-estrategicos`: `mapas.py tablero --insertar
+`pm-visuales` (tablero con `estado.py periodo --tablero`: tiempo, costo, calidad y riesgo por regla) → `pm-mapas-estrategicos`: `mapas.py tablero --insertar
 gestion/03-control/reportes/2027-03-05-tablero-avance.html` (sección «Mapas estratégicos»); puerta `autorizar-etapa`; `estado.py aprobar business-case --version 1.1`.
 
 **Qué deberías ver:** "Historias 11 · done 7 · épicas terminadas 2/3 · 61.8 % (puntos)"; "Guardado:
-03-control/reportes/evm-2027-03-05.json", SPI 0,976 · CPI 0,958; la verificación **antes** de cumplir "0 bloqueo(s) · 1
-condición(es)" con **G-01 "condiciones abiertas de puertas anteriores: autorizar-etapa 2026-11-27"**; después, sanidad
+03-control/reportes/evm-2027-03-05.json", SPI 0,976 · CPI 0,958; "Lecciones que aplican a planificacion: 1 de 3 ·
+L-003 · alto · … · sin acción"; la verificación **antes** de cumplir "0 bloqueo(s) · 1 condición(es) · 1 aviso(s)" con
+**G-01 "condiciones abiertas de puertas anteriores: autorizar-etapa 2026-11-27"** y **E-11 "lecciones para planificación
+sin considerar en el plan de la etapa: L-003 (alto)"**; el plan con la tabla «Lecciones incorporadas» (L-003 con A-002,
+verificación 12/5; L-002 con A-001, verificación 19/3); "L-003 accionada-proyecto: acción A-002; plan-etapa-3 ·
+verificar el efecto el 2027-05-12"; "Informe de lecciones (etapa 2): …-informe-lecciones-etapa-2.md · 3 lecciones (alto
+1, medio 2, bajo 0) · 0 pendientes · 3 para el índice"; después, sanidad
 "0 ERROR · 0 AVISO · 1 INFO" (solo CAM-03 al 40 %; la familia MAP sigue sin avisos) y la verificación "0 bloqueo(s) ·
 0 condición(es) · 0 aviso(s)"; el business case 1.1 con "R-001 (medio) amenaza B-02 adopción, con respuesta del
 negocio"; "Tablero de mapas: 1 mapa(s) dibujado(s) (recorrido-uj-1.json) · 0 aviso(s) MAP · 3 vínculo(s) citado(s)";
@@ -505,22 +626,39 @@ tratamiento (R-001; NFR-3 y Q-001). "Avisos MAP vigentes: 0". Los ids son enlace
 riesgo abierto de Sofía Ramírez, NFR-3 requisito no funcional y Q-001 revisión de calidad completada. Si mañana un
 dolor queda sin tratamiento, la misma sección lo muestra en rojo con su aviso MAP-03.
 
-**Dónde verificar:** `03-control/reportes/2027-03-05-informe-fin-etapa-2.md` · `02-planificacion/plan-etapa-3.md` ·
+**Dónde verificar:** `03-control/reportes/2027-03-05-informe-fin-etapa-2.md` · `02-planificacion/plan-etapa-3.md`
+(«Lecciones incorporadas») · `03-control/reportes/2027-03-05-informe-lecciones-etapa-2.md` ·
 `03-control/reportes/2027-03-05-tablero-avance.html` (sección 6, entre los marcadores `pm-mapas`) · `estado.json` → `puertas` (`condiciones_cumplidas`,
 `condiciones_verificadas_por`, `condiciones_nota`) · `00-direccion/historial/business-case-v1.1.md`.
 
 ---
 
-## Paso 8 · Release 2: revisiones en lote con un rechazo tratado (QUA-01 y QUA-03) y valor ganado final
+## Paso 8 · Release 2: la acción de la retro verificada (REG-12), un rechazo tratado (QUA-01 y QUA-03) y valor ganado final
 
-**Problema que resuelve:** BMAD marca la historia `done` cuando pasa la revisión de código, pero la revisión contra los
+**Problema que resuelve:** dos cosas que en la práctica no se hacen. Primero, **comprobar que la acción de una lección
+funcionó**: la fecha de verificación vence y la sanidad y el radar la muestran (**REG-12**) hasta que alguien registra
+el resultado con evidencia. La planificación del sprint 5 sirve de contraste: la misma herramienta, aplicada a otra
+reunión, propone compromisos y decisiones y ninguna lección. Segundo, BMAD marca la historia `done` cuando pasa la revisión de código, pero la revisión contra los
 criterios de aceptación puede rechazarla. En la práctica ese rechazo se corrige "de palabra" y no queda traza. Aquí la
 historia sigue marcada (QUA-01, "terminado con revisión sin aprobar") y el rechazo también (QUA-03) hasta que un issue
 lo trata y una nueva revisión lo aprueba.
 
-**Prompt (pm-method)**
+**Prompt (pm-method, 8/3)**
 ```text
-Release 2 terminado en BMAD. Sincronizá el backlog y registrá las revisiones del 6/5: 2.1, 2.2 y 2.3 aprobadas; la 2.4
+Te paso la transcripción de la planificación del sprint 5. ¿Qué propone?
+```
+**Prompt (pm-method, 22/3)**
+```text
+La historia 2.1 pasó a done el 19/3 y su revisión se registró ese mismo día, aprobada. Sincronizá, traé el avance al
+22/3, corré la sanidad y el radar y decime qué lecciones de seguimiento tengo que verificar.
+```
+**Prompt (pm-method, después de ver el aviso)**
+```text
+La acción de L-002 funcionó: verificala como efectiva con la evidencia del sprint 5.
+```
+**Prompt (pm-method, 7/5)**
+```text
+Release 2 terminado en BMAD. Sincronizá el backlog y registrá las revisiones del 6/5: 2.2 y 2.3 aprobadas; la 2.4
 rechazada porque falta la notificación al socio después del débito (criterio de aceptación de FR-13). Corré la sanidad
 al 7/5.
 ```
@@ -528,30 +666,48 @@ al 7/5.
 ```text
 Registrá el rechazo como issue fuera de especificación para Lucía. Sofía decide corregirlo dentro del Release 2, sin
 costo ni cambio de alcance. El 11/5 la 2.4 pasó la nueva revisión: registrala y cerrá el issue. Traé el avance al 12/5,
-guardá el valor ganado final (PV y EV 130.000, AC 133.000) y corré la sanidad.
+guardá el valor ganado final (PV y EV 130.000, AC 133.000) y corré la sanidad. Verificá L-003: en el Release 2 ninguna
+Sprint Change Proposal llegó al PRD sin issue.
 ```
 **Si te pregunta:** "Sofía Ramírez, autoridad de cambio: corregir dentro del Release 2, sin costo".
 
-**Qué hace el sistema:** `bmad.py backlog`; `pm-calidad`: **Q-009 a Q-011** aprobadas y **Q-012** `rechazado`;
+**Qué hace el sistema:** `pm-reuniones`: `transcripcion.py` y `extraccion.py candidatos` sobre la planificación (tipo
+`planificacion` por el nombre; no se registra nada: el plan del sprint vive en el `sprint-status.yaml` de BMAD);
+`bmad.py backlog`; `pm-calidad`: **Q-009** (historia 2-1, 19/3); `bmad.py avance --corte 2027-03-22`; `sanidad.py
+--rapido --corte 2027-03-22`; `estado.py radar --corte 2027-03-22`; `lecciones.py listar --para seguimiento`;
+`lecciones.py verificar L-002 --resultado efectiva --evidencia …`; después, `bmad.py backlog`; `pm-calidad`: **Q-010** y
+**Q-011** aprobadas y **Q-012** `rechazado`;
 `sanidad.py --rapido --corte 2027-05-07`; `pm-issues-cambios`: **I-002** (`fuera-especificacion`, cita Q-012) →
 `en-accion` con la decisión de Sofía → **Q-013** (nueva revisión de la 2-4, aprobada) → I-002 `cerrado`; `bmad.py avance
 --corte 2027-05-12`; `evm.py … --tol-costo 8 --tol-plazo 10 --guardar --corte 2027-05-12`; `sanidad.py --rapido --corte
-2027-05-12`.
+2027-05-12`; `lecciones.py verificar L-003 --resultado efectiva --evidencia …`.
 
-**Qué deberías ver:** sanidad al 7/5 "0 ERROR · 2 AVISO · 3 INFO": **QUA-01 "2-4-pago-de-cuotas-con-débito-en-cuenta:
+**Qué deberías ver:** en la planificación, "Se detectaron 1 compromiso, 0 decisiones pendientes, 1 decisión tomada, 0
+supuestos y 0 riesgos nuevos" (CA-01 Lucía Benítez · 2027-03-19; CD-01 nivel gestor) y ninguna lección: la retro y la
+planificación son reuniones distintas. Al 22/3: "done 8 · épicas terminadas 2/3 · 72.4 % (puntos)"; sanidad "0 ERROR ·
+1 AVISO · 2 INFO" con **REG-12 "Lección L-002 accionada sin verificar su efecto (verificar_en 2027-03-19; acción:
+A-001; …)"** y sin QUA-01; el radar "0 decidir · 0 escalar · 0 desbloquear · 2 vigilar" con "P3 [REG-12] L-002 ·
+2027-03-19 · Lucía Benítez — lección accionada sin verificar su efecto" (y RAD-07); el listado de seguimiento con L-003
+"verificar el 2027-05-12" y L-002 "verificación vencida 2027-03-19"; "L-002 verificada · 2027-03-22 · efectiva ·
+sprint 5: la historia 2-1 pasó a done con Q-009 registrada el mismo día (19/3); sanidad del 22/3 sin QUA-01". Después,
+sanidad al 7/5 "0 ERROR · 2 AVISO · 3 INFO": **QUA-01 "2-4-pago-de-cuotas-con-débito-en-cuenta:
 terminado con revisión Q-012 sin aprobar"** y **QUA-03 "Revisión Q-012 rechazada sin issue, acción o cambio que la
 trate"** (más CAM-03, ESP-02 y TOL-03 como INFO); foto "terminadas 11 · con revisión aprobada 10"; "I-002"; "Q-013";
 "done 11 · épicas terminadas 3/3 · 100.0 % (puntos)"; CPI 0,977 (`sobrecosto_pct 2.308`, dentro de ±8 %); sanidad al
-12/5 "0 ERROR · 0 AVISO · 1 INFO" (solo CAM-03) y foto "terminadas 11 · con revisión aprobada 11".
+12/5 "0 ERROR · 0 AVISO · 1 INFO" (solo CAM-03) y foto "terminadas 11 · con revisión aprobada 11"; "L-003 verificada
+· 2027-05-12 · efectiva · Release 2: el rechazo de la historia 2-4 entró como I-002 y se corrigió sin tocar la
+especificación…".
 
 ![Calidad por entrega](img/g4-calidad-entregas.png)
 Cinco cortes, cada uno con su foto: las brechas (5 historias el 26/2, 1 rechazo el 7/5) se cerraron antes de la puerta
 siguiente; ninguna entrega llegó a la junta con historias sin revisión aprobada.
 
 ![Burn-up del producto](img/g4-burnup.png)
-El alcance sube de 68 a 76 puntos el 20/1 (C-001) y los 76 quedan terminados el 12/5, antes del fin previsto (14/5).
+El alcance sube de 68 a 76 puntos el 20/1 (C-001); el corte del 22/3 (sprint 5) marca 55 puntos y los 76 quedan
+terminados el 12/5, antes del fin previsto (14/5).
 
-**Dónde verificar:** `calidad.csv` (Q-009…Q-013) · `issues.csv` (I-002) · `03-control/reportes/avance-bmad.csv` ·
+**Dónde verificar:** `03-control/reuniones/2027-03-08-planificacion-sprint-5-candidatos.md` · `lecciones.csv` (L-002 y
+L-003: `verificacion`) · `calidad.csv` (Q-009…Q-013) · `issues.csv` (I-002) · `03-control/reportes/avance-bmad.csv` ·
 `03-control/reportes/evm-2027-05-12.json`.
 
 ---
@@ -559,14 +715,20 @@ El alcance sube de 68 a 76 puntos el 20/1 (C-001) y los 76 quedan terminados el 
 ## Paso 9 · Aceptación, traspaso a operación, business case confirmado, paquete y cierre
 
 **Problema que resuelve:** el proyecto cierra con condiciones olvidadas, sin traspaso formal a quien opera el producto,
-con riesgos abiertos que nadie hereda y con los beneficios "a medir" sin dueño. Aquí la puerta de cierre bloquearía con
-G-01 si quedara una condición abierta y con C-03 si un riesgo o issue abierto no tuviera recomendación de seguimiento;
-la responsabilidad de los beneficios pasa explícitamente al negocio.
+con riesgos abiertos que nadie hereda, con productos que nadie aceptó y con los beneficios "a medir" sin dueño. Aquí la
+puerta de cierre bloquearía con G-01 si quedara una condición abierta y con C-03 si un riesgo o issue abierto no
+estuviera citado **por id**, con responsable, en las recomendaciones de seguimiento; C-07 marca cada requisito o historia
+Must sin aceptar, según el estado de productos que se deriva de los registros;
+la responsabilidad de los beneficios pasa explícitamente al negocio. El informe de lecciones sale del registro y las
+lecciones aprobadas se comparten en el **índice de la organización**, donde las encuentra la ideación y el
+descubrimiento del proyecto siguiente.
 
 **Prompt (pm-method)**
 ```text
-Verificá que todos los requisitos estén terminados, pasá a cierre, registrá la aceptación de Sofía y Laura, armá el
-traspaso a operación (recibe Sofía, servicios al socio), el informe de fin de proyecto, las lecciones, las
+Verificá que todos los requisitos estén terminados, pasá a cierre y decime qué falta para la puerta de cierre. Registrá
+la aceptación de Sofía y Laura y dejá el estado final de los productos; armá el
+traspaso a operación (recibe Sofía, servicios al socio), el informe de fin de proyecto, el informe de lecciones desde el
+registro (la lección de los socios va a la PMO; exportá las aprobadas al índice pmo/lecciones-indice.csv), las
 recomendaciones de seguimiento (R-001 y la observación menor del Release 1), el plan de revisión de beneficios
 (revisiones del negocio el 30/6 y el 31/12/2027, con línea base al entrar en operación y el criterio de desvío), el
 business case confirmado, el enfoque de beneficios traspasado al negocio y el borrador de la notificación de cierre.
@@ -574,35 +736,97 @@ Preparame la puerta de cierre y el paquete para la junta con la línea base del 
 de BMAD.
 ```
 **Si te pregunta:** "Sofía Ramírez, usuaria sénior, y Laura Méndez, ejecutiva: aceptamos el producto" · "Sofía Ramírez:
-recibo el producto en operación" · "Laura Méndez: cierre aprobado el 14/5; confirmo el business case, el traspaso del
+recibo el producto en operación" · "Laura Méndez, ejecutiva: la propuesta de L-001 va a la PMO; compartí las lecciones en el
+índice" · "Laura Méndez: cierre aprobado el 14/5; confirmo el business case, el traspaso del
 enfoque de beneficios al negocio y la notificación de cierre".
 
 **Qué hace el sistema:** `especificacion.py listar requisitos --cobertura sin-cobertura` (vacío); `estado.py cierre`;
-`pm-cierre-proyecto` (`estado.py aprobar registro-aceptacion`; `templates/handover.md` → clave `handover`, aprobado por la
+`puertas.py verificar autorizar-cierre` (qué falta, de solo lectura); `pm-cierre-proyecto` (`estado.py aprobar
+registro-aceptacion`; `estado.py productos --corte 2027-05-12 --markdown 04-cierre/product-status-account-final.md` →
+clave `product-status-account-final`, en revisión; `templates/handover.md` → clave `handover`, aprobado por la
 receptora; `templates/recomendaciones-seguimiento.md`; `templates/plan-revision-beneficios.md`;
-`templates/notificacion-cierre.md`); `pm-caso-de-negocio` en modo **confirmar** (business case 1.2) y enfoque de
-beneficios 1.1 ("gestionado por: negocio"); `pm-director`: `puertas.py verificar autorizar-cierre` (C-01…C-06 y G-01)
+`templates/notificacion-cierre.md`); `pm-lecciones-aprendidas`: `lecciones.py accionar L-001 --destino organizacion
+--por "Ejecutivo: Laura Méndez"`, `lecciones.py informe --corte 2027-05-12 --exportar pmo/lecciones-indice.csv --por
+"Ejecutivo: Laura Méndez"` (→ `04-cierre/informe-lecciones.md`, en revisión) y `lecciones.py buscar --indice
+pmo/lecciones-indice.csv --para descubrimiento`; `pm-caso-de-negocio` en modo **confirmar** (business case 1.2) y enfoque de
+beneficios 1.1 ("gestionado por: negocio"); `pm-director`: `puertas.py verificar autorizar-cierre` (C-01…C-07 y G-01)
 → `estado.py puerta autorizar-cierre` → aprobaciones y decisión de traspaso de los beneficios (**D-027**);
 `pm-exportar`: `paquete.py cierre --extra gestion/00-direccion/historial/bmad-prd-v1.1/prd.md <PRD vivo en
 _bmad-output/>`, `exportar.py xlsx`; `estado.py resumen`.
 
-**Qué deberías ver:** "requisitos: 43 · historias: 11"; el handover con "13 revisiones en calidad.csv: 12 aprobadas (una
+**Qué deberías ver:** "requisitos: 43 · historias: 11"; la verificación previa "4 bloqueo(s) · 3 condición(es) · 0
+aviso(s)": C-01 y C-02 (faltan el informe de fin de proyecto y el registro de aceptación), **C-03 "1 issues/riesgos
+abiertos sin recomendaciones de seguimiento: R-001"**, L-01, C-05, C-06 y **C-07 "Must sin aceptar: requisitos FR-1,
+FR-2, FR-3, FR-4, FR-5, FR-6, FR-7, FR-8 … y 4 más; productos 1-1, 1-2, 1-3, 2-1, 3-1, 3-2, 3-3"**; después de la
+aceptación, "11 productos · … aprobado 0 · aceptado 11 · … = 11" y en el product status account final "Fuera de
+especificación: I-002" (con su decisión) y "Discrepancias …: ninguna"; el handover con "13 revisiones en calidad.csv: 12 aprobadas (una
 por historia y la prueba de carga NFR-3) y 1 rechazada (Q-012, tratada en I-002 y aprobada en Q-013)"; las
 recomendaciones de seguimiento con R-001 (Sofía, revisión de beneficios del 30/6/2027) y Q-008; el plan de revisión de
 beneficios con el criterio "avance hacia la meta (puntuación de okr.py) menor que 0,90 = fuera de la tolerancia de
-beneficios (-10 %)"; la verificación de cierre "1 bloqueo(s) · 0 condición(es) · 0 aviso(s)" (solo **L-01**, la lista
-de la junta: **sin G-01 ni C-03**); fase `cerrado`; "D-027"; el paquete `exportados/<fecha>-paquete-cierre-v1.zip` con
+beneficios (-10 %)"; "L-001 accionada-organizacion: acción propuesta a la PMO: revisar el recorrido con usuarios
+reales antes de cerrar cada release"; "Informe de lecciones (proyecto): gestion/04-cierre/informe-lecciones.md · 3
+lecciones (alto 1, medio 2, bajo 0) · 0 pendientes · 3 para el índice" e "Índice: pmo/lecciones-indice.csv (3 lecciones
+aprobadas; total 3)"; en el informe, "Ciclo: registradas 0 · revisadas 0 · accionadas 1 · verificadas 2", la tabla
+impacto × ámbito y "Pendientes al corte: Ninguno … (REG-11 y REG-12 en cero)"; la búsqueda del proyecto siguiente "1 de
+3" con "portal-de-autoservicio-para-socios:L-001 · … · accionada-organizacion · impacto medio · aplicar en
+descubrimiento"; la verificación de cierre "1 bloqueo(s) · 0 condición(es) · 0 aviso(s)" (solo **L-01**, la lista
+de la junta: **sin G-01, C-03 ni C-07**: R-001 está citado con responsable y los 11 productos están aceptados); fase `cerrado`; "D-027"; el paquete `exportados/<fecha>-paquete-cierre-v1.zip` con
 "COMPLETO PARA LA PUERTA" en su manifiesto: incluye la línea base congelada del PRD y **excluye** el PRD vivo de BMAD
 ("Excluidos por estar fuera del proyecto … extra: _bmad-output/…/prd.md"), porque el paquete solo lleva archivos de la
-carpeta del proyecto y deja anotado lo que quedó afuera; el Excel de registros; el resumen con "Artefactos: 25 (11 aprobados)" y "Proyecto cerrado. Pendiente fuera del
+carpeta del proyecto y deja anotado lo que quedó afuera; el Excel de registros; el resumen con "Artefactos: 27 (11 aprobados)" y "Proyecto cerrado. Pendiente fuera del
 proyecto: revisiones de beneficios según el plan (responsable: usuario sénior / capa de negocio)".
 
 ![Tablero de cierre](img/g4-cierre.png)
 Lo que la junta mira para autorizar el cierre, en una página y con cifras de los registros.
 
-**Dónde verificar:** `04-cierre/` (handover, recomendaciones, plan de revisión de beneficios, notificación) ·
+Ese índice es del mismo tipo que el que consulta [E2E-5](E2E-5-idea-a-proyecto.md) en su paso 1 (lecciones previas
+de otros proyectos, solo lectura, con `buscar --indice … --para ideacion|descubrimiento`): la lección de los socios queda
+disponible para el descubrimiento del próximo producto de la cooperativa.
+
+**Dónde verificar:** `04-cierre/` (handover, recomendaciones, plan de revisión de beneficios, notificación, informe de
+lecciones, product status account final) · `pmo/lecciones-indice.csv` (fuera de la carpeta del proyecto) ·
 `00-direccion/historial/` · `decisiones.csv` (D-027 y la condición cumplida) · `MANIFIESTO.md` dentro del ZIP · prompt:
 `/pm-method:pm-estado`.
+
+---
+
+## Paso 9b · Expediente de auditoría para la auditoría externa y verificación de integridad
+
+**Problema que resuelve:** cuando una auditoría pide la evidencia del proyecto, alguien junta actas, planillas y correos
+a mano durante días, y nadie puede probar después que lo entregado no se editó. Aquí el expediente sale de los registros
+en un solo paso, con la cronología de puertas, decisiones, cambios y productos aceptados, las copias congeladas y una
+huella sha256 por archivo; cualquier edición posterior la delata la verificación. El paquete de cierre del paso 9 es
+para la junta; el expediente es para quien audita, y se arma cuando lo piden.
+
+**Prompt (pm-method)**
+```text
+Andrea Costa, de aseguramiento, pide para la auditoría externa la evidencia del proyecto desde el inicio hasta el
+cierre (14/5). Armá el expediente sin las valoraciones de los interesados y verificá su integridad. Después verificá
+también la copia que recibió la auditoría.
+```
+
+**Qué hace el sistema:** `pm-exportar`: `paquete.py auditoria --hasta 2027-05-14 --proposito "auditoría externa"
+--externo` (de solo lectura: consolida archivos que ya existen) → `paquete.py verificar <zip>` sobre el expediente y
+sobre la copia recibida. `--externo` deja afuera el registro de interesados y sus valoraciones y el destino de los
+envíos.
+
+**Qué deberías ver:** "Escrito gestion/exportados/<fecha>-expediente-auditoria-inicio_2027-05-14.zip: 44 archivos · 41
+eventos en la cronología · registros 8 · sanidad ERROR 0 AVISO 0", con "lineas-base 16" y "puertas 5" en el detalle; en
+`INDICE.md`, "Destinatario externo: sin 03-control/registros/stakeholders.csv (valoraciones de interesados) y sin el
+destino de los envíos"; la verificación "INTEGRIDAD: OK · 43 archivos coinciden con SHA256SUMS". En la copia que
+recibió la auditoría alguien cambió una sola palabra en `decisiones.csv`: la puerta D-013 dice «autorizar-etapa:
+aprobado» en lugar de «condicionado», como si la etapa 2 no hubiera tenido condición. La verificación responde
+"INTEGRIDAD: FALLA · 1 problema(s)" y "alterado: 03-control/registros/decisiones.csv". La corrida de referencia corre
+`paquete.py auditoria` con una carpeta personal vacía: en tu equipo, la sanidad incluida en el expediente puede sumar
+avisos de instalación (INS) que dependen de las skills que tengas instaladas.
+
+![Expediente de auditoría](img/g4-expediente.png)
+41 eventos en la cronología (5 puertas, 1 cambio, 12 productos aceptados y 23 decisiones y aprobaciones), 16 copias
+congeladas y 8 registros sin el de interesados; los 43 archivos coinciden con su huella y la copia editada falla en el
+único archivo tocado.
+
+**Dónde verificar:** `exportados/<fecha>-expediente-auditoria-inicio_2027-05-14.zip` → `INDICE.html` (índice navegable),
+`cronologia.csv`, `MANIFIESTO.md` y `SHA256SUMS` · evidencia, paso 9b.
 
 ---
 
@@ -685,16 +909,20 @@ del 90 % que admite la tolerancia.
 **Gobierno:** 5 puertas (inicio, proyecto, etapa 2 condicionada por CONCERNS con la condición cumplida el 5/3, etapa 3,
 cierre), líneas base PRD y épicas 1.0 y 1.1, un cambio controlado (C-001, 40 % del presupuesto de cambio), un rechazo
 de calidad tratado (I-002) y el recorrido de UJ-1 con sus dos dolores tratados; cero desvíos al cierre.
-**Lecciones:** L-001 (toda Sprint Change Proposal entra primero como issue) y L-002 (la revisión registrada es parte de
-la definición de terminado).
+**Lecciones** (informe de lecciones desde el registro, paso 9): L-003, impacto alto (toda Sprint Change Proposal entra
+primero como issue; en el plan de la etapa 3, verificada el 12/5); L-002, medio (la revisión registrada es parte de la
+definición de terminado; verificada el 22/3); L-001, medio, acierto (revisar el recorrido con usuarios reales antes de
+cerrar cada release; propuesta a la PMO). Las tres, en el índice de la organización.
 
 ## Representaciones gráficas
 
 **Ciclo de vida integrado PRINCE2 + BMAD:** diagrama al comienzo de esta guía y, completo, en
 [PUERTAS.md §1](../PUERTAS.md). Gráficos de la corrida: [calidad por entrega](img/g4-calidad-entregas.png),
-[recorrido de la socia](img/g4-recorrido.png), [burn-up](img/g4-burnup.png), [tablero del Release 1](img/g4-tablero.png)
+[recorrido de la socia](img/g4-recorrido.png), [ciclo de las lecciones](img/g4-lecciones-ciclo.png),
+[burn-up](img/g4-burnup.png), [tablero del Release 1](img/g4-tablero.png)
 con [su sección de mapas](img/g4-tablero-mapas-169.png),
-[tablero de cierre](img/g4-cierre.png) y [revisión final de beneficios](img/g4-beneficios.png).
+[tablero de cierre](img/g4-cierre.png), [expediente de auditoría](img/g4-expediente.png) y
+[revisión final de beneficios](img/g4-beneficios.png).
 
 **Trazabilidad del cambio de rumbo:**
 ```mermaid
@@ -712,6 +940,15 @@ flowchart LR
     r["Q-012 rechazada<br/>historia 2-4"] --> s["sanidad 7/5:<br/>QUA-01 y QUA-03"]
     s --> i["I-002 fuera de<br/>especificación"] --> d["Sofía: corregir<br/>sin costo"]
     d --> q["Q-013 aprobada<br/>11/5"] --> ok["sanidad 12/5:<br/>0 AVISO"]
+```
+
+**Ciclo de una lección, de la retrospectiva al índice (pasos 6c a 9):**
+```mermaid
+flowchart LR
+    r["Retro del sprint 4<br/>CL-01…03 con cita"] --> c["clasificar: L-003 alto<br/>planificación"]
+    c --> e["E-11 en autorizar-etapa:<br/>sin considerar en el plan"] --> p["plan de la etapa 3<br/>accionar con A-002"]
+    p --> v["12/5: verificada<br/>efectiva"] --> i["informe de lecciones<br/>→ índice de la organización"]
+    i --> n["proyecto siguiente:<br/>buscar --para descubrimiento"]
 ```
 
 **Del dolor del recorrido al beneficio medido (pasos 6b a 11):**
@@ -732,17 +969,30 @@ flowchart LR
 - [ ] Valor ganado ágil y predictivo con cortes guardados (`--guardar --corte`) y vigilados (TOL-03).
 - [ ] Cambio de rumbo detectado (ESP-10, ESP-03), controlado con `costo` y `cargo` (CAM-03), traspasado y cerrado con
       nueva línea base fechada (`bmad.py linea-base --fecha`).
-- [ ] Sesión retomada con el resumen derivado de los registros (`estado.py contexto`).
+- [ ] Sesión retomada con el resumen derivado de los registros (`estado.py contexto`) y el radar de atención
+      (`estado.py radar`: decidir, escalar, desbloquear y vigilar, cada ítem con responsable y siguiente paso).
 - [ ] Calidad a volumen por entrega: QUA-01 lista los terminados sin revisión, QUA-02 la revisión vencida, QUA-03 el
       rechazo sin tratamiento; registro en lote y sanidad limpia antes de cada puerta.
+- [ ] Estado de productos derivado de los registros (`estado.py productos`) con conteos que suman el total, las
+      diferencias entre lo registrado y lo físico y el product status account final del cierre.
 - [ ] Recorrido de UJ-1 desde `bmad.py recorridos`, con emociones con fuente y cada dolor tratado con un id (MAP-03 en
       cero).
 - [ ] Recorrido dibujado en la sección «Mapas estratégicos» del tablero del Release 1 (`mapas.py tablero --insertar`),
       con 0 avisos MAP y cada tratamiento enlazado a su vínculo.
+- [ ] Retrospectiva como reunión propia: lecciones (CL) y acciones de mejora (CM) con cita, registradas tras confirmar;
+      la planificación del sprint no propone lecciones.
+- [ ] Lecciones clasificadas por impacto, recurrencia y ámbito; la de impacto alto en el plan de la etapa 3 (E-11 en
+      cero) y las acciones verificadas al vencer su fecha (REG-11 y REG-12 en cero).
+- [ ] Informe de lecciones de la etapa 2 y del proyecto desde el registro, con las aprobadas exportadas al índice de la
+      organización y encontradas por `buscar --para descubrimiento`.
 - [ ] Business case 1.1 en el límite de etapa y 1.2 confirmado en el cierre.
+- [ ] Puerta de cierre verificada por id: C-03 (R-001 con responsable en las recomendaciones) y C-07 (ningún Must sin
+      aceptar) en cero antes de la decisión de la junta.
 - [ ] Aceptación, traspaso a operación, recomendaciones de seguimiento con el riesgo abierto, plan de revisión de
       beneficios con criterio de desvío, notificación de cierre y enfoque de beneficios traspasado al negocio; paquete
       de cierre (solo archivos del proyecto, externos anotados) y Excel.
+- [ ] Expediente de auditoría para un destinatario externo (`paquete.py auditoria --externo`, sin el registro de
+      interesados) con `INTEGRIDAD: OK`, y una copia alterada detectada por `paquete.py verificar`.
 - [ ] Revisiones de beneficios posteriores al proyecto con check-ins: salud contra la trayectoria (30/6) y tolerancia por
       beneficio (31/12), con el desvío informado a la ejecutiva y su primera hipótesis.
 - [ ] Todas las sanidades con `--corte` (fecha del paso); dos corridas seguidas del driver con evidencia idéntica.

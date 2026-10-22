@@ -3,7 +3,7 @@ name: pm-ayuda
 description: "Ayuda de pm-method: qué escribir en cada situación, lista de skills y comandos, ciclo de vida y carpetas. Uso manual: /pm-ayuda [tema]. Help: commands, skills, life cycle."
 disable-model-invocation: true
 argument-hint: "[tema / topic]"
-version: 2.3.0
+version: 2.4.0
 author: pm-method
 license: MIT
 metadata:

@@ -1,6 +1,6 @@
 flowchart TB
     c2["C-002 · requisito regulatorio<br/>15.000, aprobado de palabra por Sofía"] --> rg{"registro.py<br/>límite y saldo"}
-    rg -->|"rechaza<br/>pendiente-decision"| ti["Tabla de impacto de C-002<br/>con VAN 30.939"]
+    rg -->|"rechaza<br/>pendiente-decision"| ti["impacto.py C-002 · decide la junta<br/>pedir plan de excepción"]
     ev["evm.py --guardar<br/>corte 19/2 · alcance rojo"] --> s1{"sanidad<br/>corte 19/2"}
     s1 -->|"TOL-01<br/>CAM-03 al 75 %"| ti
     ti --> x["Informe de excepción<br/>X-001 e issue I-003"]

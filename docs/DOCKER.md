@@ -1,4 +1,4 @@
-# Entorno Docker opcional · pm-method 2.3.0
+# Entorno Docker opcional · pm-method 2.4.0
 
 Un contenedor Linux aislado con todo lo necesario para **usar** pm-method con Claude Code sobre un proyecto montado y
 para **correr las pruebas** del paquete: Claude Code CLI, Python 3 con los paquetes opcionales, Node.js con mermaid-cli
@@ -12,7 +12,7 @@ test with `docker compose -f docker/compose.yaml run --rm pruebas`. The API key 
 never baked into the image. Cowork does not run inside the container.*
 
 > Convenciones: los comandos se ejecutan desde la raíz del repositorio clonado. **[verificar]** marca lo que no se
-> probó. Construcción y pruebas verificadas el 2026-10-20 con Docker Engine 29.8.2 y Compose 5.5.1 en Linux x86_64
+> probó. Construcción y pruebas verificadas el 2026-10-22 con Docker Engine 29.8.2 y Compose 5.5.1 en Linux x86_64
 > (resultados en §10).
 
 ---
@@ -63,7 +63,7 @@ Archivos:
 
 - Docker Engine 23 o posterior con BuildKit (o Docker Desktop en macOS y Windows) y el plugin Compose v2. Se probó con
   Engine 29.8.2 y Compose 5.5.1. Los límites `deploy.resources` de `compose.yaml` los aplica `docker compose` sin Swarm.
-- Disco: ≈ 3 GB para la imagen (≈ 730 MB comprimida) más ≈ 1 GB de caché de construcción. Memoria: 4 GB asignables a
+- Disco: ≈ 3 GB para la imagen (≈ 750 MB comprimida) más ≈ 1 GB de caché de construcción. Memoria: 4 GB asignables a
   Docker (el servicio limita a 4 GB y 2 CPU).
 - Arquitectura: x86_64 probada. arm64 (Apple Silicon, Graviton) **[verificar]**: los lockfiles incluyen los binarios y
   ruedas de arm64, pero no se construyó la imagen en esa arquitectura.
@@ -77,7 +77,7 @@ Archivos:
 ```bash
 docker compose -f docker/compose.yaml build pm
 # equivalente sin Compose:
-docker build -f docker/Dockerfile -t pm-method:2.3.0 .
+docker build -f docker/Dockerfile -t pm-method:2.4.0 .
 ```
 
 Argumentos opcionales (`--build-arg`):
@@ -86,9 +86,9 @@ Argumentos opcionales (`--build-arg`):
 |---|---|---|
 | `UID` · `GID` | `1000` · `1000` | que el usuario `pm` del contenedor coincida con el dueño de la carpeta del proyecto en el host (`id -u`, `id -g`). Si se cambia, ajustar `uid`/`gid` del tmpfs de `/home/pm` en `compose.yaml` |
 | `BASE_IMAGE` | `ubuntu:26.04@sha256:c098…` | otra imagen base compatible con Ubuntu 26.04 (por ejemplo, un espejo interno) |
-| `VERSION` | `2.3.0` | etiqueta OCI `org.opencontainers.image.version` |
+| `VERSION` | `2.4.0` | etiqueta OCI `org.opencontainers.image.version` |
 
-Comprobar la imagen: `docker run --rm pm-method:2.3.0 claude --version` → `2.1.304 (Claude Code)`.
+Comprobar la imagen: `docker run --rm pm-method:2.4.0 claude --version` → `2.1.304 (Claude Code)`.
 
 ## 5. Usar
 
@@ -166,7 +166,7 @@ mkdir -p pruebas-docker && docker compose -f docker/compose.yaml run --rm -v "$P
 | integración cruzada completa | `python3 /opt/pm-method/scripts/pruebas/integracion/correr.py --e2e <DIR>/guias --json <DIR>/integracion.json` (las seis cadenas de [PRUEBAS §2.3](PRUEBAS.md); la sexta usa las imágenes de los recorridos del paso anterior) |
 | diagramas | `python3 /opt/pm-method/scripts/validar_mermaid.py --render` |
 | diapositivas | `python3 /opt/pm-method/scripts/webinar/generar.py --todos --validar` y `--todos --salida <DIR>/webinar` (HTML y PPTX reales) |
-| documentos del webinar | `python3 /opt/pm-method/scripts/webinar/documentos.py --todos --salida <DIR>/webinar-documentos` (guía, guion y ejercicio en HTML, con los diagramas dibujados por el `mmdc` de la imagen; agregado después de la verificación de la imagen del 2026-10-20, todavía sin correr dentro del contenedor `[verificar]`) |
+| documentos del webinar | `python3 /opt/pm-method/scripts/webinar/documentos.py --todos --salida <DIR>/webinar-documentos` (guía, guion y ejercicio en HTML, con los diagramas dibujados por el `mmdc` de la imagen) |
 
 Cada comando también se puede correr suelto: `docker compose -f docker/compose.yaml run --rm pruebas python3
 /opt/pm-method/scripts/validar_paquete.py`. `validar_mermaid.py --render` no necesita `--config`: el `mmdc` de la
@@ -210,7 +210,7 @@ Notas:
   `PROYECTO=/ruta/al/proyecto docker compose -f docker/compose.yaml run --rm pm-sin-red` (mismo servicio que `pm` con
   `network_mode: none`; dentro solo existe la interfaz `lo`). `docker compose run` no tiene opción `--network`; con
   `docker run`: `docker run --rm -it --network none --read-only --tmpfs /tmp --tmpfs /home/pm:uid=1000,gid=1000,exec
-  --cap-drop ALL --security-opt no-new-privileges:true -v "$PWD:/trabajo" pm-method:2.3.0`. El servicio `pruebas` ya
+  --cap-drop ALL --security-opt no-new-privileges:true -v "$PWD:/trabajo" pm-method:2.4.0`. El servicio `pruebas` ya
   corre sin red. Claude Code no funciona sin red (necesita `api.anthropic.com`).
 - **Restringir la salida a dominios concretos** (en lugar de cortarla): el contenedor de referencia de Anthropic usa un
   cortafuegos (`init-firewall.sh`) que requiere las capacidades `NET_ADMIN` y `NET_RAW`; esta imagen no lo incluye para
@@ -267,41 +267,49 @@ Si la red no deja descargar la imagen base ni los navegadores, ver §11.1.
 
 ## 10. Verificación registrada
 
-2026-10-20, imagen `pm-method:2.3.0` construida como en §11.1 (Linux x86_64, Docker Engine 29.8.2, Compose 5.5.1):
-**2,93 GB** descomprimida (**726 MB** de contenido comprimido). Capas principales: herramientas Node 849 MB (Claude Code,
-mermaid-cli con Mermaid, pptxgenjs y npm), paquetes del sistema 521 MB, Chromium headless shell 338 MB, entorno Python
-301 MB, pm-method 65 MB (con los informes, el resumen ejecutivo y los mazos del webinar de `docs/`).
+2026-10-22, imagen `pm-method:2.4.0` construida como en §11.1 (base Ubuntu 26.04 generada con `debootstrap` desde
+`archive.ubuntu.com` con la firma de `InRelease` verificada; Chromium headless shell 1194 con `--build-context
+navegadores`; Linux x86_64, Docker Engine 29.8.2, Compose 5.5.1): **2,99 GB** descomprimida (**748 MB** de contenido
+comprimido). Capas principales: herramientas Node 849 MB (Claude Code, mermaid-cli con Mermaid, pptxgenjs y npm),
+paquetes del sistema 521 MB, Chromium headless shell 338 MB, entorno Python 301 MB, base 135 MB, pm-method 94 MB (con
+los informes, el resumen ejecutivo y los mazos y documentos del webinar de `docs/`). `docker buildx build --check`:
+sin avisos. La etapa `descarga-navegadores` no corre con `--build-context navegadores`; su lógica se comprobó dentro de
+la imagen final: `playwright install --dry-run --only-shell chromium` con `PLAYWRIGHT_HOST_PLATFORM_OVERRIDE=ubuntu24.04-x64`
+muestra la URL de descarga de `chromium-headless-shell-linux.zip` (revisión 1194) y sin la variable no muestra ninguna.
 
-**Pruebas dentro del contenedor** (`docker compose -f docker/compose.yaml run --rm pruebas`: sin red, raíz de solo
-lectura, sin capacidades, límite de 2 CPU; ≈ 12 min):
+**Pruebas dentro del contenedor** (`docker compose -f docker/compose.yaml run --rm pruebas pm-pruebas --salida …`: sin
+red, raíz de solo lectura, sin capacidades, límite de 2 CPU; ≈ 14 min):
 
 | Paso de `pm-pruebas` | Resultado | Tiempo |
 |---|---|---|
 | `claude --version` | `2.1.304 (Claude Code)` | 0 s |
 | `claude plugin validate /opt/pm-method` | pasa con el aviso esperado sobre `CLAUDE.md` | 1 s |
-| `validar_paquete.py` | OK (39 skills, 33 invocables, listado de 6.817 caracteres; 6 agentes) | 1 s |
-| compatibilidad con Python 3.9 | OK: 53 archivos `.py` sin f-strings incompatibles (análisis propio; la imagen no trae 3.9) | — |
-| `probar_paquete.py` (casos A–N, J2, P, S, X e Y) | **216 OK · 0 FALLO** con el Python 3.14 de la imagen | 215 s |
-| `guias_e2e/correr.py` | **5/5 OK** (42 gráficos y capturas con Playwright; evidencia igual a la del repositorio salvo la hora local de los archivos de BMAD en E2E-4, porque el contenedor usa UTC) | 353 s |
-| `integracion/correr.py --e2e …` (seis cadenas, con las salidas de los recorridos) | **60 OK · 0 FALLO** en 24 eslabones | 46 s |
-| `validar_mermaid.py --render` | **OK · 127 bloques Mermaid · 0 error(es)** | 114 s |
+| `validar_paquete.py` | OK (39 skills, 33 invocables, listado de 6.957 caracteres; 6 agentes) | 1 s |
+| compatibilidad con Python 3.9 | OK: 61 archivos `.py` sin f-strings incompatibles (análisis propio; la imagen no trae 3.9) | — |
+| `probar_paquete.py` (todos los casos) | **346 OK · 0 FALLO** con el Python 3.14 de la imagen | 301 s |
+| `guias_e2e/correr.py` | **5/5 OK** (51 gráficos y capturas con Playwright; evidencia igual a la del repositorio salvo la hora local de los archivos de BMAD en E2E-4, porque el contenedor usa UTC) | 352 s |
+| `integracion/correr.py --e2e …` (seis cadenas, con las salidas de los recorridos) | **98 OK · 0 FALLO** en 34 eslabones (igual que en el host con Python 3.13 y `--e2e`; sin `--e2e` suma la comprobación 6.1, que corre las cinco guías y aquí cubre el paso anterior: 99) | 68 s |
+| `validar_mermaid.py --render` | **OK · 128 bloques Mermaid · 0 error(es)** | 109 s |
 | `webinar/generar.py --todos --validar` y `--todos --salida …` | **5/5** sin errores; HTML y PPTX generados | 4 s |
+| `webinar/documentos.py --todos --salida …` | **5/5** sin errores; 15 HTML e índice, con los diagramas dibujados por el `mmdc` de la imagen | 16 s |
+| `webinar/documentos.py --todos --validar` (fuera de `pm-pruebas`, mismo servicio) | **5/5** sin errores | — |
 
-**Contenedor**: usuario `uid=1000(pm)`, `CapEff: 0000000000000000`, `NoNewPrivs: 1`; escribir en `/` y en
-`/opt/pm-method` falla con "Read-only file system"; `npx --version` 11.21.1, `node --version` v22.22.1,
-`python3 --version` 3.14.4, `mmdc --version` 11.16.0. `npm ls npm` y `npm ls image-size` dentro de la imagen:
-`npm@11.21.1` solo como dependencia directa e `image-size@2.0.3 overridden`. `npm audit --package-lock-only` sobre
-`docker/node/`: 0 críticos, 0 altos, 0 moderados y 5 bajos ([SEGURIDAD](SEGURIDAD.md) SEG-13).
+**Contenedor**: usuario `uid=1000(pm)`, `CapEff: 0000000000000000`, `NoNewPrivs: 1`, solo la interfaz `lo`; escribir
+en `/` y en `/opt/pm-method` falla con "Read-only file system"; `npx --version` 11.21.1, `node --version` v22.22.1,
+`python3 --version` 3.14.4, `mmdc --version` 11.16.0, `playwright --version` 1.56.0. `npm ls npm image-size` en
+`/opt/node-tools`: `npm@11.21.1` como dependencia directa e `image-size@2.0.3 overridden`. `npm audit
+--package-lock-only` sobre `docker/node/`: 5 bajos, ninguno moderado, alto ni crítico ([SEGURIDAD](SEGURIDAD.md) SEG-13).
 
 **Flujo de usuario** (servicio `pm-sin-red` con una carpeta vacía del host montada en `/trabajo`, como `uid=1000(pm)`):
-`nuevo_proyecto.py --ruta gestion --nombre "Demo Docker" …`, un riesgo con `registro.py`, presupuesto de cambio de
-10.000 y límite delegado de 5.000 con `estado.py presupuesto … --por`, un cambio de 6.000 «aprobado» por la autoridad de
-cambio que `registro.py` rechaza («supera el límite de la autoridad de cambio (5.000)», código 1) y que se registra como
-`pendiente-decision`, `sanidad.py --informe` (0 ERROR, 1 AVISO REG-06 por el riesgo alto sin respuesta, 1 INFO) y el
-informe capturado a PNG con el Chromium de la imagen. En el host, `gestion/`, el informe y el PNG quedaron con dueño
-`1000:1000`, el UID del usuario `pm`.
+`nuevo_proyecto.py --ruta gestion --nombre "Demo Docker" …`, un riesgo alto con `registro.py` (R-001),
+`sanidad.py --informe` (0 ERROR, 1 AVISO REG-06 por el riesgo alto sin respuesta, 1 INFO ESP-02), `estado.py radar`
+(R-001 en «desbloquear» y los bloqueos de la puerta `autorizar-inicio` en «vigilar»; `--linea` también),
+`estado.py periodo --desde … --tablero` (riesgo en rojo por regla, el resto «por confirmar»; tablero registrado
+`en-revision`) y el tablero capturado a PNG con el Chromium de la imagen. En el host, los 35 archivos y carpetas
+creados (`gestion/`, informe, tablero y PNG) quedaron con dueño `1000:1000`, el UID del usuario `pm`.
 
-No verificado: una sesión de Claude Code con credenciales dentro del contenedor (§9) y arm64 (§3).
+No verificado: una sesión de Claude Code con credenciales dentro del contenedor (§9), arm64 (§3) y la descarga real de
+la etapa `descarga-navegadores` con acceso a la CDN de Playwright (la red de la verificación la bloquea; ver arriba).
 
 ## 11. Solución de problemas
 
@@ -351,7 +359,7 @@ construye con una base generada localmente desde el archivo oficial de Ubuntu y 
 3. **Construir** con el proxy, su certificado como secreto y las dos sustituciones:
 
    ```bash
-   docker build --network host -f docker/Dockerfile -t pm-method:2.3.0 \
+   docker build --network host -f docker/Dockerfile -t pm-method:2.4.0 \
      --build-arg BASE_IMAGE=pm-method-base-local:26.04 \
      --build-context navegadores=<carpeta con chromium_headless_shell-1194> \
      --secret id=ca_proxy,src=<certificado de la CA del proxy> \

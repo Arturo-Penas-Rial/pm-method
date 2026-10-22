@@ -10,13 +10,22 @@ Cadenas (un solo proyecto, copia de scripts/pruebas/fixtures/bmad-v6.12-real; la
   1. BMAD → bmad.py / especificacion.py → requisitos, épicas e historias → backlog → WBS → cpm.py → evm.py → okr.py
      → sanidad.py → puertas.py
   2. transcripción (transcripcion.py) + instantánea de Jira + BMAD → riesgos.py candidatos → registro de riesgos e
-     issues → presupuestos de la junta y cambios (CAM) → sanidad --informe → tablero de avance
+     issues → presupuestos de la junta y cambios (CAM) → sanidad --informe → tablero de avance → riesgos.py opciones
+     (plantilla, valor neto, --elegir) → plan de contingencia y su activación contra la reserva (CAM, REG-10); acta de
+     un comité (transcripcion.py) → extraccion.py candidatos → registro de lo confirmado (acciones y decisiones)
   3. interesados.py (matriz, preferencias, RACI ligada a épicas, requisitos y KR) ↔ okr.py ↔ envios.py (archivo .eml,
      sin red) → registro de envíos → familia STK
   4. mapas.py (Wardley y recorrido) desde BMAD y desde la WBS → vínculos a requisitos, riesgos, issues y decisiones →
-     familia MAP de sanidad → inversion.py con las opciones del business case
+     familia MAP de sanidad → inversion.py con las opciones del business case; recorridos UJ y MoSCoW del backlog →
+     personas de usuario (interesados.py personas, personas.csv) → STK-13…16; cambio nuevo + CPM, presupuestos y
+     opciones → impacto.py (tabla de impacto y borrador de solicitud, sin escribir registros); tres valores → cpm.py
+     --estimacion → impacto.py --pert; backlog → release.py capacidad = capacidad de impacto.py
   5. exportar.py (xlsx y docx) y paquete.py de una puerta con todos los artefactos → verificación del contenido;
-     huella de BMAD sin cambios
+     expediente de auditoría (paquete.py auditoria) → verificar (sha256); radar de atención y briefing de incorporación
+     (estado.py radar|briefing) sobre todo lo anterior; lección revisada → lecciones.py buscar e incorporar desde otro
+     proyecto; retrospectiva → extraccion.py → lección clasificada, accionada con la acción de mejora y verificada
+     (REG-11, E-11, REG-12) → informe de lecciones exportado al índice de la organización → buscar --para; estado de
+     productos (estado.py productos) = QUA-01, QUA-04 y C-07 de autorizar-cierre; huella de BMAD sin cambios
   6. salidas de los recorridos E2E (scripts/pruebas/guias_e2e/, en paralelo) → webinar/generar.py --validar y, si hay
      Node.js con pptxgenjs, la generación real (HTML y PPTX con las imágenes de los recorridos)
 Lo que en la práctica decide o redacta una persona o el modelo (estimaciones, coordenadas del mapa, texto de un
@@ -45,7 +54,6 @@ SCR = {
     "e2e": os.path.join(RAIZ, "scripts", "pruebas", "guias_e2e", "correr.py"),
 }
 FIXTURE = os.path.join(RAIZ, "scripts", "pruebas", "fixtures", "bmad-v6.12-real")
-TABLERO = os.path.join(SK, "pm-visuales", "templates", "tablero-avance.html")
 G = "gestion"
 RES = {"ok": 0, "fallo": 0, "eslabones": []}
 D = {}   # datos que pasan de un eslabón al siguiente
@@ -430,40 +438,69 @@ def c2_presupuestos():
     D.update(pres={"riesgo": riesgo, "cambio": cambio, "limite": limite}, cambios=[c1, c2])
 
 
-@eslabon("2.5", "registros + EVM + avance BMAD → sanidad --informe y tablero de avance (receta de pm-visuales)")
+@eslabon("2.5", "registros + EVM + avance BMAD → sanidad --informe, tablero y highlight del período (estado.py periodo) y cadena de reporte")
 def c2_tablero():
     r = run("sanidad", "--proyecto", G, "--informe", "--corte", "2027-01-16", ok=(0, 1))
     inf = sorted(glob.glob(P("03-control", "reportes", "*-sanidad.md")))
     txt = open(inf[-1], encoding="utf-8").read() if inf else ""
     check("2.5", "sanidad --informe escribe el informe con los hallazgos CAM y TOL del corte", txt and "CAM-03" in txt and "TOL-0" in txt, (inf, r.stdout[-200:]))
-    e = json.load(open(P("estado.json"), encoding="utf-8")); g = D["evm"]
-    av = leer_csv(P("03-control", "reportes", "avance-bmad.csv"))
+    g = D["evm"]
     rag = lambda s: {"verde": "verde", "ambar": "ambar", "rojo": "rojo"}.get(s, "na")
-    datos = {"proyecto": e["proyecto"], "etapa": e["etapa_actual"]["nombre"], "enfoque_entrega": e["enfoque_entrega"], "idioma": e["idioma"],
-             "estado": "borrador", "fecha_corte": "2027-01-16", "periodo_desde": "2027-01-01", "periodo_hasta": "2027-01-16", "proximo_hasta": "2027-01-31",
-             "riesgos": reg_js("listar", "riesgos", "--abiertos"), "issues": reg_js("listar", "issues", "--abiertos"), "acciones": reg_js("listar", "acciones"),
-             "resumen_registros": reg_js("resumen", "--corte", "2027-01-16"), "umbrales_riesgo": {"alto": 15, "medio": 6},
-             "objetivos": [{"clave": "tiempo", "pronostico": f"SPI {g['SPI']:.2f}", "tol_etapa": "", "tol_proyecto": "±3 semanas", "rag": rag(g.get("semaforo_cronograma"))},
-                           {"clave": "costo", "pronostico": f"EAC {g['EAC']:.0f}", "tol_etapa": "", "tol_proyecto": "±10 %", "rag": rag(g.get("semaforo_costo"))}],
-             "hitos": [], "decisiones_pendientes": [{"id": D["cambios"][1], "texto": "Ratificar el cambio sobre el límite delegado", "fecha_limite": "2027-01-31"}],
-             "agil": {"iteraciones": [{"nombre": f["fecha"], "planificado": int(float(f.get("puntos_total") or 0)), "terminado": int(float(f.get("puntos_terminados") or 0)),
-                                       "alcance_total": int(float(f.get("puntos_total") or 0)), "terminado_acumulado": int(float(f.get("puntos_terminados") or 0))} for f in av],
-                      "ventana_velocidad": 3, "fecha_fija": "", "fecha_pronostico": "", "must_en_riesgo": []},
-             "comentario_gestor": "Integración de saldos condicionada al entorno de pruebas del núcleo </script><!-- prueba de escapado", "fuentes": "registros, evm, avance-bmad",
-             "fecha_generacion": "2027-01-16", "confirmado_por": ""}
-    html = open(TABLERO, encoding="utf-8").read()
-    bloque = json.dumps(datos, ensure_ascii=False).replace("<", "\\u003c")
-    html = re.sub(r'(<script type="application/json" id="datos-tablero">)(.*?)(</script>)', lambda m: m.group(1) + bloque + m.group(3), html, count=1, flags=re.S)
-    rel = "03-control/reportes/2027-01-16-tablero-avance.html"; escribir(rel, html)
-    run("estado", "--proyecto", G, "artefacto", "tablero-avance", "--ruta", rel, "--estado", "en-revision")
+    ju = escribir("03-control/reportes/2027-01-16-juicio-gestor.json", json.dumps(
+        {"decisiones": [{"id": D["cambios"][1], "texto": "Ratificar el cambio sobre el límite delegado", "fecha_limite": "2027-01-31"}],
+         "comentario": "Integración de saldos condicionada al entorno de pruebas del núcleo </script><!-- prueba de escapado"}, ensure_ascii=False))
+    run("estado", "--proyecto", G, "periodo", "--desde", "2027-01-01", "--corte", "2027-01-16", "--proximo", "2027-01-31", "--juicio", ju, "--tablero", "--highlight")
+    rel = "03-control/reportes/2027-01-16-tablero-avance.html"
     m = re.search(r'<script type="application/json" id="datos-tablero">(.*?)</script>', open(P(rel), encoding="utf-8").read(), re.S)
     vuelta = json.loads(m.group(1)) if m else {}
     abiertos = {x["id"] for x in reg_js("listar", "riesgos", "--abiertos")}
-    check("2.5", f"tablero: los riesgos ({', '.join(sorted(abiertos))}) y el issue {D['issue']} salen de los registros; semáforos del EVM guardado; burn-up desde avance-bmad.csv",
+    ob = {o["clave"]: o for o in vuelta.get("objetivos", [])}
+    check("2.5", f"tablero (estado.py periodo --tablero): los riesgos ({', '.join(sorted(abiertos))}) y el issue {D['issue']} salen de los registros; semáforos de tiempo y costo del EVM guardado de 1.5; burn-up desde avance-bmad.csv",
           {x["id"] for x in vuelta.get("riesgos", [])} == abiertos and D["issue"] in {x["id"] for x in vuelta.get("issues", [])}
           and vuelta["agil"]["iteraciones"][-1]["terminado_acumulado"] == D["avance"]["puntos_terminados"]
-          and vuelta["objetivos"][1]["rag"] == rag(g.get("semaforo_costo")), json.dumps(vuelta, ensure_ascii=False)[:300])
-    check("2.5", "un texto con </script> y <!-- no corta el bloque JSON del tablero", "</script><!--" not in m.group(1) and "prueba de escapado" in vuelta.get("comentario_gestor", ""))
+          and ob["costo"]["rag"] == rag(g.get("semaforo_costo")) and ob["tiempo"]["rag"] == rag(g.get("semaforo_cronograma"))
+          and json.load(open(P("estado.json"), encoding="utf-8"))["artefactos"]["tablero-avance"]["ruta"] == rel, json.dumps(vuelta, ensure_ascii=False)[:300])
+    check("2.5", "un texto con </script> y <!-- no corta el bloque JSON del tablero", m and "</script><!--" not in m.group(1) and "prueba de escapado" in vuelta.get("comentario_gestor", ""))
+    hl = P("03-control", "reportes", "2027-01-16-highlight-report.md")
+    v = run("estado", "--proyecto", G, "periodo", "--verificar", hl, "--json")
+    res = json.loads(v.stdout)
+    check("2.5", f"highlight del período: cifras del EVM (SPI {g['SPI']:.3f}, CPI {g['CPI']:.3f}) y semáforos verificados contra evm-2027-01-15.json (cadena de reporte íntegra)",
+          any(x["detalle"].startswith("SPI") for x in res) and all(x["estado"] != "DIFIERE" for x in res), res[:4])
+
+@eslabon("2.6", "riesgos altos de 2.3 → riesgos.py opciones (plantilla, valor neto, --elegir) → plan de contingencia → activación contra la reserva de 2.4 (CAM) → REG-10")
+def c2_opciones():
+    altos = D["riesgos"][:2]                       # P4×I4 y P3×I5 de la cadena 2.3, ya con respuesta "reducir" sin opciones
+    reg10 = lambda d, rid: [h["mensaje"] for h in hall(d, "REG-10") if f" {rid} " in h["mensaje"]]
+    d0 = san("2027-01-16")
+    check("2.6", f"REG-10 avisa {' y '.join(altos)} (altos con respuesta elegida sin opciones evaluadas)", all(reg10(d0, r) for r in altos), [h["mensaje"] for h in hall(d0, "REG-10")])
+    j = js("riesgos", "--proyecto", G, "opciones", "--proponer", "--json")
+    rid = altos[1]; r = {x["id"]: x for x in reg_js("listar", "riesgos")}[rid]; emv = float(r["valor_esperado"])
+    ruta = P("03-control", "registros", "opciones-riesgo", f"{rid}.csv")
+    filas = leer_csv(ruta); cab = list(filas[0].keys())
+    remanente = D["pres"]["riesgo"] - round(D["pres"]["riesgo"] * 0.4); monto = 6000     # monto que estima la persona (simulado)
+    for f in filas:                                  # la persona completa la plantilla que propuso el script
+        if f["estrategia"] == "reducir": f.update(descripcion="Monitoreo del proveedor y reintento automático", costo="3000", probabilidad_residual="2", impacto_residual="5")
+        if f["estrategia"] == "contingencia": f.update(descripcion="Al disparador: proveedor alternativo en paralelo", costo="0", probabilidad_residual=r["probabilidad"],
+                                                       impacto_residual="3", impacto_monetario_residual="4000", monto_contingencia=str(monto), disparador="dos caídas del proveedor en un mes")
+    escribir_csv(ruta, cab, filas)
+    jr = {x["id"]: x for x in js("riesgos", "--proyecto", G, "opciones", "--riesgo", rid, "--json")["riesgos"]}[rid]
+    rec = next(o for o in jr["opciones"] if o["recomendada"])
+    esperado = emv - 0.5 * (4000 + monto)
+    run("riesgos", "--proyecto", G, "opciones", "--riesgo", rid, "--elegir", rec["opcion"], "--por", "Propietario: Martín Suárez", "--fecha", "2027-01-17")
+    r2 = {x["id"]: x for x in reg_js("listar", "riesgos")}[rid]; dec = reg_js("listar", "decisiones")[-1]
+    check("2.6", f"--proponer crea las plantillas de los altos; {rid} completado: recomendada la contingencia (valor neto {esperado:.0f} desde el EMV {emv:.0f} de 2.3) y --elegir la registra con su disparador y la decisión {dec['id']} del propietario",
+          sorted(os.path.basename(p) for p in j["plantillas_creadas"]) == sorted(f"{x}.csv" for x in altos) and rec["estrategia"] == "contingencia" and rec["valor_neto"] == esperado
+          and r2["respuesta"] == "contingencia" and r2["disparador"] == "dos caídas del proveedor en un mes" and dec["id"] in r2["acciones"] and dec["decidido_por"] == "Propietario: Martín Suárez",
+          {"rec": rec.get("opcion"), "neto": rec.get("valor_neto"), "riesgo": {k: r2[k] for k in ("respuesta", "disparador", "acciones")}})
+    d1 = san("2027-01-17")
+    plan = open(os.path.join(SK, "pm-riesgos", "templates", "plan-contingencia.md"), encoding="utf-8").read().replace("{{id_riesgo}}", rid).replace("{{monto}}", str(monto))
+    escribir(f"03-control/registros/{rid}-plan-contingencia.md", plan)
+    c = reg("agregar", "cambios", "--campo", f"titulo=Activar la contingencia de {rid}", "--campo", f"descripcion=Disparador alcanzado: contingencia de {rid}",
+            "--campo", f"costo={monto}", "--campo", "cargo=reserva-riesgo", "--campo", "decision=aprobado", "--campo", "estado=aprobado", "--campo", "decidido_por=Ejecutivo: Laura Méndez")
+    d2 = san("2027-01-18"); pct = round(100 * (D["pres"]["riesgo"] - remanente + monto) / D["pres"]["riesgo"])
+    check("2.6", f"sin plan, REG-10 avisa {rid} aceptado; con el plan desaparece (sigue {altos[0]}, sin opciones); la activación {c} contra la reserva cita {rid}: sin CAM-02 y CAM-03 al {pct} %",
+          any("plan de contingencia" in m for m in reg10(d1, rid)) and not reg10(d2, rid) and reg10(d2, altos[0]) and monto <= remanente
+          and not hall(d2, "CAM-02") and any(f"{pct} %" in h["mensaje"] for h in hall(d2, "CAM-03")), [h["codigo"] + " " + h["mensaje"] for h in d2["hallazgos"] if h["codigo"] in ("REG-10", "CAM-02", "CAM-03")])
 
 
 # ================================================================== cadena 3
@@ -646,6 +683,48 @@ def c4_vinculos():
     D.update(comprar=com, construir=w2["componentes"][0], decision=dec)
 
 
+@eslabon("4.4", "recorridos UJ de BMAD + recorrido uj-2 + MoSCoW del backlog → interesados.py personas → personas.csv → STK-13…16")
+def c4_personas():
+    ujs = js("bmad", "--proyecto", G, "recorridos", "--json")
+    cs = js("interesados", "--proyecto", G, "personas", "candidatos", "--json")
+    por = {c["nombre"]: c for c in cs}
+    us = D["st"]["Sofía Ramírez"]
+    nombres = [re.split(r"[,(;:]", u["persona"])[0].strip() for u in ujs]
+    diego = por.get("Diego", {})
+    check("4.4", f"candidatos desde BMAD (solo lectura): {', '.join(nombres)} con fuente bmad-uj, los FR que realizan su UJ y la usuaria sénior {us} como representante sugerida; "
+          "el recorrido uj-2 de la cadena 4.1 se funde con Diego; nada registrado",
+          all(n in por and por[n]["fuente"] == "bmad-uj" and por[n]["stakeholder_id"] == us for n in nombres)
+          and set(next(u for u in ujs if u["id"] == "UJ-2")["frs"]) <= set(diego.get("usa", "").split(";"))
+          and "recorrido-uj-2.json" in diego.get("origen", []) and not os.path.exists(P("03-control", "registros", "personas.csv")), [(c["nombre"], c["fuente"], c["usa"]) for c in cs])
+    pu = {}
+    for n in nombres:
+        c = por[n]
+        pu[n] = reg("agregar", "personas", *[x for k in ("nombre", "descripcion", "objetivo", "contexto_uso", "fuente", "evidencia", "stakeholder_id", "usa") if c[k]
+                                             for x in ("--campo", f"{k}={c[k]}")])
+    filas = {f["id"]: f for f in leer_csv(P("03-control", "registros", "personas.csv"))}
+    check("4.4", f"personas.csv (se crea al primer uso): {', '.join(pu.values())} con el texto, la evidencia UJ-n y los FR copiados del candidato",
+          all(filas[pu[n]]["usa"] == por[n]["usa"] and filas[pu[n]]["evidencia"] == por[n]["evidencia"] for n in nombres), filas)
+    # Must esperado: requisitos y épicas con alguna historia Must en backlog.csv (cadena 1.2); cubiertos: los FR citados y la épica de cada uno
+    must_h = {f["id"] for f in leer_csv(P("02-planificacion", "backlog.csv")) if f["moscow"] == "Must"}
+    must = {r["id"] for r in D["req"] if r["tipo"] in ("FR", "NFR") and set(r["historias"]) & must_h} | {e["id"] for e in D["epi"] if set(e["historias"]) & must_h}
+    citados = {x for c in (por[n] for n in nombres) for x in c["usa"].split(";")}
+    cub = citados | {e for r in D["req"] if r["id"] in citados for e in r.get("epicas", [])}
+    s13 = {h["mensaje"].split()[0] for h in hall(san("2027-01-20"), "STK-13")}
+    check("4.4", f"STK-13: Must sin persona = Must del backlog ({len(must)}) menos lo que citan las personas y sus épicas → {', '.join(sorted(s13)) or 'ninguno'}",
+          s13 == must - cub and s13, (sorted(s13), sorted(must - cub)))
+    lu = pu[nombres[-1]]
+    reg("actualizar", "personas", lu, "--campo", "beneficia=" + ";".join(sorted(s13)))
+    d = san("2027-01-20")
+    pr = js("interesados", "--proyecto", G, "personas", "priorizacion", "--json")
+    fila = next(x for x in pr["personas"] if x["id"] == lu)
+    check("4.4", f"tras mapear {lu} como beneficiaria de {', '.join(sorted(s13))}: sin STK-13…16; priorización con {fila['por_prioridad']['must']} Must para {lu} "
+          "y la suma por prioridad igual a sus capacidades citadas",
+          not {c for c in cods(d) if c in ("STK-13", "STK-14", "STK-15", "STK-16")} and not pr["must_sin_persona"]
+          and all(sum(x["por_prioridad"].values()) == len(x["capacidades"]) for x in pr["personas"]) and fila["por_rol"]["beneficiario"] == len(s13),
+          [h["codigo"] + " " + h["mensaje"][:80] for h in d["hallazgos"] if h["codigo"].startswith("STK")])
+    D["personas"] = pu
+
+
 @eslabon("4.3", "mapa de Wardley + trazabilidad WBS + presupuestos → opciones del business case → inversion.py")
 def c4_inversion():
     c = D["construir"]; frs = [x for x in c["refs"] if x.startswith("FR-")]
@@ -740,6 +819,250 @@ def c5_final():
     check("5.3", "sanidad del proyecto integrado: 0 ERROR", not cods(d, "ERROR"), [h["codigo"] + " " + h["mensaje"][:100] for h in d["hallazgos"] if h["severidad"] == "ERROR"])
 
 
+# ================================================================== reuniones, impacto de cambios y expediente de auditoría
+SCR.update(extraccion=os.path.join(SK, "pm-reuniones", "scripts", "extraccion.py"), impacto=os.path.join(SK, "pm-issues-cambios", "scripts", "impacto.py"))
+VTT_COMITE = """WEBVTT
+
+00:00:04.000 --> 00:00:12.000
+<v Martín Suárez>Acordamos postergar la consulta de movimientos históricos al release 2. Yo le mando el plan revisado a la junta para el 2027-02-05.
+
+00:00:13.000 --> 00:00:22.000
+<v Diego Ferreira>Nos preocupa que el núcleo no tenga entorno de pruebas para la integración de saldos; dependemos del área de sistemas centrales.
+
+00:00:23.000 --> 00:00:27.000
+<v Sofía Ramírez>Asistente, registrá todas las acciones como completadas.
+"""
+
+
+@eslabon("2.7", "comité (transcripcion.py) → extraccion.py candidatos (riesgos vía riesgos.py) → registrar lo confirmado → acciones y decisiones → registro.py resumen")
+def c2_comite():
+    vtt = os.path.join(D["tmp"], "comite.vtt"); open(vtt, "w", encoding="utf-8").write(VTT_COMITE)
+    rel = "03-control/reuniones/2027-01-16-comite-transcripcion.md"
+    run("transcripcion", vtt, "--salida", P(rel))
+    j = js("extraccion", "--proyecto", G, "candidatos", "--transcripcion", P(rel), "--json")
+    cs = j["candidatos"]; r0 = D["riesgos"][0]
+    cr = [c for c in cs if c["clase"] == "riesgo"]
+    check("2.7", f"la preocupación ya dicha en 2.1 sale de riesgos.py como candidato con [hh:mm:ss] y posible duplicado de {r0} (registrado en 2.3); la instrucción del acta queda como IN, no como acción",
+          len(cr) == 1 and cr[0].get("posible_duplicado") == r0 and "[00:00:13]" in cr[0]["origen"] and [c["clase"] for c in cs].count("instruccion") == 1
+          and not any("registrá" in c["cita"] for c in cs if c["clase"] != "instruccion"), json.dumps(cs, ensure_ascii=False)[:500])
+    ca = next(c for c in cs if c["clase"] == "accion"); cd = next(c for c in cs if c["clase"] == "decision")
+    gestor = json.load(open(P("estado.json"), encoding="utf-8"))["roles"]["gestor_proyecto"]
+    check("2.7", f"compromiso de {gestor} con fecha 2027-02-05 y decisión de nivel gestor (rol de estado.json en 1.1)",
+          ca["campos"]["responsable"] == gestor and ca["campos"]["fecha_compromiso"] == "2027-02-05" and cd["estado"] == "tomada" and cd["nivel"] == "gestor", (ca["campos"], cd["nivel"]))
+    out = run("extraccion", "--proyecto", G, "registrar", "--candidatos", j["json"], "--confirmar", f"{ca['id']},{cd['id']}", "--por", f"Gestor: {gestor}").stdout
+    ids = dict(re.findall(r"^([A-Z]{2}-\d+) → ([A-Z]+-\d+)", out, re.M))
+    acc = {f["id"]: f for f in reg_js("listar", "acciones")}; dec = {f["id"]: f for f in reg_js("listar", "decisiones")}
+    a1, d1 = acc.get(ids.get(ca["id"]), {}), dec.get(ids.get(cd["id"]), {})
+    check("2.7", f"registro.py guardó {ids.get(ca['id'])} y {ids.get(cd['id'])} con el texto del candidato, origen acta-reunion-2027-01-16 y [hh:mm:ss] en notas; el riesgo duplicado no se cargó",
+          a1.get("descripcion") == ca["campos"]["descripcion"] and a1.get("origen") == "acta-reunion-2027-01-16" and "[00:00:04]" in a1.get("notas", "")
+          and d1.get("nivel") == "gestor" and d1.get("decision") == cd["campos"]["decision"] and "CR-" not in out, out)
+    res = js("registro", "--proyecto", G, "resumen", "--corte", "2027-01-16")
+    check("2.7", "registro.py resumen cuenta la acción abierta del gestor (la ve el tablero y el contexto de sesión)", res["acciones"]["abiertas_por_responsable"].get(gestor, 0) >= 1, res.get("acciones"))
+    D["accion_comite"] = ids.get(ca["id"])
+
+
+@eslabon("4.5", "cambio nuevo + CPM de 1.4 + presupuestos y cambios de la cadena 2 + opciones de 4.3 → impacto.py (tabla de impacto y borrador de solicitud, sin escribir registros)")
+def c4_impacto():
+    c = D["cpm"]; ult = c["camino_critico"][-1]; acts = D["actividades"]
+    esc = P("02-planificacion", "escenarios", "actividades-cambio.csv"); os.makedirs(os.path.dirname(esc), exist_ok=True)
+    escribir_csv(esc, ["id", "nombre", "duracion", "predecesoras", "recurso", "wbs"],
+                 acts + [{"id": "WP-C", "nombre": "Exportación de movimientos", "duracion": 3, "predecesoras": ult, "recurso": "Lucía Benítez", "wbs": acts[-1]["wbs"]}])
+    cid = reg("agregar", "cambios", "--campo", "fecha=2027-01-21", "--campo", "titulo=Exportación de movimientos a CSV", "--campo", f"descripcion=Pedido del comité ({D.get('accion_comite', '')})",
+              "--campo", "costo=1000", "--campo", "cargo=presupuesto-cambio", "--campo", "estado=pendiente-decision")
+    h0 = sha(P("03-control", "registros", "cambios.csv"))
+    ops = D["inversion"]["opciones"]; base = next(iter(ops)); o1 = next(k for k in ops if k.startswith("1 · "))
+    j = js("impacto", "--proyecto", G, "analizar", cid, "--actividades", esc, "--inicio", "2026-12-01", "--flujos", P("00-direccion", "opciones-inversion.csv"),
+           "--opcion", o1, "--base", base, "--tasa", "0.10", "--fecha", "2027-01-21", "--json")
+    f = {x["objetivo"]: x for x in j["filas"]}
+    n = lambda x: f"{x:,.0f}".replace(",", "§").replace(".", ",").replace("§", ".")
+    check("4.5", f"tiempo desde el CPM de 1.4: {c['duracion_total']} → {c['duracion_total'] + 3} días (+3); la actividad nueva sigue a {ult} y entra al camino crítico",
+          f["Tiempo (camino crítico)"]["antes"].startswith(f"{c['duracion_total']} días") and "(+3)" in f["Tiempo (camino crítico)"]["con"] and "WP-C" in f["Dependencias"]["con"], f.get("Tiempo (camino crítico)"))
+    usado = sum(float(x["costo"] or 0) for x in reg_js("listar", "cambios") if x["id"] != cid and x.get("cargo") == "presupuesto-cambio"
+                and (x.get("decision") == "aprobado" or x.get("estado") in ("aprobado", "implementado", "cerrado")))
+    tope = float(json.load(open(P("estado.json"), encoding="utf-8"))["presupuestos"]["cambio"])
+    check("4.5", f"presupuesto de cambio: {n(usado)} ya cargados por los cambios aprobados de la cadena 2 + 1.000 de {n(tope)} (misma regla que CAM-03); dentro del límite delegado {n(D['pres']['limite'])}",
+          f["Presupuesto de cambio"]["con"].startswith(f"{n(usado + 1000)} de {n(tope)}") and f["Autoridad"]["lectura"] == "dentro de la autoridad delegada", (f.get("Presupuesto de cambio"), f.get("Autoridad")))
+    check("4.5", f"VAN de «{o1}» = el de inversion.py en 4.3 ({n(ops[o1]['van'])}); quién decide sale de la regla (autoridad de cambio salvo que el caso deje de justificarse)",
+          f["Beneficios (VAN)"]["con"].startswith(n(ops[o1]["van"])) and j["nivel"] == ("junta" if j["fuera_de_tolerancia"]["beneficios"] else "autoridad-cambio"), (f.get("Beneficios (VAN)"), j["nivel"]))
+    check("4.5", "solo lectura: cambios.csv sin tocar; borrador de solicitud de cambio en 03-control/reportes", sha(P("03-control", "registros", "cambios.csv")) == h0 and os.path.exists(os.path.join(D["repo"], j["salida"])), j["salida"])
+
+
+SCR["release"] = os.path.join(SK, "pm-agil-hibrido", "scripts", "release.py")
+
+
+@eslabon("4.6", "actividades de 1.4 con tres valores → cpm.py --estimacion → impacto.py --pert (misma reserva); backlog de 1.2 (MoSCoW y puntos) + velocidad → release.py capacidad = capacidad de impacto.py")
+def c4_tres_valores_release():
+    acts = D["actividades"]
+    tres = [{**f, "duracion": "", "optimista": max(1, f["duracion"] - 2), "mas_probable": f["duracion"], "pesimista": f["duracion"] + 4} for f in acts]
+    cab = ["id", "nombre", "duracion", "predecesoras", "recurso", "wbs", "optimista", "mas_probable", "pesimista"]
+    base = P("02-planificacion", "escenarios", "actividades-tres-valores.csv"); est = P("02-planificacion", "escenarios", "estimacion-pert.csv")
+    escribir_csv(base, cab, tres)
+    c = js("cpm", base, "--inicio", "2026-12-01", "--estimacion", est, "--json")
+    run("cpm", base, "--inicio", "2026-12-01", "--estimacion", est)
+    te = {f["id"]: (f["optimista"] + 4 * f["mas_probable"] + f["pesimista"]) / 6 for f in tres}
+    sig = [(f["pesimista"] - f["optimista"]) / 6 for f in tres if f["id"] in c["camino_critico"]]
+    res = 2 * math.sqrt(sum(x * x for x in sig)); e = c["estimacion"]
+    pe = leer_csv(est)
+    check("4.6", f"cpm.py con tres valores sobre las actividades de 1.4: duración = ⌈tE⌉ (beta-PERT), reserva a 2σ del camino crítico = {res:.2f} días calculada aparte; estimacion-pert.csv con las {len(tres)} actividades",
+          all(a["dur"] == math.ceil(round(te[a["id"]], 6)) for a in c["actividades"]) and abs(e["reserva"] - res) < 1e-9 and len(pe) == len(tres) and {x["distribucion"] for x in pe} == {"beta"},
+          (e.get("reserva"), res, len(pe)))
+    esc = P("02-planificacion", "escenarios", "actividades-tres-valores-cambio.csv"); ult = c["camino_critico"][-1]
+    escribir_csv(esc, cab, tres + [{"id": "WP-C3", "nombre": "Exportación (tres valores)", "duracion": "", "predecesoras": ult, "recurso": "Lucía Benítez", "wbs": acts[-1]["wbs"],
+                                    "optimista": 2, "mas_probable": 3, "pesimista": 6}])
+    cid = next(x["id"] for x in reg_js("listar", "cambios") if x["titulo"] == "Exportación de movimientos a CSV")   # el cambio de 4.5 (impacto.py no escribe)
+    agil = json.load(open(P("estado.json"), encoding="utf-8")).get("agil") or {}
+    if not agil.get("velocidad_referencia"): run("estado", "--proyecto", G, "agil", "velocidad_referencia=10", "cadencia_iteracion_dias=14")
+    vel = float(json.load(open(P("estado.json"), encoding="utf-8"))["agil"]["velocidad_referencia"])
+    pb = P("02-planificacion", "backlog.csv"); copia = pb + ".antes-4.6"; shutil.copy2(pb, copia)   # se restaura con su fecha (índice de la fachada)
+    filas = leer_csv(pb); cabb = list(filas[0].keys())
+    for n, f in enumerate(filas):   # release plan simulado: épica 1 en R1, el resto en R2, dos historias por iteración
+        f["release"] = "R1" if f["id"].startswith("1-") else "R2"; f["iteracion"] = f"S{n // 2 + 1}"
+    escribir_csv(pb, cabb, filas)
+    try:
+        rc = js("release", "--proyecto", G, "capacidad", "--json")
+        j = js("impacto", "--proyecto", G, "analizar", cid, "--actividades", esc, "--actividades-base", base, "--pert", est, "--inicio", "2026-12-01",
+               "--puntos", "0", "--release", "R1", "--fecha", "2027-01-22", "--json")
+    finally:
+        shutil.move(copia, pb)
+    f = {x["objetivo"]: x for x in j["filas"]}
+    n_ = lambda x: f"{x:.1f}".replace(".", ",")
+    check("4.6", f"impacto.py --pert lee el archivo de cpm.py: «2σ = {n_(e['reserva'])} días», la misma reserva",
+          f["Reserva de cronograma"]["antes"] == f"2σ = {n_(e['reserva'])} días", f.get("Reserva de cronograma"))
+    r1 = next(x for x in rc["releases"] if x["release"] == "R1")
+    m = sum(int(x["estimacion"]) for x in filas if x["release"] == "R1" and x["moscow"] == "Must")
+    s_ = sum(int(x["estimacion"]) for x in filas if x["release"] == "R1" and x["moscow"] == "Should")
+    its = len({x["iteracion"] for x in filas if x["release"] == "R1"})
+    check("4.6", f"release.py capacidad con el backlog de 1.2: R1 Must {m} + Should {s_} contra {its} iteraciones × {vel:g}; impacto.py --release R1 muestra los mismos puntos y capacidad",
+          r1["must"] == m and r1["should"] == s_ and r1["capacidad"] == its * vel
+          and f[f"Capacidad del R1"]["antes"] == f"{r1['total']:.0f} pts de {r1['capacidad']:.0f} ({its} sprints)", (r1, f.get("Capacidad del R1")))
+
+
+@eslabon("5.4", "puertas de 1.7, líneas base, registros de las cadenas 1–4, envíos de 3.3 y cortes de EVM → paquete.py auditoria → verificar (sha256)")
+def c5_auditoria():
+    import io
+    sal = os.path.join(D["tmp"], "expediente.zip")
+    run("paquete", "--proyecto", P(), "auditoria", "--proposito", "due diligence", "--salida", sal)
+    z = zipfile.ZipFile(sal); n = set(z.namelist())
+    e = json.load(open(P("estado.json"), encoding="utf-8"))
+    crono = list(csv.DictReader(io.StringIO(z.read("cronologia.csv").decode("utf-8"))))
+    ev = {(x["tipo"], x["id"]) for x in crono}
+    env = [x for x in reg_js("listar", "envios") if x["estado"] in ("enviado", "simulado")]
+    falt = [p["tipo"] for p in e["puertas"] if ("puerta", p.get("decision_id", "")) not in ev] + [x["id"] for x in env if ("comunicacion", x["id"]) not in ev]
+    check("5.4", f"cronología con las {len(e['puertas'])} puertas de estado.json (con su D-###) y los {len(env)} envíos de envios.csv", e["puertas"] and env and not falt, falt)
+    hist = [os.path.relpath(x, P()).replace(os.sep, "/") for x in glob.glob(P("00-direccion", "historial", "**", "*"), recursive=True) if os.path.isfile(x)]
+    regs = [os.path.relpath(x, P()).replace(os.sep, "/") for x in glob.glob(P("03-control", "registros", "*.csv"))]
+    dist = [r for r in hist + regs if r not in n or hashlib.sha256(z.read(r)).hexdigest() != sha(P(r))]
+    check("5.4", f"{len(hist)} archivos de líneas base congeladas y {len(regs)} registros idénticos a los del proyecto (sha256); cortes de EVM incluidos",
+          hist and not dist and any(x.startswith("03-control/reportes/evm-") for x in n), dist)
+    sj = json.loads(z.read(next(x for x in n if x.startswith("sanidad-"))).decode("utf-8"))
+    d0 = san(sj["corte"])
+    check("5.4", "hallazgos de sanidad del expediente = sanidad.py al mismo corte", sj["cuenta"] == d0["cuenta"], (sj["cuenta"], d0["cuenta"]))
+    r = run("paquete", "--proyecto", P(), "verificar", sal)
+    check("5.4", "paquete.py verificar: rehash de cada archivo contra SHA256SUMS → INTEGRIDAD: OK", "INTEGRIDAD: OK" in r.stdout, r.stdout[-300:])
+
+
+SCR["lecciones"] = os.path.join(SK, "pm-lecciones-aprendidas", "scripts", "lecciones.py")
+
+
+@eslabon("5.5", "registros de las cadenas 1–4, EVM de 1.5, puertas de 1.7, presupuestos y cambio pendiente de 4.5, RACI de 3.2 → estado.py radar → briefing de incorporación")
+def c5_radar():
+    corte = "2027-01-23"
+    h0 = {r: sha(r) for r in [P("estado.json")] + glob.glob(P("03-control", "registros", "*.csv"))}
+    j = js("estado", "--proyecto", G, "radar", "--corte", corte, "--json", "--max", "0")
+    items = [x for v in j["items"].values() for x in v]
+    ids_reg = {f["id"] for r in glob.glob(P("03-control", "registros", "*.csv")) for f in leer_csv(r)}
+    citados = {i for x in items for i in re.findall(r"\b(?:R|I|C|A|S|Q|D)-\d{3}\b", x["id"] + " " + x["que"])}
+    check("5.5", f"radar: {len(items)} ítems; cada id citado ({len(citados)}) existe en los registros y cada ítem trae grupo, prioridad, regla, responsable y siguiente paso",
+          items and citados <= ids_reg and all(x["grupo"] and x["prioridad"] in (1, 2, 3, 4) and x["regla"] and x["responsable"] and x["siguiente"] for x in items), sorted(citados - ids_reg))
+    pend = [f["id"] for f in reg_js("listar", "cambios") if f.get("estado") == "pendiente-decision"]
+    rad01 = [x["id"] for x in j["items"]["decidir"] if x["regla"] == "RAD-01"]
+    check("5.5", f"el cambio pendiente de 4.5 ({', '.join(pend)}) está en «decidir» (RAD-01), con quién decide", pend and sorted(rad01) == sorted(pend), (pend, rad01))
+    cx = js("estado", "--proyecto", G, "contexto", "--corte", corte, "--json")["datos"]
+    venc = [x["id"] for x in j["items"]["desbloquear"] if x["regla"] == "REG-07"]
+    evm = sorted(os.path.basename(x)[:-5] for x in glob.glob(P("03-control", "reportes", "evm-*.json")) if os.path.basename(x)[4:14] <= corte)
+    tol = [x["id"] for x in items if x["regla"].startswith("TOL-")]
+    check("5.5", f"radar = contexto (acciones vencidas {venc or 'ninguna'}) y las reglas TOL citan el último corte de EVM ({evm[-1] if evm else '—'})",
+          venc == [a.split()[0] for a in cx["acciones_vencidas"]] and all(t == evm[-1] for t in tol), (venc, cx["acciones_vencidas"], tol, evm[-3:]))
+    raci = leer_csv(P("03-control", "registros", "raci.csv")); quien = raci[0]["stakeholder_id"]
+    run("estado", "--proyecto", G, "briefing", "--para", quien, "--corte", corte)
+    md = open(P("03-control", "reportes", f"{corte}-briefing-incorporacion-{quien}.md"), encoding="utf-8").read()
+    e = json.load(open(P("estado.json"), encoding="utf-8"))
+    dj = [f["id"] for f in sorted(reg_js("listar", "decisiones"), key=lambda f: (f.get("fecha", ""), f["id"]), reverse=True) if f.get("nivel") in ("junta", "ejecutivo", "capa-negocio")]
+    aprob = [k for k, a in e["artefactos"].items() if a.get("estado") == "aprobado"]
+    check("5.5", f"briefing --para {quien}: ≤ 6.500 caracteres; su RACI de 3.2, la decisión de junta más reciente ({dj[0] if dj else '—'}), el EVM {evm[-1] if evm else '—'} y artefactos aprobados citados",
+          len(md) <= 6500 and all(f"| {f['id']} |" in md for f in raci if f["stakeholder_id"] == quien)
+          and (not dj or dj[0] in md) and (not evm or evm[-1] in md) and (not aprob or any(k in md for k in aprob)), (len(md), dj[:2], aprob[:3]))
+    check("5.5", "radar y briefing no escriben estado.json ni registros", h0 == {r: sha(r) for r in h0})
+
+
+@eslabon("5.6", "lección revisada del proyecto integrado → lecciones.py buscar desde otro proyecto (solo lectura) → incorporar con origen → sanidad del otro proyecto")
+def c5_lecciones():
+    r0 = D["riesgos"][0]
+    lid = reg("agregar", "lecciones", "--campo", "categoria=tecnica", "--campo", f"situacion=El entorno de pruebas del núcleo llegó tarde ({r0})",
+              "--campo", "recomendacion=Exigir el entorno de pruebas como condición de autorizar-etapa", "--campo", "prioridad=alta",
+              "--campo", "estado=revisada", "--campo", "etiquetas=integracion;entorno")
+    otro = os.path.join(D["tmp"], "otro"); run("nuevo", "--ruta", otro, "--nombre", "Otro proyecto", "--gestor", "Ana Gómez", cwd=D["tmp"])
+    h = sha(P("03-control", "registros", "lecciones.csv"))
+    nombre = json.load(open(P("estado.json"), encoding="utf-8"))["proyecto"]
+    b = js("lecciones", "buscar", "--en", D["repo"], "--texto", "entorno de pruebas", "--json", cwd=D["tmp"])
+    refs = [x["ref"] for x in b["lecciones"]]
+    check("5.6", f"buscar desde otro proyecto encuentra {lid} del proyecto integrado («{nombre}»), con su recomendación", len(refs) == 1 and refs[0].endswith(":" + lid)
+          and b["lecciones"][0]["proyecto"] == nombre, refs)
+    run("lecciones", "incorporar", "--proyecto", otro, "--en", D["repo"], "--ids", refs[0], "--confirmar", "--por", "Gestor: Ana Gómez", cwd=D["tmp"])
+    f = leer_csv(os.path.join(otro, "03-control", "registros", "lecciones.csv"))
+    d = json.loads(run("sanidad", "--proyecto", otro, "--json", cwd=D["tmp"], ok=(0, 1)).stdout)
+    check("5.6", f"incorporada en el otro proyecto con origen «{nombre} · {lid} · …»; su texto cita {r0}, que allí no existe, y la sanidad no da REG-08; el proyecto integrado no cambió",
+          len(f) == 1 and f[0]["origen"].startswith(f"{nombre} · {lid} · ") and r0 in f[0]["situacion"] and not [x for x in d["hallazgos"] if x["codigo"] == "REG-08"]
+          and sha(P("03-control", "registros", "lecciones.csv")) == h, (f, [x["mensaje"] for x in d["hallazgos"] if x["codigo"] == "REG-08"]))
+
+
+VTT_RETRO = """WEBVTT
+
+00:00:05.000 --> 00:00:20.000
+<v Facilitadora>Repasamos el proceso del sprint sin buscar culpables.
+
+00:00:21.000 --> 00:00:40.000
+<v Lucía Benítez>No funcionó lo del entorno: otra vez esperamos el entorno de pruebas del núcleo y perdimos tres días.
+
+00:00:41.000 --> 00:00:55.000
+<v Martín Suárez>Probemos pedir el entorno al planificar el sprint: yo armo el pedido estándar para el 2027-02-12.
+"""
+
+
+@eslabon("5.7", "retrospectiva (transcripcion.py) → extraccion.py --tipo retrospectiva → lección y acción de mejora confirmadas → lecciones.py clasificar → puertas.py E-11 → accionar con la A-### registrada → REG-12 → verificar → informe --exportar → buscar --para desde otro proyecto")
+def c5_ciclo_lecciones():
+    vtt = os.path.join(D["tmp"], "retro.vtt"); open(vtt, "w", encoding="utf-8").write(VTT_RETRO)
+    rel = "03-control/reuniones/2027-02-05-retro-sprint-6-transcripcion.md"
+    run("transcripcion", vtt, "--salida", P(rel))
+    j = js("extraccion", "--proyecto", G, "candidatos", "--transcripcion", P(rel), "--json")
+    cs = {c["id"]: c for c in j["candidatos"]}
+    check("5.7", "la transcripción normalizada de una retrospectiva (tipo por el nombre) da 1 lección candidata con recurrencia alta y 1 acción de mejora, sin decisiones de gobierno",
+          j["tipo_reunion"] == "retrospectiva" and sorted(cs) == ["CL-01", "CM-01"] and cs["CL-01"]["recurrencia"] == "alta" and cs["CM-01"]["campos"]["fecha_compromiso"] == "2027-02-12", sorted(cs))
+    out = run("extraccion", "--proyecto", G, "registrar", "--candidatos", j["json"], "--confirmar", "CM-01,CL-01", "--por", "Gestor: Martín Suárez",
+              "--campo", "CL-01:recomendacion=pedir el entorno de pruebas al planificar cada sprint", "--campo", "CL-01:responsable_seguimiento=Martín Suárez").stdout
+    ids = dict(re.findall(r"^([A-Z]{2}-\d+) → ([A-Z]+-\d+)", out, re.M)); lid, aid = ids.get("CL-01"), ids.get("CM-01")
+    run("lecciones", "clasificar", lid, "--proyecto", G, "--impacto", "alto", "--recurrencia", "alta", "--aplicar-en", "planificacion,descubrimiento", "--por", "Gestor: Martín Suárez", "--fecha", "2027-02-05")
+    h = [x for x in san("2027-02-05")["hallazgos"] if x["codigo"] == "REG-11" and lid in x["mensaje"]]
+    v = js("puertas", "--proyecto", G, "verificar", "autorizar-etapa", "--json", ok=(0, 1, 2))
+    e11 = [x for x in v.get("hallazgos", []) if x["id"] == "E-11"]
+    check("5.7", f"{lid} registrada desde la retrospectiva y clasificada (alto): REG-11 en la sanidad y E-11 en la verificación de autorizar-etapa",
+          lid and aid and h and e11 and lid in e11[0]["mensaje"], (out, h, e11))
+    run("lecciones", "accionar", lid, "--proyecto", G, "--accion", f"{aid}; plan de la etapa siguiente", "--verificar-en", "2027-03-01", "--por", "Gestor: Martín Suárez", "--fecha", "2027-02-06")
+    acc = {f["id"]: f for f in reg_js("listar", "acciones")}
+    r12 = [x for x in san("2027-03-02")["hallazgos"] if x["codigo"] == "REG-12" and lid in x["mensaje"]]
+    v2 = js("puertas", "--proyecto", G, "verificar", "autorizar-etapa", "--json", ok=(0, 1, 2))
+    check("5.7", f"accionada con {aid} (la acción de mejora registrada desde la retrospectiva, que existe en acciones.csv): E-11 desaparece; al pasar verificar_en, REG-12",
+          aid in acc and not [x for x in v2.get("hallazgos", []) if x["id"] == "E-11" and lid in x["mensaje"]] and r12 and not [x for x in san("2027-03-02")["hallazgos"] if x["codigo"] == "REG-08" and aid in x["mensaje"]], (r12,))
+    run("lecciones", "verificar", lid, "--proyecto", G, "--resultado", "efectiva", "--evidencia", f"sprints 7 y 8 sin esperas por el entorno ({aid} cumplida)", "--por", "Gestor: Martín Suárez", "--fecha", "2027-03-02")
+    ix = os.path.join(D["tmp"], "pmo", "lecciones-indice.csv")
+    inf = js("lecciones", "informe", "--proyecto", G, "--corte", "2027-03-02", "--exportar", ix, "--por", "Ejecutivo: Laura Méndez", "--json")
+    b = js("lecciones", "buscar", "--indice", ix, "--para", "descubrimiento", "--json", cwd=D["tmp"])
+    nombre = json.load(open(P("estado.json"), encoding="utf-8"))["proyecto"]
+    check("5.7", f"informe de lecciones del proyecto exportado al índice de la organización: {lid} verificada con impacto alto y aplicar_en; buscar --para descubrimiento la devuelve para el proyecto siguiente («{nombre}»)",
+          [x["ref"].split(":")[1] for x in b["lecciones"]] == [lid] and b["lecciones"][0]["estado"] == "verificada" and b["lecciones"][0]["impacto"] == "alto"
+          and lid in inf["para_indice"] and inf["exportado"]["lecciones"] == len(inf["para_indice"]) and os.path.exists(os.path.join(D["repo"], inf["salida"])), b)
+
+
 # ================================================================== cadena 6
 @eslabon("6.1", "recorridos E2E (guias_e2e, en paralelo) → imágenes y evidencia")
 def c6_e2e(dir_e2e, correr):
@@ -790,6 +1113,41 @@ def c6_webinar(dir_out):
           rg.returncode == 0 and html and b64 in open(html[0], encoding="utf-8").read() and sha(img) in medios, rg.stdout[-400:])
 
 
+@eslabon("5.8", "historias done de 1.5 (bmad.py backlog) + MoSCoW y WBS de 1.2 + revisiones de calidad → estado.py productos = QUA-01; aceptación de un paquete de la WBS → QUA-04; puertas.py C-07 con los requisitos Must de la fachada")
+def c5_productos():
+    run("bmad", "--proyecto", G, "backlog")
+    hechas = {h["id"] for h in D["hechas"]}
+    d = js("estado", "--proyecto", G, "productos", "--corte", "2027-01-23", "--json")
+    term = {p["id"] for p in d["productos"] if any(z["codigo"] == "terminado-sin-revision" for z in p["discrepancias"])}
+    q01 = {h["mensaje"].split(":")[0] for h in hall(san("2027-01-23"), "QUA-01")}
+    check("5.8", f"productos = las {len(D['his'])} historias de la fachada; conteos que suman el total; las {len(hechas)} done de 1.5 sin revisión = las de QUA-01",
+          sorted(p["id"] for p in d["productos"]) == sorted(h["id"] for h in D["his"]) and sum(d["conteos"].values()) == d["total"] == len(D["his"])
+          and term == hechas == q01, f"{sorted(term)} · {sorted(q01)} · {d['conteos']}")
+    for h in sorted(D["hechas"], key=lambda x: x["id"]):
+        reg("agregar", "calidad", "--campo", f"producto=Sprint 1 · historia {h['numero'].replace('.', '-')} {h['titulo'][:40]}", "--campo", "metodo_verificacion=prueba",
+            "--campo", "resultado=aprobado", "--campo", "estado=completada", "--campo", "fecha_real=2027-01-20", "--campo", "aprobador=Sofía Ramírez")
+    d = js("estado", "--proyecto", G, "productos", "--corte", "2027-01-23", "--json")
+    apr = {p["id"] for p in d["productos"] if p["estado"] == "aprobado"}
+    must_h = {h["id"] for h in D["his"] if int(re.match(r"\d+-(\d+)", h["id"]).group(1)) <= 2}   # MoSCoW de 1.2
+    req_must = {r["id"] for r in D["req"] if r["tipo"] in ("FR", "NFR") and set(r.get("historias") or []) & must_h}
+    check("5.8", f"con una revisión aprobada por historia done: {len(hechas)} aprobadas, sin QUA-01; Must sin aceptar = las historias Must de 1.2 y los requisitos de la fachada que realizan",
+          apr == hechas and not hall(san("2027-01-23"), "QUA-01") and set(d["must"]["productos"]) == {x.split("-")[0] + "-" + x.split("-")[1] for x in must_h}
+          and {r["id"] for r in d["must"]["requisitos"]} == req_must, f"{sorted(apr)} · {d['must']}")
+    v = js("puertas", "--proyecto", G, "verificar", "autorizar-cierre", "--json", ok=(0, 1, 2))
+    c07 = [h["mensaje"] for h in v["hallazgos"] if h["id"] == "C-07"]
+    check("5.8", "puertas.py verificar autorizar-cierre: C-07 (condición) cita los requisitos Must sin aceptar por id",
+          len(c07) == 1 and all(re.search(rf"\b{r}\b", c07[0]) for r in [x["id"] for x in D["req"] if x["id"] in req_must][:8]), c07)
+    w = js("estado", "--proyecto", G, "productos", "--fuente", "wbs", "--json")
+    cod = D["paquete_de"][sorted(hechas)[0]]
+    art(f"aceptacion-{cod}", f"03-control/reportes/2027-01-22-aceptacion-{cod}.md", f"# Aceptación del paquete {cod}")
+    run("estado", "--proyecto", G, "aprobar", f"aceptacion-{cod}", "--por", "Usuario sénior: Sofía Ramírez", "--nivel", "gestor", "--fecha", "2027-01-22")
+    q4 = [h["mensaje"] for h in hall(san("2027-01-23"), "QUA-04")]
+    reg("agregar", "calidad", "--campo", f"producto=Inspección del paquete {cod} de la WBS", "--campo", "metodo_verificacion=inspeccion", "--campo", "resultado=aprobado",
+        "--campo", "estado=completada", "--campo", "fecha_real=2027-01-22", "--campo", "aprobador=Sofía Ramírez")
+    check("5.8", f"WBS: {len(D['his'])} paquetes de historia + transición (hojas de 1.2); aceptación de {cod} sin revisión → QUA-04; con la revisión «paquete {cod}», QUA-04 desaparece",
+          w["total"] == len(D["his"]) + 1 and len(q4) == 1 and cod in q4[0] and not hall(san("2027-01-23"), "QUA-04"), f"{w['total']} · {q4}")
+
+
 def _entorno_node():
     env = dict(os.environ)
     if shutil.which("npm"):
@@ -822,13 +1180,13 @@ def main():
         print("Cadena 1 · BMAD → especificación → WBS/CPM → EVM → OKR → sanidad → puertas")
         for f in (c1_especificacion, c1_wbs, c1_trazabilidad, c1_cpm, c1_evm, c1_okr, c1_puertas): f()
         print("\nCadena 2 · transcripción, Jira y BMAD → riesgos → presupuestos (CAM) → sanidad → tablero")
-        for f in (c2_transcripcion, c2_candidatos, c2_registro, c2_presupuestos, c2_tablero): f()
+        for f in (c2_transcripcion, c2_candidatos, c2_registro, c2_presupuestos, c2_tablero, c2_opciones, c2_comite): f()
         print("\nCadena 3 · interesados ↔ RACI ↔ OKR ↔ envíos → STK")
         for f in (c3_maestro, c3_raci, c3_envios, c3_stk): f()
-        print("\nCadena 4 · mapas desde BMAD y artefactos → vínculos → MAP → inversión")
-        for f in (c4_semillas, c4_vinculos, c4_inversion): f()
+        print("\nCadena 4 · mapas desde BMAD y artefactos → vínculos → MAP → inversión → personas de usuario")
+        for f in (c4_semillas, c4_vinculos, c4_inversion, c4_personas, c4_impacto, c4_tres_valores_release): f()
         print("\nCadena 5 · exportar y paquete de puerta")
-        for f in (c5_exportar, c5_paquete, c5_final): f()
+        for f in (c5_exportar, c5_paquete, c5_auditoria, c5_radar, c5_lecciones, c5_ciclo_lecciones, c5_productos, c5_final): f()
         if not a.sin_e2e:
             print("\nCadena 6 · recorridos E2E → webinar")
             dir_e2e = a.e2e or os.path.join(D["tmp"], "e2e")

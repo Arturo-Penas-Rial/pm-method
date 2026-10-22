@@ -5,8 +5,8 @@
 generador común) · **Público:** gestores de proyecto con algo de PMBOK o PRINCE2 y líderes de negocio.
 
 **Formato:** dos clases de 90 minutos. La primera responde "¿vale la pena?" (puesta en marcha, pasos 1 a 6, con el
-contraste de la variante con BMAD, pasos 15 a 17). La segunda diseña el proyecto hasta su autorización (iniciación,
-pasos 7 a 14, con el bloque C). La clase 2 usa lo que deja la 1: supuestos tratados, una opción elegida con números y un
+contraste de la variante con BMAD, pasos 15, 16 y 17). La segunda diseña el proyecto hasta su autorización
+(iniciación, pasos 7 a 14, con las personas de usuario del 10b, su contraste con BMAD del 16b y el bloque C). La clase 2 usa lo que deja la 1: supuestos tratados, una opción elegida con números y un
 enfoque decidido. Sin eso, el presupuesto y las tolerancias de la clase 2 se apoyarían en supuestos que nadie verificó,
 que es justo lo que el caso quiere evitar.
 
@@ -20,7 +20,8 @@ los datos del caso.
 
 Al terminar las dos clases, cada asistente puede:
 
-1. Armar un **mapa de supuestos** (criticidad × certeza) y elegir dónde invertir primero en aprender.
+1. Partir de las **lecciones aprobadas** de otros proyectos y armar un **mapa de supuestos** (criticidad × certeza)
+   para elegir dónde invertir primero en aprender.
 2. Diseñar un **experimento barato** con el criterio de decisión fijado antes de ver el resultado, y llevar un
    resultado negativo al caso de negocio.
 3. Comparar **opciones de negocio** contra "no hacer nada distinto" con VAN, TIR, repago y el punto de equilibrio del
@@ -28,9 +29,10 @@ Al terminar las dos clases, cada asistente puede:
 4. Elegir el **enfoque de entrega por entregable** con criterios explícitos, explicar por qué un proyecto resulta
    híbrido y contrastarlo con un **mapa de Wardley** (qué construir, qué comprar, dónde hay inercia) y con el
    **recorrido del cliente**.
-5. Separar **contingencia, reserva de gestión y presupuesto de cambio**, decir quién libera cada uno, **adaptar** la
-   formalidad de la gestión al contexto y llevar a la junta los supuestos sin validar para que los **valide o los
-   acepte por escrito**.
+5. Mapear cada requisito a la **persona de usuario** que lo pide, lo usa o lo aprovecha, sin ningún Must sin persona.
+6. Separar **contingencia, reserva de gestión y presupuesto de cambio**, decir quién libera cada uno, **adaptar** la
+   formalidad de la gestión al contexto, llevar a la junta los supuestos sin validar para que los **valide o los
+   acepte por escrito** y saber, con el **radar**, qué decidir, escalar, desbloquear y vigilar después de la puerta.
 
 ## Requisitos previos
 
@@ -38,7 +40,7 @@ Al terminar las dos clases, cada asistente puede:
 Conviene haber visto otro caso E2E, pero no es obligatorio: este es el primero en el ciclo de vida.
 
 **Instructor (antes de cada clase):**
-- Claude Code con el plugin pm-method 2.3.0. Para la variante b, una carpeta vacía
+- Claude Code con el plugin pm-method instalado. Para la variante b, una carpeta vacía
   (`~/proyectos-prueba/turnos-e2e-5`); para la variante a, una copia del fixture en `~/proyectos-prueba/portal-e2e-5a`,
   según el [README de las guías](../../guias/README.md#cómo-usar-las-guías).
 - La evidencia y las imágenes abiertas en pestañas: `salida-g5.md` y `docs/guias/img/g5-*.png` (plan B).
@@ -81,7 +83,7 @@ plegado, donde cada dato cita el paso de la guía de donde sale.
 | 0–10 | Gancho | Pregunta a mano alzada: "¿Cuántos de ustedes vieron aprobar un proyecto con un supuesto que nadie verificó?". Después, el dato del caso: un solo supuesto inflaba el VAN de cada opción en USD 159.213. | Diapositivas de gancho y pregunta |
 | 10–25 | Concepto | Mandato y lecciones; supuesto e hipótesis; criticidad × certeza; experimento con criterio previo; opciones contra "no hacer nada"; VAN, TIR, repago y punto de equilibrio; nueve criterios del enfoque; mapa de Wardley y recorrido del cliente. | Diapositivas de concepto |
 | 25–65 | Demostración | Pasos 1 a 6 (detalle abajo). | Terminal + evidencia |
-| 65–75 | Pregunta y discusión | "¿Qué harían con S-002: abandonar, ajustar o seguir?" y contraste con la variante a (pasos 15 a 17, con evidencia). | Diapositivas de pregunta y tabla a/b |
+| 65–75 | Pregunta y discusión | "¿Qué harían con S-002: abandonar, ajustar o seguir?" y contraste con la variante a (pasos 15, 16 y 17, con evidencia). | Diapositivas de pregunta y tabla a/b |
 | 75–85 | Ejercicio | Parte A: mapa de supuestos y un experimento barato de un proyecto propio; ejemplo resuelto al cerrar el bloque. | [ejercicio.md](ejercicio.md) · [cómo conducirlo](#el-ejercicio) |
 | 85–90 | Cierre | Tres mensajes clave y anticipo de la clase 2. | Diapositiva de cierre |
 
@@ -89,13 +91,13 @@ plegado, donde cada dato cita el paso de la guía de donde sale.
 
 | Min | Paso | En vivo o con evidencia | Qué mostrar | Qué decir |
 |---|---|---|---|---|
-| 25–29 | 1 | Evidencia | "enfoque de entrega: predictivo" (por defecto) y L-001 a L-003 | "Todavía no elegimos enfoque: lo vamos a decidir con criterios, no por costumbre." |
+| 25–29 | 1 | Evidencia | "enfoque de entrega: predictivo" (por defecto); `lecciones.py buscar` en el índice de la red: "3 de 4 (omitidas: 1 sin aprobar)"; la vista previa y, con la confirmación de Pablo, L-001 a L-003 con su `origen` | "Antes de pedir plata, miramos qué aprendió la red: solo lo aprobado, en solo lectura, y nada se registra sin que el gestor lo confirme. Todavía no elegimos enfoque: lo vamos a decidir con criterios." |
 | 29–38 | 2 | **En vivo** (prompt del paso 2) | "artefactos: 5 candidatos"; S-001 a S-007; sanidad con 4 SUP-01; `g5-mapa-supuestos.png` | "Tres supuestos sostienen todo el caso y ninguno tiene evidencia. Ahí va la primera plata." |
 | 38–48 | 3 | **En vivo** (primer prompt del paso 3); resultados con evidencia | Sanidad al 2026-11-05 en 0 AVISO; al 2026-12-07, SUP-02 (S-003) y SUP-03 (S-002); D-001 y D-002 | "El experimento malo es el que no cambia nada. Este cambió el caso." |
 | 48–55 | 4 | **En vivo** (prompt del paso 4) o evidencia | Los dos CSV de flujos y la salida de `inversion.py`: 265.681 → 106.468 y 431.782 → 272.569; TIR 54,3 %; repago 1,78 años; B-02 en equilibrio al 29,1 % (adopción 11,6 %); `g5-van-opciones.png` | "El VAN bajó en las dos opciones por igual: 159.213. La 2 sigue ganando, y sabemos cuánto puede fallar la adopción antes de que deje de convenir." |
 | 55–59 | 5 | **En vivo** (prompt del paso 5) | Sumas 18, 23 y 12; `estado.py set enfoque_entrega=hibrido --por …` con "Decisión anotada: D-003"; `g5-enfoque-entrega.png` | "No elegimos híbrido porque está de moda: salió así porque cada entregable puntúa distinto. Y quedó escrito quién lo decidió." |
 | 59–63 | 5b | Evidencia | `g5-wardley.png`: construir el portal, comprar los recordatorios, adaptador atado a la agenda con inercia; `g5-recorrido.png`: dos pasos en −2; sanidad con MAP-02 y MAP-03 | "El mapa dice lo mismo que los criterios, desde el mercado. Y la sanidad no deja olvidar la inercia ni el dolor sin tratar." |
-| 63–65 | 6 | Evidencia | Puerta `autorizar-inicio` (D-004), "Artefactos: 9 (2 aprobados)"; MAP-03 resuelto con REQ-003 y REQ-005 | "La junta autoriza gastar en diseñar, no en construir." |
+| 63–65 | 6 | Evidencia | Puerta `autorizar-inicio` (D-004), "Artefactos: 9 (2 aprobados)"; MAP-03 resuelto con REQ-003 y REQ-005; L-001 a L-003 en `accionada-proyecto`, cada una con su control en el brief | "La junta autoriza gastar en diseñar, no en construir. Y cada lección de otro proyecto ya tiene su control." |
 
 **Prompts exactos:** los de los pasos 2, 3, 4 y 5 de la guía, copiados tal cual. Si Claude pregunta, responder con el
 texto de "Si te pregunta" de cada paso.
@@ -154,34 +156,38 @@ ver qué pasa con S-003 y S-006, que todavía no tienen resultado."
 | Minuto | Bloque | Qué pasa | Material |
 |---|---|---|---|
 | 0–10 | Gancho | Pregunta: "En tu proyecto, ¿quién puede gastar la reserva? ¿Está escrito?". Dato del caso: el mismo proyecto pide 7 artefactos de gestión si es interno y pequeño, y 16 si es regulado. | Diapositivas de gancho y `g5-tres-disenos.png` |
-| 10–25 | Concepto | Contexto de sesión; mapa y enfoque de beneficios; descripción del producto del proyecto; contingencia, BAC, reserva de gestión y presupuesto de cambio; adaptación (tailoring); P-11: validar o aceptar. | Diapositivas de concepto |
+| 10–25 | Concepto | Contexto de sesión y radar; mapa y enfoque de beneficios; descripción del producto del proyecto; contingencia, BAC, reserva de gestión y presupuesto de cambio; adaptación (tailoring); personas de usuario; P-11: validar o aceptar. | Diapositivas de concepto |
 | 25–65 | Demostración | Pasos 7 a 14 (detalle abajo). | Terminal + evidencia |
-| 65–75 | Pregunta y discusión | "¿Qué diseño le corresponde a tu proyecto: pequeño, regulado o ágil?" | Tabla del bloque C |
-| 75–85 | Ejercicio | Parte B: las reservas y la adaptación de un proyecto propio; ejemplo resuelto al cerrar el bloque. | [ejercicio.md](ejercicio.md) · [cómo conducirlo](#el-ejercicio) |
-| 85–90 | Cierre | Tablero de una página, tablero de mapas, mensajes clave y conexión con E2E-1 y E2E-4. | `g5-tablero.png`, `g5-tablero-mapas-169.png` |
+| 65–75 | Pregunta y discusión | "¿Qué diseño le corresponde a tu proyecto: pequeño, regulado o ágil?" | Tabla e imagen del bloque C |
+| 75–85 | Ejercicio | Parte B: las reservas, la adaptación y las personas de usuario de un proyecto propio; ejemplo resuelto al cerrar el bloque. | [ejercicio.md](ejercicio.md) · [cómo conducirlo](#el-ejercicio) |
+| 85–90 | Cierre | Tablero de una página, radar al 2027-02-01, mensajes clave y conexión con E2E-1 y E2E-4. | `g5-tablero.png` y diapositiva del radar |
 
 ### Demostración (40 minutos)
 
 | Min | Paso | En vivo o con evidencia | Qué mostrar | Qué decir |
 |---|---|---|---|---|
-| 25–31 | 7 | **En vivo** (prompt del paso 7) | El contexto al 2027-01-08 ("Supuestos críticos sin validar: S-003, S-006"); la verificación temprana con códigos: P-01 y L-01, P-05, P-06, P-11, P-04 (aviso), P-09, P-10; luego el enfoque de beneficios | "Un mes después, la sesión arranca con lo que dicen los registros, no con lo que recordamos. Y verificar la puerta antes de tiempo da la lista de trabajo de la iniciación." |
+| 25–31 | 7 | **En vivo** (prompt del paso 7) | El contexto al 2027-01-08 ("Supuestos críticos sin validar: S-003, S-006") y la línea del radar ("decidir 0 · escalar 0 · desbloquear 0 · vigilar 2 (S-003)"); la verificación temprana con códigos: P-01 y L-01, P-05, P-06, P-11, P-04 (aviso), P-09, P-10; luego el enfoque de beneficios | "Un mes después, la sesión arranca con lo que dicen los registros, no con lo que recordamos. Y verificar la puerta antes de tiempo da la lista de trabajo de la iniciación." |
 | 31–34 | 8 | Evidencia | "12 elementos, 7 hojas · esfuerzo 2180 h · costo 142,800" | "Producto antes que tarea: cada paquete cita sus REQ." |
 | 34–42 | 9 | **En vivo** (prompt del paso 9) | R-001 a R-003 con EMV; R-001 cubre la inercia del mapa (MAP-02 resuelto); la tabla 142.800 → 28.000 → 170.800 → 8.540 → 179.340 y 10.000 aparte; D-007; `inversion.py` con la opción 2 dos veces: VAN 263.229, −9.340 | "Tres bolsas, tres dueños. La reserva de gestión no está en el BAC y solo la libera la junta." |
-| 42–45 | 10 | Evidencia | Matriz: 2 de cerca, 3 satisfechos, 2 informados; "RACI válida" | "Lo mínimo que pide la puerta; E2E-3 lo desarrolla." |
-| 45–48 | 11 | Evidencia | D-008 y los cuatro enfoques de una página | "Adaptar es decidir cuánta formalidad, por qué, y dejarlo escrito." |
-| 48–53 | 12 | Evidencia | Tabla de los tres diseños y `g5-tres-disenos.png` | "El ágil no tiene menos puertas: tiene documentos más cortos." |
+| 42–44 | 10 | Evidencia | Matriz: 2 de cerca, 3 satisfechos, 2 informados; "RACI válida" | "Lo mínimo que pide la puerta; E2E-3 lo desarrolla." |
+| 44–49 | 10b y 16b | **En vivo** (prompt del paso 10b); 16b con evidencia | `personas candidatos` propone al paciente que agenda por teléfono; PU-001 a PU-003; STK-13 por REQ-006 y su resolución; `g5-personas-mapa.png`. Contraste: Marta, Diego y Lucía desde UJ-1…3 del PRD y `g5-personas-mapa-bmad.png` | "Un interesado influye; una persona usa. Cada Must tiene para quién: REQ-003 sirve a las tres. Con BMAD, las personas ya están en el PRD y se leen, no se reescriben." |
+| 49–51 | 11 | Evidencia | D-008 y los cuatro enfoques de una página | "Adaptar es decidir cuánta formalidad, por qué, y dejarlo escrito." |
+| 51–53 | 12 | Evidencia | Tabla de los tres diseños y `g5-tres-disenos.png` | "El ágil no tiene menos puertas: tiene documentos más cortos." |
 | 53–60 | 13 | **En vivo** (los dos prompts del paso 13) | "condición P-11 … S-003, S-006"; S-003 validado; D-009 "La junta acepta S-006 sin validar…"; "aviso P-11 … S-006 (D-009)"; puerta D-010; "Autorizado: sí" | "P-11 no bloquea: avisa que la junta invierte sobre hipótesis. Acá validamos una y la junta aceptó la otra por escrito." |
-| 60–65 | 14 | Evidencia | `g5-tablero.png`; el tablero de mapas (`g5-tablero-mapas-169.png`): "Avisos MAP vigentes: 0", la agenda con "inercia → R-001" y cada dolor del paciente con su tratamiento (S-001, S-002, REQ-003 y REQ-005); la sanidad al 2027-02-01: REG-09 para R-001 a R-003 y SUP-02 para S-006 | "Los mapas del paso 5b terminan en un tablero: cada inercia con su riesgo y cada dolor con su tratamiento, a la vista de la junta. Y aceptar no es olvidar: si el dictamen no llega y nadie revisa los riesgos, la sanidad lo dice el primer día." |
+| 60–65 | 14 | Evidencia; la pregunta del radar **en vivo** | `g5-tablero.png`; el tablero de mapas (`g5-tablero-mapas.png`): "Avisos MAP vigentes: 0", la agenda con "inercia → R-001" y cada dolor con su tratamiento; la sanidad al 2027-02-01 (REG-09 para R-001 a R-003, SUP-02 para S-006) y el radar: "1 decidir · 0 escalar · 0 desbloquear · 4 vigilar", "Hoy: decidir S-006" | "Aceptar no es olvidar: si el dictamen no llega, el radar lo pone primero, con quién decide y qué opciones hay; las revisiones vencidas quedan para vigilar y no hay nada que escalar." |
 
-**Prompts exactos:** los de los pasos 7, 9 y 13 de la guía, copiados tal cual.
+**Prompts exactos:** los de los pasos 7, 9, 10b y 13 de la guía, y el segundo del paso 14 («¿Qué tengo que decidir,
+escalar y desbloquear hoy?»), copiados tal cual.
 
 ### Mensajes clave
 
 1. Un beneficio sin dueño, línea base y fecha de medición no es un criterio de éxito (P-04).
 2. **Contingencia, reserva de gestión y presupuesto de cambio** son bolsas distintas, con dueños distintos; ninguna se
    cuenta dos veces.
-3. Adaptar no es saltearse pasos: se aligeran los documentos, no las decisiones. Y nadie invierte sobre una hipótesis
-   sin saberlo: se valida o la junta la acepta por escrito, y queda vigilada (P-11, SUP-02, REG-09).
+3. Cada requisito tiene para quién: una persona que lo pide, lo usa o lo aprovecha (STK-13 vigila los Must).
+4. Adaptar no es saltearse pasos: se aligeran los documentos, no las decisiones. Y nadie invierte sobre una hipótesis
+   sin saberlo: se valida o la junta la acepta por escrito, y queda vigilada; el radar dice qué decidir primero (P-11,
+   SUP-02, REG-09).
 
 ### Preguntas para la audiencia (con respuesta esperada)
 
@@ -190,6 +196,7 @@ ver qué pasa con S-003 y S-006, que todavía no tienen resultado."
 | ¿Quién puede gastar la reserva de gestión? | Solo la junta (en el caso, Carmen Olivera). La contingencia financia las respuestas a R-001, R-002 y R-003; el presupuesto de cambio lo administra la autoridad de cambio, con un tope de 3.000 por cambio. |
 | ¿Por qué el VAN bajó de 272.569 a 263.229? | Porque la inversión pasó del orden de magnitud (180.000) al presupuesto real (179.340 autorizado + 10.000 de cambio = 189.340). |
 | ¿Qué diseño necesita más artefactos y por qué? | El regulado: 16 y siete tolerancias, por la auditoría de privacidad y el aseguramiento independiente. |
+| ¿Por qué una persona de usuario no es un interesado más? | Porque responde otra pregunta: el interesado influye o se ve afectado; la persona pide, usa o aprovecha una capacidad. Se ancla al interesado que la representa (el paciente, a la comisión de usuarios, ST-006). |
 | La junta quiere aprobar sin el dictamen legal (S-006). ¿Se puede? | Sí, si lo decide expresamente: una decisión de la junta que cita S-006 y dice que lo acepta (D-009). P-11 pasa a aviso, el supuesto sigue abierto con su fecha y el riesgo R-003 cubre el efecto. |
 
 ### Dudas frecuentes
@@ -199,9 +206,14 @@ ver qué pasa con S-003 y S-006, que todavía no tienen resultado."
 - **"¿Qué cuenta como aceptación?"** Una decisión de nivel junta, ejecutivo o capa de negocio en `decisiones.csv` que
   cite el id del supuesto y use el verbo "aceptar" ("aceptación" no cuenta). La verificación muestra el aviso con la
   D-### que lo aceptó (`docs/PUERTAS.md`).
-- **"¿Qué ve el gestor al abrir una sesión nueva?"** El hook de inicio agrega el contexto de `estado.py contexto`:
-  abiertos, supuestos críticos sin validar, condiciones de puertas y próxima puerta, con ids. Si una nota de memoria
-  dice otra cosa, mandan los registros.
+- **"¿Qué ve el gestor al abrir una sesión?"** El hook de inicio agrega el contexto de `estado.py contexto`
+  (abiertos, supuestos críticos sin validar, condiciones de puertas y próxima puerta, con ids) y una línea del radar
+  con los totales y el primer id de cada grupo. Si una nota de memoria dice otra cosa, mandan los registros.
+- **"¿Por qué la línea del radar dice vigilar 2 y el detalle podría decir más?"** La línea no corre la verificación de
+  la puerta, para que la sesión arranque rápido; `estado.py radar` la suma (RAD-07, bloqueos de la próxima puerta).
+- **"¿Las personas reemplazan a las historias de usuario?"** No: dicen para quién es cada requisito, épica o historia.
+  Con BMAD salen de los recorridos UJ del PRD (solo lectura); sin BMAD, del recorrido del paciente, del backlog o de
+  quien las conozca, siempre con fuente y evidencia (STK-15).
 - **"¿El bloque C son tres proyectos?"** Para comparar, sí: tres carpetas con su `estado.json`. En la vida real se
   elige un diseño (en el caso, el híbrido de los pasos 1 a 13).
 - **"¿Hace falta autorizar la etapa 2 hoy?"** El caso termina en `autorizar-proyecto`. La puerta `autorizar-etapa` de la
@@ -209,9 +221,10 @@ ver qué pasa con S-003 y S-006, que todavía no tienen resultado."
 
 ### Plan B si la demo falla
 
-Usá la evidencia de los pasos 7, 9, 13 y 14: cada verificación de puerta muestra sus hallazgos con código, y la salida
-de `inversion.py` y de la sanidad al 2027-02-01 están copiadas en `salida-g5.md`. Imágenes: `g5-presupuesto.png`,
-`g5-tres-disenos.png`, `g5-tablero.png` y `g5-tablero-mapas.png` (variante con BMAD: `g5-tablero-mapas-bmad.png`).
+Usá la evidencia de los pasos 7, 9, 10b, 13 y 14: cada verificación de puerta muestra sus hallazgos con código, y las
+salidas de `inversion.py`, de `personas mapa` y `priorizacion`, de la sanidad y del radar al 2027-02-01 están copiadas
+en `salida-g5.md`. Imágenes: `g5-presupuesto.png`, `g5-personas-mapa.png`, `g5-tres-disenos.png`, `g5-tablero.png` y
+`g5-tablero-mapas.png` (variante con BMAD: `g5-personas-mapa-bmad.png` y `g5-tablero-mapas-bmad.png`).
 
 ### Conexión con el caso siguiente
 

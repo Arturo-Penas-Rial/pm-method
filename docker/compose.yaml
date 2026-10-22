@@ -9,7 +9,7 @@ name: pm-method
 
 # Endurecimiento común: raíz de solo lectura, sin capacidades, sin escalar privilegios y con límites de recursos.
 x-endurecido: &endurecido
-  image: pm-method:2.3.0
+  image: pm-method:2.4.0
   read_only: true
   cap_drop: [ALL]
   security_opt:

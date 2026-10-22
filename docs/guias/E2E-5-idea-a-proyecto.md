@@ -13,20 +13,22 @@ Rinaldi. Usuaria sénior, product owner y autoridad de cambio: Inés Ferrer (jef
 sénior: Tomás Aguirre (jefe de TI). Aseguramiento: Valeria Santos. Jefe de equipo: Nicolás Pereyra.
 
 **Dos variantes, claramente marcadas:**
-- **b) sin BMAD (principal, pasos 1 a 14, con el 5b):** todo con skills de pm-method; los supuestos y requisitos salen
-  del mandato, las lecciones y `requisitos.md`.
-- **a) con BMAD (pasos 15 a 17):** la misma secuencia de decisión, pero los supuestos, preguntas, requisitos, recorridos
-  y decisiones de arquitectura salen del fixture BMAD real (portal de socios de una cooperativa), leídos con
-  `pm-bmad-puente` en modo de solo lectura.
+- **b) sin BMAD (principal, pasos 1 a 14, con el 5b y el 10b):** todo con skills de pm-method; los supuestos,
+  requisitos y personas salen del mandato, las lecciones, el recorrido del paciente y `requisitos.md`.
+- **a) con BMAD (pasos 15 a 17, con el 16b):** la misma secuencia de decisión, pero los supuestos, preguntas,
+  requisitos, recorridos, personas y decisiones de arquitectura salen del fixture BMAD real (portal de socios de una
+  cooperativa), leídos con `pm-bmad-puente` en modo de solo lectura.
 
 **Skills y agentes:** pm-orquestador · pm-inicio → `pm-mandato-y-brief` (incluye la plantilla
-`hipotesis-y-experimentos`), `pm-caso-de-negocio` (con `inversion.py`), `pm-acta-constitucion`, `pm-enfoques-gestion`,
-`pm-organizacion-roles`, `pm-interesados`, `pm-mapas-estrategicos` · pm-planificacion → `pm-planificacion-por-productos`,
+`hipotesis-y-experimentos`), `pm-lecciones-aprendidas` (lecciones de otros proyectos), `pm-caso-de-negocio` (con
+`inversion.py`), `pm-acta-constitucion`, `pm-enfoques-gestion`, `pm-organizacion-roles`, `pm-interesados` (con las
+personas de usuario), `pm-mapas-estrategicos` · pm-planificacion → `pm-planificacion-por-productos`,
 `pm-costos-presupuesto`, `pm-plan-etapa-y-limites` · `pm-riesgos` (candidatos y riesgos) · `pm-bmad-puente` (variante a)
-· `pm-visuales` · `pm-director` (`pm-direccion-decisiones`) · `pm-estado-proyecto` (sanidad, puertas y contexto de sesión).
+· `pm-visuales` · `pm-director` (`pm-direccion-decisiones`) · `pm-estado-proyecto` (sanidad, puertas, contexto de sesión
+y radar).
 
-**Duración:** 18 pasos (15 de la variante b, contando el 5b, y 3 de la variante a), 120–150 minutos de recorrido; en el
-webinar, dos clases de 90 minutos. **Preparación:**
+**Duración:** 20 pasos (16 de la variante b, contando el 5b y el 10b, y 4 de la variante a, con el 16b), 120–150
+minutos de recorrido; en el webinar, dos clases de 90 minutos. **Preparación:**
 - Variante b: una carpeta vacía (`mkdir -p ~/proyectos-prueba/turnos-e2e-5 && cd ~/proyectos-prueba/turnos-e2e-5 && claude`).
 - Variante a: una copia del fixture (`cp -r ~/pm-method/scripts/pruebas/fixtures/bmad-v6.12-real ~/proyectos-prueba/portal-e2e-5a`),
   como indica el [README de las guías](README.md#cómo-usar-las-guías).
@@ -51,21 +53,25 @@ pero con otro tamaño, y la junta lo sabe **antes** de invertir.
 
 Hacerlo a mano exige una planilla, una lista de supuestos que nadie revisa y la memoria de quien la armó. Con pm-method,
 cada supuesto crítico tiene experimento, criterio y fecha; el VAN sale de un script con las fórmulas a la vista; y la
-sanidad avisa cuando falta un experimento, cuando vence una fecha, cuando un resultado negativo queda sin tratar o
-cuando nadie revisó un riesgo a tiempo.
+sanidad avisa cuando falta un experimento, cuando vence una fecha, cuando un resultado negativo queda sin tratar,
+cuando un requisito Must no tiene para quién o cuando nadie revisó un riesgo a tiempo.
 
 ## Qué vas a lograr
 
-1. Un **mapa de supuestos** (criticidad × certeza) con experimentos baratos, criterios fijados de antemano y resultados
+1. **Lecciones previas** de otros proyectos de la red, buscadas en solo lectura, confirmadas y accionadas con un
+   control temprano cada una.
+2. Un **mapa de supuestos** (criticidad × certeza) con experimentos baratos, criterios fijados de antemano y resultados
    que cambian el caso de negocio, vigilados por SUP-01, SUP-02 y SUP-03.
-2. **Opciones de negocio** 0/1/2 con VAN, TIR, repago y sensibilidad calculados por `inversion.py`, recalculados con la
+3. **Opciones de negocio** 0/1/2 con VAN, TIR, repago y sensibilidad calculados por `inversion.py`, recalculados con la
    evidencia y con el presupuesto.
-3. El **enfoque de entrega** elegido con los nueve criterios y registrado como decisión (híbrido por construcción),
+4. El **enfoque de entrega** elegido con los nueve criterios y registrado como decisión (híbrido por construcción),
    contrastado con un **mapa de Wardley** de los entregables y con el **recorrido del paciente**, cuyos dolores quedan
    tratados por requisitos y riesgos (MAP-02 y MAP-03).
-4. Un **presupuesto con reservas sin doble conteo** y los **presupuestos de la junta** fijados en `estado.json`.
-5. Un **proyecto adaptado a su contexto** (y el mismo proyecto en tres diseños), autorizado con cada supuesto crítico
-   validado, ajustado o **aceptado expresamente por la junta** (P-11), y vigilado después de la puerta.
+5. Un **presupuesto con reservas sin doble conteo** y los **presupuestos de la junta** fijados en `estado.json`.
+6. **Personas de usuario** con cada requisito mapeado a quien lo pide, lo usa o lo aprovecha (ningún Must sin persona,
+   STK-13), desde el recorrido del paciente (b) o desde los recorridos UJ del PRD (a).
+7. Un **proyecto adaptado a su contexto** (y el mismo proyecto en tres diseños), autorizado con cada supuesto crítico
+   validado, ajustado o **aceptado expresamente por la junta** (P-11), y vigilado después de la puerta con el radar.
 
 ## Indicadores que vas a ver
 
@@ -90,6 +96,10 @@ riesgo (R-001), cada dolor del paciente su tratamiento (S-001, S-002, REQ-003 y 
 La junta autoriza USD 179.340 (BAC 170.800 + reserva de gestión 8.540) y fija aparte un presupuesto de cambio de
 10.000 con tope de 3.000 por cambio (paso 9).
 
+![Capacidad × persona](img/g5-personas-mapa.png)
+Los 4 Must tienen persona y REQ-003 sirve al paciente, a la recepcionista y al paciente mayor de 65; el aviso STK-13 de
+REQ-006 se resolvió marcando al paciente como beneficiario (paso 10b).
+
 ![Tablero del proyecto diseñado](img/g5-tablero.png)
 Al autorizarse el proyecto: VAN de USD 263.229 con el presupuesto real, 4 de 4 supuestos críticos tratados (uno de ellos
 aceptado por la junta con la decisión D-009) y la puerta `autorizar-proyecto` aprobada el 2027-01-15 (paso 14).
@@ -98,8 +108,8 @@ aceptado por la junta con la decisión D-009) y la puerta `autorizar-proyecto` a
 
 | Clase (90 min) | Pasos | Pregunta que responde |
 |---|---|---|
-| **1 · ¿Vale la pena?** (puesta en marcha) | 1 a 6: mandato y lecciones, mapa de supuestos, experimentos y resultados, opciones con VAN, enfoque de entrega, mapa de valor y recorrido del paciente (5b), brief y `autorizar-inicio`; contraste con la variante a (pasos 15 a 17) | ¿Qué tendría que ser cierto para que esto valga la pena, y cómo lo sabemos barato? |
-| **2 · Diseñar el proyecto** (iniciación) | 7 a 14: retomar la sesión y beneficios (P-04), producto y PBS, presupuesto y reservas, organización e interesados, enfoques adaptados, bloque C (tres diseños), PID, P-11 y `autorizar-proyecto`, tablero y seguimiento | ¿Cómo dejamos el proyecto listo para que la junta delegue con cifras? |
+| **1 · ¿Vale la pena?** (puesta en marcha) | 1 a 6: mandato y lecciones, mapa de supuestos, experimentos y resultados, opciones con VAN, enfoque de entrega, mapa de valor y recorrido del paciente (5b), brief y `autorizar-inicio`; contraste con la variante a (pasos 15, 16 y 17) | ¿Qué tendría que ser cierto para que esto valga la pena, y cómo lo sabemos barato? |
+| **2 · Diseñar el proyecto** (iniciación) | 7 a 14: retomar la sesión y beneficios (P-04), producto y PBS, presupuesto y reservas, organización e interesados, personas de usuario (10b; contraste con el 16b), enfoques adaptados, bloque C (tres diseños), PID, P-11 y `autorizar-proyecto`, tablero y radar | ¿Cómo dejamos el proyecto listo para que la junta delegue con cifras? |
 
 La clase 2 usa lo que deja la clase 1: los supuestos tratados, la opción elegida y el enfoque decidido. El guion las
 detalla minuto a minuto.
@@ -108,6 +118,7 @@ detalla minuto a minuto.
 
 | Actividad | Cómo se hace hoy | Con pm-method (frecuencia · control) | Indicador |
 |---|---|---|---|
+| Aprender de proyectos anteriores | Se recuerda lo que cuenta alguien que estuvo | `lecciones.py buscar` sobre el índice de la red (solo aprobadas, solo lectura) e `incorporar --confirmar --por` con su `origen`; cada una con un control y `accionada-proyecto` | 3 de 4 aprobadas coinciden → L-001…L-003 accionadas en el paso 6 |
 | Listar los supuestos de la idea | Una sección del caso que nadie revisa | `supuestos.csv` con criticidad y certeza; candidatos destilados del mandato, las lecciones o BMAD (`riesgos.py candidatos`) | Mapa de supuestos: 3 en el cuadrante crítico |
 | Validar antes de invertir | Nunca, o "lo vemos en la ejecución" | Experimento, criterio y fecha para cada supuesto crítico · SUP-01 en cada sanidad | Críticos sin experimento: 4 → 0 |
 | Seguir los experimentos | Se olvidan cuando vence la fecha | Fecha límite vigilada · SUP-02 | S-003 vencido el 2026-12-07; S-006 el 2027-02-01 |
@@ -120,8 +131,10 @@ detalla minuto a minuto.
 | Presupuestos y autoridad delegada | Un monto global sin reglas | `estado.py presupuesto`; desde ahí la sanidad vigila el consumo · CAM-03, CAM-04 (en la ejecución) | Cambio 10.000 · riesgo 28.000 · gestión 8.540 · tope 3.000 |
 | Adaptar la gestión al contexto | Se copia la plantilla completa, o no se escribe nada | Formalidad decidida por enfoque (D-008) y adaptación en el PID §8; tres diseños comparados (bloque C) | 7 · 16 · 12 artefactos según el diseño |
 | Invertir sobre hipótesis | Se aprueba sin saberlo | Verificación de `autorizar-proyecto` · P-11: condición mientras el supuesto no se valide; aviso cuando la junta lo acepta con una decisión que lo cita | P-11 con S-003 y S-006 → S-003 validado, S-006 aceptado (D-009) |
-| Retomar el proyecto semanas después | Se reconstruye de memoria o de notas viejas | `estado.py contexto`: el hook de inicio lo agrega a cada sesión; los registros mandan sobre cualquier nota de memoria | "Supuestos críticos sin validar: S-003, S-006" al abrir la clase 2 |
+| Retomar el proyecto semanas después | Se reconstruye de memoria o de notas viejas | `estado.py contexto` y la línea de `estado.py radar --linea`: el hook de inicio los agrega a cada sesión; los registros mandan sobre cualquier nota de memoria | "Supuestos críticos sin validar: S-003, S-006" y "vigilar 2 (S-003)" al abrir la clase 2 |
+| Saber para quién es cada requisito | Un "usuario" genérico en todas las historias | `personas.csv` con `solicita`, `usa`, `beneficia` y el interesado que la representa; candidatas desde el recorrido o los UJ de BMAD (`interesados.py personas candidatos`) · STK-13 en cada sanidad | Must sin persona: REQ-006 → ninguno; 12 de 12 FR con persona en la variante a |
 | Revisar los riesgos a tiempo | Se revisan cuando algo explota | `fecha_revision` de cada riesgo · REG-09 en cada sanidad | R-001, R-002 y R-003 vencidos el 2027-02-01 |
+| Decidir qué atender hoy | Se lee la sanidad entera y se elige a ojo | `estado.py radar`: decidir, escalar, desbloquear y vigilar, con responsable, siguiente paso y prioridad reproducible | Al 2027-02-01: 1 decidir (S-006) · 4 vigilar |
 
 En esta guía, la sanidad corre con `--corte` en la fecha de cada paso, así el resultado es reproducible. En uso real,
 pm-control la corre con la fecha de cada checkpoint y highlight.
@@ -135,17 +148,18 @@ flowchart TB
         e2 --> f["6 · Brief, roadmap, canvas<br/>autorizar-inicio"]
     end
     subgraph c2["Clase 2 · Diseñar el proyecto"]
-        g["7 · Contexto de sesión,<br/>beneficios · P-04"] --> h["8 · Producto del proyecto<br/>y PBS/WBS"]
+        g["7 · Contexto y línea del radar,<br/>beneficios · P-04"] --> h["8 · Producto del proyecto<br/>y PBS/WBS"]
         h --> i["9 · Riesgos, reservas y<br/>presupuestos de la junta"] --> j["10 · Organización,<br/>interesados y RACI"]
-        j --> k["11 · Enfoques adaptados"] --> l["12 · Bloque C:<br/>tres diseños"]
-        l --> m["13 · PID, P-11 y<br/>autorizar-proyecto"] --> n["14 · Tablero y seguimiento<br/>SUP-02 · REG-09"]
+        j --> j2["10b · Personas de usuario<br/>STK-13"] --> k["11 · Enfoques adaptados"] --> l["12 · Bloque C:<br/>tres diseños"]
+        l --> m["13 · PID, P-11 y<br/>autorizar-proyecto"] --> n["14 · Tablero y radar<br/>SUP-02 · REG-09"]
     end
     subgraph va["Variante a · con BMAD"]
         o["15 · Supuestos y requisitos<br/>desde BMAD"] --> p["16 · Controles que<br/>detectan los vacíos"]
-        p --> q["17 · Recorrido y mapa<br/>de valor desde BMAD"]
+        p --> p2["16b · Personas desde<br/>los UJ del PRD"] --> q["17 · Recorrido y mapa<br/>de valor desde BMAD"]
     end
     f --> g
     c -.-> o
+    j2 -.-> p2
 ```
 
 ---
@@ -163,23 +177,38 @@ Carmen Olivera y el gestor Pablo Rinaldi. Convertí en mandato este correo de Ca
 saquen, confirmen y cancelen turnos sin llamar. El call center no da abasto y el ausentismo nos cuesta caro. El teléfono
 y el presencial se mantienen." Datos de la red: 240.000 turnos por año, 70 % por teléfono, ausentismo del 18 %, margen
 de un turno recuperado USD 5 y costo de una llamada atendida USD 1,20 (finanzas).
-Registrá estas lecciones de proyectos anteriores: la app de resultados de 2024 tuvo 11 % de uso en mayores de 65; la
-integración con la agenda clínica de 2025 se estimó en 4 semanas y llevó 14; el piloto de recordatorios de odontología
-bajó el ausentismo pero nadie midió la línea base.
+Buscá en el índice de lecciones de la red (pmo-altamar/lecciones-indice.csv) las aprobadas sobre pacientes, turnos,
+agenda y recordatorios, y mostrame cuáles aplican antes de registrarlas.
+```
+Y después de leerlas:
+```text
+Incorporá las tres como lecciones previas; las confirmo yo, Pablo Rinaldi.
 ```
 
 **Si te pregunta** por el enfoque de entrega: "Todavía no; lo decidimos con criterios en el paso 5".
 
 **Qué hace el sistema:** pm-orquestador → `pm-nuevo` (`nuevo_proyecto.py --fecha 2026-11-02` sin `--enfoque`: queda
 `predictivo` por defecto y la etapa 0 empieza en la fecha del mandato) → pm-inicio → `pm-mandato-y-brief`: redacta
-`00-direccion/mandato.md` con `templates/mandato.md` y marca como `[supuesto]` lo que el correo da por cierto; registra
-las lecciones con `registro.py agregar lecciones`.
+`00-direccion/mandato.md` con `templates/mandato.md` y marca como `[supuesto]` lo que el correo da por cierto. Después,
+`pm-lecciones-aprendidas` busca en el índice que exportó la PMO (`lecciones.py buscar --indice … --texto "pacientes
+turnos agenda recordatorios"`, solo lectura), muestra la vista previa (`lecciones.py incorporar … --ids …`) y, con tu
+confirmación, las registra (`--confirmar --por "Gestor: Pablo Rinaldi"`) con su `origen` y estado `registrada`.
 
-**Qué deberías ver:** "Proyecto creado en gestion · enfoque de entrega: predictivo" y las lecciones **L-001**, **L-002**
-y **L-003**.
+**Qué deberías ver:**
+- "Proyecto creado en gestion · enfoque de entrega: predictivo".
+- "Lecciones aprobadas que coinciden: **3 de 4** (omitidas: 1 sin aprobar)": el índice tiene 5 lecciones de 4 proyectos;
+  la de la mudanza del laboratorio (compras) no coincide y la de la migración de turnos históricos no se devuelve porque
+  nadie la aprobó.
+- Las tres que aplican, cada una con su recomendación: app de resultados de laboratorio 2024 (adopción: 11 % de uso en
+  mayores de 65), historia clínica electrónica 2025 (técnica: la integración con la agenda se estimó en 4 semanas y
+  llevó 14) y piloto de recordatorios de odontología 2025 (beneficios: nadie midió la línea base).
+- Con la confirmación: "L-001 ← App de resultados de laboratorio · L-004 · 2024-11-20; **L-002** ← Historia clínica
+  electrónica · L-007 · 2025-06-30; **L-003** ← Piloto de recordatorios de odontología · L-002 · 2025-09-15".
 
-**Dónde verificar:** `gestion/00-direccion/mandato.md` · `gestion/03-control/registros/lecciones.csv` · prompt:
-"Mostrame las lecciones previas".
+Cada lección previa pide un control temprano: en el paso 6 quedan en el brief (§7) y se marcan `accionada-proyecto`.
+
+**Dónde verificar:** `gestion/00-direccion/mandato.md` · `gestion/03-control/registros/lecciones.csv` (columna
+`origen`) · prompt: "Mostrame las lecciones previas y de qué proyecto viene cada una".
 
 ---
 
@@ -435,13 +464,16 @@ beneficios -15 % y riesgo "ningún riesgo alto sin respuesta". Prepará la puert
 **Qué hace el sistema:** sin BMAD, pm-method es la fuente de la especificación: `02-planificacion/requisitos.md`, leído
 por la fachada (`especificacion.py fuente|resumen`). Con los requisitos cargados, `pm-mapas-estrategicos` vincula el
 dolor de P5 con REQ-003 y REQ-005 (`mapas.py vincular paciente P5 --refs REQ-003,REQ-005`). `pm-mandato-y-brief`
-redacta brief, roadmap y canvas; `pm-plan-etapa-y-limites`, el plan de la etapa 1. `pm-director`:
+redacta brief, roadmap y canvas; `pm-plan-etapa-y-limites`, el plan de la etapa 1. Como el brief (§7 "Lecciones
+aplicadas") ya convierte cada lección previa en un control (canal asistido, prueba técnica de S-003 antes de comprometer
+fechas, línea base medida en el piloto de S-002), `pm-lecciones-aprendidas` las marca
+`registro.py actualizar lecciones L-00n --campo estado=accionada-proyecto --campo "notas=incorporada: …"`. `pm-director`:
 `estado.py tolerancia --nivel proyecto …`, `puertas.py verificar|lista|confirmar autorizar-inicio --fecha 2026-12-11`,
 `estado.py puerta autorizar-inicio --decision aprobado --fin 2027-01-15` y
 `estado.py aprobar project-brief|business-case-esquematico --version 1.0`.
 
 **Qué deberías ver:** "Proveedor de especificación: pm-method"; "requisitos: 7"; `mapas.py controles` con un solo aviso
-(MAP-02: MAP-03 quedó resuelto); la verificación de la puerta con su único bloqueo, **L-01** (falta la lista de control,
+(MAP-02: MAP-03 quedó resuelto); L-001, L-002 y L-003 en `accionada-proyecto`, cada una con su artefacto; la verificación de la puerta con su único bloqueo, **L-01** (falta la lista de control,
 que se arma en la junta); la puerta registrada (**D-004**) y "Fase: inicio · Proceso: IP · Etapa 1: Iniciación ·
 Enfoque: hibrido"; aprobaciones **D-005** y **D-006**; en el resumen, "Artefactos: 9 (2 aprobados)" (incluye los dos
 mapas).
@@ -484,13 +516,16 @@ al fin de cada etapa y a los 6 y 12 meses del cierre, a cargo de la red.
 ```
 
 **Qué hace el sistema:** el contexto lo da `estado.py contexto --corte 2027-01-08` (el mismo resumen que agrega el hook
-de inicio, acotado a 2.000 caracteres). Luego `pm-caso-de-negocio` en modo completo (v0.9) y
+de inicio, acotado a 2.000 caracteres), y el hook suma la línea del radar (`estado.py radar --linea --corte 2027-01-08`:
+totales por grupo y el primer id, sin la verificación de la puerta, que queda para el detalle). Luego `pm-caso-de-negocio` en modo completo (v0.9) y
 `puertas.py verificar autorizar-proyecto` como lista temprana de lo que falta, con el código de cada control; después
 `templates/enfoque-beneficios.md` → `00-direccion/enfoque-beneficios.md`.
 
 **Qué deberías ver:**
-- Contexto: "Abiertos: supuestos 5, lecciones 3. Supuestos críticos sin validar: S-003, S-006. Próxima puerta:
-  autorizar-proyecto".
+- Contexto: "Abiertos: supuestos 5. Supuestos críticos sin validar: S-003, S-006. Próxima puerta: autorizar-proyecto"
+  (las lecciones ya no figuran como abiertas: quedaron accionadas en el paso 6).
+- Radar: "decidir 0 · escalar 0 · desbloquear 0 · vigilar 2 (S-003)": nada que decidir todavía; se vigilan los dos
+  supuestos críticos en validación, S-003 (prueba técnica hasta el 2027-01-14) y S-006 (dictamen hasta el 2027-01-29).
 - Verificación: "2 bloqueo(s) · 4 condición(es) · 3 aviso(s)", con **P-01** (falta el PID) y **L-01** (falta la lista
   de control) como bloqueos; **P-05** (falta usuaria sénior y proveedor sénior), **P-06** (sin plan de proyecto) y
   **P-11** (supuestos críticos sin validar: S-003, S-006) como condiciones; **P-04** "sin enfoque de beneficios",
@@ -527,9 +562,10 @@ de diseño UX externo; adaptador de la agenda 480 h; capacitación 120 h; puesta
 
 ## Paso 9 · Riesgos, presupuesto con reservas y presupuestos de la junta
 
-La **contingencia** cubre riesgos identificados (su valor monetario esperado, EMV, más el costo de las respuestas); la
-**reserva de gestión** cubre lo no identificado y la libera solo la junta; el **presupuesto de cambio** va aparte y lo
-administra la autoridad de cambio. Nada se cuenta dos veces.
+La **contingencia** es el presupuesto de riesgo dentro del BAC: el valor monetario esperado (EMV) de los riesgos
+identificados más el costo de las respuestas. La provisión para riesgos no identificados va a la **reserva de gestión**,
+que solo libera la junta; el presupuesto de riesgo financia las respuestas y contingencias de los riesgos identificados.
+El **presupuesto de cambio** va aparte y lo administra la autoridad de cambio. Nada se cuenta dos veces.
 
 **Prompt**
 ```text
@@ -597,6 +633,53 @@ stakeholders` y `agregar raci --campo elemento=<código WBS o REQ>`, `interesado
 (2)"; 18 filas RACI en 4 elementos y "RACI válida: un A por elemento, al menos un R, referencias existentes".
 
 **Dónde verificar:** `estado.json` → `roles` · `stakeholders.csv` · `raci.csv`.
+
+---
+
+## Paso 10b · Personas de usuario: quién pide, usa o aprovecha cada capacidad
+
+Un **interesado** influye en el proyecto o se ve afectado por él; una **persona de usuario** es el arquetipo de quien
+pide, usa o aprovecha lo que el proyecto entrega. La matriz del paso 10 dice a quién informar; las personas dicen
+**para quién es cada requisito**. Un Must sin nadie que lo pida, lo use o lo aproveche es una señal: o falta una persona
+o sobra la prioridad. Cada persona queda anclada al interesado que la representa ante la junta, por medio de la
+usuaria sénior.
+
+**Prompt**
+```text
+¿Quiénes van a usar o pedir lo que estamos por construir? Proponé personas de usuario desde el recorrido del paciente y
+el mandato. Inés Ferrer confirma la propuesta; agregá además la recepcionista del call center (supuesto a validar con
+entrevistas en recepción; representada por recepción y call center) y el paciente mayor de 65 que no usa aplicaciones
+(evidencia: la lección L-001; representado por la comisión de usuarios). Mapeá cada requisito a las personas que lo
+piden, lo usan o lo aprovechan, con sus beneficios, y mostrame la prioridad por persona.
+```
+
+**Si te pregunta** qué pide cada una: "La recepcionista pide REQ-003 (hoy libera a mano los turnos cancelados), usa las
+plantillas (REQ-002) y aprovecha REQ-004 sin usarlo; el paciente mayor de 65 pide la accesibilidad (REQ-007) y usa el
+recordatorio y la confirmación (REQ-001 y REQ-003)".
+
+**Qué hace el sistema:** `pm-interesados` corre `interesados.py personas candidatos`: desde el recorrido del paciente
+(`recorrido-paciente.json`) y el mandato propone **una** candidata, «Paciente que agenda por teléfono» (fuente
+`observacion`; dolores de los pasos del recorrido; usa REQ-003 y REQ-005; representante sugerido ST-006), con el comando
+para registrarla. Nada se registra solo: con la confirmación, `registro.py agregar personas` registra las tres (estado
+`activa`), con `solicita`, `usa`, `beneficia` y `beneficios`. La sanidad avisa lo que falta y `interesados.py personas
+mapa` y `personas priorizacion` muestran el resultado; `pm-visuales` dibuja la tabla capacidad × persona.
+
+**Qué deberías ver:**
+- **PU-001** Paciente que agenda por teléfono (ST-006; usa REQ-001, REQ-003, REQ-004 y REQ-005; B-01 y B-02),
+  **PU-002** Recepcionista del call center (ST-005; fuente `supuesto`; B-02 y DB-01) y **PU-003** Paciente mayor de 65
+  (ST-006; fuente `documento`, evidencia L-001; B-01).
+- Sanidad al 2027-01-12: **STK-13** "REQ-006 (requisito Must) sin persona que lo pida, lo use o se beneficie". Nadie usa
+  la integración con la agenda: la aprovecha el paciente, que ve turnos reales. Con `registro.py actualizar personas
+  PU-001 --campo beneficia=REQ-006` el aviso se resuelve.
+- Priorización: PU-001 **4 Must · 1 Should**; PU-002 **2 Must · 1 Should** (pide 1, usa 1, aprovecha 1); PU-003 **2
+  Must · 1 Should** (pide 1, usa 2); "7 capacidad(es) mapeadas · Must sin persona: ninguno".
+
+![Capacidad × persona](img/g5-personas-mapa.png)
+Los 4 Must tienen persona y REQ-003 (confirmar o cancelar desde el recordatorio) sirve a las tres: es el corazón del
+primer release. El paciente mayor de 65 no usa el portal; lo suyo es el recordatorio, y pide la accesibilidad.
+
+**Dónde verificar:** `03-control/registros/personas.csv` · `02-planificacion/requisitos.md` (MoSCoW) · prompt: "¿Qué
+Must no tienen persona?" o "¿Para quién es cada requisito?".
 
 ---
 
@@ -714,8 +797,8 @@ aprobaciones.
 
 ## Paso 14 · Tablero de una página y seguimiento después de la puerta
 
-Aceptar un supuesto no es olvidarlo. El tablero resume el proyecto para la junta; la sanidad y el contexto de sesión
-siguen mirando lo que quedó abierto.
+Aceptar un supuesto no es olvidarlo. El tablero resume el proyecto para la junta; la sanidad y el radar siguen mirando
+lo que quedó abierto y dicen qué hacer con eso.
 
 **Prompt**
 ```text
@@ -725,15 +808,17 @@ valor y el recorrido del paciente, con lo que trata cada dolor y cada inercia.
 ```
 Y el 2027-02-01, sin novedades del dictamen:
 ```text
-Corré la sanidad al 2027-02-01 y decime qué tengo pendiente.
+Corré la sanidad al 2027-02-01. ¿Qué tengo que decidir, escalar y desbloquear hoy?
 ```
 
 **Qué hace el sistema:** `pm-visuales` arma las tarjetas con `supuestos.csv`, `estado.json`, el resultado de
 `inversion.py` y `puertas.py verificar autorizar-proyecto --json`, cuya lista `hallazgos` trae el código de cada control
 (de ahí sale "P-11 en aviso: S-006 aceptado (D-009)"); `pm-mapas-estrategicos`: `mapas.py tablero`, que dibuja los dos
 mapas en SVG propio (sin `mmdc`) con los avisos MAP vigentes y los vínculos en
-`02-planificacion/visuales/tablero-mapas.html`. El 2027-02-01: `sanidad.py --corte 2027-02-01` y
-`estado.py contexto --corte 2027-02-01`.
+`02-planificacion/visuales/tablero-mapas.html`. El 2027-02-01: `sanidad.py --corte 2027-02-01` y, para la pregunta,
+`pm-orquestador` corre `estado.py radar --corte 2027-02-01` (solo lectura): los controles de la sanidad, los
+presupuestos y tolerancias de `estado.json` y la verificación de la próxima puerta, agrupados en decidir, escalar,
+desbloquear y vigilar, cada ítem con su regla, responsable y siguiente paso.
 
 **Qué deberías ver:**
 
@@ -755,11 +840,17 @@ recorte 16:9 [g5-tablero-mapas-169](img/g5-tablero-mapas-169.png).
 
 Al 2027-02-01, la sanidad da **4 AVISO**: **REG-09** para R-001, R-002 y R-003 ("abierto con la revisión vencida
 (2027-01-29; propietario: …)") y **SUP-02** "Supuesto S-006 con fecha límite 2027-01-29 vencida y sin validar". El
-contexto de sesión lista lo mismo sin correr la sanidad: "Riesgos con la revisión vencida (REG-09): R-001 (2027-01-29),
-R-002 (2027-01-29), R-003 (2027-01-29)" y "Supuestos críticos sin validar: S-006".
+radar lo ordena: "**1 decidir · 0 escalar · 0 desbloquear · 4 vigilar**" y "Hoy: decidir S-006".
+- **Decidir** (prioridad 1): S-006, de Carmen Olivera: "fecha límite vencida sin resultado: seguir, cambiar o detener";
+  la junta decide si lo sigue aceptando sin validar.
+- **Vigilar** (prioridad 3): las revisiones vencidas de R-001 (Tomás Aguirre), R-002 (Inés Ferrer) y R-003 (Carmen
+  Olivera), y **RAD-07**: la próxima puerta, `autorizar-etapa`, tiene 2 bloqueos (E-02 y L-01).
+- "Escalar una excepción no corresponde: ningún pronóstico fuera de tolerancia ni presupuesto agotado"; la opción es
+  generar el highlight del período.
 
 **Dónde verificar:** [salida-g5.md](evidencia/salida-g5.md), paso 14 · `02-planificacion/visuales/tablero-mapas.html`
-(abrilo en el navegador) · prompt: "¿Qué riesgos tienen la revisión vencida?".
+(abrilo en el navegador) · `estado.py radar --json` (los mismos ítems, para un tablero) · prompt: "¿Qué riesgos tienen
+la revisión vencida?".
 
 ---
 
@@ -799,6 +890,44 @@ Corré la sanidad al 2026-10-28 y verificá qué le falta a este proyecto para a
 a P-06, P-09, P-10 y L-01. No aparecen **P-07** ni **P-08** porque el PRD y la arquitectura del fixture están en
 `final`; si el PRD estuviera en borrador, P-07 bloquearía.
 
+### Paso 16b · Personas de usuario desde los recorridos UJ y capacidad × persona
+
+Con BMAD, las personas ya están escritas: cada recorrido UJ-n del PRD tiene su protagonista. pm-method las lee, no las
+reescribe, y agrega lo que el PRD no dice: qué FR pide cada una y cuáles aprovecha sin usarlos.
+
+**Prompt**
+```text
+¿Quiénes son los usuarios del portal según el PRD? Proponé las personas desde los recorridos y mostrame qué FR usa o
+pide cada una. Martín Suárez confirma las tres. Completá los dolores con lo que dice el PRD y mapeá los FR que ningún
+recorrido realiza.
+```
+
+**Si te pregunta** por los FR sin recorrido: "FR-8 lo usan Diego, que entra al préstamo con el contacto verificado, y
+Lucía, que aprueba los cambios de domicilio; FR-12 avisa a Diego. Lucía es además quien pide la bandeja única (FR-9):
+hoy transcribe pedidos de varios canales".
+
+**Qué hace el sistema:** `interesados.py personas candidatos --desde bmad` lee los recorridos UJ-1…3 del PRD (solo
+lectura) y propone **Marta**, **Diego** y **Lucía**, con arquetipo, objetivo, contexto, la cita `UJ-n (prd.md:línea)` y
+los FR que realizan cada recorrido; los dolores quedan `[por confirmar]` para que la persona los complete. Con la
+confirmación, `registro.py agregar personas` (fuente `bmad-uj`); luego `personas mapa --limite 0` y `personas
+priorizacion`.
+
+**Qué deberías ver:**
+- Candidatas: Marta (UJ-1, prd.md:35; usa FR-1 a FR-5), Diego (UJ-2, prd.md:43; FR-6 y FR-7) y Lucía (UJ-3, prd.md:51;
+  FR-9 a FR-11); **PU-001**, **PU-002** y **PU-003** registradas.
+- Mapa: los 12 FR con persona; FR-8 con dos (Diego y Lucía), FR-9 con "S·U" (Lucía lo pide y lo usa) y FR-12 con "B"
+  (Diego lo aprovecha). Todo "sin prioridad": el PRD no prioriza; la prioridad MoSCoW llega con el backlog (E2E-4) y
+  entonces STK-13 vigila los Must sin persona.
+- Priorización: Marta 5 FR (usa 5), Diego 4 (usa 3, aprovecha 1), Lucía 4 (pide 1, usa 4), sin representante: este
+  proyecto todavía no registró interesados (el aviso P-09 del paso 16).
+
+![Capacidad × persona del portal](img/g5-personas-mapa-bmad.png)
+Marta concentra el autoservicio (5 FR), Diego el préstamo y Lucía la consola. La fila de FR-9 muestra a la única
+solicitante: la operadora que hoy sufre los canales dispersos.
+
+**Dónde verificar:** `gestion/03-control/registros/personas.csv` (evidencia `UJ-n (prd.md:…)`) · `prd.md` §2 (solo
+lectura).
+
 ### Paso 17 · Recorrido y mapa de valor desde la especificación
 
 **Prompt**
@@ -813,7 +942,8 @@ equipo, qué se compra o terceriza y dónde está la inercia. Mostrame qué cont
 terceriza. El núcleo operativo va como riesgo a su cargo, con revisión el 2026-11-15".
 
 **Qué hace el sistema:** `bmad.py recorridos --id UJ-2` y `bmad.py capacidades` (solo lectura); `mapas.py recorrido
-semilla --uj UJ-2 --backstage UJ-3` y `wardley semilla`, que toman los recorridos, los FR que los realizan, las métricas
+semilla --uj UJ-2 --backstage UJ-3 --persona PU-002` (nombre, descripción, objetivo y contexto de Diego desde
+`personas.csv`, con `persona_id` en el mapa) y `wardley semilla`, que toman los recorridos, los FR que los realizan, las métricas
 SM-n, el mapa de capacidades (FR → módulo → AD-n) y las decisiones diferidas; completa emociones, fuentes, posiciones y
 evidencia; `validar`, `render` y `controles`; `recorrido candidatos`; `registro.py agregar supuestos|decisiones|riesgos`
 y `mapas.py vincular`; al final, `mapas.py tablero` (tablero de mapas con los dos mapas en SVG, los avisos MAP vigentes y
@@ -854,6 +984,7 @@ los cuatro ids de gestión con su estado y responsable.
 |---|---|---|
 | De dónde salen los supuestos | mandato (`[supuesto]`, `[por confirmar]`) y lecciones: 5 candidatos | brief, PRD y arquitectura: 42 candidatos con cita `archivo:línea` |
 | Requisitos | `requisitos.md` (REQ-001…007), dueño pm-method | PRD de BMAD (42 ids), dueño BMAD; pm-method solo lee |
+| Personas de usuario | una candidata desde el recorrido del paciente y dos agregadas con su fuente (`supuesto`, `documento`); MoSCoW de `requisitos.md` y STK-13 activo | tres candidatas desde UJ-1…3 (fuente `bmad-uj`, cita `prd.md:línea`); el PRD no prioriza: STK-13 actúa cuando el backlog fija MoSCoW |
 | Riesgos | se formulan desde supuestos y lecciones (R-001…R-003) | además, los riesgos y preguntas que BMAD ya declaró (12 y 6) |
 | Línea base para el VAN | el mandato trae datos (18 %, USD 5, USD 1,20): `inversion.py` calcula desde el primer día | el brief declara que no hay métricas (`brief.md:26`): no hay VAN sin medir antes |
 | Mapas de valor y de recorrido | componentes y recorrido propuestos desde el mandato, los supuestos y las lecciones; dolores tratados por REQ y riesgos (MAP-02, MAP-03) | recorrido desde UJ-2 con el backstage de UJ-3 y KPI SM-3; mapa desde capacidades, AD-n y decisiones diferidas, todo citado por id (MAP-01…04) |
@@ -863,8 +994,10 @@ los cuatro ids de gestión con su estado y responsable.
 
 ## Lista de comprobación de capacidades
 
-- [ ] Mandato conservado como llegó, con lo no verificado marcado `[supuesto]`, y lecciones previas en `lecciones.csv`;
-      proyecto creado con la fecha del mandato (`nuevo_proyecto.py --fecha`).
+- [ ] Mandato conservado como llegó, con lo no verificado marcado `[supuesto]`; proyecto creado con la fecha del mandato
+      (`nuevo_proyecto.py --fecha`).
+- [ ] Lecciones previas buscadas en el índice de la red (`lecciones.py buscar`, solo aprobadas), incorporadas con
+      confirmación y `origen`, y accionadas con su control en el paso 6.
 - [ ] Supuestos en tres familias con criticidad y certeza, destilados de los artefactos (b) o de BMAD (a), y mapa de
       supuestos `g5-mapa-supuestos.png`.
 - [ ] SUP-01 con los críticos sin experimento; experimentos con criterio y fecha; SUP-02 por fecha vencida y SUP-03 por
@@ -877,21 +1010,25 @@ los cuatro ids de gestión con su estado y responsable.
       emoción (`g5-wardley.png`, `g5-recorrido.png`); MAP-02 y MAP-03 vistos y resueltos con R-001 y REQ-003/REQ-005.
 - [ ] Brief, requisitos, roadmap, canvas y plan de la etapa 1; tolerancias de proyecto; `autorizar-inicio` con lista de
       control confirmada.
-- [ ] Contexto de sesión (`estado.py contexto`) al retomar la iniciación.
+- [ ] Contexto de sesión (`estado.py contexto`) y línea del radar (`estado.py radar --linea`) al retomar la iniciación.
 - [ ] Caso completo con mapa de beneficios y enfoque de beneficios (P-04 resuelto).
 - [ ] Descripción del producto del proyecto y WBS por productos trazada a REQ.
 - [ ] Riesgos con EMV y fecha de revisión, presupuesto con contingencia, BAC, reserva de gestión y presupuesto de cambio
       sin doble conteo; presupuestos de la junta en `estado.json` (`g5-presupuesto.png`).
 - [ ] Junta completa, interesados en la matriz y RACI válida.
+- [ ] Personas de usuario con su fuente y representante; STK-13 visto y resuelto; capacidad × persona y priorización
+      por persona (`g5-personas-mapa.png`).
 - [ ] Formalidad de los enfoques decidida (D-008), enfoques de una página y adaptación en el PID §8.
 - [ ] Bloque C: tres diseños con su `estado.json`, tabla y gráfico `g5-tres-disenos.png`.
 - [ ] P-11 visto con su código y resuelto antes de `autorizar-proyecto`: un supuesto validado y otro aceptado por la
       junta (P-11 en aviso); aprobaciones v1.0 con copia congelada.
 - [ ] Tablero de una página `g5-tablero.png` (con `puertas.py verificar --json`) y seguimiento al 2027-02-01: REG-09 y
-      SUP-02 sobre lo que quedó abierto.
+      SUP-02 sobre lo que quedó abierto, ordenados por el radar (decidir S-006, vigilar el resto).
 - [ ] Tablero de mapas `g5-tablero-mapas.png` (`mapas.py tablero`): los dos mapas dibujados, 0 avisos MAP, la inercia
       con su riesgo y cada dolor con su tratamiento enlazado.
 - [ ] Variante a: requisitos y supuestos leídos de BMAD con su cita, sin escribir en BMAD; SUP-01 y P-11 sobre ellos.
+- [ ] Variante a: personas desde los UJ del PRD (`personas candidatos --desde bmad`), los 12 FR con persona
+      (`g5-personas-mapa-bmad.png`) y el recorrido sembrado con `--persona`.
 - [ ] Variante a: recorrido de UJ-2 con backstage de UJ-3 y mapa de valor desde la arquitectura; MAP-01…04 resueltos con
       S-004, D-001 y R-001, y los dos mapas en su tablero (`g5-tablero-mapas-bmad.png`).
 - [ ] Todas las llamadas a sanidad con `--corte`; dos corridas seguidas del driver con evidencia idéntica.

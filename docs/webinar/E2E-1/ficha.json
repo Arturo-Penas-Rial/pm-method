@@ -1,0 +1,74 @@
+{
+  "caso": "E2E-1",
+  "titulo": "Que el registro de riesgos no muera después del taller",
+  "bajada": "Elegí cada respuesta comparando opciones por su valor neto, escribí la contingencia antes de necesitarla y sabé cada día qué hay que decidir.",
+  "para_quien": [
+    "Gestores de proyecto con algo de PMBOK o PRINCE2 que llevan un registro de riesgos",
+    "Líderes de negocio y miembros de juntas que aprueban reservas y deciden escalamientos",
+    "Equipos de PMO que revisan cómo se controla el riesgo en los proyectos"
+  ],
+  "objetivos": [
+    "Explicar qué decide la junta antes del taller: apetito, tolerancia, reserva y quién la gasta",
+    "Identificar riesgos con cita de origen desde la especificación, las reuniones, el tracker y los artefactos",
+    "Comparar las opciones de respuesta de un riesgo alto por su valor neto y justificar la elección por escrito",
+    "Escribir un plan de contingencia listo para activar y calcular el presupuesto de riesgo con fórmula",
+    "Reconocer un registro que se dejó de revisar y ordenar con el radar qué decidir primero"
+  ],
+  "sistema_agentico": {
+    "agente": [
+      "Propone riesgos candidatos con su cita: BMAD, transcripciones, Jira y artefactos",
+      "Calcula el valor neto de cada opción de respuesta y marca la recomendada",
+      "Avisa qué está vencido o por decidir, y cuánto se consumió de la reserva"
+    ],
+    "persona": [
+      "En el taller, el equipo decide qué candidatos son riesgos",
+      "El propietario elige la respuesta; si no es la recomendada, escribe el motivo",
+      "La junta aprueba la reserva y resuelve lo que se le escala"
+    ],
+    "control": "El agente calcula, propone y avisa; no elige respuestas ni gasta la reserva. Cada decisión queda registrada con quién la tomó."
+  },
+  "beneficios": {
+    "para_vos": [
+      "Un criterio para defender cada respuesta con números, no con intuición",
+      "Tu hoja de trabajo aplicada a un riesgo alto de un proyecto propio"
+    ],
+    "para_la_organizacion": [
+      "Una reserva que se usa solo para riesgos: cada gasto cita el riesgo que responde",
+      "Avisos a tiempo: en el caso, las revisiones vencidas se avisaron un mes antes"
+    ]
+  },
+  "clases": [
+    {
+      "numero": 1,
+      "temas": [
+        "Enfoque, apetito y escala de probabilidad e impacto",
+        "Identificación con cita, con y sin BMAD, y evaluación",
+        "Opciones de respuesta por valor neto y plan de contingencia",
+        "Presupuesto de riesgo, reserva de gestión y puertas"
+      ]
+    },
+    {
+      "numero": 2,
+      "temas": [
+        "Revisión del sprint y un riesgo que ocurre (Jira)",
+        "Reserva bien y mal usada, y escalamiento a la junta",
+        "Informe de riesgos, revisión periódica y radar",
+        "Contingencia activada y límite de etapa"
+      ]
+    }
+  ],
+  "requisitos": [
+    "Saber qué es un riesgo, una WBS y un presupuesto; no hace falta programar",
+    "Un proyecto propio con al menos un riesgo alto, o el escenario del caso",
+    "Nada que instalar para las clases; para practicar, Claude Code con pm-method"
+  ],
+  "modalidad": "Dos clases en vivo de 90 minutos: demostración sobre un caso real y ejercicio de 10 minutos al cierre de cada una.",
+  "imagen": {
+    "ruta": "docs/guias/img/g1-opciones-valor-neto.png",
+    "pie": "Del caso: para R-001 conviene reducir; para R-003, preparar la contingencia. Decide el propietario."
+  },
+  "notas": [
+    "Abrí con la pregunta: ¿cuándo fue la última vez que alguien miró el registro de riesgos de tu proyecto? El taller muestra cómo pasar del registro que se congela después del taller al que avisa solo. La imagen es real, de la corrida del caso: cinco opciones por riesgo, comparadas por valor neto; la recomendada la marca el agente y la elige el propietario. Cerrá con los objetivos y con para quién es.",
+    "Explicá la división del trabajo: el agente propone, calcula y avisa; las personas deciden y queda registrado quién decidió. Recorré las dos clases: la primera llega hasta el presupuesto de riesgo; la segunda es el control continuo, que es lo que en la práctica no se hace. Subrayá que no hace falta programar ni instalar nada para las clases, y que los beneficios citados salen del propio caso."
+  ]
+}

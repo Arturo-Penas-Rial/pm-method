@@ -63,6 +63,20 @@ def fig_guia(it, ancho="1000px"):
             f"<figcaption>{e(it['guia'])} · {inl(it['lectura'])} · <code>docs/guias/img/{e(it['img'])}</code></figcaption></figure>")
 
 
+EV = X["ev24"]
+
+
+def fig24(img, ancho="1000px"):
+    """Figura de cualquier paso de las guías E2E (no solo de «Indicadores»), con su guía y su paso."""
+    f = X["guias_figuras"][img]
+    return (f"<figure style='margin:16px auto;max-width:{ancho}'><img class='captura' src='{img64('../../guias/img/' + img)}' alt='{e(f['alt'])}'>"
+            f"<figcaption>{e(f['guia'])}, paso {e(f['paso'])} · {inl(f['lectura'])} · <code>docs/guias/img/{e(img)}</code></figcaption></figure>")
+
+
+def salida(titulo, *bloques):
+    return f"<h4>{titulo}</h4>" + "".join(pre(b) for b in bloques)
+
+
 cuadrantes = tabla_html(["Cuadrante", "Poder · interés", "Estrategia", "Comunicación por defecto (canal · formato · detalle · frecuencia)"],
                         [[f"**{c[0]}**", c[1], c[2], c[3]] for c in V["cuadrantes"]], "", ["17%", "12%", "", "30%"])
 rf = X["g1_fuentes"]
@@ -91,6 +105,9 @@ s2 = sec("capacidades", "2", "Capacidades de gestión",
          + "<h3>¶Maestro de interesados (pm-interesados)</h3><p>El registro de interesados es un <b>maestro</b>: una sola fuente de personas con matriz poder/interés, estrategia por cuadrante, perfil de comunicación por persona y una RACI ligada al plan (fuentes: CASOS-DE-USO casos 38–43 y 46, <code>skills/pm-interesados/references/guia.md</code>).</p>"
          + "<h4>Matriz poder/interés y estrategia por cuadrante</h4><p>Poder (eje vertical): autoridad real, control de recursos, capacidad de aprobar presupuestos o vetar decisiones. Interés (eje horizontal): involucramiento, preocupación o impacto. Un valor «medio» se ubica del lado alto y se marca como frontera (<code>--medio bajo</code> invierte la convención).</p>" + cuadrantes
          + layers(V["interesados_puntos"]) + img_matriz + img_raci
+         + "<h3>¶Personas de usuario y capacidad × persona (<code>interesados.py personas</code>)</h3>" + layers(V["personas"])
+         + "<div class='two'>" + fig24("g5-personas-mapa.png", "100%") + fig24("g5-personas-mapa-bmad.png", "100%") + "</div>"
+         + salida("Salida real en la guía E2E-5, paso 10b", EV["personas_mapa"], EV["personas_prio"])
          + "<h3>¶Capa de canales (envios.py)</h3><p>Una sola vía de salida para cualquier comunicación a interesados —comunicados personalizados, informes, actas, recordatorios, convocatorias, decisiones de puerta y check-ins de OKR—, con <code>skills/pm-integraciones/scripts/envios.py</code> (subcomandos <code>nuevo</code>, <code>estado</code>, <code>aprobar</code>, <code>enviar</code>, <code>preparar-mcp</code>, <code>registrar</code>, <code>historial</code> y <code>verificar</code>). Los borradores salen de <code>interesados.py plan-envio</code> con el perfil de cada destinatario; <code>aprobar</code> y <code>enviar --confirmar</code> piden la confirmación de una persona (hook <code>guardian.py</code>). Fuentes: INTEGRACIONES §3.2 e INSTALACION §0.7.</p>"
          + "<h4>Modos</h4>" + T(X["canales_modos"], "dec", ["13%", "10%", "28%", "", "15%"]) + diag("canales")
          + "<h4>Reglas</h4>" + vin(V["canales_reglas"])
@@ -98,8 +115,27 @@ s2 = sec("capacidades", "2", "Capacidades de gestión",
          + "<h3>¶OKR ligados a beneficios</h3><p><code>okr.py</code> maneja tipos de KR, compromiso, peso, iniciativas, check-ins y salud, y prepara la sincronización con Tability o Perdoo (fuentes: <code>skills/pm-okr</code>, CASOS-DE-USO caso 45).</p>"
          + tabla_html(["Concepto", "Qué hace"], [[f"**{o[0]}**", o[1]] for o in V["okr"]], "", ["20%", ""]) + f"<div class='callout blue'><p>{inl(V['okr_ejemplo'])}</p></div>"
          + f"<h3>¶Identificación de riesgos desde cuatro fuentes</h3><p>{inl(V['riesgos_intro'])} BMAD se lee solo a través de pm-bmad-puente. Cifras de la guía E2E-1 (pasos {', '.join(dict.fromkeys(f[1].replace('paso ', '') for f in rf['filas']))}) y su evidencia <code>docs/guias/evidencia/salida-g1.md</code>.</p>" + riesgos_tab
+         + "<h3 id='opciones-respuesta'>¶Opciones de respuesta y plan de contingencia (<code>riesgos.py opciones</code>)</h3>" + layers(V["opciones"]) + fig24("g1-opciones-valor-neto.png")
+         + salida("Salida real en la guía E2E-1, pasos 6a y 6b", EV["opciones"], EV["elegir"])
+         + "<h3>¶Presupuesto de riesgo y reserva de gestión para lo no identificado</h3>" + layers(V["reserva"]) + f"<div class='callout blue'><p><b>En la guía E2E-1, paso 7.</b> {inl(X['g1_presupuesto_md'])}</p></div>" + fig24("g1-consumo-reserva.png")
+         + "<h3>¶Radar de atención y briefing de incorporación (<code>estado.py radar · briefing</code>)</h3>" + layers(V["radar"]) + fig24("g3-radar.png")
+         + salida("Salida real en la guía E2E-3, paso 10a", EV["radar_linea"], EV["radar"], EV["briefing"])
+         + "<h3>¶Highlight y tablero desde el dato (<code>estado.py periodo</code>)</h3>" + layers(V["periodo"]) + fig24("g3-highlight-indicadores.png")
+         + "<h4>Cadena de reporte verificada (guía E2E-3, paso 10b)</h4><div class='two'>" + pre(EV["verificar"]) + pre(EV["verificar_ok"]) + "</div>"
+         + "<h3>¶Estado de productos y cierre verificado por id (<code>estado.py productos</code>, C-03, C-07)</h3>" + layers(V["productos"]) + fig24("g4-cierre.png")
+         + salida("Salida real en la guía E2E-4, pasos 6 y 9", EV["productos"], EV["cierre"])
+         + "<h3>¶Acuerdos de reunión con cita (<code>extraccion.py</code>)</h3>" + layers(V["reuniones"]) + fig24("g3-candidatos-reunion.png")
+         + salida("Salida real en la guía E2E-3, paso 8", EV["candidatos"], EV["registrar_no"], EV["registrar"])
+         + "<h3>¶Ciclo de las lecciones y lecciones de otros proyectos (<code>lecciones.py</code>)</h3>" + layers(V["lecciones"]) + fig24("g4-lecciones-ciclo.png")
+         + salida("Salidas reales en las guías E2E-4 (paso 6c) y E2E-5 (paso 1)", EV["lecciones_listar"], EV["lecciones_buscar"])
+         + "<h3>¶Análisis de impacto antes del cambio (<code>impacto.py</code>)</h3>" + layers(V["impacto"]) + fig24("g2-impacto-c002.png")
+         + salida("Salida real en la guía E2E-2, paso 10", EV["impacto"])
+         + "<h3>¶Tres valores, reserva de cronograma y capacidad del release (<code>cpm.py</code> · <code>release.py</code>)</h3>" + layers(V["estimacion"]) + fig24("g2-capacidad-release.png")
+         + salida("Salidas reales en la guía E2E-2, pasos 3 y 4", EV["cpm"], EV["capacidad"])
+         + "<h3>¶Expediente de auditoría verificable (<code>paquete.py auditoria · verificar</code>)</h3>" + layers(V["auditoria"]) + fig24("g4-expediente.png")
+         + salida("Salida real en la guía E2E-4, paso 9b", EV["auditoria"], EV["aud_ok"], EV["aud_falla"])
          + f"<h3 id='controles-permanentes'>¶Controles permanentes</h3><p class='intro'>{inl(V['controles_intro'])}</p>" + controles_tab
-         + "<p class='src'>Fuentes: SANIDAD §2.1, PUERTAS §3, las tablas «Del uso único al control continuo» de docs/guias/E2E-1…E2E-5 y <code>skills/pm-estado-proyecto/scripts/sanidad.py</code>, <code>puertas.py</code>, <code>estado.py</code>, <code>evm.py</code>, <code>skills/pm-interesados/scripts/interesados.py</code> y <code>skills/pm-mapas-estrategicos/scripts/mapas.py</code>. Presupuestos: <code>estado.py presupuesto cambio|riesgo|gestion|limite_autoridad_cambio=&lt;monto&gt; --por …</code>, reservado a pm-director por el hook. <code>sanidad.py --corte AAAA-MM-DD</code> hace reproducibles los controles con vencimiento.</p>"
+         + "<p class='src'>Fuentes: SANIDAD §2.1, PUERTAS §3, las tablas «Del uso único al control continuo» de docs/guias/E2E-1…E2E-5 y <code>skills/pm-estado-proyecto/scripts/sanidad.py</code>, <code>puertas.py</code>, <code>estado.py</code>, <code>evm.py</code>, <code>skills/pm-interesados/scripts/interesados.py</code> y <code>skills/pm-mapas-estrategicos/scripts/mapas.py</code>, <code>skills/pm-riesgos/scripts/riesgos.py</code> y <code>skills/pm-lecciones-aprendidas/scripts/lecciones.py</code>. Presupuestos: <code>estado.py presupuesto cambio|riesgo|gestion|limite_autoridad_cambio=&lt;monto&gt; --por …</code>, reservado a pm-director por el hook. <code>sanidad.py --corte AAAA-MM-DD</code> hace reproducibles los controles con vencimiento.</p>"
          + "<h4>Ejemplos reales de la evidencia</h4>" + ejemplos
          + "<details><summary>Diagrama: gestión por excepción en la guía E2E-2 (paso 10)</summary>" + diag("excepcion").replace('<div class="diag-in">', '<div class="diag-in" style="max-width:520px;margin:0 auto">') + "</details>",
          "todas las audiencias")
@@ -355,10 +391,11 @@ for c in X["casos"]:
         detalle += f"<h4 class='parte'>{e(parte)}</h4>"
     detalle += caso_html(c)
 s13 = sec("casos", "14", "Casos de uso: un ejemplo por skill",
-          "<p class='intro'>" + str(len(X['casos'])) + " ejemplos trabajados: uno por cada una de las " + str(len(X['skills_dirs'])) + " skills, incluidos los seis comandos, y los casos transversales de la parte 6 (interesados, canales, OKR, riesgos, controles permanentes y mapas estratégicos), sobre un mismo proyecto de muestra para que los casos se encadenen de principio a fin. Las cifras coinciden con lo que devolvieron los scripts en la prueba; las personas y la cooperativa son ficticias y las respuestas humanas, simuladas. Regla transversal: cuando un subagente necesita una decisión la devuelve en su bloque de retorno; el orquestador la presenta a la persona con el rol que decide y, con la respuesta explícita, invoca a pm-director.</p>"
+          "<p class='intro'>" + str(X['cifras']['casos_uso']) + " casos documentados: " + str(len(X['casos'])) + " ejemplos trabajados uno por cada una de las " + str(len(X['skills_dirs'])) + " skills, incluidos los seis comandos, y los casos transversales de la parte 6 (interesados, canales, OKR, riesgos, controles permanentes y mapas estratégicos), sobre un mismo proyecto de muestra para que los casos se encadenen de principio a fin, y la parte 7 (casos " + X['casos_p7']['filas'][0][0].split(' ')[0] + " a " + X['casos_p7']['filas'][-1][0].split(' ')[0] + "), que remite cada capacidad para decidir con datos al paso de la guía E2E donde se recorre. Las cifras coinciden con lo que devolvieron los scripts en la prueba; las personas y la cooperativa son ficticias y las respuestas humanas, simuladas. Regla transversal: cuando un subagente necesita una decisión la devuelve en su bloque de retorno; el orquestador la presenta a la persona con el rol que decide y, con la respuesta explícita, invoca a pm-director.</p>"
           + "<h3>¶Proyecto de muestra</h3>" + T(X["muestra"], "", ["28%", ""])
           + f"<h3>¶Resumen de los {len(X['casos'])} casos</h3>" + resumen_casos
           + "<h3>¶Detalle de cada caso</h3>" + detalle
+          + f"<h3>¶{e(X['casos_p7_titulo'])}</h3><p>{inl(X['casos_p7_intro'])}</p>" + T(X["casos_p7"], "", ["16%", "26%", "22%", "16%", ""])
           + "<h3>¶Variantes</h3><h4>Variante A · Predictivo sin BMAD</h4><p>" + inl(X["variante_a"]["intro"]) + "</p>" + T(X["variante_a"]["tabla"], "", ["9%", "26%", "15%", "", "22%"])
           + "<h4>Variante B · Proyecto ágil en inglés</h4><p>" + inl(X["variante_b"]["intro"]) + "</p>" + T(X["variante_b"]["tabla"], "", ["9%", "26%", "15%", "", "22%"])
           + "<h4>Variante C · Jira y Teams conectados vía pm-integraciones</h4>" + md(X["variante_c_md"]),
@@ -425,7 +462,7 @@ s15 = sec("caso-maestro", "16", "Caso maestro, guías E2E y formación",
 # ---------- 16 · Pruebas y calidad ----------
 acept = "<ol class='check'>" + "".join(f"<li>☐ {inl(x)}</li>" for x in X["pru_aceptacion"]) + "</ol>"
 s16 = sec("pruebas", "17", "Pruebas y calidad",
-          "<p class='intro'>Cómo se verifica el ecosistema, qué cubre cada prueba, qué resultados quedaron registrados y cómo hacer la prueba de aceptación antes de usarlo en un proyecto real (<code>docs/PRUEBAS.md</code>). La regresión da <b>" + str(CIF['regresion_ok']) + " OK · 0 FALLO</b> con Python " + CIF['regresion_py'] + " (" + str(CIF['regresion_ok39']) + " con 3.9) y la integración cruzada <b>" + str(CIF['integ_ok']) + " OK · 0 FALLO</b> en " + str(CIF['integ_eslabones']) + " eslabones (" + e(FECHA_P) + "). Las pruebas en vivo con Claude Code real de esa fecha cubren el enrutamiento (" + CIF['vivo_contexto'] + " y " + CIF['vivo_mapas'] + ") y la integración con BMAD instalado (" + CIF['vivo_integracion'] + "); los escenarios de robustez son del 17/10/2026.</p>"
+          "<p class='intro'>Cómo se verifica el ecosistema, qué cubre cada prueba, qué resultados quedaron registrados y cómo hacer la prueba de aceptación antes de usarlo en un proyecto real (<code>docs/PRUEBAS.md</code>). La regresión da <b>" + str(CIF['regresion_ok']) + " OK · 0 FALLO</b> con Python " + CIF['regresion_py'] + " (" + str(CIF['regresion_ok39']) + " con 3.9) y la integración cruzada <b>" + str(CIF['integ_ok']) + " OK · 0 FALLO</b> en " + str(CIF['integ_eslabones']) + " eslabones (" + e(FECHA_P) + "). Las pruebas en vivo con Claude Code real de la versión " + e(CIF['version']) + " (" + e(CIF['vivo24_fechas']) + ") dan <b>" + str(CIF['vivo24_ok']) + "/" + str(CIF['vivo24_total']) + "</b> en las frases " + str(CIF['vivo24_desde']) + "–" + str(CIF['vivo24_hasta']) + " y de control, y " + str(CIF['vivo24_reg_ok']) + "/" + str(CIF['vivo24_reg_total']) + " de regresión; la integración con BMAD instalado (" + CIF['vivo_integracion'] + ") es del 20/10/2026 y los escenarios de robustez, del 17/10/2026.</p>"
           + "<h3>¶Niveles de prueba</h3>" + T(X["pru_niveles"], "", ["20%", "38%", "16%", ""])
           + "<h3>¶Regresión determinista: casos " + e(CIF["regresion_casos"]) + "</h3>" + T(X["pru_regresion"], "", ["22%", ""]) + md(X["pru_regresion_res_md"])
           + f"<h3>¶Integración cruzada</h3><p>{inl(X['pru_integ_intro'])}</p>" + T(X["pru_integ"], "", ["16%", "30%", ""]) + pre(X["pru_integ_cmds"]) + f"<p>{inl(X['pru_integ_res'])}</p>"
@@ -490,13 +527,17 @@ s19 = sec("evolucionar", "21", "Cómo seguir evolucionando el ecosistema",
 # ---------- 22 · Historial de versiones ----------
 # Único lugar del informe que describe cambios entre versiones; el resto describe el ecosistema tal como es.
 VS = D["versiones"]
-grupos23 = "".join(f"<details{' open' if i == 0 else ''}><summary>{e(g['t'])} ({len(g['items'])})</summary>{vin(g['items'])}</details>" for i, g in enumerate(X["chl23_grupos"]))
+grupos24 = "".join(f"<details{' open' if i == 0 else ''}><summary>{e(g['t'])} ({len(g['items'])})</summary>{vin(g['items'])}</details>" for i, g in enumerate(X["chl24_grupos"]))
+grupos23 = "".join(f"<details><summary>{e(g['t'])} ({len(g['items'])})</summary>{vin(g['items'])}</details>" for i, g in enumerate(X["chl23_grupos"]))
 grupos22 = "".join(f"<details><summary>{e(g['t'])} ({len(g['items'])})</summary>{('<p>' + inl(g['intro']) + '</p>') if g['intro'] else ''}{vin(g['items'])}</details>" for g in X["chl22_grupos"])
 grupos21 = "".join(f"<details><summary>{e(g['t'])} ({len(g['items'])})</summary>{vin(g['items'])}</details>" for g in X["chl_grupos"])
 s22 = sec("versiones", "22", "Historial de versiones",
           "<p class='intro'>Esta sección es el único lugar del informe que describe cambios entre versiones; el resto describe el ecosistema tal como es en la versión " + e(CIF["version"]) + ". Detalle completo: <code>CHANGELOG.md</code>.</p>"
-          + f"<h3>¶{e(CIF['version'])} · {e(FECHA_P)} — {e(X['chl23_lema'])}</h3><p>{inl(X['chl23_intro'])}</p><p class='src'>{inl(X['chl23_cifras'])}</p>"
-          + tabla_html(["Indicador", "2.2.0", CIF["version"], "Fuente"], VS["antes_despues_23"], "", ["22%", "22%", "36%", ""])
+          + f"<h3>¶{e(CIF['version'])} · {e('/'.join(reversed(X['chl24_fecha'].split('-'))))} — {e(X['chl24_lema'])}</h3><p>{inl(X['chl24_intro'])}</p><p class='src'>{inl(X['chl24_cifras'])}</p>"
+          + tabla_html(["Indicador", "2.3.0", CIF["version"], "Fuente"], VS["antes_despues_24"], "", ["22%", "22%", "36%", ""])
+          + "<h4>Cambios por área</h4>" + grupos24
+          + f"<h3>¶2.3.0 · {e('/'.join(reversed(X['chl23_fecha'].split('-'))))} — {e(X['chl23_lema'])}</h3><p>{inl(X['chl23_intro'])}</p><p class='src'>{inl(X['chl23_cifras'])} Tabla tal como se publicó con la versión 2.3.0.</p>"
+          + tabla_html(["Indicador", "2.2.0", "2.3.0", "Fuente"], VS["antes_despues_23"], "", ["22%", "22%", "36%", ""])
           + "<h4>Cambios por área</h4>" + grupos23
           + f"<h3>¶2.2.0 · 17/10/2026 — {e(X['chl22_lema'])}</h3><p>{inl(X['chl22_intro'])}</p><p class='src'>Tabla tal como se publicó con la versión 2.2.0.</p>"
           + tabla_html(["Indicador", "2.1.0", "2.2.0", "Fuente"], VS["antes_despues_22"], "", ["24%", "20%", "36%", ""])

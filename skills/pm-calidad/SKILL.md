@@ -1,7 +1,7 @@
 ---
 name: pm-calidad
 description: "Calidad y aceptación de productos. Usar: registro de calidad, revisar o auditar la calidad de un entregable, criterios de aceptación, aceptar producto, quality review, DoD. No: off-spec→pm-issues-cambios; consistencia→pm-sanidad."
-version: 2.3.0
+version: 2.4.0
 author: pm-method
 license: MIT
 metadata:
@@ -58,8 +58,8 @@ metadata:
 
 ### C. Aceptar
 11. Reunir las dos evidencias (control + revisión independiente) y completar `templates/registro-aceptacion.md`; clave `aceptacion-<producto>` para intermedios, `registro-aceptacion` solo para el producto del proyecto (guía §5).
-12. **Aceptación por requisito**: cobertura `terminado` en `listar requisitos` de la fachada (con BMAD, la RTM de `bmad.py trazabilidad` es anexo); DoD y code review como métodos de calidad registrados en `calidad.csv`; `done` en BMAD no sustituye la aceptación (guía §6); sanidad QUA-01…03 lo controla a volumen (guía §8.1).
-13. **PUERTA HUMANA — Aceptación.** La autoridad nombrada acepta o rechaza explícitamente; `estado.py aprobar aceptacion-<producto> --por "<rol: nombre>" --nivel gestor|junta`; actualizar el product status account (`pm-paquetes-trabajo`). Contractual antes que la del proyecto. El producto del proyecto lo conduce `pm-cierre-proyecto`.
+12. **Aceptación por requisito**: cobertura `terminado` en `listar requisitos` de la fachada (con BMAD, la RTM de `bmad.py trazabilidad` es anexo); DoD y code review como métodos de calidad registrados en `calidad.csv`; `done` en BMAD no sustituye la aceptación (guía §6); sanidad QUA-01…04 lo controla a volumen (guía §8.1).
+13. **PUERTA HUMANA — Aceptación.** La autoridad nombrada acepta o rechaza explícitamente; `estado.py aprobar aceptacion-<producto> --por "<rol: nombre>" --nivel gestor|junta`; el estado de productos lo deriva `estado.py productos` (`pm-paquetes-trabajo`). Contractual antes que la del proyecto. El producto del proyecto lo conduce `pm-cierre-proyecto`.
 
 ### D. Auditar
 14. Alcance, áreas y auditor independiente con `templates/auditoria-calidad.md`; comparar planificado vs. `calidad.csv`; hallazgos con acción, responsable, fecha y estado; seguimiento programado (guía §7).

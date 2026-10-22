@@ -28,6 +28,10 @@
 - ¿Qué estados intermedios tienen calidad propia (diseño aprobado, prototipo validado)?
 - ¿Qué queda explícitamente fuera? ¿Qué zonas grises ya generaron dudas?
 - ¿Qué requisitos regulatorios, de transición u operación hay que incluir como productos?
+- ¿Quién usará, pedirá o se beneficiará de cada producto o requisito? Las personas de usuario y su mapa con los
+  requisitos y épicas (solicitante, usuario, beneficiario) viven en `personas.csv` (`pm-interesados`, guía §13); un
+  requisito Must sin persona da STK-13. En `requisitos.md`, las columnas Interesado, Categoría, Prioridad y Estado se
+  leen por su encabezado.
 
 ## 4. EDT/WBS con `wbs.py`
 Script: `python3 ${CLAUDE_SKILL_DIR}/../pm-estado-proyecto/scripts/wbs.py 02-planificacion/wbs.csv --titulo "<Proyecto>" --mermaid 02-planificacion/visuales/wbs.md --diccionario 02-planificacion/diccionario-wbs-esqueleto.md` (opciones `--json` para consumo por otra herramienta y `--profundidad N` para recortar el diagrama).

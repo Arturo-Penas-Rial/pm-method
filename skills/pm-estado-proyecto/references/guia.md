@@ -102,7 +102,7 @@ Mermaid como imagen si `mmdc` está instalado) · `xlsx --proyecto <dir>` (una h
 | Script | Skills que lo usan habitualmente (además de esta) |
 |---|---|
 | `nuevo_proyecto.py` | pm-mandato-y-brief, pm-orquestador / `pm-nuevo` |
-| `estado.py` | todas las skills de fase; `puerta` solo pm-director (pm-direccion-decisiones) |
+| `estado.py` | todas las skills de fase; `puerta` solo pm-director (pm-direccion-decisiones); `productos`: pm-paquetes-trabajo, pm-calidad, pm-cierre-proyecto, `sanidad.py` (QUA-04) y `puertas.py` (C-07); `periodo` (datos del período → tablero y borrador del highlight, `--verificar` = cadena de reporte): pm-progreso-reportes (guía §14) y pm-visuales (guía §3) |
 | `registro.py` | pm-registros, pm-riesgos, pm-issues-cambios, pm-calidad, pm-lecciones-aprendidas, pm-paquetes-trabajo, pm-progreso-reportes, pm-comunicacion-stakeholders, pm-reuniones, pm-cierre-proyecto, pm-direccion-decisiones |
 | `esquema.py` | importado por los demás scripts; documentado en `pm-registros/templates/guia-registros.md` |
 | `evm.py` | pm-progreso-reportes, pm-agil-hibrido, pm-costos-presupuesto, pm-cierre-proyecto |
@@ -121,3 +121,60 @@ action log · diario = daily log.
 ## 8. Reglas complementarias que los scripts hacen cumplir
 - [PRINCE2] Issues: cinco tipos exactos, con `decision` y `decidido_por` antes de cerrarse; una acción va a `acciones.csv`.
 - [PMBOK→Risk] P e I 1–5; alto ≥15, medio 6–12, bajo ≤5; EMV con 10/30/50/70/90 % (configurable con `umbrales-riesgo`).
+
+## 9. Radar de atención y briefing de incorporación
+`estado.py --proyecto <dir> radar [--corte AAAA-MM-DD] [--max 5] [--json | --linea]` responde, sin escribir nada, qué hay
+que **decidir**, **escalar**, **desbloquear** y **vigilar** al corte. Cada ítem trae regla, id, fecha, responsable (o quién
+decide), qué pasa y el siguiente paso con su skill o script. Es la actividad de control de etapa «evaluar el estado de la
+etapa» con «capturar» y «escalar issues y riesgos» (`pm-knowledge/references/prince2-principios-personas-procesos.md`
+§5.4) y la gestión por excepción (`prince2-practicas-riesgo-issues-progreso-productos.md` §4.c.2 y §7.3, A-16 a A-20).
+Reutiliza `estado.py contexto` (conteos y próxima puerta), los controles de `sanidad.py` (CAM, TOL, SUP, QUA), el último
+corte de EVM guardado, `puertas.py` (bloqueos de la próxima puerta) y los presupuestos y tolerancias de `estado.json`.
+
+| Grupo | Regla | Cuándo aparece | Prioridad | Responsable o quien decide |
+|---|---|---|---|---|
+| Decidir | EST-14 | excepción abierta esperando el plan de excepción | 1 | junta |
+| Decidir | SUP-02 | supuesto crítico con la fecha límite vencida sin resultado | 1 | responsable del supuesto |
+| Decidir | RAD-03 | contingencia por activar: riesgo con respuesta `contingencia` que ocurrió o es `inminente`, sin cambio vigente con cargo `reserva-riesgo` que lo cite | 1 | propietario del riesgo |
+| Decidir | RAD-01 | cambio `pendiente-decision` | 2 | autoridad de cambio; la junta si no hay autoridad delegada, si el costo supera `limite_autoridad_cambio`, si agota el presupuesto de cambio o si el cargo es `reserva-gestion` o `plan-excepcion` (A-20) |
+| Decidir | RAD-02 | issue o riesgo `escalado` | 2 | junta |
+| Decidir | EST-11, EST-12 | puerta pendiente; condiciones abiertas de una puerta | 2 | junta (registra pm-director) |
+| Decidir | SUP-03 · SUP-01 | supuesto invalidado sin tratar · crítico sin experimento o fecha límite | 2 · 3 | responsable del supuesto |
+| Decidir | REG-11 | lección de impacto alto sin acción ni decisión | 3 | responsable de seguimiento de la lección |
+| Escalar | TOL-01 | el último EVM pronostica salir de la tolerancia y no hay excepción abierta | 1 | gestor → junta |
+| Escalar | CAM-03 | presupuesto de cambio o reserva de riesgo excedido (ERROR de sanidad) | 1 | gestor → junta |
+| Escalar | RAD-04 · CAM-04 · CAM-05 | riesgo con respuesta `escalar` sin escalar (A-19) · cambio sobre el límite delegado · reserva de gestión sin la junta | 2 | gestor o junta |
+| Desbloquear | REG-07 | acción vencida | 1 | responsable de la acción |
+| Desbloquear | RAD-05 | issue abierto sin responsable | 1 urgente · 2 alta · 3 resto | gestor (asigna) |
+| Desbloquear | REG-06 | riesgo alto sin respuesta o sin propietario | 2 | gestor |
+| Desbloquear | RAD-06 · QUA-02 · QUA-03 | dependencia (issue o acción abierta que cita otro issue, cambio, acción o revisión abierta) · revisión de calidad vencida · rechazada sin tratar | 3 | responsable del ítem |
+| Vigilar | REG-09 · RAD-07 · CAM-03 | revisión de riesgo vencida · bloqueos de la próxima puerta · presupuesto al 80 % o más | 3 | propietario o gestor |
+| Vigilar | REG-12 | lección accionada sin verificar su efecto a la fecha prevista | 3 | responsable de seguimiento de la lección |
+| Vigilar | TOL-02 · TOL-03 · RAD-08 | EVM en ámbar · sin corte reciente · supuesto crítico en validación con fecha futura | 4 | gestor o responsable |
+
+**Regla de prioridad:** 1 = hoy (vencido, fuera de tolerancia o presupuesto agotado), 2 = espera una decisión o bloquea, 3 =
+pendiente sin bloqueo inmediato, 4 = vigilar. Dentro de cada grupo se ordena por prioridad, fecha (las vacías al final) e
+id; con los mismos registros y el mismo `--corte`, la salida es la misma. «Hoy» muestra el primer ítem de decidir, escalar y
+desbloquear. Las opciones finales son generar el highlight (`pm-progreso-reportes`) y, solo si hay TOL-01 o CAM-03,
+escalar una excepción (informe de excepción → pm-director); dentro de tolerancia, la desviación se trata con acción
+correctiva y se informa en el highlight (A-18). Salida acotada: `--max` ítems por grupo con «… y N más» y a lo sumo 3.500
+caracteres; `--json` da totales, «hoy» e ítems por grupo; `--linea` es la línea del hook de inicio (totales y primer id
+por grupo, sin texto libre de los registros ni la verificación de la puerta).
+
+`estado.py --proyecto <dir> briefing [--para ST-###] [--corte AAAA-MM-DD] [--salida RUTA|-] [--json]` llena
+`pm-progreso-reportes/templates/briefing-incorporacion.md` con el mismo motor: contexto (fase, etapa, junta, tolerancias,
+presupuestos, abiertos), rol del interesado (`--para`: rol, contacto, RACI, lo que tiene a cargo y sus ítems del radar),
+decisiones de nivel junta, ejecutivo o capa de negocio, riesgos altos, issues y cambios pendientes, último EVM, artefactos
+aprobados (con su copia congelada), próxima puerta con sus bloqueos y condiciones (`puertas.py`) y los cinco primeros pasos
+del radar. Cada cifra cita su id o su archivo; a lo sumo 6.500 caracteres (≈ 2 páginas: las tablas se recortan con «… y N
+más»); el texto de los registros va en una línea, sin `|` ni etiquetas HTML. Escribe
+`03-control/reportes/<corte>-briefing-incorporacion[-ST-###].md` como borrador (`-` lo muestra en pantalla) y no lo
+registra: si se distribuye, `estado.py artefacto briefing-<fecha> --ruta … --estado en-revision`. Nunca muestra actitudes ni
+valoraciones de interesados. Para un agente, `--json` da los totales y el resumen; el Markdown es la lectura completa.
+
+## 10. Estado de productos (product status account)
+`estado.py --proyecto <dir> productos [--corte AAAA-MM-DD] [--fuente auto|backlog|wbs] [--alcance proyecto|WP-###|<release o iteración>|<código WBS>] [--max 40] [--json | --markdown [RUTA]]`,
+de solo lectura: el registro de productos de PRINCE2 (A13) derivado de `backlog.csv` o `wbs.csv`, `calidad.csv`, `issues.csv`,
+las aceptaciones de `estado.json` y los paquetes de trabajo (descripción y recepción), sin registro propio. Regla de
+estados, convención de citas, corte y Must sin aceptar: guía de `pm-paquetes-trabajo` §5 (fuente única). La misma
+función alimenta QUA-04 de la sanidad (productos de la WBS) y C-07 de `autorizar-cierre` (`docs/PUERTAS.md` §3).

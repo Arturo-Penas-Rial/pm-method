@@ -24,9 +24,9 @@ Scripts: `${CLAUDE_PLUGIN_ROOT}/skills/pm-estado-proyecto/scripts/estado.py` y `
 ### SU (pre-proyecto)
 1. `pm-estado-proyecto` — crear el proyecto si no existe (`nuevo_proyecto.py`) y `estado.py siguiente`.
 2. `pm-bmad-puente` — si hay BMAD: `bmad.py detectar` e `inventario`; el brief de producto BMAD es insumo del brief.
-3. `pm-mandato-y-brief` — mandato, lecciones previas, brief, visión, enfoque de entrega.
+3. `pm-mandato-y-brief` — mandato, lecciones previas, brief, visión, enfoque de entrega. Lecciones de otros proyectos: `pm-lecciones-aprendidas` (`lecciones.py buscar`, solo lectura; la incorporación con `--confirmar --por` va en el bloque de retorno como decisión del gestor).
 4. `pm-organizacion-roles` — junta, gestor, aseguramiento, autoridad de cambio, PO y cadencia si es ágil.
-4b. `pm-interesados` — maestro de interesados, matriz poder/interés con estrategia, estereotipos; entrevistas para preferencias.
+4b. `pm-interesados` — maestro de interesados, matriz poder/interés con estrategia, estereotipos; entrevistas para preferencias; personas de usuario y su mapa con requisitos y épicas (`interesados.py personas`).
 5. `pm-caso-de-negocio` — business case esquemático con objetivos de negocio (OBJ-n) y beneficios (B-nn).
 5b. `pm-mapas-estrategicos` — si hay que decidir qué construir o comprar, o entender la experiencia de quien usa el servicio: mapa de Wardley de los entregables y recorrido del cliente; inercias y dolores pasan a riesgos, requisitos o supuestos.
 6. `pm-riesgos` — riesgos iniciales con P×I y propietario.

@@ -52,36 +52,23 @@ Está instalada si figura en el listado de skills de la sesión con cualquiera d
 - **Canvas de arranque**: `templates/canvas-arranque.html` con los campos del brief (contenido en `01-inicio/canvas-arranque.md` de `pm-mandato-y-brief`). Cada valor que reemplaza un `{{marcador}}` se escapa antes (`&`, `<`, `>` y comillas; en Python, `html.escape(valor)`): el texto del brief es dato, no HTML.
 
 ## 3. Tablero de avance: inyección de datos
-HTML autocontenido (sin red ni librerías; SVG generado en la página). Todo el contenido variable vive en un único bloque `<script type="application/json" id="datos-tablero">`; no se editan celdas: se arma el JSON y se reemplaza el bloque.
+HTML autocontenido (sin red ni librerías; SVG generado en la página). Todo el contenido variable vive en un único bloque `<script type="application/json" id="datos-tablero">`; no se editan celdas ni se arma el JSON a mano: lo arma el script, con las mismas reglas y cifras que el highlight del período.
 
-```python
-import json, re, subprocess, pathlib
-P = "<dir>"; S = "<pm-estado-proyecto>/scripts"; T = "<pm-visuales>/templates/tablero-avance.html"
-def reg(*a):
-    r = subprocess.run(["python3", f"{S}/registro.py", "--proyecto", P, *a, "--json"], capture_output=True, text=True, check=True)
-    return json.loads(r.stdout)
-e = json.load(open(f"{P}/estado.json", encoding="utf-8"))
-datos = {"proyecto": e["proyecto"], "etapa": e["etapa_actual"]["nombre"], "enfoque_entrega": e["enfoque_entrega"],
-         "idioma": e["idioma"], "estado": "borrador", "fecha_corte": "AAAA-MM-DD",
-         "periodo_desde": "...", "periodo_hasta": "...", "proximo_hasta": "...",
-         "riesgos": reg("listar", "riesgos", "--abiertos"), "issues": reg("listar", "issues", "--abiertos"),
-         "acciones": reg("listar", "acciones"), "resumen_registros": reg("resumen", "--corte", "AAAA-MM-DD"),
-         "umbrales_riesgo": {"alto": 15, "medio": 6},
-         "objetivos": [...], "hitos": [...], "decisiones_pendientes": [...],   # del highlight y de evm.py --json
-         "agil": {"iteraciones": [...], "ventana_velocidad": 3, "fecha_fija": "", "fecha_pronostico": "", "must_en_riesgo": []},
-         "comentario_gestor": "...", "fuentes": "...", "fecha_generacion": "AAAA-MM-DD", "confirmado_por": ""}
-html = pathlib.Path(T).read_text(encoding="utf-8")
-bloque = json.dumps(datos, ensure_ascii=False).replace("<", "\\u003c")   # ni </script> ni <!-- pueden cortar el bloque
-html = re.sub(r'(<script type="application/json" id="datos-tablero">)(.*?)(</script>)',
-              lambda m: m.group(1) + bloque + m.group(3), html, count=1, flags=re.S)
-pathlib.Path(f"{P}/03-control/reportes/AAAA-MM-DD-tablero-avance.html").write_text(html, encoding="utf-8")
+```bash
+python3 ${CLAUDE_SKILL_DIR}/../pm-estado-proyecto/scripts/estado.py --proyecto <dir> periodo --desde AAAA-MM-DD --corte AAAA-MM-DD \
+  --proximo AAAA-MM-DD --juicio <dir>/03-control/reportes/AAAA-MM-DD-juicio-gestor.json --tablero
 ```
 
+- Escribe `03-control/reportes/<corte>-tablero-avance.html` (o la ruta de `--tablero RUTA`) y lo registra como `tablero-avance`, `en-revision`. No reescribe una versión aprobada.
+- Toma de los datos: riesgos e issues abiertos y acciones (filas de los CSV tal cual), `registro.py resumen --corte`, `estado.json.umbrales_riesgo` (nunca 15/6 fijos), el último corte de EVM del período y `avance-bmad.csv`.
+- Semáforos por regla (tiempo, costo, riesgo, calidad y, con `--modo agil`, alcance): `pm-progreso-reportes/references/guia.md` §14. El juicio del gestor (JSON, misma guía §14) aporta los objetivos sin regla, notas, hitos, decisiones, nombre y plan de cada iteración y el comentario; puede empeorar un semáforo derivado, nunca mejorarlo.
+- Escape único: todo `<` del JSON va como `\u003c`, de modo que ni `</script>` ni `<!--` de un texto de los registros cortan el bloque.
+
 Campos:
-- `objetivos[]` = `{clave: tiempo|costo|alcance|calidad|beneficios|riesgo|sostenibilidad, pronostico, tol_etapa, tol_proyecto, rag: verde|ambar|rojo|na}`. Tiempo y costo copian `semaforo_cronograma` y `semaforo_costo` de `evm.py`; con `--modo agil` salen `n/a-agil` → `rag: na` y `semaforo_alcance` en alcance.
+- `objetivos[]` = `{clave: tiempo|costo|alcance|calidad|beneficios|riesgo|sostenibilidad, pronostico, tol_etapa, tol_proyecto, rag: verde|ambar|rojo|na, base: regla|regla+juicio|juicio|sin-dato}`. Tiempo y costo copian `semaforo_cronograma` y `semaforo_costo` del corte de EVM (tolerancia de etapa = la del corte); con `--modo agil` salen `n/a-agil` y alcance toma `semaforo_alcance`. Las tolerancias salen de `estado.json` (el juicio solo completa las vacías).
 - `hitos[]` = `{hito, base, actual, var_dias, rag, comentario}`.
 - `decisiones_pendientes[]` = `{id, texto, fecha_limite}` (id del registro que origina la decisión, p. ej. R-001 o C-002).
-- `agil.iteraciones[]` = `{nombre, planificado, terminado, alcance_total, terminado_acumulado}`; con BMAD, una iteración por fila de `03-control/reportes/avance-bmad.csv` (`alcance_total` = `puntos_total`, `terminado_acumulado` = `puntos_terminados`). La sección ágil se muestra con `enfoque_entrega` `agil`/`hibrido` o si hay iteraciones.
+- `agil.iteraciones[]` = `{nombre, planificado, terminado, alcance_total, terminado_acumulado}`; con BMAD, los puntos salen de `03-control/reportes/avance-bmad.csv` (`alcance_total` = `puntos_total`, `terminado_acumulado` = `puntos_terminados`, `terminado` = diferencia con la iteración anterior). Por defecto, una iteración por fila con `planificado` = `estado.json.agil.velocidad_referencia`; el juicio elige qué cortes cierran una iteración y su nombre y plan. La sección ágil se muestra con `enfoque_entrega` `agil`/`hibrido` o si hay iteraciones.
 - `riesgos`, `issues`, `acciones`: filas de los CSV tal cual (las usan el mapa de calor, las tablas y la vista por actor).
 - Acciones vencidas con la misma fecha de corte del tablero (`registro.py resumen --corte <fecha>`).
 - `estado: "aprobado"` (quita la marca BORRADOR) solo tras la confirmación del gestor.

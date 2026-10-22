@@ -1,4 +1,4 @@
-# Plan de piloto · pm-method 2.3
+# Plan de piloto · pm-method 2.4
 
 Cómo pasar de "probado en laboratorio" a "útil en un proyecto real" con evidencia medible, sin poner en riesgo el
 proyecto. EN: *pilot plan with metrics, expert review rubric and usability test.*

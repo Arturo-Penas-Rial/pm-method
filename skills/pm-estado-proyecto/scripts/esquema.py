@@ -78,9 +78,18 @@ REGISTROS = {
     "lecciones": {
         "prefijo": "L", "estado_inicial": "registrada",
         "columnas": ["id", "fecha", "etapa", "categoria", "situacion", "efecto", "recomendacion", "prioridad",
-                     "responsable_seguimiento", "estado", "notas"],
+                     "responsable_seguimiento", "estado", "notas", "origen", "etiquetas",
+                     "impacto", "recurrencia", "aplicar_en", "accion", "verificar_en", "verificacion"],
+        # origen: "<proyecto> · L-### · fecha" de una lección previa traída de otro proyecto (lecciones.py incorporar);
+        # sus textos citan ids de ese proyecto, por eso REG-08 no revisa las filas con origen. etiquetas: "a;b" (búsqueda).
+        # Ciclo (pm-lecciones-aprendidas, lecciones.py): registrada (identificada) → revisada (clasificada: impacto,
+        # recurrencia, aplicar_en) → accionada-proyecto|accionada-organizacion (accion: ids o artefacto; verificar_en:
+        # fecha para comprobar el efecto) → verificada (verificacion: fecha, resultado y evidencia) o descartada con motivo.
         "valores": {"prioridad": ["", "alta", "media", "baja"],
-                    "estado": ["registrada", "revisada", "accionada-proyecto", "accionada-organizacion", "descartada"]},
+                    "impacto": ["", "alto", "medio", "bajo"], "recurrencia": ["", "alta", "media", "baja"],
+                    "estado": ["registrada", "revisada", "accionada-proyecto", "accionada-organizacion", "verificada", "descartada"]},
+        # columnas con varios valores separados por «;» (registro.py y sanidad REG-05 validan cada uno)
+        "multivalor": {"aplicar_en": ["ideacion", "descubrimiento", "planificacion", "seguimiento"]},
         "abiertos": ["registrada", "revisada"],
     },
     "stakeholders": {
@@ -140,6 +149,18 @@ REGISTROS = {
                     "estado": ["pendiente", "simulado", "enviado", "fallido", "cancelado"]},
         "abiertos": ["pendiente", "fallido"],
     },
+    # personas de usuario (arquetipos que usan, piden o se benefician de las capacidades; no son interesados ni estereotipos
+    # de comunicación). solicita/usa/beneficia: ids de requisitos, épicas, historias o productos de la WBS separados por «;»;
+    # beneficios: B-##/DB-## del business case. Dueña pm-interesados (interesados.py personas).
+    "personas": {
+        "prefijo": "PU", "estado_inicial": "activa", "opcional": True, "refs": {"stakeholder_id": "stakeholders"},
+        "columnas": ["id", "nombre", "descripcion", "objetivo", "dolores", "contexto_uso", "fuente", "evidencia", "stakeholder_id",
+                     "solicita", "usa", "beneficia", "beneficios", "estado", "notas"],
+        "valores": {"fuente": ["", "entrevista", "bmad-uj", "encuesta", "observacion", "documento", "supuesto"],
+                    "estado": ["activa", "retirada"]},
+        "abiertos": ["activa"],
+        "catalogo": True,
+    },
     "calidad": {
         "prefijo": "Q", "estado_inicial": "planificada",
         "columnas": ["id", "producto", "metodo_verificacion", "criterios", "responsable_productor", "revisores",
@@ -162,8 +183,8 @@ REGISTROS = {
 # Alias en inglés aceptados al registrar (se guardan en el valor canónico en español).
 ALIAS_EN = {
     "threat": ["amenaza"], "opportunity": ["oportunidad"],
-    "open": ["abierto", "abierta"], "closed": ["cerrado"], "in-progress": ["en-curso", "en-accion"], "monitoring": ["en-seguimiento"],
-    "escalated": ["escalado"], "occurred": ["ocurrido"], "retired": ["retirado"], "resolved": ["resuelto"],
+    "open": ["abierto", "abierta"], "closed": ["cerrado"], "in-progress": ["en-curso", "en-accion"], "monitoring": ["en-seguimiento", "seguimiento"],
+    "escalated": ["escalado"], "occurred": ["ocurrido"], "retired": ["retirado", "retirada"], "resolved": ["resuelto"],
     "done": ["completada"], "completed": ["completada"], "cancelled": ["cancelada"], "planned": ["planificada"],
     "high": ["alto", "alta"], "medium": ["medio", "media"], "low": ["bajo", "baja"], "urgent": ["urgente"],
     "critical": ["critica"], "major": ["mayor"], "minor": ["menor"], "informational": ["informativa"],
@@ -176,9 +197,12 @@ ALIAS_EN = {
     "assumption": ["supuesto"], "constraint": ["restriccion"], "yes": ["si"], "no": ["no"],
     "leading": ["lider"], "supportive": ["partidario"], "neutral": ["neutral"], "resistant": ["resistente"], "unaware": ["desconocedor"],
     "review": ["revision"], "test": ["prueba"], "inspection": ["inspeccion"], "demonstration": ["demostracion"], "audit": ["auditoria"],
-    "registered": ["registrada"], "reviewed": ["revisada"],
+    "registered": ["registrada"], "reviewed": ["revisada"], "verified": ["verificada"], "discarded": ["descartada"],
+    "ideation": ["ideacion"], "discovery": ["descubrimiento"], "planning": ["planificacion"],
     "proposed": ["propuesta"], "confirmed": ["confirmada"], "expired": ["vencida"], "declared": ["declarado"], "observed": ["observado"],
-    "inferred": ["inferido"], "active": ["activo"], "sent": ["enviado"], "simulated": ["simulado"], "failed": ["fallido"], "pending": ["pendiente"],
+    "inferred": ["inferido"], "active": ["activo", "activa"], "sent": ["enviado"],
+    "interview": ["entrevista"], "survey": ["encuesta"], "observation": ["observacion"],
+    "simulated": ["simulado"], "failed": ["fallido"], "pending": ["pendiente"],
     "email": ["correo"], "meeting": ["reunion"], "call": ["llamada"], "dashboard": ["tablero"], "document": ["documento"],
     "manage-closely": ["gestionar-de-cerca"], "keep-satisfied": ["mantener-satisfecho"], "keep-informed": ["mantener-informado"], "monitor": ["monitorear"],
     "bottom-line-up-front": ["conclusion-primero"], "narrative": ["narrativa"], "data": ["datos"], "visual": ["visual"], "list": ["lista"],
@@ -193,7 +217,7 @@ UMBRAL_RIESGO_ALTO = 15   # 15–25 alto
 UMBRAL_RIESGO_MEDIO = 6   # 6–12 medio; 1–5 bajo
 
 # ---------------------------------------------------------------- estado.json
-VERSION_PAQUETE = "2.3.0"          # debe coincidir con .claude-plugin/plugin.json y compatibilidad.json
+VERSION_PAQUETE = "2.4.0"          # debe coincidir con .claude-plugin/plugin.json y compatibilidad.json
 FASES = ["pre-proyecto", "inicio", "entrega", "cierre", "cerrado"]
 PROCESOS = ["SU", "IP", "CS", "SB", "CP"]          # DP y MP son continuos (junta y equipos), no "estado actual"
 DIMENSIONES_TOLERANCIA = ["tiempo", "costo", "alcance", "calidad", "beneficios", "riesgo", "sostenibilidad"]

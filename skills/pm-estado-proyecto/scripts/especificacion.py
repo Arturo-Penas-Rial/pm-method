@@ -53,12 +53,24 @@ def indice_nativo(p):
     reqs = []
     pr = os.path.join(p, "02-planificacion", "requisitos.md")
     if os.path.exists(pr):
+        pos = {}   # columnas por encabezado de la tabla (Interesado, Categoría, Prioridad, Estado); sin encabezado, el orden de la plantilla
         for i, l in enumerate(open(pr, encoding="utf-8"), 1):
+            cab = [c.strip().split("/")[0].strip().lower() for c in l.strip().strip("|").split("|")] if l.lstrip().startswith("|") else []
+            if cab and cab[0] in ("id", "ids") and len(cab) >= 3:
+                pos = {}
+                for j, c in enumerate(cab):
+                    for k, pref in (("interesado", ("interesado", "stakeholder", "solicitante")), ("categoria", ("categor",)),
+                                    ("prioridad", ("prioridad", "priority")), ("estado_req", ("estado", "status"))):
+                        if c.startswith(pref) and k not in pos: pos[k] = j
+                continue
             m = re.match(r"^\|\s*(REQ-?\d+)\s*\|\s*([^|]*)\|\s*([^|]*)\|\s*([^|]*)\|\s*([^|]*)\|", l)
             if m and "{{" not in l:
                 mm = REQ.match(m.group(1)); cols = [c.strip() for c in l.strip().strip("|").split("|")]
+                celda = lambda k: cols[pos[k]] if k in pos and pos[k] < len(cols) else ""
                 reqs.append({"id": norm(mm.group(1), mm.group(2)), "tipo": "REQ", "titulo": m.group(2).strip()[:200], "fuente": "02-planificacion/requisitos.md",
-                             "linea": i, "categoria": m.group(4).strip(), "prioridad": m.group(5).strip(), "estado_req": cols[-1] if len(cols) >= 10 else ""})
+                             "linea": i, "interesado": celda("interesado") if pos else m.group(3).strip(),
+                             "categoria": celda("categoria") if pos else m.group(4).strip(), "prioridad": celda("prioridad") if pos else m.group(5).strip(),
+                             "estado_req": celda("estado_req") if pos else (cols[-1] if len(cols) >= 10 else "")})
     hist, wref = [], {}
     pw = os.path.join(p, "02-planificacion", "wbs.csv")
     if os.path.exists(pw):

@@ -1,4 +1,4 @@
-// Informe 2 · PPTX. Uso: node build_pptx.js  (lee data.json y diagramas/*.png; escribe salida-v2.3/informe-2-ecosistema-pm-method-v2.3.pptx)
+// Informe 2 · PPTX. Uso: node build_pptx.js  (lee data.json y diagramas/*.png; escribe salida-<versión>/informe-2-ecosistema-pm-method-<versión>.pptx; versión = meta.version de narrativa.json)
 const pptxgen = require("pptxgenjs");
 const fs = require("fs");
 const path = require("path");
@@ -9,7 +9,7 @@ const { applyTheme } = APPLY_THEME ? require(APPLY_THEME) : { applyTheme: async 
 const D = JSON.parse(fs.readFileSync("data.json", "utf8"));
 const X = D.x;
 const CIF = X.cifras;
-const VER = D.meta.version;                       // "v2.3"
+const VER = D.meta.version;                       // "v2.4"
 const DIR = "salida-" + VER;
 fs.mkdirSync(DIR, { recursive: true });
 const SALIDA = `${DIR}/informe-2-ecosistema-pm-method-${VER}.pptx`;
@@ -267,6 +267,52 @@ const indicador = (re) => {
   throw new Error("No hay en las guías E2E una imagen de indicadores que coincida con " + re);
 };
 const GIMG = "docs/guias/img/";
+// ---- Capacidades para decidir y controlar de forma continua: figura real de la guía E2E + tarjetas + salida real ----
+const EV = X.ev24;
+const fig = img => { const f = X.guias_figuras[img]; if (!f) throw new Error("Las guías E2E no citan la figura " + img); return Object.assign({ ruta: "../../guias/img/" + img }, f); };
+const evFuente = (img, extra) => { const f = fig(img); return `Salida real: docs/guias/evidencia/salida-g${f.guia.slice(-1)}.md` + (extra ? ` (${extra})` : ""); };
+// tarjetas a la derecha (alto repartido) y, a la izquierda, la figura con su lectura o con un extracto de la salida
+function slideCapacidad(titulo, img, cards, o = {}) {
+  const s = slide(S2); s.addText(titulo, { placeholder: "title" });
+  const f = fig(img);
+  const r = imagen(s, f.ruta, 0.5, 1.35, 6.3, 3.6, `${f.guia}${f.paso ? " · paso " + f.paso : ""} · ${GIMG}${f.img}`, "left");
+  const y0 = 1.35 + r.h + 0.42, hh = 6.85 - y0;
+  if (o.codigo) codeBox(s, o.codigo, 0.5, y0, 6.3, hh, 9.5, 8.5);
+  else tb(s, runs(f.lectura, { fontSize: fitSize(f.lectura, 6.3, hh, 11.5, 9.5) }), { x: 0.5, y: y0, w: 6.3, h: hh });
+  const k = cards.length, gap = 0.09, ch = (5.5 - gap * (k - 1)) / k;
+  cards.forEach((c, i) => {
+    const dark = i === k - 1, alt = i === k - 2;
+    card(s, 7.05, 1.35 + i * (ch + gap), 5.78, ch, c.t, c.d, { fill: dark ? NAVY : (alt ? ORTINT : BLUETINT), titleColor: dark ? WHITE : (alt ? ORANGE : NAVY),
+      bodyColor: dark ? WHITE : CHAR, codeColor: dark ? "CFE3F3" : NAVY, maxSize: k > 3 ? 10.5 : 11.5, minSize: 9, titleSize: 12, titleH: 0.3 });
+  });
+  return s;
+}
+// salida real: bloques apilados en una columna, con alto proporcional a las líneas que ocupan
+function columnaSalida(s, bloques, x, w, y = 1.35, h = 5.1) {
+  const cpl = (w - 0.3) * 72 / (9 * 0.6);
+  const vis = b => b.code.split("\n").reduce((a, l) => a + Math.max(1, Math.ceil(l.length / cpl)), 0) + 1.6;
+  const tot = bloques.reduce((a, b) => a + vis(b), 0), lab = 0.3, util = h - bloques.length * (lab + 0.08);
+  const necesita = b => (vis(b) - 1.6) * 9.5 * 1.22 / 72 + 0.3;
+  let yy = y;
+  bloques.forEach(b => {
+    const hb = Math.min(util * vis(b) / tot, necesita(b));
+    tb(s, b.t, { x, y: yy, w, h: lab, fontSize: 11.5, bold: true, color: NAVY });
+    codeBox(s, b.code, x, yy + lab, w, hb, 9.5, 8);
+    yy += lab + hb + 0.08;
+  });
+  return yy;
+}
+function slideSalida(titulo, columnas, nota, debajo) {
+  const s = slide(S2); s.addText(titulo, { placeholder: "title" });
+  const n2 = columnas.length, w = n2 === 1 ? 12.33 : 6.06;
+  const fin = Math.max(...columnas.map((bl, i) => columnaSalida(s, bl, 0.5 + i * 6.27, w)));
+  if (debajo) debajo(s, fin + 0.1, 6.4 - fin - 0.1);
+  tb(s, runs(nota, { fontSize: 9.5, color: GRAY }), { x: 0.5, y: 6.5, w: 12.33, h: 0.4 });
+  return s;
+}
+const lineas = (code, re) => code.split("\n").filter((l, i) => i === 0 || re.test(l)).join("\n");
+const hasta = (code, re) => { const ls = code.split("\n"); const k = ls.findIndex(l => re.test(l)); return (k > 0 ? ls.slice(0, k) : ls).join("\n"); };
+
 mark("2 · Capacidades de gestión");
 {
   const s = slide(S2); s.addText("2 · Validar antes de invertir: supuestos, experimentos y P-11", { placeholder: "title" });
@@ -341,6 +387,8 @@ tablaSlides(S2, "2 · Topes de contexto medidos", X.pru_contexto.cab, T(X.pru_co
   card(s, 7.95, 3.2, 4.88, 1.7, P[3].t, P[3].d, { fill: BLUETINT, maxSize: 11 });
   card(s, 7.95, 5.0, 4.88, 1.85, P[5].t, P[5].d, { fill: NAVY, titleColor: WHITE, bodyColor: WHITE, codeColor: "CFE3F3", maxSize: 11 });
 }
+// personas de usuario (figura de la variante con BMAD de E2E-5)
+slideCapacidad("2 · Personas de usuario y capacidad × persona (interesados.py personas)", "g5-personas-mapa-bmad.png", V.personas);
 {
   const s = slide(S2); s.addText("2 · Capa de canales (envios.py): modos y flujo", { placeholder: "title" });
   imagen(s, "diagramas/canales.png", 0.5, 1.3, 12.33, 2.05, "Fuente: docs/INTEGRACIONES.md §3.2 (diagrama Mermaid del paquete)");
@@ -360,6 +408,55 @@ tablaSlides(S2, "2 · Riesgos candidatos desde cuatro fuentes (riesgos.py candid
   X.g1_fuentes.filas.map((f, k) => f.concat([{ t: V.riesgos_cifras[k], st: { bold: true, color: BLUE } }])), [2.3, 1.3, 3.9, 2.4, 2.43], { size: 12, top: 2.35, introRepeat: false,
   intro: V.riesgos_intro, introSize: 11.5, estilos: [{ bold: true, color: NAVY }, {}, {}, { color: GRAY }],
   nota: "Fuente: docs/guias/E2E-1-riesgos.md (pasos " + [...new Set(X.g1_fuentes.filas.map(f => f[1].replace(/^paso /, "")))].join(", ") + "), «Cobertura de fuentes de identificación» y evidencia/salida-g1.md. BMAD se lee solo a través de pm-bmad-puente." });
+
+mark("2 · Decidir con opciones, impacto y radar");
+slideCapacidad("2 · Opciones de respuesta y plan de contingencia (riesgos.py opciones)", "g1-opciones-valor-neto.png", V.opciones);
+slideSalida("2 · Opciones de respuesta: salida real y decisión del propietario", [[
+  { t: "Opciones de los riesgos altos, ordenadas por valor neto (E2E-1, paso 6a)", code: EV.opciones },
+  { t: "El propietario elige la recomendada para R-003; falta el plan de contingencia (REG-10)", code: EV.elegir }]],
+  evFuente("g1-opciones-valor-neto.png", "pasos 6a y 6b") + ". La decisión queda en decisiones.csv con las opciones consideradas; el plan de contingencia se activa en el paso 13.");
+{
+  const p7 = X.g1_presupuesto_md.split(/(?<=\.) (?=[A-Z`])/).slice(0, 2).join(" ");
+  slideCapacidad("2 · Presupuesto de riesgo y reserva de gestión para lo no identificado", "g1-consumo-reserva.png", V.reserva.concat([{ t: "En la guía E2E-1, paso 7", d: p7 }]));
+}
+slideCapacidad("2 · Radar de atención y briefing de incorporación (estado.py radar · briefing)", "g3-radar.png", V.radar);
+slideSalida("2 · Radar de atención: salida real al retomar la sesión", [[
+  { t: "Línea del radar (la que agrega el hook de inicio)", code: EV.radar_linea },
+  { t: "Radar completo al 8/1 (E2E-3, paso 10a)", code: EV.radar },
+  { t: "Briefing para la integrante nueva de la junta", code: EV.briefing }]],
+  evFuente("g3-radar.png", "paso 10a") + ". El radar ordena; decide quien figura en cada ítem.");
+slideCapacidad("2 · Highlight y tablero desde el dato (estado.py periodo)", "g3-highlight-indicadores.png", V.periodo);
+{
+  const G3 = X.guias_controles["E2E-3"], f = G3.filas.find(x => /^Informe de aspectos destacados/.test(x[0]));
+  slideSalida("2 · Cadena de reporte: una cifra que no coincide con el EVM guardado", [
+    [{ t: "Primer borrador, con el CPI escrito de memoria: DIFIERE", code: EV.verificar }],
+    [{ t: "Con la cifra corregida: 0 difieren", code: EV.verificar_ok }]],
+    evFuente("g3-highlight-indicadores.png", "paso 10b") + "; la tabla de abajo es «Del uso único al control continuo» de docs/guias/E2E-3.",
+    (s, y, h) => {
+      card(s, 0.5, y, 6.06, h, G3.cab[1], f[1], { fill: ORTINT, titleColor: ORANGE, maxSize: 13 });
+      card(s, 6.77, y, 6.06, h, G3.cab[2], f[2], { fill: NAVY, titleColor: WHITE, bodyColor: WHITE, codeColor: "CFE3F3", maxSize: 13 });
+    });
+}
+slideCapacidad("2 · Estado de productos y cierre verificado por id (estado.py productos · C-03 · C-07)", "g4-cierre.png", V.productos);
+slideSalida("2 · Estado de productos y cierre: salida real", [[
+  { t: "Release 1 al 26/2: lo registrado contra lo físico (E2E-4, paso 6)", code: hasta(EV.productos, /^Detalle:/) },
+  { t: "Primera verificación de autorizar-cierre (E2E-4, paso 9)", code: EV.cierre }]],
+  evFuente("g4-cierre.png", "pasos 6 y 9") + ". La junta decide el cierre con los faltantes a la vista.");
+slideCapacidad("2 · Acuerdos de reunión con cita (extraccion.py)", "g3-candidatos-reunion.png", V.reuniones);
+slideSalida("2 · Acuerdos de reunión: candidatos, confirmación y registro", [[
+  { t: "Candidatos del taller (E2E-3, paso 8)", code: EV.candidatos },
+  { t: "Una instrucción incrustada no se registra", code: EV.registrar_no },
+  { t: "Lo confirmado entra a los registros", code: EV.registrar }]],
+  evFuente("g3-candidatos-reunion.png", "paso 8") + ". Nada se registra sin `--confirmar` y `--por`.");
+slideCapacidad("2 · Ciclo de las lecciones y lecciones de otros proyectos (lecciones.py)", "g4-lecciones-ciclo.png", V.lecciones);
+slideCapacidad("2 · Análisis de impacto antes del cambio (impacto.py)", "g2-impacto-c002.png", V.impacto);
+slideSalida("2 · Análisis de impacto de C-002: salida real", [[{ t: "impacto.py analizar C-002 (E2E-2, paso 10)", code: EV.impacto }]],
+  evFuente("g2-impacto-c002.png", "paso 10") + ". La decisión la toma la junta; el script no escribe registros.");
+slideCapacidad("2 · Tres valores, reserva y capacidad del release (cpm.py · release.py)", "g2-capacidad-release.png", V.estimacion,
+  { codigo: "$ cpm.py …/actividades.csv … --estimacion …/estimacion-pert.csv   (E2E-2, paso 3)\n" + lineas(EV.cpm, /^(Duración total|Tres valores|σ del camino|Reserva de cronograma)/).split("\n").slice(1).join("\n") });
+slideCapacidad("2 · Expediente de auditoría verificable (paquete.py auditoria · verificar)", "g4-expediente.png",
+  V.auditoria.concat([{ t: "En la guía E2E-4, paso 9b", d: fig("g4-expediente.png").lectura }]),
+  { codigo: [EV.aud_ok, EV.aud_falla].join("\n") });
 mark("2 · Controles permanentes");
 tablaSlides(S2, "2 · Controles permanentes: problema, control, código y dónde se ve", ["Problema habitual", "Control", "Código", "Dónde está el control", "Dónde se ve (guía · paso)"], V.controles.map((f, k) => f.concat([X.controles_donde[k]])),
   [3.05, 3.35, 1.35, 2.3, 2.28], { size: 10, top: 2.3, introRepeat: true, intro: V.controles_intro, introSize: 11,
@@ -960,6 +1057,10 @@ mark("14 · Casos de uso: un ejemplo por skill");
     intro: "Portal de autoservicio de una cooperativa · 7 meses · USD 180.000 · híbrido con BMAD v6. Personas ficticias; respuestas humanas simuladas. Detalle de cada caso (prompt del usuario, sus respuestas, entradas y cómo las aporta, salidas y dónde verificarlas, comandos que ejecuta el sistema, decisión): HTML §14.",
     introSize: 11, align: ["center"] });
 }
+tablaSlides(S13, "14 · " + X.casos_p7_titulo.replace(/ \(.*\)$/, "").replace(/^Parte 7 · /, "Parte 7: "),
+  X.casos_p7.cab, T(X.casos_p7).map(f => [f[0], f[1], f[2], f[3], f[4].replace(/\[([^\]]+)\]\([^)]*\)/g, "$1")]), [2.0, 3.6, 2.9, 2.0, 1.83], { size: 9.5, margin: 0.04, top: 1.95, introRepeat: true,
+  intro: X.casos_p7_intro, introSize: 10.5, estilos: [{ bold: true, color: NAVY }, {}, { color: BLUE }, {}, { color: GRAY }],
+  nota: "Fuente: docs/CASOS-DE-USO.md, parte 7. El número entre paréntesis es el id de la frase en docs/evaluacion/frases-enrutamiento.tsv." });
 {
   const s = slide(S13); s.addText("14 · Variantes: sin BMAD, ágil en inglés, con Jira y Teams", { placeholder: "title" });
   card(s, 0.5, 1.42, 4.0, 5.4, "A · Predictivo sin BMAD", "Renovación de red de 12 sucursales. `/pm-nuevo … predictivo`; requisitos en `requisitos.md` (REQ-###) y RTM; `especificacion.py` responde igual (proveedor pm-method); cronograma a MS Project con `cpm.py --mspdi`; EVM predictivo sin `bmad.py`; un cambio actualiza `requisitos.md` sin traspaso. Puertas, roles y regla de registro no cambian.", { fill: BLUETINT, maxSize: 12.5 });
@@ -1072,7 +1173,7 @@ const S16 = "17 · Pruebas y calidad"; pres.addSection({ title: S16 });
 mark("17 · Pruebas y calidad");
 tablaSlides(S16, "17 · Cinco niveles de prueba", X.pru_niveles.cab, T(X.pru_niveles), [2.6, 5.1, 2.2, 2.43], { size: 12,
   estilos: [{ bold: true, color: NAVY }, {}, { color: GRAY }, {}], nota: "Fuente: docs/PRUEBAS.md §1." });
-tablaSlides(S16, "17 · Regresión determinista (probar_paquete.py): casos " + CIF.regresion_casos, X.pru_regresion.cab, T(X.pru_regresion), [2.6, 9.73], { size: 10,
+tablaSlides(S16, "17 · Regresión determinista (probar_paquete.py): " + X.pru_regresion.filas.length + " casos", X.pru_regresion.cab, T(X.pru_regresion), [2.6, 9.73], { size: 10,
   estilos: [{ bold: true, color: NAVY }, {}], nota: X.pru_regresion_res_md });
 mark("17 · Integración cruzada y recorridos E2E");
 tablaSlides(S16, `17 · Integración cruzada: seis cadenas, ${CIF.integ_eslabones} eslabones`, X.pru_integ.cab, T(X.pru_integ), [2.1, 4.3, 5.93], { size: 10, top: 2.05, introRepeat: false,
@@ -1087,7 +1188,7 @@ tablaSlides(S16, "17 · Recorridos E2E reproducibles (guias_e2e/correr.py)", X.p
   card(s, 6.77, 4.1, 6.06, 2.75, "Validación con el intérprete 3.9", "`validar_paquete.py`:\n" + X.validar_salida.split("\n").filter(l => /^Python 3\.9|^OK|^ERROR/.test(l)).join("\n"), { fill: BLUETINT, maxSize: 12 });
 }
 {
-  const s = slide(S16); s.addText("17 · Pruebas en vivo con Claude Code real (" + FECHA_P + ")", { placeholder: "title" });
+  const s = slide(S16); s.addText("17 · Pruebas en vivo con Claude Code real", { placeholder: "title" });
   bulletsBox(s, ["`vivo.py`: arnés de bajo nivel. `Sesion(cwd).turno(prompt)` ejecuta `claude -p … --plugin-dir <repo> --output-format stream-json` y devuelve skills, agentes, comandos Bash, escrituras, negaciones de hooks, texto, costo y los tokens de entrada de cada llamada.",
     "`suite.py`: construye un proyecto de prueba desde el fixture BMAD 6.12.4 real y corre las suites `enrutamiento`, `guardarrailes` e `idioma`, los escenarios de robustez y el escenario `integracion`.",
     "**enrutamiento:** cada frase del TSV (id, frase, skill esperada, aceptables); compara la primera skill elegida y corta la sesión apenas elige.",
@@ -1095,7 +1196,7 @@ tablaSlides(S16, "17 · Recorridos E2E reproducibles (guias_e2e/correr.py)", X.p
     "**integracion:** con las skills de BMAD instaladas, recorrido UJ-2 y riesgos desde el PRD; verifica los topes de contexto de cada llamada."], 0.5, 1.4, 7.2, 3.6, 12);
   codeBox(s, "suite.py enrutamiento --ids 1,18,26 --par 4      # subconjunto\nsuite.py todo --salida ./pruebas-vivo            # ≈ USD 5–8\nsuite.py robustez --salida ./pruebas-robustez    # ≈ USD 4\nsuite.py integracion --skills-extra <…>/.claude/skills", 0.5, 5.0, 7.2, 1.25, 10, 9);
   tb(s, runs("Comandos en `scripts/pruebas_vivo/`; informe en `<salida>/INFORME.md`; código de salida 1 si alguna prueba falla.", { fontSize: 11, color: GRAY }), { x: 0.5, y: 6.35, w: 7.2, h: 0.5 });
-  [[CIF.vivo_contexto, "enrutamiento con contexto", "14 frases variadas con el resumen de contexto en el hook de inicio"], [CIF.vivo_mapas, "mapas estratégicos", "frases 95–102, incluida la de control («mapa de stakeholders» sigue en pm-interesados)"], [CIF.vivo_integracion, "integración con BMAD instalado", "1.ª llamada " + CIF.vivo_tokens_primera + " tokens · máximo " + CIF.vivo_tokens_max + " · USD " + CIF.vivo_usd + " (dos corridas)"]].forEach((k, i) => {
+  [[CIF.vivo24_ok + "/" + CIF.vivo24_total, "capacidades de " + CIF.version, "frases " + CIF.vivo24_desde + "–" + CIF.vivo24_hasta + " y de control, en " + CIF.vivo24_corridas + " corridas (" + CIF.vivo24_fechas + ")"], [CIF.vivo24_reg_ok + "/" + CIF.vivo24_reg_total, "regresión de enrutamiento", "frases existentes cercanas a las nuevas, repetidas tras cambiar las descripciones"], [CIF.vivo_integracion, "integración con BMAD instalado", "versión 2.3.0 (20/10/2026) · 1.ª llamada " + CIF.vivo_tokens_primera + " tokens · máximo " + CIF.vivo_tokens_max + " · USD " + CIF.vivo_usd]].forEach((k, i) => {
     const y = 1.4 + i * 1.84;
     s.addShape(pres.ShapeType.roundRect, { x: 8.0, y, w: 4.83, h: 1.7, fill: { color: NAVY }, rectRadius: 0.1, line: { color: NAVY } });
     tb(s, k[0], { x: 8.22, y: y + 0.1, w: 4.4, h: 0.6, fontSize: 30, bold: true, color: WHITE });
@@ -1239,14 +1340,18 @@ const S22 = "22 · Historial de versiones"; pres.addSection({ title: S22 });
 mark("22 · Historial de versiones");
 {
   const VS = D.versiones;
-  tablaSlides(S22, "22 · Versión " + CIF.version + ": antes y después", ["Indicador", "2.2.0", CIF.version, "Fuente"], VS.antes_despues_23,
+  const fechaDe = f => f.split("-").reverse().join("/");
+  tablaSlides(S22, "22 · Versión " + CIF.version + ": antes y después", ["Indicador", "2.3.0", CIF.version, "Fuente"], VS.antes_despues_24,
     [2.5, 2.6, 5.05, 2.18], { size: 9.5, top: 2.05, introRepeat: false, estilos: [{ bold: true, color: NAVY }, { color: GRAY }, { color: BLUE }, { color: GRAY }],
-    intro: "**" + CIF.version + " · " + X.chl23_fecha.split("-").reverse().join("/") + " — " + X.chl23_lema + ".** " + X.chl23_intro, introSize: 11 });
+    intro: "**" + CIF.version + " · " + fechaDe(X.chl24_fecha) + " — " + X.chl24_lema + ".** Cambios por área en las diapositivas siguientes; detalle completo en CHANGELOG.md.", introSize: 11 });
   // cambios de la versión por área (CHANGELOG), en una tabla de una columna con filas de grupo
   const filas = [];
-  X.chl23_grupos.forEach(g => { filas.push(["**" + g.t + "**"]); g.items.forEach(it => filas.push([it])); });
+  X.chl24_grupos.forEach(g => { filas.push(["**" + g.t + "**"]); g.items.forEach(it => filas.push([it])); });
   tablaSlides(S22, "22 · " + CIF.version + ": cambios por área (CHANGELOG)", ["Cambio"], filas, [12.33], { size: 10, grupo: 0, grupoRe: /^\*\*[^*]+\*\*$/, margin: 0.05,
-    nota: "Fuente: CHANGELOG.md, sección " + CIF.version + ". " + X.chl23_cifras });
+    nota: "Fuente: CHANGELOG.md, sección " + CIF.version + ". " + X.chl24_cifras });
+  tablaSlides(S22, "22 · Versión 2.3.0: antes y después (tal como se publicó)", ["Indicador", "2.2.0", "2.3.0", "Fuente"], VS.antes_despues_23,
+    [2.5, 2.6, 5.05, 2.18], { size: 9.5, top: 2.05, introRepeat: false, estilos: [{ bold: true, color: NAVY }, { color: GRAY }, { color: BLUE }, { color: GRAY }],
+    intro: "**2.3.0 · " + fechaDe(X.chl23_fecha) + " — " + X.chl23_lema + ".** Tabla tal como se publicó con la versión 2.3.0; las cifras vigentes están en el resto del informe.", introSize: 11 });
   tablaSlides(S22, "22 · Versión 2.2.0: " + X.chl22_lema, ["Indicador", "2.1.0", "2.2.0", "Fuente"], VS.antes_despues_22,
     [2.5, 2.4, 5.25, 2.18], { size: 9.5, top: 1.85, introRepeat: false, estilos: [{ bold: true, color: NAVY }, { color: GRAY }, { color: BLUE }, { color: GRAY }],
     intro: "**2.2.0 · 17/10/2026 — " + X.chl22_lema + ".** Tabla tal como se publicó con la versión 2.2.0; las cifras vigentes están en el resto del informe.", introSize: 11.5 });

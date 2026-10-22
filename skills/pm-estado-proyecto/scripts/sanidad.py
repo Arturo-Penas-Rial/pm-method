@@ -252,6 +252,9 @@ def chk_registros(proyecto, e, reparar, corte=None):
             for col, perm in spec.get("valores", {}).items():
                 v = f.get(col, "")
                 if v and v not in perm: add("ERROR", "REG-05", f"{reg} {i}: {col}='{v}' fuera del esquema.", f"Valores: {', '.join(x for x in perm if x)}")
+            for col, perm in spec.get("multivalor", {}).items():
+                malos = [x.strip() for x in re.split(r"[;,]", f.get(col, "") or "") if x.strip() and x.strip() not in perm]
+                if malos: add("ERROR", "REG-05", f"{reg} {i}: {col}='{'; '.join(malos)}' fuera del esquema.", f"Valores (uno o más, separados por ;): {', '.join(perm)}")
             for col in spec.get("enteros_1_5", []):
                 v = f.get(col, "")
                 if v and not (v.isdigit() and 1 <= int(v) <= 5): add("ERROR", "REG-05", f"{reg} {i}: {col}='{v}' no es 1–5.", "")
@@ -270,11 +273,26 @@ def chk_registros(proyecto, e, reparar, corte=None):
         if f.get("estado") in E.REGISTROS["riesgos"]["abiertos"] and f.get("fecha_revision") and f["fecha_revision"] < hoy:
             add("AVISO", "REG-09", f"Riesgo {f['id']} abierto con la revisión vencida ({f['fecha_revision']}; propietario: {f.get('propietario') or 'sin propietario'}).",
                 "Revisarlo con el propietario (pm-riesgos) y actualizar estado, evaluación y fecha_revision (registro.py actualizar riesgos R-… --campo fecha_revision=…).")
-    # referencias cruzadas entre registros (R-, I-, C-, D-, S-, L-, ST-, Q-, A-, ET-, PF-, RC-, EN-)
+    # REG-10: amenaza alta con respuesta sin opciones evaluadas, o aceptada sin disparador o plan de contingencia (pm-riesgos/riesgos.py)
+    if filas_por.get("riesgos"):
+        try:
+            sys.path.insert(0, os.path.normpath(os.path.join(AQUI, "..", "..", "pm-riesgos", "scripts"))); import riesgos as RK
+            for sev, cod, msg, arreglo in RK.controles(proyecto, e, filas_por["riesgos"]): add(sev, cod, msg, arreglo)
+        except BaseException as x:
+            add("AVISO", "REG-10", f"No se pudieron verificar las opciones de respuesta: {x}", "Revisar que pm-riesgos esté instalada junto a pm-estado-proyecto.")
+    # REG-11/REG-12: ciclo de las lecciones (impacto alto sin acción ni decisión; accionada sin verificar su efecto) (pm-lecciones-aprendidas/lecciones.py)
+    if filas_por.get("lecciones"):
+        try:
+            sys.path.insert(0, os.path.normpath(os.path.join(AQUI, "..", "..", "pm-lecciones-aprendidas", "scripts"))); import lecciones as LX
+            for sev, cod, msg, arreglo in LX.controles(filas_por["lecciones"], hoy, e.get("idioma", "es")): add(sev, cod, msg, arreglo)
+        except BaseException as x:
+            add("AVISO", "REG-11", f"No se pudo revisar el ciclo de las lecciones: {x}", "Revisar que pm-lecciones-aprendidas esté instalada junto a pm-estado-proyecto.")
+    # referencias cruzadas entre registros (R-, I-, C-, D-, S-, L-, ST-, Q-, A-, ET-, PF-, RC-, EN-, PU-)
     for reg, filas in filas_por.items():
         for f in filas:
+            if reg == "lecciones" and f.get("origen"): continue   # lección previa de otro proyecto: cita ids de su proyecto de origen
             texto = " ".join(str(v) for k, v in f.items() if k != "id")
-            for ref in set(re.findall(r"\b(?:R|I|C|D|S|L|ST|Q|A|ET|PF|RC|EN)-\d{3}\b", texto)):
+            for ref in set(re.findall(r"\b(?:R|I|C|D|S|L|ST|Q|A|ET|PF|RC|EN|PU)-\d{3}\b", texto)):
                 if ref not in ids_todos: add("AVISO", "REG-08", f"{reg} {f.get('id')} cita {ref}, que no existe.", "Corregir la referencia.")
     return filas_por
 
@@ -340,7 +358,7 @@ def chk_calidad(proyecto, e, filas_por, corte):
         for b in csv.DictReader(open(p, encoding="utf-8")):
             if (b.get("estado") or "").strip().lower() not in TERMINADO: continue
             bid = b.get("id", ""); corto = (re.match(r"^(\d+-\d+)(?:-|$)", bid) or [None, None])[1]
-            pat = re.compile(rf"(?<![\w-]){re.escape(bid)}(?![\w-])" + (rf"|(?<![\w.-]){re.escape(corto)}(?![\w.-]|\d)" if corto else ""))
+            pat = re.compile(rf"(?<![\w-]){re.escape(bid)}(?![\w-])" + (rf"|(?<![\w.-]){re.escape(corto)}(?![\w-]|\.\d|\d)" if corto else ""))   # «historia 1-2.» sí; «1-2.3» no
             rev = [f for f, t in texto_q if pat.search(t)]
             if not rev:
                 add("AVISO", "QUA-01", f"{bid}: terminado sin revisión de calidad registrada.", "pm-calidad: registrar la revisión (registro.py agregar calidad --campo producto=\"… historia N-M\") o aplicar el criterio de aceptación por lote.")
@@ -353,6 +371,18 @@ def chk_calidad(proyecto, e, filas_por, corte):
     for f in q:
         if f.get("resultado") == "rechazado" and not re.search(rf"\b{re.escape(f['id'])}\b", citados):
             add("AVISO", "QUA-03", f"Revisión {f['id']} rechazada sin issue, acción o cambio que la trate.", "pm-issues-cambios (fuera de especificación) o una acción correctiva que cite el Q-###.")
+    # QUA-04, el equivalente de QUA-01 para los productos de la WBS (proyectos predictivos): elemento aceptado
+    # (aceptacion-<código>) o con su paquete recibido sin revisión aprobada que lo cite («producto 3.1»); misma derivación que
+    # estado.py productos (registro de productos de PRINCE2, A13)
+    if os.path.exists(os.path.join(proyecto, "02-planificacion", "wbs.csv")):
+        try:
+            import estado as ESTADO_PY
+            dp = ESTADO_PY.productos(proyecto, e, corte, fuente="wbs", must=False)
+        except Exception:
+            dp = {"discrepancias": []}
+        for z in dp["discrepancias"]:
+            if z["control"] == "QUA-04":
+                add("AVISO", "QUA-04", f"Producto {z['producto']} de la WBS: {z['texto']}.", "pm-calidad: registrar la revisión que cite «producto <código>» (registro.py agregar calidad) o revisar la aceptación o la recepción.")
 
 def chk_tolerancias(proyecto, e, corte):
     xs = sorted(glob.glob(os.path.join(proyecto, "03-control", "reportes", "evm-[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9].json")))
@@ -484,9 +514,13 @@ ARREGLO_STK = {
     "STK-06": "Asignarle un rol en la RACI de los elementos clave (A, R o C).",
     "STK-07": "Revisar el envío: envios.py enviar (reintento) o registrar --estado enviado|fallido.",
     "STK-08": "Usar el id ST-… o el nombre exacto del maestro en okr.csv (columna responsable).",
-    "STK-09": "Corregir el id del elemento o su tipo_elemento (especificación, OKR, WBS, actividades, decisiones).",
+    "STK-09": "Corregir el id del elemento o su tipo_elemento (especificación, OKR, WBS, actividades, decisiones) o el id que cita la persona (capacidad o beneficio B-##).",
     "STK-10": "Unificar o diferenciar los nombres duplicados del maestro.",
     "STK-11": "Revisar la RACI (R faltante, sobre-consulta, concentración de A, A con poder bajo).",
+    "STK-13": "Vincular el requisito o la épica Must a la persona que lo pide, lo usa o se beneficia (registro.py actualizar personas PU-… --campo usa=…) o revisar su prioridad.",
+    "STK-14": "Mapear la persona a sus capacidades (solicita, usa, beneficia) o retirarla (registro.py actualizar personas PU-… --campo estado=retirada).",
+    "STK-15": "Declarar la fuente de la persona (entrevista, bmad-uj, encuesta, observacion, documento o supuesto) y su evidencia.",
+    "STK-16": "Registrar la persona del recorrido (interesados.py personas candidatos) o usar su nombre registrado o su persona_id en el mapa.",
     "STK-12": "Contactarlo según su perfil (envios.py o registrar la reunión o llamada: registro.py agregar envios --campo canal=reunion --campo modo=manual --campo estado=enviado …) o revisar la frecuencia acordada.",
 }
 
@@ -502,7 +536,7 @@ def chk_mapas(proyecto):
         add("AVISO", "MAP-00", f"No se pudieron verificar los mapas: {x}", "Revisar que pm-mapas-estrategicos esté instalada junto a pm-estado-proyecto.")
 
 def chk_interesados(proyecto, corte=None):
-    hay = any(os.path.exists(E.ruta_registro(proyecto, r)) for r in ("estereotipos", "preferencias", "raci", "envios"))
+    hay = any(os.path.exists(E.ruta_registro(proyecto, r)) for r in ("estereotipos", "preferencias", "raci", "envios", "personas"))
     if not hay: return     # sin maestro extendido: nada que verificar (compatibilidad con proyectos 2.1)
     d = os.path.normpath(os.path.join(AQUI, "..", "..", "pm-interesados", "scripts"))
     try:

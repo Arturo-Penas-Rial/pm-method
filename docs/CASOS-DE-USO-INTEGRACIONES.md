@@ -1,4 +1,4 @@
-# Casos de uso de integraciones · pm-method 2.3.0
+# Casos de uso de integraciones · pm-method 2.4.0
 
 Casos trabajados para cada repositorio o integración externa que pm-method incorpora, con más detalle en diseño visual,
 informes, planificación, OKR y canales de envío a interesados (correo, Teams, Slack, `.eml`). Cada caso dice en qué

@@ -55,6 +55,7 @@ Si `estado.json.integraciones.especificacion = bmad`:
 | Última iteración de la etapa | Límite de etapa (SB, `limite-etapa`) | `pm-plan-etapa-y-limites` |
 
 ## 5. Retrospectiva de iteración vs. taller de lecciones de etapa
+Las dos son reuniones propias, distintas de la planificación de la iteración y de la revisión de seguimiento: miran el proceso, sin culpables.
 | | Retrospectiva de iteración (esta skill) | Taller de lecciones de etapa (`pm-lecciones-aprendidas`) |
 |---|---|---|
 | Cuándo | Al final de cada iteración | En cada límite de etapa y al cierre |
@@ -62,10 +63,21 @@ Si `estado.json.integraciones.especificacion = bmad`:
 | Foco | Forma de trabajar del equipo | Método, gobierno, estimaciones, proveedores |
 | Salida | 1–3 acciones al backlog o a `acciones.csv` | Lecciones en `lecciones.csv`, informe |
 | Plantilla | `templates/retrospectiva.md` | `retrospectiva-etapa.md` de esa skill |
+| Captura y ciclo | `extraccion.py candidatos --tipo retrospectiva` (pm-reuniones): lecciones (CL) y acciones de mejora (CM) con cita, registradas tras confirmar | `lecciones.py clasificar`, `accionar`, `verificar` e `informe` (§12 de esa skill) |
 
 ## 6. Fórmulas y EVM ágil
 - Velocidad = puntos terminados según DoD (promedio de las últimas 3). `iteraciones restantes ≈ puntos restantes / velocidad`.
 - Capacidad del release: `Σ puntos Must+Should ≤ velocidad × iteraciones`; si no, repriorizar, no estirar la iteración. Regla práctica: Must ≤ ~60 % de la capacidad (configurable).
+- `python3 ${CLAUDE_SKILL_DIR}/../pm-agil-hibrido/scripts/release.py --proyecto <dir> capacidad [--release R] [--velocidad N] [--must-max 60] [--json]`
+  (solo lectura) lo calcula por release desde `backlog.csv` y `estado.json.agil.velocidad_referencia` (`--velocidad`, por
+  ejemplo la observada, la reemplaza): capacidad = velocidad × iteraciones distintas del release; puntos Must, Should y
+  Could; holgura = capacidad − (Must + Should); Must / capacidad. Lectura: «los Must no entran» → excepción vía
+  `pm-director` (regla 2); «Must + Should no entran» → repriorizar (el PO saca Should/Could); «entran Must y Should; con
+  los Could no»; «entra todo». Avisa además: vigilar si los Must superan `--must-max`, historias con más puntos que la
+  velocidad (no entran en una iteración: dividir), ítems sin MoSCoW o sin puntos y Won't con release. No cuenta épicas
+  ni ítems descartados o retirados en BMAD. `impacto.py --puntos --release` (pm-issues-cambios) usa la misma función
+  para medir un cambio. Trampa que la referencia PMBOK señala en la planificación de la iteración (`pmbok8-artefactos-tecnicas-anexos.md`,
+  Familia M) y que vale para el release: comprometer más que la velocidad demostrada.
 - EVM ágil (SPEC §1.10.7): PV = proporción de puntos planificados a la fecha × BAC; EV = proporción de puntos terminados × BAC; AC = costo real del equipo. `python3 ${CLAUDE_SKILL_DIR}/../pm-estado-proyecto/scripts/evm.py --pv .. --ev .. --ac .. --bac .. --modo agil --pct-no-must <% del alcance que es Should/Could> --proyecto <dir>`. EAC > BAC = alcance pronosticado que no entra; excepción solo si supera la porción Should/Could (los Must peligran).
 
 ## 7. Comandos de registro (los de `estado.json` los ejecuta `pm-director` tras confirmación)

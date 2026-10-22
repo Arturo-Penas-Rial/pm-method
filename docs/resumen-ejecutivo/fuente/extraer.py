@@ -206,7 +206,12 @@ for p in sorted(glob.glob(str(BASE / "docs/guias/E2E-*.md"))):
     t = pathlib.Path(p).read_text(encoding="utf-8")
     cid = re.match(r"E2E-\d+", pathlib.Path(p).name).group(0)
     titulo = re.match(r"#\s+Guía E2E-\d+\s+·\s+(.*)", t).group(1).strip()
-    pasos = sorted({m.group(1) for m in re.finditer(r"^#{2,3} Paso (\d+b?)\b", t, flags=re.M) if m.group(1) != "0"})
+    # como en docs/guias/README.md: un paso partido en «6a» y «6b» (sin «6») cuenta una vez; «6b» junto a un «6», aparte
+    _ps = re.findall(r"^#{2,3} Paso (\d+)([a-z]?) · ", t, flags=re.M)
+    _base = {n_ for n_, l_ in _ps if not l_}
+    pasos = sorted({n_ for n_, l_ in _ps} | {n_ + l_ for n_, l_ in _ps if l_ and n_ in _base})
+    _readme = re.search(r"\| \[" + cid + r" · [^\n]*?\| (\d+) pasos", leer("docs/guias/README.md"))
+    exige(_readme and int(_readme.group(1)) == len(pasos), f"{cid}: {len(pasos)} pasos en la guía y {_readme.group(1) if _readme else '?'} en docs/guias/README.md")
     clases = len(tablas(seccion(t, r"^Clases$"))[0]["filas"])
     ind = seccion(t, r"^Indicadores que vas a ver")
     imagenes = {}

@@ -1,7 +1,7 @@
 ---
 name: pm-mandato-y-brief
 description: "Mandato, propuesta, project brief, canvas, visión y roadmap; enfoque de entrega. Usar: mandato, brief, arrancar, kick-off, canvas, visión, mandate, start up. No: business case→pm-caso-de-negocio."
-version: 2.3.0
+version: 2.4.0
 author: pm-method
 license: MIT
 metadata:
@@ -46,7 +46,7 @@ metadata:
 ## Procedimiento
 1. **Leer el estado** (`python3 ${CLAUDE_SKILL_DIR}/../pm-estado-proyecto/scripts/estado.py --proyecto <dir> ver`). Fase `entrega` o posterior → el brief ya está en el PID; solo actualizar roadmap o visión.
 2. **Mandato** → `templates/mandato.md` en `00-direccion/mandato.md`: pedido en palabras propias, autoridad emisora, ejecutivo prospectivo; faltantes `[por confirmar]`.
-3. **Lecciones previas**: 3–10 aplicables en `lecciones.csv` (`registro.py agregar lecciones`) con recomendación; si no hay, el brief lo declara.
+3. **Lecciones previas**: 3–10 aplicables en `lecciones.csv` (`registro.py agregar lecciones`) con recomendación; si no hay, el brief lo declara. De otros proyectos pm-method: `pm-lecciones-aprendidas` (`lecciones.py buscar --indice <índice> --para ideacion|descubrimiento`; `incorporar` las registra con `origen` tras confirmar con la persona).
 4. **Nivel de formalidad** con la tabla de `references/guia.md` §1. 🔒 **Puerta humana 1**: el usuario confirma nivel y artefactos (`decisiones.csv`, nivel `gestor`); en perfiles mínimos se combina con la 2.
 5. **Enfoque de entrega**: puntuar los criterios de selección (`references/guia.md` §3); entregables que puntúan distinto → híbrido. Con BMAD, proponer la **ruta de planificación BMAD** (`references/guia.md` §4.3). 🔒 **Puerta humana 2**: confirma el ejecutivo o el usuario; `estado.py set enfoque_entrega=...` y fila en `decisiones.csv`.
 6. **Propuesta** → `templates/propuesta-proyecto.md` en `01-inicio/propuesta-proyecto.md` (resumen autónomo, dato verificable, orden de magnitud con confianza, petición de decisión).

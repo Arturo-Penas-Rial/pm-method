@@ -10,7 +10,7 @@ Uso / Usage:
   python3 registro.py --proyecto ./p esquema riesgos        # columnas y valores permitidos
 Registros y prefijos: riesgos R-, issues I-, cambios C-, decisiones D-, supuestos S-, lecciones L-,
 stakeholders ST-, calidad Q-, acciones A-; maestro de interesados (opcionales, se crean al primer uso): estereotipos ET-,
-preferencias PF-, raci RC-, envios EN-. Se validan claves foráneas (stakeholder_id, estereotipo), unicidad
+preferencias PF-, raci RC-, envios EN-, personas PU-. Se validan claves foráneas (stakeholder_id, estereotipo), unicidad
 (raci: elemento + stakeholder_id) y un solo A por elemento de la RACI. Valores permitidos: ver esquema.py y pm-registros/templates/guia-registros.md.
 """
 import argparse, os, re, sys, datetime, json
@@ -34,6 +34,16 @@ def validar(reg, fila, forzar=False):
             cand = [x for x in E.ALIAS_EN.get(v.lower(), []) if x in permitidos]
             if cand: fila[col] = cand[0]; continue          # alias en inglés → valor canónico
             errores.append(f"{col}='{v}' " + ("not allowed; use: " if en else "no permitido; usar: ") + ", ".join(x for x in permitidos if x))
+    for col, permitidos in spec.get("multivalor", {}).items():   # varios valores separados por «;» o «,» → «a;b» en el orden del esquema
+        v = (fila.get(col) or "").strip()
+        if not v: continue
+        ok, malos = set(), []
+        for x in (y.strip() for y in re.split(r"[;,]", v) if y.strip()):
+            c = x if x in permitidos else next((a for a in E.ALIAS_EN.get(x.lower(), []) if a in permitidos), None)
+            if c: ok.add(c)
+            else: malos.append(x)
+        if malos: errores.append(f"{col}='{', '.join(malos)}' " + ("not allowed; use one or more of: " if en else "no permitido; usar uno o más de: ") + ", ".join(permitidos))
+        else: fila[col] = ";".join(x for x in permitidos if x in ok)
     for col in spec.get("enteros_1_5", []):
         v = fila.get(col, "")
         if v and not (v.isdigit() and 1 <= int(v) <= 5): errores.append(f"{col}='{v}' " + ("must be an integer 1–5" if en else "debe ser entero 1–5"))
@@ -90,15 +100,31 @@ def control_cambio(proyecto, fila, filas, antes=None):
     if antes is not None and E.cambio_vigente(antes) and all((antes.get(k) or "") == (fila.get(k) or "") for k in ("costo", "cargo", "decidido_por")): return
     costo = E.monto(fila.get("costo"))
     if not costo or costo <= 0: return
-    e = E.cargar_estado(proyecto); pres = e.get("presupuestos") or {}; t = lambda es, en: E.t(IDIOMA, es, en)
-    quien = fila.get("decidido_por") or ""; junta = E.es_junta(e, quien); cargo = fila.get("cargo") or ""; cid = fila.get("id")
-    m = _monto_txt; errores = []
+    e = E.cargar_estado(proyecto); t = lambda es, en: E.t(IDIOMA, es, en)
+    quien = fila.get("decidido_por") or ""; junta = E.es_junta(e, quien)
+    errores, aviso = motivos_autoridad(e, fila, filas, junta)
+    if aviso: print(aviso, file=sys.stderr)
     escalar = t("Dejar estado=pendiente-decision (sin decision=aprobado) y escalar a pm-director: decide la junta o el ejecutivo.",
                 "Leave estado=pendiente-decision (no decision=aprobado) and escalate to pm-director: the board or executive decides.")
     fuente = t("Indicar la fuente: cargo=reserva-gestion o plan-excepcion, o ampliar antes el presupuesto de cambio "
                "(pm-director: estado.py presupuesto cambio=<monto> --por \"<rol: nombre>\", queda la decisión registrada) y volver a registrar.",
                "State the source: cargo=reserva-gestion or plan-excepcion, or first raise the change budget "
                "(pm-director: estado.py presupuesto cambio=<amount> --por \"<role: name>\", recorded as a decision) and record again.")
+    if errores:
+        sys.exit(t("Control de cambios (PRINCE2, autoridad y presupuesto de cambio; no se omite con --forzar):",
+                   "Change control (PRINCE2, change authority and budget; --forzar does not override it):") + "\n  - " + "\n  - ".join(errores)
+                 + "\n  → " + (fuente if junta else t(f"'{quien or '(sin decidido_por)'}' no es la junta ni el ejecutivo. ", f"'{quien or '(no decidido_por)'}' is neither the board nor the executive. ") + escalar))
+
+def motivos_autoridad(e, fila, filas, junta):
+    """Regla de autoridad y presupuesto de cambio de control_cambio como función pura (la reutiliza
+    pm-issues-cambios/scripts/impacto.py para decir quién decide antes de pedir la decisión). Devuelve (errores, aviso):
+    errores = motivos por los que `junta` (True: la junta o el ejecutivo; False: la autoridad delegada) no puede dejar
+    aprobado el cambio `fila` con su costo y cargo; aviso = texto si se carga al presupuesto de cambio sin que la junta
+    lo haya fijado (no bloquea)."""
+    pres = e.get("presupuestos") or {}; t = lambda es, en: E.t(IDIOMA, es, en)
+    costo = E.monto(fila.get("costo")) or 0.0; cargo = fila.get("cargo") or ""; cid = fila.get("id")
+    m = _monto_txt; errores = []; aviso = ""
+    if costo <= 0: return errores, aviso
     lim = E.monto(pres.get("limite_autoridad_cambio"))
     if not junta and lim is not None and costo > lim:
         errores.append(t(f"{cid}: costo {m(costo)} supera el límite de la autoridad de cambio ({m(lim)}).",
@@ -109,16 +135,13 @@ def control_cambio(proyecto, fila, filas, antes=None):
     if cargo == "presupuesto-cambio":
         tope = E.monto(pres.get("cambio")); usado = E.consumo_cambios(filas, excluir=cid)["presupuesto-cambio"]
         if tope is None:
-            print(t(f"Aviso: {cid} se carga al presupuesto de cambio, pero la junta no lo fijó; no se controla el saldo (sanidad CAM-03). pm-director: estado.py presupuesto cambio=<monto> --por …",
-                    f"Warning: {cid} is charged to the change budget, but the board has not set it; the balance is not checked (health CAM-03). pm-director: estado.py presupuesto cambio=<amount> --por …"), file=sys.stderr)
+            aviso = t(f"Aviso: {cid} se carga al presupuesto de cambio, pero la junta no lo fijó; no se controla el saldo (sanidad CAM-03). pm-director: estado.py presupuesto cambio=<monto> --por …",
+                      f"Warning: {cid} is charged to the change budget, but the board has not set it; the balance is not checked (health CAM-03). pm-director: estado.py presupuesto cambio=<amount> --por …")
         elif usado + costo > tope:
             saldo = t(f"el presupuesto de cambio no alcanza: {m(usado)} ya cargados + {m(costo)} = {m(usado + costo)} de {m(tope)} fijados por la junta",
                       f"the change budget is not enough: {m(usado)} already charged + {m(costo)} = {m(usado + costo)} of {m(tope)} set by the board")
             errores.append(f"{cid}: {saldo}.")
-    if errores:
-        sys.exit(t("Control de cambios (PRINCE2, autoridad y presupuesto de cambio; no se omite con --forzar):",
-                   "Change control (PRINCE2, change authority and budget; --forzar does not override it):") + "\n  - " + "\n  - ".join(errores)
-                 + "\n  → " + (fuente if junta else t(f"'{quien or '(sin decidido_por)'}' no es la junta ni el ejecutivo. ", f"'{quien or '(no decidido_por)'}' is neither the board nor the executive. ") + escalar))
+    return errores, aviso
 
 def recalcular(reg, f):
     if reg != "riesgos": return
@@ -216,8 +239,8 @@ def main():
         spec = E.REGISTROS[args.registro]
         print(f"{args.registro}: prefijo {spec['prefijo']}-, estado inicial {spec['estado_inicial']}")
         for c in spec["columnas"]:
-            v = spec.get("valores", {}).get(c)
-            print(f"  {c}" + (f": {', '.join(x for x in v if x)}" if v else (": entero 1–5" if c in spec.get('enteros_1_5', []) else "")))
+            v = spec.get("valores", {}).get(c); mv = spec.get("multivalor", {}).get(c)
+            print(f"  {c}" + (f": {', '.join(x for x in v if x)}" if v else f": {'; '.join(mv)} (uno o más, separados por ;)" if mv else (": entero 1–5" if c in spec.get('enteros_1_5', []) else "")))
         return
     if not os.path.exists(os.path.join(args.proyecto, "estado.json")):
         sys.exit(f"{args.proyecto} no es una carpeta de proyecto (falta estado.json). Crear con nuevo_proyecto.py.")

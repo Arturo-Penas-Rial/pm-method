@@ -84,41 +84,42 @@ def captura_seccion(html, png, selector, ancho=1280, alto=720, escala=1.5):
         print("captura omitida:", x); return False
 
 def tablero(repo, corte, desde, hasta, proximo, objetivos, hitos, decisiones, iteraciones, comentario, fuentes, salida_png=None, actor=None, fecha_fija="", fecha_pronostico="",
-            mapas=False, salida_mapas_png=None):
-    """Receta de pm-visuales/references/guia.md §3: arma el JSON y reemplaza el bloque datos-tablero. Con mapas=True,
-    pm-mapas-estrategicos completa la sección opcional «Mapas estratégicos» (mapas.py tablero --insertar) y, con
+            mapas=False, salida_mapas_png=None, juicio_rel=None, moneda=""):
+    """pm-visuales arma el tablero con el script del plugin (estado.py periodo --tablero; pm-visuales/references/guia.md §3):
+    semáforos por regla, registros, umbrales de estado.json e iteraciones de avance-bmad.csv; lo que es juicio del gestor
+    (objetivos sin regla y notas, hitos, decisiones, nombre y plan de cada iteración, comentario) va en un JSON que se
+    muestra en la evidencia. Con juicio_rel se usa un juicio ya escrito (el del highlight). `hasta` es siempre el corte.
+    Con mapas=True, pm-mapas-estrategicos completa la sección «Mapas estratégicos» (mapas.py tablero --insertar) y, con
     salida_mapas_png, se guarda además un recorte 16:9 que empieza en esa sección."""
-    import json as _j, pathlib
-    e = _j.load(open(os.path.join(repo, G, "estado.json"), encoding="utf-8"))
-    datos = {"proyecto": e["proyecto"], "etapa": e["etapa_actual"]["nombre"], "enfoque_entrega": e["enfoque_entrega"],
-             "idioma": e["idioma"], "estado": "borrador", "fecha_corte": corte, "periodo_desde": desde, "periodo_hasta": hasta,
-             "proximo_hasta": proximo, "riesgos": reg_json(repo, "listar", "riesgos", "--abiertos"),
-             "issues": reg_json(repo, "listar", "issues", "--abiertos"), "acciones": reg_json(repo, "listar", "acciones"),
-             "resumen_registros": reg_json(repo, "resumen", "--corte", corte), "umbrales_riesgo": {"alto": 15, "medio": 6},
-             "objetivos": objetivos, "hitos": hitos, "decisiones_pendientes": decisiones,
-             "agil": {"iteraciones": iteraciones, "ventana_velocidad": 3, "fecha_fija": fecha_fija, "fecha_pronostico": fecha_pronostico, "must_en_riesgo": []},
-             "comentario_gestor": comentario, "fuentes": fuentes, "fecha_generacion": corte, "confirmado_por": ""}
-    T = f"{RAIZ}/skills/pm-visuales/templates/tablero-avance.html"
-    html = pathlib.Path(T).read_text(encoding="utf-8")
-    bloque = _j.dumps(datos, ensure_ascii=False).replace("</", "<\\/")
-    html = re.sub(r'(<script type="application/json" id="datos-tablero">)(.*?)(</script>)', lambda m: m.group(1) + bloque + m.group(3), html, count=1, flags=re.S)
+    assert hasta == corte
+    if juicio_rel is None:
+        j = {"objetivos": {o["clave"]: {k: o[k] for k in ("rag", "pronostico", "detalle", "tol_etapa", "tol_proyecto") if o.get(k)} for o in objetivos if o.get("pronostico") != "[por confirmar]"},
+             "hitos": hitos, "decisiones": decisiones, "comentario": comentario}
+        if iteraciones: j["agil"] = {"iteraciones": iteraciones}
+        if fecha_fija or fecha_pronostico: j.setdefault("agil", {}).update({"fecha_fija": fecha_fija, "fecha_pronostico": fecha_pronostico})
+        if fuentes: j["fuentes"] = fuentes
+        if moneda: j["moneda"] = moneda
+        juicio_rel = f"03-control/reportes/{corte}-juicio-gestor.json"
+        escribir(repo, juicio_rel, json.dumps(j, ensure_ascii=False, indent=1) + "\n")
+        LOG.append((f"(juicio del gestor para el tablero → gestion/{juicio_rel})", "\n".join(f'"{k}": {json.dumps(v, ensure_ascii=False)}' for k, v in j.items())))
     rel = f"03-control/reportes/{corte}-tablero-avance.html"
-    escribir(repo, rel, html)
-    run(E(f'estado.py --proyecto {G} artefacto tablero-avance --ruta {rel} --estado en-revision'), repo, mostrar=False)
-    LOG.append((f"(pm-visuales arma el tablero con la receta de references/guia.md §3 → gestion/{rel})", f"riesgos abiertos {len(datos['riesgos'])} · issues {len(datos['issues'])} · acciones {len(datos['acciones'])} · iteraciones {len(iteraciones)}"))
+    run(E(f'estado.py --proyecto {G} periodo --desde {desde} --corte {corte} --proximo {proximo} --juicio {G}/{juicio_rel} --tablero'), repo)
     if mapas:
         run(f'python3 {MAPAS} --proyecto {G} tablero --insertar {G}/{rel}', repo)
-    if salida_png:
-        try:
-            from playwright.sync_api import sync_playwright
-        except ImportError:
-            print("AVISO: playwright no está instalado; se omite la captura del tablero"); return os.path.join(repo, G, rel)
-        with sync_playwright() as p:
-            b = p.chromium.launch(); pg = b.new_page(viewport={"width": 1280, "height": 900}, device_scale_factor=1.5)
-            url = "file://" + os.path.join(repo, G, rel) + (f"?actor={actor}" if actor else "")
-            pg.goto(url); pg.wait_for_timeout(600); pg.screenshot(path=salida_png, full_page=True); b.close()
-        if mapas and salida_mapas_png: captura_seccion(os.path.join(repo, G, rel), salida_mapas_png, "#s-mapas")
+    if salida_png and captura_tablero(os.path.join(repo, G, rel), salida_png, actor) and mapas and salida_mapas_png:
+        captura_seccion(os.path.join(repo, G, rel), salida_mapas_png, "#s-mapas")
     return os.path.join(repo, G, rel)
+
+def captura_tablero(html, salida_png, actor=None):
+    """Captura de página completa del tablero (con ?actor=<Nombre>, la vista por actor del mismo tablero)."""
+    try:
+        from playwright.sync_api import sync_playwright
+    except ImportError:
+        print("AVISO: playwright no está instalado; se omite la captura del tablero"); return False
+    with sync_playwright() as p:
+        b = p.chromium.launch(); pg = b.new_page(viewport={"width": 1280, "height": 900}, device_scale_factor=1.5)
+        pg.goto("file://" + html + (f"?actor={actor}" if actor else "")); pg.wait_for_timeout(600); pg.screenshot(path=salida_png, full_page=True); b.close()
+    return True
 
 
 def servidores_prueba():

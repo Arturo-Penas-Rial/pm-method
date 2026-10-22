@@ -1,5 +1,279 @@
 # Cambios · Changelog
 
+## 2.4.0 · 2026-10-22 — decidir con opciones, impacto antes del cambio, radar diario y ciclo completo de las lecciones
+
+Versión que convierte en controles repetibles actividades que en la práctica se hacen a mano o una sola vez: comparar
+opciones de respuesta a los riesgos y dejar listo el plan de contingencia, medir el impacto de un cambio antes de
+decidirlo, saber cada día qué hay que decidir, escalar, desbloquear y vigilar, armar el highlight y el tablero desde un
+solo cálculo del período, derivar el estado de los productos de los registros, extraer de las reuniones lo acordado con
+cita, aprender de otros proyectos y cerrar el ciclo de las lecciones, estimar con tres valores y priorizar contra la
+capacidad del release y las personas de usuario. Retrocompatible: un proyecto creado con 2.3 se migra al leerse (las
+columnas nuevas de `lecciones.csv` se agregan al final con la primera escritura y `personas.csv` se crea al primer
+uso), sin dependencias nuevas en el núcleo y sin escribir en BMAD.
+
+En cifras: 39 skills (33 invocables por el modelo; listado de descripciones de 6.957 de 7.500 caracteres), 6 agentes,
+3 hooks, 14 registros (9 base y 5 opcionales), 93 códigos de sanidad en 12 familias, 39 controles de puerta, 5 casos
+E2E (74 pasos, 10 clases de 90 minutos, 51 imágenes) y 195 diapositivas de contenido en los mazos del webinar.
+
+### Agregado
+- **Opciones de respuesta y plan de contingencia** (pm-riesgos). `riesgos.py opciones`: para los riesgos abiertos con
+  P×I ≥ umbral alto (`estado.json.umbrales_riesgo.alto`; `--umbral N`, `--riesgo R-###`) lee la hoja de opciones
+  `03-control/registros/opciones-riesgo/R-###.csv` (evitar, reducir, transferir, compartir si aplica, contingencia y
+  aceptar), valida montos y la escala 1–5, calcula el EMV residual (con la contingencia ponderada por la probabilidad) y
+  el valor neto = EMV inherente − EMV residual − EMV secundario − costo, ordena (bajo la línea primero) y marca la
+  recomendada sin decidir; `--proponer` crea la plantilla sin pisar una existente; salida de texto acotada (`--max`) y
+  `--json`. PUERTA HUMANA `opciones --riesgo R-### --elegir O# --por "<rol: nombre>"`: sin `--por` no registra; si no es
+  la recomendada exige `--motivo`; con `registro.py` escribe respuesta, residual, disparador y acciones en `riesgos.csv`
+  y la decisión con las opciones consideradas en `decisiones.csv` (o cita `--decision D-###`). Plantilla
+  `templates/plan-contingencia.md` (`03-control/registros/R-###-plan-contingencia.md`): disparador medible, acciones,
+  propietario y ejecutor, monto y fuente (presupuesto de riesgo), quién lo activa, registro de la activación
+  (`cambios.csv` con `cargo=reserva-riesgo` y el R-###: CAM-02, CAM-03) y plan alternativo. Sanidad **REG-10** (aviso):
+  amenaza alta con respuesta y menos de dos opciones evaluadas, o con respuesta `aceptar`/`contingencia` sin disparador
+  o sin plan de contingencia. PRINCE2 2.c.4, R-10, R-12, R-14 y R-15; PMBOK 8 §3.11.
+- **Personas de usuario y mapa capacidad × persona** (pm-interesados). Registro opcional `personas.csv` (prefijo
+  **PU**, se crea al primer uso): arquetipo (`nombre`, `descripcion`), `objetivo`, `dolores`, `contexto_uso`, `fuente`
+  (`entrevista`, `bmad-uj`, `encuesta`, `observacion`, `documento`, `supuesto`), `evidencia`, `stakeholder_id`
+  (interesado que la representa, validado), las capacidades en `solicita`, `usa` y `beneficia` (ids de requisitos,
+  épicas, historias o productos de la WBS) y `beneficios` (`B-##`/`DB-##`); estado `activa|retirada`; alias
+  `interview`, `survey`, `observation`, `active`, `retired`. No es un interesado ni un estereotipo de comunicación.
+  `interesados.py personas candidatos [--desde auto|bmad|artefactos] [--limite 40] [--json]` propone personas desde los
+  recorridos UJ-n de BMAD (solo lectura: persona, objetivo, contexto, FR que realizan el UJ, B-## cuyos KPI SM-n
+  coinciden), desde los recorridos de `pm-mapas-estrategicos` y desde las historias «Como <rol>, quiero…» del backlog;
+  sugiere el representante y el comando `registro.py` para registrar o completar cada una, sin registrar nada solo.
+  `personas mapa [--json]` (capacidad × persona con S solicitante, U usuario, B beneficiario y la prioridad MoSCoW) y
+  `personas priorizacion [--json]` (por persona: capacidades por prioridad, rol, representante y beneficios; JSON listo
+  para barras apiladas); la prioridad sale de `requisitos.md` o de `backlog.csv`, y un requisito o una épica sin
+  prioridad propia toma la más alta de sus historias. Sanidad, familia STK (solo si existe `personas.csv`; aviso):
+  **STK-13** requisito o épica Must sin persona que lo pida, use o aproveche, **STK-14** persona sin capacidades,
+  **STK-15** persona sin fuente o con fuente distinta de `supuesto` y sin evidencia, **STK-16** recorrido cuya persona no
+  está registrada; STK-09 y STK-03 cubren también los ids y el representante que cita una persona. `mapas.py …
+  recorrido semilla --persona PU-###` toma nombre, descripción, objetivo y contexto de la persona y deja `persona_id` en
+  el mapa. PRINCE2 §3.1.3, §3.2.1, §4.5.2 y §4.3.2; PMBOK 8 §2.2.b.2.
+- **Radar de atención y briefing de incorporación** (pm-estado-proyecto, pm-orquestador, pm-progreso-reportes).
+  `estado.py radar [--corte] [--max 5] [--json | --linea]`, de solo lectura, agrupa lo pendiente en **decidir**
+  (cambios `pendiente-decision` con quién decide según el límite y el presupuesto delegados, puertas pendientes,
+  condiciones abiertas, excepción abierta, issues y riesgos escalados, supuestos críticos SUP-01…03, contingencias por
+  activar), **escalar** (TOL-01, CAM-03 agotado, CAM-04, CAM-05, riesgos con respuesta `escalar` sin escalar),
+  **desbloquear** (acciones vencidas, issues sin responsable, riesgos altos sin respuesta o propietario, dependencias,
+  QUA-02/03) y **vigilar** (REG-09, bloqueos de la próxima puerta, presupuesto al 80 %, EVM en ámbar o sin corte
+  reciente, supuestos en validación); cada ítem con regla (RAD-01…RAD-08), id, fecha, responsable, siguiente paso y
+  prioridad 1–4, orden reproducible y línea «Hoy». Reutiliza `estado.py contexto`, los controles de `sanidad.py`, el
+  último EVM guardado, `puertas.py` y los presupuestos y tolerancias de `estado.json`. `estado.py briefing [--para
+  ST-###] [--corte] [--salida RUTA|-] [--json]` llena `pm-progreso-reportes/templates/briefing-incorporacion.md`
+  (≤ 6.500 caracteres): contexto, rol y RACI del interesado con sus ítems del radar, decisiones de nivel junta, riesgos
+  altos, issues y cambios pendientes con quién decide, último EVM, artefactos aprobados, próxima puerta y próximos
+  pasos, cada cifra con su id o archivo y sin poder ni interés de un interesado confidencial. PRINCE2 §5.4, §4.c.2 y §7.3.
+- **Datos del período → tablero y highlight desde el dato** (pm-progreso-reportes, pm-visuales, pm-estado-proyecto).
+  `estado.py periodo --desde AAAA-MM-DD [--corte] [--proximo] [--juicio J.json] [--json] [--tablero [RUTA]]
+  [--highlight [RUTA] [--forzar]]`: un solo cálculo del período para el highlight y el tablero. Siete objetivos con
+  semáforo por regla (tiempo y costo del último corte de EVM del período; riesgo con `estado.json.umbrales_riesgo`;
+  calidad con QUA-01…03 o un fuera de especificación abierto; alcance con el EVM ágil) o por juicio marcado del gestor
+  (alcance predictivo, beneficios, sostenibilidad), estado general = el peor; productos aceptados, cambios, fuera de
+  especificación, acciones vencidas y próximas, decisiones e iteraciones del período. El juicio puede empeorar un
+  semáforo derivado, nunca mejorarlo. `--tablero` escribe `03-control/reportes/<corte>-tablero-avance.html` con un
+  escape único del bloque de datos (todo `<` como `<`) y lo registra `tablero-avance`; `--highlight` escribe el
+  borrador de la variante mínima con cifras, ids y `puertas.py estado` y deja `[por redactar]` la narrativa, sin pisar
+  uno existente ni uno aprobado. `periodo --verificar INFORME`: cada cifra rotulada del EVM coincide con el corte
+  guardado al redondeo citado y ningún semáforo con regla es mejor que el derivado; código 1 si algo difiere. PRINCE2
+  §4.c.3 y §4.c.6.
+- **Estado de productos derivado y controles de cierre por id** (pm-paquetes-trabajo, pm-calidad, pm-cierre-proyecto).
+  `estado.py productos [--corte] [--fuente auto|backlog|wbs] [--alcance …] [--max 40] [--json | --markdown [RUTA]]`, de
+  solo lectura: el registro de productos de PRINCE2 7 (A13) derivado de `backlog.csv` o de `wbs.csv`, `calidad.csv`,
+  `issues.csv`, las aceptaciones de `estado.json` y los paquetes de trabajo, sin registro nuevo; estado por producto en
+  un orden documentado con su Q-### y su aceptación, conteos que suman el total, diferencias entre lo registrado y lo
+  físico con el control que las vigila (QUA-01…04) y Must sin aceptar; `--markdown` escribe el borrador del product
+  status account sin pisar uno aprobado. Sanidad **QUA-04** (aviso, con `wbs.csv`): elemento de la WBS aceptado o con
+  su paquete recibido sin revisión aprobada que lo cite. `puertas.py`, `autorizar-cierre`: **C-03** comprueba cada
+  issue y riesgo abierto por id en `recomendaciones-seguimiento` (con responsable) y lista los faltantes; **C-07**
+  (condición) lista los requisitos e historias Must cuyo estado derivado no es aceptado ni con concesión.
+- **Inteligencia de reuniones** (pm-reuniones). `extraccion.py candidatos --transcripcion F [--reunion] [--fecha]
+  [--tipo retrospectiva|planificacion|seguimiento|otra] [--max 20] [--json]`: desde la transcripción (normalizada, VTT,
+  SRT o TXT) propone, oración por oración y con cita, hablante y `[hh:mm:ss]`, decisiones tomadas y pendientes (CD) con
+  su nivel de decisión, compromisos (CA) con responsable y fecha, supuestos (CS), riesgos (CR, vía `riesgos.py`) e
+  instrucciones incrustadas (IN, que se informan y nunca se registran); en una retrospectiva, lecciones candidatas (CL)
+  y acciones de mejora (CM). Frases marcadoras deterministas en español e inglés; borrador
+  `03-control/reuniones/<fecha>-<reunion>-candidatos.md` y `.json`. PUERTA HUMANA `extraccion.py registrar --candidatos
+  J --confirmar <ids> --por "<rol: nombre>" [--campo ID:col=valor] [--simular]`: sin opción «todos»; valida todo antes
+  de escribir con `registro.py` (las decisiones de nivel junta, ejecutivo o capa de negocio las registra pm-director);
+  un candidato ya registrado se omite y una transcripción cambiada pide volver a proponer. PRINCE2 §3.c.1, §4.d y A13.
+- **Análisis de impacto de cambios** (pm-issues-cambios). `impacto.py analizar C-### [--actividades … --pert]
+  [--flujos …] [--puntos --release …] [--evm] [--costo --cargo] [--tol-dias] [--json]`: tabla de impacto (alcance y
+  especificación, tiempo y camino crítico con `cpm.py`, reserva de cronograma, capacidad del release, tiempo de la
+  etapa, alcance del EVM ágil, costo y BAC, presupuesto de cambio con la regla de CAM-03, autoridad, VAN y margen del
+  beneficio principal con `inversion.py`, persona afectada, riesgos y calidad que citan lo afectado) y borrador
+  `03-control/reportes/<fecha>-solicitud-cambio-C-###.md` con opciones aprobar, rechazar, diferir o pedir plan de
+  excepción y quién decide. No escribe registros. PRINCE2 §3.c.1–§3.c.3 y §4.c.2; PMBOK 8 §2.1.b.8.
+- **Expediente de auditoría** (pm-exportar). `paquete.py auditoria [--desde] [--hasta] [--proposito] [--externo]
+  [--salida] [--extra]`: `INDICE.md` e `INDICE.html` (escapado), `cronologia.csv` (puertas con su D-### y la lista
+  confirmada, decisiones, cambios decididos, riesgos aceptados, productos aceptados y envíos), `estado.json`, registros,
+  líneas base congeladas, evidencia de puertas, actas, informes, cortes de EVM, comunicaciones, hallazgos de sanidad al
+  corte, `MANIFIESTO.md` y `SHA256SUMS`; rutas externas excluidas; `--externo` sin el registro de interesados ni los
+  destinos de envíos. `paquete.py verificar <zip>` recalcula cada sha256 (alterados, faltantes, agregados; código 1).
+  PRINCE2 §3.c.4, §4.d y A13.
+- **Lecciones entre proyectos y ciclo completo de las lecciones** (pm-lecciones-aprendidas, pm-reuniones,
+  pm-agil-hibrido). `lecciones.py buscar (--en DIR … | --indice CSV …) [--texto] [--categoria] [--etiqueta] [--para
+  <proceso>] [--max] [--json] [--exportar CSV]`, de solo lectura, devuelve las lecciones aprobadas de otros proyectos o
+  de un índice exportado con su referencia `<proyecto>:L-###`; `incorporar --proyecto … --ids …` muestra la vista previa
+  y solo con `--confirmar --por "Rol: Nombre"` las registra como lecciones previas con `origen`. Ciclo con `--por`:
+  `clasificar` (impacto alto, medio o bajo y proceso en `aplicar_en`), `accionar` (en el proyecto exige
+  `--verificar-en`), `verificar --resultado efectiva|no-efectiva --evidencia` y `descartar --motivo`; `listar --para
+  <proceso>`; `informe --proyecto … [--etapa N] [--corte] [--exportar INDICE.csv --por …]` escribe el informe de
+  lecciones desde el registro y alimenta el índice de la organización que consulta `buscar --indice`. Retrospectiva
+  como reunión propia en `extraccion.py` (lecciones CL y acciones de mejora CM) y plantilla de retrospectiva qué
+  funcionó · qué no funcionó · qué probamos. Controles: **E-11** (aviso en `autorizar-etapa`: lecciones de
+  `planificacion` abiertas sin acción), **REG-11** (lección de impacto alto sin acción ni decisión) y **REG-12**
+  (accionada con `verificar_en` vencida o de impacto alto sin fecha). PRINCE2 §2.2, §4.d, §5.6 y §5.7; PMBOK 8
+  §2.1.b.6 y §3.13.
+- **Estimación de tres valores y capacidad del release** (pm-cronograma-estimacion, pm-agil-hibrido). `cpm.py`:
+  `actividades.csv` acepta al final `optimista`, `mas_probable` y `pesimista` (0 ≤ O ≤ M ≤ P); con ellas la duración es
+  tE redondeada hacia arriba y `duracion` puede quedar vacía; `--distribucion beta|triangular` (por defecto beta-PERT)
+  con las dos fórmulas rotuladas según la referencia del paquete (triangular = fórmula de la Guía; beta-PERT = práctica
+  habitual), `--confianza k` (reserva k·σ, por defecto 2) y `--estimacion RUTA`, que escribe el archivo que lee
+  `impacto.py --pert`; la salida muestra tE y σ por actividad, σ del camino crítico, reserva y fin con reserva, y el
+  Gantt Mermaid la reserva como sección. `release.py capacidad [--release R] [--velocidad N] [--must-max 60] [--json]`
+  (solo lectura): por release, capacidad = velocidad × iteraciones, puntos Must, Should y Could, holgura, Must /
+  capacidad contra la regla práctica de ≤ 60 %, lectura (excepción, repriorizar, entran Must y Should, entra todo),
+  historias para dividir, ítems sin MoSCoW o sin puntos y Won't con release; `impacto.py --puntos --release` usa la
+  misma función.
+- **Ficha promocional del taller** por caso E2E: `python3 scripts/webinar/generar.py --todos --ficha` lee
+  `docs/webinar/E2E-N/ficha.json` (título centrado en el problema, destinatarios, 3–5 objetivos con verbo observable,
+  qué hace el agente, qué decide la persona y el control humano, beneficios para la persona y la organización sin
+  promesas de ROI, temas por clase, requisitos, modalidad, convocatoria opcional, una imagen real de `docs/guias/img/` y
+  notas del orador) y escribe `E2E-N-ficha.pptx` (2 diapositivas con notas, modo `--ficha` de `pptx.js`) y
+  `E2E-N-ficha.html` (volante autocontenido, claro/oscuro, una página A4 al imprimir), con el recuadro «Logo IEEE» o
+  `--logo`. El título y la duración de cada clase salen de `diapositivas.json`; la validación da errores claros por campo
+  faltante, cantidad o largo fuera de rango, clase que no coincide e imagen inexistente, y avisos por verbos no
+  observables o promesas de ROI. `documentos.py` enlaza las fichas en `docs/webinar/index.html` («Para difundir») y
+  las copia con `--salida`. Prueba: caso L3 de `probar_paquete.py`.
+
+### Cambiado
+- `lecciones.csv` suma al final `origen`, `etiquetas`, `impacto`, `recurrencia`, `aplicar_en` (multivalor que
+  `registro.py` normaliza, con alias en inglés, y REG-05 valida), `accion`, `verificar_en` y `verificacion`, y el estado
+  `verificada`; REG-08 no revisa las filas con `origen` (citan ids de su proyecto). REG-08 incluye el prefijo PU,
+  REG-01 trata `personas.csv` como opcional y el guardián y la guía de registros (§7.5) suman el registro nuevo.
+- Regla por defecto del paquete: la provisión para riesgos no identificados va a la reserva de gestión, que solo libera
+  la junta (`estado.py presupuesto … gestion=<monto> --por …`; su uso es un cambio con `cargo=reserva-gestion`, CAM-05),
+  y el presupuesto de riesgo financia las respuestas y contingencias de los riesgos identificados (respuestas + EMV
+  residual). Configurable en el enfoque de riesgo §7 («Provisión para riesgos no identificados · Destino»:
+  `reserva-gestion` por defecto o `presupuesto-riesgo`, nunca los dos). PRINCE2 7 §2.b R-18 y §2.c.6; PMBOK 8 §2.4.a y
+  §2.7.a.
+- El hook de inicio agrega una línea de radar por proyecto (totales y primer id de cada grupo, sin texto libre de los
+  registros) que remite a `pm-orquestador`; la tabla de enrutamiento del orquestador y su secuencia «Radar del día» lo
+  usan ante «¿qué decido hoy?» o al retomar la sesión.
+- `registro.py`: la regla de autoridad y presupuesto de cambio queda en la función `motivos_autoridad` (misma conducta y
+  mensajes), que `impacto.py` usa para decir quién decide antes de pedir la decisión.
+- Fachada sin BMAD (`especificacion.py`): en `requisitos.md`, Interesado, Categoría, Prioridad y Estado se leen por el
+  encabezado de la tabla; sin encabezado reconocible, por la posición de la plantilla. El índice expone `interesado`.
+- `cpm.py --json` escribe solo el JSON (los avisos de Gantt y MSPDI escritos se omiten) y suma `estimacion`.
+  `impacto.py --pert` toma la σ de la distribución declarada en el archivo y `--confianza k`, y aplica la misma
+  distribución a las actividades con tres valores de los escenarios.
+- `release.capacidad` no cuenta épicas ni ítems descartados o retirados en BMAD.
+- QUA-01 y el estado de productos aceptan la clave corta seguida de punto («historia 1-2.»).
+- El tablero de avance sale de `estado.py periodo --tablero` en lugar de la receta que el modelo reescribía (guía de
+  `pm-visuales` §3), con los umbrales de riesgo de `estado.json`; `guias_e2e/comun.py: tablero()` llama al script con el
+  juicio de cada caso.
+- Descripciones de skills: `pm-riesgos` con «plan de contingencia», `pm-interesados` con las personas de usuario,
+  `pm-orquestador` con «qué decido hoy, radar», `pm-progreso-reportes` con «briefing de incorporación», `pm-reuniones`
+  con «compromisos, acuerdos, meeting decisions», `pm-exportar` con «expediente de auditoría, audit pack» y
+  `pm-lecciones-aprendidas` con «lecciones de otros proyectos»; agentes pm-inicio, pm-planificacion, pm-control y
+  pm-cierre con los pasos nuevos.
+
+### Corregido
+- `pm-cronograma-estimacion`, regla 7: la beta-PERT figuraba como fórmula de la Guía PMBOK; queda rotulada como práctica
+  habitual (la Guía cita la triangular).
+- Guía E2E-2: el driver redondeaba tE con `round()` de Python (al par: 10,5 → 10 y 8,5 → 8), distinto de la regla de
+  `cpm.py` (decimales hacia arriba). Con `cpm.py --estimacion` como única fuente, la línea base es de 112 días (fin
+  2027-05-05) y C-001 la lleva a 123 (fin 2027-05-20); sin cambio en el camino crítico, la reserva a 2σ (13,0 días), los
+  +11 días de C-001, los 2,0 días de reserva remanente ni las capacidades (R1 47 de 48, R2 21 de 24).
+- `docs/PUERTAS.md` §3 documenta el control B-00 (BMAD declarado y no legible) y `docs/SANIDAD.md` lista `personas` entre
+  los registros opcionales de REG-01.
+
+### Documentación
+- `docs/ieee/`: dos presentaciones light para miembros de IEEE (PPTX y HTML autocontenido, claro u oscuro, imprimible): resumen
+  de 5 diapositivas con el programa de formación propuesto (14 sesiones de 90 min = 21 h; piloto de 4 a 6 sesiones) y
+  resumen del Informe 2 en 9 diapositivas; siglas explicadas en un recuadro, imágenes reales de las guías E2E y
+  generador reproducible (`fuente/preparar.py` verifica el programa contra `docs/webinar/`).
+- SKILL.md y guías de las skills involucradas: `pm-riesgos` (paso 6, regla 7, guía §1, §4 y §5), `pm-interesados`
+  (paso 4b, regla 2b, guía §13), `pm-mapas-estrategicos` y `pm-planificacion-por-productos` (personas),
+  `pm-estado-proyecto` (§6, §9 y §10), `pm-orquestador` (§4), `pm-progreso-reportes` (§11, §13 y §14, regla 12),
+  `pm-visuales` (§3), `pm-paquetes-trabajo` (§5 y plantilla del product status account), `pm-calidad` (§5 y §8.1),
+  `pm-cierre-proyecto` (§4 y §5), `pm-reuniones` (§3.1, §5 y §7), `pm-issues-cambios` (§3.1 y plantilla de solicitud de
+  cambio), `pm-exportar` (§3.1), `pm-lecciones-aprendidas` (§1, §4, §6–§8, §11 y §12), `pm-agil-hibrido` (§5, §6 y
+  plantilla de retrospectiva), `pm-cronograma-estimacion` (§1–§3, §7 y §8; plantillas `actividades.csv` y
+  `hoja-estimacion.md`), `pm-enfoques-gestion` (enfoque de riesgo §7, plan de cronograma y costos §2),
+  `pm-costos-presupuesto` (§2 y §3), `pm-mandato-y-brief`, `pm-plan-etapa-y-limites` y `pm-sanidad`.
+- SPEC §1.5, §1.9, §1.10.3, §1.10.6, §1.10.8, §1.10.9, §1.10.11, §1.16 y §1.17; `docs/SANIDAD.md`, `docs/PUERTAS.md`,
+  `docs/CATALOGO.md`, `docs/TERMINOLOGIA.md`, `docs/PRUEBAS.md`, `docs/INSTALACION.md` §9, `docs/INDICE.md`, README,
+  CLAUDE.md, AGENTS.md y el resto de `docs/` con las cifras de esta versión.
+- Casos E2E (guía, evidencia, imágenes y material del webinar): **E2E-1** opciones de respuesta por valor neto y
+  decisión del propietario (paso 6a, `g1-opciones-valor-neto.png`), plan de contingencia (paso 6b) activado en el
+  paso 13, presupuesto de riesgo de 39.800 (respuestas 7.300 + EMV residual 32.500) con la provisión de 6.200 como
+  reserva de gestión de la junta, intacta al cierre de la etapa con la reserva de riesgo al 94 %, y radar en la
+  revisión periódica (paso 12); **E2E-2** tres valores y reserva con `cpm.py --estimacion` (paso 3), capacidad del
+  release y personas de usuario con STK-13 (paso 4, `g2-capacidad-release.png`) y análisis de impacto de C-001 y C-002
+  con `impacto.py` (pasos 7 y 10, `g2-impacto-c002.png`); **E2E-3** candidatos del taller con cita y confirmación
+  (paso 8, `g3-candidatos-reunion.png`), radar y briefing al retomar (paso 10a, `g3-radar.png`) y highlight y tablero
+  desde `estado.py periodo` con la cadena de reporte verificada (paso 10b); **E2E-4** radar al retomar la sesión,
+  estado de productos derivado (paso 6), retrospectiva y ciclo de las lecciones (pasos 6c a 9,
+  `g4-lecciones-ciclo.png`), cierre verificado por id con C-03 y C-07 (paso 9, `g4-cierre.png`) y expediente de
+  auditoría verificado (paso 9b, `g4-expediente.png`); **E2E-5** lecciones previas del índice de la red (paso 1),
+  línea del radar al retomar y radar después de la puerta (pasos 7 y 14) y personas de usuario con capacidad × persona
+  en las dos variantes (pasos 10b y 16b, `g5-personas-mapa.png`, `g5-personas-mapa-bmad.png`). Tablas de los casos en
+  `docs/guias/README.md` y `docs/webinar/README.md`; mazos, guías, guiones y ejercicios en HTML regenerados.
+- Fichas promocionales del taller de los cinco casos (`docs/webinar/E2E-N/ficha.json` y sus PPTX y HTML generados):
+  E2E-1 «Que el registro de riesgos no muera después del taller», E2E-2 «Cada cambio, con su impacto medido antes de
+  decidir», E2E-3 «Que lo prometido a cada interesado se cumpla, y se note a tiempo», E2E-4 “Del «done» al beneficio
+  medido: gobernar un producto hecho con BMAD” y E2E-5 «¿Vale la pena? Validar la idea antes de invertir y diseñar el
+  proyecto»; esquema, validaciones y criterios en `docs/webinar/README.md` («Ficha promocional del taller») y
+  `docs/INDICE.md`.
+- Frases de enrutamiento 103 a 130 en `docs/evaluacion/frases-enrutamiento.tsv` (130 en total).
+- `docs/CASOS-DE-USO.md` parte 7 (casos 50 a 59): cada capacidad con su frase verificada en vivo, la skill y el script,
+  la decisión humana y el paso de la guía E2E donde se recorre. `docs/SEGURIDAD.md` §11: revisión de los scripts que
+  leen fuentes externas (sin hallazgos nuevos de severidad alta ni media). Mazo de E2E-3: la RACI resuelta como tabla
+  en lugar de la captura alta del reporte de interesados.
+- Informe 2 en `docs/informe/` (`informe-2-ecosistema-pm-method-v2.4.html` y `.pptx`, 307 diapositivas; reemplazan a los
+  de 2.3): en la sección 2, una diapositiva por capacidad nueva con la figura de su guía E2E y, para opciones, radar,
+  cadena de reporte, estado de productos y cierre, reuniones e impacto, la salida real de la evidencia; controles
+  REG-10, REG-11, REG-12, E-11, STK-13…16, QUA-04, C-03 y C-07 en la tabla de controles permanentes; parte 7 de los
+  casos de uso; pruebas en vivo de 2.4.0; glosario y tabla «antes y después» de 2.4.0 (la de 2.3.0 queda como se
+  publicó). `extraer.py` cuenta los pasos como `docs/guias/README.md` y se detiene si no coinciden, toma las figuras de
+  cualquier paso de las guías y las salidas de `docs/guias/evidencia/`.
+- Resumen ejecutivo (`docs/resumen-ejecutivo/`, 18 diapositivas) regenerado con las cifras de 2.4.0: opciones de
+  respuesta (REG-10), cierre por id (C-07) y ciclo de las lecciones (REG-11, REG-12) en la tabla del problema, y los
+  casos E2E con las capacidades de 2.4.0 y sus imágenes (opciones por valor neto, impacto de C-002, highlight desde el
+  dato, cierre y expediente de auditoría, personas de usuario). Spot (`docs/resumen-ejecutivo/spot/`): rótulo v2.4.0 y
+  mosaico de cifras actualizados, sin regenerar la locución.
+
+### Pruebas
+- `probar_paquete.py`: **353 OK · 0 FALLO** con Python 3.13; **352 OK · 0 FALLO** con Python 3.9 (sin `matplotlib` se
+  omite una comprobación de visuales). Casos nuevos: I2 (opciones y plan de contingencia, 7 comprobaciones), PU
+  (personas, 9), RD (reuniones, 13), IM (impacto, 7), TV (tres valores y capacidad, 9), AU (expediente de auditoría, 7),
+  RA (radar y briefing, 15), LX (lecciones entre proyectos, 9), LC (ciclo de las lecciones, 16), PE (datos del período,
+  tablero y highlight, 8) y PS (estado de productos y cierre por id, 13); el caso Y cubre el `--help` de 34 scripts.
+- Integración cruzada (`scripts/pruebas/integracion/correr.py`): eslabones nuevos 2.5 (tablero, highlight y
+  `--verificar` sobre el EVM), 2.7 (comité → candidatos → registro), 4.4 (personas desde los UJ de BMAD y STK-13), 4.5
+  (cambio + CPM, presupuestos y opciones → impacto), 4.6 (tres valores → `impacto.py --pert`; backlog → capacidad del
+  release), 5.4 (expediente y verificación), 5.5 (radar y briefing), 5.6 (lecciones entre proyectos), 5.7 (ciclo de las
+  lecciones) y 5.8 (estado de productos, QUA-04 y C-07): **99 OK · 0 FALLO en 34 eslabones** de las seis
+  cadenas (94 OK en 32 eslabones sin la cadena de los recorridos E2E, también con Python 3.9).
+- Recorridos E2E (`guias_e2e/correr.py`): 5/5 con los scripts reales, evidencia e imágenes idénticas en dos corridas
+  seguidas. `validar_mermaid.py --render`: **128** bloques, 0 errores. `generar.py --todos --validar` y
+  `documentos.py --todos --validar`: 5/5 sin errores.
+- Imagen Docker `pm-method:2.4.0` reconstruida y verificada el 2026-10-22 (`docs/DOCKER.md` §10, construida como en
+  §11.1): 2,99 GB (748 MB comprimida); dentro del contenedor, sin red, `pm-pruebas` completo en ≈ 14 min con todo OK
+  (`probar_paquete.py` 346 OK · 0 FALLO con Python 3.14, recorridos E2E 5/5, integración 98 OK · 0 FALLO en 34
+  eslabones con `--e2e`, 128 bloques Mermaid, `generar.py` y `documentos.py` 5/5), `claude plugin validate` y el flujo
+  de usuario (proyecto nuevo, sanidad, `estado.py radar` y tablero) con archivos del host de dueño `1000:1000`.
+- En vivo con Claude Code real (2026-10-21 y 2026-10-22): opciones y contingencia 2/2
+  (`docs/evaluacion/resultados/2026-10-21-enrutamiento-contingencia-v2.4.md`); personas 3/3
+  (`…/2026-10-21-enrutamiento-personas-v2.4.md`); radar, briefing y lecciones entre proyectos 12/12
+  (`…/2026-10-21-radar-onboarding-lecciones-v2.4.md`); reuniones, impacto y auditoría 6/6 y 8/8 de regresión
+  (`…/2026-10-21-reuniones-impacto-auditoria-v2.4.md`); ciclo de las lecciones 4/4 y 10/10 de regresión
+  (`…/2026-10-21-lecciones-ciclo-v2.4.md`); estado de productos y cierre 2/2
+  (`…/2026-10-22-estado-productos-cierre-v2.4.md`); período, highlight y tablero 4/4
+  (`…/2026-10-22-periodo-highlight-tablero-v2.4.md`); tres valores y capacidad 2/2
+  (`…/2026-10-22-tres-valores-capacidad-v2.4.md`).
+
 ## 2.3.0 · 2026-10-20 — validar antes de invertir, mapas estratégicos, contexto controlado y material de formación
 
 Versión que suma la validación de supuestos antes de invertir, la evaluación financiera de opciones, los mapas de

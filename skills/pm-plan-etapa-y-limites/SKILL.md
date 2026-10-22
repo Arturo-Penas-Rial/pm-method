@@ -1,7 +1,7 @@
 ---
 name: pm-plan-etapa-y-limites
 description: "Planes de proyecto, etapa y excepción; fin de etapa. Usar: plan de etapa, fin de etapa, stage plan, end stage report. No: cronograma→pm-cronograma-estimacion; costos→pm-costos-presupuesto."
-version: 2.3.0
+version: 2.4.0
 author: pm-method
 license: MIT
 metadata:
@@ -60,7 +60,7 @@ metadata:
 9. **Entrar en SB**: `pm-control` o `pm-director` ejecuta `estado.py limite-etapa` (o `--excepcion X-###`).
 10. **Reales y pronósticos** en el plan de etapa y el plan de proyecto, con diferencias marcadas (§7).
 11. **Business case** actualizado vía `pm-caso-de-negocio`; si deja de sostenerse, decirlo con claridad.
-12. **Lecciones** de la etapa registradas y marcadas para el plan siguiente (§7).
+12. **Lecciones** de la etapa registradas y marcadas para el plan siguiente (§7): `lecciones.py listar --para planificacion` (pm-lecciones-aprendidas) y cada una citada en «lecciones incorporadas» con `accionar`; E-11 avisa las abiertas sin acción; informe con `lecciones.py informe --etapa <n>`.
 13. **Especificación antes de la puerta** (§8): `especificacion.py resumen` (cobertura y estados); con BMAD, `python3 ${CLAUDE_SKILL_DIR}/../pm-bmad-puente/scripts/bmad.py --proyecto <dir> verificar` y traspasos pendientes (`estado.json.integraciones.bmad.handoffs` sin confirmar). Desvío no traspasado o Sprint Change Proposal nueva → `solicitud-cambio` (`pm-issues-cambios`). El gate de sprint planning (PASS/CONCERNS/FAIL) es insumo de `autorizar-etapa`.
 14. **Informe de fin de etapa** (`templates/informe-fin-etapa.md` → `03-control/reportes/<fecha>-informe-fin-etapa-<n>.md`) con cifras citadas y pronóstico contra tolerancias; aseguramiento lo confirma.
 15. **Plan siguiente** con la parte C; revisar PID, equipo, roles y enfoques.

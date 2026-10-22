@@ -13,7 +13,7 @@ inercia → riesgo): vista autocontenida 02-planificacion/visuales/tablero-mapas
 Uso / Usage (--proyecto va ANTES del tipo de mapa):
   mapas.py --proyecto G wardley semilla [--slug S] [--titulo T] [--pregunta P] [--desde auto|bmad|artefactos]
                                         [--anclas "A; B"] [--componentes "X; Y"] [--fecha AAAA-MM-DD] [--forzar] [--json]
-  mapas.py --proyecto G recorrido semilla [--uj UJ-2] [--backstage UJ-3] [--slug S] [--titulo T] [--persona P]
+  mapas.py --proyecto G recorrido semilla [--uj UJ-2] [--backstage UJ-3] [--slug S] [--titulo T] [--persona P|PU-###]
                                           [--etapas "A; B"] [--desde auto|bmad|artefactos] [--fecha AAAA-MM-DD] [--forzar] [--json]
   mapas.py --proyecto G wardley|recorrido validar <slug|archivo.json> [--json]
   mapas.py --proyecto G wardley|recorrido render <slug|archivo.json> [--png auto|si|no] [--json]
@@ -428,6 +428,12 @@ def semilla_recorrido(a, e):
         trans = sorted(glob.glob(os.path.join(p, "03-control", "reuniones", "*transcripcion*.md")))
         d["fuentes"] = [os.path.relpath(x, p) for x in trans]
         d["insumos"] = insumos_artefactos(p)
+    if re.match(r"^PU-\d{3,}$", (a.persona or "").strip()):   # persona de usuario registrada (personas.csv, pm-interesados)
+        rp = E.ruta_registro(p, "personas")
+        pu = next((f for f in (E.leer_csv(rp)[1] if os.path.exists(rp) else []) if f.get("id") == a.persona.strip()), None)
+        if not pu: sys.exit(t(f"No existe {a.persona} en personas.csv (interesados.py personas candidatos)", f"{a.persona} not found in personas.csv"))
+        d.update({"persona": ", ".join(x for x in (pu.get("nombre"), pu.get("descripcion")) if x), "persona_id": pu["id"],
+                  "trabajo": d.get("trabajo") or pu.get("objetivo") or "", "disparador": d.get("disparador") or pu.get("contexto_uso") or ""})
     return d, desde
 
 # ------------------------------------------------------------------ vistas

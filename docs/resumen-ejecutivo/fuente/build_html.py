@@ -202,7 +202,7 @@ def corto(t):
     return t if len(t) <= 60 else t[:59] + "…"
 
 
-vivo = "".join(f"<li><b>{e(v['resultado'])}</b> {e(corto(v['prueba']))} <small>{e(v['fecha'])}</small></li>" for v in D["vivo"][-7:])
+vivo = "".join(f"<li><b>{e(v['resultado'])}</b> {e(corto(v['prueba']))} <small>{e(v['fecha'])}</small></li>" for v in D["vivo"][-8:])
 seg = "".join(f"<tr><td>{e(f['severidad'])}</td><td class='n'>{e(f['cantidad'])}</td><td>{e(f['corregidos'])}</td></tr>" for f in D["seguridad"]["filas"])
 dk = "".join(f"<li>{e(x)}</li>" for x in D["empezar"]["docker_seguridad"][:6])
 diapositiva("Confianza y adopción", P["titulo"], f"""<div class="kpis4">{kp}</div><div class="grid3">

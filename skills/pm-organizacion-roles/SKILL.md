@@ -1,7 +1,7 @@
 ---
 name: pm-organizacion-roles
 description: "Estructura de gestión, roles y team charter. Usar: junta, roles, descripción de rol, team charter, mapear roles ágiles o BMAD. No: interesados o RACI→pm-interesados; plan de comunicación→pm-comunicacion-stakeholders."
-version: 2.3.0
+version: 2.4.0
 author: pm-method
 license: MIT
 metadata:

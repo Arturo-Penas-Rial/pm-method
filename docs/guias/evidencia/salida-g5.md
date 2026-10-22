@@ -31,18 +31,48 @@ Faltan: presupuesto disponible y fecha deseada [por confirmar con la ejecutiva].
 ```
 
 ```
-$ python3 $EST/registro.py --proyecto gestion agregar lecciones --campo "fecha=2026-11-02" --campo "etapa=0" --campo "categoria=proyectos anteriores" --campo "situacion=App de resultados de laboratorio (2024): 11 % de uso en pacientes mayores de 65" --campo "efecto=la app no redujo las llamadas de ese grupo" --campo "recomendacion=mantener un canal asistido y medir la adopción por franja de edad desde el día 1" --campo "prioridad=alta" --campo "responsable_seguimiento=Pablo Rinaldi"
-L-001
+$ (índice de lecciones de la red, exportado por la PMO con lecciones.py buscar --exportar → pmo-altamar/lecciones-indice.csv)
+5 lecciones de 4 proyectos (una sin aprobar)
 ```
 
 ```
-$ python3 $EST/registro.py --proyecto gestion agregar lecciones --campo "fecha=2026-11-02" --campo "etapa=0" --campo "categoria=proyectos anteriores" --campo "situacion=Historia clínica (2025): la integración con la agenda clínica se estimó en 4 semanas y llevó 14" --campo "efecto=el proveedor no tenía una interfaz documentada; atraso de 10 semanas" --campo "recomendacion=validar la interfaz del proveedor con una prueba técnica antes de comprometer fechas" --campo "prioridad=alta" --campo "responsable_seguimiento=Pablo Rinaldi"
-L-002
+$ python3 $PLUGIN/skills/pm-lecciones-aprendidas/scripts/lecciones.py buscar --indice pmo-altamar/lecciones-indice.csv --texto "pacientes turnos agenda recordatorios"
+Lecciones aprobadas que coinciden: 3 de 4 (omitidas: 1 sin aprobar, 0 copias).
+- piloto-de-recordatorios-de-odontologia:L-002 · Piloto de recordatorios de odontología · 2025-09-15 · beneficios · #recordatorios;ausentismo;linea-base · alta · accionada-proyecto · coincide: recordatorios
+    situación: Piloto de recordatorios por SMS en odontología (2025)
+    recomendación: medir la línea base antes de cualquier piloto
+- historia-clinica-electronica:L-007 · Historia clínica electrónica · 2025-06-30 · tecnica · #agenda-clinica;integracion;proveedor · alta · revisada · coincide: agenda
+    situación: Historia clínica (2025): la integración con la agenda clínica se estimó en 4 semanas y llevó 14
+    recomendación: validar la interfaz del proveedor con una prueba técnica antes de comprometer fechas
+- app-de-resultados-de-laboratorio:L-004 · App de resultados de laboratorio · 2024-11-20 · adopcion · #pacientes;adopcion;canal-digital · alta · accionada-organizacion · coincide: pacientes
+    situación: App de resultados de laboratorio (2024): 11 % de uso en pacientes mayores de 65
+    recomendación: mantener un canal asistido y medir la adopción por franja de edad desde el día 1
+Para proponerlas como lecciones previas: lecciones.py incorporar --proyecto <dir> … --ids <ref,ref> (vista previa; registra solo con --confirmar --por).
 ```
 
 ```
-$ python3 $EST/registro.py --proyecto gestion agregar lecciones --campo "fecha=2026-11-02" --campo "etapa=0" --campo "categoria=proyectos anteriores" --campo "situacion=Piloto de recordatorios por SMS en odontología (2025)" --campo "efecto=bajó el ausentismo pero nadie midió la línea base y no se pudo justificar la extensión" --campo "recomendacion=medir la línea base antes de cualquier piloto" --campo "prioridad=alta" --campo "responsable_seguimiento=Pablo Rinaldi"
-L-003
+$ python3 $PLUGIN/skills/pm-lecciones-aprendidas/scripts/lecciones.py incorporar --proyecto gestion --indice pmo-altamar/lecciones-indice.csv --ids app-de-resultados-de-laboratorio:L-004,historia-clinica-electronica:L-007,piloto-de-recordatorios-de-odontologia:L-002
+Vista previa: 3 lección(es) previa(s) para gestion/03-control/registros/lecciones.csv (no se registró nada):
+- App de resultados de laboratorio · L-004 · 2024-11-20 · adopcion · #pacientes;adopcion;canal-digital · responsable Pablo Rinaldi
+    recomendación: mantener un canal asistido y medir la adopción por franja de edad desde el día 1
+- Historia clínica electrónica · L-007 · 2025-06-30 · tecnica · #agenda-clinica;integracion;proveedor · responsable Pablo Rinaldi
+    recomendación: validar la interfaz del proveedor con una prueba técnica antes de comprometer fechas
+- Piloto de recordatorios de odontología · L-002 · 2025-09-15 · beneficios · #recordatorios;ausentismo;linea-base · responsable Pablo Rinaldi
+    recomendación: medir la línea base antes de cualquier piloto
+Confirmar con la persona y repetir con --confirmar --por "Gestor: Nombre". Luego convertir cada una en un control temprano (riesgo con respuesta, acción o condición del plan) y marcarla accionada-proyecto con notas=incorporada: <artefacto>.
+```
+
+```
+$ python3 $PLUGIN/skills/pm-lecciones-aprendidas/scripts/lecciones.py incorporar --proyecto gestion --indice pmo-altamar/lecciones-indice.csv --ids app-de-resultados-de-laboratorio:L-004,historia-clinica-electronica:L-007,piloto-de-recordatorios-de-odontologia:L-002 --confirmar --por "Gestor: Pablo Rinaldi" --fecha 2026-11-02
+Lecciones previas registradas (estado registrada): L-001 ← App de resultados de laboratorio · L-004 · 2024-11-20; L-002 ← Historia clínica electrónica · L-007 · 2025-06-30; L-003 ← Piloto de recordatorios de odontología · L-002 · 2025-09-15
+Siguiente: un control temprano por lección (pm-riesgos, acción en pm-registros o condición del plan de la etapa) y marcarla accionada-proyecto con notas=incorporada: <artefacto>.
+```
+
+```
+$ python3 $EST/registro.py --proyecto gestion listar lecciones
+id=L-001 | fecha=2026-11-02 | etapa=0 | categoria=adopcion | situacion=App de resultados de laboratorio (2024): 11 % de uso en pacientes mayores de 65 | efecto=la app no redujo las llamadas de ese grupo | recomendacion=mantener un canal asistido y medir la adopción por franja de edad desde el día 1 | prioridad=alta | responsable_seguimiento=Pablo Rinaldi | estado=registrada | notas=lección previa de otro proyecto; confirmada por Gestor: Pablo Rinaldi | origen=App de resultados de laboratorio · L-004 · 2024-11-20 | etiquetas=pacientes;adopcion;canal-digital
+id=L-002 | fecha=2026-11-02 | etapa=0 | categoria=tecnica | situacion=Historia clínica (2025): la integración con la agenda clínica se estimó en 4 semanas y llevó 14 | efecto=el proveedor no tenía una interfaz documentada; atraso de 10 semanas | recomendacion=validar la interfaz del proveedor con una prueba técnica antes de comprometer fechas | prioridad=alta | responsable_seguimiento=Pablo Rinaldi | estado=registrada | notas=lección previa de otro proyecto; confirmada por Gestor: Pablo Rinaldi | origen=Historia clínica electrónica · L-007 · 2025-06-30 | etiquetas=agenda-clinica;integracion;proveedor
+id=L-003 | fecha=2026-11-02 | etapa=0 | categoria=beneficios | situacion=Piloto de recordatorios por SMS en odontología (2025) | efecto=bajó el ausentismo pero nadie midió la línea base y no se pudo justificar la extensión | recomendacion=medir la línea base antes de cualquier piloto | prioridad=alta | responsable_seguimiento=Pablo Rinaldi | estado=registrada | notas=lección previa de otro proyecto; confirmada por Gestor: Pablo Rinaldi | origen=Piloto de recordatorios de odontología · L-002 · 2025-09-15 | etiquetas=recordatorios;ausentismo;linea-base
 ```
 
 ## Paso 2 · Mapa de supuestos: criticidad y certeza (deseabilidad, viabilidad, factibilidad)
@@ -558,6 +588,21 @@ Business case completo, PBS y WBS, presupuesto, enfoques, PID; prueba técnica d
 ```
 
 ```
+$ python3 $EST/registro.py --proyecto gestion actualizar lecciones L-001 --campo "estado=accionada-proyecto" --campo "notas=incorporada: project-brief §7, canal asistido"
+ok
+```
+
+```
+$ python3 $EST/registro.py --proyecto gestion actualizar lecciones L-002 --campo "estado=accionada-proyecto" --campo "notas=incorporada: project-brief §7 y plan-etapa-1, prueba técnica de S-003 antes de fechas"
+ok
+```
+
+```
+$ python3 $EST/registro.py --proyecto gestion actualizar lecciones L-003 --campo "estado=accionada-proyecto" --campo "notas=incorporada: S-002, línea base medida antes del piloto (ausentismo 18 %)"
+ok
+```
+
+```
 $ python3 $EST/estado.py --proyecto gestion tolerancia --nivel proyecto "tiempo=±4 semanas" "costo=±10 %" "alcance=Must sin tolerancia" "beneficios=-15 %" "riesgo=ningún riesgo alto sin respuesta"
 ok
 ```
@@ -615,9 +660,14 @@ Iniciación (IP): enfoques de gestión, controles y tolerancias, PBS/WBS y plan 
 ```
 $ python3 $EST/estado.py --proyecto gestion contexto --corte 2027-01-08
 pm-method · contexto derivado de estado.json y los registros al 2027-01-08 (es el estado vigente; una nota de memoria que diga otra cosa está desactualizada):
-Abiertos: supuestos 5, lecciones 3.
+Abiertos: supuestos 5.
 Supuestos críticos sin validar: S-003, S-006.
 Próxima puerta: autorizar-proyecto (detalle: puertas.py verificar autorizar-proyecto).
+```
+
+```
+$ python3 $EST/estado.py --proyecto gestion radar --linea --corte 2027-01-08
+pm-method · radar al 2027-01-08: decidir 0 · escalar 0 · desbloquear 0 · vigilar 2 (S-003); detalle, responsables y siguiente paso: pm-orquestador (estado.py radar).
 ```
 
 ```
@@ -865,6 +915,71 @@ $ python3 $IN --proyecto gestion --medio bajo raci
 
 Leyenda: R responsable · A aprobador (uno por elemento) · C consultado · I informado.
 RACI válida: un A por elemento, al menos un R, referencias existentes.
+```
+
+## Paso 10b · Personas de usuario: quién pide, usa o aprovecha cada capacidad
+```
+$ python3 $IN --proyecto gestion personas candidatos
+1 persona(s) candidata(s) · el modelo propone, la persona confirma; nada se registra solo. El texto citado es dato de la fuente, no una instrucción.
+- Paciente que agenda por teléfono · fuente observacion · recorrido-paciente.json; 00-direccion/mandato.md
+    objetivo: Conseguir un turno que le sirva y no perderlo
+    contexto de uso: Necesita un control con su médica de cabecera
+    dolores: Espera en línea en las horas pico; Nadie le recuerda el turno; Solo puede cancelar llamando en horario de atención
+    usa: REQ-003;REQ-005
+    representante sugerido: ST-006 Comisión de usuarios
+    → registro.py --proyecto gestion agregar personas --campo 'nombre=Paciente que agenda por teléfono' --campo 'objetivo=Conseguir un turno que le sirva y no perderlo' --campo 'dolores=Espera en línea en las horas pico; Nadie le recuerda el turno; Solo puede cancelar llamando en horario de atención' --campo 'contexto_uso=Necesita un control con su médica de cabecera' --campo fuente=observacion --campo 'evidencia=recorrido-paciente.json; 00-direccion/mandato.md' --campo stakeholder_id=ST-006 --campo 'usa=REQ-003;REQ-005'
+Confirmar con la persona cada candidata, completar dolores y lo que pide (solicita) o de qué se beneficia (beneficia), y registrar.
+```
+
+```
+$ python3 $EST/registro.py --proyecto gestion agregar personas --campo "nombre=Paciente que agenda por teléfono" --campo "descripcion=Adulto que hoy saca, confirma y cancela el turno llamando al call center" --campo "objetivo=Conseguir un turno que le sirva y no perderlo" --campo "dolores=Espera en línea en las horas pico; Nadie le recuerda el turno; Solo puede cancelar llamando en horario de atención" --campo "contexto_uso=Necesita un control con su médica de cabecera" --campo "fuente=observacion" --campo "evidencia=recorrido-paciente.json; 00-direccion/mandato.md" --campo "stakeholder_id=ST-006" --campo "usa=REQ-001;REQ-003;REQ-004;REQ-005" --campo "beneficios=B-01;B-02"
+PU-001
+```
+
+```
+$ python3 $EST/registro.py --proyecto gestion agregar personas --campo "nombre=Recepcionista del call center" --campo "descripcion=Atiende el teléfono en las horas pico y libera a mano los turnos que se cancelan" --campo "objetivo=Atender a quien llama sin colas y no perder los turnos que se liberan" --campo "dolores=Colas en las horas pico; libera los turnos cancelados al día siguiente, a mano" --campo "contexto_uso=Puesto de recepción y call center, en horario de atención" --campo "fuente=supuesto" --campo "evidencia=backstage de P1 y P5 en recorrido-paciente.json; a validar con entrevistas en recepción" --campo "stakeholder_id=ST-005" --campo "solicita=REQ-003" --campo "usa=REQ-002" --campo "beneficia=REQ-004" --campo "beneficios=B-02;DB-01"
+PU-002
+```
+
+```
+$ python3 $EST/registro.py --proyecto gestion agregar personas --campo "nombre=Paciente mayor de 65" --campo "descripcion=Prefiere el teléfono; usa el celular para mensajes, no para aplicaciones" --campo "objetivo=No perder el turno sin tener que usar una aplicación" --campo "dolores=No usa aplicaciones; necesita que alguien lo atienda" --campo "contexto_uso=Recibe mensajes en el celular; agenda por teléfono o en recepción" --campo "fuente=documento" --campo "evidencia=L-001 (App de resultados de laboratorio, 2024: 11 % de uso en mayores de 65)" --campo "stakeholder_id=ST-006" --campo "solicita=REQ-007" --campo "usa=REQ-001;REQ-003" --campo "beneficios=B-01"
+PU-003
+```
+
+```
+$ python3 $EST/sanidad.py --proyecto gestion --rapido --corte 2027-01-12
+Sanidad de 'Turnos en línea · Policlínicas Altamar' (inicio/IP): 0 ERROR · 1 AVISO · 0 INFO
+  AVISO STK-13 REQ-006 (requisito Must) sin persona que lo pida, lo use o se beneficie: Reservar y cancelar en la agenda clínica en tiempo real
+        → Vincular el requisito o la épica Must a la persona que lo pide, lo usa o se beneficia (registro.py actualizar personas PU-… --campo usa=…) o revisar su prioridad.
+```
+
+```
+$ python3 $EST/registro.py --proyecto gestion actualizar personas PU-001 --campo "beneficia=REQ-006"
+ok
+```
+
+```
+$ python3 $IN --proyecto gestion personas mapa
+| Capacidad | Título | MoSCoW | PU-001 Paciente que… | PU-002 Recepcionista… | PU-003 Paciente mayor… |
+|---|---|---|---|---|---|
+| REQ-001 | Enviar un recordatorio 48 h antes del turno por m… | Must | U |  | U |
+| REQ-003 | Confirmar o cancelar desde el recordatorio y libe… | Must | U | S | U |
+| REQ-004 | Sacar turno en línea por especialidad y policlíni… | Must | U | B |  |
+| REQ-006 | Reservar y cancelar en la agenda clínica en tiemp… | Must | B |  |  |
+| REQ-002 | Plantillas de recordatorio por especialidad | Should |  | U |  |
+| REQ-005 | Reprogramar o cancelar en línea | Should | U |  |  |
+| REQ-007 | Uso accesible para pacientes mayores de 65 (WCAG… | Should |  |  | S |
+S solicitante · U usuario · B beneficiario
+```
+
+```
+$ python3 $IN --proyecto gestion personas priorizacion
+| Persona | Representante | Must | Should | Could | Won't | Sin prioridad | S | U | B | Beneficios |
+|---|---|---|---|---|---|---|---|---|---|---|
+| PU-001 Paciente que agenda por… | ST-006 | 4 | 1 | 0 | 0 | 0 | 0 | 4 | 1 | B-01, B-02 |
+| PU-002 Recepcionista del call… | ST-005 | 2 | 1 | 0 | 0 | 0 | 1 | 1 | 1 | B-02, DB-01 |
+| PU-003 Paciente mayor de 65 | ST-006 | 2 | 1 | 0 | 0 | 0 | 1 | 2 | 0 | B-01 |
+7 capacidad(es) mapeadas · Must sin persona: ninguno
 ```
 
 ## Paso 11 · Enfoques de gestión adaptados al contexto (tailoring)
@@ -1154,12 +1269,25 @@ Sanidad de 'Turnos en línea · Policlínicas Altamar' (inicio/IP): 0 ERROR · 4
 ```
 
 ```
-$ python3 $EST/estado.py --proyecto gestion contexto --corte 2027-02-01
-pm-method · contexto derivado de estado.json y los registros al 2027-02-01 (es el estado vigente; una nota de memoria que diga otra cosa está desactualizada):
-Abiertos: riesgos 3, supuestos 4, lecciones 3.
-Riesgos con la revisión vencida (REG-09): R-001 (2027-01-29), R-002 (2027-01-29), R-003 (2027-01-29).
-Supuestos críticos sin validar: S-006.
-Próxima puerta: autorizar-etapa (detalle: puertas.py verificar autorizar-etapa).
+$ python3 $EST/estado.py --proyecto gestion radar --corte 2027-02-01
+Radar de atención · Turnos en línea · Policlínicas Altamar (inicio/IP, etapa 1) al 2027-02-01: 1 decidir · 0 escalar · 0 desbloquear · 4 vigilar
+Hoy: decidir S-006 · escalar — · desbloquear —.
+DECIDIR (1)
+  P1 [SUP-02] S-006 · 2027-01-29 · Carmen Olivera — fecha límite vencida sin resultado: seguir, cambiar o detener · «La normativa de protección de datos permite enviar recordat…»
+      → pm-mandato-y-brief (experimento y resultado) o pm-caso-de-negocio (efecto en el caso); la junta decide si se acepta sin validar
+ESCALAR: nada.
+DESBLOQUEAR: nada.
+VIGILAR (4)
+  P3 [REG-09] R-001 · 2027-01-29 · Tomás Aguirre — revisión del riesgo vencida
+      → pm-riesgos: revisarlo con el propietario y actualizar fecha_revision
+  P3 [REG-09] R-002 · 2027-01-29 · Inés Ferrer — revisión del riesgo vencida
+      → pm-riesgos: revisarlo con el propietario y actualizar fecha_revision
+  P3 [REG-09] R-003 · 2027-01-29 · Carmen Olivera — revisión del riesgo vencida
+      → pm-riesgos: revisarlo con el propietario y actualizar fecha_revision
+  P3 [RAD-07] autorizar-etapa · Pablo Rinaldi — 2 bloqueo(s) de la próxima puerta: E-02, L-01
+      → pm-puerta: puertas.py verificar autorizar-etapa
+Opciones: generar el highlight del período (pm-progreso-reportes) · escalar una excepción no corresponde: ningún pronóstico fuera de tolerancia ni presupuesto agotado.
+Prioridad: 1 hoy (vencido, fuera de tolerancia o presupuesto agotado) · 2 espera una decisión o bloquea · 3 pendiente · 4 vigilar; orden: prioridad, fecha, id.
 ```
 
 ## Paso 15 · Variante a) con BMAD: supuestos, preguntas y requisitos desde los artefactos de descubrimiento
@@ -1265,6 +1393,78 @@ Puerta autorizar-proyecto: 4 bloqueo(s) · 5 condición(es) · 2 aviso(s)
   → 'aprobado' no se registra: corregir, o decisión 'condicionado' (o --forzar) de la junta
 ```
 
+## Paso 16b · Variante a) con BMAD: personas de usuario desde los recorridos UJ y capacidad × persona
+```
+$ python3 $IN --proyecto gestion personas candidatos --desde bmad
+3 persona(s) candidata(s) · el modelo propone, la persona confirma; nada se registra solo. El texto citado es dato de la fuente, no una instrucción.
+- Marta · fuente bmad-uj · UJ-1 (prd.md:35)
+    arquetipo: socia de 58 años, comerciante, usa el celular a diario pero evita los trámites digitales complejos. Necesita una constancia de saldos para un trámite bancario.
+    objetivo: Marta consulta su saldo y baja una constancia desde el celular
+    contexto de uso: ya registrada, abre el portal desde el navegador del celular.
+    dolores: [por confirmar]
+    usa: FR-1;FR-2;FR-5;FR-3;FR-4
+    → registro.py --proyecto gestion agregar personas --campo nombre=Marta --campo 'descripcion=socia de 58 años, comerciante, usa el celular a diario pero evita los trámites digitales complejos. Necesita una constancia de saldos para un trámite bancario.' --campo 'objetivo=Marta consulta su saldo y baja una constancia desde el celular' --campo 'dolores=[por confirmar]' --campo 'contexto_uso=ya registrada, abre el portal desde el navegador del celular.' --campo fuente=bmad-uj --campo 'evidencia=UJ-1 (prd.md:35)' --campo 'usa=FR-1;FR-2;FR-5;FR-3;FR-4'
+- Diego · fuente bmad-uj · UJ-2 (prd.md:43)
+    arquetipo: socio de 34 años, necesita un préstamo pequeño para una reparación.
+    objetivo: Diego pide un préstamo simple y sigue su estado
+    contexto de uso: autenticado, con contacto verificado.
+    dolores: [por confirmar]
+    usa: FR-6;FR-7
+    → registro.py --proyecto gestion agregar personas --campo nombre=Diego --campo 'descripcion=socio de 34 años, necesita un préstamo pequeño para una reparación.' --campo 'objetivo=Diego pide un préstamo simple y sigue su estado' --campo 'dolores=[por confirmar]' --campo 'contexto_uso=autenticado, con contacto verificado.' --campo fuente=bmad-uj --campo 'evidencia=UJ-2 (prd.md:43)' --campo 'usa=FR-6;FR-7'
+- Lucía · fuente bmad-uj · UJ-3 (prd.md:51)
+    arquetipo: operadora de back-office, hoy transcribe pedidos que llegan por varios canales.
+    objetivo: Lucía atiende la bandeja de solicitudes
+    contexto de uso: autenticada en la consola de operador.
+    dolores: [por confirmar]
+    usa: FR-9;FR-10;FR-11
+    → registro.py --proyecto gestion agregar personas --campo 'nombre=Lucía' --campo 'descripcion=operadora de back-office, hoy transcribe pedidos que llegan por varios canales.' --campo 'objetivo=Lucía atiende la bandeja de solicitudes' --campo 'dolores=[por confirmar]' --campo 'contexto_uso=autenticada en la consola de operador.' --campo fuente=bmad-uj --campo 'evidencia=UJ-3 (prd.md:51)' --campo 'usa=FR-9;FR-10;FR-11'
+Confirmar con la persona cada candidata, completar dolores y lo que pide (solicita) o de qué se beneficia (beneficia), y registrar.
+```
+
+```
+$ python3 $EST/registro.py --proyecto gestion agregar personas --campo "nombre=Marta" --campo "descripcion=socia de 58 años, comerciante, usa el celular a diario pero evita los trámites digitales complejos. Necesita una constancia de saldos para un trámite bancario." --campo "objetivo=Marta consulta su saldo y baja una constancia desde el celular" --campo "contexto_uso=ya registrada, abre el portal desde el navegador del celular." --campo "fuente=bmad-uj" --campo "evidencia=UJ-1 (prd.md:35)" --campo "usa=FR-1;FR-2;FR-5;FR-3;FR-4" --campo "dolores=Evita los trámites digitales complejos; necesita la constancia para un trámite bancario"
+PU-001
+```
+
+```
+$ python3 $EST/registro.py --proyecto gestion agregar personas --campo "nombre=Diego" --campo "descripcion=socio de 34 años, necesita un préstamo pequeño para una reparación." --campo "objetivo=Diego pide un préstamo simple y sigue su estado" --campo "contexto_uso=autenticado, con contacto verificado." --campo "fuente=bmad-uj" --campo "evidencia=UJ-2 (prd.md:43)" --campo "usa=FR-6;FR-7;FR-8" --campo "dolores=No sabe en qué estado está su solicitud de préstamo" --campo "beneficia=FR-12"
+PU-002
+```
+
+```
+$ python3 $EST/registro.py --proyecto gestion agregar personas --campo "nombre=Lucía" --campo "descripcion=operadora de back-office, hoy transcribe pedidos que llegan por varios canales." --campo "objetivo=Lucía atiende la bandeja de solicitudes" --campo "contexto_uso=autenticada en la consola de operador." --campo "fuente=bmad-uj" --campo "evidencia=UJ-3 (prd.md:51)" --campo "usa=FR-8;FR-9;FR-10;FR-11" --campo "dolores=Transcribe pedidos que llegan por varios canales" --campo "solicita=FR-9"
+PU-003
+```
+
+```
+$ python3 $IN --proyecto gestion personas mapa --limite 0
+| Capacidad | Título | MoSCoW | PU-001 Marta | PU-002 Diego | PU-003 Lucía |
+|---|---|---|---|---|---|
+| FR-1 | Alta y acceso del socio | sin prioridad | U |  |  |
+| FR-2 | Recuperación de acceso | sin prioridad | U |  |  |
+| FR-3 | Consulta de saldos de ahorro | sin prioridad | U |  |  |
+| FR-4 | Consulta de préstamos | sin prioridad | U |  |  |
+| FR-5 | Descarga de constancias en PDF | sin prioridad | U |  |  |
+| FR-6 | Solicitud guiada de préstamo simple | sin prioridad |  | U |  |
+| FR-7 | Seguimiento de solicitud y respuesta a pedidos de… | sin prioridad |  | U |  |
+| FR-8 | Actualización de datos de contacto con verificaci… | sin prioridad |  | U | U |
+| FR-9 | Bandeja única de solicitudes | sin prioridad |  |  | S·U |
+| FR-10 | Resolución de solicitudes | sin prioridad |  |  | U |
+| FR-11 | Roles y permisos | sin prioridad |  |  | U |
+| FR-12 | Notificaciones por correo (y SMS opcional) | sin prioridad |  | B |  |
+S solicitante · U usuario · B beneficiario
+```
+
+```
+$ python3 $IN --proyecto gestion personas priorizacion
+| Persona | Representante | Must | Should | Could | Won't | Sin prioridad | S | U | B | Beneficios |
+|---|---|---|---|---|---|---|---|---|---|---|
+| PU-001 Marta | — | 0 | 0 | 0 | 0 | 5 | 0 | 5 | 0 | — |
+| PU-002 Diego | — | 0 | 0 | 0 | 0 | 4 | 0 | 3 | 1 | — |
+| PU-003 Lucía | — | 0 | 0 | 0 | 0 | 4 | 1 | 4 | 0 | — |
+12 capacidad(es) mapeadas · Must sin persona: ninguno
+```
+
 ## Paso 17 · Variante a) con BMAD: recorrido y mapa de valor desde la especificación
 ```
 $ python3 $BMAD --proyecto gestion recorridos --id UJ-2
@@ -1279,7 +1479,7 @@ UJ-2 Diego pide un préstamo simple y sigue su estado (_bmad-output/planning-art
 ```
 
 ```
-$ python3 $PLUGIN/skills/pm-mapas-estrategicos/scripts/mapas.py --proyecto gestion recorrido semilla --uj UJ-2 --backstage UJ-3 --fecha 2026-10-29
+$ python3 $PLUGIN/skills/pm-mapas-estrategicos/scripts/mapas.py --proyecto gestion recorrido semilla --uj UJ-2 --backstage UJ-3 --persona PU-002 --fecha 2026-10-29
 Semilla 02-planificacion/mapas/recorrido-uj-2.json desde bmad: 3 etapa(s), 9 paso(s); emociones y fuentes [por confirmar] · KPI SM-3, SM-5
 Siguiente: completar con evidencia, 'validar' y 'render'. El modelo propone; la persona confirma.
 ```

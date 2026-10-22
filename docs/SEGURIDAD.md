@@ -1,7 +1,9 @@
-# Seguridad de pm-method · revisión del 2026-10-20
+# Seguridad de pm-method · revisión del 2026-10-20 y de los scripts de 2.4.0
 
 Revisión de seguridad del plugin pm-method 2.3.0 desde el punto de vista de quien lo
-instala: si las skills, los agentes, los hooks y los scripts introducen riesgos o exponen a vulnerabilidades.
+instala: si las skills, los agentes, los hooks y los scripts introducen riesgos o exponen a vulnerabilidades. La
+sección 11 revisa los scripts que la versión 2.4.0 suma o amplía y que leen fuentes externas (2026-10-22): sin
+hallazgos nuevos de severidad alta ni media.
 
 EN: *Security review of pm-method 2.3.0. No high-severity issues. The three medium issues are fixed (HTML escaping in
 the stakeholder report, formula neutralisation in the xlsx export, and a permission prompt that a person must answer
@@ -319,3 +321,23 @@ pip-audit -r docker/requirements.txt --disable-pip --no-deps
 (cd docker/node && npm audit --omit=dev)
 python3 scripts/probar_paquete.py      # caso S: SEG-01 y SEG-02 · caso N: SEG-03 a SEG-10
 ```
+
+## 11. Scripts de la versión 2.4.0 que leen fuentes externas (2026-10-22)
+
+Alcance: `pm-reuniones/scripts/extraccion.py` (transcripciones), `pm-lecciones-aprendidas/scripts/lecciones.py`
+(carpetas de otros proyectos e índices CSV), `pm-riesgos/scripts/riesgos.py opciones` (hojas de opciones),
+`pm-issues-cambios/scripts/impacto.py`, `pm-agil-hibrido/scripts/release.py`, `estado.py radar|briefing|periodo|productos`
+y `pm-exportar/scripts/paquete.py auditoria|verificar`. Método: bandit 1.9.4 sobre esos archivos (y `cpm.py` e
+`interesados.py`), búsqueda de `shell=True`, `os.system`, `eval`/`exec`, `pickle` y `yaml.load`, lectura del código que
+escribe registros o HTML y las pruebas de regresión que lo ejercitan.
+
+| Tema | Resultado | Prueba |
+|---|---|---|
+| bandit | solo avisos de severidad baja ya tratados en §6: B404 y B603 (`subprocess` con lista de argumentos, `sys.executable` y `registro.py` o `sanidad.py` del paquete, sin `shell=True`) y B110 en `estado.py` (controles opcionales que, si fallan, no deben cortar el radar, el período ni el resumen) | — |
+| Instrucciones incrustadas en una transcripción | `extraccion.py` las clasifica como **IN** y nunca las registra; si se las confirma, `registrar` rechaza todo el lote sin escribir | caso RD |
+| Escrituras a partir de fuentes externas | `extraccion.py registrar` y `lecciones.py incorporar` escriben solo con `--confirmar` y `--por`, siempre a través de `registro.py` (que valida esquema, claves foráneas y autoridad); `impacto.py`, `release.py`, `estado.py radar`, `briefing` y `productos` son de solo lectura | casos RD, LX, IM, TV, RA, PS |
+| Otros proyectos | `lecciones.py buscar` no modifica las carpetas de origen; el índice no se puede escribir en `03-control/registros/` ni en carpetas de BMAD | caso LX |
+| HTML generado | `estado.py periodo --tablero` escapa todo `<` del bloque de datos (`</script>` y `<!--` no lo cortan); `paquete.py auditoria` escapa `INDICE.html`; `estado.py briefing` escapa el texto que toma de los registros | casos PE, AU y RA |
+| Expediente para terceros | `paquete.py auditoria` excluye las rutas fuera del proyecto (SEG-06) y, con `--externo`, el registro de interesados y los destinos de los envíos | caso AU |
+| CSV del índice de lecciones | es texto de los registros: abrirlo en una planilla tiene el mismo cuidado que SEG-08 | — |
+

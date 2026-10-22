@@ -21,12 +21,18 @@ Uso / Usage (todas las rutas relativas a la carpeta de trabajo; --proyecto = car
   interesados.py --proyecto G reporte --html F [--markdown F] [--corte AAAA-MM-DD] [--restringido] [--medio alto|bajo]
   interesados.py --proyecto G plan-envio --tema "…" --audiencia "cuadrante:gestionar-de-cerca,ST-004,raci:E-2:AR"
                  [--proposito comunicado] [--base archivo.md] [--agrupar] [--fecha AAAA-MM-DD]
+  interesados.py --proyecto G personas candidatos [--desde auto|bmad|artefactos] [--limite 40] [--json]
+  interesados.py --proyecto G personas mapa|priorizacion [--limite 40] [--json]
+Personas de usuario (personas.csv, PU-###): arquetipos que piden (solicita), usan (usa) o se benefician (beneficia) de
+  requisitos, épicas, historias o productos; no son interesados ni estereotipos de comunicación. 'candidatos' las propone
+  desde los recorridos UJ-n de BMAD (solo lectura), los recorridos de pm-mapas-estrategicos y las historias «Como <rol>…»;
+  se registran con registro.py después de confirmarlas. Controles STK-13…16 en 'integridad' (y en sanidad).
 Audiencia: todos · ST-001 · cuadrante:<c> · estereotipo:ET-001 · raci:<elemento>:<roles RACI> · rol:<texto en rol_proyecto>;
   -ST-009 (o !ST-009) excluye a alguien (p. ej. a quien envía).
 Privacidad: el script no infiere emociones, personalidad ni rasgos sensibles; solo registra lo que la persona declaró
 (con cita) y lo que el gestor confirma. Las valoraciones (actitud, compromiso) solo aparecen con --restringido.
 """
-import argparse, csv, datetime, html, json, os, re, sys, unicodedata
+import argparse, csv, datetime, glob, html, json, os, re, shlex, sys, unicodedata
 
 AQUI = os.path.dirname(os.path.abspath(__file__))
 NUCLEO = os.path.normpath(os.path.join(AQUI, "..", "..", "pm-estado-proyecto", "scripts"))
@@ -322,7 +328,7 @@ def integridad(proyecto, corte=None, medio="alto"):
             h.append(("AVISO", "STK-03", t(f"{s['id']}: correo con formato inválido", f"{s['id']}: invalid e-mail format")))
     for n, xs in nombres.items():
         if len(xs) > 1: h.append(("AVISO", "STK-10", t(f"Nombre repetido en el maestro: {', '.join(xs)}", f"Duplicate name in the master: {', '.join(xs)}")))
-    for reg in ("preferencias", "envios"):
+    for reg in ("preferencias", "envios", "personas"):
         for f in leer(proyecto, reg):
             sid = f.get("stakeholder_id", "")
             if sid and sid not in ids_st: h.append(("ERROR", "STK-03", t(f"{reg} {f.get('id')}: interesado {sid} inexistente", f"{reg} {f.get('id')}: stakeholder {sid} does not exist")))
@@ -349,6 +355,7 @@ def integridad(proyecto, corte=None, medio="alto"):
     if leer(proyecto, "raci"):
         _, hr = raci(proyecto, medio); h += hr
     h += cadencia(proyecto, corte, medio, sts)
+    h += controles_personas(proyecto)
     return h
 
 DIAS_FRECUENCIA = {"diaria": 1, "semanal": 7, "quincenal": 14, "mensual": 31, "trimestral": 92}
@@ -802,6 +809,298 @@ def raci_markdown(proyecto, por_el, ids, sts):
         L.append(f"| {el} | {tit} | " + " | ".join(m.get(s["id"], "") for s in usados) + " |")
     return L + ["", t("Leyenda: R responsable · A aprobador (uno por elemento) · C consultado · I informado.", "Legend: R responsible · A accountable (one per item) · C consulted · I informed.")]
 
+# ------------------------------------------------------------------ personas de usuario × capacidades (personas.csv, PU-###)
+# Una persona es un arquetipo de quien usa, pide o se beneficia de una capacidad (PMBOK: análisis de usuarios al elicitar
+# requisitos; PRINCE2: el usuario sénior representa a los usuarios y especifica resultados y beneficios). No es un
+# interesado (persona u organización real del maestro) ni un estereotipo de comunicación (estereotipos.csv).
+ROLES_PERSONA = (("solicita", "solicitante", "S"), ("usa", "usuario", "U"), ("beneficia", "beneficiario", "B"))
+MOSCOW = ("must", "should", "could", "wont")
+ALIAS_MOSCOW = {"must": "must", "m": "must", "must-have": "must", "imprescindible": "must", "obligatorio": "must", "1": "must",
+                "should": "should", "s": "should", "should-have": "should", "deseable": "should", "2": "should",
+                "could": "could", "c": "could", "could-have": "could", "opcional": "could", "3": "could",
+                "wont": "wont", "won't": "wont", "w": "wont", "wont-have": "wont", "no-ahora": "wont", "excluido": "wont"}
+POR_CONFIRMAR_P = re.compile(r"^\s*$|\[por confirmar\]|\[to be confirmed\]|\[verificar\]", re.I)
+
+def moscow(v):
+    """Prioridad MoSCoW canónica (must|should|could|wont) o '' si el valor no es MoSCoW."""
+    x = unicodedata.normalize("NFKD", (v or "").strip().lower()).encode("ascii", "ignore").decode().replace(" ", "-")
+    return ALIAS_MOSCOW.get(x, "")
+
+def etq_moscow(k): return {"must": "Must", "should": "Should", "could": "Could", "wont": "Won't"}.get(k, t("sin prioridad", "no priority"))
+
+def orden_id(x): return [int(p) if p.isdigit() else p for p in re.split(r"(\d+)", str(x))]
+
+def ids_lista(v):
+    """Ids de una celda (separados por «;», «,» o espacios), sin repetir y en orden."""
+    out = []
+    for x in re.split(r"[;,\s]+", v or ""):
+        if x and x not in out: out.append(x)
+    return out
+
+def vista_spec(proyecto):
+    """{id: {tipo, titulo, prioridad}} de requisitos, épicas e historias vía la fachada (solo lectura) y sus relaciones
+    {"abajo": épica → historias y requisitos que cubre, historia → requisitos que realiza (con trazas por épica, los de su
+    épica); "arriba": la inversa}. Prioridad: MoSCoW del requisito (requisitos.md) o de la historia (backlog.csv: moscow); el requisito o la épica
+    sin prioridad propia toma la más alta de sus historias."""
+    try:
+        sys.path.insert(0, NUCLEO); import especificacion as SP
+        idx, _ = SP.obtener(proyecto)
+    except BaseException:
+        return {}, {"abajo": {}, "arriba": {}}
+    el, rel = {}, {"abajo": {}, "arriba": {}}
+    def unir(sup, inf):
+        if sup and inf and sup != inf: rel["abajo"].setdefault(sup, set()).add(inf); rel["arriba"].setdefault(inf, set()).add(sup)
+    mejor = lambda xs: next((m for m in MOSCOW if m in xs), "")
+    for h in idx.get("historias", []):
+        gob = h.get("gobierno") or {}
+        tipo = "epica" if re.match(r"^E-?\d+$", h["id"]) else "historia"
+        el[h["id"]] = {"tipo": tipo, "titulo": h.get("titulo", ""), "prioridad": moscow(gob.get("moscow")) or moscow(gob.get("prioridad"))}
+        if h.get("epica") and h["epica"] != h["id"]: unir(h["epica"], h["id"])
+        for r in h.get("refs", []): unir(h["id"], r)
+    for ep in idx.get("epicas", []):
+        el.setdefault(ep["id"], {"tipo": "epica", "titulo": ep.get("titulo", ""), "prioridad": ""})
+        for x in ep.get("historias", []) + ep.get("refs", []): unir(ep["id"], x)
+    for q in idx.get("requisitos", []):
+        if q.get("tipo") not in ("REQ", "FR", "NFR"): continue
+        el[q["id"]] = {"tipo": "requisito", "titulo": q.get("titulo", ""), "prioridad": moscow(q.get("prioridad"))}
+        for ep in q.get("epicas", []): unir(ep, q["id"])
+        for h in q.get("historias", []): unir(h, q["id"])   # con trazas por épica (BMAD), las historias de la épica
+    for x, d in el.items():
+        if d["prioridad"] or d["tipo"] not in ("requisito", "epica"): continue
+        hs = {v for v in rel["arriba"].get(x, set()) | rel["abajo"].get(x, set()) if el.get(v, {}).get("tipo") == "historia"}
+        d["prioridad"] = mejor({el[v]["prioridad"] for v in hs if v in el})
+    for x in [x for x, d in el.items() if d["tipo"] == "requisito"]:   # requisito → épica de sus historias (sin BMAD)
+        for h in [v for v in rel["arriba"].get(x, set()) if el.get(v, {}).get("tipo") == "historia"]:
+            for ep in rel["arriba"].get(h, ()): unir(ep, x)
+    return el, rel
+
+def beneficios_caso(proyecto):
+    """Beneficios B-## y des-beneficios DB-## del business case y del enfoque de beneficios: {id: {titulo, refs}} y si hay fuente."""
+    e = estado_json(proyecto); out = {}; hay = False
+    for clave, defecto in (("business-case", "00-direccion/business-case.md"), ("enfoque-beneficios", "00-direccion/enfoque-beneficios.md")):
+        p = ruta(proyecto, (e.get("artefactos", {}).get(clave) or {}).get("ruta") or defecto)
+        if not os.path.exists(p): continue
+        hay = True
+        for l in open(p, encoding="utf-8", errors="replace"):
+            m = re.match(r"^\|\s*((?:B|DB)-\d+)\s*\|\s*([^|]*)\|", l)
+            if m and "{{" not in l:
+                b = out.setdefault(m.group(1), {"titulo": m.group(2).strip()[:90], "refs": set()})
+                b["refs"] |= set(re.findall(r"\b(?:SM-C?\d+|KR-[\w.]+)\b", l))
+    return out, hay
+
+def cubre(p, rel):
+    """Ids que la persona cita (solicita, usa, beneficia) y los que cubre: los citados, la épica de cada uno y, hacia abajo,
+    lo que contiene cada citado (épica → historias y requisitos; historia → requisitos que realiza)."""
+    s = set()
+    for col, _, _ in ROLES_PERSONA: s |= set(ids_lista(p.get(col)))
+    c = set(s) | {v for x in s for v in rel["arriba"].get(x, ())}
+    pend = list(s)
+    while pend:
+        for v in rel["abajo"].get(pend.pop(), ()):
+            if v not in c: c.add(v); pend.append(v)
+    return s, c
+
+def palabras(x):
+    return re.findall(r"[a-z0-9]+", unicodedata.normalize("NFKD", x or "").encode("ascii", "ignore").decode().lower())
+
+def coincide(nombre, texto):
+    """¿El texto de un recorrido nombra a la persona? (nombre completo contenido como palabras, sin acentos ni mayúsculas)."""
+    n, tx = " ".join(palabras(nombre)), " ".join(palabras(texto))
+    return bool(n) and f" {n} " in f" {tx} "
+
+def personas_activas(proyecto): return [p for p in leer(proyecto, "personas") if p.get("estado") != "retirada"]
+
+def controles_personas(proyecto):
+    """STK-13…16 y STK-09 sobre personas.csv (solo si el registro existe). Lista de (severidad, código, mensaje)."""
+    if not os.path.exists(E.ruta_registro(proyecto, "personas")): return []
+    h = []; pers = personas_activas(proyecto); el, rel = vista_spec(proyecto); ids = ids_conocidos(proyecto); bens, hay_ben = beneficios_caso(proyecto)
+    existe = lambda x: x in ids["spec"] or x in ids["backlog"] or x in ids["wbs"] or x in el
+    cubiertos = set()
+    for p in pers:
+        pid = f"{p['id']} {p.get('nombre', '')}"
+        s, c = cubre(p, rel); cubiertos |= c
+        if not s: h.append(("AVISO", "STK-14", t(f"Persona {pid}: sin capacidades (no solicita, usa ni se beneficia de ningún requisito, épica, historia o producto)", f"Persona {pid}: no capabilities mapped")))
+        if not p.get("fuente"): h.append(("AVISO", "STK-15", t(f"Persona {pid}: sin fuente (entrevista, bmad-uj, encuesta, observacion, documento o supuesto)", f"Persona {pid}: no source")))
+        elif p["fuente"] != "supuesto" and POR_CONFIRMAR_P.search(p.get("evidencia") or ""):
+            h.append(("AVISO", "STK-15", t(f"Persona {pid}: fuente {p['fuente']} sin evidencia (cita, archivo o UJ-n)", f"Persona {pid}: source {p['fuente']} without evidence")))
+        for x in sorted(s):
+            if not existe(x): h.append(("AVISO", "STK-09", t(f"Persona {pid}: cita {x}, que no existe en la especificación, el backlog ni la WBS", f"Persona {pid}: cites {x}, not found in the specification, backlog or WBS")))
+        for b in ids_lista(p.get("beneficios")):
+            if not re.match(r"^(B|DB)-\d+$", b) or (hay_ben and b not in bens):
+                h.append(("AVISO", "STK-09", t(f"Persona {pid}: beneficio {b} no declarado en el business case ni en el enfoque de beneficios", f"Persona {pid}: benefit {b} not declared in the business case")))
+    for x, d in sorted(el.items(), key=lambda kv: orden_id(kv[0])):
+        if d["prioridad"] == "must" and d["tipo"] in ("requisito", "epica") and x not in cubiertos:
+            h.append(("AVISO", "STK-13", t(f"{x} ({d['tipo']} Must) sin persona que lo pida, lo use o se beneficie: {recortar_p(d['titulo'])}", f"{x} (Must {d['tipo']}) has no persona: {recortar_p(d['titulo'])}")))
+    ids_pu = {p["id"] for p in pers}
+    for rj in sorted(glob.glob(ruta(proyecto, "02-planificacion", "mapas", "recorrido-*.json"))):
+        try: d = json.load(open(rj, encoding="utf-8"))
+        except (OSError, ValueError): continue
+        nom = os.path.basename(rj); pid = (d.get("persona_id") or "").strip()
+        if pid and pid not in ids_pu:
+            h.append(("AVISO", "STK-16", t(f"{nom}: persona_id {pid} no existe en personas.csv o está retirada", f"{nom}: persona_id {pid} not in personas.csv or retired")))
+        elif not pid and not POR_CONFIRMAR_P.search(str(d.get("persona") or "")) and not any(coincide(p.get("nombre"), d.get("persona")) for p in pers):
+            h.append(("AVISO", "STK-16", t(f"{nom}: la persona «{recortar_p(d.get('persona'), 60)}» no está en personas.csv", f"{nom}: persona «{recortar_p(d.get('persona'), 60)}» is not in personas.csv")))
+    return h
+
+def recortar_p(x, n=70):
+    x = re.sub(r"\s+", " ", str(x or "")).strip()
+    return x if len(x) <= n else x[:n - 1].rstrip() + "…"
+
+def mapa_personas(proyecto):
+    """Mapa capacidad × persona con el rol de cada una (solicitante, usuario, beneficiario) y la prioridad MoSCoW."""
+    pers = personas_activas(proyecto); el, rel = vista_spec(proyecto); ids = ids_conocidos(proyecto)
+    filas, cubiertos = {}, set()
+    for p in pers:
+        cubiertos |= cubre(p, rel)[1]
+        for col, rol, _ in ROLES_PERSONA:
+            for x in ids_lista(p.get(col)):
+                f = filas.setdefault(x, {"id": x, "titulo": (el.get(x) or {}).get("titulo") or ids["tit"]["wbs"].get(x, "") or ids["tit"]["backlog"].get(x, ""),
+                                         "tipo": (el.get(x) or {}).get("tipo") or ("producto" if x in ids["wbs"] else ""),
+                                         "prioridad": (el.get(x) or {}).get("prioridad", ""), "personas": {}})
+                f["personas"].setdefault(p["id"], []).append(rol)
+    orden = {m: i for i, m in enumerate(MOSCOW)}
+    caps = sorted(filas.values(), key=lambda f: (orden.get(f["prioridad"], 9), orden_id(f["id"])))
+    sin = [{"id": x, "tipo": d["tipo"], "titulo": d["titulo"]} for x, d in sorted(el.items(), key=lambda kv: orden_id(kv[0]))
+           if d["prioridad"] == "must" and d["tipo"] in ("requisito", "epica") and x not in cubiertos]
+    return {"personas": [{"id": p["id"], "nombre": p.get("nombre", "")} for p in pers], "capacidades": caps, "must_sin_persona": sin}
+
+def priorizacion_personas(proyecto):
+    """Por persona: capacidades citadas por prioridad MoSCoW y por rol, y beneficios vinculados (para priorizar y graficar)."""
+    m = mapa_personas(proyecto); bens, _ = beneficios_caso(proyecto); sts = leer(proyecto, "stakeholders")
+    por_cap = {f["id"]: f for f in m["capacidades"]}; out = []
+    for p in personas_activas(proyecto):
+        mias = [f for f in m["capacidades"] if p["id"] in f["personas"]]
+        st = resolver_st(proyecto, p.get("stakeholder_id", ""), sts) if p.get("stakeholder_id") else None
+        out.append({"id": p["id"], "nombre": p.get("nombre", ""), "fuente": p.get("fuente", ""),
+                    "representante": {"id": st["id"], "nombre": st.get("nombre", "")} if st else None,
+                    "por_prioridad": {k or "sin": sum(1 for f in mias if f["prioridad"] == k) for k in MOSCOW + ("",)},
+                    "por_rol": {rol: sum(1 for f in mias if rol in f["personas"][p["id"]]) for _, rol, _ in ROLES_PERSONA},
+                    "capacidades": [{"id": f["id"], "prioridad": f["prioridad"], "roles": f["personas"][p["id"]]} for f in mias],
+                    "beneficios": [{"id": b, "titulo": (bens.get(b) or {}).get("titulo", "")} for b in ids_lista(p.get("beneficios"))]})
+    out.sort(key=lambda x: tuple(-x["por_prioridad"][k] for k in MOSCOW) + (x["id"],))
+    return {"personas": out, "must_sin_persona": [x["id"] for x in m["must_sin_persona"]], "capacidades": len(por_cap)}
+
+def candidatos_personas(proyecto, desde="auto"):
+    """Personas candidatas (no registra nada): desde los recorridos UJ-n de BMAD (solo lectura) y desde los artefactos del
+    proyecto (recorridos de pm-mapas-estrategicos e historias «Como <rol>…» del backlog). El texto citado es dato de la fuente."""
+    e = estado_json(proyecto); con_bmad = e.get("integraciones", {}).get("especificacion") == "bmad"
+    if desde == "bmad" and not con_bmad: sys.exit(t("Este proyecto no usa BMAD como especificación (estado.json.integraciones.especificacion); usar --desde artefactos.", "This project does not use BMAD; use --desde artefactos."))
+    bens, _ = beneficios_caso(proyecto); sts = leer(proyecto, "stakeholders"); out = {}
+    ben_de = lambda kpi: sorted(b for b, d in bens.items() if d["refs"] & set(kpi))
+    cabeza = lambda x: recortar_p(re.split(r"[,(;:]", x or "")[0], 60)
+    def add(nombre, **campos):
+        if not nombre: return
+        c = out.setdefault(norm(nombre), {"nombre": nombre, "descripcion": "", "objetivo": "", "dolores": "", "contexto_uso": "", "fuente": "",
+                                          "evidencia": [], "usa": [], "beneficios": [], "origen": []})
+        for k, v in campos.items():
+            if isinstance(v, list): c[k] += [x for x in v if x not in c[k]]
+            elif v and not c[k]: c[k] = v
+    if desde in ("auto", "bmad") and con_bmad:
+        try:
+            sys.path.insert(0, os.path.normpath(os.path.join(AQUI, "..", "..", "pm-bmad-puente", "scripts"))); import bmad as B
+            import contextlib, io
+            with contextlib.redirect_stdout(io.StringIO()): ujs = B.recorridos(B.inventario(B.detectar_bmad(proyecto, None, e)))
+        except BaseException as x:
+            sys.exit(t(f"No se pudieron leer los recorridos de BMAD: {x}", f"Could not read the BMAD journeys: {x}"))
+        for u in ujs:
+            per = u.get("persona") or u.get("titulo", "")
+            resto = recortar_p(per[len(re.split(r"[,(;:]", per)[0]):].lstrip(" ,;:("), 200)
+            add(cabeza(per), descripcion=resto, objetivo=recortar_p(u.get("titulo"), 120), contexto_uso=recortar_p(u.get("entrada"), 160), fuente="bmad-uj",
+                evidencia=[f"{u['id']} ({os.path.basename(u['fuente'])}:{u['linea']})"], usa=u.get("frs", []) + u.get("frs_seccion", []),
+                beneficios=ben_de(u.get("kpi", [])), origen=[u["id"]])
+    if desde in ("auto", "artefactos"):
+        for rj in sorted(glob.glob(ruta(proyecto, "02-planificacion", "mapas", "recorrido-*.json"))):
+            try: d = json.load(open(rj, encoding="utf-8"))
+            except (OSError, ValueError): continue
+            per = str(d.get("persona") or "")
+            if POR_CONFIRMAR_P.search(per): continue
+            pasos = [p_ for et in d.get("etapas") or [] for p_ in et.get("pasos") or []]
+            fuentes = " ".join(str(p_.get("fuente_emocion") or "") for p_ in pasos).lower()
+            fuente = next((f for f, rx in (("entrevista", r"entrevista|interview"), ("encuesta", r"encuesta|survey"),
+                                           ("observacion", r"observ|m[eé]trica|metric|registro")) if re.search(rx, fuentes)),
+                          "bmad-uj" if any(re.match(r"^UJ-\d+$", str(r)) for r in d.get("refs") or []) else "supuesto")
+            dolores = "; ".join(dict.fromkeys(recortar_p(p_.get("dolor"), 80) for p_ in pasos if str(p_.get("dolor") or "").strip()))
+            usa = [r for p_ in pasos for r in (p_.get("refs") or []) if re.match(r"^(REQ|FR|NFR)-\d+$", str(r))]
+            add(cabeza(per), descripcion=recortar_p(per[len(re.split(r"[,(;:]", per)[0]):].lstrip(" ,;:("), 200), objetivo=recortar_p(d.get("trabajo"), 120), contexto_uso=recortar_p(d.get("disparador"), 160),
+                dolores=recortar_p(dolores, 300), fuente=fuente, evidencia=[os.path.basename(rj)] + [str(x) for x in (d.get("fuentes") or [])[:1]],
+                usa=usa, beneficios=ben_de(d.get("kpi") or []), origen=[os.path.basename(rj)])
+        pb = ruta(proyecto, "02-planificacion", "backlog.csv")
+        if os.path.exists(pb):
+            rx = re.compile(r"\b(?:como|as an?)\s+(?:un |una |el |la )?([^,.;]{3,60}?)\s*,?\s+(?:quiero|necesito|deseo|i want|i need|i'd like)\b", re.I)
+            for f in csv.DictReader(open(pb, encoding="utf-8")):
+                m = rx.search(f"{f.get('titulo', '')} {f.get('descripcion', '')}")
+                if m: add(m.group(1).strip()[:1].upper() + m.group(1).strip()[1:], fuente="documento", evidencia=["backlog.csv"], usa=[f.get("id", "")], origen=[f.get("id", "")])
+    # representante sugerido: un interesado cuyo rol (no su nombre) menciona la primera palabra del arquetipo, primero el que
+    # dice «representa» («Representa a los pacientes» → «Paciente…»); si no, el usuario sénior (PRINCE2: representa a los usuarios)
+    us = [resolver_st(proyecto, n, sts) for n in (e.get("roles", {}).get("usuario_senior") or [])]
+    us = next((s for s in us if s), None)
+    existentes = {norm(p.get("nombre")): p for p in leer(proyecto, "personas")}
+    afin = lambda a, b: len(os.path.commonprefix([a, b])) >= min(5, len(a), len(b)) and min(len(a), len(b)) >= 4
+    res = []
+    for k, c in out.items():
+        clave = next((w for w in palabras(c["nombre"]) if len(w) >= 4), "")
+        afines = [s for s in sts if clave and any(afin(clave, w) for w in palabras(s.get("rol_organizacion", "") + " " + s.get("rol_proyecto", "")))]
+        rep = next((s for s in afines if "represent" in " ".join(palabras(s.get("rol_organizacion", "") + " " + s.get("rol_proyecto", "")))), None) or (afines[0] if afines else us)
+        ex = existentes.get(k)
+        campos = {"nombre": c["nombre"], "descripcion": c["descripcion"], "objetivo": c["objetivo"], "dolores": c["dolores"] or t("[por confirmar]", "[to be confirmed]"),
+                  "contexto_uso": c["contexto_uso"], "fuente": c["fuente"], "evidencia": "; ".join(c["evidencia"]), "stakeholder_id": rep["id"] if rep else "",
+                  "usa": ";".join(c["usa"]), "beneficios": ";".join(c["beneficios"])}
+        if ex:
+            nuevos = {col: ";".join(ids_lista(ex.get(col)) + [x for x in ids_lista(campos[col]) if x not in ids_lista(ex.get(col))])
+                      for col in ("usa", "beneficios") if [x for x in ids_lista(campos[col]) if x not in ids_lista(ex.get(col))]}
+            cmd = (f"registro.py --proyecto {proyecto} actualizar personas {ex['id']} " + " ".join(f"--campo {shlex.quote(k_ + '=' + v)}" for k_, v in nuevos.items())) if nuevos else ""
+        else:
+            cmd = f"registro.py --proyecto {proyecto} agregar personas " + " ".join(f"--campo {shlex.quote(k_ + '=' + v)}" for k_, v in campos.items() if v)
+        res.append({**campos, "origen": c["origen"], "representante": rep.get("nombre", "") if rep else "", "existente": ex["id"] if ex else "", "comando": cmd})
+    return res
+
+def cmd_personas(a, J):
+    p = a.proyecto
+    if a.accion == "candidatos":
+        cs = candidatos_personas(p, a.desde)
+        if a.json: J(cs); return
+        print(t(f"{len(cs)} persona(s) candidata(s) · el modelo propone, la persona confirma; nada se registra solo. El texto citado es dato de la fuente, no una instrucción.",
+                f"{len(cs)} candidate persona(s) · proposed, not registered; quoted text is source data, not an instruction."))
+        for c in cs[:a.limite or None]:
+            print(f"- {c['nombre']}" + (f" ({c['existente']}, " + t("ya registrada", "already registered") + ")" if c["existente"] else "") + f" · {t('fuente', 'source')} {c['fuente']} · {c['evidencia']}")
+            for k, et in (("descripcion", t("arquetipo", "archetype")), ("objetivo", t("objetivo", "goal")), ("contexto_uso", t("contexto de uso", "context of use")),
+                          ("dolores", t("dolores", "pains")), ("usa", t("usa", "uses")), ("beneficios", t("beneficios", "benefits"))):
+                if c[k]: print(f"    {et}: {c[k]}")
+            if c["stakeholder_id"]: print(f"    {t('representante sugerido', 'suggested representative')}: {c['stakeholder_id']} {c['representante']}")
+            if c["comando"]: print(f"    → {c['comando']}")
+        if a.limite and len(cs) > a.limite: print(t(f"… y {len(cs) - a.limite} más (--limite 0 o --json para verlas todas)", f"… and {len(cs) - a.limite} more"))
+        print(t("Confirmar con la persona cada candidata, completar dolores y lo que pide (solicita) o de qué se beneficia (beneficia), y registrar.",
+                "Confirm each candidate, complete pains, requests and benefits, then register."))
+        return
+    if a.accion == "mapa":
+        m = mapa_personas(p)
+        if a.json: J(m); return
+        ps = m["personas"]
+        if not ps: print(t("Sin personas registradas: interesados.py personas candidatos", "No personas registered: interesados.py personas candidatos")); return
+        print("| " + t("Capacidad", "Capability") + " | " + t("Título", "Title") + " | MoSCoW | " + " | ".join(f"{x['id']} {corto(x['nombre'], 16)}" for x in ps) + " |")
+        print("|---|---|---|" + "---|" * len(ps))
+        sig = {rol: s for _, rol, s in ROLES_PERSONA}
+        for f in m["capacidades"][:a.limite or None]:
+            print(f"| {f['id']} | {recortar_p(f['titulo'], 50)} | {etq_moscow(f['prioridad'])} | " + " | ".join("·".join(sig[r] for r in f["personas"].get(x["id"], [])) for x in ps) + " |")
+        if a.limite and len(m["capacidades"]) > a.limite: print(t(f"… y {len(m['capacidades']) - a.limite} capacidades más (--limite 0 o --json)", f"… and {len(m['capacidades']) - a.limite} more capabilities"))
+        print(t("S solicitante · U usuario · B beneficiario", "S requester · U user · B beneficiary"))
+        sin = m["must_sin_persona"]
+        if sin: print(t("Must sin persona (STK-13): ", "Must without persona (STK-13): ") + ", ".join(x["id"] for x in sin[:20]) + (t(f" … y {len(sin) - 20} más", f" … and {len(sin) - 20} more") if len(sin) > 20 else ""))
+        return
+    r = priorizacion_personas(p)
+    if a.json: J(r); return
+    if not r["personas"]: print(t("Sin personas registradas: interesados.py personas candidatos", "No personas registered")); return
+    print("| " + t("Persona", "Persona") + " | " + t("Representante", "Representative") + " | Must | Should | Could | Won't | " + t("Sin prioridad", "No priority")
+          + " | S | U | B | " + t("Beneficios", "Benefits") + " |")
+    print("|---|---|---|---|---|---|---|---|---|---|---|")
+    for x in r["personas"][:a.limite or None]:
+        pp, rr = x["por_prioridad"], x["por_rol"]
+        print(f"| {x['id']} {corto(x['nombre'], 24)} | {(x['representante'] or {}).get('id', '—')} | {pp['must']} | {pp['should']} | {pp['could']} | {pp['wont']} | {pp['sin']} | "
+              f"{rr['solicitante']} | {rr['usuario']} | {rr['beneficiario']} | " + (", ".join(b["id"] for b in x["beneficios"]) or "—") + " |")
+    if a.limite and len(r["personas"]) > a.limite: print(t(f"… y {len(r['personas']) - a.limite} personas más (--limite 0 o --json)", f"… and {len(r['personas']) - a.limite} more personas"))
+    print(t(f"{r['capacidades']} capacidad(es) mapeadas · Must sin persona: {', '.join(r['must_sin_persona'][:20]) or 'ninguno'}",
+            f"{r['capacidades']} capability(ies) mapped · Must without persona: {', '.join(r['must_sin_persona'][:20]) or 'none'}"))
+
 # ------------------------------------------------------------------ CLI
 def main():
     global IDIOMA
@@ -819,6 +1118,9 @@ def main():
     vi = sub.add_parser("vinculos"); vi.add_argument("id"); vi.add_argument("--json", action="store_true")
     ig = sub.add_parser("integridad"); ig.add_argument("--corte"); ig.add_argument("--json", action="store_true")
     rp = sub.add_parser("reporte"); rp.add_argument("--html"); rp.add_argument("--markdown"); rp.add_argument("--corte"); rp.add_argument("--restringido", action="store_true")
+    pn = sub.add_parser("personas", help="personas de usuario × capacidades (personas.csv)"); pn.add_argument("accion", choices=["candidatos", "mapa", "priorizacion"])
+    pn.add_argument("--desde", choices=["auto", "bmad", "artefactos"], default="auto"); pn.add_argument("--limite", type=int, default=40, help="máximo de filas en texto (0 = sin límite)")
+    pn.add_argument("--json", action="store_true")
     pl = sub.add_parser("plan-envio"); pl.add_argument("--tema", required=True); pl.add_argument("--audiencia", required=True); pl.add_argument("--proposito", default="comunicado",
         choices=["comunicado", "informe", "recordatorio", "convocatoria", "puerta", "okr", "acta", "otro"]); pl.add_argument("--base"); pl.add_argument("--agrupar", action="store_true"); pl.add_argument("--fecha")
     a = ap.parse_args()
@@ -936,6 +1238,7 @@ def main():
         r = reporte(a.proyecto, a.html, a.markdown, a.corte, a.restringido, a.medio)
         print(t(f"Reporte de interesados → {a.html or ''} {a.markdown or ''} · {sum(len(v) for v in r['cuadrantes'].values())} ubicados, {r['elementos_raci']} elementos RACI, {r['hallazgos']} hallazgos",
                 f"Stakeholder report → {a.html or ''} {a.markdown or ''}")); return
+    if a.cmd == "personas": cmd_personas(a, J); return
     if a.cmd == "plan-envio":
         carpeta, filas, avisos = plan_envio(a.proyecto, a.tema, a.audiencia, a.proposito, a.base, a.agrupar, a.fecha, a.medio)
         print(t(f"Plan de envío → {os.path.relpath(carpeta, a.proyecto)}/ ({len(filas)} destinatarios, {len({f['archivo'] for f in filas})} mensajes en borrador)",

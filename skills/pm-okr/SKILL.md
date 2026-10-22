@@ -1,7 +1,7 @@
 ---
 name: pm-okr
 description: "OKR del proyecto ligados a beneficios (B-n) y métricas (SM-n): tipos de KR, check-ins, salud, cascada, Tability o Perdoo. Usar: OKR, key results, check-in, puntuar OKR. No: beneficios o business case→pm-caso-de-negocio."
-version: 2.3.0
+version: 2.4.0
 author: pm-method
 license: MIT
 metadata:

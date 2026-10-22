@@ -1,7 +1,7 @@
 {
  "caso": "E2E-4",
  "titulo": "Producto con BMAD gobernado con PRINCE2",
- "subtitulo": "Del done al beneficio medido: condiciones, cambios, calidad a volumen, recorrido del cliente, cierre y beneficios",
+ "subtitulo": "Del done al beneficio medido: condiciones, cambios, calidad a volumen, recorrido del cliente, lecciones aprendidas, cierre y beneficios",
  "clases": [
   {
    "numero": 1,
@@ -11,7 +11,7 @@
     "Separar especificación (BMAD) y gobierno (pm-method)",
     "Convertir un CONCERNS en condición formal con seguimiento",
     "Controlar un cambio con costo y presupuesto de la junta",
-    "Guardar y vigilar el valor ganado"
+    "Guardar el valor ganado y registrar la calidad por entrega"
    ],
    "diapositivas": [
     {
@@ -28,7 +28,7 @@
      "tipo": "imagen",
      "titulo": "Adónde llegamos: cierre sin condiciones abiertas",
      "imagen": "docs/guias/img/g4-cierre.png",
-     "nota": "Este es el tablero de la puerta de cierre del caso: 11 de 11 historias con revisión aprobada, CPI 0,977, 40 % del presupuesto de cambio y 0 condiciones abiertas. Hoy vemos cómo se construye la mitad de este resultado."
+     "nota": "Este es el tablero de la puerta de cierre del caso: 11 de 11 productos aceptados y ningún Must sin aceptar, CPI 0,977, 40 % del presupuesto de cambio y 0 condiciones abiertas. Hoy vemos cómo se construye la mitad de este resultado."
     },
     {
      "tipo": "contenido",
@@ -121,6 +121,18 @@
         "para el informe",
         "corte guardado y vigilado",
         "TOL-03"
+       ],
+       [
+        "Calidad de cada historia",
+        "al final o nunca",
+        "en cada sanidad, por entrega",
+        "QUA-01"
+       ],
+       [
+        "Revisión prometida",
+        "se recuerda vencida",
+        "fecha prevista vigilada",
+        "QUA-02"
        ]
       ]
      },
@@ -128,7 +140,7 @@
     },
     {
      "tipo": "seccion",
-     "titulo": "Demostración: pasos 2 a 5",
+     "titulo": "Demostración: pasos 2 a 6",
      "subtitulo": "Construcción del Release 1",
      "nota": "Vamos en vivo con los prompts de la guía; si algo falla, seguimos con la evidencia ya corrida."
     },
@@ -188,7 +200,7 @@
       "Consumo: 6.000 de 15.000 (40 %)",
       "Líneas base PRD y épicas 1.1",
       "Verificación final: sin desvíos",
-      "Lección L-001: correct-course entra como issue"
+      "La retro del sprint 4 lo vuelve lección (clase 2)"
      ],
      "nota": "CAM-03 informa el consumo en cada sanidad. Si un cambio superara el límite de USD 8.000 de Sofía, CAM-04 avisaría que debe decidir la junta."
     },
@@ -196,7 +208,51 @@
      "tipo": "imagen",
      "titulo": "C-001 sumó 8 puntos y aun así se terminó a tiempo",
      "imagen": "docs/guias/img/g4-burnup.png",
-     "nota": "El alcance pasa de 68 a 76 puntos el 20/1. La curva completa la cerramos en la clase 2: los 76 puntos quedan terminados el 12/5, antes del fin previsto."
+     "nota": "El alcance pasa de 68 a 76 puntos el 20/1. El corte del 22/3 (sprint 5) marca 55 puntos y los 76 quedan terminados el 12/5, antes del fin previsto."
+    },
+    {
+     "tipo": "contenido",
+     "titulo": "Al abrir la sesión el 26/2",
+     "subtitulo": "Lo que el hook de inicio le muestra al gestor",
+     "puntos": [
+      "Contexto: revisiones de calidad 1; condición abierta de autorizar-etapa (27/11)",
+      "Radar: decidir 1 · escalar 0 · desbloquear 1 · vigilar 1",
+      "Decidir: EST-12, la condición de la etapa 2 (junta, Laura Méndez)",
+      "Desbloquear: QUA-02, Q-001 vencida el 19/2 (Lucía Benítez)",
+      "Los registros mandan sobre la memoria"
+     ],
+     "nota": "Pasaron seis semanas desde el cambio. Antes de pedir nada, el gestor ve el resumen derivado de los registros (estado.py contexto) y la línea del radar. A la pregunta «¿Qué tengo que decidir, escalar y desbloquear hoy?», el radar completo suma en vigilar RAD-07 (faltan el plan de la etapa 3 y el informe de fin de la etapa 2: E-01 y E-04) y TOL-03 (último EVM del 8/1), cada ítem con responsable y siguiente paso. Escalar: nada, ningún pronóstico fuera de tolerancia. Las historias terminadas sin revisión no están en el radar: las lista la sanidad del paso 6."
+    },
+    {
+     "tipo": "demo",
+     "titulo": "Paso 6 · Calidad a volumen en el Release 1",
+     "prompt": "Al 26/2 el equipo terminó las historias 1.3, 1.4, 3.1, 3.2 y 3.3. Sincronizá el backlog y corré la sanidad: ¿qué historias terminadas no tienen revisión de calidad y qué revisiones vencieron? Mostrame el estado de los productos del Release 1.",
+     "puntos": [
+      "Sanidad: 0 ERROR · 7 AVISO · 3 INFO",
+      "Cinco QUA-01 y QUA-02 de Q-001",
+      "Productos R1: 5 en revisión, 2 aprobados, 0 aceptados",
+      "Lote Q-004 a Q-008",
+      "Después: 0 ERROR · 2 AVISO · 2 INFO"
+     ],
+     "nota": "Mostrá los cinco QUA-01, uno por historia. Después del registro en lote desaparecen y quedan QUA-02 y EST-12, que se resuelven en el paso 7. El estado de productos (estado.py productos --alcance R1) muestra lo mismo por producto, cada diferencia con su control, y nada aceptado todavía: aprobado no es aceptado."
+    },
+    {
+     "tipo": "indicadores",
+     "titulo": "Ninguna entrega pasó la puerta con historias sin revisión",
+     "imagen": "docs/guias/img/g4-calidad-entregas.png",
+     "nota": "Cinco cortes, cada uno con el estado de productos que deriva estado.py productos: el 26/2 había 5 de 7 historias sin revisión y el 7/5 una rechazada. Las dos brechas se cerraron antes de la puerta siguiente."
+    },
+    {
+     "tipo": "contenido",
+     "titulo": "Calidad por entrega y estado de productos",
+     "puntos": [
+      "Una revisión por historia que la cita",
+      "QUA-01: terminado sin revisión aprobada",
+      "QUA-02 vencida · QUA-03 rechazo sin tratar",
+      "Registro en lote por entrega",
+      "Estado de productos derivado: estado.py productos"
+     ],
+     "nota": "El registro de calidad (quality register) nace con el enfoque de calidad. La sanidad cruza el backlog con calidad.csv en cada corrida: no hace falta acordarse de revisar. El estado de productos (product status account) se deriva de esos registros, de las aceptaciones y de los paquetes: es el registro de productos de PRINCE2 sin una planilla aparte."
     },
     {
      "tipo": "pregunta",
@@ -211,7 +267,8 @@
       "Una sola fuente por dato: BMAD",
       "La condición es un registro con dueño",
       "Sin monto no hay cambio controlado",
-      "El valor ganado se guarda y se vigila"
+      "El valor ganado se guarda y se vigila",
+      "Calidad por entrega, no al final"
      ],
      "nota": "Repasá los cuatro mensajes y conectalos con la tabla del uso único al control continuo."
     },
@@ -223,73 +280,51 @@
       "A1: una condición de tu proyecto",
       "Quién la verifica y con qué evidencia",
       "A2: presupuesto y límite de cambio",
+      "A3: la calidad de tu última entrega",
       "Autoevaluación con la lista"
      ],
-     "nota": "Hoja en docs/webinar/E2E-4/ejercicio.md. Al terminar mostrá el ejemplo resuelto de la hoja: la condición de NFR-3 y C-001."
+     "nota": "Hoja en docs/webinar/E2E-4/ejercicio.md. Al terminar mostrá el ejemplo resuelto de la hoja: la condición de NFR-3, C-001 y la foto de calidad del 26/2."
     },
     {
      "tipo": "cierre",
-     "titulo": "Próxima clase: calidad, cierre y beneficios",
+     "titulo": "Próxima clase: recorrido, lecciones, cierre y beneficios",
      "puntos": [
-      "Cada entrega con su registro de calidad",
-      "Un rechazo tratado con traza",
+      "El recorrido de la socia sobre lo entregado",
+      "De la retrospectiva a la lección verificada",
+      "Cierre con expediente verificable",
       "Beneficios medidos después del cierre"
      ],
-     "nota": "Adelantá la pregunta de la clase 2: ¿done es lo mismo que aceptado? Mostrá de pasada el gráfico de calidad por entrega."
+     "nota": "Adelantá la pregunta de la clase 2: ¿cuántas lecciones de tu último proyecto cambiaron algo en el siguiente?"
     }
    ]
   },
   {
    "numero": 2,
-   "titulo": "Calidad a volumen, recorrido, cierre y beneficios",
+   "titulo": "Recorrido, lecciones, cierre y beneficios",
    "duracion_min": 90,
    "objetivos": [
-    "Registrar la calidad por entrega y tratar un rechazo con traza",
     "Dar a cada dolor del recorrido un tratamiento con id",
-    "Cerrar con traspaso a operación y sin condiciones abiertas",
+    "Llevar una lección de la retrospectiva hasta el cambio verificado",
+    "Cerrar verificado por id (C-03, C-07), con informe de lecciones y expediente verificable",
     "Leer beneficios con puntaje, salud y tolerancia"
    ],
    "diapositivas": [
     {
      "tipo": "gancho",
-     "titulo": "Done no es aceptado",
+     "titulo": "¿Cuántas lecciones de tu último proyecto cambiaron algo?",
      "puntos": [
-      "La 2-4 pasó la revisión de código",
-      "La revisión contra criterios la rechazó",
-      "¿Dónde quedaría ese rechazo en tu proyecto?"
+      "La retro se mezcla con la planificación del sprint",
+      "La planilla de lecciones se llena al cierre",
+      "Nadie comprueba si la acción funcionó",
+      "Hoy: de la retrospectiva al índice, con verificación"
      ],
-     "nota": "BMAD marcó la historia como terminada; la usuaria la rechazó porque faltaba la notificación del débito. En muchos equipos eso se corrige de palabra y no queda traza."
-    },
-    {
-     "tipo": "contenido",
-     "titulo": "Al abrir la sesión el 26/2",
-     "subtitulo": "Lo que el hook de inicio le muestra al gestor",
-     "puntos": [
-      "Abiertos: revisiones de calidad 1",
-      "Condiciones abiertas: autorizar-etapa (27/11)",
-      "Próxima puerta: autorizar-etapa",
-      "Derivado de estado.json y los registros",
-      "Los registros mandan sobre la memoria"
-     ],
-     "nota": "Pasaron seis semanas desde el cambio. Antes de pedir nada, el gestor ve un resumen derivado de los registros (estado.py contexto). Si una nota de la conversación anterior dice otra cosa, vale este resumen."
+     "nota": "Pedí que piensen en la última planilla de lecciones aprendidas que llenaron. ¿Alguien la consultó al arrancar el proyecto siguiente? ¿Alguna lección tenía fecha para comprobar que la acción sirvió? En el caso, la retro del sprint 4 dice «otra vez llegaron historias a done sin la revisión registrada»: el problema ya había pasado antes y nadie lo había convertido en un cambio."
     },
     {
      "tipo": "indicadores",
-     "titulo": "Ninguna entrega pasó la puerta con historias sin revisión",
-     "imagen": "docs/guias/img/g4-calidad-entregas.png",
-     "nota": "Cinco cortes: el 26/2 había 5 de 7 historias sin revisión y el 7/5 una rechazada. Las dos brechas se cerraron antes de la puerta siguiente."
-    },
-    {
-     "tipo": "contenido",
-     "titulo": "Calidad por entrega: el registro de calidad",
-     "puntos": [
-      "Una revisión por historia que la cita",
-      "QUA-01: terminado sin revisión aprobada",
-      "QUA-02: revisión vencida",
-      "QUA-03: rechazo sin tratamiento",
-      "Registro en lote por entrega"
-     ],
-     "nota": "El registro de calidad (quality register) nace con el enfoque de calidad. La sanidad cruza el backlog con calidad.csv en cada corrida: no hace falta acordarse de revisar."
+     "titulo": "Adónde llegamos: cada acción en el proyecto se verificó",
+     "imagen": "docs/guias/img/g4-lecciones-ciclo.png",
+     "nota": "El ciclo completo con los datos de la corrida: 3 lecciones con cita de la retrospectiva del sprint 4 y 0 decisiones de gobierno; 1 de impacto alto (L-003) que cambia el plan de la etapa 3; la acción de L-002 (A-001) verificada el 22/3 y la de L-003 (A-002) el 12/5; 2 de 2 acciones verificadas y 3 lecciones en el índice de la organización, donde el proyecto siguiente encuentra L-001."
     },
     {
      "tipo": "contenido",
@@ -302,6 +337,51 @@
       "MAP-03: dolor sin tratamiento, en cada sanidad"
      ],
      "nota": "El mapa de recorrido (customer journey map) mira lo entregado desde la persona, no historia por historia. La semilla sale de BMAD; la emoción de cada paso lleva su fuente, y cada dolor necesita un id que lo trate."
+    },
+    {
+     "tipo": "contenido",
+     "titulo": "La retrospectiva es una reunión propia",
+     "puntos": [
+      "Qué funcionó · qué no funcionó · qué probamos",
+      "Hechos con evidencia, sin culpables",
+      "No planifica el sprint ni decide por la junta",
+      "Salen lecciones y acciones de mejora con cita",
+      "El gestor confirma lo que se registra"
+     ],
+     "nota": "PRINCE2 7 lo llama aprender de la experiencia: una lección identificada no es aprendida hasta que cambia algo. La técnica (retrospectiva, reseña posterior a la acción) la aporta PMBOK 8. La planificación del sprint siguiente es otra reunión: de ella salen compromisos y decisiones, no lecciones; en el paso 8 se ve el contraste con la misma herramienta."
+    },
+    {
+     "tipo": "tabla",
+     "titulo": "Clasificar por impacto y por dónde se usa",
+     "tabla": {
+      "cab": [
+       "Lección",
+       "Impacto · criterio",
+       "Ámbito",
+       "Adónde va"
+      ],
+      "filas": [
+       [
+        "L-003 · SCP sin autoridad de cambio",
+        "alto · bloqueó la puerta (ESP-10)",
+        "planificación, seguimiento",
+        "plan de la etapa 3"
+       ],
+       [
+        "L-002 · done sin revisión, otra vez",
+        "medio · retrabajo en lote; recurrencia alta",
+        "seguimiento",
+        "A-001 en el sprint 5"
+       ],
+       [
+        "L-001 · revisión con seis socios",
+        "medio · acierto",
+        "descubrimiento",
+        "PMO e índice"
+       ]
+      ]
+     },
+     "nota": "Alto: afecta o puede afectar una tolerancia, un beneficio o un riesgo alto, o bloqueó una puerta. Medio: consumió margen u obligó a retrabajo sin salir de tolerancia. Bajo: efecto local. El ámbito dice en qué proceso se usa la lección: ideación, descubrimiento, planificación o seguimiento."
     },
     {
      "tipo": "contenido",
@@ -326,28 +406,34 @@
       ],
       "filas": [
        [
-        "Calidad de cada historia",
-        "al final o nunca",
-        "en cada sanidad, por entrega",
-        "QUA-01"
-       ],
-       [
-        "Rechazo de calidad",
-        "se corrige de palabra",
-        "issue que cita el Q-###",
-        "QUA-03"
-       ],
-       [
-        "Revisión prometida",
-        "se recuerda vencida",
-        "fecha prevista vigilada",
-        "QUA-02"
-       ],
-       [
         "Recorrido del cliente",
         "taller de diseño, una vez",
         "mapa sobre cada entrega",
         "MAP-03"
+       ],
+       [
+        "Capturar lecciones",
+        "planilla al cierre",
+        "retro con cita, se registra lo confirmado",
+        "extraccion.py"
+       ],
+       [
+        "Lección en el plan",
+        "«lo tendremos en cuenta»",
+        "impacto alto con acción; plan que la cita",
+        "REG-11 · E-11"
+       ],
+       [
+        "Verificar la acción",
+        "nunca",
+        "fecha de verificación vigilada",
+        "REG-12"
+       ],
+       [
+        "Evidencia para auditoría",
+        "se junta a mano",
+        "expediente con sha256",
+        "paquete.py verificar"
        ],
        [
         "Medir beneficios",
@@ -357,25 +443,13 @@
        ]
       ]
      },
-     "nota": "Las tres primeras filas son calidad a volumen; el recorrido mira lo entregado desde la persona; la última es la responsabilidad de los beneficios, que se exige desde la puerta de proyecto con P-04."
+     "nota": "El recorrido mira lo entregado desde la persona; las tres filas del medio son el ciclo de las lecciones (capturar, llevar al plan, verificar); el expediente sale de los registros cuando la auditoría lo pide; la última es la responsabilidad de los beneficios, que se exige desde la puerta de proyecto con P-04."
     },
     {
      "tipo": "seccion",
-     "titulo": "Demostración: pasos 6 a 11",
-     "subtitulo": "Release 1, Release 2, cierre y después",
-     "nota": "Pasos 6, 6b, 7 y 8 en vivo; el 9 con la evidencia; el 10 en vivo y el 11 con la evidencia."
-    },
-    {
-     "tipo": "demo",
-     "titulo": "Paso 6 · Calidad a volumen en el Release 1",
-     "prompt": "Al 26/2 el equipo terminó las historias 1.3, 1.4, 3.1, 3.2 y 3.3. Sincronizá el backlog y corré la sanidad: ¿qué historias terminadas no tienen revisión de calidad y qué revisiones vencieron?",
-     "puntos": [
-      "Sanidad: 0 ERROR · 7 AVISO · 3 INFO",
-      "Cinco QUA-01 y QUA-02 de Q-001",
-      "Lote Q-004 a Q-008",
-      "Después: 0 ERROR · 2 AVISO · 2 INFO"
-     ],
-     "nota": "Mostrá los cinco QUA-01, uno por historia. Después del registro en lote desaparecen y quedan QUA-02 y EST-12, que se resuelven en el paso 7."
+     "titulo": "Demostración: pasos 6b a 11",
+     "subtitulo": "Recorrido, lecciones, Release 2, cierre y después",
+     "nota": "Pasos 6b, 6c, 7 y 8 en vivo; el 9 y el 9b con la evidencia; el 10 en vivo y el 11 con la evidencia."
     },
     {
      "tipo": "demo",
@@ -392,40 +466,60 @@
     },
     {
      "tipo": "demo",
-     "titulo": "Paso 7 · Condición cumplida y puerta de la etapa 3",
-     "prompt": "La prueba de carga de NFR-3 se hizo el 2/3: p95 2,4 s con 400 sesiones concurrentes (meta menor a 3 s); aprobada. El gate de preparación de BMAD dio PASS el 3/3. Terminamos el Release 1: traé el avance al 5/3, abrí el límite de etapa, calculá el valor ganado (PV 82.000, EV 80.000, AC 83.500, BAC 130.000) y guardá el corte, actualizá el business case con reales y pronóstico, armá el informe de fin de etapa, el plan de la etapa 3 y el tablero con el recorrido de la socia, y preparame la puerta.",
+     "titulo": "Paso 6c · Retrospectiva del sprint 4",
+     "prompt": "Te dejo la transcripción de la retrospectiva del sprint 4 del 26/2. Proponeme las lecciones y las acciones de mejora, cada una con su cita, sin registrar nada todavía.",
      "puntos": [
-      "Q-001: p95 2,4 s, aprobada",
-      "Antes: G-01 en la verificación",
-      "cumplir-condiciones por la ejecutiva",
-      "Después: 0 bloqueos · 0 condiciones"
+      "3 lecciones y 2 acciones con cita; 0 decisiones",
+      "L-003 alto · L-002 medio, recurrencia alta · L-001 medio",
+      "Sanidad: REG-11, L-003 sin acción",
+      "L-002 → A-001, verificar el 19/3"
      ],
-     "nota": "La condición no se cierra sola aunque la prueba esté aprobada: alguien con rol lo verifica y queda en decisiones.csv. El tablero del Release 1 suma la sección de mapas estratégicos: es la diapositiva siguiente."
-    },
-    {
-     "tipo": "imagen",
-     "titulo": "El recorrido de la socia, en el tablero del Release 1",
-     "imagen": "docs/guias/img/g4-tablero-mapas-169.png",
-     "nota": "Es la sección Mapas estratégicos del tablero del 5/3, que escribe mapas.py tablero --insertar. La curva baja en el ingreso y en el resumen (−1) y sube hasta el clímax (+2). Debajo de cada dolor, su tratamiento: R-001; NFR-3 y Q-001, enlazados a la tabla de vínculos con estado y responsable. Avisos MAP vigentes: 0. Guardá R-001: vuelve en la revisión final de beneficios. El mapa con todos sus carriles está en la guía, paso 6b (g4-recorrido.png)."
+     "nota": "Mostrá la línea «Retrospectiva: se detectaron 3 lecciones candidatas, 2 acciones de mejora…» y la cita de CL-02 con su hora. Nada se registra hasta que Martín confirma los ids. Después del registro, el gestor clasifica cada lección y la sanidad empieza a recordar la de impacto alto hasta que tenga acción."
     },
     {
      "tipo": "demo",
-     "titulo": "Paso 8 · Release 2 con un rechazo",
-     "prompt": "Release 2 terminado en BMAD. Sincronizá el backlog y registrá las revisiones del 6/5: 2.1, 2.2 y 2.3 aprobadas; la 2.4 rechazada porque falta la notificación al socio después del débito (criterio de aceptación de FR-13). Corré la sanidad al 7/5.",
+     "titulo": "Paso 7 · Lección en el plan, condición cumplida y puerta",
+     "prompt": "La prueba de carga de NFR-3 se hizo el 2/3: p95 2,4 s con 400 sesiones concurrentes (meta menor a 3 s); aprobada. El gate de preparación de BMAD dio PASS el 3/3. Terminamos el Release 1: traé el avance al 5/3, abrí el límite de etapa, calculá el valor ganado (PV 82.000, EV 80.000, AC 83.500, BAC 130.000) y guardá el corte, actualizá el business case con reales y pronóstico, armá el informe de fin de etapa, el plan de la etapa 3 y el tablero con el recorrido de la socia, y preparame la puerta.",
      "puntos": [
-      "QUA-01: 2-4 con Q-012 sin aprobar",
-      "QUA-03: rechazo sin tratamiento",
-      "I-002: corregir sin costo (Sofía)",
-      "Q-013 aprobada el 11/5",
-      "Sanidad del 12/5: 0 AVISO"
+      "Q-001: p95 2,4 s, aprobada",
+      "E-11: L-003 sin considerar en el plan",
+      "Plan de la etapa 3 la incorpora (A-002)",
+      "cumplir-condiciones por la ejecutiva",
+      "Después: 0 bloqueos · 0 condiciones · 0 avisos"
      ],
-     "nota": "La sanidad marca el mismo problema desde dos ángulos: la historia y el rechazo. Con I-002 y la nueva revisión Q-013, la sanidad del 12/5 queda con 0 AVISO. El handover lo cuenta tal cual: 13 revisiones, 12 aprobadas y una rechazada tratada."
+     "nota": "La verificación de la puerta avisa E-11 hasta que el plan de la etapa 3 incorpora L-003 con su acción y fecha de verificación (12/5); el informe de lecciones de la etapa 2 sale del registro. La condición tampoco se cierra sola: alguien con rol la verifica y queda en decisiones.csv. El tablero del 5/3 muestra el recorrido de la socia en su sección de mapas (g4-tablero-mapas-169.png en la guía)."
+    },
+    {
+     "tipo": "demo",
+     "titulo": "Paso 8 · Release 2: la acción verificada y un rechazo tratado",
+     "prompt": "La historia 2.1 pasó a done el 19/3 y su revisión se registró ese mismo día, aprobada. Sincronizá, traé el avance al 22/3, corré la sanidad y el radar y decime qué lecciones de seguimiento tengo que verificar.",
+     "puntos": [
+      "Planificación del sprint 5: compromisos, ninguna lección",
+      "22/3: REG-12 en la sanidad y en Vigilar",
+      "L-002 verificada efectiva (Q-009)",
+      "7/5: QUA-01 y QUA-03 por Q-012 → I-002 y Q-013",
+      "12/5: L-003 verificada; sanidad 0 AVISO"
+     ],
+     "nota": "Primero el contraste: la misma herramienta sobre la planificación del sprint 5 propone 1 compromiso y 1 decisión y ninguna lección. Al 22/3 vence la verificación de L-002 y la sanidad y el radar la muestran; con la evidencia del sprint 5 queda verificada. Después, el rechazo de la 2-4 se trata con I-002 y Q-013; al cerrar el Release 2, L-003 se verifica con esa misma evidencia: el rechazo entró como issue sin tocar la especificación."
+    },
+    {
+     "tipo": "demo",
+     "titulo": "Paso 9 · Cierre verificado por id e informe de lecciones",
+     "prompt": "Pasá a cierre y decime qué falta para la puerta. Registrá la aceptación de Sofía y Laura, dejá el estado final de los productos y armá el informe de lecciones: la de los socios va a la PMO; exportá las aprobadas al índice.",
+     "puntos": [
+      "Antes: C-03 cita R-001; C-07, los Must sin aceptar",
+      "Aceptación: 11 de 11 productos aceptados",
+      "Informe de lecciones: 3, 0 pendientes; L-001 a la PMO",
+      "Índice: el proyecto siguiente encuentra L-001",
+      "Puerta: sin G-01, C-03 ni C-07"
+     ],
+     "nota": "La verificación previa dice qué falta por id: R-001 sin recomendación de seguimiento (C-03, bloqueo) y los requisitos e historias Must sin aceptar (C-07, condición). Con las recomendaciones que nombran a R-001 con su responsable y la aceptación del 12/5, las dos quedan en cero. El informe de lecciones sale del registro; el índice es del mismo tipo que el que consulta E2E-5 en su paso 1. El resto del cierre (traspaso, paquete) está en la guía."
     },
     {
      "tipo": "imagen",
-     "titulo": "Paso 9 · La puerta de cierre en una página",
-     "imagen": "docs/guias/img/g4-cierre.png",
-     "nota": "Verificación de cierre solo con L-01, la lista de la junta: sin G-01 ni C-03, porque R-001 pasó al negocio en las recomendaciones de seguimiento. El paquete sale completo, con la línea base del PRD y sin el PRD vivo de BMAD, que queda anotado como excluido. D-027 traspasa los beneficios al negocio."
+     "titulo": "Paso 9b · El expediente delata una edición",
+     "imagen": "docs/guias/img/g4-expediente.png",
+     "nota": "Paso 9: verificación de cierre solo con L-01, la lista de la junta (sin G-01 ni C-03: R-001 pasó al negocio en las recomendaciones de seguimiento), paquete de cierre completo con la línea base del PRD y D-027, que traspasa los beneficios al negocio. Paso 9b: Andrea Costa, de aseguramiento, pide el expediente para la auditoría externa: 41 eventos en la cronología, 16 copias congeladas, 8 registros sin el de interesados (--externo) e INTEGRIDAD: OK con 43 archivos. En la copia que recibió la auditoría, D-013 dice «aprobado» en lugar de «condicionado»: la verificación falla en decisiones.csv. Preguntá: ¿cómo probarían hoy que la evidencia que entregaron no se editó?"
     },
     {
      "tipo": "demo",
@@ -455,10 +549,10 @@
      "tipo": "contenido",
      "titulo": "Mensajes clave de la clase 2",
      "puntos": [
-      "Calidad registrada por entrega",
-      "Ningún rechazo sin issue que lo cite",
       "Cada dolor del recorrido con un id",
-      "Beneficios: los mide el negocio",
+      "La retro propone; la lección cambia algo y se verifica",
+      "Cierre por id: ningún riesgo ni Must sin dueño",
+      "Evidencia con huella: cada copia se verifica",
       "Rojo no es desvío; verde no es éxito"
      ],
      "nota": "Cerrá con la idea central: lo que en la práctica se hace una vez o nunca se controla en cada sanidad o en cada revisión."
@@ -468,23 +562,25 @@
      "titulo": "Ejercicio · Parte B",
      "subtitulo": "10 minutos",
      "puntos": [
-      "B1: calidad de tu última entrega",
-      "B2: un dolor del recorrido y su tratamiento",
+      "B1: un dolor del recorrido y su tratamiento",
+      "B2: una lección de tu última retro",
+      "Impacto, ámbito, acción y fecha de verificación",
       "B3: plan de revisión de dos beneficios",
       "Autoevaluación con la lista"
      ],
-     "nota": "Hoja en docs/webinar/E2E-4/ejercicio.md. El ejemplo resuelto de la hoja usa el recorrido de UJ-1 y los beneficios B-02 y B-01 del caso; mostralo al terminar."
+     "nota": "Hoja en docs/webinar/E2E-4/ejercicio.md. El ejemplo resuelto usa el recorrido de UJ-1, la lección L-003 y los beneficios B-02 y B-01 del caso; mostralo al terminar."
     },
     {
      "tipo": "cierre",
      "titulo": "Cómo sigue",
      "puntos": [
       "Antes: E2E-5, de la idea al proyecto",
+      "E2E-5 consulta un índice de lecciones como este",
       "E2E-1: riesgos a fondo",
       "E2E-2: alcance, cambios y excepción",
       "E2E-3: interesados, OKR y avance"
      ],
-     "nota": "E2E-4 arranca donde termina E2E-5. Para profundizar en riesgos, la ruta de excepción o los informes a interesados, seguir con E2E-1, E2E-2 y E2E-3."
+     "nota": "E2E-4 arranca donde termina E2E-5 y le devuelve algo: las lecciones aprobadas en el índice de la organización son las que E2E-5 busca en la ideación y el descubrimiento. Para profundizar en riesgos, la ruta de excepción o los informes a interesados, seguir con E2E-1, E2E-2 y E2E-3."
     }
    ]
   }
@@ -527,10 +623,6 @@
    "definicion": "Informe del equipo sobre un paquete; solo cuenta como completados los productos con revisión aprobada."
   },
   {
-   "termino": "Informe de aspectos destacados (highlight report)",
-   "definicion": "Informe periódico del gestor a la junta, con avance, valor ganado y puertas."
-  },
-  {
    "termino": "Valor ganado (EVM)",
    "definicion": "Técnica que compara lo planificado (PV), lo ganado (EV) y lo gastado (AC); da SPI, CPI y EAC."
   },
@@ -547,10 +639,6 @@
    "definicion": "calidad.csv: una revisión por producto con criterios, responsables, resultado y fechas."
   },
   {
-   "termino": "Calidad a volumen",
-   "definicion": "Control de que cada historia terminada tenga su revisión aprobada, en cada entrega (QUA-01, QUA-02, QUA-03)."
-  },
-  {
    "termino": "Fuera de especificación (off-specification)",
    "definicion": "Producto que no cumple su especificación; se trata como issue."
   },
@@ -564,11 +652,11 @@
   },
   {
    "termino": "Mapa de recorrido del cliente (customer journey map)",
-   "definicion": "Acciones de una persona paso a paso, con su emoción (−2 a +2) y su fuente, dolores y oportunidades; cada dolor necesita un tratamiento (MAP-03)."
+   "definicion": "Acciones de una persona paso a paso, con su emoción (−2 a +2) y su fuente, dolores y oportunidades; debajo, los carriles del service blueprint (lo que ve, lo que no ve y los procesos de soporte). Cada dolor necesita un tratamiento (MAP-03)."
   },
   {
-   "termino": "Service blueprint",
-   "definicion": "Carriles del recorrido: lo que la persona ve (frontstage), lo que no ve (backstage) y los procesos de soporte."
+   "termino": "Expediente de auditoría (audit pack)",
+   "definicion": "ZIP que arma paquete.py auditoria desde los registros: cronología de puertas, decisiones y cambios, copias congeladas, registros y un sha256 por archivo; paquete.py verificar delata cualquier edición."
   },
   {
    "termino": "Enfoque de beneficios",
@@ -579,16 +667,24 @@
    "definicion": "Revisiones posteriores al cierre, a cargo del negocio, con criterio de desvío."
   },
   {
-   "termino": "Check-in de OKR",
-   "definicion": "Medición fechada de un KR que solo se agrega (okr_checkins.csv) y deja historia."
-  },
-  {
    "termino": "Salud del KR",
    "definicion": "Puntaje comparado con el avance esperado entre el primer check-in y la fecha meta: en camino, en riesgo o desviado."
   },
   {
    "termino": "Tolerancia de beneficios",
    "definicion": "Desvío admitido sobre la meta de un beneficio; en el caso, −10 % (avance menor que 0,90 = fuera)."
+  },
+  {
+   "termino": "Retrospectiva",
+   "definicion": "Reunión propia, distinta de la planificación y del seguimiento, que mira el proceso con hechos y sin culpables (qué funcionó, qué no, qué probamos). De su transcripción salen lecciones y acciones de mejora candidatas, con cita."
+  },
+  {
+   "termino": "Lección aprendida",
+   "definicion": "Recomendación transferible con impacto (alto, medio, bajo), recurrencia y ámbito donde se usa (ideación, descubrimiento, planificación, seguimiento). Pasa de identificada a clasificada, accionada y verificada; sin acción verificada sigue siendo solo identificada."
+  },
+  {
+   "termino": "Registro e informe de lecciones (lessons log and report)",
+   "definicion": "lecciones.csv con el ciclo de cada lección y el informe que se arma desde él en cada límite de etapa y al cierre; las lecciones aprobadas se exportan al índice de la organización que consultan los proyectos siguientes."
   }
  ]
 }

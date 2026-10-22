@@ -1,4 +1,4 @@
-# Matriz RACI de pm-method 2.3.0 · Humans and agents
+# Matriz RACI de pm-method 2.4.0 · Humans and agents
 
 Quién hace qué a lo largo del ciclo de vida PRINCE2 cuando se trabaja con los agentes del paquete. La matriz cruza los roles humanos del método con los seis agentes y nombra las skills que ejecutan cada actividad. Está verificada contra `SPEC.md` (§1.10.4, §1.11, §1.13, §1.16), `agents/*.md` y los procedimientos de las skills; la sección 5 resume esa verificación y las tensiones encontradas.
 

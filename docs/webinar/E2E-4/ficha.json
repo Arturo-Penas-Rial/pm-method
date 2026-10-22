@@ -1,0 +1,74 @@
+{
+  "caso": "E2E-4",
+  "titulo": "Del «done» al beneficio medido: gobernar un producto hecho con BMAD",
+  "bajada": "Condiciones que no se olvidan, cambios con presupuesto, calidad en cada entrega, lecciones que cambian algo y un cierre que se puede auditar.",
+  "para_quien": [
+    "Gestores de proyecto y PMO de equipos ágiles o que usan BMAD",
+    "Product owners y jefes de equipo que entregan por sprints",
+    "Juntas, auditores internos y dueños de los beneficios"
+  ],
+  "objetivos": [
+    "Explicar la división del trabajo: BMAD especifica y construye; pm-method gobierna",
+    "Convertir una aprobación «con condiciones» en una condición formal con seguimiento",
+    "Registrar la calidad por entrega y tratar un rechazo con traza",
+    "Llevar una lección de la retrospectiva hasta el cambio verificado",
+    "Entregar un expediente de auditoría verificable y leer los beneficios después del cierre"
+  ],
+  "sistema_agentico": {
+    "agente": [
+      "Lee la especificación de BMAD en solo lectura y devuelve decisiones por traspaso",
+      "Señala cada historia terminada sin revisión y cada rechazo sin tratar",
+      "Propone lecciones con cita y arma el expediente con la huella de cada archivo"
+    ],
+    "persona": [
+      "La junta fija condiciones, aprueba cambios y autoriza el cierre",
+      "El gestor confirma qué lecciones se registran y quién las acciona",
+      "El negocio mide los beneficios después del cierre"
+    ],
+    "control": "El agente nunca escribe en los artefactos de BMAD ni da una condición por cumplida: lo hace alguien con rol, y queda registrado."
+  },
+  "beneficios": {
+    "para_vos": [
+      "Una forma de gobernar equipos ágiles sin frenar la construcción",
+      "Un recorrido de punta a punta: de la puerta al beneficio medido"
+    ],
+    "para_la_organizacion": [
+      "Calidad visible en cada entrega: en el caso, cierre con 11 de 11 productos aceptados",
+      "Evidencia verificable: una palabra cambiada en una copia del expediente se detecta"
+    ]
+  },
+  "clases": [
+    {
+      "numero": 1,
+      "temas": [
+        "Condición formal desde el gate de preparación de BMAD",
+        "Sprint como paquete de trabajo y valor ganado",
+        "Cambio de rumbo con presupuesto y nueva línea base",
+        "Calidad a volumen por entrega y estado de productos"
+      ]
+    },
+    {
+      "numero": 2,
+      "temas": [
+        "Recorrido de la socia y dolores tratados",
+        "Retrospectiva: lecciones con cita y acciones verificadas",
+        "Cierre verificado por id y expediente de auditoría",
+        "Beneficios contra trayectoria y tolerancia"
+      ]
+    }
+  ],
+  "requisitos": [
+    "Nociones de etapas, puertas y business case, o experiencia liderando iniciativas",
+    "No hace falta programar ni conocer BMAD; recomendado: haber hecho el taller E2E-5",
+    "Nada que instalar para las clases; para practicar, Claude Code con pm-method"
+  ],
+  "modalidad": "Dos clases en vivo de 90 minutos: demostración sobre un caso real y ejercicio de 10 minutos al cierre de cada una.",
+  "imagen": {
+    "ruta": "docs/guias/img/g4-cierre.png",
+    "pie": "Del caso: el proyecto cierra con 11 de 11 productos aceptados y 0 condiciones abiertas."
+  },
+  "notas": [
+    "Abrí con una pregunta: en tu último proyecto, ¿quién comprobó que cada historia terminada tenía su revisión y quién midió los beneficios después del cierre? El taller muestra cómo gobernar con PRINCE2 lo que un equipo especifica y construye con BMAD. La imagen es real, de la corrida del caso: la puerta de cierre en una página. Cerrá con los objetivos y con para quién es.",
+    "Explicá la división del trabajo: BMAD especifica y construye; pm-method lee en solo lectura, señala lo que falta y arma la evidencia; las condiciones, los cambios y el cierre los decide alguien con rol. La primera clase gobierna la construcción; la segunda llega al cierre y a los beneficios. Recomendá hacer antes E2E-5 y aclará que no hace falta conocer BMAD."
+  ]
+}

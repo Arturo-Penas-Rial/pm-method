@@ -2,7 +2,7 @@
 
 El paso 1 (de la idea al proyecto autorizado) se ejecuta completo para que el recorrido funcione, aunque la guía lo
 resume y remite a E2E-5. Gráficos (visuales.py) con los datos reales de la corrida: g4-calidad-entregas.png,
-g4-burnup.png, g4-cierre.png y g4-beneficios.png; capturas del tablero con su sección de mapas estratégicos
+g4-burnup.png, g4-lecciones-ciclo.png, g4-cierre.png, g4-expediente.png y g4-beneficios.png; capturas del tablero con su sección de mapas estratégicos
 (g4-tablero.png y el recorte 16:9 g4-tablero-mapas-169.png) y del mapa de recorrido de UJ-1 (g4-recorrido.png).
 """
 from comun import *
@@ -156,7 +156,8 @@ sanidad("2026-11-27")
 run(f'python3 {BMAD} --proyecto {G} avance --corte 2026-11-27', repo)   # punto de partida del burn-up: 0 de 68 puntos
 
 P("Paso 3 · Sprint 1 como paquete de trabajo; construcción con BMAD; checkpoint y aceptación del paquete")
-art(repo, "WP-001", "03-control/paquetes-trabajo/WP-001-sprint-1.md", estado="aprobado", version="1.0")
+art(repo, "WP-001", "03-control/paquetes-trabajo/WP-001-sprint-1.md", estado="aprobado", version="1.0",
+    texto="# WP-001 · Sprint 1 (descripción de paquete de trabajo)\n\nAlcance por ids de la fachada: historias 1-1 y 1-2. Gestora de equipo: Lucía Benítez. Checkpoint al cierre del sprint.\n")
 run(E(f'estado.py --proyecto {G} aprobar WP-001 --por "Gestor: Martín Suárez" --nivel gestor --fecha 2026-11-30'), repo)
 ss = os.path.join(repo, "_bmad-output/implementation-artifacts/sprint-status.yaml")
 def poner_estados(cambios):
@@ -175,17 +176,18 @@ def revision(k, rel, fecha, resultado="aprobado", notas=""):
     return reg(repo, "calidad", producto=f"{rel} · historia {k} {titulos[k]}", metodo_verificacion="prueba", criterios=f"criterios de aceptación de la historia {k} (epics.md)", responsable_productor="Lucía Benítez", revisores="Andrea Costa", aprobador="Sofía Ramírez", fecha_prevista=fecha, fecha_real=fecha, resultado=resultado, estado="completada", **extra)
 q_s1 = [revision("1-1", "Sprint 1", "2026-12-21", notas="incluye NFR-1 segundo factor"), revision("1-2", "Sprint 1", "2026-12-22")]
 FOTOS = []
-def foto_calidad(etiqueta):
-    """Historias done en backlog.csv contra las que tienen revisión completada y aprobada que las cita como 'historia N-M'
-    (la misma regla que QUA-01). Alimenta el gráfico g4-calidad-entregas.png y queda en la evidencia."""
-    bl = list(csv.DictReader(open(os.path.join(repo, G, "02-planificacion/backlog.csv"), encoding="utf-8")))
-    qs = list(csv.DictReader(open(os.path.join(repo, G, "03-control/registros/calidad.csv"), encoding="utf-8")))
-    hechas = [b["id"][:3] for b in bl if (b.get("estado") or "").strip().lower() == "done"]
-    ok_ = [k for k in hechas if any(f"historia {k}" in q["producto"] and q["estado"] == "completada" and q["resultado"] in ("aprobado", "aprobado-con-observaciones") for q in qs)]
+def productos_json(corte=None):
+    d = json.loads(run(E(f'estado.py --proyecto {G} productos' + (f' --corte {corte}' if corte else '') + ' --json'), repo, mostrar=False)); LOG.pop()
+    return d
+def foto_calidad(etiqueta, corte):
+    """Estado de productos del plugin (estado.py productos --json) al corte: historias terminadas en backlog.csv contra las
+    que el plugin da por aprobadas o aceptadas (misma regla que QUA-01). Alimenta g4-calidad-entregas.png."""
+    d = productos_json(corte)
+    hechas = [p for p in d["productos"] if p["fisico"] == "terminado"]
+    ok_ = [p for p in hechas if p["estado"] in ("aprobado", "aceptado", "con-concesion")]
     FOTOS.append((etiqueta, len(hechas), len(ok_)))
-    LOG.append((f"(foto de calidad «{etiqueta}» para g4-calidad-entregas.png: historias done en backlog.csv contra historias con revisión aprobada en calidad.csv)",
+    LOG.append((f"(foto de calidad «{etiqueta}» para g4-calidad-entregas.png: estado.py productos --corte {corte} --json, historias terminadas contra aprobadas o aceptadas)",
                 f"terminadas {len(hechas)} · con revisión aprobada {len(ok_)} · sin revisión aprobada {len(hechas) - len(ok_)}"))
-foto_calidad("23/12 · Sprint 1")
 doc_cp = f"""# Informe de punto de control · WP-001 (sprint 1) · 2026-12-23
 Gestora de equipo: Lucía Benítez · Para: Martín Suárez (gestor) · Período: 2026-11-30 – 2026-12-23
 1. Resumen: sprint 1 completo; semáforo verde (13 de 13 puntos comprometidos).
@@ -196,6 +198,7 @@ Gestora de equipo: Lucía Benítez · Para: Martín Suárez (gestor) · Período
 escribir(repo, "03-control/reportes/2026-12-23-checkpoint-WP-001.md", doc_cp)
 LOG.append(("(pm-progreso-reportes, templates/checkpoint-report.md → gestion/03-control/reportes/2026-12-23-checkpoint-WP-001.md)", doc_cp))
 sanidad("2026-12-23")
+foto_calidad("23/12 · Sprint 1", "2026-12-23")
 reg(repo, "decisiones", fecha="2026-12-23", decision=f"WP-001 aceptado: checkpoint del 23/12; historias 1-1 y 1-2 terminadas con {q_s1[0]} y {q_s1[1]} aprobadas", decidido_por="Gestor: Martín Suárez", nivel="gestor", artefactos_afectados="03-control/reportes/2026-12-23-checkpoint-WP-001.md")
 run(E(f'especificacion.py --proyecto {G} resumen'), repo)
 
@@ -246,18 +249,19 @@ run(f'python3 {BMAD} --proyecto {G} verificar', repo, ok=(0, 1, 2))
 sanidad("2027-01-20")
 run(f'python3 {BMAD} --proyecto {G} avance --corte 2027-01-20', repo)   # el alcance pasa de 68 a 76 puntos por C-001
 
-P("Paso 6 · Calidad a volumen al acercarse el fin del Release 1: terminados sin revisión, registro en lote, retrospectiva y lecciones")
+P("Paso 6 · Calidad a volumen al acercarse el fin del Release 1: terminados sin revisión y registro en lote")
 run(E(f'estado.py --proyecto {G} contexto --corte 2027-02-26'), repo)   # lo que el hook de inicio le muestra al gestor al retomar la sesión
+run(E(f'estado.py --proyecto {G} radar --corte 2027-02-26 --linea'), repo)   # la línea de radar del mismo hook
+run(E(f'estado.py --proyecto {G} radar --corte 2027-02-26'), repo)           # «¿qué tengo que decidir, escalar y desbloquear hoy?»
 poner_estados({k: "done" for k in ["epic-1", "epic-3", "1-3-consulta-de-saldos-de-ahorro-y-préstamos", "1-4-descarga-de-constancias-en-pdf", "3-1-acceso-y-roles-de-la-consola-de-operador", "3-2-bandeja-única-de-solicitudes", "3-3-resolución-de-solicitudes"]})
 run(f'python3 {BMAD} --proyecto {G} backlog', repo)
 sanidad("2027-02-26")
-foto_calidad("26/2 · antes del lote")
+run(E(f'estado.py --proyecto {G} productos --corte 2027-02-26 --alcance R1'), repo)   # estado de productos del Release 1
+foto_calidad("26/2 · antes del lote", "2027-02-26")
 q_r1 = [revision(k, "Release 1", "2027-02-25") for k in ("1-3", "1-4", "3-1", "3-2")]
 q_r1.append(revision("3-3", "Release 1", "2027-02-25", resultado="aprobado-con-observaciones", notas="observación menor de usabilidad en el filtro de la bandeja; va al backlog"))
 sanidad("2027-02-26")
-foto_calidad("26/2 · después del lote")
-reg(repo, "lecciones", etapa="2", categoria="especificacion", situacion="FR-13 entró al PRD por correct-course sin pasar por la autoridad de cambio", efecto="sanidad ESP-10 bloqueó la puerta hasta tramitar C-001", recomendacion="toda Sprint Change Proposal se presenta primero como issue", prioridad="alta", responsable_seguimiento="Martín Suárez")
-reg(repo, "lecciones", etapa="2", categoria="calidad", situacion="cinco historias del Release 1 llegaron a done sin revisión de calidad registrada", efecto="sanidad QUA-01 lo detectó antes del fin de etapa y se registraron en lote", recomendacion="la revisión registrada es parte de la definición de terminado; sanidad con --corte en cada checkpoint", prioridad="media", responsable_seguimiento="Lucía Benítez")
+foto_calidad("26/2 · después del lote", "2027-02-26")
 
 P("Paso 6b · El recorrido de la socia sobre lo entregado: mapa de UJ-1 desde BMAD, dolores con tratamiento (MAP-03)")
 MAPAS = f"python3 {RAIZ}/skills/pm-mapas-estrategicos/scripts/mapas.py"
@@ -308,14 +312,69 @@ run(E(f'estado.py --proyecto {G} artefacto mapa-recorrido-uj-1 --ruta 02-planifi
 run(f'{MAPAS} --proyecto {G} controles', repo)
 captura_html(os.path.join(repo, G, "02-planificacion", "visuales", "recorrido-uj-1.html"), os.path.join(OUT, "g4-recorrido.png"))
 
-P("Paso 7 · Fin de la etapa 2 (Release 1): prueba de carga NFR-3, condición cumplida, business case 1.1 y puerta autorizar-etapa (Release 2)")
+P("Paso 6c · Retrospectiva del sprint 4 (reunión propia): lecciones con cita, clasificadas por impacto y ámbito, y una acción para el sprint siguiente")
+TRS = f"python3 {RAIZ}/skills/pm-reuniones/scripts/transcripcion.py"
+XT = f"python3 {RAIZ}/skills/pm-reuniones/scripts/extraccion.py --proyecto {G}"
+LECC = f"python3 {RAIZ}/skills/pm-lecciones-aprendidas/scripts/lecciones.py"
+RETRO = """WEBVTT
+
+00:00:05.000 --> 00:00:30.000
+<v Andrea Costa>Arrancamos con las tres preguntas de siempre sobre el proceso del sprint 4 (qué anduvo, qué no y qué probamos), sin buscar culpables.
+
+00:00:40.000 --> 00:01:20.000
+<v Sofía Ramírez>La revisión con seis socios del 25/2 funcionó muy bien, aprendimos que mirar el recorrido con socios reales antes de cerrar un release encuentra dolores que las pruebas no ven.
+
+00:01:30.000 --> 00:02:05.000
+<v Lucía Benítez>No funcionó lo de siempre: otra vez llegaron historias a done sin la revisión registrada, cinco desde el sprint 2.
+
+00:02:10.000 --> 00:02:55.000
+<v Martín Suárez>Tampoco funcionó cómo entró FR-13: la Sprint Change Proposal llegó al PRD sin pasar por la autoridad de cambio y la sanidad marcó el cambio no controlado hasta tramitar C-001.
+
+00:03:40.000 --> 00:04:15.000
+<v Lucía Benítez>Probemos en el sprint 5 que ninguna historia pase a done sin su revisión registrada: yo actualizo la definición de terminado para el 3/3.
+
+00:04:20.000 --> 00:04:50.000
+<v Martín Suárez>Acordamos que toda Sprint Change Proposal entra primero como issue, yo armo la plantilla del issue para el 3/3.
+
+00:05:00.000 --> 00:05:20.000
+<v Andrea Costa>Las acciones de la retrospectiva del sprint 3 quedaron hechas; gracias a todos.
+"""
+escribir(repo, "03-control/reuniones/2027-02-26-retro-sprint-4-original.vtt", RETRO)
+LOG.append(("(la reunión grabada por el equipo, facilitada por aseguramiento → gestion/03-control/reuniones/2027-02-26-retro-sprint-4-original.vtt)", RETRO.strip()))
+TR_R = f"{G}/03-control/reuniones/2027-02-26-retro-sprint-4-transcripcion.md"
+run(f"{TRS} {G}/03-control/reuniones/2027-02-26-retro-sprint-4-original.vtt --salida {TR_R}", repo)
+run(f"{XT} candidatos --transcripcion {TR_R}", repo)
+CJ = os.path.join(repo, G, "03-control", "reuniones", "2027-02-26-retro-sprint-4-candidatos.json")
+CR = {c["id"]: c for c in json.load(open(CJ, encoding="utf-8"))["candidatos"]}
+N_CL = sum(1 for c in CR.values() if c["clase"] == "leccion"); N_CM = sum(1 for c in CR.values() if c["clase"] == "mejora")
+N_GOB = sum(1 for c in CR.values() if c["clase"] in ("decision", "accion"))
+out_r = run(f'{XT} registrar --candidatos {G}/03-control/reuniones/2027-02-26-retro-sprint-4-candidatos.json --confirmar CL-01,CL-02,CL-03,CM-01,CM-02 --por "Gestor: Martín Suárez"'
+            ' --campo "CL-01:efecto=dos dolores del recorrido UJ-1 que las pruebas no habían mostrado (R-001 y la espera del resumen)" --campo "CL-01:categoria=acierto" --campo "CL-01:responsable_seguimiento=Sofía Ramírez"'
+            ' --campo "CL-02:efecto=QUA-01 marcó cinco historias el 26/2 y hubo que registrar las revisiones en lote" --campo "CL-02:recomendacion=la revisión registrada es parte de la definición de terminado: ninguna historia pasa a done sin ella"'
+            ' --campo "CL-02:categoria=calidad" --campo "CL-02:responsable_seguimiento=Lucía Benítez"'
+            ' --campo "CL-03:efecto=ESP-10 en la sanidad del 12/1: la puerta quedaba bloqueada hasta tramitar C-001 y una línea base nueva" --campo "CL-03:recomendacion=toda Sprint Change Proposal entra primero como issue y pasa por la autoridad de cambio antes de tocar el PRD"'
+            ' --campo "CL-03:categoria=especificacion" --campo "CL-03:responsable_seguimiento=Martín Suárez"', repo)
+IDR = dict(re.findall(r"^([A-Z]{2}-\d+) → ([A-Z]+-\d+)", out_r, re.M))
+L_SOC, L_DOD, L_SCP, A_DOD, A_SCP = IDR["CL-01"], IDR["CL-02"], IDR["CL-03"], IDR["CM-01"], IDR["CM-02"]
+CLAS = f'--por "Gestor: Martín Suárez" --fecha 2027-02-26'
+run(f'{LECC} clasificar {L_SCP} --proyecto {G} --impacto alto --recurrencia media --aplicar-en planificacion,seguimiento {CLAS}', repo)
+run(f'{LECC} clasificar {L_DOD} --proyecto {G} --impacto medio --recurrencia alta --aplicar-en seguimiento {CLAS}', repo)
+run(f'{LECC} clasificar {L_SOC} --proyecto {G} --impacto medio --recurrencia baja --aplicar-en descubrimiento {CLAS}', repo)
+run(f'{LECC} listar --proyecto {G} --corte 2027-02-26', repo)
+sanidad("2027-02-26")
+run(f'{LECC} accionar {L_DOD} --proyecto {G} --accion "{A_DOD}; definición de terminado del sprint 5" --verificar-en 2027-03-19 {CLAS}', repo)
+
+P("Paso 7 · Fin de la etapa 2 (Release 1): prueba de carga NFR-3, condición cumplida, lecciones en el plan de la etapa 3, business case 1.1 y puerta autorizar-etapa (Release 2)")
+act(repo, "acciones", A_DOD, estado="completada", fecha_cierre="2027-03-03", notas="definición de terminado actualizada: ninguna historia pasa a done sin su revisión registrada en calidad.csv")
+act(repo, "acciones", A_SCP, estado="completada", fecha_cierre="2027-03-03", notas="plantilla del issue para toda Sprint Change Proposal (antes de tocar el PRD)")
 act(repo, "calidad", qc, resultado="aprobado", estado="completada", fecha_real="2027-03-02", notas="p95 2,4 s con 400 sesiones concurrentes (meta menor a 3 s)")
 run(E(f'puertas.py --proyecto {G} preparacion-bmad --resultado PASS --por "Arquitecto: Diego Ferreira" --fecha 2027-03-03'), repo)
 run(f'python3 {BMAD} --proyecto {G} avance --corte 2027-03-05', repo)
 run(E(f'estado.py --proyecto {G} limite-etapa'), repo)
 run(E(f'evm.py --pv 82000 --ev 80000 --ac 83500 --bac 130000 --proyecto {G} --guardar --corte 2027-03-05'), repo)
 art(repo, "informe-fin-etapa-2", "03-control/reportes/2027-03-05-informe-fin-etapa-2.md")
-art(repo, "plan-etapa-3", "02-planificacion/plan-etapa-3.md")
+art(repo, "plan-etapa-3", "02-planificacion/plan-etapa-3.md", texto="# Plan de la etapa 3 (Release 2)\n\nSprints 5 a 7 (historias 2-1 a 2-4, con FR-13 de C-001).\n")
+run(f'{LECC} listar --proyecto {G} --para planificacion --corte 2027-03-05', repo)
 doc("business-case", "00-direccion/business-case.md", """# Business case v1.1 (modo mantener, fin de la etapa 2)
 B-01 desvío de consultas (SM-2); B-02 adopción (SM-1); B-03 eficiencia de préstamos (SM-3).
 Costos: AC 83.500 contra PV 82.000; EAC 135.688 contra BAC 130.000 (124.000 + 6.000 de C-001, cargado al presupuesto de cambio): +4,4 %, dentro de ±8 %.
@@ -323,38 +382,71 @@ Beneficios: sin medición todavía (primera revisión 30/6/2027 según el enfoqu
 Riesgos: sin riesgos altos abiertos; NFR-3 verificada con prueba de carga; R-001 (medio) amenaza B-02 adopción, con respuesta del negocio (alta asistida).
 Veredicto: sigue deseable, viable y alcanzable → continuar con la etapa 3.""", version="1.1", origen="pm-caso-de-negocio, modo mantener")
 run(E(f'puertas.py --proyecto {G} verificar autorizar-etapa'), repo, ok=(0, 1, 2))
+PLAN3 = f"""# Plan de la etapa 3 (Release 2)
+Sprints 5 a 7 (historias 2-1 a 2-4, con FR-13 de C-001).
+## Lecciones incorporadas
+| Lección | Qué cambia en este plan | Acción | Verificación |
+|---|---|---|---|
+| {L_SCP} (impacto alto) | toda Sprint Change Proposal de la etapa entra primero como issue y pasa por la autoridad de cambio antes de tocar el PRD | {A_SCP} plantilla del issue | 12/5, al cerrar el Release 2 |
+| {L_DOD} (impacto medio) | la definición de terminado exige la revisión registrada (seguimiento en cada sprint) | {A_DOD} | 19/3, fin del sprint 5 |
+"""
+art(repo, "plan-etapa-3", "02-planificacion/plan-etapa-3.md", texto=PLAN3)
+LOG.append(("(pm-plan-etapa-y-limites → gestion/02-planificacion/plan-etapa-3.md, sección «Lecciones incorporadas»)", PLAN3.strip()))
+run(f'{LECC} accionar {L_SCP} --proyecto {G} --accion "{A_SCP}; plan-etapa-3" --verificar-en 2027-05-12 --por "Gestor: Martín Suárez" --fecha 2027-03-05', repo)
+run(f'{LECC} informe --proyecto {G} --etapa 2 --corte 2027-03-05', repo)
+run(E(f'estado.py --proyecto {G} artefacto informe-lecciones-etapa-2 --ruta 03-control/reportes/2027-03-05-informe-lecciones-etapa-2.md --estado en-revision'), repo, mostrar=False)
 run(E(f'estado.py --proyecto {G} cumplir-condiciones autorizar-etapa --fecha 2027-03-05 --por "Ejecutivo: Laura Méndez" --nota "{qc} prueba de carga NFR-3 aprobada el 2027-03-02 (p95 2,4 s); gate de preparación de BMAD en PASS el 2027-03-03"'), repo)
 sanidad("2027-03-05")
 av = [f for f in csv.DictReader(open(os.path.join(repo, G, "03-control/reportes/avance-bmad.csv"), encoding="utf-8")) if f["fecha"] in ("2026-12-23", "2027-03-05")]
-it = []; prev = 0
-for f in av:
-    t_ = float(f["puntos_terminados"] or 0); it.append({"nombre": f["fecha"], "planificado": 16 if not it else 34, "terminado": t_ - prev, "alcance_total": float(f["puntos_total"] or 0), "terminado_acumulado": t_}); prev = t_
-nq = len(list(csv.DictReader(open(os.path.join(repo, G, "03-control/registros/calidad.csv"), encoding="utf-8"))))
-obj4 = [{"clave": "tiempo", "pronostico": "SPI 0,98", "tol_etapa": "±10 %", "tol_proyecto": "±3 semanas", "rag": "verde"},
-        {"clave": "costo", "pronostico": "CPI 0,96 · EAC ≈ USD 135.700", "tol_etapa": "±10 %", "tol_proyecto": "±8 %", "rag": "verde"},
+it = [{"fecha": f["fecha"], "nombre": f["fecha"], "planificado": 16 if i == 0 else 34} for i, f in enumerate(av)]   # cierre de cada etapa: nombre y plan, del gestor
+obj4 = [   # tiempo, costo, calidad y riesgo: semáforo por regla (estado.py periodo); aquí solo el juicio y las notas del gestor
         {"clave": "alcance", "pronostico": "Release 1 completa; FR-13 aprobado (C-001) para R2", "tol_etapa": "PO intercambia Should/Could", "tol_proyecto": "Must sin tolerancia", "rag": "verde"},
-        {"clave": "calidad", "pronostico": f"{nq} revisiones aprobadas (7 historias + NFR-3)", "tol_etapa": "", "tol_proyecto": "cada historia con revisión", "rag": "verde"},
+        {"clave": "calidad", "pronostico": "7 historias + NFR-3", "tol_proyecto": "cada historia con revisión"},
         {"clave": "beneficios", "pronostico": "se miden desde el 30/6/2027", "tol_etapa": "", "tol_proyecto": "-10 %", "rag": "na"},
-        {"clave": "riesgo", "pronostico": "ningún alto; R-001 (medio) con respuesta", "tol_etapa": "", "tol_proyecto": "ningún alto sin respuesta", "rag": "verde"},
+        {"clave": "riesgo", "pronostico": "R-001 (medio) con respuesta"},
         {"clave": "sostenibilidad", "pronostico": "S-1 a S-3 sin desvíos previstos", "tol_etapa": "", "tol_proyecto": "-10 % sobre metas", "rag": "verde"}]
 tablero(repo, "2027-03-05", "2027-02-19", "2027-03-05", "2027-03-19", obj4,
         [{"hito": "Release 1 aceptada", "base": "2027-03-05", "actual": "2027-03-05", "var_dias": 0, "rag": "verde", "comentario": "épicas 1 y 3 terminadas"},
          {"hito": "Release 2 (incluye FR-13)", "base": "2027-05-14", "actual": "2027-05-14", "var_dias": 0, "rag": "verde", "comentario": "C-001 aprobado"}],
         [{"id": "autorizar-etapa", "texto": "autorizar la etapa 3 (Release 2) con el plan, el informe de fin de etapa y el business case 1.1", "fecha_limite": "2027-03-05"}], it,
         "Release 1 entregada; la condición de NFR-3 se cumplió con la prueba de carga; el cambio FR-13 entró por control de cambios.",
-        "estado.json; avance-bmad.csv; registros al 2027-03-05", salida_png=os.path.join(OUT, "g4-tablero.png"), fecha_fija="2027-05-14", fecha_pronostico="2027-05-14",
+        "", salida_png=os.path.join(OUT, "g4-tablero.png"), fecha_fija="2027-05-14", fecha_pronostico="2027-05-14", moneda="USD",
         mapas=True, salida_mapas_png=os.path.join(OUT, "g4-tablero-mapas-169.png"))
 puerta4("autorizar-etapa", "Ejecutivo: Laura Méndez", "2027-03-05", '--etapa-nombre "Release 2" --fin 2027-05-14 --tol "tiempo=±10 %" "costo=±10 %"')
 run(E(f'estado.py --proyecto {G} aprobar business-case --por "Ejecutivo: Laura Méndez" --version 1.1 --fecha 2027-03-05'), repo)
 
-P("Paso 8 · Release 2: revisiones en lote con un rechazo tratado (QUA-01 y QUA-03) y valor ganado final")
-poner_estados({k: "done" for k in ["epic-2", "2-1-solicitud-guiada-de-préstamo-simple", "2-2-seguimiento-de-solicitudes-y-respuesta-a-pedidos-de-informac", "2-3-actualización-de-datos-de-contacto-con-verificación", "2-4-pago-de-cuotas-con-débito-en-cuenta"]})
+P("Paso 8 · Release 2: la acción de la retro se verifica en el sprint 5 (REG-12), revisiones con un rechazo tratado (QUA-01 y QUA-03), la lección de impacto alto verificada y valor ganado final")
+PLANIF = """WEBVTT
+
+00:00:05.000 --> 00:00:25.000
+<v Sofía Ramírez>Para el sprint 5 tomamos la historia 2-1, la solicitud guiada de préstamo, con sus ocho puntos.
+
+00:00:30.000 --> 00:00:55.000
+<v Lucía Benítez>Me encargo de la 2-1 y la llevo a revisión el 19/3, con la definición de terminado nueva.
+
+00:01:00.000 --> 00:01:20.000
+<v Martín Suárez>Decidimos que la 2-2 queda para el sprint 6.
+"""
+escribir(repo, "03-control/reuniones/2027-03-08-planificacion-sprint-5-original.vtt", PLANIF)
+LOG.append(("(la planificación del sprint 5, otra reunión → gestion/03-control/reuniones/2027-03-08-planificacion-sprint-5-original.vtt)", PLANIF.strip()))
+TR_P = f"{G}/03-control/reuniones/2027-03-08-planificacion-sprint-5-transcripcion.md"
+run(f"{TRS} {G}/03-control/reuniones/2027-03-08-planificacion-sprint-5-original.vtt --salida {TR_P}", repo)
+run(f"{XT} candidatos --transcripcion {TR_P}", repo)
+poner_estados({"epic-2": "in-progress", "2-1-solicitud-guiada-de-préstamo-simple": "done"})
 run(f'python3 {BMAD} --proyecto {G} backlog', repo)
-q_r2 = [revision(k, "Release 2", "2027-05-06") for k in ("2-1", "2-2", "2-3")]
+q_s5 = revision("2-1", "Sprint 5", "2027-03-19", notas=f"revisión registrada el día del done (definición de terminado, {A_DOD})")
+run(f'python3 {BMAD} --proyecto {G} avance --corte 2027-03-22', repo)
+sanidad("2027-03-22")
+run(E(f'estado.py --proyecto {G} radar --corte 2027-03-22'), repo)
+run(f'{LECC} listar --proyecto {G} --para seguimiento --corte 2027-03-22', repo)
+run(f'{LECC} verificar {L_DOD} --proyecto {G} --resultado efectiva --evidencia "sprint 5: la historia 2-1 pasó a done con {q_s5} registrada el mismo día (19/3); sanidad del 22/3 sin QUA-01" --por "Gestor: Martín Suárez" --fecha 2027-03-22', repo)
+poner_estados({k: "done" for k in ["epic-2", "2-2-seguimiento-de-solicitudes-y-respuesta-a-pedidos-de-informac", "2-3-actualización-de-datos-de-contacto-con-verificación", "2-4-pago-de-cuotas-con-débito-en-cuenta"]})
+run(f'python3 {BMAD} --proyecto {G} backlog', repo)
+q_r2 = [q_s5] + [revision(k, "Release 2", "2027-05-06") for k in ("2-2", "2-3")]
 # BMAD la marcó done (code-review aprobado), pero la revisión contra los criterios de aceptación la rechaza
 q_rech = revision("2-4", "Release 2", "2027-05-06", resultado="rechazado", notas="falta la notificación al socio después del débito (criterio de aceptación de FR-13)")
 sanidad("2027-05-07")
-foto_calidad("7/5 · Release 2, un rechazo")
+foto_calidad("7/5 · Release 2, un rechazo", "2027-05-07")
 i2 = reg(repo, "issues", fecha="2027-05-07", tipo="fuera-especificacion", titulo=f"Historia 2-4 rechazada en {q_rech}: falta la notificación del débito", descripcion=f"La revisión {q_rech} rechazó la historia 2-4 (FR-13): el débito se hace pero el socio no recibe la notificación", prioridad="alta", severidad="mayor", responsable="Lucía Benítez")
 act(repo, "issues", i2, estado="en-accion", decision="corregir dentro del Release 2, sin costo ni cambio de alcance", decidido_por="Autoridad de cambio: Sofía Ramírez")
 q_re = revision("2-4", "Release 2", "2027-05-11", notas=f"nueva revisión después de corregir lo observado en {q_rech} ({i2}): notificación verificada")
@@ -362,14 +454,21 @@ act(repo, "issues", i2, estado="cerrado", fecha_cierre="2027-05-11", notas=f"cor
 run(f'python3 {BMAD} --proyecto {G} avance --corte 2027-05-12', repo)
 run(E(f'evm.py --pv 130000 --ev 130000 --ac 133000 --bac 130000 --tol-costo 8 --tol-plazo 10 --proyecto {G} --guardar --corte 2027-05-12'), repo)
 sanidad("2027-05-12")
-foto_calidad("12/5 · fin del Release 2")
+foto_calidad("12/5 · fin del Release 2", "2027-05-12")
+run(f'{LECC} verificar {L_SCP} --proyecto {G} --resultado efectiva --evidencia "Release 2: el rechazo de la historia 2-4 entró como {i2} y se corrigió sin tocar la especificación; ninguna Sprint Change Proposal llegó al PRD sin issue (sanidades del 7/5 y del 12/5 sin ESP-10)" --por "Gestor: Martín Suárez" --fecha 2027-05-12', repo)
 
 P("Paso 9 · Aceptación, traspaso a operación, business case confirmado y puerta autorizar-cierre")
 run(E(f'especificacion.py --proyecto {G} listar requisitos --cobertura sin-cobertura'), repo)
 run(E(f'especificacion.py --proyecto {G} resumen'), repo)
 run(E(f'estado.py --proyecto {G} cierre'), repo)
+run(E(f'puertas.py --proyecto {G} verificar autorizar-cierre'), repo, ok=(0, 1, 2))   # qué falta para la puerta, por id (C-03, C-07)
 art(repo, "registro-aceptacion", "04-cierre/registro-aceptacion.md")
 run(E(f'estado.py --proyecto {G} aprobar registro-aceptacion --por "Usuario sénior: Sofía Ramírez; Ejecutivo: Laura Méndez" --version 1.0 --fecha 2027-05-12'), repo)
+run(E(f'estado.py --proyecto {G} productos --corte 2027-05-12 --markdown {G}/04-cierre/product-status-account-final.md'), repo)
+art(repo, "product-status-account-final", "04-cierre/product-status-account-final.md")
+psa = open(os.path.join(repo, G, "04-cierre/product-status-account-final.md"), encoding="utf-8").read()
+LOG.append(("(estado.py productos --markdown → gestion/04-cierre/product-status-account-final.md: resumen y desviaciones)",
+            "\n".join(l for l in psa.splitlines() if l.startswith(("| No iniciado", "| En revisión", "| Aprobado", "| Aceptado", "| Fuera de", "| **Total", "**Fuera de", "**Discrepancias", "Must sin")))))
 qs_ = list(csv.DictReader(open(os.path.join(repo, G, "03-control/registros/calidad.csv"), encoding="utf-8")))
 n_apr = sum(1 for q in qs_ if q["resultado"] in ("aprobado", "aprobado-con-observaciones")); n_rech = sum(1 for q in qs_ if q["resultado"] == "rechazado")
 doc("handover", "04-cierre/handover.md", f"""# Transferencia a operación y mantenimiento v1.0
@@ -379,7 +478,12 @@ Evidencia de calidad: {len(qs_)} revisiones en calidad.csv: {n_apr} aprobadas (u
 Pendientes: observación menor de {q_r1[-1]} en el backlog de mantenimiento. Costos de operación: desde el 15/5/2027, a cargo del negocio.
 5. Confirmación del receptor: Sofía Ramírez, 2027-05-12.""", origen="pm-cierre-proyecto, templates/handover.md")
 run(E(f'estado.py --proyecto {G} aprobar handover --por "Usuario sénior: Sofía Ramírez" --version 1.0 --fecha 2027-05-12'), repo)
-art(repo, "informe-fin-proyecto", "04-cierre/informe-fin-proyecto.md"); art(repo, "informe-lecciones", "04-cierre/informe-lecciones.md")
+art(repo, "informe-fin-proyecto", "04-cierre/informe-fin-proyecto.md")
+run(f'{LECC} accionar {L_SOC} --proyecto {G} --accion "propuesta a la PMO: revisar el recorrido con usuarios reales antes de cerrar cada release" --destino organizacion --por "Ejecutivo: Laura Méndez" --fecha 2027-05-12', repo)
+INF = run(f'{LECC} informe --proyecto {G} --corte 2027-05-12 --exportar pmo/lecciones-indice.csv --por "Ejecutivo: Laura Méndez"', repo)
+LOG.append(("(lecciones.py informe → gestion/04-cierre/informe-lecciones.md)", open(os.path.join(repo, G, "04-cierre", "informe-lecciones.md"), encoding="utf-8").read().strip()))
+run(E(f'estado.py --proyecto {G} artefacto informe-lecciones --ruta 04-cierre/informe-lecciones.md --estado en-revision'), repo, mostrar=False)
+B_IX = run(f'{LECC} buscar --indice pmo/lecciones-indice.csv --para descubrimiento', repo)
 doc("recomendaciones-seguimiento", "04-cierre/recomendaciones-seguimiento.md", f"""# Recomendaciones de acciones de seguimiento v1.0
 | Origen | Recomendación | Responsable | Cuándo |
 |---|---|---|---|
@@ -420,14 +524,54 @@ LOG.append(("(MANIFIESTO.md dentro del ZIP: estado del paquete, filas de --extra
 run(E(f'exportar.py xlsx --proyecto {G}'), repo, ok=(0, 1))
 run(E(f'estado.py --proyecto {G} resumen'), repo)
 
+P("Paso 9b · Expediente de auditoría para la auditoría externa y verificación de integridad")
+import io
+# HOME vacío solo en este comando: la sanidad completa que el expediente incluye no suma avisos de instalación (INS) que
+# dependen de las skills de usuario del equipo donde corre el driver (las demás sanidades del recorrido usan --rapido)
+s_aud = run(f'HOME="$(mktemp -d)" python3 {PAQ} --proyecto {G} auditoria --hasta 2027-05-14 --proposito "auditoría externa" --externo', repo)
+za = _g.glob(os.path.join(repo, G, "exportados", "*-expediente-auditoria-*.zip"))[0]; za_rel = os.path.relpath(za, repo)
+s_ver = run(f'python3 {PAQ} --proyecto {G} verificar {za_rel}', repo)
+zz = zipfile.ZipFile(za)
+crono = list(csv.DictReader(io.StringIO(zz.read("cronologia.csv").decode("utf-8"))))
+indice = zz.read("INDICE.md").decode("utf-8")
+LOG.append(("(INDICE.md dentro del ZIP: propósito, conteo de la cronología, registros omitidos por destinatario externo y hallazgos de sanidad al corte)",
+            re.sub(r"generado: \d{4}-\d{2}-\d{2}", "generado: <fecha de la corrida>",
+                   "\n".join(l for l in indice.splitlines() if l.startswith(("Proyecto:", "Copia de los registros", "ERROR ", "| ERROR", "| AVISO", "| INFO")) or " eventos (también" in l))))
+# la copia que recibe la auditoría: alguien cambia «condicionado» por «aprobado» en la fila de la puerta D-013
+COPIA = os.path.join(repo, "copia-auditoria", "expediente-recibido.zip"); os.makedirs(os.path.dirname(COPIA), exist_ok=True)
+with zipfile.ZipFile(COPIA, "w", zipfile.ZIP_DEFLATED) as zc:
+    for n_ in zz.namelist():
+        b_ = zz.read(n_)
+        if n_ == "03-control/registros/decisiones.csv":
+            b_ = b_.replace("autorizar-etapa: condicionado".encode("utf-8"), "autorizar-etapa: aprobado".encode("utf-8"), 1)
+        zc.writestr(n_, b_)
+LOG.append(("(copia del expediente que llega a la auditoría: una sola edición en decisiones.csv; el resto, idéntico)",
+            "03-control/registros/decisiones.csv, fila D-013: «autorizar-etapa: condicionado — condiciones: …» → «autorizar-etapa: aprobado — condiciones: …»"))
+s_alt = run(f'python3 {PAQ} --proyecto {G} verificar copia-auditoria/expediente-recibido.zip', repo, ok=(1,))
+
 # ---------------------------------------------------------------- gráficos de ejecución y cierre (datos reales de la corrida)
 MES = {"01": "ene", "02": "feb", "03": "mar", "04": "abr", "05": "may", "06": "jun", "07": "jul", "08": "ago", "09": "sep", "10": "oct", "11": "nov", "12": "dic"}
 fcorta = lambda d: f"{int(d[8:10])}-{MES[d[5:7]]}"
+LX_ = {f["id"]: f for f in csv.DictReader(open(os.path.join(repo, G, "03-control/registros/lecciones.csv"), encoding="utf-8"))}
+IX_ = list(csv.DictReader(open(os.path.join(repo, "pmo", "lecciones-indice.csv"), encoding="utf-8")))
+ver_ = [i for i, f in LX_.items() if f["estado"] == "verificada"]; acc_p = [i for i, f in LX_.items() if f["accion"] and "accionada-organizacion" != f["estado"]]
+imp_ = {k: sum(1 for f in LX_.values() if f["impacto"] == k) for k in ("alto", "medio", "bajo")}
+d_dod = LX_[L_DOD]["verificacion"].split(" · ")[0]; d_scp = LX_[L_SCP]["verificacion"].split(" · ")[0]
+dm = lambda d: f"{int(d[8:10])}/{int(d[5:7])}"
+V.tarjetas([(str(N_CL), "lecciones de la retrospectiva", f"sprint 4 (26/2): {N_CL} con cita, {N_CM} acciones de mejora, {N_GOB} decisiones", None),
+            (f"{imp_['alto']} alto", f"impacto: {imp_['medio']} medio, {imp_['bajo']} bajo", " · ".join(f"{i} {LX_[i]['aplicar_en'].split(';')[0].replace('planificacion', 'planificación')}" for i in (L_SCP, L_DOD, L_SOC)), None),
+            (A_DOD, f"acción de {L_DOD} (sprint 5)", f"REG-12 al vencer; verificada efectiva el {dm(d_dod)}", None),
+            ("plan-etapa-3", f"cambia por {L_SCP} (alto)", f"E-11 el 5/3; {A_SCP} verificada el {dm(d_scp)}", None),
+            (f"{len(ver_)} de {len(acc_p)}", "acciones verificadas", "efectivas; REG-11 y REG-12 en cero al cierre", "bien" if len(ver_) == len(acc_p) else "critico"),
+            (str(len(IX_)), "lecciones en el índice", f"--para descubrimiento devuelve {L_SOC} (PMO)", None)],
+           os.path.join(OUT, "g4-lecciones-ciclo.png"), "De la retrospectiva al índice: cada acción en el proyecto se verificó",
+           "Ciclo de las lecciones del sprint 4 al cierre (14/5/2027): captura, impacto, acción, verificación e índice",
+           "2027-02-26-retro-sprint-4-candidatos.json · lecciones.csv · pmo/lecciones-indice.csv")
 sin_rev = [(e, n - k) for e, n, k in FOTOS if n > k]
 V.barras_comparadas([f"{e} ({k} de {n})" for e, n, k in FOTOS], [[n for _, n, _ in FOTOS], [k for _, _, k in FOTOS]], os.path.join(OUT, "g4-calidad-entregas.png"),
                     "Ninguna entrega pasó la puerta con historias sin revisión aprobada",
                     "QUA-01 marcó historias sin revisión aprobada: " + " y ".join(f"{d} el {e.split(' · ')[0]}" for e, d in sin_rev) + ("; las dos brechas se cerraron" if len(sin_rev) == 2 else "; se cerraron") + " antes de la puerta siguiente",
-                    "backlog.csv (estado done) y calidad.csv (revisión completada y aprobada que cita «historia N-M»)", nombres=["Historias terminadas (done)", "Con revisión aprobada"], leyenda="arriba")
+                    "estado.py productos --corte <fecha> --json (backlog.csv done; calidad.csv: revisión aprobada que cita «historia N-M»)", nombres=["Historias terminadas (done)", "Con revisión aprobada"], leyenda="arriba")
 av_all = list(csv.DictReader(open(os.path.join(repo, G, "03-control/reportes/avance-bmad.csv"), encoding="utf-8")))
 tot = [float(f["puntos_total"]) for f in av_all]; hech = [float(f["puntos_terminados"]) for f in av_all]
 V.lineas([fcorta(f["fecha"]) for f in av_all], [tot, hech], os.path.join(OUT, "g4-burnup.png"),
@@ -439,15 +583,30 @@ est_f = json.load(open(os.path.join(repo, G, "estado.json"), encoding="utf-8"))
 cam = list(csv.DictReader(open(os.path.join(repo, G, "03-control/registros/cambios.csv"), encoding="utf-8")))
 usado = sum(float(c["costo"] or 0) for c in cam if c["cargo"] == "presupuesto-cambio"); tope = float(est_f["presupuestos"]["cambio"])
 abiertas = sum(1 for pz in est_f["puertas"] if pz.get("condiciones") and not pz.get("condiciones_cumplidas"))
-hist_ok = FOTOS[-1]
-V.tarjetas([(f"{hist_ok[2]} de {hist_ok[1]}", "historias con revisión aprobada", f"{len(qs_)} revisiones: {n_apr} aprobadas, {n_rech} rechazo tratado ({i2})", "bien"),
+pf_ = productos_json("2027-05-14")   # estado de productos al cierre (el mismo que lee C-07)
+n_acc = pf_["conteos"]["aceptado"]; n_must = len(pf_["must"]["requisitos"]) + len(pf_["must"]["productos"])
+V.tarjetas([(f"{n_acc} de {pf_['total']}", "productos aceptados", f"{n_must} Must sin aceptar (C-07); el rechazo de la 2-4 se trató en {i2}", "bien" if n_acc == pf_["total"] and not n_must else "critico"),
             (f"CPI {V.miles(evm_f['CPI'], 3)}", "costo final", f"+{V.miles(evm_f['sobrecosto_pct'], 1)} % contra BAC {V.miles(evm_f['BAC'])}; tolerancia ±8 %", "bien" if not evm_f["excepcion_prevista"] else "critico"),
             (f"{100 * usado / tope:.0f} %", "presupuesto de cambio usado", f"USD {V.miles(usado)} de {V.miles(tope)} (C-001)", "bien"),
             (str(abiertas), "condiciones abiertas al cierre", "la de NFR-3 (CONCERNS de BMAD) se cumplió el 5/3", "bien" if abiertas == 0 else "critico"),
             (f"{V.miles(hech[-1])} de {V.miles(tot[-1])}", "puntos terminados", f"{V.miles(tot[0])} de línea base + {V.miles(tot[-1] - tot[0])} por control de cambios", "bien"),
             ("2", "revisiones de beneficios", "a cargo del negocio: 30/6 y 31/12/2027", None)],
-           os.path.join(OUT, "g4-cierre.png"), "El proyecto cierra sin condiciones abiertas y con cada historia revisada",
-           "Tablero de una página para la puerta autorizar-cierre (14/5/2027)", "calidad.csv · evm-2027-05-12.json · cambios.csv · estado.json · avance-bmad.csv")
+           os.path.join(OUT, "g4-cierre.png"), "El proyecto cierra sin condiciones abiertas y con cada producto aceptado",
+           "Tablero de una página para la puerta autorizar-cierre (14/5/2027)", "estado.py productos · calidad.csv · evm-2027-05-12.json · cambios.csv · estado.json · avance-bmad.csv")
+m_aud = re.search(r"(\d+) archivos · (\d+) eventos en la cronología · registros (\d+)", s_aud)
+m_lb = re.search(r"lineas-base (\d+)", s_aud); m_ok = re.search(r"INTEGRIDAD: OK · (\d+) archivos", s_ver)
+m_alt = re.search(r"INTEGRIDAD: FALLA · (\d+) problema", s_alt); alterado = re.search(r"alterado: (\S+)", s_alt).group(1)
+tipos = {}
+for e_ in crono: tipos[e_["tipo"]] = tipos.get(e_["tipo"], 0) + 1
+V.tarjetas([(m_aud.group(2), "eventos en la cronología", f"{tipos.get('puerta', 0)} puertas · {tipos.get('cambio', 0)} cambio · {tipos.get('aceptacion-producto', 0)} productos aceptados · {tipos.get('decision', 0) + tipos.get('aprobacion', 0)} decisiones", None),
+            (m_lb.group(1), "copias congeladas (líneas base)", "PRD y épicas 1.0 y 1.1, business case, PID, enfoques, WP-001 y cierre", None),
+            (m_aud.group(3), "registros copiados", "sin stakeholders.csv: destinatario externo (--externo)", None),
+            (m_ok.group(1), "archivos con su sha256", "MANIFIESTO.md y SHA256SUMS dentro del ZIP", None),
+            ("OK", "integridad del expediente", f"los {m_ok.group(1)} archivos coinciden con SHA256SUMS", "bien"),
+            (m_alt.group(1), f"archivo alterado: {alterado.split('/')[-1]}", "la puerta D-013 dice «aprobado», no «condicionado»", "critico")],
+           os.path.join(OUT, "g4-expediente.png"), "Una sola edición en el expediente y la verificación la delata",
+           "Expediente de auditoría al 14/5/2027 para la auditoría externa (paquete.py auditoria --externo) y su verificación",
+           "cronologia.csv, MANIFIESTO.md y SHA256SUMS del expediente · paquete.py verificar")
 
 P("Paso 10 · Después del proyecto: primera revisión de beneficios del negocio (30/6/2027)")
 CK = f'python3 {OKR} {G}/00-direccion/okr.csv --checkin'

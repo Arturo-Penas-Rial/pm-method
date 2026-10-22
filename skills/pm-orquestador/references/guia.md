@@ -39,6 +39,17 @@ Para pm-director tras una decisión humana, agregar: `Decisión: <aprobado|condi
 - **Con BMAD**: en IP, pm-planificacion usa `pm-bmad-puente` (inventario, requisitos, trazabilidad); antes de cada puerta, `bmad.py verificar`; tras la decisión, pm-director fija la línea base.
 - **Reunión de la junta (o de control)**: pm-control con `pm-reuniones` (acta, acciones A-###; preferencias declaradas → `interesados.py proponer`, quedan como propuesta hasta que el gestor las confirme con `pm-interesados`) → decisiones de la junta presentadas al humano para confirmar → pm-director registra → distribución opcional del acta o del recordatorio de acciones por la capa de canales (`envios.py nuevo --proposito acta|recordatorio`, adaptado al perfil de cada interesado; aprobación humana y vista previa antes de enviar).
 - **Comunicación a interesados** (highlight, decisión de puerta, check-in de OKR, comunicado): pm-control → `pm-comunicacion-stakeholders` redacta según el perfil resuelto de cada interesado (cuadrante, estereotipo, preferencias confirmadas; `pm-interesados`) → borradores por destinatario (`interesados.py plan-envio` o `envios.py nuevo`) → el humano aprueba (`envios.py aprobar --por`) → `pm-integraciones` simula, envía con confirmación (SMTP, webhook de Slack o Teams, `.eml` o conector MCP) y registra en `envios.csv`.
+- **Radar del día** («¿qué tengo que decidir hoy?», al retomar la sesión; el hook de inicio deja una línea con los totales):
+  `estado.py --proyecto <dir> radar [--corte <hoy>]` en el hilo principal (solo lectura; reglas y prioridad en
+  `pm-estado-proyecto/references/guia.md` §9). Presentar primero la línea «Hoy» y, por grupo, cada ítem con quién decide:
+  **decidir** → las de la junta se preguntan al humano y las registra pm-director (puertas, condiciones, cambios sobre el
+  límite delegado, issues escalados); las del gestor o la autoridad de cambio, con su skill (`pm-issues-cambios`,
+  `pm-riesgos`, `pm-mandato-y-brief`); **escalar** → pm-control con `pm-progreso-reportes` (aviso temprano e informe de
+  excepción) → 🔒 pm-director; **desbloquear** → pm-control (`pm-registros`, `pm-issues-cambios`, `pm-calidad`). Cerrar
+  ofreciendo dos opciones: generar el highlight del período (pm-control → `pm-progreso-reportes`) o escalar una excepción,
+  esta última solo si el radar trae TOL-01 o CAM-03; dentro de tolerancia, acción correctiva (A-18).
+- **Incorporación antes de una puerta** (integrante nuevo de la junta, auditor, agente): pm-control →
+  `pm-progreso-reportes` con `estado.py briefing --para ST-###` (borrador; envío con `pm-comunicacion-stakeholders`).
 - En cada 🔒: retorno del subagente → el orquestador pregunta al humano → pm-director registra.
 
 ## 5. Perfil ágil mínimo

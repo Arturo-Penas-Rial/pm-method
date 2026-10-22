@@ -383,7 +383,7 @@ const S3 = "Confianza y adopción"; pres.addSection({ title: S3 });
   rr(s, 0.5, y, w, h, LT);
   label(s, P.vivo, 0.68, y + 0.12, w - 0.3, NAVY);
   const corto = t => { let x = t.replace(/^suite\.py\s+/, "").replace(/\s*\(.*$/, "").replace(/,\s*\d.*$/, "").replace(/\s*--skills-extra\s+<[^>]*>/, " con skills de BMAD").replace(/\s+/g, " ").trim(); return x.length > 44 ? x.slice(0, 43) + "…" : x; };
-  const vivo = D.vivo.slice(-7);
+  const vivo = D.vivo.slice(-8);
   const vs = vivo.length ? fitSize(vivo.map(v => corto(v.prueba) + "  " + v.resultado).join("\n"), w - 0.4, h - 0.6, 11, 9) : 10;
   tb(s, vivo.flatMap((v, j) => [{ text: v.resultado + "  ", options: { fontSize: vs, bold: true, color: ORANGE } }, { text: corto(v.prueba) + "  ", options: { fontSize: vs, color: CHAR } }, { text: v.fecha.slice(5).split("-").reverse().join("/"), options: { fontSize: vs - 1, color: GRAY, breakLine: j < vivo.length - 1, paraSpaceAfter: 4 } }]), { x: 0.68, y: y + 0.48, w: w - 0.36, h: h - 0.56 });
   // seguridad

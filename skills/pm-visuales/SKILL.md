@@ -1,7 +1,7 @@
 ---
 name: pm-visuales
 description: "Diagramas y tablero de avance HTML. Usar: organigrama, mapa de stakeholders, diagrama de la WBS, roadmap visual, one-pager, tablero, dashboard, vista por actor. No: Gantt→pm-cronograma-estimacion; contenido del informe→pm-progreso-reportes."
-version: 2.3.0
+version: 2.4.0
 author: pm-method
 license: MIT
 metadata:
@@ -23,7 +23,7 @@ metadata:
 - Un artefacto se entiende mejor dibujado: organigrama, mapa poder/interés, PBS/WBS, flujo de productos, Gantt, roadmap, flujo de excepciones, canvas o one-pager visual.
 - La junta, el patrocinador o el cliente piden "verlo en una página": tablero de avance con semáforo, hitos, riesgos, acciones y **vista por actor**.
 - Otra skill (`pm-organizacion-roles`, `pm-planificacion-por-productos`, `pm-cronograma-estimacion`, `pm-progreso-reportes`) necesita incrustar un diagrama.
-- EN: org chart, stakeholder map, WBS tree, roadmap, one-pager or progress dashboard; delegates to archify, diagram-design or visual-explainer when configured.
+- EN: org chart, stakeholder map, WBS tree, roadmap, one-pager or progress dashboard.
 
 ## Idioma
 Etiquetas en el idioma del proyecto (`estado.json.idioma`); los HTML con cabeceras bilingües (ES / EN). Términos EN la primera vez: product breakdown structure (PBS), product flow diagram, progress dashboard.
@@ -37,7 +37,7 @@ Etiquetas en el idioma del proyecto (`estado.json.idioma`); los HTML con cabecer
 ## Entradas requeridas
 - `estado.json` (idioma, etapa, tolerancias, roles, `enfoque_entrega`, `integraciones.diagramas`, `integraciones.cronograma`).
 - Por visual: organigrama ← `roles` y `00-direccion/estructura-organizativa.md`; mapa ← `stakeholders.csv`; PBS/WBS ← `02-planificacion/pbs-wbs.md` o `wbs.csv`; flujo ← descripciones de producto; Gantt/roadmap ← `cpm.py --mermaid` o plan; canvas ← `01-inicio/canvas-arranque.md`.
-- Tablero ← highlight vigente, `evm.py --json`, `registro.py listar riesgos|issues --abiertos`, `listar acciones`, `resumen --corte`, burn-up (con BMAD, `avance-bmad.csv`) y, si hay tracker conectado, instantáneas de `pm-integraciones` en `03-control/fuentes/`.
+- Tablero ← `estado.py periodo` (registros, `resumen --corte`, último corte de EVM, `avance-bmad.csv`, umbrales de `estado.json`) + juicio del gestor (JSON, guía de `pm-progreso-reportes` §14); instantáneas de `pm-integraciones` en `03-control/fuentes/`.
 - **Especificación (fuente única, SPEC §1.16)**: requisitos, épicas e historias solo vía `python3 ${CLAUDE_SKILL_DIR}/../pm-estado-proyecto/scripts/especificacion.py --proyecto <dir> resumen|consultar <id>|listar … --json` (con o sin BMAD; nunca abrir BMAD ni `requisitos.md`). Escribe como dueña: visuales y tablero, que citan ids.
 - Si falta la fuente: esqueleto con `[por confirmar]` y lista de lo que falta; nunca inventar nodos.
 
@@ -48,7 +48,7 @@ Etiquetas en el idioma del proyecto (`estado.json.idioma`); los HTML con cabecer
 4. **Generar** con la plantilla o el script (contenido por visual en guía §2):
    - WBS: `python3 ${CLAUDE_SKILL_DIR}/../pm-estado-proyecto/scripts/wbs.py 02-planificacion/wbs.csv --mermaid 02-planificacion/visuales/wbs.md` (árbol Mermaid validado; `--profundidad` para recortar).
    - Gantt: `cpm.py --mermaid`; roadmap con puertas como hitos; canvas con `templates/canvas-arranque.html`.
-   - Tablero: `templates/tablero-avance.html`, armando el bloque JSON `datos-tablero` (script y campos en guía §3): semáforo de siete objetivos (verde ≤ 50 % de la tolerancia, ámbar 50–100 %, rojo fuera), hitos, decisiones, mapa de calor P×I, riesgos e issues, sección ágil (velocidad y burn-up), acciones por actor y **Vista por actor**. Con mapas en `02-planificacion/mapas/`, sección **Mapas estratégicos**: `${CLAUDE_SKILL_DIR}/../pm-mapas-estrategicos/scripts/mapas.py --proyecto <dir> tablero --insertar <tablero>` (guía §3).
+   - Tablero: `${CLAUDE_SKILL_DIR}/../pm-estado-proyecto/scripts/estado.py --proyecto <dir> periodo --desde … --corte … --juicio <json> --tablero` llena `templates/tablero-avance.html` (bloque `datos-tablero`, guía §3; mismas cifras que el highlight): semáforos por regla, hitos, decisiones, mapa de calor P×I, burn-up, acciones y **Vista por actor**. Con mapas en `02-planificacion/mapas/`, sección **Mapas estratégicos**: `${CLAUDE_SKILL_DIR}/../pm-mapas-estrategicos/scripts/mapas.py --proyecto <dir> tablero --insertar <tablero>` (guía §3).
 5. **Vista por actor.** Selector sobre acciones abiertas (`D.acciones`), riesgos por propietario (`D.riesgos`) e issues por responsable (`D.issues`); abre filtrada con `?actor=<Nombre>` (guía §4).
 6. **Datos de trackers.** El tablero puede alimentarse con instantáneas fechadas de `pm-integraciones` (avance de ítems, bloqueos), citadas en `fuentes`; riesgos, issues y acciones siguen saliendo de los registros (guía §5).
 7. **Legibilidad**: título bilingüe, leyenda, fecha de corte, fuente; ≤ ~40 nodos (guía §7).
@@ -62,7 +62,7 @@ Etiquetas en el idioma del proyecto (`estado.json.idioma`); los HTML con cabecer
 3. [PRINCE2] Un visual no cambia el estado de nada: nada aprobado sin acto humano registrado.
 4. [PRINCE2] La PBS contiene productos, no actividades; el flujo marca los externos; la WBS deriva de la PBS.
 5. [PRINCE2] El organigrama muestra tres intereses en la junta, un ejecutivo y aseguramiento separado; si la fuente lo viola, se señala.
-6. [PRINCE2] El tablero sigue la lógica del highlight: semáforo contra tolerancias de etapa y proyecto (50 %/100 %), hecho separado de pronóstico, decisiones visibles; mapa de calor alto ≥ 15, medio 6–12, bajo ≤ 5.
+6. [PRINCE2] El tablero sigue la lógica del highlight: semáforo contra tolerancias de etapa y proyecto (50 %/100 %), hecho separado de pronóstico, decisiones visibles; mapa de calor con `estado.json.umbrales_riesgo` (por defecto alto ≥ 15, medio 6–12).
 7. [PMBOK→Progress/CS] El tipo de visual sigue al tipo de dato; sin gráficos de vanidad. En ágil, burn-up con línea de alcance total y solo ítems terminados.
 8. [PMBOK→Organizing/IP] El mapa poder/interés usa criterios explícitos y es de circulación restringida; la vista por actor muestra compromisos, no desempeño.
 9. [Plantillas] HTML autocontenidos (sin red ni librerías, SVG en la página); datos solo por el bloque JSON, nunca editando celdas.

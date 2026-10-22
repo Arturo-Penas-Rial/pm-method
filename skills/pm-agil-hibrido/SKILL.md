@@ -1,7 +1,7 @@
 ---
 name: pm-agil-hibrido
 description: "Ágil/híbrido en etapas: backlog MoSCoW, historias, release plan, velocidad, retro de iteración. Usar: backlog, sprint, user story, release plan, DoD, velocity. No: sync con BMAD→pm-bmad-puente."
-version: 2.3.0
+version: 2.4.0
 author: pm-method
 license: MIT
 metadata:
@@ -27,7 +27,7 @@ metadata:
 **Idioma · Language:** responder siempre en el idioma en que escribe el usuario (English request → English reply); los artefactos van en `estado.json.idioma` salvo que el usuario pida otro. plantillas bilingües. Equivalencias ES/EN y columnas de `backlog.csv`: `references/guia.md` §2.
 
 ## Conocimiento
-- `references/guia.md` (esta skill): §1 perfil mínimo, §2 columnas del backlog, §3 BMAD, §4 ceremonias↔controles, §5 retro vs. lecciones, §6 fórmulas y EVM ágil, §7 comandos, §8 reglas complementarias, §9 casos borde.
+- `references/guia.md` (esta skill): §1 perfil mínimo, §2 backlog, §3 BMAD, §4 ceremonias↔controles, §5 retro vs. lecciones, §6 fórmulas, capacidad y EVM ágil, §7 comandos, §8 reglas, §9 casos borde.
 - `pm-knowledge/references/prince2-practicas-bc-organizacion-planes-calidad.md` §4.4, §4.8 "Proyecto ágil", §4.3.2, §5.4 (MVP, DoD, DoR).
 - `pm-knowledge/references/prince2-principios-personas-procesos.md` §5.3–§5.6 (adaptación ágil de IP, CS, MP, SB).
 - `pm-knowledge/references/prince2-practicas-riesgo-issues-progreso-productos.md` §4.c.5 y §4.c.2.
@@ -51,7 +51,7 @@ metadata:
    - *Con BMAD*: filas y columnas **derivadas** las refresca `python3 ${CLAUDE_SKILL_DIR}/../pm-bmad-puente/scripts/bmad.py --proyecto <dir> backlog`; el PO completa solo las de **gobierno** (prioridad, moscow, estimacion, iteracion, release, producto_pbs). Nada de historias ni requisitos a mano (§3).
 5. **Historias** (sin BMAD) con `historia-usuario.md`: como/quiero/para, dado-cuando-entonces, INVEST.
 6. **Tolerancia de alcance**: Must = compromiso mínimo; Should/Could = tolerancia; Won't fuera. Must ≤ ~60 % de la capacidad (§6). Proponerla en el plan de etapa; la registra `pm-director` tras `autorizar-etapa`.
-7. **Release plan**: objetivo por capacidad, iteraciones, historias, dependencias; en híbrido, releases = hitos del cronograma maestro. `Σ puntos Must+Should ≤ velocidad × iteraciones` o repriorizar. Solo **línea base**.
+7. **Release plan**: objetivo, iteraciones, historias, dependencias; en híbrido, releases = hitos del cronograma maestro. Capacidad: `python3 ${CLAUDE_SKILL_DIR}/../pm-agil-hibrido/scripts/release.py --proyecto <dir> capacidad [--release R] [--json]` (`Must+Should ≤ velocidad × iteraciones` o repriorizar; Must > 60 % = vigilar; §6). Solo **línea base**.
 8. **Presupuesto y fecha**: costo por iteración a `pm-costos-presupuesto`, iteraciones a `pm-cronograma-estimacion`; si los Must no entran, opciones (primero alcance) y, si sigue fuera, junta vía `pm-director`.
 9. **Ceremonias ↔ controles** (§4). **Cada sprint = paquete de trabajo** autorizado con `pm-paquetes-trabajo` (alcance = historias del sprint, tolerancias, DoD).
 10. **Seguir la iteración**: velocidad = puntos terminados (DoD), promedio de 3. Estados por la fachada (`listar historias --estado …`); con BMAD, serie en `avance-bmad.csv` (`bmad.py avance`). Datos a `pm-progreso-reportes`, que dibuja burn charts en los informes.
@@ -59,7 +59,7 @@ metadata:
 12. **EVM ágil** con `evm.py --modo agil --pct-no-must` (§6): EAC > BAC = alcance que no entra; excepción solo si peligran los Must.
 13. **Tolerancias**: si los Must no caben en tiempo o costo, es excepción → `pm-progreso-reportes` (informe con la plantilla de `pm-issues-cambios`) y `pm-director`. Recortar un Must nunca se decide aquí.
 14. **Límite de etapa con BMAD**: el gate de preparación del sprint planning (PASS/CONCERNS/FAIL) va a `pm-plan-etapa-y-limites` para `autorizar-etapa`.
-15. **Retrospectiva** (`retrospectiva.md`): 1–3 acciones con dueño y fecha (backlog como `accion_retro` o `acciones.csv`); lecciones candidatas a `lecciones.csv` con confirmación. El taller de etapa es de `pm-lecciones-aprendidas`.
+15. **Retrospectiva** (`retrospectiva.md`; reunión propia, no la planificación del sprint siguiente): 1–3 acciones con dueño y fecha (backlog como `accion_retro` o `acciones.csv`); lecciones candidatas a `lecciones.csv` con confirmación (con transcripción: `pm-reuniones` `extraccion.py candidatos --tipo retrospectiva`), luego clasificadas por impacto en `pm-lecciones-aprendidas`, dueña también del taller de etapa.
 16. **Registrar**: `estado.py --proyecto <dir> artefacto backlog --ruta 02-planificacion/backlog.csv --estado en-revision` (y `release-plan`). **Puerta humana**: backlog comprometido y release plan se aprueban con el plan de etapa (`autorizar-etapa`, registrada por `pm-director`); cada incremento lo acepta el usuario sénior o el PO en la review. Como subagente, cerrar con el bloque de retorno (SPEC §1.11).
 
 ## Reglas del método
@@ -91,7 +91,7 @@ metadata:
 - [ ] Enfoque ágil/híbrido registrado; PO y cadencia en `estado.json`; perfil declarado.
 - [ ] Backlog con orden total, `moscow` y `release` en los ítems próximos, estado válido y criterios.
 - [ ] Con BMAD: `bmad.py backlog` al día, columnas de gobierno completas, cambios de prioridad traspasados (`handoff`), nada copiado.
-- [ ] Must dentro de la capacidad; tolerancia de alcance propuesta; release plan solo con línea base.
+- [ ] Must y Should dentro de la capacidad (`release.py capacidad`); tolerancia de alcance propuesta; release plan solo con línea base.
 - [ ] Swaps registrados con `nivel=product-owner`; cambios mayores en `pm-issues-cambios`.
 - [ ] EVM ágil con `--modo agil` e ítems terminados según DoD.
 - [ ] Retro con 1–3 acciones con dueño y fecha; ninguna escritura externa sin confirmación.

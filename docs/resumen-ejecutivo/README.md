@@ -1,13 +1,14 @@
 # Resumen ejecutivo comercial · pm-method
 
 - `resumen-ejecutivo-pm-method.pptx` y `.html`: el resumen para presentar y vender pm-method (mismo contenido en los dos
-  formatos): problema y propuesta de valor, para quién, qué es, arquitectura, agentes y skills por fase, ciclo de vida
+  formatos; 18 diapositivas): problema y propuesta de valor, para quién, qué es, arquitectura, agentes y skills por fase, ciclo de vida
   con las puertas, controles permanentes, integraciones, catálogo de los casos E2E (uno por diapositiva, con una imagen
   real de cada guía), webinar e inducción, calidad y confianza, cómo empezar y glosario. El HTML es un solo archivo
   (claro, oscuro o automático; imprimible, una diapositiva por página; navegación con ◀ ▶ y las flechas del teclado;
   glosario con anclas).
 - `fuente/`: el generador. **Ninguna cifra está escrita a mano**: `extraer.py` cuenta skills, agentes, hooks, registros,
-  puertas, códigos de control y casos en el repositorio, corre las pruebas gratuitas y guarda todo en `datos.json`; el
+  puertas, códigos de control, casos y sus pasos (con el mismo criterio de `docs/guias/README.md`, y se detiene si no
+  coinciden) en el repositorio, corre las pruebas gratuitas y guarda todo en `datos.json`; el
   texto propio vive en `fuente/narrativa.json` con marcadores `{clave}` que se completan con esas cifras.
 
 ## Regenerar

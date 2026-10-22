@@ -1,0 +1,74 @@
+{
+  "caso": "E2E-3",
+  "titulo": "Que lo prometido a cada interesado se cumpla, y se note a tiempo",
+  "bajada": "Un solo mapa de interesados, beneficios y OKR con dueño, y un informe para la junta armado desde el dato, con cada envío confirmado por una persona.",
+  "para_quien": [
+    "Gestores de proyecto que reportan a una junta y coordinan muchos interesados",
+    "Responsables de comunicación, gestión del cambio o PMO",
+    "Líderes de negocio que siguen OKR y beneficios"
+  ],
+  "objetivos": [
+    "Construir un maestro único de interesados con matriz poder/interés y de compromiso",
+    "Registrar los acuerdos de una reunión desde candidatos con cita, solo con confirmación humana",
+    "Distinguir un beneficio del business case de un KR y leer la salud de un KR",
+    "Armar el highlight desde el dato y comprobar sus cifras antes de enviarlo",
+    "Vigilar la cadencia de contacto prometida y reevaluar la brecha de compromiso"
+  ],
+  "sistema_agentico": {
+    "agente": [
+      "Propone acuerdos y compromisos de una transcripción, con cita y hora",
+      "Arma el highlight y el tablero con un solo cálculo y verifica cada cifra",
+      "Prepara mensajes por perfil y avisa quién está fuera de su cadencia de contacto"
+    ],
+    "persona": [
+      "Quien presidió la reunión confirma qué acuerdos se registran",
+      "Una persona aprueba cada comunicado y confirma cada envío",
+      "El gestor decide la acción correctiva con cada interesado"
+    ],
+    "control": "Nada se registra ni se envía sin la confirmación de una persona; una instrucción escondida en una transcripción no se ejecuta."
+  },
+  "beneficios": {
+    "para_vos": [
+      "Un informe de avance que no tenés que copiar a mano",
+      "Una forma rápida de ver a quién le estás fallando con lo prometido"
+    ],
+    "para_la_organizacion": [
+      "Las mismas cifras en el informe, el tablero y el correo, comprobadas antes de enviar",
+      "Desenganche visible a tiempo: en el caso, 3 de 10 interesados fuera de su cadencia"
+    ]
+  },
+  "clases": [
+    {
+      "numero": 1,
+      "temas": [
+        "Junta y maestro único de interesados",
+        "Matriz poder/interés, estereotipos y preferencias",
+        "Plan de compromiso, beneficios, OKR y RACI",
+        "Taller → acuerdos con cita, confirmación y acta"
+      ]
+    },
+    {
+      "numero": 2,
+      "temas": [
+        "Avance con valor ganado, BMAD y check-ins de OKR",
+        "Radar y briefing al retomar la sesión",
+        "Highlight desde el dato y envío con confirmación",
+        "Cadencia de contacto y revisión de la brecha"
+      ]
+    }
+  ],
+  "requisitos": [
+    "Saber qué es un interesado, un plan de comunicaciones y un informe de avance",
+    "Un proyecto propio con cinco interesados o más, o el escenario del caso",
+    "Nada que instalar ni programar; para practicar después, Claude Code con pm-method"
+  ],
+  "modalidad": "Dos clases en vivo de 90 minutos: demostración sobre un caso real y ejercicio de 10 minutos al cierre de cada una.",
+  "imagen": {
+    "ruta": "docs/guias/img/g3-cadencia-stk12.png",
+    "pie": "Del caso: al 5/2, 3 de 10 interesados vigilados están fuera de su cadencia de contacto."
+  },
+  "notas": [
+    "Abrí con una pregunta: ¿a cuántos de tus interesados les cumpliste la frecuencia de contacto que les prometiste este mes? El taller convierte esa promesa en un control. La imagen es real, de la corrida del caso: a las tres semanas del último comunicado, tres de diez interesados vigilados estaban fuera de su cadencia. Cerrá con los objetivos y con para quién es.",
+    "Explicá la división del trabajo: el agente propone, calcula, verifica cifras y prepara mensajes; ningún acuerdo se registra y ningún mensaje sale sin que una persona lo confirme. La primera clase monta el sistema de interesados; la segunda lo opera período a período. Subrayá que no hace falta programar ni instalar nada para las clases."
+  ]
+}

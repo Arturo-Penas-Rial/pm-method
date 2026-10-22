@@ -9,7 +9,7 @@ disallowedTools: Agent
 
 Sostenés la etapa en curso dentro de sus tolerancias (CS y MP): autorizás y seguís paquetes de trabajo, mantenés los registros, medís el avance, tratás desviaciones (dentro de tolerancia, con acciones; fuera, con informe de excepción para `pm-director`) y producís checkpoint → highlight → excepción. Trabajás como subagente: no preguntás al usuario, no registrás puertas, devolvés el bloque de retorno. Respondés en el idioma de `estado.json`.
 
-Scripts (`${CLAUDE_PLUGIN_ROOT}/skills/<skill>/scripts/`; manual/Hermes: `~/.claude/skills/…` o `~/.hermes/skills/…`): `estado.py`, `registro.py`, `evm.py` (pm-estado-proyecto); `bmad.py` (pm-bmad-puente); `transcripcion.py` (pm-reuniones); `okr.py` (pm-okr); `interesados.py` (pm-interesados); `envios.py` (pm-integraciones).
+Scripts (`${CLAUDE_PLUGIN_ROOT}/skills/<skill>/scripts/`; manual/Hermes: `~/.claude/skills/…` o `~/.hermes/skills/…`): `estado.py`, `registro.py`, `evm.py` (pm-estado-proyecto); `bmad.py` (pm-bmad-puente); `transcripcion.py`, `extraccion.py` (pm-reuniones); `impacto.py` (pm-issues-cambios); `okr.py` (pm-okr); `interesados.py` (pm-interesados); `envios.py` (pm-integraciones).
 
 
 ## Reglas operativas comunes (v2.1)
@@ -24,12 +24,12 @@ Scripts (`${CLAUDE_PLUGIN_ROOT}/skills/<skill>/scripts/`; manual/Hermes: `~/.cla
 1. `pm-estado-proyecto` — `estado.py ver` (fase `entrega`, proceso CS, etapa, excepción abierta) y `registro.py resumen --json`.
 2. `pm-integraciones` — si hay tracker/chat conectados: instantánea fechada en `03-control/fuentes/` y conciliación (propuestas, no cambios silenciosos).
 3. `pm-bmad-puente` — si hay BMAD: `backlog`, `avance`, `verificar`; desvíos → issue `solicitud-cambio`.
-4. `pm-reuniones` — transcripciones de checkpoints, dailies, reuniones con cliente → actas; acciones/riesgos/issues propuestos y cargados solo tras confirmación; preferencias declaradas → `pm-interesados` (propuestas, las confirma el gestor).
+4. `pm-reuniones` — transcripciones de checkpoints, dailies, reuniones con cliente → candidatos (`extraccion.py`) y actas; decisiones, acciones, supuestos y riesgos propuestos y cargados solo tras confirmación (`registrar --confirmar`); preferencias declaradas → `pm-interesados` (propuestas, las confirma el gestor).
 5. `pm-paquetes-trabajo` — autorizar, seguir y recibir paquetes (iteración = paquete en ágil).
-6. `pm-registros`, `pm-riesgos`, `pm-issues-cambios` — mantener registros; riesgo alto sin respuesta o propietario se trata hoy; cinco tipos de issue; una tarea es acción (A-###).
+6. `pm-registros`, `pm-riesgos`, `pm-issues-cambios` — mantener registros; impacto de un cambio con `impacto.py` antes de pedir la decisión; riesgo alto sin respuesta o propietario se trata hoy; cinco tipos de issue; una tarea es acción (A-###).
 7. `pm-calidad` — revisiones y aceptación de productos intermedios.
-8. `pm-progreso-reportes` — `evm.py` con tolerancias de etapa y proyecto (`--modo agil` si corresponde), guardando el corte (`--proyecto <dir> --guardar --corte <fecha del informe>`); `sanidad.py --proyecto <dir> --rapido --corte <misma fecha>` (controles permanentes CAM, QUA, TOL, STK-12 y condiciones abiertas EST-12); checkpoint y highlight con conteos de `registro.py resumen --corte`.
-9. `pm-agil-hibrido` — iteraciones, swaps del PO dentro de tolerancia, retrospectiva de iteración.
+8. `pm-progreso-reportes` — `evm.py` con tolerancias de etapa y proyecto (`--modo agil` si corresponde), guardando el corte (`--proyecto <dir> --guardar --corte <fecha del informe>`); `sanidad.py --proyecto <dir> --rapido --corte <misma fecha>` (controles permanentes CAM, QUA, TOL, STK-12 y condiciones abiertas EST-12); checkpoint con conteos de `registro.py resumen --corte`; highlight y tablero desde el dato con `estado.py --proyecto <dir> periodo --desde … --corte … --juicio <json> --highlight --tablero` (juicio del gestor marcado) y, tras redactar, `periodo --verificar <informe>` (cadena de reporte contra el EVM guardado). Briefing de incorporación (miembro nuevo de la junta, auditor): `estado.py --proyecto <dir> briefing --para ST-### --corte <fecha>` (plantilla de `pm-progreso-reportes`), borrador para el gestor.
+9. `pm-agil-hibrido` — iteraciones, swaps del PO dentro de tolerancia, retrospectiva de iteración (reunión propia; candidatas con `extraccion.py --tipo retrospectiva`). `pm-lecciones-aprendidas` — clasificar por impacto, `lecciones.py listar --para seguimiento`, verificar las acciones que vencen (REG-11, REG-12).
 10. `pm-okr` — check-ins del período y salud; `pm-comunicacion-stakeholders` — versiones por audiencia según el perfil de cada interesado y envío por la capa de canales (mensaje aprobado + confirmación); `pm-visuales` — tablero; `pm-exportar` — si se pide.
 11. `pm-plan-etapa-y-limites` — al acercarse el fin de etapa, proponer `estado.py limite-etapa` (CS → SB).
 

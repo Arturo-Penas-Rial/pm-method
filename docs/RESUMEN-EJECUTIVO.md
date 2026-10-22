@@ -1,4 +1,4 @@
-# Resumen ejecutivo · pm-method 2.3.0
+# Resumen ejecutivo · pm-method 2.4.0
 
 **Gestión de proyectos asistida por IA, con método, gobierno y trazabilidad.**
 EN: *AI-assisted project management with a real method, real governance and end-to-end traceability.*
@@ -23,6 +23,8 @@ gobierna, y cada decisión queda registrada y verificada.
 | Integraciones atadas a un proveedor o frágiles | Dependencia y mantenimiento costoso |
 | El mismo comunicado para todos los interesados y una RACI que nadie vincula al plan | Mensajes que no llegan a quien decide; responsabilidades difusas sobre entregables y KR |
 | Se invierte sobre supuestos sin validar y opciones que nadie comparó con números | Proyectos aprobados sobre hipótesis; el business case se descubre falso cuando ya se gastó |
+| La primera respuesta a un riesgo se anota sin compararla, el impacto de un cambio se estima a ojo y lo acordado en una reunión depende de quién tomó notas | Reservas que no alcanzan, cambios aprobados por quien no tenía autoridad y compromisos que nadie recuerda |
+| Las lecciones se escriben al cierre y nadie las vuelve a usar | Los mismos errores se repiten en el proyecto siguiente |
 
 ## 3. Qué ofrece
 
@@ -32,9 +34,10 @@ gobierna, y cada decisión queda registrada y verificada.
 | **Orquestación con roles** | un orquestador en el hilo principal y cinco subagentes de fase; solo `pm-director` registra decisiones de la junta | El modelo prepara, la persona decide; la separación se hace cumplir con un hook |
 | **Fuente única de especificación** | BMAD es la especificación; pm-method la lee por una fachada (`especificacion.py`), fija líneas base con sha256 y detecta desvíos | Trazabilidad requisito → historia → paquete → aceptación sin copias desincronizadas |
 | **Guardarraíles permanentes** | `estado.json` y los registros solo cambian por scripts que validan; el hook bloquea ediciones directas por Edit y por Bash | Datos de gobierno íntegros y auditables |
-| **Sanidad continua** | `sanidad.py`, 85 comprobaciones en 12 familias (INS, EST, ART, REG, CAM, QUA, TOL, SUP, ESP, INT, STK, MAP) al iniciar sesión y antes de cada puerta, y un resumen derivado de los registros en cada inicio de sesión | Los problemas aparecen antes de la junta, no durante |
-| **Controles permanentes** | lo que en la práctica se controla a mano, tarde o nunca, se verifica en cada corrida: costo de cada cambio contra el presupuesto de cambio y la reserva de riesgo que fija la junta (excedido = bloqueo de puerta), cambios sobre el límite de la autoridad delegada, historias terminadas sin revisión de calidad, pronóstico de valor ganado contra las tolerancias, condiciones de la junta con seguimiento hasta cumplirse (bloquean el cierre), riesgos con la revisión vencida, supuestos críticos sin validar y contacto con cada interesado en la frecuencia prometida | La gestión por excepción funciona sola: la junta se entera a tiempo y con el dato |
-| **Informes listos para la junta** | highlight, checkpoint, excepción, fin de etapa con valor ganado; tablero por actor; exportación Word, Excel y PowerPoint | Menos tiempo armando informes, más tiempo decidiendo |
+| **Sanidad continua** | `sanidad.py`, 93 códigos en 12 familias (INS, EST, ART, REG, CAM, QUA, TOL, SUP, ESP, INT, STK, MAP) al iniciar sesión y antes de cada puerta; en cada inicio de sesión, un resumen derivado de los registros y el radar de lo que hay que decidir, escalar, desbloquear y vigilar | Los problemas aparecen antes de la junta, no durante |
+| **Controles permanentes** | lo que en la práctica se controla a mano, tarde o nunca, se verifica en cada corrida: costo de cada cambio contra el presupuesto de cambio y la reserva de riesgo que fija la junta (excedido = bloqueo de puerta), cambios sobre el límite de la autoridad delegada, historias terminadas sin revisión de calidad, pronóstico de valor ganado contra las tolerancias, condiciones de la junta con seguimiento hasta cumplirse (bloquean el cierre), riesgos con la revisión vencida, riesgos altos sin opciones evaluadas o con una contingencia sin plan, supuestos críticos sin validar, lecciones sin acción o sin verificar, productos aceptados sin revisión y contacto con cada interesado en la frecuencia prometida | La gestión por excepción funciona sola: la junta se entera a tiempo y con el dato |
+| **Informes listos para la junta** | highlight y tablero desde un solo cálculo del período, con la cadena de reporte verificada contra el valor ganado; checkpoint, excepción, fin de etapa; briefing de incorporación; tablero por actor; estado de productos derivado de los registros; expediente de auditoría con huellas verificables; exportación Word, Excel y PowerPoint | Menos tiempo armando informes, más tiempo decidiendo; el mismo número en el informe, el tablero y el correo |
+| **Decidir con datos** | opciones de respuesta a los riesgos comparadas por valor neto con plan de contingencia; análisis de impacto de cada cambio (tiempo, reserva, capacidad, presupuesto, VAN) con quién decide; estimación de tres valores con reserva de cronograma y capacidad del release por MoSCoW; personas de usuario para priorizar | La decisión se toma con las opciones y el impacto a la vista, y la toma quien tiene la autoridad |
 | **Visuales profesionales** | organigramas, WBS, roadmaps y one-pagers con archify, diagram-design o visual-explainer; respaldo Mermaid | Comunicación clara con interesados no técnicos |
 | **Planificación seria** | WBS, camino crítico, exportación MSPDI a MS Project, presupuesto con reservas, release plan ágil | Planes que se pueden auditar y llevar a la herramienta corporativa |
 | **Validar antes de invertir** | supuestos críticos como hipótesis con experimento, criterio y fecha (SUP-01…03), puerta `autorizar-proyecto` con condición P-11, opciones evaluadas con VAN, TIR, repago, sensibilidad y punto de equilibrio (`inversion.py`) | La junta invierte sobre evidencia y sabe qué supuesto aceptó sin validar |
@@ -42,7 +45,8 @@ gobierna, y cada decisión queda registrada y verificada.
 | **Maestro de interesados** | `pm-interesados`: matriz poder/interés con estrategia por cuadrante, RACI ligada a WBS, requisitos, historias y KR (un A por elemento), estereotipos y preferencias tomadas de entrevistas y actas que una persona confirma, perfil de comunicación por interesado y reporte HTML | Cada interesado recibe lo que necesita por el canal que prefiere, con responsabilidades claras y verificadas |
 | **Capa de canales** | `envios.py` envía por correo SMTP, webhooks de Slack o Teams, archivos `.eml` o MCP conectados; simulación por defecto, solo mensajes aprobados, destinos desde el maestro y registro de cada envío | Comunicación personalizada y auditable sin perder el control humano |
 | **OKR ligados a beneficios** | `pm-okr` vincula resultados clave a beneficios y métricas de éxito del PRD, con tipos de KR, aspiracional o comprometido, check-ins, salud contra el avance esperado y propuesta de sincronización con Tability o Perdoo | La estrategia se mide con los mismos datos del proyecto |
-| **Reuniones a registros** | actas desde transcripciones (VTT, SRT, texto o MCP) con acciones, riesgos y decisiones confirmadas | Lo que se acuerda en una reunión no se pierde |
+| **Reuniones a registros** | actas desde transcripciones (VTT, SRT, texto o MCP); decisiones con su nivel, compromisos con responsable y fecha, supuestos, riesgos y lecciones propuestos con cita y hora, que se registran solo cuando una persona los confirma | Lo que se acuerda en una reunión no se pierde |
+| **Lecciones que se usan** | lecciones de otros proyectos al arrancar; en la retrospectiva, candidatas con cita; clasificación por impacto y proceso, acción, verificación e informe que alimenta el índice de la organización | Lo aprendido cambia la forma de trabajar y se comprueba que funcionó |
 | **Integraciones abiertas** | Jira, Confluence, Slack, Teams, transcripciones, Tability y Perdoo por MCP genérico; nada predefinido | Se adapta a las herramientas que ya usa la organización |
 | **Bilingüe** | respuestas en el idioma del usuario; artefactos en el idioma del proyecto (ES/EN) | Equipos y clientes de distintos idiomas |
 
@@ -52,8 +56,8 @@ gobierna, y cada decisión queda registrada y verificada.
    cuándo y con qué condiciones. Los subagentes no pueden registrar decisiones de la junta.
 2. **La especificación no se duplica.** pm-method no edita BMAD: lee, mide y devuelve decisiones con un documento de
    traspaso. Un requisito nuevo en el PRD sin cambio aprobado aparece como **ESP-10** y bloquea la puerta.
-3. **Verificado, no solo diseñado.** 223 pruebas automáticas de regresión (incluida una instalación real de BMAD
-   6.12.4 y envíos SMTP y por webhooks contra servidores locales), una suite de integración cruzada de 61 comprobaciones,
+3. **Verificado, no solo diseñado.** 353 pruebas automáticas de regresión (incluida una instalación real de BMAD
+   6.12.4 y envíos SMTP y por webhooks contra servidores locales), una suite de integración cruzada de 99 comprobaciones,
    cinco recorridos E2E reproducibles, validación del plugin con la CLI y pruebas en vivo con Claude Code real:
    enrutamiento, guardarraíles, idioma, robustez y skills externas.
 4. **Degrada con elegancia.** Sin skills externas usa Mermaid y scripts propios; sin BMAD usa su propia especificación
@@ -70,17 +74,17 @@ gobierna, y cada decisión queda registrada y verificada.
 | Product owner / equipo ágil | backlog sincronizado con BMAD, MoSCoW, release plan, avance por puntos |
 | PMO / CoE de IA | un estándar reproducible de gestión asistida, con trazabilidad y controles |
 
-## 6. Evidencia (2026-10-20)
+## 6. Evidencia (2026-10-22)
 
 | Verificación | Resultado |
 |---|---|
-| Validación estructural (`validar_paquete.py`) | OK · 39 skills, listado de 6.817 caracteres (límite 7.500); sintaxis compatible con Python 3.9 |
-| Regresión (`probar_paquete.py`) | 223 OK · 0 FALLO con Python 3.13 (222 con 3.9) |
-| Integración cruzada (`scripts/pruebas/integracion/correr.py`) | 61 OK · 0 FALLO en 24 eslabones |
+| Validación estructural (`validar_paquete.py`) | OK · 39 skills, listado de 6.957 caracteres (límite 7.500); sintaxis compatible con Python 3.9 |
+| Regresión (`probar_paquete.py`) | 353 OK · 0 FALLO con Python 3.13 (352 con 3.9) |
+| Integración cruzada (`scripts/pruebas/integracion/correr.py`) | 99 OK · 0 FALLO en 34 eslabones |
 | Validación del plugin (`claude plugin validate .`) | aprobada |
-| Enrutamiento en vivo | 60/60 en la batería base; 27/28 con vocabulario de PRINCE2 y PMBOK en español; 25/25 con las skills de BMAD instaladas; 14/14 con el resumen de contexto del hook de inicio; 8/8 en mapas estratégicos (detalle en [PRUEBAS](PRUEBAS.md)) |
-| Diagramas y recorridos | 127 bloques Mermaid, 0 errores; guías E2E 5/5 OK (E2E-1 15 pasos, E2E-2 10, E2E-3 14, E2E-4 13, E2E-5 18), con evidencia idéntica en dos corridas |
-| Material de formación | 5 mazos del webinar sin errores: 10 clases de 90 minutos, 186 diapositivas de contenido, 124 términos de glosario |
+| Enrutamiento en vivo | 60/60 en la batería base; 27/28 con vocabulario de PRINCE2 y PMBOK en español; 25/25 con las skills de BMAD instaladas; 14/14 con el resumen de contexto del hook de inicio; 8/8 en mapas estratégicos; 28/28 en las frases de opciones, personas, radar, reuniones, impacto, auditoría, lecciones, productos, período y estimación (detalle en [PRUEBAS](PRUEBAS.md)) |
+| Diagramas y recorridos | 128 bloques Mermaid, 0 errores; guías E2E 5/5 OK (E2E-1 15 pasos, E2E-2 10, E2E-3 14, E2E-4 15, E2E-5 20; 51 imágenes), con evidencia e imágenes idénticas en dos corridas |
+| Material de formación | 5 mazos del webinar sin errores: 10 clases de 90 minutos, 195 diapositivas de contenido, 125 términos de glosario |
 | Guardarraíles, idioma y robustez en vivo | guardarraíles 4/4; idioma 5/5; inyección en fuentes, datos desordenados, escala y varias sesiones: todos los chequeos OK; controles permanentes 7/7; integración con BMAD instalado 12/12 |
 | Skills externas en vivo | archify, diagram-design, visual-explainer, docx/xlsx/pptx: delegadas y funcionando |
 
@@ -97,8 +101,9 @@ gobierna, y cada decisión queda registrada y verificada.
 - Los controles permanentes se probaron con scripts (regresión, integración y guías E2E) y en vivo en un escenario
   (presupuesto de cambio excedido y calidad a volumen); con el presupuesto agotado, `registro.py` no deja que la
   autoridad delegada registre la aprobación y el cambio queda pendiente de la junta.
-- Los escenarios de robustez en vivo no se repitieron con la versión 2.3.0; la imagen Docker no se probó con una sesión
-  de Claude Code con credenciales ni en arm64.
+- Los escenarios de robustez en vivo no se repitieron con la versión 2.4.0 (en vivo se probó el enrutamiento de las
+  frases 103 a 130); la imagen Docker se construyó y probó con 2.3.0, no se probó con una sesión de Claude Code con
+  credenciales ni en arm64.
 - El perfil de comunicación solo adapta mensajes: no infiere emociones, personalidad ni datos sensibles; la guía cita
   las normas consultadas, pero no es asesoramiento jurídico.
 - PRINCE2® y PMBOK® son marcas de sus titulares; el contenido está destilado en palabras propias.
@@ -112,7 +117,7 @@ claude plugin install pm-method@pm-method
 
 Luego, en una sesión: `/pm-method:pm-nuevo "Mi proyecto"` y "¿qué sigue?". Guía completa: [INSTALACION](INSTALACION.md).
 
-Para probar las capacidades paso a paso, como usuario y con prompts: [guías de recorrido E2E](guias/README.md) (riesgos;
-alcance, cambio y mapa de ruta; interesados, OKR y avance; producto de la idea al producto con BMAD; de la idea al
-proyecto diseñado). Cada guía tiene la tabla "Del uso único al control continuo" y su material de webinar en
+Para probar las capacidades paso a paso, como usuario y con prompts: [guías de recorrido E2E](guias/README.md) (riesgos con
+opciones y contingencia; alcance, cambio, impacto y mapa de ruta; interesados, OKR, radar y avance; producto de la idea
+al producto con BMAD, con el ciclo de las lecciones y el expediente de auditoría; de la idea al proyecto diseñado). Cada guía tiene la tabla "Del uso único al control continuo" y su material de webinar en
 [docs/webinar/](webinar/README.md).

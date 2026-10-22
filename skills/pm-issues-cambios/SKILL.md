@@ -1,7 +1,7 @@
 ---
 name: pm-issues-cambios
 description: "Issues, control de cambios e informe de excepción. Usar: issue, incidencia, registro de incidentes, solicitud de cambio, change request, off-spec, concesión, desvío del PRD. No: pronóstico o semáforo→pm-progreso-reportes."
-version: 2.3.0
+version: 2.4.0
 author: pm-method
 license: MIT
 metadata:
@@ -28,7 +28,7 @@ metadata:
 **Idioma · Language:** responder siempre en el idioma en que escribe el usuario (English request → English reply); los artefactos van en `estado.json.idioma` salvo que el usuario pida otro. Términos EN la primera vez: `references/guia.md` (inicio). Valores de `issues.csv` y `cambios.csv` en minúsculas sin acentos (`pm-registros/templates/guia-registros.md`).
 
 ## Conocimiento
-- `references/guia.md` (esta skill): cinco tipos §1, captura §2, impacto y opciones §3, tabla de autoridad §4, decisiones y sincronización §5, excepción §6, cambio ligero §7, BMAD §8, trackers §9, casos borde §10.
+- `references/guia.md` (esta skill): cinco tipos §1, captura §2, impacto y opciones §3 (`impacto.py` §3.1), tabla de autoridad §4, decisiones y sincronización §5, excepción §6, cambio ligero §7, BMAD §8, trackers §9, casos borde §10.
 - `pm-knowledge/references/prince2-practicas-riesgo-issues-progreso-productos.md` §3 (tipos, procedimiento, autoridad, presupuesto de cambio, líneas base); §4.a, §4.c.2 y §4.d (excepción); §6 flujo de decisión.
 - `pm-knowledge/references/plantillas-documentos-registros-reportes.md` §1 solicitud de cambio; §21; §23; §29.3; §49 regla 18.
 - `SPEC.md` §1.13 y §1.16 (línea base, traspaso inverso).
@@ -44,7 +44,7 @@ metadata:
 1. **Situar.** Tolerancias, autoridad de cambio, umbral y presupuesto de cambio remanente.
 2. **Capturar.** Prueba de certeza (incierto → `pm-riesgos`); exactamente uno de cinco tipos; formal/informal; prioridad y severidad; alta con `registro.py agregar issues` (`references/guia.md` §1–§2). Una tarea no es un issue → `acciones.csv`. Nunca rechazar sin evaluar.
 3. **Entrada BMAD.** Cada desvío o Sprint Change Proposal de `bmad.py verificar` entra como `solicitud-cambio` citando ids y sha, salvo elaboración progresiva declarada (guía §8).
-4. **Evaluar impacto integrado** sobre los siete objetivos, tolerancias, business case y otros productos; ruta crítica analizada; variación relativa; pronóstico vs. tolerancia (guía §3).
+4. **Evaluar impacto integrado** (siete objetivos y tolerancias, business case, otros productos, ruta crítica): `python3 ${CLAUDE_SKILL_DIR}/../pm-issues-cambios/scripts/impacto.py --proyecto <dir> analizar C-### [escenario]` → tabla, opciones y quién decide (borrador; guía §3.1).
 5. **Documentar** (rutas en la tabla de artefactos). Si requiere análisis: `templates/informe-issue.md`. Solicitud de cambio: `templates/solicitud-cambio.md` + fila en `cambios.csv` (`notas=origen I-###`, ids afectados, `costo` y `cargo`: guía §4.1); issue en `pendiente-cambio`.
 6. **Recomendar** al menos dos opciones (incluida no hacer nada), con financiación del cambio o concesión/corrección del fuera de especificación (guía §3).
 7. **PUERTA HUMANA — Autoridad.** Determinar quién decide con la tabla (guía §4). El agente nunca decide: pide la decisión al PO, gestor, autoridad de cambio o junta. Sin umbral o saldo, `registro.py` rechaza la aprobación delegada: `pendiente-decision` y subir de nivel (guía §4.1); si el pronóstico sale de tolerancia → paso 10.
@@ -75,7 +75,7 @@ metadata:
 |---|---|---|---|
 | Registro de issues | `registro.py` + `pm-registros/templates/guia-registros.md` | `03-control/registros/issues.csv` | — |
 | Registro de cambios | `registro.py` | `03-control/registros/cambios.csv` | versión de la línea base al implementar |
-| Solicitud de cambio | `templates/solicitud-cambio.md` | `03-control/reportes/<fecha>-solicitud-cambio-C-###.md` | `solicitud-cambio-C-###` |
+| Solicitud de cambio | `templates/solicitud-cambio.md` (borrador: `impacto.py`) | `03-control/reportes/<fecha>-solicitud-cambio-C-###.md` | `solicitud-cambio-C-###` |
 | Informe de issue | `templates/informe-issue.md` | `03-control/reportes/<fecha>-informe-issue-I-###.md` | `informe-issue-I-###` |
 | Informe de excepción (plantilla única) | `templates/informe-excepcion.md` | `03-control/reportes/<fecha>-informe-excepcion-X-###.md` | `informe-excepcion-X-###` en `en-revision`; puerta solo `pm-director` |
 | Decisiones y acciones | `registro.py agregar decisiones` / `agregar acciones` | `03-control/registros/decisiones.csv`, `acciones.csv` | `junta`/`capa-negocio` vía `pm-director` |
@@ -87,7 +87,7 @@ metadata:
 - [ ] Dos opciones o más con consecuencias de aprobar y rechazar; financiación o concesión/corrección.
 - [ ] Nivel de autoridad verificado contra umbral y presupuesto; decisión pedida al rol correcto.
 - [ ] Decisión en `issues.csv`/`cambios.csv` y `decisiones.csv`; ninguna puerta registrada aquí.
-- [ ] Cambio aprobado sincronizado (versión, descripción de producto, plan); riesgos consultados. Con BMAD: ids citados, traspaso emitido, `verificar` limpio y línea base pedida a `pm-director`.
+- [ ] Aprobado y sincronizado (versión, descripción de producto, plan); riesgos consultados. BMAD: ids, traspaso, `verificar` limpio, línea base pedida a `pm-director`.
 - [ ] Excepción emitida al pronosticar; lección al cerrar.
 
 ## Escalamiento y excepciones
@@ -95,7 +95,7 @@ metadata:
 - Cambio fuera del umbral o presupuesto de la autoridad de cambio → `cambios.csv.estado=pendiente-decision` → `pm-director`; la junta aprueba indicando la fuente (`reserva-gestion`, `plan-excepcion` o el presupuesto ya ampliado).
 - Issue contractual → `pm-adquisiciones`.
 - Desvío BMAD rechazado → el equipo BMAD revierte (`verificar` limpio); aprobado → paso 9.
-- Como subagente (pm-control): decisiones de autoridad en el bloque de retorno (SPEC §1.11), no se preguntan.
+- Como subagente (pm-control): decisiones de autoridad al bloque de retorno (SPEC §1.11).
 
 ## Ejemplos de invocación
 - "El cliente pide agregar un informe de trazabilidad al portal; armá la solicitud de cambio y decime quién la aprueba."
@@ -105,6 +105,6 @@ metadata:
 - No activa: "¿Cómo viene el CPI de la etapa y qué semáforo le toca?" → `pm-progreso-reportes`.
 
 ## EN summary
-PRINCE2 issue and change control: certainty test, five issue types, integrated impact across seven objectives, at least two options, and routing to the delegated authority — the agent never decides.
-Approved changes are synchronized in one operation; forecast tolerance breaches produce the package's single exception report (X-###) for pm-director, who records gates.
-With BMAD, PRD drift and Sprint Change Proposals from `bmad.py verificar` enter as change requests; approved spec changes go back via `bmad.py handoff --cambio C-###`, then `verificar` and a new baseline by pm-director.
+PRINCE2 issue and change control: certainty test, five issue types, impact across seven objectives (impacto.py), two or more options, routing to the delegated authority; the agent never decides.
+Approved changes are synchronized at once; forecast breaches produce the single exception report (X-###) for pm-director.
+With BMAD, drift and Sprint Change Proposals from `bmad.py verificar` enter as change requests; approved ones go back via `bmad.py handoff --cambio C-###`, then a new baseline by pm-director.

@@ -30,7 +30,7 @@ Scripts (`${CLAUDE_PLUGIN_ROOT}/skills/<skill>/scripts/`; manual/Hermes: `~/.cla
 6. `pm-cronograma-estimacion` — estimación (análoga, paramétrica, PERT, puntos), dependencias, camino crítico (`cpm.py`, MSPDI si se pide), hitos.
 7. `pm-costos-presupuesto` — costeo ascendente, contingencia una vez, BAC sin reserva de gestión, línea base por período.
 8. `pm-agil-hibrido` — si es ágil o híbrido: backlog MoSCoW, release plan, DoD/DoR.
-9. `pm-plan-etapa-y-limites` — plan de proyecto, `plan-etapa-<n>`, informe de fin de etapa, `plan-excepcion-X-###`.
+9. `pm-plan-etapa-y-limites` — plan de proyecto, `plan-etapa-<n>` (lecciones de `lecciones.py listar --para planificacion` citadas y accionadas; E-11), informe de fin de etapa, `plan-excepcion-X-###`.
 10. `pm-visuales` — PBS, flujo de productos, Gantt, roadmap.
 11. `pm-okr` — en límites de etapa, revisar que los planes sigan apuntando a los KR y beneficios (solo lectura).
 

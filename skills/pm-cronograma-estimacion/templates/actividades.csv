@@ -1,2 +1,2 @@
-id,nombre,duracion,predecesoras,recurso,wbs
-{{id}},{{nombre}},{{duracion_dias}},{{predecesoras}},{{recurso}},{{codigo_wbs}}
+id,nombre,duracion,predecesoras,recurso,wbs,optimista,mas_probable,pesimista
+{{id}},{{nombre}},{{duracion_dias}},{{predecesoras}},{{recurso}},{{codigo_wbs}},{{optimista}},{{mas_probable}},{{pesimista}}

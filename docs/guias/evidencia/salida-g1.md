@@ -156,11 +156,13 @@ Tolerancia del proyecto: ningún riesgo alto sin respuesta y propietario; exposi
 amenaza la tolerancia de tiempo o costo se escala a la junta, con su hoja de riesgo.
 
 ## 7. Presupuesto de riesgo y autoridad sobre la reserva
-Presupuesto de riesgo = suma del costo de las respuestas + EMV residual de las amenazas + provisión para riesgos no
-identificados (5 % del costo de la WBS). Lo fija la ejecutiva (estado.py presupuesto riesgo=<monto>).
+Presupuesto de riesgo = suma del costo de las respuestas + EMV residual de las amenazas identificadas. Lo fija la
+ejecutiva (estado.py presupuesto riesgo=<monto>).
+Provisión para riesgos no identificados: 5 % del costo de la WBS · destino: reserva de gestión (la fija y la libera
+solo la junta; estado.py presupuesto gestion=<monto>), no el presupuesto de riesgo.
 El gestor compromete hasta USD 5.000 por respuesta ya aceptada; por encima, o para un riesgo nuevo, decide la ejecutiva.
 Cada uso se registra en cambios.csv con cargo=reserva-riesgo y cita el R-### al que responde; lo que no responde a un
-riesgo va al presupuesto de cambio o a la junta. La reserva de gestión la libera solo la junta.
+riesgo va al presupuesto de cambio o a la junta.
 
 ## 8. Roles
 Ejecutiva: aprueba este enfoque, fija y libera la reserva. Propietarios: aceptan la respuesta de su riesgo.
@@ -404,19 +406,167 @@ amenazas abiertas: R-001, R-002, R-003, R-004, R-005
 exposición actual (EMV): USD 53.600 · sin respuestas todavía
 ```
 
-## Paso 6 · Respuestas con costo justificado por EMV, residual, secundarios, disparadores y acciones
+## Paso 6a · Opciones de respuesta de los riesgos altos: descubrir, comparar y decidir (R-001, R-003)
 ```
-$ python3 $EST/registro.py --proyecto gestion actualizar riesgos R-001 --campo "respuesta=reducir" --campo "acciones=spike de integración con datos sintéticos en el sprint 1; pedir entorno de pruebas a TI · costo USD 2.000 · ΔEMV USD 12.000" --campo "probabilidad_residual=2" --campo "impacto_residual=4" --campo "disparador=spike sin datos del padrón al día 5" --campo "estado=en-seguimiento" --campo "fecha_revision=2026-12-15"
+$ python3 $PLUGIN/skills/pm-riesgos/scripts/riesgos.py --proyecto gestion opciones --proponer
+Riesgos abiertos con P×I ≥ 15: 2
+
+R-001 · amenaza · P×I 16 · EMV 21.000 · propietario Diego Ferreira · respuesta actual: — · La integración de consulta se prueba tarde
+    gestion/03-control/registros/opciones-riesgo/R-001.csv
+    O6   aceptar      costo       0 · P×I res 4×4=16 · EMV res  21.000 · valor neto       0 · SOBRE LA LÍNEA
+    O1   evitar       sin-evaluar · falta: descripción, costo, probabilidad_residual, impacto_residual
+    O2   reducir      sin-evaluar · falta: descripción, costo, probabilidad_residual, impacto_residual
+    O3   transferir   sin-evaluar · falta: descripción, costo, probabilidad_residual, impacto_residual
+    O4   compartir    sin-evaluar · falta: descripción, costo, probabilidad_residual, impacto_residual
+    O5   contingencia sin-evaluar · falta: descripción, costo, probabilidad_residual, impacto_residual, disparador (sin disparador no hay contingencia)
+    sin recomendación: hacen falta al menos dos opciones evaluadas (descripción, costo y residual)
+
+R-003 · amenaza · P×I 15 · EMV 12.500 · propietario Diego Ferreira · respuesta actual: — · El proveedor de SMS no cumple la disponibilidad
+    gestion/03-control/registros/opciones-riesgo/R-003.csv
+    O6   aceptar      costo       0 · P×I res 3×5=15 · EMV res  12.500 · valor neto       0 · SOBRE LA LÍNEA
+    O1   evitar       sin-evaluar · falta: descripción, costo, probabilidad_residual, impacto_residual
+    O2   reducir      sin-evaluar · falta: descripción, costo, probabilidad_residual, impacto_residual
+    O3   transferir   sin-evaluar · falta: descripción, costo, probabilidad_residual, impacto_residual
+    O4   compartir    sin-evaluar · falta: descripción, costo, probabilidad_residual, impacto_residual
+    O5   contingencia sin-evaluar · falta: descripción, costo, probabilidad_residual, impacto_residual, disparador (sin disparador no hay contingencia)
+    sin recomendación: hacen falta al menos dos opciones evaluadas (descripción, costo y residual)
+Plantilla creada: gestion/03-control/registros/opciones-riesgo/R-001.csv (la completa el modelo o la persona; nada se registró)
+Plantilla creada: gestion/03-control/registros/opciones-riesgo/R-003.csv (la completa el modelo o la persona; nada se registró)
+```
+
+```
+$ (pm-riesgos completa la hoja de opciones de R-001 con los datos de la persona → gestion/03-control/registros/opciones-riesgo/R-001.csv)
+opcion,estrategia,descripcion,costo,probabilidad_residual,impacto_residual,impacto_monetario_residual,monto_contingencia,disparador,riesgo_secundario,emv_secundario,notas
+O1,evitar,"Postergar la consulta de saldos y constancias (FR-3, FR-4) al Release 2, cuando TI habilite el entorno de pruebas",6000,1,3,12000,,,B-01: el desvío de consultas se atrasa un release,6000,costo: replanificación del Release 1
+O2,reducir,Spike de integración con datos sintéticos en el sprint 1 y pedido formal del entorno de pruebas a TI,2000,2,4,,,spike sin datos del padrón al día 5,,,
+O3,transferir,"Integrador del núcleo operativo a precio fijo, con penalidad por atraso",5000,4,3,12000,,,,,"la penalidad cubre el retrabajo, no el atraso"
+O4,contingencia,Si el spike confirma que no hay entorno: entorno de pruebas temporal en la nube con una copia anonimizada del padrón,0,4,3,10000,8000,spike sin datos del padrón al día 5,,,
+O5,aceptar,Aceptar sin acciones (referencia para comparar),0,4,4,,,,,,aceptación pasiva: solo revisión periódica
+```
+
+```
+$ (pm-riesgos completa la hoja de opciones de R-003 con los datos de la persona → gestion/03-control/registros/opciones-riesgo/R-003.csv)
+opcion,estrategia,descripcion,costo,probabilidad_residual,impacto_residual,impacto_monetario_residual,monto_contingencia,disparador,riesgo_secundario,emv_secundario,notas
+O1,evitar,Reemplazar el SMS por una app autenticadora (TOTP) como segundo factor,7000,1,3,6000,,,B-02: los socios sin teléfono inteligente dejan de usar el portal,4000,
+O2,reducir,"Dos proveedores de SMS activos desde el inicio, con conmutación automática",9000,1,4,,,,,,
+O3,transferir,"SLA de 99,9 % con penalidad en el contrato del proveedor de SMS (tope de USD 2.000 por mes)",2500,2,4,,,,la penalidad no cubre el costo del atraso,1800,el atraso no se transfiere: impacto residual completo
+O4,contingencia,"Acuerdo marco sin costo fijo con un proveedor de SMS alternativo; al disparo, activarlo en paralelo durante 6 meses con conmutación",0,3,3,8000,12000,dos caídas del proveedor de SMS en un mes,,,8.000: costo de las caídas hasta la conmutación
+O5,aceptar,Aceptar sin acciones (referencia para comparar),0,3,5,,,,,,aceptación pasiva: solo revisión periódica
+```
+
+```
+$ python3 $PLUGIN/skills/pm-riesgos/scripts/riesgos.py --proyecto gestion opciones
+Riesgos abiertos con P×I ≥ 15: 2
+
+R-001 · amenaza · P×I 16 · EMV 21.000 · propietario Diego Ferreira · respuesta actual: — · La integración de consulta se prueba tarde
+    gestion/03-control/registros/opciones-riesgo/R-001.csv
+  ★ O2   reducir      costo   2.000 · P×I res 2×4=8  · EMV res   9.000 · valor neto  10.000
+    O4   contingencia costo       0 · P×I res 4×3=12 · EMV res  12.600 · valor neto   8.400 · contingencia 8.000
+    O1   evitar       costo   6.000 · P×I res 1×3=3  · EMV res   1.200 · valor neto   7.800 · secundario 6.000
+    O3   transferir   costo   5.000 · P×I res 4×3=12 · EMV res   8.400 · valor neto   7.600
+    O5   aceptar      costo       0 · P×I res 4×4=16 · EMV res  21.000 · valor neto       0 · SOBRE LA LÍNEA
+    → recomendada O2 (reducir): mayor valor neto bajo la línea. Decide el propietario (PUERTA HUMANA): opciones --riesgo R-001 --elegir O2 --por "<rol: nombre>"
+
+R-003 · amenaza · P×I 15 · EMV 12.500 · propietario Diego Ferreira · respuesta actual: — · El proveedor de SMS no cumple la disponibilidad
+    gestion/03-control/registros/opciones-riesgo/R-003.csv
+  ★ O4   contingencia costo       0 · P×I res 3×3=9  · EMV res  10.000 · valor neto   2.500 · contingencia 12.000
+    O2   reducir      costo   9.000 · P×I res 1×4=4  · EMV res   2.500 · valor neto   1.000
+    O1   evitar       costo   7.000 · P×I res 1×3=3  · EMV res     600 · valor neto     900 · secundario 4.000
+    O3   transferir   costo   2.500 · P×I res 2×4=8  · EMV res   7.500 · valor neto     700 · secundario 1.800
+    O5   aceptar      costo       0 · P×I res 3×5=15 · EMV res  12.500 · valor neto       0 · SOBRE LA LÍNEA
+    → recomendada O4 (contingencia): mayor valor neto bajo la línea. Decide el propietario (PUERTA HUMANA): opciones --riesgo R-003 --elegir O4 --por "<rol: nombre>"
+```
+
+```
+$ (gráfico del paso 6a → g1-opciones-valor-neto.png; datos de riesgos.py opciones --json)
+R-001 · O2 reducir           valor neto 10.000 · ★ recomendada
+R-001 · O4 contingencia      valor neto  8.400 · residual P×I 12
+R-001 · O1 evitar            valor neto  7.800 · residual P×I 3
+R-001 · O3 transferir        valor neto  7.600 · residual P×I 12
+R-001 · O5 aceptar           valor neto      0 · queda sobre la línea
+R-003 · O4 contingencia      valor neto  2.500 · ★ recomendada
+R-003 · O2 reducir           valor neto  1.000 · residual P×I 4
+R-003 · O1 evitar            valor neto    900 · residual P×I 3
+R-003 · O3 transferir        valor neto    700 · residual P×I 8
+R-003 · O5 aceptar           valor neto      0 · queda sobre la línea
+```
+
+```
+$ python3 $PLUGIN/skills/pm-riesgos/scripts/riesgos.py --proyecto gestion opciones --riesgo R-001 --elegir O2 --por "Proveedor sénior: Diego Ferreira" --revision 2026-12-15 --fecha 2026-11-04
+R-001: respuesta reducir (O2) registrada en riesgos.csv · decisión D-003 (Proveedor sénior: Diego Ferreira, nivel gestor).
+El costo y la contingencia se financian con el presupuesto de riesgo: uso registrado en cambios.csv con cargo=reserva-riesgo y el R-### (CAM-02, CAM-03); acciones con fecha en acciones.csv (origen R-###).
+```
+
+```
+$ python3 $PLUGIN/skills/pm-riesgos/scripts/riesgos.py --proyecto gestion opciones --riesgo R-003 --elegir O4 --por "Proveedor sénior: Diego Ferreira" --revision 2026-12-15 --fecha 2026-11-04
+R-003: respuesta contingencia (O4) registrada en riesgos.csv · decisión D-004 (Proveedor sénior: Diego Ferreira, nivel gestor).
+Falta el plan de contingencia: templates/plan-contingencia.md → 03-control/registros/R-003-plan-contingencia.md (sanidad REG-10).
+El costo y la contingencia se financian con el presupuesto de riesgo: uso registrado en cambios.csv con cargo=reserva-riesgo y el R-### (CAM-02, CAM-03); acciones con fecha en acciones.csv (origen R-###).
+```
+
+```
+$ python3 $EST/sanidad.py --proyecto gestion --rapido --corte 2026-11-04
+Sanidad de 'Portal de autoservicio para socios' (pre-proyecto/SU): 0 ERROR · 1 AVISO · 0 INFO
+  AVISO REG-10 Riesgo alto R-003 con respuesta 'contingencia' sin plan de contingencia.
+        → pm-riesgos: evaluar las opciones (riesgos.py --proyecto <dir> opciones --riesgo R-### --proponer; decide el propietario con --elegir O# --por …) y, si la respuesta es aceptar o contingencia, disparador medible y plan de contingencia (templates/plan-contingencia.md → 03-control/registros/R-###-plan-contingencia.md).
+```
+
+## Paso 6b · Plan de contingencia de R-003 y respuestas de los demás riesgos (costo justificado, residual, disparadores y acciones)
+```
+$ (pm-riesgos redacta el plan de contingencia con templates/plan-contingencia.md → gestion/03-control/registros/R-003-plan-contingencia.md)
+# Plan de contingencia · R-003
+
+**Riesgo:** R-003 · El proveedor de SMS no cumple la disponibilidad
+**Respuesta elegida:** contingencia · opción O4 de `03-control/registros/opciones-riesgo/R-003.csv` · decisión D-004 (la recomendada)
+**Evaluación:** P×I 3×5 = 15 · EMV 12.500 · residual con el plan P×I 3×3 · EMV residual 10.000 (50 % × (8.000 + 12.000))
+
+## 1. Disparador
+
+**Condición medible:** dos caídas del proveedor de SMS en un mes
+**Indicador de alerta temprana:** primera caída del proveedor de SMS o disponibilidad mensual menor que 99,9 % · **quién lo vigila y cada cuánto:** Lucía Benítez, en cada revisión de riesgos del sprint (14 días)
+
+## 2. Acciones al disparo
+
+| # | Acción | Ejecutor | Plazo desde el disparo | Costo |
+|---|---|---|---|---|
+| 1 | Activar el contrato del proveedor alternativo en paralelo durante 6 meses | Diego Ferreira | 5 días hábiles | 12.000 |
+| 2 | Conmutar el segundo factor al proveedor alternativo detrás de IdentityPort (AD-5) y verificarlo con socios de prueba; correo como factor alternativo mientras dura la conmutación | Lucía Benítez | 3 días hábiles después de la acción 1 | incluido |
+
+Preparación antes del disparo: acuerdo marco sin costo fijo con el proveedor alternativo (acción de origen R-003) y prueba de conmutación en el sprint 3.
+**Propietario del riesgo:** Diego Ferreira · **Ejecutor principal:** Lucía Benítez
+
+## 3. Monto y fuente
+
+**Monto de la contingencia:** USD 12.000 · **tiempo:** 8 días hábiles
+**Fuente:** presupuesto de riesgo de la etapa 2 (`estado.json.presupuestos.riesgo`, que fija la ejecutiva con la fórmula del enfoque §7; esta contingencia aporta su EMV residual de 10.000). Comprometido y remanente al activar: sanidad CAM-03.
+
+## 4. Activación
+
+**Quién la autoriza:** Laura Méndez, ejecutiva (USD 12.000 supera los USD 5.000 que el enfoque delega en el gestor).
+**Cómo se registra:**
+1. `riesgos.csv`: nota con la fecha en que se alcanzó el disparador.
+2. `cambios.csv` (acción 1): costo 12000, `cargo=reserva-riesgo`, cita R-003 y este plan, decide la ejecutiva (CAM-02, CAM-03).
+3. `decisiones.csv`: la decisión de activar, con las opciones consideradas y `revisar_en`.
+4. `acciones.csv` (acción 2): responsable y fecha, `origen=R-003`.
+
+## 5. Plan alternativo si falla
+
+**Si el plan no da resultado:** si el proveedor alternativo cae en las dos semanas siguientes a la conmutación, correo como único segundo factor temporal, con aviso a la Unidad de cumplimiento (apetito bajo en seguridad del acceso).
+**Escalamiento:** si después de activar el residual sigue sobre la línea (P×I ≥ 15) o la activación supera el remanente de la reserva, excepción a la junta (pm-director).
+```
+
+```
+$ python3 $EST/registro.py --proyecto gestion actualizar riesgos R-003 --campo "notas=WBS 3.1 · producto Portal del socio · origen: prd.md:249 y ARCHITECTURE-SPINE.md:177 (BMAD) y ronda 2026-10-27 [00:00:46] · plan: 03-control/registros/R-003-plan-contingencia.md"
 ok
+```
+
+```
+$ python3 $EST/sanidad.py --proyecto gestion --rapido --corte 2026-11-04
+Sanidad de 'Portal de autoservicio para socios' (pre-proyecto/SU): 0 ERROR · 0 AVISO · 0 INFO
 ```
 
 ```
 $ python3 $EST/registro.py --proyecto gestion actualizar riesgos R-002 --campo "respuesta=reducir" --campo "acciones=taller con operadores y piloto de la bandeja en una sucursal · costo USD 1.500 · ΔEMV USD 3.000" --campo "probabilidad_residual=2" --campo "impacto_residual=3" --campo "disparador=menos del 50 % de operadores usa la consola en el piloto" --campo "estado=en-seguimiento" --campo "fecha_revision=2026-12-15"
-ok
-```
-
-```
-$ python3 $EST/registro.py --proyecto gestion actualizar riesgos R-003 --campo "respuesta=transferir" --campo "acciones=SLA de 99,9 % con penalidad en el contrato del proveedor de SMS; correo como factor alternativo · costo USD 2.500 · ΔEMV USD 5.000" --campo "probabilidad_residual=2" --campo "impacto_residual=4" --campo "disparador=dos caídas del proveedor en un mes" --campo "estado=en-seguimiento" --campo "fecha_revision=2026-12-15"
 ok
 ```
 
@@ -436,21 +586,16 @@ ok
 ```
 
 ```
-$ python3 $EST/registro.py --proyecto gestion agregar riesgos --campo "fecha_identificacion=2026-11-04" --campo "autor=Martín Suárez" --campo "categoria=comercial" --campo "causa=La respuesta de R-003 transfiere el riesgo con una penalidad con tope de USD 2.000 por mes" --campo "evento=El proveedor de SMS falla y la penalidad cobrada no cubre el costo del atraso" --campo "efecto=Costo del atraso no recuperado (WBS 3.1)" --campo "tipo=amenaza" --campo "probabilidad=2" --campo "impacto=3" --campo "impacto_monetario=6000" --campo "proximidad=mediano-plazo" --campo "respuesta=aceptar" --campo "acciones=aceptar: el correo como factor alternativo (respuesta de R-003) limita el atraso · costo USD 0" --campo "probabilidad_residual=2" --campo "impacto_residual=3" --campo "disparador=primera caída con penalidad menor que el costo del atraso" --campo "propietario=Diego Ferreira" --campo "ejecutor=Lucía Benítez" --campo "estado=en-seguimiento" --campo "fecha_revision=2026-12-15" --campo "notas=WBS 3.1 · riesgo secundario de R-003 (respuesta transferir)"
-R-007
-```
-
-```
-$ (pm-riesgos: justificación económica de cada respuesta, desde riesgos.csv; EMV = impacto_monetario × probabilidad convertida)
-id     respuesta   EMV antes  EMV residual  costo respuesta  ΔEMV    ¿costo < ΔEMV?
-R-001  reducir        21.000         9.000            2.000  12.000  sí
-R-002  reducir         7.500         4.500            1.500   3.000  sí
-R-003  transferir     12.500         7.500            2.500   5.000  sí
-R-004  aceptar         3.600         3.600                0       0  n/a (aceptar)
-R-005  reducir         9.000         5.400            3.000   3.600  sí
-R-006  explotar        4.000         5.600              800   1.600  sí
-R-007  aceptar         1.800         1.800                0       0  n/a (aceptar)
-Total costo de respuestas: USD 9.800 · EMV residual de amenazas: USD 31.800
+$ (pm-riesgos: justificación económica de cada respuesta, desde riesgos.csv y, para R-001 y R-003, desde riesgos.py opciones; EMV = impacto_monetario × probabilidad convertida)
+id     respuesta     EMV antes  EMV residual  costo respuesta  ΔEMV    ¿costo < ΔEMV?
+R-001  reducir          21.000         9.000            2.000  12.000  sí
+R-002  reducir           7.500         4.500            1.500   3.000  sí
+R-003  contingencia     12.500        10.000                0   2.500  sí
+R-004  aceptar           3.600         3.600                0       0  n/a (aceptar)
+R-005  reducir           9.000         5.400            3.000   3.600  sí
+R-006  explotar          4.000         5.600              800   1.600  sí
+Total costo de respuestas: USD 7.300 · EMV residual de amenazas: USD 32.500
+El EMV residual de R-003 incluye su contingencia ponderada: 50 % × (8.000 + 12.000) = 10.000
 ```
 
 ```
@@ -464,64 +609,62 @@ A-002
 ```
 
 ```
-$ python3 $EST/registro.py --proyecto gestion agregar acciones --campo "fecha=2026-11-03" --campo "origen=R-003" --campo "descripcion=Negociar SLA con penalidad con el proveedor de SMS" --campo "responsable=Diego Ferreira" --campo "fecha_compromiso=2026-11-25" --campo "prioridad=media"
+$ python3 $EST/registro.py --proyecto gestion agregar acciones --campo "fecha=2026-11-04" --campo "origen=R-003" --campo "descripcion=Firmar el acuerdo marco con el proveedor de SMS alternativo (preparación del plan de contingencia)" --campo "responsable=Diego Ferreira" --campo "fecha_compromiso=2026-11-25" --campo "prioridad=media"
 A-003
 ```
 
 ```
-$ python3 $EST/registro.py --proyecto gestion agregar decisiones --campo "fecha=2026-11-04" --campo "decision=La persona propietaria acepta la respuesta, su costo y el residual de R-001, R-003, R-005, R-007" --campo "decidido_por=Proveedor sénior: Diego Ferreira" --campo "nivel=gestor"
-D-003
-```
-
-```
-$ python3 $EST/registro.py --proyecto gestion agregar decisiones --campo "fecha=2026-11-04" --campo "decision=La persona propietaria acepta la respuesta, su costo y el residual de R-002, R-006" --campo "decidido_por=Usuaria sénior: Sofía Ramírez" --campo "nivel=gestor"
-D-004
-```
-
-```
-$ python3 $EST/registro.py --proyecto gestion agregar decisiones --campo "fecha=2026-11-04" --campo "decision=La persona propietaria acepta la respuesta, su costo y el residual de R-004" --campo "decidido_por=Ejecutiva: Laura Méndez" --campo "nivel=ejecutivo"
+$ python3 $EST/registro.py --proyecto gestion agregar decisiones --campo "fecha=2026-11-04" --campo "decision=La persona propietaria acepta la respuesta, su costo y el residual de R-005" --campo "decidido_por=Proveedor sénior: Diego Ferreira" --campo "nivel=gestor"
 D-005
 ```
 
 ```
+$ python3 $EST/registro.py --proyecto gestion agregar decisiones --campo "fecha=2026-11-04" --campo "decision=La persona propietaria acepta la respuesta, su costo y el residual de R-002, R-006" --campo "decidido_por=Usuaria sénior: Sofía Ramírez" --campo "nivel=gestor"
+D-006
+```
+
+```
+$ python3 $EST/registro.py --proyecto gestion agregar decisiones --campo "fecha=2026-11-04" --campo "decision=La persona propietaria acepta la respuesta, su costo y el residual de R-004" --campo "decidido_por=Ejecutiva: Laura Méndez" --campo "nivel=ejecutivo"
+D-007
+```
+
+```
 $ python3 $EST/registro.py --proyecto gestion listar riesgos --abiertos
-id=R-001 | fecha_identificacion=2026-10-29 | autor=Martín Suárez | categoria=externo | causa=El padrón del núcleo operativo no tiene entorno de pruebas (AD-1) | evento=La integración de consulta se prueba tarde | efecto=Atraso del Release 1 y defectos en FR-3/FR-4 | tipo=amenaza | probabilidad=4 | impacto=4 | puntuacion=16 | impacto_monetario=30000 | valor_esperado=21000 | proximidad=corto-plazo | disparador=spike sin datos del padrón al día 5 | respuesta=reducir | acciones=spike de integración con datos sintéticos en el sprint 1; pedir entorno de pruebas a TI · costo USD 2.000 · ΔEMV USD 12.000 | propietario=Diego Ferreira | ejecutor=Lucía Benítez | probabilidad_residual=2 | impacto_residual=4 | estado=en-seguimiento | fecha_revision=2026-12-15 | notas=WBS 3.2 · producto Portal del socio · interesado ST-003 · origen: brief.md:91 (BMAD) y ronda 2026-10-27 [00:00:13]
+id=R-001 | fecha_identificacion=2026-10-29 | autor=Martín Suárez | categoria=externo | causa=El padrón del núcleo operativo no tiene entorno de pruebas (AD-1) | evento=La integración de consulta se prueba tarde | efecto=Atraso del Release 1 y defectos en FR-3/FR-4 | tipo=amenaza | probabilidad=4 | impacto=4 | puntuacion=16 | impacto_monetario=30000 | valor_esperado=21000 | proximidad=corto-plazo | disparador=spike sin datos del padrón al día 5 | respuesta=reducir | acciones=Spike de integración con datos sintéticos en el sprint 1 y pedido formal del entorno de pruebas a TI · costo 2.000 · ΔEMV 12.000 · valor neto 10.000 · O2 (gestion/03-control/registros/opciones-riesgo/R-001.csv) · D-003 | propietario=Diego Ferreira | ejecutor=Lucía Benítez | probabilidad_residual=2 | impacto_residual=4 | estado=en-seguimiento | fecha_revision=2026-12-15 | notas=WBS 3.2 · producto Portal del socio · interesado ST-003 · origen: brief.md:91 (BMAD) y ronda 2026-10-27 [00:00:13]
 id=R-002 | fecha_identificacion=2026-10-29 | autor=Martín Suárez | categoria=organizacional | causa=Los operadores temen perder tareas con la bandeja única (FR-9) | evento=Resistencia a usar la consola | efecto=Adopción baja de la consola y doble trabajo | tipo=amenaza | probabilidad=3 | impacto=4 | puntuacion=12 | impacto_monetario=15000 | valor_esperado=7500 | proximidad=mediano-plazo | disparador=menos del 50 % de operadores usa la consola en el piloto | respuesta=reducir | acciones=taller con operadores y piloto de la bandeja en una sucursal · costo USD 1.500 · ΔEMV USD 3.000 | propietario=Sofía Ramírez | ejecutor=Martín Suárez | probabilidad_residual=2 | impacto_residual=3 | estado=en-seguimiento | fecha_revision=2026-12-15 | notas=WBS 4.1 y 5.1 · producto Consola de operador · interesado ST-002 · origen: ronda 2026-10-27 [00:00:31]
-id=R-003 | fecha_identificacion=2026-10-29 | autor=Martín Suárez | categoria=tecnico | causa=El segundo factor depende de un proveedor de SMS nuevo (AD-5) | evento=El proveedor de SMS no cumple la disponibilidad | efecto=Socios sin poder ingresar (FR-1, NFR-2) | tipo=amenaza | probabilidad=3 | impacto=5 | puntuacion=15 | impacto_monetario=25000 | valor_esperado=12500 | proximidad=mediano-plazo | disparador=dos caídas del proveedor en un mes | respuesta=transferir | acciones=SLA de 99,9 % con penalidad en el contrato del proveedor de SMS; correo como factor alternativo · costo USD 2.500 · ΔEMV USD 5.000 | propietario=Diego Ferreira | ejecutor=Lucía Benítez | probabilidad_residual=2 | impacto_residual=4 | estado=en-seguimiento | fecha_revision=2026-12-15 | notas=WBS 3.1 · producto Portal del socio · origen: prd.md:249 y ARCHITECTURE-SPINE.md:177 (BMAD) y ronda 2026-10-27 [00:00:46]
+id=R-003 | fecha_identificacion=2026-10-29 | autor=Martín Suárez | categoria=tecnico | causa=El segundo factor depende de un proveedor de SMS nuevo (AD-5) | evento=El proveedor de SMS no cumple la disponibilidad | efecto=Socios sin poder ingresar (FR-1, NFR-2) | tipo=amenaza | probabilidad=3 | impacto=5 | puntuacion=15 | impacto_monetario=25000 | valor_esperado=12500 | proximidad=mediano-plazo | disparador=dos caídas del proveedor de SMS en un mes | respuesta=contingencia | acciones=Acuerdo marco sin costo fijo con un proveedor de SMS alternativo; al disparo, activarlo en paralelo durante 6 meses con conmutación · costo 0 · ΔEMV 2.500 · valor neto 2.500 · contingencia 12.000 · O4 (gestion/03-control/registros/opciones-riesgo/R-003.csv) · D-004 | propietario=Diego Ferreira | ejecutor=Lucía Benítez | probabilidad_residual=3 | impacto_residual=3 | estado=en-seguimiento | fecha_revision=2026-12-15 | notas=WBS 3.1 · producto Portal del socio · origen: prd.md:249 y ARCHITECTURE-SPINE.md:177 (BMAD) y ronda 2026-10-27 [00:00:46] · plan: 03-control/registros/R-003-plan-contingencia.md
 id=R-004 | fecha_identificacion=2026-10-29 | autor=Martín Suárez | categoria=externo | causa=La interpretación de la Ley 18.331 sobre constancias no está cerrada (NFR-1) | evento=Cumplimiento exige cambios en FR-5 | efecto=Retrabajo de constancias y atraso | tipo=amenaza | probabilidad=2 | impacto=4 | puntuacion=8 | impacto_monetario=12000 | valor_esperado=3600 | proximidad=mediano-plazo | disparador=dictamen de cumplimiento | respuesta=aceptar | acciones=seguimiento mensual con cumplimiento; contingencia de 1 semana · costo USD 0 · ΔEMV USD 0 | propietario=Laura Méndez | ejecutor=Andrea Costa | probabilidad_residual=2 | impacto_residual=4 | estado=en-seguimiento | fecha_revision=2026-12-15 | notas=WBS 3.2 · interesado ST-004 · origen: brief.md:89 (BMAD) y ronda 2026-10-27 [00:00:59]
 id=R-005 | fecha_identificacion=2026-10-29 | autor=Martín Suárez | categoria=gestion | causa=El proveedor rota desarrolladores entre clientes | evento=Pérdida de conocimiento en el equipo | efecto=Baja de velocidad | tipo=amenaza | probabilidad=3 | impacto=3 | puntuacion=9 | impacto_monetario=18000 | valor_esperado=9000 | proximidad=largo-plazo | disparador=salida de un desarrollador clave | respuesta=reducir | acciones=cláusula de permanencia del equipo clave y documentación de decisiones · costo USD 3.000 · ΔEMV USD 3.600 | propietario=Diego Ferreira | ejecutor=Lucía Benítez | probabilidad_residual=2 | impacto_residual=3 | estado=en-seguimiento | fecha_revision=2026-12-15 | notas=WBS 1.1 · origen: ronda 2026-10-27 [00:00:46]
 id=R-006 | fecha_identificacion=2026-10-29 | autor=Martín Suárez | categoria=comercial | causa=El generador de PDF del sistema de cartera ya existe | evento=Reutilizarlo para constancias (FR-5) | efecto=Ahorro de esfuerzo en WBS 3.2 | tipo=oportunidad | probabilidad=3 | impacto=3 | puntuacion=9 | impacto_monetario=8000 | valor_esperado=4000 | proximidad=corto-plazo | respuesta=explotar | acciones=spike de reutilización del generador de PDF en el sprint 2 · costo USD 800 · ΔEMV USD 1.600 | propietario=Sofía Ramírez | ejecutor=Lucía Benítez | probabilidad_residual=4 | impacto_residual=3 | estado=en-seguimiento | fecha_revision=2026-12-15 | notas=WBS 3.2 · producto Portal del socio · origen: ronda 2026-10-27 [00:01:11]
-id=R-007 | fecha_identificacion=2026-11-04 | autor=Martín Suárez | categoria=comercial | causa=La respuesta de R-003 transfiere el riesgo con una penalidad con tope de USD 2.000 por mes | evento=El proveedor de SMS falla y la penalidad cobrada no cubre el costo del atraso | efecto=Costo del atraso no recuperado (WBS 3.1) | tipo=amenaza | probabilidad=2 | impacto=3 | puntuacion=6 | impacto_monetario=6000 | valor_esperado=1800 | proximidad=mediano-plazo | disparador=primera caída con penalidad menor que el costo del atraso | respuesta=aceptar | acciones=aceptar: el correo como factor alternativo (respuesta de R-003) limita el atraso · costo USD 0 | propietario=Diego Ferreira | ejecutor=Lucía Benítez | probabilidad_residual=2 | impacto_residual=3 | estado=en-seguimiento | fecha_revision=2026-12-15 | notas=WBS 3.1 · riesgo secundario de R-003 (respuesta transferir)
 ```
 
 ```
 $ (exposición de amenazas abiertas al 04-nov, desde riesgos.csv: suma de valor_esperado y del EMV residual planificado)
-amenazas abiertas: R-001, R-002, R-003, R-004, R-005, R-007
-exposición actual (EMV): USD 55.400 · EMV residual planificado: USD 31.800
+amenazas abiertas: R-001, R-002, R-003, R-004, R-005
+exposición actual (EMV): USD 53.600 · EMV residual planificado: USD 32.500
 ```
 
 ```
-$ (gráficos del paso 6 → g1-mapa-inherente-residual.png y g1-exposicion-respuestas.png; datos)
+$ (gráficos del paso 6b → g1-mapa-inherente-residual.png y g1-exposicion-respuestas.png; datos)
 zona alta inherente: 2 · zona alta residual: 0
 R-001  antes 21.000  residual  9.000
-R-003  antes 12.500  residual  7.500
+R-003  antes 12.500  residual 10.000
 R-005  antes  9.000  residual  5.400
 R-002  antes  7.500  residual  4.500
 R-004  antes  3.600  residual  3.600
-R-007  antes      0  residual  1.800
-total antes 53.600 · total residual 31.800 · costo de respuestas 9.800
+total antes 53.600 · total residual 32.500 · costo de respuestas 7.300
 ```
 
-## Paso 7 · Presupuesto de riesgo (respuestas + EMV residual + no identificados), control de la reserva y puertas
+## Paso 7 · Presupuesto de riesgo (respuestas + EMV residual), reserva de gestión para lo no identificado, control de la reserva y puertas
 ```
 $ python3 $EST/registro.py --proyecto gestion resumen --json --corte 2026-11-20
 {
   "riesgos": {
-    "total": 7,
+    "total": 6,
     "por_estado": {
-      "en-seguimiento": 7
+      "en-seguimiento": 6
     },
-    "abiertos": 7,
+    "abiertos": 6,
     "altos_abiertos": 2,
     "umbrales": {
       "alto": 15.0,
@@ -552,7 +695,7 @@ $ python3 $EST/registro.py --proyecto gestion resumen --json --corte 2026-11-20
     "abiertos": 0
   },
   "decisiones": {
-    "total": 5
+    "total": 7
   },
   "supuestos": {
     "total": 0,
@@ -596,12 +739,13 @@ $ (pm-riesgos calcula el presupuesto de riesgo con la fórmula del enfoque §7 �
 
 | Componente | USD | Criterio |
 |---|---|---|
-| Costo de las respuestas planificadas | 9.800 | R-001 2.000 · R-002 1.500 · R-003 2.500 · R-005 3.000 · R-006 800 (cada una < su reducción de EMV) |
-| EMV residual de las amenazas | 31.800 | R-001 9.000 · R-002 4.500 · R-003 7.500 · R-004 3.600 · R-005 5.400 · R-007 1.800 |
-| Provisión para riesgos no identificados | 6.200 | 5 % del costo de la WBS (124.000), según el enfoque de riesgo §7 |
-| **Presupuesto de riesgo** | **47.800** | aparte del costo de los paquetes; lo fija la ejecutiva |
+| Costo de las respuestas planificadas | 7.300 | R-001 2.000 · R-002 1.500 · R-005 3.000 · R-006 800 (cada una < su reducción de EMV) |
+| EMV residual de las amenazas | 32.500 | R-001 9.000 · R-002 4.500 · R-003 10.000 · R-004 3.600 · R-005 5.400 |
+| **Presupuesto de riesgo** | **39.800** | aparte del costo de los paquetes; lo fija la ejecutiva |
+| Reserva de gestión (provisión para riesgos no identificados) | 6.200 | 5 % del costo de la WBS (124.000), según el enfoque de riesgo §7; fuera del presupuesto de riesgo: la fija y la libera solo la junta |
 
-La transferencia de R-003 no descuenta su EMV residual: la penalidad del SLA no cubre el atraso (riesgo secundario R-007).
+La contingencia de R-003 (USD 12.000) no se paga ahora: entra en su EMV residual ponderada por la probabilidad residual
+(50 % × (8.000 + 12.000) = 10.000). Si el disparador se alcanza, la activación se paga con esta reserva (03-control/registros/R-003-plan-contingencia.md, §4).
 ```
 
 ```
@@ -610,12 +754,12 @@ ok
 ```
 
 ```
-$ python3 $EST/estado.py --proyecto gestion presupuesto riesgo=47800 --por "Ejecutiva: Laura Méndez" --fecha 2026-11-27
+$ python3 $EST/estado.py --proyecto gestion presupuesto riesgo=39800 gestion=6200 --por "Ejecutiva: Laura Méndez" --fecha 2026-11-27
 ok
 ```
 
 ```
-$ python3 $EST/registro.py --proyecto gestion agregar cambios --campo "fecha=2026-11-27" --campo "solicitante=Martín Suárez" --campo "titulo=Financiar las respuestas planificadas de R-001, R-002, R-003, R-005 y R-006" --campo "descripcion=spike del padrón (R-001) 2.000; taller y piloto (R-002) 1.500; sobreprecio del SLA y correo alternativo (R-003) 2.500; bono de permanencia (R-005) 3.000; spike de reutilización (R-006) 800" --campo "justificacion=cada costo es menor que la reducción de EMV que logra (enfoque de riesgo §7)" --campo "impacto_costo=9.800 de la reserva de riesgo" --campo "decision=aprobado" --campo "decidido_por=Ejecutiva: Laura Méndez" --campo "fecha_decision=2026-11-27" --campo "estado=aprobado" --campo "costo=9800" --campo "cargo=reserva-riesgo"
+$ python3 $EST/registro.py --proyecto gestion agregar cambios --campo "fecha=2026-11-27" --campo "solicitante=Martín Suárez" --campo "titulo=Financiar las respuestas planificadas de R-001, R-002, R-005 y R-006" --campo "descripcion=spike del padrón (R-001) 2.000; taller y piloto (R-002) 1.500; bono de permanencia (R-005) 3.000; spike de reutilización (R-006) 800" --campo "justificacion=cada costo es menor que la reducción de EMV que logra (enfoque de riesgo §7)" --campo "impacto_costo=7.300 de la reserva de riesgo" --campo "decision=aprobado" --campo "decidido_por=Ejecutiva: Laura Méndez" --campo "fecha_decision=2026-11-27" --campo "estado=aprobado" --campo "costo=7300.0" --campo "cargo=reserva-riesgo"
 C-001
 ```
 
@@ -625,7 +769,7 @@ Sanidad de 'Portal de autoservicio para socios' (pre-proyecto/SU): 0 ERROR · 2 
   AVISO REG-07 Acción vencida A-002 (Martín Suárez, 2026-11-20).
   AVISO REG-07 Acción vencida A-003 (Diego Ferreira, 2026-11-25).
         → Recordatorio o replanificación.
-  INFO  CAM-03 Reserva de riesgo: 9.800 de 47.800 (21 %).
+  INFO  CAM-03 Reserva de riesgo: 7.300 de 39.800 (18 %).
 ```
 
 ```
@@ -634,7 +778,7 @@ Portal de autoservicio para socios · pre-proyecto/SU · etapa 0 pre-proyecto (2
 Autorizado: no
 Roles: ejecutivo=Laura Méndez; usuario_senior=Sofía Ramírez; proveedor_senior=Diego Ferreira; gestor_proyecto=Martín Suárez; aseguramiento=Andrea Costa; autoridad_cambio=Sofía Ramírez; product_owner=Sofía Ramírez; jefes_equipo=Lucía Benítez
 Tolerancias: proyecto: tiempo=±3 semanas, costo=±8 %, alcance=Must sin tolerancia, beneficios=-10 %, riesgo=ningún riesgo alto sin respuesta; exposición total ≤ USD 60.000 | etapa: 
-Presupuestos: riesgo=47800
+Presupuestos: riesgo=39800, gestion=6200
 Artefactos: 3 (2 aprobados)
 Próxima puerta: autorizar-inicio · 2 bloqueo(s) · 1 condición(es) (detalle: puertas.py verificar autorizar-inicio)
 Fase: pre-proyecto · Proceso: SU · Etapa 0: pre-proyecto · Enfoque: hibrido
@@ -814,20 +958,15 @@ ok
 ```
 
 ```
-$ python3 $EST/registro.py --proyecto gestion actualizar riesgos R-007 --campo "fecha_revision=2026-12-29"
-ok
-```
-
-```
 $ python3 $EST/registro.py --proyecto gestion resumen --corte 2026-12-15
 {
   "riesgos": {
-    "total": 7,
+    "total": 6,
     "por_estado": {
-      "en-seguimiento": 6,
+      "en-seguimiento": 5,
       "cerrado": 1
     },
-    "abiertos": 6,
+    "abiertos": 5,
     "altos_abiertos": 2,
     "umbrales": {
       "alto": 15.0,
@@ -860,7 +999,7 @@ $ python3 $EST/registro.py --proyecto gestion resumen --corte 2026-12-15
     "abiertos": 1
   },
   "decisiones": {
-    "total": 12
+    "total": 14
   },
   "supuestos": {
     "total": 0,
@@ -904,25 +1043,40 @@ $ python3 $EST/sanidad.py --proyecto gestion --rapido --corte 2026-12-15
 Sanidad de 'Portal de autoservicio para socios' (entrega/CS): 0 ERROR · 1 AVISO · 2 INFO
   AVISO REG-07 Acción vencida A-001 (Lucía Benítez, 2026-12-11).
         → Recordatorio o replanificación.
-  INFO  CAM-03 Reserva de riesgo: 9.800 de 47.800 (21 %).
+  INFO  CAM-03 Reserva de riesgo: 7.300 de 39.800 (18 %).
   INFO  TOL-03 Etapa de entrega sin corte de EVM guardado: el pronóstico contra tolerancias no se vigila.
         → evm.py … --proyecto <dir> --guardar --corte AAAA-MM-DD en cada período.
 ```
 
 ```
 $ (exposición de amenazas abiertas al 15-dic, desde riesgos.csv: suma de valor_esperado y del EMV residual planificado)
-amenazas abiertas: R-001, R-002, R-003, R-004, R-005, R-007
-exposición actual (EMV): USD 52.400 · EMV residual planificado: USD 31.800
+amenazas abiertas: R-001, R-002, R-003, R-004, R-005
+exposición actual (EMV): USD 50.600 · EMV residual planificado: USD 32.500
 ```
 
 ```
-$ python3 $EST/estado.py --proyecto gestion artefacto tablero-avance --ruta 03-control/reportes/2026-12-15-tablero-avance.html --estado en-revision
-ok
+$ (juicio del gestor para el tablero → gestion/03-control/reportes/2026-12-15-juicio-gestor.json)
+"objetivos": {"tiempo": {"rag": "verde", "pronostico": "en plan", "tol_etapa": "±10 %", "tol_proyecto": "±3 semanas"}, "costo": {"rag": "verde", "pronostico": "en plan", "tol_etapa": "±10 %", "tol_proyecto": "±8 %"}, "alcance": {"rag": "verde", "pronostico": "Must en R1", "tol_proyecto": "Must sin tolerancia"}, "calidad": {"rag": "verde", "pronostico": "sin defectos críticos"}, "beneficios": {"rag": "verde", "pronostico": "sin cambios", "tol_proyecto": "-10 %"}, "riesgo": {"pronostico": "exposición en baja; reserva al 18 %"}}
+"hitos": []
+"decisiones": [{"id": "R-001", "texto": "si el spike confirma que no hay entorno de pruebas: aceptar 2 semanas de atraso o pagar entorno temporal", "fecha_limite": "2026-12-18"}]
+"comentario": "Revisión de riesgos del sprint 2: R-002 bajó a 8 tras el taller; la oportunidad R-006 se aprovechó; A-001 (spike) vence sin cerrar."
 ```
 
 ```
-$ (pm-visuales arma el tablero con la receta de references/guia.md §3 → gestion/03-control/reportes/2026-12-15-tablero-avance.html)
-riesgos abiertos 6 · issues 0 · acciones 3 · iteraciones 0
+$ python3 $EST/estado.py --proyecto gestion periodo --desde 2026-12-01 --corte 2026-12-15 --proximo 2026-12-29 --juicio gestion/03-control/reportes/2026-12-15-juicio-gestor.json --tablero
+Período 2026-12-01 – 2026-12-15 · estado general ámbar · EVM: sin corte en el período · umbral alto P×I ≥ 15
+  Tiempo          verde            en plan (pronóstico del gestor) [juicio]
+  Costo           verde            en plan (pronóstico del gestor) [juicio]
+  Alcance         verde            Must en R1 (pronóstico del gestor) [juicio]
+  Calidad         verde            sin defectos críticos (pronóstico del gestor) [juicio]
+  Beneficios      verde            sin cambios (pronóstico del gestor contra la tolerancia de -10 %) [juicio]
+  Riesgo          ámbar            5 riesgo(s) abierto(s), 2 alto(s) (P×I ≥ 15), 0 sin respuesta, 0 sin propietario [regla]
+  Sostenibilidad  [por confirmar]  sin medida ni juicio registrado [sin-dato]
+Productos aceptados en el período: ninguno
+Cambios del período: ninguno · fuera de especificación: ninguno
+Decisiones para la junta: R-001
+Iteraciones: ninguna
+Tablero: 03-control/reportes/2026-12-15-tablero-avance.html (registrado tablero-avance, en-revision) · riesgos abiertos 5 · issues 0 · acciones 3 · iteraciones 0
 ```
 
 ## Paso 9 · Incidencias emergentes desde Jira: riesgo → issue, defecto fuera de especificación y control del consumo de la reserva de riesgo
@@ -932,7 +1086,7 @@ clave,tipo,titulo,estado,asignado,sprint,puntos,actualizado,url,prioridad,etique
 PS-101,Bug,La consulta de saldos devuelve timeout con el padrón de prueba,En curso,Lucía Benítez,Sprint 2,,2026-12-16,https://jira.example.org/browse/PS-101,Highest,,1-3-consulta-de-saldos-de-ahorro-y-préstamos
 PS-102,Impedimento,Sin entorno de pruebas del padrón: historias 1-3 y 1-4 bloqueadas,Bloqueado,Martín Suárez,Sprint 2,,2026-12-16,https://jira.example.org/browse/PS-102,High,,
 PS-103,Historia,Descarga de constancias en PDF,En curso,Lucía Benítez,Sprint 2,5,2026-12-15,https://jira.example.org/browse/PS-103,Medium,,1-4-descarga-de-constancias-en-pdf
-PS-104,Tarea,Evaluar un proveedor de SMS alternativo por la disponibilidad del segundo factor,Por hacer,Diego Ferreira,Sprint 3,,2026-12-14,https://jira.example.org/browse/PS-104,Medium,riesgo,
+PS-104,Tarea,Prueba de conmutación al proveedor de SMS alternativo por la disponibilidad del segundo factor,Por hacer,Diego Ferreira,Sprint 3,,2026-12-14,https://jira.example.org/browse/PS-104,Medium,riesgo,
 ```
 
 ```
@@ -940,7 +1094,7 @@ $ python3 $PLUGIN/skills/pm-riesgos/scripts/riesgos.py --proyecto gestion candid
 tracker: 3 candidatos · 1 fuente(s) leída(s)
 CR-01 [issue/amenaza] jira:PS-101 (gestion/03-control/fuentes/jira-2026-12-16.csv) · La consulta de saldos devuelve timeout con el padrón de prueba · refs 1-3-consulta-de-saldos-de-ahorro-y-préstamos · ¿relacionado con R-001?
 CR-02 [issue/amenaza] jira:PS-102 (gestion/03-control/fuentes/jira-2026-12-16.csv) · Sin entorno de pruebas del padrón: historias 1-3 y 1-4 bloqueadas · ¿relacionado con R-001?
-CR-03 [riesgo/amenaza] jira:PS-104 (gestion/03-control/fuentes/jira-2026-12-16.csv) · Evaluar un proveedor de SMS alternativo por la disponibilidad del segundo factor · ¿duplica R-003?
+CR-03 [riesgo/amenaza] jira:PS-104 (gestion/03-control/fuentes/jira-2026-12-16.csv) · Prueba de conmutación al proveedor de SMS alternativo por la disponibilidad del segundo factor · ¿relacionado con R-003?
 → gestion/03-control/reportes/2026-12-16-candidatos-riesgo.md (borrador). Son candidatos: pm-riesgos los formula, evalúa con el propietario y registra; lo ocurrido va a issues.
 ```
 
@@ -960,7 +1114,7 @@ I-002
 ```
 
 ```
-$ python3 $EST/registro.py --proyecto gestion actualizar riesgos R-003 --campo "notas=WBS 3.1 · producto Portal del socio · origen: prd.md:249 y ARCHITECTURE-SPINE.md:177 (BMAD) y ronda 2026-10-27 [00:00:46] · seguimiento: jira:PS-104 (proveedor alternativo)"
+$ python3 $EST/registro.py --proyecto gestion actualizar riesgos R-003 --campo "notas=WBS 3.1 · producto Portal del socio · origen: prd.md:249 y ARCHITECTURE-SPINE.md:177 (BMAD) y ronda 2026-10-27 [00:00:46] · plan: 03-control/registros/R-003-plan-contingencia.md · seguimiento: jira:PS-104 (prueba de conmutación del plan)"
 ok
 ```
 
@@ -980,7 +1134,7 @@ id=I-001 | fecha=2026-12-16 | tipo=problema-preocupacion | titulo=Sin entorno de
 ```
 
 ```
-$ python3 $EST/registro.py --proyecto gestion agregar cambios --campo "fecha=2026-12-17" --campo "solicitante=Martín Suárez" --campo "titulo=Entorno de pruebas temporal del padrón (contingencia de R-001 materializado, I-001)" --campo "descripcion=entorno en la nube con una copia anonimizada del padrón durante 8 semanas, hasta que TI habilite el suyo en febrero" --campo "justificacion=contingencia prevista para R-001 en el tablero del 15/12: baja el atraso de WBS 3.2 de 2 semanas a 3 días" --campo "impacto_tiempo=3 días en lugar de 2 semanas" --campo "impacto_costo=8.000" --campo "impacto_riesgo=responde a R-001 (ocurrido) e I-001" --campo "decision=aprobado" --campo "decidido_por=Ejecutiva: Laura Méndez" --campo "fecha_decision=2026-12-17" --campo "estado=aprobado" --campo "costo=8000" --campo "cargo=reserva-riesgo" --campo "notas=supera los USD 5.000 que el enfoque de riesgo delega en el gestor: decide la ejecutiva"
+$ python3 $EST/registro.py --proyecto gestion agregar cambios --campo "fecha=2026-12-17" --campo "solicitante=Martín Suárez" --campo "titulo=Entorno de pruebas temporal del padrón (contingencia de R-001 materializado, I-001)" --campo "descripcion=entorno en la nube con una copia anonimizada del padrón durante 8 semanas, hasta que TI habilite el suyo en febrero" --campo "justificacion=opción O4 (contingencia) de la hoja de opciones de R-001, prevista en el tablero del 15/12: baja el atraso de WBS 3.2 de 2 semanas a 3 días" --campo "impacto_tiempo=3 días en lugar de 2 semanas" --campo "impacto_costo=8.000" --campo "impacto_riesgo=responde a R-001 (ocurrido) e I-001" --campo "decision=aprobado" --campo "decidido_por=Ejecutiva: Laura Méndez" --campo "fecha_decision=2026-12-17" --campo "estado=aprobado" --campo "costo=8000" --campo "cargo=reserva-riesgo" --campo "notas=supera los USD 5.000 que el enfoque de riesgo delega en el gestor: decide la ejecutiva"
 C-002
 ```
 
@@ -994,7 +1148,7 @@ $ python3 $EST/sanidad.py --proyecto gestion --rapido --corte 2026-12-18
 Sanidad de 'Portal de autoservicio para socios' (entrega/CS): 0 ERROR · 1 AVISO · 2 INFO
   AVISO CAM-02 Cambio C-003 cargado a la reserva de riesgo sin citar el riesgo R-### que responde.
         → La reserva de riesgo solo financia respuestas a riesgos; si no, presupuesto de cambio o junta.
-  INFO  CAM-03 Reserva de riesgo: 20.800 de 47.800 (44 %).
+  INFO  CAM-03 Reserva de riesgo: 18.300 de 39.800 (46 %).
   INFO  TOL-03 Etapa de entrega sin corte de EVM guardado: el pronóstico contra tolerancias no se vigila.
         → evm.py … --proyecto <dir> --guardar --corte AAAA-MM-DD en cada período.
 ```
@@ -1007,20 +1161,43 @@ ok
 ```
 $ python3 $EST/sanidad.py --proyecto gestion --rapido --corte 2026-12-18
 Sanidad de 'Portal de autoservicio para socios' (entrega/CS): 0 ERROR · 0 AVISO · 2 INFO
-  INFO  CAM-03 Reserva de riesgo: 17.800 de 47.800 (37 %).
+  INFO  CAM-03 Reserva de riesgo: 15.300 de 39.800 (38 %).
   INFO  TOL-03 Etapa de entrega sin corte de EVM guardado: el pronóstico contra tolerancias no se vigila.
         → evm.py … --proyecto <dir> --guardar --corte AAAA-MM-DD en cada período.
 ```
 
-## Paso 10 · Riesgo nuevo sobre la línea: hoja de riesgo, escalamiento a la junta y revisión del business case
+## Paso 10 · Riesgo nuevo sobre la línea: opciones, hoja de riesgo, escalamiento a la junta y revisión del business case
 ```
 $ python3 $EST/registro.py --proyecto gestion agregar riesgos --campo "fecha_identificacion=2027-01-08" --campo "autor=Martín Suárez" --campo "categoria=externo" --campo "causa=El regulador anunció nueva norma de autenticación para servicios financieros" --campo "evento=La norma exige biometría para operaciones de préstamo (FR-6)" --campo "efecto=Rediseño del acceso y atraso del Release 2" --campo "tipo=amenaza" --campo "probabilidad=3" --campo "impacto=5" --campo "impacto_monetario=40000" --campo "proximidad=mediano-plazo" --campo "respuesta=escalar" --campo "propietario=Laura Méndez" --campo "ejecutor=Martín Suárez" --campo "estado=escalado" --campo "fecha_revision=2027-01-12" --campo "notas=WBS 3.1 y 3.3 · interesado ST-004 · afecta el business case: decide la junta"
-R-008
+R-007
 ```
 
 ```
-$ (pm-riesgos redacta la hoja de riesgo con templates/hoja-riesgo.md → gestion/03-control/registros/R-008-hoja-riesgo.md)
-# Hoja de datos de riesgo · R-008
+$ (pm-riesgos completa la hoja de opciones de R-007 con los datos de la persona → gestion/03-control/registros/opciones-riesgo/R-007.csv)
+opcion,estrategia,descripcion,costo,probabilidad_residual,impacto_residual,impacto_monetario_residual,monto_contingencia,disparador,riesgo_secundario,emv_secundario,notas
+O1,evitar,Sacar las operaciones de préstamo (FR-6) del Release 2 hasta que se publique la norma,1000,1,3,10000,,,B-02: la adopción se demora un trimestre,16000,costo: replanificación del Release 2
+O2,reducir,Análisis normativo con asesoría externa y diseño de autenticación reforzada detrás de IdentityPort (AD-5),10000,2,4,,,publicación de la norma en el Diario Oficial,,,
+O3,contingencia,"Esperar la publicación de la norma y entonces implementar la biometría para préstamos detrás de IdentityPort, con solicitud de cambio",0,3,4,20000,14000,publicación de la norma en el Diario Oficial,,,20.000: atraso del Release 2 mientras se implementa
+O4,aceptar,Aceptar sin acciones (referencia para comparar),0,3,5,,,,,,aceptación pasiva: solo revisión periódica
+```
+
+```
+$ python3 $PLUGIN/skills/pm-riesgos/scripts/riesgos.py --proyecto gestion opciones --riesgo R-007
+Riesgo R-007 (umbral 15)
+
+R-007 · amenaza · P×I 15 · EMV 20.000 · propietario Laura Méndez · respuesta actual: escalar · La norma exige biometría para operaciones de préstamo (FR-6)
+    gestion/03-control/registros/opciones-riesgo/R-007.csv
+  ★ O3   contingencia costo       0 · P×I res 3×4=12 · EMV res  17.000 · valor neto   3.000 · contingencia 14.000
+    O1   evitar       costo   1.000 · P×I res 1×3=3  · EMV res   1.000 · valor neto   2.000 · secundario 16.000
+    O2   reducir      costo  10.000 · P×I res 2×4=8  · EMV res  12.000 · valor neto  -2.000 · cuesta más de lo que reduce: requiere justificación no económica (R-10)
+    O4   aceptar      costo       0 · P×I res 3×5=15 · EMV res  20.000 · valor neto       0 · SOBRE LA LÍNEA
+    faltan estrategias: transferir
+    → recomendada O3 (contingencia): mayor valor neto bajo la línea. Decide el propietario (PUERTA HUMANA): opciones --riesgo R-007 --elegir O3 --por "<rol: nombre>"
+```
+
+```
+$ (pm-riesgos redacta la hoja de riesgo con templates/hoja-riesgo.md y las opciones evaluadas → gestion/03-control/registros/R-007-hoja-riesgo.md)
+# Hoja de datos de riesgo · R-007
 
 **Título:** norma de biometría para operaciones de préstamo · **Tipo:** amenaza · **Categoría:** externo · **Estado:** escalado
 
@@ -1031,33 +1208,41 @@ lo que provocaría rediseñar el acceso (WBS 3.1 y 3.3) y atrasar el Release 2.
 ## Evaluación actual
 P3 × I5 = 15 (alto, sobre la línea) · impacto monetario USD 40.000 · EMV = 50 % × 40.000 = USD 20.000 · proximidad: mediano plazo.
 
-## Respuesta propuesta
-Reducir: análisis normativo con asesoría externa y diseño de autenticación reforzada detrás de IdentityPort (AD-5).
-Costo de la respuesta: USD 10.000 (reserva de riesgo; supera la autoridad del gestor: decide la ejecutiva).
+## Opciones evaluadas (03-control/registros/opciones-riesgo/R-007.csv, riesgos.py opciones; USD)
+| Opción | Estrategia | Costo | Residual P×I | EMV residual | Valor neto |
+|---|---|---|---|---|---|
+| O3 ★ | contingencia | 0 | 3×4 | 17.000 | 3.000 |
+| O1 | evitar | 1.000 | 1×3 | 1.000 | 2.000 |
+| O2 | reducir | 10.000 | 2×4 | 12.000 | -2.000 |
+| O4 | aceptar | 0 | 3×5 | 20.000 | 0 |
 
-## Evaluación residual y justificación
-P2 × I4 = 8 · EMV residual = 30 % × 40.000 = USD 12.000 · reducción de EMV = USD 8.000.
-Costo (10.000) mayor que la reducción de EMV (8.000): la respuesta **no se justifica solo por EMV**. Justificación no
-económica: cumplimiento regulatorio, con apetito bajo según el enfoque de riesgo §6. Por eso decide la junta.
-Riesgos secundarios: ninguno identificado. Residual aceptado: P2 × I4, revisión en la próxima junta.
+Transferir no aplica: una norma no se transfiere a un tercero. Recomendada por valor neto: O3 (contingencia).
+
+## Respuesta propuesta y justificación
+O2 reducir: análisis normativo con asesoría externa y diseño de autenticación reforzada detrás de IdentityPort (AD-5).
+Costo de la respuesta: USD 10.000 (reserva de riesgo; supera la autoridad del gestor: decide la ejecutiva).
+Residual P2 × I4 = 8 · EMV residual USD 12.000 · reducción de EMV USD 8.000 · valor neto USD -2.000.
+No es la recomendada y **no se justifica solo por EMV**: esperar la publicación (O3) deja el acceso expuesto a una
+norma de cumplimiento, donde el apetito es bajo (enfoque de riesgo §6). Justificación no económica: cumplimiento regulatorio.
+Por eso decide la junta. Riesgos secundarios: ninguno identificado. Residual aceptado: P2 × I4, revisión en la próxima junta.
 
 ## Alerta temprana y contingencia
-Disparador: publicación de la norma en el Diario Oficial. Contingencia: autenticación biométrica para préstamos en el
-Release 2 detrás de IdentityPort, con solicitud de cambio.
+Disparador: publicación de la norma en el Diario Oficial. Si se publica, la contingencia es la opción O3: biometría
+para préstamos detrás de IdentityPort, con solicitud de cambio.
 ```
 
 ```
 $ python3 $EST/registro.py --proyecto gestion resumen --json --corte 2027-01-08
 {
   "riesgos": {
-    "total": 8,
+    "total": 7,
     "por_estado": {
       "ocurrido": 1,
-      "en-seguimiento": 5,
+      "en-seguimiento": 4,
       "cerrado": 1,
       "escalado": 1
     },
-    "abiertos": 6,
+    "abiertos": 5,
     "altos_abiertos": 2,
     "umbrales": {
       "alto": 15.0,
@@ -1067,7 +1252,7 @@ $ python3 $EST/registro.py --proyecto gestion resumen --json --corte 2027-01-08
     "sin_propietario": [],
     "top": [
       "R-003 (15, alto) El proveedor de SMS no cumple la disponibilidad",
-      "R-008 (15, alto) La norma exige biometría para operaciones de préstamo (FR-6)",
+      "R-007 (15, alto) La norma exige biometría para operaciones de préstamo (FR-6)",
       "R-005 (9, medio) Pérdida de conocimiento en el equipo",
       "R-002 (8, medio) Resistencia a usar la consola",
       "R-004 (8, medio) Cumplimiento exige cambios en FR-5"
@@ -1094,7 +1279,7 @@ $ python3 $EST/registro.py --proyecto gestion resumen --json --corte 2027-01-08
     "abiertos": 2
   },
   "decisiones": {
-    "total": 12
+    "total": 14
   },
   "supuestos": {
     "total": 0,
@@ -1129,25 +1314,37 @@ $ python3 $EST/registro.py --proyecto gestion resumen --json --corte 2027-01-08
 ```
 
 ```
-$ python3 $EST/estado.py --proyecto gestion puerta decision-ad-hoc --decision aprobado --por "Ejecutiva: Laura Méndez" --fecha 2027-01-12 --condiciones "usar USD 10.000 del presupuesto de riesgo para un análisis normativo; revisar R-008 en la próxima junta"
+$ python3 $EST/estado.py --proyecto gestion puerta decision-ad-hoc --decision aprobado --por "Ejecutiva: Laura Méndez" --fecha 2027-01-12 --condiciones "usar USD 10.000 del presupuesto de riesgo para un análisis normativo; revisar R-007 en la próxima junta"
 ok
 Fase: entrega · Proceso: CS · Etapa 2: Release 1 · Enfoque: hibrido
 Control de etapa (CS) + entrega (MP): autorizar paquetes de trabajo, checkpoints, iteraciones con review/retro, revisar riesgos/issues, highlight reports a la junta. Al acercarse el fin de etapa: estado.py limite-etapa. Pronóstico fuera de tolerancia: informe de excepción → pm-director. Agente: pm-control.
-Condiciones abiertas: decision-ad-hoc: usar USD 10.000 del presupuesto de riesgo para un análisis normativo; revisar R-008 en la próxima junta
+Condiciones abiertas: decision-ad-hoc: usar USD 10.000 del presupuesto de riesgo para un análisis normativo; revisar R-007 en la próxima junta
 ```
 
 ```
-$ python3 $EST/registro.py --proyecto gestion agregar cambios --campo "fecha=2027-01-12" --campo "solicitante=Martín Suárez" --campo "titulo=Análisis normativo con asesoría externa (respuesta a R-008)" --campo "descripcion=asesoría externa sobre la norma de autenticación y diseño de autenticación reforzada detrás de IdentityPort (AD-5)" --campo "justificacion=hoja de riesgo de R-008: justificación regulatoria (costo 10.000 mayor que la reducción de EMV 8.000)" --campo "impacto_costo=10.000" --campo "impacto_riesgo=responde a R-008" --campo "decision=aprobado" --campo "decidido_por=Ejecutiva: Laura Méndez" --campo "fecha_decision=2027-01-12" --campo "estado=aprobado" --campo "costo=10000" --campo "cargo=reserva-riesgo" --campo "notas=decision-ad-hoc de la junta del 2027-01-12"
+$ python3 $EST/registro.py --proyecto gestion agregar cambios --campo "fecha=2027-01-12" --campo "solicitante=Martín Suárez" --campo "titulo=Análisis normativo con asesoría externa (respuesta a R-007)" --campo "descripcion=asesoría externa sobre la norma de autenticación y diseño de autenticación reforzada detrás de IdentityPort (AD-5)" --campo "justificacion=hoja de riesgo de R-007: justificación regulatoria (costo 10.000 mayor que la reducción de EMV 8.000)" --campo "impacto_costo=10.000" --campo "impacto_riesgo=responde a R-007" --campo "decision=aprobado" --campo "decidido_por=Ejecutiva: Laura Méndez" --campo "fecha_decision=2027-01-12" --campo "estado=aprobado" --campo "costo=10000" --campo "cargo=reserva-riesgo" --campo "notas=decision-ad-hoc de la junta del 2027-01-12"
 C-004
 ```
 
 ```
-$ python3 $EST/registro.py --proyecto gestion actualizar riesgos R-008 --campo "respuesta=reducir" --campo "acciones=análisis normativo con asesoría externa (C-004); diseño de autenticación reforzada detrás de IdentityPort (AD-5) · costo USD 10.000 · ΔEMV USD 8.000" --campo "probabilidad_residual=2" --campo "impacto_residual=4" --campo "estado=en-seguimiento" --campo "fecha_revision=2027-01-26" --campo "notas=WBS 3.1 y 3.3 · interesado ST-004 · hoja: 03-control/registros/R-008-hoja-riesgo.md · decisión de la junta del 2027-01-12"
+$ python3 $PLUGIN/skills/pm-riesgos/scripts/riesgos.py --proyecto gestion opciones --riesgo R-007 --elegir O2 --por "Ejecutiva: Laura Méndez" --nivel ejecutivo --revision 2027-01-26 --fecha 2027-01-12
+
+La recomendada es O3 y se eligió O2: indicar --motivo (p. ej. justificación no económica, regulatoria o de plazo).
+```
+
+```
+$ python3 $PLUGIN/skills/pm-riesgos/scripts/riesgos.py --proyecto gestion opciones --riesgo R-007 --elegir O2 --por "Ejecutiva: Laura Méndez" --nivel ejecutivo --revision 2027-01-26 --fecha 2027-01-12 --motivo "apetito bajo en cumplimiento (enfoque de riesgo §6): la junta no espera la publicación de la norma y acepta el valor neto negativo"
+R-007: respuesta reducir (O2) registrada en riesgos.csv · decisión D-016 (Ejecutiva: Laura Méndez, nivel ejecutivo).
+El costo y la contingencia se financian con el presupuesto de riesgo: uso registrado en cambios.csv con cargo=reserva-riesgo y el R-### (CAM-02, CAM-03); acciones con fecha en acciones.csv (origen R-###).
+```
+
+```
+$ python3 $EST/registro.py --proyecto gestion actualizar riesgos R-007 --campo "estado=en-seguimiento" --campo "notas=WBS 3.1 y 3.3 · interesado ST-004 · hoja: 03-control/registros/R-007-hoja-riesgo.md · decisión de la junta del 2027-01-12 (C-004)"
 ok
 ```
 
 ```
-$ python3 $EST/registro.py --proyecto gestion agregar acciones --campo "fecha=2027-01-12" --campo "origen=R-008" --campo "descripcion=Entregar a la junta el análisis normativo de la asesoría externa (C-004)" --campo "responsable=Martín Suárez" --campo "fecha_compromiso=2027-02-05" --campo "prioridad=alta"
+$ python3 $EST/registro.py --proyecto gestion agregar acciones --campo "fecha=2027-01-12" --campo "origen=R-007" --campo "descripcion=Entregar a la junta el análisis normativo de la asesoría externa" --campo "responsable=Martín Suárez" --campo "fecha_compromiso=2027-02-05" --campo "prioridad=alta"
 A-004
 ```
 
@@ -1164,24 +1361,23 @@ ok
 
 ```
 $ python3 $EST/sanidad.py --proyecto gestion --rapido --corte 2027-01-12
-Sanidad de 'Portal de autoservicio para socios' (entrega/CS): 0 ERROR · 6 AVISO · 2 INFO
-  AVISO EST-12 Condiciones abiertas de decision-ad-hoc: usar USD 10.000 del presupuesto de riesgo para un análisis normativo; revisar R-008 en la próxima junta.
+Sanidad de 'Portal de autoservicio para socios' (entrega/CS): 0 ERROR · 5 AVISO · 2 INFO
+  AVISO EST-12 Condiciones abiertas de decision-ad-hoc: usar USD 10.000 del presupuesto de riesgo para un análisis normativo; revisar R-007 en la próxima junta.
         → estado.py cumplir-condiciones <tipo> cuando se cumplan.
   AVISO REG-09 Riesgo R-002 abierto con la revisión vencida (2026-12-29; propietario: Sofía Ramírez).
   AVISO REG-09 Riesgo R-003 abierto con la revisión vencida (2026-12-29; propietario: Diego Ferreira).
   AVISO REG-09 Riesgo R-004 abierto con la revisión vencida (2026-12-29; propietario: Laura Méndez).
   AVISO REG-09 Riesgo R-005 abierto con la revisión vencida (2026-12-29; propietario: Diego Ferreira).
-  AVISO REG-09 Riesgo R-007 abierto con la revisión vencida (2026-12-29; propietario: Diego Ferreira).
         → Revisarlo con el propietario (pm-riesgos) y actualizar estado, evaluación y fecha_revision (registro.py actualizar riesgos R-… --campo fecha_revision=…).
-  INFO  CAM-03 Reserva de riesgo: 27.800 de 47.800 (58 %).
+  INFO  CAM-03 Reserva de riesgo: 25.300 de 39.800 (64 %).
   INFO  TOL-03 Etapa de entrega sin corte de EVM guardado: el pronóstico contra tolerancias no se vigila.
         → evm.py … --proyecto <dir> --guardar --corte AAAA-MM-DD en cada período.
 ```
 
 ```
 $ (exposición de amenazas abiertas al 12-ene, desde riesgos.csv: suma de valor_esperado y del EMV residual planificado)
-amenazas abiertas: R-002, R-003, R-004, R-005, R-007, R-008
-exposición actual (EMV): USD 51.400 · EMV residual planificado: USD 34.800
+amenazas abiertas: R-002, R-003, R-004, R-005, R-007
+exposición actual (EMV): USD 49.600 · EMV residual planificado: USD 35.500
 ```
 
 ## Paso 11 · Informe de riesgos e insumo para el highlight
@@ -1189,13 +1385,13 @@ exposición actual (EMV): USD 51.400 · EMV residual planificado: USD 34.800
 $ python3 $EST/registro.py --proyecto gestion resumen --corte 2027-01-15
 {
   "riesgos": {
-    "total": 8,
+    "total": 7,
     "por_estado": {
       "ocurrido": 1,
-      "en-seguimiento": 6,
+      "en-seguimiento": 5,
       "cerrado": 1
     },
-    "abiertos": 6,
+    "abiertos": 5,
     "altos_abiertos": 2,
     "umbrales": {
       "alto": 15.0,
@@ -1205,7 +1401,7 @@ $ python3 $EST/registro.py --proyecto gestion resumen --corte 2027-01-15
     "sin_propietario": [],
     "top": [
       "R-003 (15, alto) El proveedor de SMS no cumple la disponibilidad",
-      "R-008 (15, alto) La norma exige biometría para operaciones de préstamo (FR-6)",
+      "R-007 (15, alto) La norma exige biometría para operaciones de préstamo (FR-6)",
       "R-005 (9, medio) Pérdida de conocimiento en el equipo",
       "R-002 (8, medio) Resistencia a usar la consola",
       "R-004 (8, medio) Cumplimiento exige cambios en FR-5"
@@ -1232,7 +1428,7 @@ $ python3 $EST/registro.py --proyecto gestion resumen --corte 2027-01-15
     "abiertos": 3
   },
   "decisiones": {
-    "total": 14
+    "total": 17
   },
   "supuestos": {
     "total": 0,
@@ -1271,16 +1467,15 @@ $ python3 $EST/registro.py --proyecto gestion resumen --corte 2027-01-15
 
 ```
 $ python3 $EST/sanidad.py --proyecto gestion --rapido --corte 2027-01-15
-Sanidad de 'Portal de autoservicio para socios' (entrega/CS): 0 ERROR · 6 AVISO · 2 INFO
-  AVISO EST-12 Condiciones abiertas de decision-ad-hoc: usar USD 10.000 del presupuesto de riesgo para un análisis normativo; revisar R-008 en la próxima junta.
+Sanidad de 'Portal de autoservicio para socios' (entrega/CS): 0 ERROR · 5 AVISO · 2 INFO
+  AVISO EST-12 Condiciones abiertas de decision-ad-hoc: usar USD 10.000 del presupuesto de riesgo para un análisis normativo; revisar R-007 en la próxima junta.
         → estado.py cumplir-condiciones <tipo> cuando se cumplan.
   AVISO REG-09 Riesgo R-002 abierto con la revisión vencida (2026-12-29; propietario: Sofía Ramírez).
   AVISO REG-09 Riesgo R-003 abierto con la revisión vencida (2026-12-29; propietario: Diego Ferreira).
   AVISO REG-09 Riesgo R-004 abierto con la revisión vencida (2026-12-29; propietario: Laura Méndez).
   AVISO REG-09 Riesgo R-005 abierto con la revisión vencida (2026-12-29; propietario: Diego Ferreira).
-  AVISO REG-09 Riesgo R-007 abierto con la revisión vencida (2026-12-29; propietario: Diego Ferreira).
         → Revisarlo con el propietario (pm-riesgos) y actualizar estado, evaluación y fecha_revision (registro.py actualizar riesgos R-… --campo fecha_revision=…).
-  INFO  CAM-03 Reserva de riesgo: 27.800 de 47.800 (58 %).
+  INFO  CAM-03 Reserva de riesgo: 25.300 de 39.800 (64 %).
   INFO  TOL-03 Etapa de entrega sin corte de EVM guardado: el pronóstico contra tolerancias no se vigila.
         → evm.py … --proyecto <dir> --guardar --corte AAAA-MM-DD en cada período.
 ```
@@ -1294,7 +1489,7 @@ $ python3 $EST/puertas.py --proyecto gestion estado --markdown
 | autorizar-inicio | 2026-10-30 | aprobado | Ejecutiva: Laura Méndez | — | — | 00-direccion/decisiones/2026-10-30-verificacion-autorizar-inicio.md |
 | autorizar-proyecto | 2026-11-27 | aprobado | Ejecutiva: Laura Méndez | — | — | 00-direccion/decisiones/2026-11-27-verificacion-autorizar-proyecto.md |
 | autorizar-etapa | 2026-11-27 | aprobado | Ejecutiva: Laura Méndez | — | — | 00-direccion/decisiones/2026-11-27-verificacion-autorizar-etapa.md |
-| decision-ad-hoc | 2027-01-12 | aprobado | Ejecutiva: Laura Méndez | usar USD 10.000 del presupuesto de riesgo para un análisis normativo; revisar R-008 en la próxima junta (abiertas) | — | — |
+| decision-ad-hoc | 2027-01-12 | aprobado | Ejecutiva: Laura Méndez | usar USD 10.000 del presupuesto de riesgo para un análisis normativo; revisar R-007 en la próxima junta (abiertas) | — | — |
 
 **Próxima puerta / Next gate: autorizar-etapa** — 2 bloqueo(s), 1 condición(es), 0 aviso(s).
 - bloqueo: E-01 falta el plan de la etapa a autorizar (plan-etapa-3)
@@ -1311,8 +1506,8 @@ ok
 ```
 $ python3 $EST/estado.py --proyecto gestion contexto --corte 2027-02-12
 pm-method · contexto derivado de estado.json y los registros al 2027-02-12 (es el estado vigente; una nota de memoria que diga otra cosa está desactualizada):
-Abiertos: riesgos 6, issues 1, cambios 3, acciones 1.
-Riesgos con la revisión vencida (REG-09): R-002 (2026-12-29), R-003 (2026-12-29), R-004 (2026-12-29), R-005 (2026-12-29), R-007 (2026-12-29), R-008 (2027-01-26).
+Abiertos: riesgos 5, issues 1, cambios 3, acciones 1.
+Riesgos con la revisión vencida (REG-09): R-002 (2026-12-29), R-003 (2026-12-29), R-004 (2026-12-29), R-005 (2026-12-29), R-007 (2027-01-26).
 Issues abiertos: I-001 (alta).
 Acciones vencidas: A-004 (Martín Suárez, 2027-02-05).
 Condiciones abiertas de puertas: decision-ad-hoc (2027-01-12).
@@ -1320,9 +1515,14 @@ Próxima puerta: autorizar-etapa (detalle: puertas.py verificar autorizar-etapa)
 ```
 
 ```
+$ python3 $EST/estado.py --proyecto gestion radar --linea --corte 2027-02-12
+pm-method · radar al 2027-02-12: decidir 1 (decision-ad-hoc) · escalar 0 · desbloquear 1 (A-004) · vigilar 6 (R-002); detalle, responsables y siguiente paso: pm-orquestador (estado.py radar).
+```
+
+```
 $ python3 $EST/sanidad.py --proyecto gestion --rapido --corte 2027-02-12
-Sanidad de 'Portal de autoservicio para socios' (entrega/CS): 0 ERROR · 8 AVISO · 2 INFO
-  AVISO EST-12 Condiciones abiertas de decision-ad-hoc: usar USD 10.000 del presupuesto de riesgo para un análisis normativo; revisar R-008 en la próxima junta.
+Sanidad de 'Portal de autoservicio para socios' (entrega/CS): 0 ERROR · 7 AVISO · 2 INFO
+  AVISO EST-12 Condiciones abiertas de decision-ad-hoc: usar USD 10.000 del presupuesto de riesgo para un análisis normativo; revisar R-007 en la próxima junta.
         → estado.py cumplir-condiciones <tipo> cuando se cumplan.
   AVISO REG-07 Acción vencida A-004 (Martín Suárez, 2027-02-05).
         → Recordatorio o replanificación.
@@ -1330,23 +1530,21 @@ Sanidad de 'Portal de autoservicio para socios' (entrega/CS): 0 ERROR · 8 AVISO
   AVISO REG-09 Riesgo R-003 abierto con la revisión vencida (2026-12-29; propietario: Diego Ferreira).
   AVISO REG-09 Riesgo R-004 abierto con la revisión vencida (2026-12-29; propietario: Laura Méndez).
   AVISO REG-09 Riesgo R-005 abierto con la revisión vencida (2026-12-29; propietario: Diego Ferreira).
-  AVISO REG-09 Riesgo R-007 abierto con la revisión vencida (2026-12-29; propietario: Diego Ferreira).
+  AVISO REG-09 Riesgo R-007 abierto con la revisión vencida (2027-01-26; propietario: Laura Méndez).
         → Revisarlo con el propietario (pm-riesgos) y actualizar estado, evaluación y fecha_revision (registro.py actualizar riesgos R-… --campo fecha_revision=…).
-  AVISO REG-09 … y 1 hallazgo más con el mismo código REG-09 y la misma corrección (lista completa: sanidad.py --json o --informe)
-  INFO  CAM-03 Reserva de riesgo: 27.800 de 47.800 (58 %).
+  INFO  CAM-03 Reserva de riesgo: 25.300 de 39.800 (64 %).
   INFO  TOL-03 Etapa de entrega sin corte de EVM guardado: el pronóstico contra tolerancias no se vigila.
         → evm.py … --proyecto <dir> --guardar --corte AAAA-MM-DD en cada período.
 ```
 
 ```
 $ (sanidad.py --rapido --json --corte 2027-02-12: lista completa de REG-09, con los días desde la revisión prevista)
-riesgos con la revisión vencida: 6
+riesgos con la revisión vencida: 5
 R-002  revisión prevista 2026-12-29 · 45 días · propietario Sofía Ramírez
 R-003  revisión prevista 2026-12-29 · 45 días · propietario Diego Ferreira
 R-004  revisión prevista 2026-12-29 · 45 días · propietario Laura Méndez
 R-005  revisión prevista 2026-12-29 · 45 días · propietario Diego Ferreira
-R-007  revisión prevista 2026-12-29 · 45 días · propietario Diego Ferreira
-R-008  revisión prevista 2027-01-26 · 17 días · propietario Laura Méndez
+R-007  revisión prevista 2027-01-26 · 17 días · propietario Laura Méndez
 ```
 
 ```
@@ -1355,12 +1553,12 @@ ok
 ```
 
 ```
-$ python3 $EST/registro.py --proyecto gestion actualizar acciones A-004 --campo "fecha_compromiso=2027-02-26" --campo "notas=replanificada en la revisión del 2027-02-12: la asesoría externa pidió dos semanas más; la junta revisa R-008 el 2027-03-01"
+$ python3 $EST/registro.py --proyecto gestion actualizar acciones A-004 --campo "fecha_compromiso=2027-02-26" --campo "notas=replanificada en la revisión del 2027-02-12: la asesoría externa pidió dos semanas más; la junta revisa R-007 el 2027-03-01"
 ok
 ```
 
 ```
-$ python3 $EST/registro.py --proyecto gestion actualizar riesgos R-003 --campo "probabilidad=4" --campo "fecha_revision=2027-02-26" --campo "notas=WBS 3.1 · producto Portal del socio · origen: prd.md:249 y ARCHITECTURE-SPINE.md:177 (BMAD) y ronda 2026-10-27 [00:00:46] · seguimiento: jira:PS-104 (proveedor alternativo) · disparador alcanzado: caídas del proveedor de SMS el 2027-01-20 y el 2027-02-03"
+$ python3 $EST/registro.py --proyecto gestion actualizar riesgos R-003 --campo "probabilidad=4" --campo "proximidad=inminente" --campo "fecha_revision=2027-02-26" --campo "notas=WBS 3.1 · producto Portal del socio · origen: prd.md:249 y ARCHITECTURE-SPINE.md:177 (BMAD) y ronda 2026-10-27 [00:00:46] · plan: 03-control/registros/R-003-plan-contingencia.md · seguimiento: jira:PS-104 (prueba de conmutación del plan) · disparador alcanzado: caídas del proveedor de SMS el 2027-01-20 y el 2027-02-03"
 ok
 ```
 
@@ -1385,21 +1583,16 @@ ok
 ```
 
 ```
-$ python3 $EST/registro.py --proyecto gestion actualizar riesgos R-008 --campo "fecha_revision=2027-02-26"
-ok
-```
-
-```
 $ python3 $EST/registro.py --proyecto gestion resumen --corte 2027-02-12
 {
   "riesgos": {
-    "total": 8,
+    "total": 7,
     "por_estado": {
       "ocurrido": 1,
-      "en-seguimiento": 6,
+      "en-seguimiento": 5,
       "cerrado": 1
     },
-    "abiertos": 6,
+    "abiertos": 5,
     "altos_abiertos": 2,
     "umbrales": {
       "alto": 15.0,
@@ -1409,7 +1602,7 @@ $ python3 $EST/registro.py --proyecto gestion resumen --corte 2027-02-12
     "sin_propietario": [],
     "top": [
       "R-003 (20, alto) El proveedor de SMS no cumple la disponibilidad",
-      "R-008 (15, alto) La norma exige biometría para operaciones de préstamo (FR-6)",
+      "R-007 (15, alto) La norma exige biometría para operaciones de préstamo (FR-6)",
       "R-005 (9, medio) Pérdida de conocimiento en el equipo",
       "R-002 (8, medio) Resistencia a usar la consola",
       "R-004 (8, medio) Cumplimiento exige cambios en FR-5"
@@ -1435,7 +1628,7 @@ $ python3 $EST/registro.py --proyecto gestion resumen --corte 2027-02-12
     "abiertos": 3
   },
   "decisiones": {
-    "total": 14
+    "total": 17
   },
   "supuestos": {
     "total": 0,
@@ -1475,36 +1668,66 @@ $ python3 $EST/registro.py --proyecto gestion resumen --corte 2027-02-12
 ```
 $ python3 $EST/sanidad.py --proyecto gestion --rapido --corte 2027-02-12
 Sanidad de 'Portal de autoservicio para socios' (entrega/CS): 0 ERROR · 1 AVISO · 2 INFO
-  AVISO EST-12 Condiciones abiertas de decision-ad-hoc: usar USD 10.000 del presupuesto de riesgo para un análisis normativo; revisar R-008 en la próxima junta.
+  AVISO EST-12 Condiciones abiertas de decision-ad-hoc: usar USD 10.000 del presupuesto de riesgo para un análisis normativo; revisar R-007 en la próxima junta.
         → estado.py cumplir-condiciones <tipo> cuando se cumplan.
-  INFO  CAM-03 Reserva de riesgo: 27.800 de 47.800 (58 %).
+  INFO  CAM-03 Reserva de riesgo: 25.300 de 39.800 (64 %).
   INFO  TOL-03 Etapa de entrega sin corte de EVM guardado: el pronóstico contra tolerancias no se vigila.
         → evm.py … --proyecto <dir> --guardar --corte AAAA-MM-DD en cada período.
 ```
 
 ```
 $ (exposición de amenazas abiertas al 12-feb, desde riesgos.csv: suma de valor_esperado y del EMV residual planificado)
-amenazas abiertas: R-002, R-003, R-004, R-005, R-007, R-008
-exposición actual (EMV): USD 56.400 · EMV residual planificado: USD 34.800
+amenazas abiertas: R-002, R-003, R-004, R-005, R-007
+exposición actual (EMV): USD 54.600 · EMV residual planificado: USD 35.500
+```
+
+```
+$ python3 $EST/estado.py --proyecto gestion radar --corte 2027-02-12
+Radar de atención · Portal de autoservicio para socios (entrega/CS, etapa 2) al 2027-02-12: 2 decidir · 0 escalar · 0 desbloquear · 2 vigilar
+Hoy: decidir R-003 · escalar — · desbloquear —.
+DECIDIR (2)
+  P1 [RAD-03] R-003 · 2027-02-26 · Diego Ferreira — contingencia por activar (inminente) · «El proveedor de SMS no cumple la disponibilidad»
+      → pm-riesgos: activar la contingencia (cambio con cargo reserva-riesgo que cite R-003; si ocurrió, issue en pm-issues-cambios)
+  P2 [EST-12] decision-ad-hoc · 2027-01-12 · junta (Laura Méndez) — condiciones abiertas: usar USD 10.000 del presupuesto de riesgo para un análisis normativo; revisar R-007 en la próxima j…
+      → pm-director: estado.py cumplir-condiciones decision-ad-hoc --por … al verificarlas
+ESCALAR: nada.
+DESBLOQUEAR: nada.
+VIGILAR (2)
+  P3 [RAD-07] autorizar-etapa · Martín Suárez — 2 bloqueo(s) de la próxima puerta: E-01, E-04
+      → pm-puerta: puertas.py verificar autorizar-etapa
+  P4 [TOL-03] evm · Martín Suárez — sin corte de EVM reciente: el pronóstico no se vigila
+      → evm.py … --proyecto <dir> --guardar --corte AAAA-MM-DD (pm-progreso-reportes)
+Opciones: generar el highlight del período (pm-progreso-reportes) · escalar una excepción no corresponde: ningún pronóstico fuera de tolerancia ni presupuesto agotado.
+Prioridad: 1 hoy (vencido, fuera de tolerancia o presupuesto agotado) · 2 espera una decisión o bloquea · 3 pendiente · 4 vigilar; orden: prioridad, fecha, id.
 ```
 
 ## Paso 13 · La reserva como presupuesto vivo: contingencia de R-003, alerta al 80 % y decisión de la ejecutiva
 ```
-$ python3 $EST/registro.py --proyecto gestion agregar cambios --campo "fecha=2027-02-15" --campo "solicitante=Martín Suárez" --campo "titulo=Proveedor de SMS alternativo en paralelo durante 6 meses (contingencia de R-003, disparador alcanzado)" --campo "descripcion=contrato con el proveedor evaluado en jira:PS-104 como respaldo activo del segundo factor, con conmutación ante caídas" --campo "justificacion=disparador de R-003 alcanzado (dos caídas en un mes): sin respaldo queda en P4 × I5 = 20" --campo "impacto_costo=11.000" --campo "impacto_riesgo=responde a R-003 (residual P2 I3)" --campo "decision=aprobado" --campo "decidido_por=Ejecutiva: Laura Méndez" --campo "fecha_decision=2027-02-15" --campo "estado=aprobado" --campo "costo=11000" --campo "cargo=reserva-riesgo" --campo "notas=supera los USD 5.000 que el enfoque de riesgo delega en el gestor: decide la ejecutiva"
+$ python3 $EST/registro.py --proyecto gestion agregar cambios --campo "fecha=2027-02-15" --campo "solicitante=Martín Suárez" --campo "titulo=Activar el plan de contingencia de R-003: proveedor de SMS alternativo en paralelo durante 6 meses" --campo "descripcion=acción 1 de 03-control/registros/R-003-plan-contingencia.md: contrato del proveedor del acuerdo marco como respaldo activo del segundo factor, con conmutación ante caídas" --campo "justificacion=disparador de R-003 alcanzado (caídas del 2027-01-20 y del 2027-02-03): sin respaldo queda en P4 × I5 = 20" --campo "impacto_costo=12.000" --campo "impacto_riesgo=responde a R-003 (residual P2 I3)" --campo "decision=aprobado" --campo "decidido_por=Ejecutiva: Laura Méndez" --campo "fecha_decision=2027-02-15" --campo "estado=aprobado" --campo "costo=12000" --campo "cargo=reserva-riesgo" --campo "notas=supera los USD 5.000 que el enfoque de riesgo delega en el gestor: decide la ejecutiva (plan de contingencia §4)"
 C-005
 ```
 
 ```
-$ python3 $EST/registro.py --proyecto gestion actualizar riesgos R-003 --campo "acciones=SLA de 99,9 % con penalidad y correo como factor alternativo · costo USD 2.500 · contingencia activada (C-005): proveedor de SMS alternativo en paralelo · costo USD 11.000" --campo "probabilidad_residual=2" --campo "impacto_residual=3"
+$ python3 $EST/registro.py --proyecto gestion agregar decisiones --campo "fecha=2027-02-15" --campo "decision=Activar el plan de contingencia de R-003 (C-005)" --campo "contexto=disparador alcanzado: caídas del proveedor de SMS el 2027-01-20 y el 2027-02-03; R-003 en P4 × I5 = 20" --campo "opciones_consideradas=activar el plan · esperar una tercera caída · solo el correo como factor alternativo" --campo "decidido_por=Ejecutiva: Laura Méndez" --campo "nivel=ejecutivo" --campo "revisar_en=2027-03-01" --campo "artefactos_afectados=03-control/registros/R-003-plan-contingencia.md; riesgos.csv R-003"
+D-018
+```
+
+```
+$ python3 $EST/registro.py --proyecto gestion agregar acciones --campo "fecha=2027-02-15" --campo "origen=R-003" --campo "descripcion=Conmutar el segundo factor al proveedor alternativo y verificarlo con socios de prueba (plan de contingencia, acción 2)" --campo "responsable=Lucía Benítez" --campo "fecha_compromiso=2027-02-25" --campo "prioridad=alta"
+A-005
+```
+
+```
+$ python3 $EST/registro.py --proyecto gestion actualizar riesgos R-003 --campo "acciones=Acuerdo marco sin costo fijo con un proveedor de SMS alternativo; al disparo, activarlo en paralelo durante 6 meses con conmutación · costo 0 · ΔEMV 2.500 · valor neto 2.500 · contingencia 12.000 · O4 (gestion/03-control/registros/opciones-riesgo/R-003.csv) · D-004 · contingencia activada el 2027-02-15 (C-005, A-005)" --campo "probabilidad_residual=2" --campo "impacto_residual=3"
 ok
 ```
 
 ```
 $ python3 $EST/sanidad.py --proyecto gestion --rapido --corte 2027-02-15
 Sanidad de 'Portal de autoservicio para socios' (entrega/CS): 0 ERROR · 2 AVISO · 1 INFO
-  AVISO CAM-03 Reserva de riesgo al 81 % (38.800 de 47.800).
+  AVISO CAM-03 Reserva de riesgo al 94 % (37.300 de 39.800).
         → Avisar a la junta antes de aprobar más cambios.
-  AVISO EST-12 Condiciones abiertas de decision-ad-hoc: usar USD 10.000 del presupuesto de riesgo para un análisis normativo; revisar R-008 en la próxima junta.
+  AVISO EST-12 Condiciones abiertas de decision-ad-hoc: usar USD 10.000 del presupuesto de riesgo para un análisis normativo; revisar R-007 en la próxima junta.
         → estado.py cumplir-condiciones <tipo> cuando se cumplan.
   INFO  TOL-03 Etapa de entrega sin corte de EVM guardado: el pronóstico contra tolerancias no se vigila.
         → evm.py … --proyecto <dir> --guardar --corte AAAA-MM-DD en cada período.
@@ -1512,19 +1735,19 @@ Sanidad de 'Portal de autoservicio para socios' (entrega/CS): 0 ERROR · 2 AVISO
 
 ```
 $ (pm-riesgos: remanente de la reserva frente al EMV residual planificado de las amenazas abiertas, desde estado.json, cambios.csv y riesgos.csv)
-presupuesto 47.800 · consumido 38.800 (81 %) · remanente 9.000
+presupuesto 39.800 · consumido 37.300 (94 %) · remanente 2.500
 R-002  EMV residual  4.500
-R-003  EMV residual  7.500
+R-003  EMV residual  2.400
 R-004  EMV residual  3.600
 R-005  EMV residual  5.400
-R-007  EMV residual  1.800
-R-008  EMV residual 12.000
-EMV residual planificado de las amenazas abiertas: 34.800
+R-007  EMV residual 12.000
+EMV residual planificado de las amenazas abiertas: 27.900
+reserva de gestión (lo no identificado, fuera del presupuesto de riesgo): 6.200 sin uso; la libera solo la junta
 ```
 
 ```
-$ python3 $EST/registro.py --proyecto gestion agregar decisiones --campo "fecha=2027-02-15" --campo "decision=Mantener el presupuesto de riesgo en 47.800; hasta el límite de etapa todo nuevo uso de la reserva lo decide la ejecutiva (se suspende la delegación de USD 5.000 al gestor)" --campo "contexto=AVISO CAM-03: reserva de riesgo al 81 % tras C-005; remanente 9.000 frente a un EMV residual de 34.800" --campo "opciones_consideradas=ampliar el presupuesto de riesgo con reserva de gestión · mantenerlo y concentrar la autoridad · pedir plan de excepción" --campo "decidido_por=Ejecutiva: Laura Méndez" --campo "nivel=ejecutivo" --campo "revisar_en=2027-03-01" --campo "artefactos_afectados=02-planificacion/enfoques/enfoque-riesgo.md §7"
-D-015
+$ python3 $EST/registro.py --proyecto gestion agregar decisiones --campo "fecha=2027-02-15" --campo "decision=Mantener el presupuesto de riesgo en 39.800; hasta el límite de etapa todo nuevo uso de la reserva lo decide la ejecutiva (se suspende la delegación de USD 5.000 al gestor) y lo que supere el remanente va a la junta" --campo "contexto=AVISO CAM-03: reserva de riesgo al 94 % tras C-005; remanente 2.500 frente a un EMV residual de 27.900; la reserva de gestión (6.200, lo no identificado) sigue intacta y solo la libera la junta" --campo "opciones_consideradas=pedir a la junta que pase reserva de gestión al presupuesto de riesgo · mantenerlo y concentrar la autoridad · pedir plan de excepción" --campo "decidido_por=Ejecutiva: Laura Méndez" --campo "nivel=ejecutivo" --campo "revisar_en=2027-03-01" --campo "artefactos_afectados=02-planificacion/enfoques/enfoque-riesgo.md §7"
+D-019
 ```
 
 ```
@@ -1533,14 +1756,14 @@ Portal de autoservicio para socios · entrega/CS · etapa 2 Release 1 (2026-11-2
 Autorizado: sí
 Roles: ejecutivo=Laura Méndez; usuario_senior=Sofía Ramírez; proveedor_senior=Diego Ferreira; gestor_proyecto=Martín Suárez; aseguramiento=Andrea Costa; autoridad_cambio=Sofía Ramírez; product_owner=Sofía Ramírez; jefes_equipo=Lucía Benítez
 Tolerancias: proyecto: tiempo=±3 semanas, costo=±8 %, alcance=Must sin tolerancia, beneficios=-10 %, riesgo=ningún riesgo alto sin respuesta; exposición total ≤ USD 60.000 | etapa: tiempo=±10 %, costo=±10 %
-Presupuestos: riesgo=47800
+Presupuestos: riesgo=39800, gestion=6200
 Condiciones abiertas: decision-ad-hoc
 Artefactos: 14 (4 aprobados)
 Última puerta: decision-ad-hoc · aprobado · 2027-01-12 · Ejecutiva: Laura Méndez
 Próxima puerta: autorizar-etapa · 2 bloqueo(s) · 1 condición(es) (detalle: puertas.py verificar autorizar-etapa)
 Fase: entrega · Proceso: CS · Etapa 2: Release 1 · Enfoque: hibrido
 Control de etapa (CS) + entrega (MP): autorizar paquetes de trabajo, checkpoints, iteraciones con review/retro, revisar riesgos/issues, highlight reports a la junta. Al acercarse el fin de etapa: estado.py limite-etapa. Pronóstico fuera de tolerancia: informe de excepción → pm-director. Agente: pm-control.
-Condiciones abiertas: decision-ad-hoc: usar USD 10.000 del presupuesto de riesgo para un análisis normativo; revisar R-008 en la próxima junta
+Condiciones abiertas: decision-ad-hoc: usar USD 10.000 del presupuesto de riesgo para un análisis normativo; revisar R-007 en la próxima junta
 ```
 
 ## Paso 14 · Límite de etapa: auditoría de riesgos, lecciones y cierre de riesgos
@@ -1549,11 +1772,16 @@ $ python3 $EST/estado.py --proyecto gestion limite-etapa
 ok
 Fase: entrega · Proceso: SB · Etapa 2: Release 1 · Enfoque: hibrido
 Límite de etapa (SB): informe de fin de etapa, plan de la siguiente etapa, actualizar plan de proyecto, business case, riesgos y lecciones. Puerta: autorizar-etapa (o si es la última etapa: estado.py cierre). Agentes: pm-planificacion + pm-control.
-Condiciones abiertas: decision-ad-hoc: usar USD 10.000 del presupuesto de riesgo para un análisis normativo; revisar R-008 en la próxima junta
+Condiciones abiertas: decision-ad-hoc: usar USD 10.000 del presupuesto de riesgo para un análisis normativo; revisar R-007 en la próxima junta
 ```
 
 ```
 $ python3 $EST/registro.py --proyecto gestion actualizar acciones A-004 --campo "estado=completada" --campo "fecha_cierre=2027-02-26"
+ok
+```
+
+```
+$ python3 $EST/registro.py --proyecto gestion actualizar acciones A-005 --campo "estado=completada" --campo "fecha_cierre=2027-02-24"
 ok
 ```
 
@@ -1568,7 +1796,7 @@ ok
 ```
 
 ```
-$ python3 $EST/registro.py --proyecto gestion actualizar riesgos R-008 --campo "probabilidad=2" --campo "fecha_revision=2027-03-15" --campo "notas=WBS 3.1 y 3.3 · interesado ST-004 · hoja: 03-control/registros/R-008-hoja-riesgo.md · decisión de la junta del 2027-01-12 · análisis normativo (A-004): la biometría se exigiría desde 2028, después del Release 2"
+$ python3 $EST/registro.py --proyecto gestion actualizar riesgos R-007 --campo "probabilidad=2" --campo "fecha_revision=2027-03-15" --campo "notas=WBS 3.1 y 3.3 · interesado ST-004 · hoja: 03-control/registros/R-007-hoja-riesgo.md · decisión de la junta del 2027-01-12 (C-004) · análisis normativo (A-004): la biometría se exigiría desde 2028, después del Release 2"
 ok
 ```
 
@@ -1583,17 +1811,12 @@ ok
 ```
 
 ```
-$ python3 $EST/registro.py --proyecto gestion actualizar riesgos R-007 --campo "fecha_revision=2027-03-15"
-ok
-```
-
-```
 $ python3 $EST/registro.py --proyecto gestion agregar lecciones --campo "fecha=2027-03-01" --campo "etapa=2" --campo "categoria=riesgo" --campo "situacion=R-001 se materializó: el entorno de pruebas del núcleo dependía de otra área" --campo "efecto=USD 8.000 de la reserva de riesgo (C-002) y 3 días de atraso en WBS 3.2 (sin el entorno temporal, 2 semanas)" --campo "recomendacion=exigir el entorno de pruebas como condición de la puerta autorizar-etapa" --campo "prioridad=alta" --campo "responsable_seguimiento=Martín Suárez"
 L-001
 ```
 
 ```
-$ python3 $EST/registro.py --proyecto gestion agregar lecciones --campo "fecha=2027-03-01" --campo "etapa=2" --campo "categoria=riesgo" --campo "situacion=La revisión de riesgos del 2026-12-29 no se hizo; la sanidad lo avisó con REG-09 desde el 2027-01-12 y la revisión se postergó hasta el 2027-02-12 porque la junta y el issue de R-001 ocuparon las revisiones del sprint" --campo "efecto=el disparador de R-003 se alcanzó sin que nadie lo mirara y la acción A-004 venció sin replanificar; la contingencia (C-005) llevó la reserva al 81 %" --campo "recomendacion=empezar cada revisión de sprint por los REG-09 de la sanidad del día y no cerrarla con riesgos de revisión vencida, aunque haya urgencias" --campo "prioridad=alta" --campo "responsable_seguimiento=Martín Suárez"
+$ python3 $EST/registro.py --proyecto gestion agregar lecciones --campo "fecha=2027-03-01" --campo "etapa=2" --campo "categoria=riesgo" --campo "situacion=La revisión de riesgos del 2026-12-29 no se hizo; la sanidad lo avisó con REG-09 desde el 2027-01-12 y la revisión se postergó hasta el 2027-02-12 porque la junta y el issue de R-001 ocuparon las revisiones del sprint" --campo "efecto=el disparador de R-003 se alcanzó sin que nadie lo mirara y la acción A-004 venció sin replanificar; la contingencia (C-005) llevó la reserva al 94 %" --campo "recomendacion=empezar cada revisión de sprint por los REG-09 de la sanidad del día y no cerrarla con riesgos de revisión vencida, aunque haya urgencias" --campo "prioridad=alta" --campo "responsable_seguimiento=Martín Suárez"
 L-002
 ```
 
@@ -1606,14 +1829,14 @@ ok
 $ python3 $EST/registro.py --proyecto gestion resumen --corte 2027-03-01
 {
   "riesgos": {
-    "total": 8,
+    "total": 7,
     "por_estado": {
       "ocurrido": 1,
-      "en-seguimiento": 5,
+      "en-seguimiento": 4,
       "retirado": 1,
       "cerrado": 1
     },
-    "abiertos": 5,
+    "abiertos": 4,
     "altos_abiertos": 0,
     "umbrales": {
       "alto": 15.0,
@@ -1623,10 +1846,9 @@ $ python3 $EST/registro.py --proyecto gestion resumen --corte 2027-03-01
     "sin_propietario": [],
     "top": [
       "R-003 (10, medio) El proveedor de SMS no cumple la disponibilidad",
-      "R-008 (10, medio) La norma exige biometría para operaciones de préstamo (FR-6)",
+      "R-007 (10, medio) La norma exige biometría para operaciones de préstamo (FR-6)",
       "R-002 (8, medio) Resistencia a usar la consola",
-      "R-004 (8, medio) Cumplimiento exige cambios en FR-5",
-      "R-007 (6, medio) El proveedor de SMS falla y la penalidad cobrada no cubre el costo del atraso"
+      "R-004 (8, medio) Cumplimiento exige cambios en FR-5"
     ],
     "sin_respuesta_total": 0,
     "sin_propietario_total": 0
@@ -1649,7 +1871,7 @@ $ python3 $EST/registro.py --proyecto gestion resumen --corte 2027-03-01
     "abiertos": 4
   },
   "decisiones": {
-    "total": 15
+    "total": 19
   },
   "supuestos": {
     "total": 0,
@@ -1672,9 +1894,9 @@ $ python3 $EST/registro.py --proyecto gestion resumen --corte 2027-03-01
     "abiertos": 0
   },
   "acciones": {
-    "total": 4,
+    "total": 5,
     "por_estado": {
-      "completada": 4
+      "completada": 5
     },
     "abiertos": 0,
     "vencidas": [],
@@ -1686,7 +1908,7 @@ $ python3 $EST/registro.py --proyecto gestion resumen --corte 2027-03-01
 ```
 
 ```
-$ python3 $EST/estado.py --proyecto gestion cumplir-condiciones decision-ad-hoc --fecha 2027-03-01 --por "Ejecutiva: Laura Méndez" --nota "R-008 revisado en la junta; análisis normativo entregado (C-004)"
+$ python3 $EST/estado.py --proyecto gestion cumplir-condiciones decision-ad-hoc --fecha 2027-03-01 --por "Ejecutiva: Laura Méndez" --nota "R-007 revisado en la junta; análisis normativo entregado (C-004)"
 ok
 ```
 
@@ -1700,13 +1922,13 @@ Puerta autorizar-etapa: 2 bloqueo(s) · 0 condición(es) · 0 aviso(s)
 
 ```
 $ python3 $EST/exportar.py xlsx --proyecto gestion
-Escrito gestion/exportados/2026-10-20-registros.xlsx
+Escrito gestion/exportados/2026-10-22-registros.xlsx
 ```
 
 ```
 $ python3 $EST/sanidad.py --proyecto gestion --rapido --corte 2027-03-01
 Sanidad de 'Portal de autoservicio para socios' (entrega/SB): 0 ERROR · 1 AVISO · 1 INFO
-  AVISO CAM-03 Reserva de riesgo al 81 % (38.800 de 47.800).
+  AVISO CAM-03 Reserva de riesgo al 94 % (37.300 de 39.800).
         → Avisar a la junta antes de aprobar más cambios.
   INFO  TOL-03 Etapa de entrega sin corte de EVM guardado: el pronóstico contra tolerancias no se vigila.
         → evm.py … --proyecto <dir> --guardar --corte AAAA-MM-DD en cada período.
@@ -1714,39 +1936,38 @@ Sanidad de 'Portal de autoservicio para socios' (entrega/SB): 0 ERROR · 1 AVISO
 
 ```
 $ (exposición de amenazas abiertas al 01-mar, desde riesgos.csv: suma de valor_esperado y del EMV residual planificado)
-amenazas abiertas: R-002, R-003, R-004, R-007, R-008
-exposición actual (EMV): USD 29.400 · EMV residual planificado: USD 29.400
+amenazas abiertas: R-002, R-003, R-004, R-007
+exposición actual (EMV): USD 27.600 · EMV residual planificado: USD 22.500
 ```
 
 ```
 $ (riesgos.csv al cierre de la etapa: id, tipo, P×I, residual, EMV, respuesta, estado)
 R-001 amen P4×I4= 16 res P2×I4 EMV   21000 reducir    ocurrido
 R-002 amen P2×I4=  8 res P2×I3 EMV    4500 reducir    en-seguimiento
-R-003 amen P2×I5= 10 res P2×I3 EMV    7500 transferir en-seguimiento
+R-003 amen P2×I5= 10 res P2×I3 EMV    7500 contingencia en-seguimiento
 R-004 amen P2×I4=  8 res P2×I4 EMV    3600 aceptar    en-seguimiento
 R-005 amen P3×I3=  9 res P2×I3 EMV    9000 reducir    retirado
 R-006 opor P3×I3=  9 res P4×I3 EMV    4000 explotar   cerrado
-R-007 amen P2×I3=  6 res P2×I3 EMV    1800 aceptar    en-seguimiento
-R-008 amen P2×I5= 10 res P2×I4 EMV   12000 reducir    en-seguimiento
+R-007 amen P2×I5= 10 res P2×I4 EMV   12000 reducir    en-seguimiento
 ```
 
 ```
 $ (gráficos de la etapa → g1-consumo-reserva.png, g1-exposicion-tendencia.png y g1-tarjetas-etapa.png; datos)
 consumo de la reserva (CAM-03):
-  27-nov · C-001 respuestas: 9.800 de 47.800 (21 %)
-  18-dic · C-002 y C-003 sin R-###: 20.800 de 47.800 (44 %)
-  18-dic · C-003 rechazado: 17.800 de 47.800 (37 %)
-  12-ene · C-004 análisis normativo: 27.800 de 47.800 (58 %)
-  15-feb · C-005 contingencia R-003: 38.800 de 47.800 (81 %)
-  01-mar · fin de etapa: 38.800 de 47.800 (81 %)
+  27-nov · C-001 respuestas: 7.300 de 39.800 (18 %)
+  18-dic · C-002 y C-003 sin R-###: 18.300 de 39.800 (46 %)
+  18-dic · C-003 rechazado: 15.300 de 39.800 (38 %)
+  12-ene · C-004 análisis normativo: 25.300 de 39.800 (64 %)
+  15-feb · C-005 contingencia R-003: 37.300 de 39.800 (94 %)
+  01-mar · fin de etapa: 37.300 de 39.800 (94 %)
 exposición por corte (actual · residual planificado):
   03-nov: 53.600 · —
-  04-nov: 55.400 · 31.800
-  15-dic: 52.400 · 31.800
-  12-ene: 51.400 · 34.800
-  12-feb: 56.400 · 34.800
-  01-mar: 29.400 · 29.400
-tarjetas: exposición 29.400 · reserva 81 % · altos abiertos 0 (sin respuesta 0) · acciones vencidas 0 · revisiones vencidas 0 · condiciones abiertas 0
+  04-nov: 53.600 · 32.500
+  15-dic: 50.600 · 32.500
+  12-ene: 49.600 · 35.500
+  12-feb: 54.600 · 35.500
+  01-mar: 27.600 · 22.500
+tarjetas: exposición 27.600 · reserva 94 % (reserva de gestión 6.200 sin uso) · altos abiertos 0 (sin respuesta 0) · acciones vencidas 0 · revisiones vencidas 0 · condiciones abiertas 0
 ```
 
 ## Paso 15 · Variante sin BMAD: destilar riesgos de los artefactos del proyecto

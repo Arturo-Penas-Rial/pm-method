@@ -8,7 +8,7 @@
    "titulo": "¿Vale la pena?",
    "duracion_min": 90,
    "objetivos": [
-    "Armar un mapa de supuestos y elegir dónde invertir primero en aprender",
+    "Partir de las lecciones aprobadas de otros proyectos y armar un mapa de supuestos para elegir dónde invertir primero en aprender",
     "Diseñar un experimento barato con criterio previo y llevar el resultado al caso",
     "Comparar opciones contra no hacer nada con VAN, TIR, repago y punto de equilibrio",
     "Elegir el enfoque de entrega por entregable con criterios y contrastarlo con un mapa de Wardley"
@@ -46,9 +46,9 @@
       "Ausentismo del 18 %: 43.200 turnos perdidos por año",
       "USD 216.000 de margen no realizado (USD 5 por turno)",
       "Restricción: teléfono y presencial se mantienen",
-      "Ejecutiva Carmen Olivera · gestor Pablo Rinaldi"
+      "3 lecciones aprobadas de la red: adopción en mayores de 65, agenda (4 → 14 semanas), línea base"
      ],
-     "nota": "Todo el escenario es ficticio. Los datos de la red vienen del mandato (paso 1). La base de comparación de las opciones es seguir igual: 43.200 turnos perdidos por año."
+     "nota": "Todo el escenario es ficticio. Ejecutiva Carmen Olivera, gestor Pablo Rinaldi. Los datos de la red vienen del mandato (paso 1). Las lecciones salen del índice que exportó la PMO: lecciones.py buscar devuelve 3 de 4 aprobadas que coinciden (una sin aprobar no aparece) y, con la confirmación de Pablo, incorporar las registra como L-001 a L-003 con su origen; en el paso 6 quedan accionadas en el brief. La base de comparación de las opciones es seguir igual: 43.200 turnos perdidos por año."
     },
     {
      "tipo": "contenido",
@@ -273,6 +273,7 @@
     "Definir beneficios con dueño, línea base y fecha",
     "Separar contingencia, reserva de gestión y presupuesto de cambio",
     "Adaptar la formalidad de la gestión al contexto",
+    "Mapear cada requisito a la persona de usuario que lo pide, lo usa o lo aprovecha (STK-13)",
     "Llevar el proyecto a autorizar-proyecto sin hipótesis ocultas: validar o aceptar por escrito (P-11)"
    ],
    "diapositivas": [
@@ -311,18 +312,18 @@
      "titulo": "Retomar la sesión: mandan los registros",
      "puntos": [
       "La iniciación empieza semanas después, en otra sesión",
-      "El hook de inicio agrega el contexto de estado.json y los registros",
+      "El hook de inicio agrega el contexto y la línea del radar",
       "Al 2027-01-08: S-003 y S-006 sin validar",
-      "Próxima puerta: autorizar-proyecto",
+      "Radar: decidir 0 · escalar 0 · desbloquear 0 · vigilar 2 (S-003)",
       "Una nota de memoria que diga otra cosa está desactualizada"
      ],
-     "nota": "Es la salida de estado.py contexto, acotada a 2.000 caracteres y con ids. Nadie retoma el proyecto con lo que recordaba: retoma con lo que dicen los registros."
+     "nota": "Son las salidas de estado.py contexto (acotada a 2.000 caracteres, con ids) y de estado.py radar --linea, que el hook agrega a cada sesión. Nada que decidir todavía: se vigilan los dos supuestos en validación, S-003 (2027-01-14) y S-006 (2027-01-29). La línea no corre la verificación de la puerta; el detalle (estado.py radar) la suma. Próxima puerta: autorizar-proyecto. Nadie retoma el proyecto con lo que recordaba."
     },
     {
      "tipo": "demo",
      "titulo": "En vivo · paso 7: verificar la puerta antes de tiempo",
      "prompt": "Retomemos el proyecto de turnos: ¿dónde quedamos al 2027-01-08? Después pasá el caso de negocio a su versión completa con la cadena de valor, B-01 y B-02 con línea base, meta, dueña y tolerancia, y el des-beneficio. Antes de seguir, verificá qué le falta al proyecto para la puerta autorizar-proyecto. Después armá el enfoque de beneficios: mediciones al fin de cada etapa y a los 6 y 12 meses del cierre, a cargo de la red.",
-     "nota": "Primero el contexto de sesión; después la verificación, que muestra el código de cada hallazgo. La tabla de la siguiente diapositiva es la lista de trabajo de la iniciación."
+     "nota": "Primero el contexto de sesión y la línea del radar; después la verificación, que muestra el código de cada hallazgo. La tabla de la siguiente diapositiva es la lista de trabajo de la iniciación."
     },
     {
      "tipo": "tabla",
@@ -402,7 +403,19 @@
       "Inés Ferrer: usuaria sénior, PO y autoridad de cambio",
       "Se aligeran los documentos, no las decisiones"
      ],
-     "nota": "La adaptación queda en el PID, sección 8. Cada fila dice qué se adaptó, cómo y por qué. Eso es lo que la junta aprueba junto con los enfoques. Antes de la adaptación, lo que pide la puerta en organización (breve; E2E-3 lo desarrolla): junta completa con ejecutiva, usuaria sénior y proveedor sénior; 7 interesados en la matriz (2 de cerca, 3 satisfechos, 2 informados); RACI de 18 filas en 4 elementos, una A por elemento, sobre productos de la WBS y REQ-006."
+     "nota": "La adaptación queda en el PID, sección 8. Cada fila dice qué se adaptó, cómo y por qué. Eso es lo que la junta aprueba junto con los enfoques. Lo que pide la puerta en organización (paso 10) (breve; E2E-3 lo desarrolla): junta completa con ejecutiva, usuaria sénior y proveedor sénior; 7 interesados en la matriz (2 de cerca, 3 satisfechos, 2 informados); RACI de 18 filas en 4 elementos, una A por elemento, sobre productos de la WBS y REQ-006."
+    },
+    {
+     "tipo": "imagen",
+     "titulo": "Para quién es cada requisito: capacidad × persona",
+     "imagen": "docs/guias/img/g5-personas-mapa.png",
+     "nota": "Paso 10b. Prompt: «¿Quiénes van a usar o pedir lo que estamos por construir? Proponé personas desde el recorrido del paciente y el mandato…». interesados.py personas candidatos propone una, el paciente que agenda por teléfono; Inés Ferrer la confirma y se agregan la recepcionista del call center (supuesto a validar) y el paciente mayor de 65 (evidencia: la lección L-001). La sanidad da STK-13: REQ-006, Must, sin persona; nadie lo usa, lo aprovecha el paciente, y el aviso se resuelve. Resultado: los 4 Must con persona; REQ-003 sirve a las tres. Una persona no es un interesado: cada una se ancla al interesado que la representa (ST-006, ST-005)."
+    },
+    {
+     "tipo": "imagen",
+     "titulo": "Con BMAD, las personas salen de los recorridos del PRD",
+     "imagen": "docs/guias/img/g5-personas-mapa-bmad.png",
+     "nota": "Paso 16b, contraste con la variante a. personas candidatos --desde bmad lee UJ-1…3 (solo lectura) y propone a Marta, Diego y Lucía con la cita prd.md:línea y los FR de cada recorrido; Martín Suárez confirma y mapea los FR sin recorrido: FR-8 a Diego y a Lucía, FR-12 a Diego como beneficiario, y Lucía pide la bandeja única (FR-9). Los 12 FR tienen persona. El PRD no prioriza: STK-13 empieza a vigilar cuando el backlog fija MoSCoW (E2E-4). El recorrido de UJ-2 se siembra con --persona PU-002 (paso 17)."
     },
     {
      "tipo": "tabla",
@@ -453,7 +466,7 @@
      "tipo": "imagen",
      "titulo": "El ágil aligera documentos, no puertas",
      "imagen": "docs/guias/img/g5-tres-disenos.png",
-     "nota": "El regulado pide 16 artefactos y 7 tolerancias; el pequeño, 7 y 2; el ágil, 12 artefactos con enfoques más cortos. El diseño real del caso es un cuarto punto: híbrido con 3 etapas."
+     "nota": "El regulado pide 16 artefactos y 7 tolerancias; el pequeño, 7 y 2; el ágil, 12 artefactos con enfoques más cortos. El diseño real del caso es un cuarto punto: híbrido con 3 etapas. Preguntá a la sala qué diseño le corresponde a su proyecto y qué dejaría de escribir: depende del riesgo, el costo y los interesados, no del gusto del equipo; nunca se dejan las decisiones de la junta, las tolerancias de tiempo y costo ni quién libera cada reserva. Lo trabajan en la parte B del ejercicio."
     },
     {
      "tipo": "contenido",
@@ -474,34 +487,22 @@
      "nota": "Sanidad al 2027-01-14 en 0 avisos; verificación con 1 bloqueo (L-01: la lista, que se arma en la junta) y la condición P-11. Después del segundo prompt: S-003 validado, D-009 y el aviso P-11 con S-006 (D-009); la puerta queda aprobada (D-010) y el resumen dice Autorizado: sí."
     },
     {
-     "tipo": "pregunta",
-     "titulo": "Discusión",
-     "pregunta": "¿Qué diseño le corresponde a tu proyecto: pequeño, regulado, ágil o híbrido? ¿Qué dejarías de escribir y qué no?",
-     "nota": "Respuesta esperada: depende del riesgo, el costo y los interesados, no del gusto del equipo. Lo que nunca se deja: las decisiones de la junta, las tolerancias de tiempo y costo y quién libera cada reserva."
-    },
-    {
      "tipo": "indicadores",
      "titulo": "Proyecto autorizado: el tablero de una página",
      "imagen": "docs/guias/img/g5-tablero.png",
-     "nota": "VAN 263.229 con el presupuesto real (TIR 51,1 %), 4 de 4 supuestos críticos tratados (2 validados, 1 ajustado, 1 aceptado con D-009), presupuesto autorizado 179.340, enfoque híbrido, tolerancia de costo ±10 % y la puerta aprobada el 2027-01-15 con P-11 en aviso. La tarjeta de la puerta sale de puertas.py verificar --json."
-    },
-    {
-     "tipo": "imagen",
-     "titulo": "Los mapas, tratados, en su tablero",
-     "imagen": "docs/guias/img/g5-tablero-mapas-169.png",
-     "nota": "mapas.py tablero dibuja los dos mapas del paso 5b en SVG propio, sin mmdc, con los vínculos de los pasos 6 y 9. Avisos MAP vigentes: 0. La agenda clínica, con inercia, muestra «inercia → R-001»; cada dolor del paciente tiene su tratamiento: P1 → S-001, P4 → S-002, P5 → REQ-003 y REQ-005. Los ids enlazan a la tabla de vínculos con estado y responsable. La variante con BMAD termina igual (g5-tablero-mapas-bmad.png)."
+     "nota": "VAN 263.229 con el presupuesto real (TIR 51,1 %), 4 de 4 supuestos críticos tratados (2 validados, 1 ajustado, 1 aceptado con D-009), presupuesto autorizado 179.340, enfoque híbrido, tolerancia de costo ±10 % y la puerta aprobada el 2027-01-15 con P-11 en aviso. La tarjeta de la puerta sale de puertas.py verificar --json. El tablero de mapas (g5-tablero-mapas.png, paso 14) cierra igual: 0 avisos MAP, la agenda con «inercia → R-001», cada dolor del paciente con su tratamiento y las lecciones L-002 y L-003 en accionada-proyecto entre los vínculos citados."
     },
     {
      "tipo": "contenido",
-     "titulo": "Aceptar no es olvidar: la sanidad al 2027-02-01",
+     "titulo": "Aceptar no es olvidar: el radar al 2027-02-01",
      "puntos": [
       "El dictamen de S-006 no llegó el 2027-01-29",
-      "SUP-02: S-006 con la fecha límite vencida",
-      "REG-09: R-001, R-002 y R-003 con la revisión vencida",
-      "Cada aviso nombra al propietario y la acción",
-      "El contexto de sesión sigue listando S-006"
+      "Sanidad: SUP-02 por S-006 y REG-09 por R-001, R-002 y R-003",
+      "Radar: 1 decidir · 0 escalar · 0 desbloquear · 4 vigilar",
+      "Hoy: decidir S-006 (Carmen Olivera): seguir, cambiar o detener",
+      "Vigilar: tres revisiones vencidas y 2 bloqueos de autorizar-etapa"
      ],
-     "nota": "Lo que la junta aceptó y los riesgos que cubren el proyecto siguen bajo control continuo. Sin nadie que se acuerde: la sanidad lo muestra el primer día después de la fecha."
+     "nota": "Prompt: «Corré la sanidad al 2027-02-01. ¿Qué tengo que decidir, escalar y desbloquear hoy?». pm-orquestador corre estado.py radar --corte 2027-02-01, de solo lectura: cada ítem con su regla, responsable y siguiente paso, en un orden reproducible. Escalar una excepción no corresponde: nada fuera de tolerancia ni presupuesto agotado; la opción es el highlight. Lo que la junta aceptó sigue bajo control continuo sin que nadie tenga que acordarse."
     },
     {
      "tipo": "ejercicio",
@@ -511,9 +512,9 @@
       "El tope por cambio de quien aprueba cambios",
       "Qué diseño le corresponde a tu proyecto",
       "Una decisión de adaptación para el PID",
-      "Autoevaluá con los criterios de la hoja"
+      "Dos personas de usuario y los Must de cada una"
      ],
-     "nota": "La hoja está en ejercicio.md. Si alguien no tiene reserva de gestión, que lo anote: es un hallazgo, no un error del ejercicio."
+     "nota": "La hoja está en ejercicio.md; al terminar, cada uno autoevalúa con los criterios de la hoja. Si alguien no tiene reserva de gestión, que lo anote: es un hallazgo, no un error del ejercicio. Lo mismo un Must sin persona."
     },
     {
      "tipo": "cierre",
@@ -521,8 +522,8 @@
      "puntos": [
       "Beneficios con dueño, línea base y fecha (P-04)",
       "Contingencia, reserva de gestión y cambio: bolsas y dueños distintos",
-      "Adaptar es decidir cuánta formalidad y escribir por qué",
-      "Nadie invierte sobre una hipótesis sin saberlo (P-11)",
+      "Adaptar es decidir cuánta formalidad y escribir por qué; cada Must, con su persona",
+      "Nadie invierte sobre una hipótesis sin saberlo (P-11), y el radar dice qué decidir hoy",
       "Siguen E2E-1 (riesgos) y E2E-4 (ejecución con BMAD)"
      ],
      "nota": "El proyecto quedó autorizado con presupuestos, tolerancias y autoridad delegada escritos. Lo que sigue es ejecutarlo: E2E-1 para los riesgos etapa por etapa y E2E-4 para la ejecución, la calidad y el cierre."
@@ -544,12 +545,12 @@
    "definicion": "Primera etapa: diseña el proyecto (caso, planes, enfoques, controles) hasta la puerta autorizar-proyecto."
   },
   {
-   "termino": "Supuesto",
-   "definicion": "Algo que se da por cierto sin evidencia; se registra en supuestos.csv con criticidad y certeza."
+   "termino": "Lección previa",
+   "definicion": "Lección aprobada de otro proyecto, buscada en solo lectura e incorporada con su origen; pide un control temprano y se marca accionada-proyecto."
   },
   {
-   "termino": "Mapa de supuestos",
-   "definicion": "Matriz criticidad × certeza; los supuestos críticos y sin evidencia son hipótesis y se validan primero."
+   "termino": "Supuesto y mapa de supuestos",
+   "definicion": "Supuesto: algo que se da por cierto sin evidencia, en supuestos.csv con criticidad y certeza. El mapa los ubica en criticidad × certeza: los críticos sin evidencia son hipótesis y se validan primero."
   },
   {
    "termino": "Experimento",
@@ -592,12 +593,12 @@
    "definicion": "Propósito, productos mayores, criterios de aceptación y tolerancias de calidad del producto final."
   },
   {
-   "termino": "Contingencia",
-   "definicion": "Reserva para riesgos identificados (EMV más costo de las respuestas); forma parte del BAC."
+   "termino": "Persona de usuario",
+   "definicion": "Arquetipo de quien pide, usa o aprovecha una capacidad; no es un interesado, pero se ancla al interesado que la representa (personas.csv)."
   },
   {
-   "termino": "BAC",
-   "definicion": "Presupuesto a la conclusión: paquetes base más contingencia."
+   "termino": "Contingencia y BAC",
+   "definicion": "Contingencia: reserva para riesgos identificados (EMV más costo de las respuestas). BAC, presupuesto a la conclusión: paquetes base más contingencia."
   },
   {
    "termino": "Reserva de gestión",
@@ -616,12 +617,12 @@
    "definicion": "Documentación de inicio del proyecto: el contrato entre el gestor y la junta."
   },
   {
-   "termino": "Contexto de sesión",
-   "definicion": "Resumen de estado.json y los registros que el hook de inicio agrega al abrir Claude Code; manda sobre la memoria."
+   "termino": "Contexto de sesión y radar",
+   "definicion": "Resumen de estado.json y los registros que el hook de inicio agrega al abrir Claude Code (manda sobre la memoria), con una línea del radar: qué decidir, escalar, desbloquear y vigilar, con responsable y siguiente paso."
   },
   {
-   "termino": "SUP-01…03 y REG-09",
-   "definicion": "Controles de sanidad: crítico sin experimento o fecha; fecha vencida sin resultado; invalidado sin tratar; riesgo abierto con la revisión vencida."
+   "termino": "SUP-01…03, REG-09 y STK-13",
+   "definicion": "Controles de sanidad: crítico sin experimento o fecha; fecha vencida sin resultado; invalidado sin tratar; riesgo abierto con la revisión vencida; requisito Must sin persona que lo pida, use o aproveche."
   },
   {
    "termino": "P-04 y P-11",

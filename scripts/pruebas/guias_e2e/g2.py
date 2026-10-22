@@ -26,41 +26,19 @@ def cpm_tabla(salida):
     return {f["id"]: f for f in filas}, total, fin, camino
 
 
-def reserva(camino, actividades):
-    """σ del camino crítico = √Σσ² con σ = (P − O)/6 de cada actividad crítica; reserva a 2σ."""
-    s = [(a[4] - a[2]) / 6 for a in actividades if a[0] in camino and a[4] > a[2]]
-    sigma = math.sqrt(sum(x * x for x in s))
-    return s, sigma, 2 * sigma
+IMP = f"{RAIZ}/skills/pm-issues-cambios/scripts/impacto.py"
+REL = f"{RAIZ}/skills/pm-agil-hibrido/scripts/release.py"
 
 
-def estado_json(repo):
-    return json.load(open(os.path.join(repo, G, "estado.json"), encoding="utf-8"))
-
-
-def usado_cambio(repo, excluir=""):
-    """Suma de cambios aprobados con cargo al presupuesto de cambio (la misma regla que CAM-03), sin el que se analiza."""
-    tot = 0
-    for c in reg_json(repo, "listar", "cambios"):
-        if c["id"] != excluir and c.get("cargo") == "presupuesto-cambio" and (c.get("decision") == "aprobado" or c.get("estado") in ("aprobado", "implementado", "cerrado")):
-            tot += float(c.get("costo") or 0)
-    return tot
-
-
-def capacidad(repo):
-    """Puntos por release y sprints del release plan (iteraciones distintas) desde backlog.csv."""
-    pts, its = {}, {}
-    for f in csv.DictReader(open(os.path.join(repo, G, "02-planificacion/backlog.csv"), encoding="utf-8")):
-        pts[f["release"]] = pts.get(f["release"], 0) + int(f["estimacion"] or 0)
-        its.setdefault(f["release"], set()).add(f["iteracion"])
-    return pts, {r: len(v) for r, v in its.items()}
-
-
-def tabla_impacto(cid, cab, filas, veredicto, fuentes="cpm.py, wbs.py, inversion.py, backlog.csv y estado.json"):
-    """Análisis de impacto en los objetivos, ANTES de decidir (pm-issues-cambios con las salidas de cpm.py, wbs.py, inversion.py,
-    backlog.csv y estado.json). Queda en la evidencia como tabla."""
-    texto = "\n".join(" | ".join(f) for f in [cab] + filas) + f"\nLectura: {veredicto}"
-    LOG.append((f"(análisis de impacto de {cid} antes de decidir: pm-issues-cambios con {fuentes})", texto))
-    print(texto)
+def impacto(repo, cid, args, fecha):
+    """Análisis de impacto ANTES de decidir (pm-issues-cambios: impacto.py analizar). El texto y la sección 3 a 6 del borrador
+    de la solicitud de cambio quedan en la evidencia; devuelve el --json para las cifras de la guía y los gráficos."""
+    cmd = f'python3 {IMP} --proyecto {G} analizar {cid} {args} --fecha {fecha}'
+    run(cmd, repo)
+    r = json.loads(subprocess.run(cmd + " --json", shell=True, cwd=repo, capture_output=True, text=True, check=True).stdout)
+    md = open(os.path.join(repo, r["salida"]), encoding="utf-8").read()
+    LOG.append((f"(borrador {r['salida']}: §3 análisis de impacto a §6 autoridad y decisión)", md[md.index("## 3."):md.index("**Disposición")].strip()))
+    return r
 
 
 def cobertura(repo, con_backlog):
@@ -145,12 +123,12 @@ gantt
 ```
 """
 R2_BASE = """    Sprints 7 a 9 (21 pts)     :r2, 2027-03-08, 2027-04-16
-    UAT y capacitación         :u, 2027-04-19, 2027-05-03
-    Puesta en producción       :milestone, m3, 2027-05-03, 0d"""
+    UAT y capacitación         :u, 2027-04-21, 2027-05-05
+    Puesta en producción       :milestone, m3, 2027-05-05, 0d"""
 R2_C001 = """    Sprints 7 a 9 (21 pts)     :r2, 2027-03-08, 2027-04-16
-    Sprint 10 simulador (C-001) :crit, s10, 2027-04-19, 2027-05-03
-    UAT y capacitación         :u, 2027-05-04, 2027-05-18
-    Puesta en producción       :milestone, m3, 2027-05-18, 0d"""
+    Sprint 10 simulador (C-001) :crit, s10, 2027-04-21, 2027-05-05
+    UAT y capacitación         :u, 2027-05-06, 2027-05-20
+    Puesta en producción       :milestone, m3, 2027-05-20, 0d"""
 
 # Documentos que redactan las skills dueñas a partir de sus plantillas (versión abreviada para el recorrido; las cifras
 # salen de la WBS, del cronograma y de los registros de esta misma corrida).
@@ -237,7 +215,7 @@ TOLAUT = FM("tolerancias-y-autoridad", "2026-11-27") + """# Tolerancias y autori
 ## 1. Tolerancias por objetivo
 | Objetivo | Meta | Tolerancia | Prioridad | Dónde vive |
 |---|---|---|---|---|
-| Tiempo | puesta en producción 2027-05-03 | ± 3 semanas (proyecto) · ± 10 % (etapa) | 2 | plan de proyecto / etapa |
+| Tiempo | puesta en producción 2027-05-05 | ± 3 semanas (proyecto) · ± 10 % (etapa) | 2 | plan de proyecto / etapa |
 | Costo | BAC 124.000 | ± 8 % (proyecto) · ± 10 % (etapa) | 1 | plan de proyecto / etapa |
 | Alcance | Must del release plan | Must sin tolerancia; Should/Could los intercambia el PO | 3 | backlog / release plan |
 | Calidad | criterios CA y EC | ver descripciones de producto | — | descripciones de producto |
@@ -364,26 +342,28 @@ acts = [  # id, nombre, O, M, P, predecesoras, recurso, wbs
  ("A08", "UAT prueba de carga y capacitación", 8, 10, 16, "A07", "Usuario sénior", "5.1"),
  ("A09", "Puesta en producción", 0, 0, 0, "A08", "Usuario sénior", "5.2"),
 ]
-lineas = ["id,nombre,optimista,mas_probable,pesimista,tE,sigma"]; acsv = ["id,nombre,duracion,predecesoras,recurso,wbs"]
-for i, n, o, m, p, pre, rec, w in acts:
-    te = (o + 4 * m + p) / 6; sg = (p - o) / 6
-    lineas.append(f"{i},{n},{o},{m},{p},{te:.1f},{sg:.2f}"); acsv.append(f"{i},{n},{round(te)},{pre},{rec},{w}")
-escribir(repo, "02-planificacion/estimacion-pert.csv", "\n".join(lineas) + "\n")
-escribir(repo, "02-planificacion/actividades.csv", "\n".join(acsv) + "\n")
-LOG.append(("(estimacion-pert.csv que calcula pm-cronograma-estimacion: tE=(O+4M+P)/6, σ=(P−O)/6)", "\n".join(lineas)))
-cp = run(E(f'cpm.py {G}/02-planificacion/actividades.csv --inicio 2026-11-30 --titulo "Portal de autoservicio para socios" --mermaid {G}/02-planificacion/cronograma.md --mspdi {G}/02-planificacion/cronograma.xml --wbs {G}/02-planificacion/wbs.csv'), repo)
+# actividades.csv con los tres valores que valida Lucía (la duración la deriva cpm.py: tE redondeada hacia arriba)
+ACAB = "id,nombre,duracion,predecesoras,recurso,wbs,optimista,mas_probable,pesimista"
+afila = lambda i, n, o, m, p, pre, rec, w: f"{i},{n},,{pre},{rec},{w},{o},{m},{p}"
+escribir(repo, "02-planificacion/actividades.csv", "\n".join([ACAB] + [afila(*x) for x in acts]) + "\n")
+CPM0 = f'cpm.py {G}/02-planificacion/actividades.csv --inicio 2026-11-30'
+cp = run(E(f'{CPM0} --titulo "Portal de autoservicio para socios" --mermaid {G}/02-planificacion/cronograma.md --mspdi {G}/02-planificacion/cronograma.xml --wbs {G}/02-planificacion/wbs.csv --estimacion {G}/02-planificacion/estimacion-pert.csv'), repo)
 T0, DUR0, FIN0, CAM0 = cpm_tabla(cp)
-s0, SIG0, RES0 = reserva(CAM0, acts)
-LOG.append(("(reserva de cronograma que calcula pm-cronograma-estimacion: σ del camino crítico = √Σσ² de sus actividades; reserva a 2σ)",
-            f"Camino crítico: {' → '.join(CAM0)}\n"
-            f"σ = √({' + '.join(num(x, 2) + '²' for x in s0)}) = {num(SIG0, 2)} días\n"
-            f"Reserva a 2σ = {num(RES0, 1)} días laborables · tolerancia de tiempo del proyecto ±3 semanas = {TOL_DIAS} días laborables (la fija la junta en el paso 5) → la reserva entra en la tolerancia"))
+EST0 = json.loads(subprocess.run(E(f'{CPM0} --json'), shell=True, cwd=repo, capture_output=True, text=True, check=True).stdout)["estimacion"]
+SIG0, RES0, FINR0 = EST0["sigma_camino"], EST0["reserva"], EST0["fin_con_reserva"]   # σ del camino, reserva a 2σ (beta-PERT por defecto)
+LOG.append(("(02-planificacion/estimacion-pert.csv que escribió cpm.py --estimacion; lo lee impacto.py --pert en los pasos 7 y 10)",
+            open(os.path.join(repo, G, "02-planificacion", "estimacion-pert.csv"), encoding="utf-8").read().strip()))
+# la fórmula la declara el enfoque: la misma red con la triangular (la que cita la Guía PMBOK), solo para comparar
+TRI = json.loads(subprocess.run(E(f'{CPM0} --distribucion triangular --json'), shell=True, cwd=repo, capture_output=True, text=True, check=True).stdout)
+LOG.append((f"python3 $EST/{CPM0} --distribucion triangular --json   (comparación; la línea base usa beta-PERT)",
+            f"duracion_total: {TRI['duracion_total']} · sigma_camino: {num(TRI['estimacion']['sigma_camino'], 2)} · reserva a 2σ: {num(TRI['estimacion']['reserva'], 1)} días · "
+            f"fin_con_reserva: {TRI['estimacion']['fin_con_reserva']}"))
 V.gantt([t for t in T0.values() if not t["hito"]], png("gantt"),
         titulo=f"Camino crítico: {DUR0} días, fin el {corta(FIN0)}",
-        subtitulo=f"PERT desde el 30/11/2026 · reserva a 2σ ≈ {num(RES0, 1)} días laborables",
-        fuente="cpm.py sobre actividades.csv (tE de PERT) · corrida de referencia de la guía E2E-2")
+        subtitulo=f"Tres valores (beta-PERT) · reserva a 2σ: {num(RES0, 1)} días · fin con reserva {corta(FINR0)}",
+        fuente="cpm.py --estimacion sobre actividades.csv (tres valores, beta-PERT) · corrida de referencia de la guía E2E-2")
 
-P("Paso 4 · Priorización del backlog: MoSCoW, valor y esfuerzo en puntos")
+P("Paso 4 · Priorización del backlog: MoSCoW, valor, esfuerzo en puntos y personas de usuario")
 run(f'python3 {BMAD} --proyecto {G} backlog', repo)
 pb = os.path.join(repo, G, "02-planificacion/backlog.csv")
 gob = {"1-1": ("Must", 9, 8, "S1", "R1", "3.1"), "1-2": ("Must", 6, 5, "S3", "R1", "3.1"), "1-3": ("Must", 10, 8, "S2", "R1", "3.2"),
@@ -400,9 +380,56 @@ for n, f in enumerate(orden, 1):
 escribir_csv(pb, cab, orden)
 LOG.append(("(backlog.csv: columnas de gobierno completadas por el PO con pm-agil-hibrido; orden = MoSCoW y luego valor/puntos)", "\n".join(tabla)))
 run(f'python3 {BMAD} --proyecto {G} backlog', repo)
-tot = {}
-for f in orden: tot.setdefault((f["release"], f["moscow"]), 0); tot[(f["release"], f["moscow"])] += int(f["estimacion"])
-LOG.append(("(capacidad del release plan: velocidad 8 × iteraciones; Σ Must+Should ≤ capacidad)", "\n".join(f"{k[0]} {k[1]:6s} {v:>3} pts" for k, v in sorted(tot.items())) + "\nR1: 6 sprints × 8 = 48 pts de capacidad (Must+Should = 47) · R2: 3 sprints × 8 = 24 pts (Must+Should = 16; con Could = 21)"))
+# capacidad del release plan (pm-agil-hibrido): velocidad de estado.json.agil × iteraciones; Σ Must + Should ≤ capacidad
+run(f'python3 {REL} --proyecto {G} capacidad', repo)
+CAP = json.loads(subprocess.run(f'python3 {REL} --proyecto {G} capacidad --json', shell=True, cwd=repo, capture_output=True, text=True, check=True).stdout)
+
+
+def capacidad_png(cap, ruta):
+    """Barras apiladas Must/Should/Could por release contra la capacidad (velocidad × iteraciones) de release.py --json."""
+    if not V.OK: return None
+    rs = cap["releases"]; fig = V._fig(f"El {rs[0]['release']} entra con {num(rs[0]['holgura'])} punto{'' if rs[0]['holgura'] == 1 else 's'} de holgura y {rs[0]['pct_must']:.0f} % de Must",
+                                       f"Puntos por MoSCoW contra la capacidad = velocidad {num(cap['velocidad'])} × iteraciones · regla Must + Should ≤ capacidad")
+    ax = fig.add_axes([0.13, 0.14, 0.52, 0.64]); V._ejes(ax, grilla_x=True, grilla_y=False)
+    ys = list(range(len(rs)))[::-1]; mx = max(max(r["capacidad"], r["total"]) for r in rs)
+    for y, r in zip(ys, rs):
+        x0 = 0
+        for k, (clave, nombre) in enumerate((("must", "Must"), ("should", "Should"), ("could", "Could"))):
+            if r[clave]:
+                ax.barh(y, r[clave], left=x0, height=0.5, color=V.SERIE[k], label=nombre if y == ys[0] or not any(rr[clave] for rr in rs[:rs.index(r)]) else None)
+                ax.text(x0 + r[clave] / 2, y, num(r[clave]), va="center", ha="center", fontsize=12, color="white", fontweight="bold")
+            x0 += r[clave]
+        ax.plot([r["capacidad"]] * 2, [y - 0.36, y + 0.36], color=V.TINTA, linewidth=2)
+        ax.text(mx * 1.08, y, f"{num(r['comprometido'])} de {num(r['capacidad'])} (M+S) · holgura {num(r['holgura'])}\nMust {r['pct_must']:.0f} % de la capacidad"
+                + (" · ▲ vigilar" if r["vigilar_must"] else " · ✔ en rango"), va="center", fontsize=12, color=V.TINTA, linespacing=1.5)
+    ax.set_yticks(ys); ax.set_yticklabels([f"{r['release']} · {r['n_iteraciones']} sprints" for r in rs], fontsize=13, color=V.TINTA)
+    ax.set_xlim(0, mx * 1.04); ax.xaxis.set_major_locator(V.matplotlib.ticker.MaxNLocator(integer=True))
+    h, l = ax.get_legend_handles_labels(); orden_l = [l.index(x) for x in ("Must", "Should", "Could") if x in l]
+    fig.legend([h[i] for i in orden_l], [l[i] for i in orden_l], loc="lower left", bbox_to_anchor=(0.13, 0.79), frameon=False, fontsize=12, ncol=3)
+    fig.text(0.96, 0.07, "Línea negra = capacidad del release · regla práctica: Must ≤ 60 %", fontsize=10.5, color=V.MUDA, ha="right")
+    return V._guardar(fig, ruta, "release.py capacidad --json (backlog.csv y estado.json.agil)")
+
+
+capacidad_png(CAP, png("capacidad-release"))
+# Personas de usuario (pm-interesados): ¿cada Must sirve a alguien? Se proponen desde los recorridos UJ-n de BMAD (solo
+# lectura) y la usuaria sénior confirma cada una; el nombre lleva el rol para no confundirla con una persona del equipo.
+# Los dolores salen de la sección «Usuarios» del PRD.
+run(f'python3 {IN} --proyecto {G} personas candidatos --desde bmad', repo)
+cand = {c["origen"][0]: c for c in json.loads(subprocess.run(f'python3 {IN} --proyecto {G} personas candidatos --desde bmad --json', shell=True, cwd=repo,
+                                                             capture_output=True, text=True, check=True).stdout)}
+PU = {}
+for uj, nombre, dolor in (("UJ-1", "Marta (socia que consulta)", "ir a la sucursal o esperar un horario para conseguir una constancia"),
+                          ("UJ-2", "Diego (socio que pide un préstamo)", "no saber en qué estado está su préstamo"),
+                          ("UJ-3", "Lucía (operadora de back-office)", "transcribir pedidos que llegan por varios canales")):
+    c = cand[uj]
+    PU[uj] = reg(repo, "personas", nombre=nombre, descripcion=c["descripcion"], objetivo=c["objetivo"], dolores=dolor, contexto_uso=c["contexto_uso"],
+                 fuente="bmad-uj", evidencia=c["evidencia"], usa=c["usa"], notas="confirmada por Sofía Ramírez (usuaria sénior) el 2026-11-20")
+pz = run(f'python3 {IN} --proyecto {G} personas priorizacion', repo)
+# Must sin persona (STK-13): la usuaria sénior relee UJ-2 («autenticado, con contacto verificado» y «recibe … un correo de
+# confirmación») y vincula FR-8 y FR-12 a Diego, en lugar de bajarles la prioridad.
+if "Must sin persona: FR-8, FR-12" in pz:
+    act(repo, "personas", PU["UJ-2"], usa="FR-6;FR-7;FR-8;FR-12", notas="confirmada por Sofía Ramírez (usuaria sénior) el 2026-11-20 · UJ-2: entra con contacto verificado (FR-8) y recibe la confirmación por correo (FR-12)")
+    run(f'python3 {IN} --proyecto {G} personas priorizacion', repo)
 art(repo, "backlog", "02-planificacion/backlog.csv"); art(repo, "release-plan", "02-planificacion/release-plan.md")
 
 P("Paso 5 · Presupuesto desde la WBS, tolerancias y autoridad de cambio, línea base de alcance y puertas")
@@ -439,37 +466,35 @@ for f in filas:
 escribir_csv(pb, cab, filas)
 run(f'python3 {BMAD} --proyecto {G} handoff', repo)
 
-P("Paso 7 · Cambio de alcance: nueva funcionalidad → análisis de impacto (WBS, esfuerzo, cronograma, costo) → decisión contra el presupuesto de cambio")
+P("Paso 7 · Cambio de alcance: nueva funcionalidad → análisis de impacto (impacto.py) → decisión contra el presupuesto de cambio")
 prd = [os.path.join(dp, f) for dp, _, fs in os.walk(os.path.join(repo, "_bmad-output")) for f in fs if f == "prd.md"][0]
 t = open(prd, encoding="utf-8").read().replace("#### FR-11: Roles y permisos", "#### FR-13: Simulador de préstamo\n\nEl socio puede simular cuota y costo total antes de solicitar un préstamo. Realiza UJ-2.\n\n#### FR-11: Roles y permisos", 1)
 open(prd, "w", encoding="utf-8").write(t)
 run(f'python3 {BMAD} --proyecto {G} verificar', repo, ok=(0, 1, 2))
 I1 = reg(repo, "issues", fecha="2027-01-15", tipo="solicitud-cambio", titulo="Agregar FR-13 simulador de préstamo", descripcion="Pedido del Consejo; detectado como desvío del PRD contra la línea base 1.0", prioridad="alta", severidad="mayor", responsable="Martín Suárez")
 acts2 = acts[:7] + [("A10", "Sprint simulador de préstamo (FR-13)", 8, 10, 16, "A07", "Proveedor", "3.4")] + [("A08", "UAT prueba de carga y capacitación", 8, 10, 16, "A07;A10", "Usuario sénior", "5.1"), acts[8]]
-acsv2 = ["id,nombre,duracion,predecesoras,recurso,wbs"] + [f"{i},{n},{round((o+4*m+p)/6)},{pre},{rec},{w}" for i, n, o, m, p, pre, rec, w in acts2]
-escribir(repo, "02-planificacion/escenarios/actividades-C-001.csv", "\n".join(acsv2) + "\n")
+escribir(repo, "02-planificacion/escenarios/actividades-C-001.csv", "\n".join([ACAB] + [afila(*x) for x in acts2]) + "\n")
 cp1 = run(E(f'cpm.py {G}/02-planificacion/escenarios/actividades-C-001.csv --inicio 2026-11-30 --titulo "Escenario con FR-13"'), repo)
 T1, DUR1, FIN1, CAM1 = cpm_tabla(cp1)
 COSTO1 = 9000; PTS1 = 8; BEN1 = 4000          # monto de C-001 y beneficio anual que estima la usuaria sénior (B-03)
 C001 = conceptos_base(BAC0) + [("C-001 Simulador de préstamo", "inversion", [-COSTO1]), ("B-03 Simulador (C-001)", "beneficio", [0] + [BEN1] * ANIOS)]
 escribir(repo, "02-planificacion/escenarios/flujos-C-001.csv", flujos_csv([("Línea base", conceptos_base(BAC0)), ("Con C-001", C001)]))
 INV1 = inversion(repo, "02-planificacion/escenarios/flujos-C-001.csv")["Con C-001"]
-C1 = reg(repo, "cambios", fecha="2027-01-16", solicitante="Consejo directivo (vía Laura Méndez)", titulo="FR-13 simulador de préstamo", descripcion=f"Origen {I1}", justificacion="mejora la conversión de solicitudes (SM-3)", impacto_alcance="nuevo paquete WBS 3.4 · historia 2-4 · 8 pts", impacto_tiempo="+11 días laborables en el camino crítico (fin 2027-05-03 → 2027-05-18), dentro de la tolerancia de ±3 semanas", impacto_costo="+USD 9.000", impacto_riesgo="la reserva de cronograma a 2σ baja de ≈13 a ≈2 días laborables (riesgo nuevo)", impacto_beneficios=f"refuerza B-03 (SM-3): +{num(BEN1)} por año; VAN del business case {num(INV0['van'])} → {num(INV1['van'])}", recomendacion="aprobar; cargo al presupuesto de cambio (9.000 de 12.000, dentro del límite de 10.000 de la autoridad de cambio); FR-13 como Should en R2", costo="9000", cargo="presupuesto-cambio")
-e_ = estado_json(repo); PC = float(e_["presupuestos"]["cambio"]); LIM = float(e_["presupuestos"]["limite_autoridad_cambio"]); VEL = int(e_["agil"]["velocidad_referencia"])
-u0 = usado_cambio(repo, excluir=C1); pts, spr = capacidad(repo)
+C1 = reg(repo, "cambios", fecha="2027-01-16", solicitante="Consejo directivo (vía Laura Méndez)", titulo="FR-13 simulador de préstamo", descripcion=f"Origen {I1}", justificacion="mejora la conversión de solicitudes (SM-3)", costo="9000", cargo="presupuesto-cambio")
+# FR-13 realiza UJ-2: la usuaria sénior confirma que lo usa la persona de ese recorrido (personas afectadas por el cambio)
+act(repo, "personas", PU["UJ-2"], usa="FR-6;FR-7;FR-8;FR-12;FR-13")
+run(f'python3 {IN} --proyecto {G} personas mapa', repo)
+IM1 = impacto(repo, C1, '--actividades 02-planificacion/escenarios/actividades-C-001.csv --inicio 2026-11-30 --pert 02-planificacion/estimacion-pert.csv '
+              '--flujos 02-planificacion/escenarios/flujos-C-001.csv --opcion "Con C-001" --tasa 0.10 --refs FR-13 --paquetes 3.4 --puntos 8 --release R2', "2027-01-16")
 d1 = DUR1 - DUR0; REM1 = RES0 - d1
-tabla_impacto(C1, ["Objetivo", "Antes", f"Con {C1}", "Contra qué se mide", "Lectura"], [
-    ["Tiempo (camino crítico)", f"{DUR0} días · fin {FIN0}", f"{DUR1} días · fin {FIN1} (+{d1})", f"tolerancia del proyecto ±3 semanas = {TOL_DIAS} días", f"dentro: usa {d1} de {TOL_DIAS} ({100 * d1 / TOL_DIAS:.0f} %)"],
-    ["Reserva de cronograma", f"2σ = {num(RES0, 1)} días", f"{num(RES0, 1)} − {d1} = {num(REM1, 1)} días", "atraso posible del camino crítico", "queda casi agotada: registrar riesgo"],
-    ["Costo (BAC)", num(BAC0), f"{num(BAC0 + COSTO1)} (+{num(COSTO1)})", "presupuesto de cambio, no la tolerancia de costo", "se paga con el presupuesto de cambio"],
-    ["Presupuesto de cambio", f"{num(u0)} de {num(PC)}", f"{num(u0 + COSTO1)} de {num(PC)} ({100 * (u0 + COSTO1) / PC:.0f} %)", "CAM-03: aviso desde 80 %, error sobre 100 %", "dentro del saldo"],
-    ["Autoridad", "—", f"{num(COSTO1)} en un cambio", f"límite de la autoridad de cambio {num(LIM)}", "lo decide la autoridad de cambio" if COSTO1 <= LIM else "lo decide la junta"],
-    ["Capacidad del R2", f"{pts['R2']} pts de {spr['R2'] * VEL} ({spr['R2']} sprints)", f"{pts['R2'] + PTS1} pts de {spr['R2'] * VEL}", f"velocidad {VEL} pts por sprint", f"hace falta 1 sprint más ({spr['R2'] + 1} sprints = {(spr['R2'] + 1) * VEL} pts)" if pts['R2'] + PTS1 > spr['R2'] * VEL else "entra"],
-    ["Business case (VAN a 5 años)", num(INV0["van"]), f"{num(INV1['van'])} ({'+' if INV1['van_incremental'] >= 0 else ''}{num(INV1['van_incremental'])})", f"inversion.py, tasa {100 * TASA:.0f} %", "a favor: el simulador se paga solo" if INV1["van_incremental"] > 0 else "en contra: el cambio resta valor"]],
-    f"{num(COSTO1)} ≤ {num(LIM)} y {num(u0 + COSTO1)} ≤ {num(PC)}: está dentro de la autoridad delegada y lo decide Sofía Ramírez (autoridad de cambio). Antes de aprobar, registrar el riesgo de reserva y agregar el sprint 10.")
+# el gestor deja el análisis en cambios.csv y la autoridad de cambio decide (IM1["nivel"] == "autoridad-cambio")
+act(repo, "cambios", C1, impacto_alcance="nuevo paquete WBS 3.4 · historia 2-4 · 8 pts en R2", impacto_tiempo=f"+{d1} días laborables en el camino crítico (fin {FIN0} → {FIN1}), dentro de la tolerancia de ±3 semanas",
+    impacto_costo=f"+USD {num(COSTO1)}", impacto_riesgo=f"la reserva de cronograma a 2σ baja de {num(RES0, 1)} a {num(REM1, 1)} días laborables (riesgo nuevo)",
+    impacto_beneficios=f"refuerza B-03 (SM-3): +{num(BEN1)} por año; VAN del business case {num(INV0['van'])} → {num(INV1['van'])}",
+    recomendacion=f"{IM1['recomendacion']}: presupuesto de cambio ({num(COSTO1)} de 12.000, dentro del límite de 10.000 de la autoridad de cambio); FR-13 como Should en R2", estado="pendiente-decision")
 act(repo, "cambios", C1, decision="aprobado", decidido_por="Autoridad de cambio: Sofía Ramírez", fecha_decision="2027-01-18", estado="aprobado")
 act(repo, "issues", I1, estado="pendiente-cambio", decision=f"tramitado como {C1}", decidido_por="Autoridad de cambio: Sofía Ramírez")
-R1 = reg(repo, "riesgos", fecha_identificacion="2027-01-18", autor="Martín Suárez", categoria="gestion", causa=f"{C1} suma 11 días laborables al camino crítico y deja la reserva de cronograma a 2σ en ≈2 días", evento="un atraso adicional de más de 2 días laborables en el camino crítico", efecto="la puesta en producción pasa del 2027-05-18 y consume la tolerancia de tiempo del proyecto (±3 semanas)", tipo="amenaza", probabilidad="3", impacto="3", proximidad="mediano-plazo", disparador="SPI de un sprint < 0,90 o atraso acumulado ≥ 2 días en el camino crítico", respuesta="reducir", acciones="vigilar SPI por sprint con evm.py --guardar; preparar con el PO qué Should/Could salen si se dispara", propietario="Martín Suárez", ejecutor="Lucía Benítez", fecha_revision="2027-02-19", notas=f"surge de {C1}")
+R1 = reg(repo, "riesgos", fecha_identificacion="2027-01-18", autor="Martín Suárez", categoria="gestion", causa=f"{C1} suma {d1} días laborables al camino crítico y deja la reserva de cronograma a 2σ en ≈{num(REM1)} días", evento=f"un atraso adicional de más de {num(REM1)} días laborables en el camino crítico", efecto=f"la puesta en producción pasa del {FIN1} y consume la tolerancia de tiempo del proyecto (±3 semanas)", tipo="amenaza", probabilidad="3", impacto="3", proximidad="mediano-plazo", disparador="SPI de un sprint < 0,90 o atraso acumulado ≥ 2 días en el camino crítico", respuesta="reducir", acciones="vigilar SPI por sprint con evm.py --guardar; preparar con el PO qué Should/Could salen si se dispara", propietario="Martín Suárez", ejecutor="Lucía Benítez", fecha_revision="2027-02-19", notas=f"surge de {C1}")
 escribir(repo, "02-planificacion/wbs.csv", WBS.replace("4,Consola de operador", "3.4,Simulador de préstamo (C-001),paquete,Lucía Benítez,180,9000,FR-13\n4,Consola de operador"))
 run(E(f'wbs.py {G}/02-planificacion/wbs.csv --titulo "Portal de autoservicio para socios" --mermaid {G}/02-planificacion/visuales/wbs.md --profundidad 1'), repo)
 run(f'python3 {BMAD} --proyecto {G} handoff --cambio {C1}', repo)
@@ -534,25 +559,14 @@ RECH = run(E(f'registro.py --proyecto {G} actualizar cambios {C2} --campo "decis
 act(repo, "cambios", C2, estado="pendiente-decision", notas="la autoridad de cambio quiso aprobarlo el 2027-02-17; supera su límite de 10.000 y el saldo del presupuesto de cambio (registro.py lo rechazó): decide la junta")
 run(E(f'evm.py --pv 75000 --ev 60000 --ac 77000 --bac 133000 --modo agil --pct-no-must 20 --proyecto {G} --guardar --corte 2027-02-19'), repo)
 s19 = run(E(f'sanidad.py --proyecto {G} --rapido --corte 2027-02-19'), repo, ok=(0, 1, 2))
-e_ = estado_json(repo); u1 = usado_cambio(repo, excluir=C2); pts, spr = capacidad(repo); COSTO2 = 15000; PTS2 = 13
+COSTO2 = 15000
 ev19 = json.load(open(os.path.join(repo, G, "03-control/reportes/evm-2027-02-19.json"), encoding="utf-8"))
 C002 = C001 + [("C-002 Consentimiento y registro", "inversion", [-COSTO2])]
 escribir(repo, "02-planificacion/escenarios/flujos-C-002.csv", flujos_csv([("Línea base", conceptos_base(BAC0)), ("Con C-001", C001), ("Con C-001 y C-002", C002)]))
 INV2 = inversion(repo, "02-planificacion/escenarios/flujos-C-002.csv", base="Con C-001")["Con C-001 y C-002"]
-cap1 = spr["R1"] * VEL; sin_could = pts["R1"] + PTS2 - 5; spr_nec = math.ceil(sin_could / VEL)
-ini, fin = e_["etapa_actual"]["inicio"], e_["etapa_actual"]["fin_previsto"]
-dias_etapa = (datetime.date.fromisoformat(fin) - datetime.date.fromisoformat(ini)).days
-tol_et = float(re.search(r"(\d+)", e_["tolerancias"]["etapa"]["tiempo"])[1]); extra = (spr_nec - spr["R1"]) * int(e_["agil"]["cadencia_iteracion_dias"])
-fin_nuevo = (datetime.date.fromisoformat(fin) + datetime.timedelta(days=extra)).isoformat()
-tabla_impacto(C2, ["Objetivo", "Antes", f"Con {C2}", "Contra qué se mide", "Lectura"], [
-    ["Presupuesto de cambio", f"{num(u1)} de {num(PC)} ({100 * u1 / PC:.0f} %)", f"{num(u1 + COSTO2)} de {num(PC)} ({100 * (u1 + COSTO2) / PC:.0f} %)", "saldo fijado por la junta (registro.py; CAM-03)", "no alcanza: hace falta otra fuente o ampliarlo"],
-    ["Autoridad", f"límite {num(LIM)} por cambio", f"{num(COSTO2)} en un cambio", "límite delegado a la autoridad de cambio", "excedida: registro.py rechazó su aprobación" if COSTO2 > LIM else "dentro"],
-    ["Capacidad del R1", f"{pts['R1']} pts de {cap1} ({spr['R1']} sprints)", f"{pts['R1'] + PTS2} pts; sin la 2-3 (Could, 5): {sin_could} pts", f"velocidad {VEL} pts por sprint", f"{spr_nec} sprints: +{spr_nec - spr['R1']} sprint ({extra} días corridos)"],
-    ["Tiempo de la etapa 2", f"fin {fin} ({dias_etapa} días corridos desde {ini})", f"fin {fin_nuevo} (+{extra})", f"tolerancia de etapa ±{tol_et:.0f} % = {num(dias_etapa * tol_et / 100, 1)} días", "fuera de tolerancia" if extra > dias_etapa * tol_et / 100 else "dentro"],
-    ["Alcance (EVM del 19/2)", f"Should/Could = {ev19['pct_no_must']:.0f} % del alcance", f"no entra {num(ev19['alcance_no_entregable_pct'], 1)} %", "Must sin tolerancia", "los Must peligran" if ev19["excepcion_prevista"] else "los Must no peligran"],
-    ["Business case (VAN a 5 años)", f"{num(INV1['van'])} · B-01 puede caer {num(margen_b01(INV1), 0)} %", f"{num(INV2['van'])} · B-01 puede caer {num(margen_b01(INV2), 0)} %", f"VAN > 0 · tolerancia de beneficios −{100 * VARIACION:.0f} %", "sigue justificado, con menos margen" if INV2["van"] > 0 and margen_b01(INV2) > 100 * VARIACION else "deja de estar justificado"],
-    ["Fin del proyecto", f"{FIN1} (con {C1})", "lo recalcula el plan de proyecto con el plan de excepción", "±3 semanas", "no se recalcula en esta corrida"]],
-    "supera el límite delegado, el saldo del presupuesto de cambio y la tolerancia de tiempo de la etapa: no le corresponde a la autoridad de cambio (queda pendiente-decision). Se gestiona por excepción: informe a la junta.", fuentes="backlog.csv, evm-2027-02-19.json, inversion.py y estado.json")
+# 13 pts Must en R1; sale la 2-3 (Could) para liberar capacidad; el R1 cierra la etapa 2; corte de EVM del 19/2
+IM2 = impacto(repo, C2, '--refs NFR-1,NFR-5 --paquetes 3.5 --flujos 02-planificacion/escenarios/flujos-C-002.csv --opcion "Con C-001 y C-002" --base "Con C-001" --tasa 0.10 '
+              '--puntos 13 --release R1 --liberar 2-3 --etapa --evm 03-control/reportes/evm-2027-02-19.json', "2027-02-19")
 art(repo, "informe-excepcion-X-001", "03-control/reportes/2027-02-19-informe-excepcion-X-001.md",
     texto=INFEXC.replace("{BC}", f"VAN a {ANIOS} años: {num(INV1['van'])} con {C1} → {num(INV2['van'])} con {C2} (inversion.py, escenarios/flujos-C-002.csv). "
                                  f"Sigue positivo; B-01 puede caer {num(margen_b01(INV2), 1)} % antes de que el VAN llegue a 0 (tolerancia de beneficios −{100 * VARIACION:.0f} %)."))
@@ -594,6 +608,18 @@ V.consumo([(f"18/1 · tras {C1}", *c18), (f"19/2 · con {C2} (no aprobado)", *p1
           titulo=f"Sin saldo para {C2} ({100 * p19[0] / p19[1]:.0f} %): quedó pendiente y decidió la junta",
           subtitulo=f"Consumo contra el presupuesto de cambio (CAM-03); el 19/2, con {C2}, que no se aprobó (real: {100 * c19[0] / c19[1]:.0f} %)",
           fuente="sanidad.py --corte 2027-01-18 y 2027-02-26 (CAM-03) · registro.py (rechazo de la aprobación de C-002) · estado.json presupuestos")
+fi = {x["objetivo"]: x for x in IM2["filas"]}                # cifras de la tabla de impacto de C-002 (impacto.py --json)
+nu = lambda t: float(t.replace(".", "").replace(",", "."))
+lim2 = [("Presupuesto de cambio", *[nu(x) for x in re.search(r"([\d.]+) de ([\d.]+)", fi["Presupuesto de cambio"]["con"]).groups()], ""),
+        ("Límite de la autoridad de cambio", nu(re.search(r"([\d.]+) en este cambio", fi["Autoridad"]["con"])[1]), nu(re.search(r"límite ([\d.]+)", fi["Autoridad"]["antes"])[1]), ""),
+        ("Tiempo de la etapa 2 (días corridos)", nu(re.search(r"\(\+(\d+)\)", fi["Tiempo de la etapa"]["con"])[1]), nu(re.search(r"= ([\d,]+) días", fi["Tiempo de la etapa"]["contra"])[1]), "+"),
+        ("Capacidad del R1 (puntos)", nu(re.search(r"^(\d+) pts", fi["Capacidad del R1"]["con"])[1]), nu(re.search(r"de (\d+)", fi["Capacidad del R1"]["antes"])[1]), ""),
+        ("Alcance que no entra (EVM 19/2)", nu(re.search(r"no entra ([\d,]+) %", fi["Alcance (EVM)"]["con"])[1]), nu(re.search(r"= ([\d,]+) %", fi["Alcance (EVM)"]["antes"])[1]), "%")]
+V.estados([(e, 100 * u / t, "critico" if u > t else "bien", f"{'✖' if u > t else '✔'} {s if s == '+' else ''}{num(u, 0 if u == int(u) else 1)}{' %' if s == '%' else ''} de "
+            f"{'±' if s == '+' else ''}{num(t, 0 if t == int(t) else 1)}{' %' if s == '%' else ''}") for e, u, t, s in sorted(lim2, key=lambda x: -x[1] / x[2])], png("impacto-c002"),
+          titulo=f"{C2} supera los cinco límites del análisis: decide la junta",
+          subtitulo=f"Cada barra: cuánto del límite usaría {C2} (100 % = el límite) · el business case sigue justificado: VAN {num(INV2['van'])}",
+          fuente=f"impacto.py analizar {C2} --fecha 2027-02-19 (tabla de impacto y borrador de la solicitud de cambio)", maximo=200, decimales=0, sufijo=" %")
 V.estados([("Margen Should/Could (tolerancia)", ev29["pct_no_must"], "tope", "lo que el PO puede retirar"),
            ("Corte 29/1 · alcance que no entra", ev29["alcance_no_entregable_pct"], "atencion", f"ámbar: los Must no peligran"),
            ("Corte 19/2 · alcance que no entra", ev19["alcance_no_entregable_pct"], "critico", f"rojo: los Must peligran")], png("alcance-evm"),

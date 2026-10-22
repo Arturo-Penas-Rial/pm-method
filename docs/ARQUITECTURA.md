@@ -1,4 +1,4 @@
-# Arquitectura · pm-method 2.3.0
+# Arquitectura · pm-method 2.4.0
 
 Este documento explica cómo está construido pm-method y por qué: las capas y su precedencia, el reparto entre agente
 orquestador y subagentes, las herramientas que usan las skills, los comandos, la carga progresiva del contexto y el
@@ -134,10 +134,10 @@ iterativos, backlog, release plan), nunca elimina las puertas de decisión.
 | Subagente | Procesos PRINCE2 | Prepara | Registra |
 |---|---|---|---|
 | `pm-director` | DP | solicitudes de decisión, evaluación de excepciones, actas de junta | **único** que ejecuta `estado.py puerta` y `estado.py aprobar`; fija líneas base BMAD |
-| `pm-inicio` | SU, IP | mandato, brief, business case, OKR, organización, maestro de interesados y RACI, riesgos iniciales, enfoques, PID | productos `en-revision` |
-| `pm-planificacion` | Plans, IP, SB | PBS/WBS o backlog, estimación, cronograma, presupuesto, planes de proyecto, etapa y excepción | productos `en-revision` |
-| `pm-control` | CS, MP | paquetes, registros, riesgos, issues, informes y EVM, calidad, actas, preferencias declaradas, check-ins de OKR, comunicación personalizada y envío, sincronización, informe de excepción | registros vía `registro.py`; envíos vía `envios.py` |
-| `pm-cierre` | CP | aceptación, handover, lecciones, revisión de beneficios, informe final | productos `en-revision` |
+| `pm-inicio` | SU, IP | mandato, lecciones de otros proyectos, brief, business case, OKR, organización, maestro de interesados, personas de usuario y RACI, riesgos iniciales, enfoques, PID | productos `en-revision` |
+| `pm-planificacion` | Plans, IP, SB | PBS/WBS o backlog, estimación, cronograma, presupuesto, planes de proyecto, etapa (con las lecciones de planificación, E-11) y excepción | productos `en-revision` |
+| `pm-control` | CS, MP | paquetes, registros, riesgos y sus opciones de respuesta, issues con análisis de impacto, informes y EVM (highlight y tablero desde `estado.py periodo`), calidad y estado de productos, actas y acuerdos de reunión con cita, retrospectivas, preferencias declaradas, check-ins de OKR, comunicación personalizada y envío, sincronización, informe de excepción | registros vía `registro.py`; envíos vía `envios.py` |
+| `pm-cierre` | CP | aceptación, handover, lecciones (informe desde el registro e índice de la organización), revisión de beneficios, informe final, expediente de auditoría | productos `en-revision` |
 
 ### 4.3 Reglas de los subagentes
 
@@ -188,22 +188,30 @@ entrada, valida valores y deja traza; el modelo redacta, el script calcula y reg
 
 | Script | Skill | Función |
 |---|---|---|
-| `esquema.py` | pm-estado-proyecto | esquemas de `estado.json` y de los 13 registros (9 base + 4 opcionales), claves foráneas, unicidad, `uno_por`; migración |
+| `esquema.py` | pm-estado-proyecto | esquemas de `estado.json` y de los 14 registros (9 base + 5 opcionales), claves foráneas, unicidad, `uno_por`; migración |
 | `nuevo_proyecto.py` | pm-estado-proyecto | crea la carpeta, los registros y `estado.json` |
-| `estado.py` | pm-estado-proyecto | fase, etapa, tolerancias, presupuestos de la junta, roles, integraciones, artefactos, puertas y sus condiciones (`cumplir-condiciones`), transiciones |
-| `registro.py` | pm-estado-proyecto | alta, actualización, listado y resumen de registros con validación |
+| `estado.py` | pm-estado-proyecto | fase, etapa, tolerancias, presupuestos de la junta, roles, integraciones, artefactos, puertas y sus condiciones (`cumplir-condiciones`), transiciones; de solo lectura, `contexto` (resumen de sesión), `radar` (decidir, escalar, desbloquear, vigilar), `briefing` (incorporación) y `productos` (estado de productos derivado); `periodo` (datos del período → tablero y highlight, `--verificar`) |
+| `registro.py` | pm-estado-proyecto | alta, actualización, listado y resumen de registros con validación; regla de autoridad y presupuesto de cambio (`motivos_autoridad`) |
+| `puertas.py` | pm-estado-proyecto | verificación de cada puerta con códigos de control (`verificar`, `estado`), lista de control de la junta (`lista`, `confirmar`) y veredicto de preparación de BMAD |
 | `especificacion.py` | pm-estado-proyecto | fachada única de lectura de la especificación (contrato `pm-spec-index/1`) |
-| `sanidad.py` | pm-estado-proyecto | comprobaciones INS, EST, ART, REG, CAM, QUA, TOL, ESP, INT y STK (maestro de interesados, vía `interesados.py integridad`); `--corte` para los controles con vencimiento |
+| `sanidad.py` | pm-estado-proyecto | comprobaciones INS, EST, ART, REG, CAM, QUA, TOL, SUP, ESP, INT, STK (maestro de interesados y personas, vía `interesados.py integridad`) y MAP (vía `mapas.py`); `--corte` para los controles con vencimiento |
 | `wbs.py` | pm-estado-proyecto | PBS/WBS y su diagrama |
-| `cpm.py` | pm-estado-proyecto | camino crítico, Gantt Mermaid y exportación MSPDI (`--mspdi`, validada leyendo con MPXJ) |
+| `cpm.py` | pm-estado-proyecto | camino crítico, Gantt Mermaid y exportación MSPDI (`--mspdi`, validada leyendo con MPXJ); tres valores con distribución declarada, σ del camino crítico y reserva k·σ (`--estimacion`) |
 | `evm.py` | pm-estado-proyecto | valor ganado con semáforo contra tolerancias; modo ágil; `--guardar` deja el corte que vigila sanidad (TOL) |
 | `exportar.py` | pm-estado-proyecto | `.docx` / `.xlsx` |
 | `bmad.py` | pm-bmad-puente | `detectar`, `inventario`, `requisitos`, `trazabilidad`, `backlog`, `avance`, `linea-base`, `verificar`, `indice`, `handoff` |
 | `okr.py` | pm-okr | validación de vínculos, puntuación por tipo de KR, salud, check-ins (`okr_checkins.csv`), propuesta de sincronización con Tability o Perdoo |
-| `interesados.py` | pm-interesados | `matriz`, `estereotipos`, `proponer`, `confirmar`, `rechazar`, `perfil`, `raci`, `vinculos`, `integridad`, `reporte`, `plan-envio` |
+| `interesados.py` | pm-interesados | `matriz`, `estereotipos`, `proponer`, `confirmar`, `rechazar`, `perfil`, `raci`, `vinculos`, `integridad`, `reporte`, `personas` (candidatos, mapa, priorización), `plan-envio` |
 | `envios.py` | pm-integraciones | capa de canales: `nuevo`, `estado`, `aprobar`, `enviar`, `preparar-mcp`, `registrar`, `historial`, `verificar` |
 | `transcripcion.py` | pm-reuniones | normalización de transcripciones VTT/SRT/TXT/DOCX |
-| `paquete.py` | pm-exportar | ZIP de puerta o de cierre con manifiesto |
+| `extraccion.py` | pm-reuniones | `candidatos` (decisiones, compromisos, supuestos, riesgos y, en una retrospectiva, lecciones y acciones de mejora, con cita y hora) y `registrar` solo lo confirmado |
+| `riesgos.py` | pm-riesgos | `candidatos` desde BMAD, transcripciones, tracker y artefactos; `opciones` (valor neto y elección del propietario) |
+| `impacto.py` | pm-issues-cambios | `analizar`: impacto de un C-### y borrador de la solicitud con quién decide |
+| `release.py` | pm-agil-hibrido | `capacidad` del release por MoSCoW |
+| `inversion.py` | pm-caso-de-negocio | VAN, TIR, repago, sensibilidad y punto de equilibrio por opción |
+| `mapas.py` | pm-mapas-estrategicos | mapas de Wardley y de recorrido: semilla, validación, vistas, vínculos, controles MAP y tablero de mapas |
+| `lecciones.py` | pm-lecciones-aprendidas | `buscar`, `incorporar`, `listar`, `clasificar`, `accionar`, `verificar`, `descartar`, `informe` |
+| `paquete.py` | pm-exportar | ZIP de puerta o de cierre con manifiesto; `auditoria` (expediente) y `verificar` (sha256) |
 
 **Sin conectores predefinidos.** Las skills describen capacidades (leer issues, crear issue, publicar mensaje, leer
 transcripción…) y `pm-integraciones` las resuelve con los MCP presentes en la sesión. El paquete no incluye
@@ -239,19 +247,19 @@ El paquete no usa la carpeta `commands/` (formato heredado): los comandos son sk
 | 2 | cuerpo de `SKILL.md` | al activarse la skill | ≤ 12.000 caracteres y ≤ 200 líneas (≈3,5 k tokens) |
 | 3 | `references/`, `templates/`, `scripts/` | solo cuando un paso lo pide | sin límite fijo; se consultan por sección |
 
-Cifras medidas con `scripts/validar_paquete.py` y sobre los archivos (2026-10-20):
-- Listado del nivel 1: **6.817 caracteres** para las 33 skills invocables por el modelo (las 6 skills-comando no
+Cifras medidas con `scripts/validar_paquete.py` y sobre los archivos (2026-10-22):
+- Listado del nivel 1: **6.957 caracteres** para las 33 skills invocables por el modelo (las 6 skills-comando no
   cuentan).
 - El presupuesto del listado de skills en Claude Code es **≈1 % de la ventana de contexto**; si se instalan BMAD u otros
   repos, puede ampliarse con `"skillListingBudgetFraction": 0.02` en `settings.json`. `skillOverrides` no aplica a skills
   de plugins. La sanidad avisa (INS-05) cuando las descripciones visibles superan ≈8.000 caracteres.
-- Nivel 2: el `SKILL.md` más largo (`pm-riesgos`) tiene 12.493 bytes y ninguno supera 124 líneas; el validador
+- Nivel 2: los `SKILL.md` más largos (`pm-cronograma-estimacion` y `pm-orquestador`) tienen 12.500 bytes y ninguno supera 124 líneas; el validador
   tolera hasta 12.500 bytes para absorber la diferencia entre bytes y caracteres acentuados.
 - Tras compactar, Claude Code conserva hasta 5.000 tokens por skill, por eso el nivel 2 se mantiene por debajo. El
   listado de skills (nivel 1) no se vuelve a inyectar tras compactar; por eso el hook `inicio.py` corre también con el
   disparador `compact` y repone el estado del proyecto, el resumen derivado y las reglas de enrutamiento.
-- Texto que agrega el hook de inicio: por proyecto, una línea de estado y el resumen de contexto derivado de
-  `estado.py contexto` (≤ 2.000 caracteres con un proyecto, ≤ 4.500 repartidos entre tres), más ≈ 1.300 caracteres de
+- Texto que agrega el hook de inicio: por proyecto, una línea de estado, una línea de radar (`estado.py radar --linea`)
+  y el resumen de contexto derivado de `estado.py contexto` (≤ 2.000 caracteres con un proyecto, ≤ 4.500 repartidos entre tres), más ≈ 1.300 caracteres de
   reglas comunes. Claude Code admite hasta 10.000 caracteres por hook (si se excede, guarda el texto en un archivo y
   pasa solo una vista previa de 2.000); pm-method se mantiene por debajo de 8.000 aun con tres proyectos grandes.
 - Salidas de los scripts más usados con muchos registros: `registro.py resumen` recorta cada lista de ids a 25 y da el
@@ -313,7 +321,7 @@ la descripción local u ocultar la externa con `skillOverrides`.
 ## 9. Persistencia y controles
 
 - **Persistencia:** solo `estado.py` (y `nuevo_proyecto.py`, `bmad.py`) escriben `estado.json`; solo `registro.py`
-  escribe los 9 registros base (R, I, C, D, S, L, ST, Q, A) y los 4 opcionales (ET, PF, RC, EN, creados al primer uso)
+  escribe los 9 registros base (R, I, C, D, S, L, ST, Q, A) y los 5 opcionales (ET, PF, RC, EN, PU, creados al primer uso)
   validando claves foráneas, unicidad y un solo A por elemento RACI. `estado.json` y los registros de proyectos creados
   con versiones anteriores migran solos al leerse (migración no destructiva).
 - **Memoria del cliente:** `estado.json`, los registros y los artefactos aprobados son la memoria de largo plazo del
@@ -321,11 +329,14 @@ la descripción local u ocultar la externa con `skillOverrides`.
   sesión, un resumen derivado de esos archivos (no guardado: se calcula cada vez). Ver `docs/INSTALACION.md` §9.1.
 - **Sincronización con la especificación:** fuente única + fachada de lectura (`especificacion.py`) + traspaso de
   decisiones (`bmad.py handoff`). Ver `docs/sincronizacion.md`.
-- **Controles permanentes:** `sanidad.py` (85 códigos en 12 familias, incluidas STK, con la cadencia de contacto, CAM de
-  cambios contra presupuestos, QUA de calidad a volumen, TOL de pronóstico contra tolerancias, SUP de supuestos críticos
-  y MAP de mapas estratégicos, más REG-09 de revisión de riesgos vencida), hooks
-  `PreToolUse` y `SessionStart`, regla de puerta en `pm-puerta` y `pm-director` (avisos P-09 y P-10 sobre interesados y
-  RACI y P-11 sobre supuestos críticos en `autorizar-proyecto`; condiciones formales con seguimiento por EST-12 y G-01 hasta `cumplir-condiciones`), esquemas versionados, `validar_paquete.py` y `probar_paquete.py`. Ver `docs/SANIDAD.md`.
+- **Controles permanentes:** `sanidad.py` (93 códigos en 12 familias, incluidas STK, con la cadencia de contacto y las
+  personas de usuario, CAM de cambios contra presupuestos, QUA de calidad a volumen, TOL de pronóstico contra
+  tolerancias, SUP de supuestos críticos y MAP de mapas estratégicos, más REG-09 de revisión de riesgos vencida, REG-10
+  de opciones y plan de contingencia y REG-11 y REG-12 del ciclo de las lecciones), el radar de atención (`estado.py
+  radar`, que los ordena en decidir, escalar, desbloquear y vigilar), hooks `PreToolUse` y `SessionStart`, regla de
+  puerta en `pm-puerta` y `pm-director` (avisos P-09 y P-10 sobre interesados y RACI y P-11 sobre supuestos críticos en
+  `autorizar-proyecto`; E-11 sobre lecciones en `autorizar-etapa`; C-03 y C-07 por id en `autorizar-cierre`; condiciones
+  formales con seguimiento por EST-12 y G-01 hasta `cumplir-condiciones`), esquemas versionados, `validar_paquete.py` y `probar_paquete.py`. Ver `docs/SANIDAD.md`.
 
 ---
 

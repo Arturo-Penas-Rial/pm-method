@@ -40,8 +40,8 @@ idioma: "{{idioma}}"
 ## 3. Bloque de tres puntos / Three-point block
 | ID | Actividad / Activity | O | M | P | Fórmula / Formula | tE | σ | Rango 68 % / 68 % range | Estimador / Estimator |
 |---|---|---|---|---|---|---|---|---|---|
-| {{id}} | {{actividad}} | {{o}} | {{m}} | {{p}} | PERT · triangular · {{pesos}} | {{te}} | {{sigma}} | {{te}} ± {{sigma}} | {{estimador}} |
-*PERT: tE = (O + 4M + P) / 6, σ = (P − O) / 6. Triangular: tE = (O + M + P) / 3. Pesos alternativos (p. ej. (O + 3M + 2P) / 6) solo con justificación. Verificar P ≥ M ≥ O. Obligatorio para actividades del camino crítico.*
+| {{id}} | {{actividad}} | {{o}} | {{m}} | {{p}} | beta-PERT · triangular · {{pesos}} | {{te}} | {{sigma}} | {{te}} ± {{sigma}} | {{estimador}} |
+*Beta-PERT (práctica habitual, por defecto): tE = (O + 4M + P) / 6, σ = (P − O) / 6. Triangular (la que cita la Guía PMBOK): tE = (O + M + P) / 3, σ = √((O² + M² + P² − OM − OP − MP) / 18). La fórmula la declara el plan de gestión del cronograma; `cpm.py --estimacion` calcula tE, σ y la reserva desde las columnas optimista, mas_probable y pesimista de `actividades.csv`. Pesos alternativos (p. ej. (O + 3M + 2P) / 6) solo con justificación. Verificar P ≥ M ≥ O. Obligatorio para actividades del camino crítico.*
 
 ## 4. Bloque ascendente / Bottom-up block
 | ID paquete / Package ID | Subtarea / Subtask | Esfuerzo (h) / Effort | Recurso / Resource | Duración / Duration | Estimador / Estimator |

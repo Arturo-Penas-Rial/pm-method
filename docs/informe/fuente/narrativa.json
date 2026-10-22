@@ -2,12 +2,12 @@
  "meta": {
   "titulo": "Ecosistema de agentes y skills de gestión de proyectos: pm-method v{{version}}",
   "corto": "Informe 2 · Ecosistema pm-method v{{version}}",
-  "subtitulo": "Qué es, qué valor aporta, cómo está construido, cómo se instala, se asegura y se prueba un paquete bilingüe de {{agentes}} agentes, {{skills}} skills y {{hooks}} hooks que aplica PRINCE2 7 como método, el PMBOK 8 como técnicas y BMAD como capa de especificación, con validación de supuestos antes de invertir, mapas estratégicos, maestro de interesados, capa de canales y controles permanentes de sanidad",
+  "subtitulo": "Qué es, qué valor aporta, cómo está construido, cómo se instala, se asegura y se prueba un paquete bilingüe de {{agentes}} agentes, {{skills}} skills y {{hooks}} hooks que aplica PRINCE2 7 como método, el PMBOK 8 como técnicas y BMAD como capa de especificación: validar antes de invertir, decidir con opciones e impacto medidos, saber cada día qué decidir, informar desde el dato y cerrar el ciclo de las lecciones, con controles permanentes de sanidad",
   "autor": "Arturo",
-  "fecha": "20 de octubre de 2026",
-  "version": "v2.3",
+  "fecha": "22 de octubre de 2026",
+  "version": "v2.4",
   "tag": "Informe 2 · Documentación del ecosistema",
-  "alcance": "Todo lo que afirma este informe sale de los archivos del paquete pm-method {{version}} (README, CHANGELOG, SPEC, CLAUDE.md, compatibilidad.json, docs/ —incluidos RESUMEN-EJECUTIVO, INDICE, DEPENDENCIAS, INSTALACION, DOCKER, SEGURIDAD, INTEGRACIONES, PRUEBAS, PUERTAS, PILOTO, TERMINOLOGIA y CASOS-DE-USO—, docs/guias/ y su evidencia, docs/webinar/, docs/diagramas/, docs/evaluacion/resultados/ y agents/), de las cifras que el generador cuenta en el repositorio y de correr validar_paquete.py, probar_paquete.py, la integración cruzada, validar_mermaid.py --render y generar.py --todos --validar el {{pruebas_fecha}}. Las cifras del caso maestro, de los casos de uso y de las guías E2E provienen de corridas reales de los scripts; las personas, las organizaciones y las decisiones humanas son simuladas. Las pruebas en vivo con Claude Code real del {{pruebas_fecha}} cubren el enrutamiento y la integración con BMAD instalado; los escenarios de robustez son del 2026-10-17. Lo que la documentación marca como [verificar] o \"URL a confirmar por el usuario\" se conserva tal cual."
+  "alcance": "Todo lo que afirma este informe sale de los archivos del paquete pm-method {{version}} (README, CHANGELOG, SPEC, CLAUDE.md, compatibilidad.json, docs/ —incluidos RESUMEN-EJECUTIVO, INDICE, DEPENDENCIAS, INSTALACION, DOCKER, SEGURIDAD, INTEGRACIONES, PRUEBAS, PUERTAS, PILOTO, TERMINOLOGIA y CASOS-DE-USO—, docs/guias/ y su evidencia, docs/webinar/, docs/diagramas/, docs/evaluacion/resultados/ y agents/), de las cifras que el generador cuenta en el repositorio y de correr validar_paquete.py, probar_paquete.py, la integración cruzada, validar_mermaid.py --render y generar.py --todos --validar el {{pruebas_fecha}}. Las cifras del caso maestro, de los casos de uso y de las guías E2E provienen de corridas reales de los scripts; las personas, las organizaciones y las decisiones humanas son simuladas. Las pruebas en vivo con Claude Code real de la versión {{version}} ({{vivo24_fechas}}) cubren el enrutamiento de las capacidades nuevas; las de integración con BMAD instalado son del 2026-10-20 y los escenarios de robustez, del 2026-10-17. Lo que la documentación marca como [verificar] o \"URL a confirmar por el usuario\" se conserva tal cual."
  },
  "kpis": [
   {
@@ -36,20 +36,20 @@
    "d": "{{web_clases}} clases de 90 min; {{web_diapositivas}} diapositivas de webinar y {{web_glosario}} términos de glosario"
   },
   {
-   "v": "{{vivo_contexto}} · {{vivo_mapas}} · {{vivo_integracion}}",
-   "t": "en vivo ({{pruebas_fecha}})",
-   "d": "enrutamiento con el resumen de contexto, mapas estratégicos e integración con BMAD instalado"
+   "v": "{{vivo24_ok}}/{{vivo24_total}}",
+   "t": "en vivo con Claude Code",
+   "d": "frases {{vivo24_desde}}–{{vivo24_hasta}} y de control ({{vivo24_fechas}}); {{vivo24_reg_ok}}/{{vivo24_reg_total}} de regresión"
   }
  ],
  "audiencias": [
   {
    "rol": "Patrocinador / ejecutivo",
-   "valor": "Decisiones siempre humanas y trazables (`decisiones.csv`, `estado.json.puertas`); gestión por excepción con semáforo contra las tolerancias que fija la junta; supuestos críticos validados o aceptados expresamente antes de invertir (P-11); cada puerta se verifica en tres capas y ninguna se presenta con un ERROR abierto salvo que la junta lo acepte como condición. Evidencia de pruebas y plan de piloto con criterios de adopción.",
+   "valor": "Decisiones siempre humanas y trazables (`decisiones.csv`, `estado.json.puertas`); gestión por excepción con semáforo contra las tolerancias que fija la junta; opciones de respuesta y análisis de impacto con quién decide antes de pedir la decisión; supuestos críticos validados o aceptados expresamente antes de invertir (P-11); cada puerta se verifica en tres capas y ninguna se presenta con un ERROR abierto salvo que la junta lo acepte como condición. Evidencia de pruebas y plan de piloto con criterios de adopción.",
    "leer": "1, 2, 4, 8, 13, 16, 17 y 18"
   },
   {
    "rol": "PMO",
-   "valor": "Un método estandarizado (PRINCE2 + PMBOK + plantillas) con dueños únicos por tema, matriz RACI que incluye a los agentes, controles permanentes de consistencia, verificación de cada puerta, dependencias con origen y licencia, y un manifiesto de compatibilidad para actualizar sin sorpresas.",
+   "valor": "Un método estandarizado (PRINCE2 + PMBOK + plantillas) con dueños únicos por tema, matriz RACI que incluye a los agentes, controles permanentes de consistencia, verificación de cada puerta, informes que salen del dato con la cadena de reporte verificada, expediente de auditoría con integridad comprobable, lecciones que circulan entre proyectos, dependencias con origen y licencia, y un manifiesto de compatibilidad para actualizar sin sorpresas.",
    "leer": "2, 3, 6, 7, 8, 10, 13, 17, 18 y 20"
   },
   {
@@ -125,6 +125,14 @@
   {
    "p": "El contexto del modelo se llena de datos de gestión o se guía por notas de memoria desactualizadas",
    "r": "Resumen derivado de los registros (`estado.py contexto`) en cada inicio de sesión, salidas acotadas con topes medidos y precedencia de `estado.json` y los registros sobre la memoria del cliente."
+  },
+  {
+   "p": "Se decide un cambio o una respuesta a un riesgo sin medir antes su efecto",
+   "r": "`impacto.py` calcula tiempo, reserva, capacidad del release, presupuesto, autoridad y VAN de un cambio y dice quién decide; `riesgos.py opciones` compara las respuestas por valor neto. Los dos escriben borradores: decide una persona."
+  },
+  {
+   "p": "El informe se arma a mano y sus cifras se apartan del cálculo",
+   "r": "`estado.py periodo` calcula una vez el período para el highlight y el tablero, y `--verificar` comprueba cada cifra rotulada contra el corte de EVM guardado y cada semáforo contra su regla."
   }
  ],
  "arq_intro": "La arquitectura separa cinco capas con dueño propio y un reparto de agentes que garantiza una sola voz ante las personas. Las skills no dependen de conectores: su motor son scripts deterministas en Python (el modelo redacta; el script calcula, valida y registra). La especificación vinculante está en SPEC.md §0 y §1.10–§1.17; ARQUITECTURA.md la justifica.",
@@ -576,7 +584,7 @@
   }
  ],
  "evolucion": [
-  "Repetir con Claude Code real la batería completa (`suite.py todo`) y los escenarios de robustez (`inyeccion`, `desorden`, `multisesion`, `escala`) con la versión {{version}}: hoy son del 2026-10-17; en vivo, la versión {{version}} cubre el enrutamiento y la integración con BMAD instalado.",
+  "Repetir con Claude Code real la batería completa (`suite.py todo`) y los escenarios de robustez (`inyeccion`, `desorden`, `multisesion`, `escala`) con la versión {{version}}: hoy son del 2026-10-17; en vivo, la versión {{version}} cubre el enrutamiento de las capacidades nuevas ({{vivo24_ok}}/{{vivo24_total}}) y la integración con BMAD instalado es de la versión 2.3.0.",
   "Resolver la decisión abierta sobre un cambio con el presupuesto de cambio agotado: registrar `aprobado` con advertencia y ratificación pendiente (conducta actual) o forzar `pendiente-decision` hasta que la junta decida (INDICE §6).",
   "Corregir las limitaciones documentadas de los scripts (SANIDAD §10), en particular `bmad.py:303`, que pierde los traspasos al volver a detectar, y `bmad.py:568`, que pisa traspasos del mismo día.",
   "Probar en una sesión con credenciales Claude Code dentro de la imagen Docker y construirla en arm64; probar los hooks con `py.sh` en una máquina Windows real.",
@@ -694,7 +702,7 @@
   },
   {
    "t": "Contingencia (reserva de)",
-   "d": "Reserva ligada a riesgos identificados (suma de EMV) que forma parte del BAC."
+   "d": "Reserva ligada a los riesgos identificados que forma parte del BAC. En pm-method, el presupuesto de riesgo = costo de las respuestas + EMV residual, con la contingencia ponderada por su probabilidad; la activación de un plan de contingencia se registra como cambio con `cargo=reserva-riesgo` y el R-###."
   },
   {
    "t": "correct-course / Sprint Change Proposal",
@@ -950,7 +958,7 @@
   },
   {
    "t": "PERT",
-   "d": "Estimación de tres puntos: tE = (O + 4M + P)/6, σ = (P − O)/6."
+   "d": "Estimación de tres valores (optimista, más probable y pesimista). Beta-PERT (práctica habitual): tE = (O + 4M + P)/6, σ = (P − O)/6; triangular (la que cita la Guía PMBOK): tE = (O + M + P)/3. `cpm.py --distribucion` aplica la que declara el plan."
   },
   {
    "t": "PID",
@@ -1018,7 +1026,7 @@
   },
   {
    "t": "Registros",
-   "d": "Nueve CSV base con prefijo: riesgos (R), issues (I), cambios (C), decisiones (D), supuestos (S), lecciones (L), interesados (ST), calidad (Q) y acciones (A), y cuatro opcionales que se crean al primer uso: estereotipos (ET), preferencias (PF), raci (RC) y envíos (EN). 13 en total."
+   "d": "Nueve CSV base con prefijo: riesgos (R), issues (I), cambios (C), decisiones (D), supuestos (S), lecciones (L), interesados (ST), calidad (Q) y acciones (A), y {{registros_opcionales}} opcionales que se crean al primer uso: estereotipos (ET), preferencias (PF), raci (RC), envíos (EN) y personas de usuario (PU). {{registros}} en total."
   },
   {
    "t": "Regresión determinista (probar_paquete.py)",
@@ -1026,7 +1034,7 @@
   },
   {
    "t": "Reserva de gestión",
-   "d": "Reserva para imprevistos no identificados; queda fuera del BAC y solo la libera la junta. Presupuesto autorizado = BAC + reserva de gestión."
+   "d": "Reserva para imprevistos no identificados; queda fuera del BAC y solo la libera la junta. Presupuesto autorizado = BAC + reserva de gestión. Por defecto, la provisión para riesgos no identificados va a esta reserva; su uso es un cambio con `cargo=reserva-gestion` (CAM-05)."
   },
   {
    "t": "RTM",
@@ -1351,6 +1359,54 @@
   {
    "t": "Compatibilidad con Python 3.9",
    "d": "Versión mínima del paquete: `validar_paquete.py` analiza la sintaxis con un intérprete 3.9 si lo encuentra o busca las f-strings que solo compilan desde 3.12."
+  },
+  {
+   "t": "Análisis de impacto",
+   "d": "Tabla que mide, antes de decidir un cambio, su efecto en alcance, tiempo y camino crítico, reserva, capacidad del release, costo, presupuesto de cambio, autoridad, VAN, personas, riesgos y calidad, y dice quién decide (`impacto.py`)."
+  },
+  {
+   "t": "Briefing de incorporación",
+   "d": "Resumen de hasta dos páginas para quien se suma al proyecto o a la junta: contexto, su rol y su RACI, sus ítems del radar, decisiones, riesgos altos, cambios pendientes, último EVM y próxima puerta (`estado.py briefing`)."
+  },
+  {
+   "t": "Candidatos de reunión",
+   "d": "Decisiones, compromisos, supuestos, riesgos y, en una retrospectiva, lecciones y acciones de mejora propuestos desde una transcripción con su cita y su hora; se registran solo los que una persona confirma (`extraccion.py`)."
+  },
+  {
+   "t": "Capacidad del release",
+   "d": "Velocidad × iteraciones de un release frente a los puntos Must, Should y Could; la regla práctica pide Must ≤ 60 % de la capacidad (`release.py capacidad`)."
+  },
+  {
+   "t": "Cadena de reporte",
+   "d": "Correspondencia entre cada cifra y semáforo de un informe y su cálculo de origen; `estado.py periodo --verificar` la comprueba contra el corte de EVM guardado y las reglas de semáforo."
+  },
+  {
+   "t": "Expediente de auditoría",
+   "d": "ZIP con índice, cronología, estado, registros, líneas base, evidencia de puertas, informes y comunicaciones, con `SHA256SUMS` para comprobar que nada cambió (`paquete.py auditoria` y `verificar`)."
+  },
+  {
+   "t": "Opciones de respuesta (valor neto)",
+   "d": "Alternativas para tratar un riesgo alto (evitar, reducir, transferir, compartir, contingencia, aceptar) comparadas por valor neto = EMV inherente − EMV residual − EMV secundario − costo; elige el propietario (`riesgos.py opciones`)."
+  },
+  {
+   "t": "Persona de usuario (PU)",
+   "d": "Arquetipo de quien usa o aprovecha el producto, con objetivo, dolores, fuente y evidencia, ligado a las capacidades que pide, usa o aprovecha; no es un interesado (`personas.csv`, `interesados.py personas`)."
+  },
+  {
+   "t": "Plan de contingencia",
+   "d": "Acciones preparadas para cuando un disparador medible indica que el riesgo ocurre: quién lo activa, monto y fuente, ejecutor y plan alternativo (`templates/plan-contingencia.md`; REG-10)."
+  },
+  {
+   "t": "Product status account (estado de productos)",
+   "d": "Informe PRINCE2 del estado de cada producto; en pm-method se deriva de los registros con `estado.py productos`, sin registro propio."
+  },
+  {
+   "t": "Radar de atención",
+   "d": "Lista de solo lectura de lo que hay que decidir, escalar, desbloquear y vigilar al corte, con responsable, siguiente paso y prioridad (`estado.py radar`)."
+  },
+  {
+   "t": "Retrospectiva",
+   "d": "Reunión del equipo al cierre de una iteración: qué funcionó, qué no funcionó y qué probar; en pm-method alimenta el ciclo de las lecciones."
   }
  ],
  "fuentes_internas": [
@@ -1360,7 +1416,7 @@
   ],
   [
    "CHANGELOG.md",
-   "historial de versiones: 2.3.0 (validar antes de invertir, mapas estratégicos, contexto controlado, seguridad, Docker y material de formación), 2.2.0 y 2.1.0"
+   "historial de versiones: 2.4.0 (opciones de respuesta, impacto antes del cambio, radar diario, informes desde el dato, estado de productos, reuniones, ciclo de las lecciones, tres valores y expediente de auditoría), 2.3.0, 2.2.0 y 2.1.0"
   ],
   [
    "CLAUDE.md · AGENTS.md",
@@ -1451,7 +1507,7 @@
    "equivalencias PRINCE2 7, PRINCE2 en español, PMBOK en español y uso habitual, con la skill que responde"
   ],
   [
-   "skills/pm-interesados, pm-integraciones (envios.py), pm-okr, pm-riesgos, pm-caso-de-negocio (inversion.py), pm-mapas-estrategicos (mapas.py)",
+   "skills/pm-interesados, pm-integraciones (envios.py), pm-okr, pm-riesgos, pm-caso-de-negocio (inversion.py), pm-mapas-estrategicos (mapas.py), pm-reuniones (extraccion.py), pm-issues-cambios (impacto.py), pm-agil-hibrido (release.py), pm-lecciones-aprendidas (lecciones.py), pm-exportar (paquete.py)",
    "guías y ayuda (`--help`) de las skills y scripts citados (consulta puntual)"
   ],
   [
@@ -1480,7 +1536,7 @@
   ],
   [
    "docs/evaluacion/",
-   "{{frases}} frases de enrutamiento e informes de pruebas en vivo (2.0, 2.1, 2.2 y 2.3)"
+   "{{frases}} frases de enrutamiento e informes de pruebas en vivo (2.0 a {{version}})"
   ],
   [
    "agents/*.md",
@@ -1566,7 +1622,7 @@
  ],
  "fuentes_nota": "Las URL externas provienen del registro de fuentes del informe 1 (relevadas entre el 13 y el 17/10/2026) y del propio paquete. Los hechos sobre subagentes, hooks, plugins y marketplaces de Claude Code, sobre Microsoft Teams/Work IQ, Granola, Fireflies y Zoom MCP se verificaron en documentación oficial el 17/10/2026, sin conservar la URL exacta de cada página; no se agregan URL no registradas. Las URL de canales y OKR figuran en docs/DEPENDENCIAS.md y en las guías de pm-integraciones y pm-okr; las de Docker y Claude Code en contenedores, en docs/DOCKER.md.",
  "cap": {
-  "intro": "Capacidades de gestión que van más allá de producir documentos: validar los supuestos antes de invertir, evaluar opciones con números, mapas estratégicos, un contexto de sesión acotado y derivado de los registros, el maestro de interesados, la capa de canales, OKR, la identificación de riesgos desde cuatro fuentes y los controles permanentes que vigilan todo eso en cada corrida. Los códigos de control figuran también en la sección 7 (sanidad) y en la sección 8 (puertas).",
+  "intro": "Capacidades de gestión que van más allá de producir documentos: validar los supuestos antes de invertir, evaluar opciones con números, mapas estratégicos, un contexto de sesión acotado y derivado de los registros, el maestro de interesados y las personas de usuario, la capa de canales, OKR, riesgos desde cuatro fuentes con opciones de respuesta y plan de contingencia, el radar diario, informes desde el dato, el estado de los productos, acuerdos de reunión con cita, el ciclo completo de las lecciones, el impacto de un cambio antes de decidirlo, la estimación de tres valores con la capacidad del release, el expediente de auditoría y los controles permanentes que vigilan todo eso en cada corrida. Los códigos de control figuran también en la sección 7 (sanidad) y en la sección 8 (puertas).",
   "supuestos": [
    {
     "t": "Supuestos como hipótesis",
@@ -1848,6 +1904,36 @@
     "`sanidad.py --corte` (`chk_registros`); `estado.py contexto`"
    ],
    [
+    "Se responde a un riesgo alto con la primera idea, sin comparar opciones ni dejar listo el plan de contingencia",
+    "amenaza alta con respuesta y menos de dos opciones evaluadas, o con `aceptar`/`contingencia` sin disparador o sin plan",
+    "REG-10",
+    "`sanidad.py` (`chk_registros`); `riesgos.py opciones`"
+   ],
+   [
+    "Las lecciones se anotan en el taller y nadie las convierte en acciones ni comprueba que funcionaron",
+    "lección de impacto alto sin acción ni decisión; accionada con la verificación vencida o de impacto alto sin fecha; en `autorizar-etapa`, lecciones de planificación sin acción",
+    "REG-11 · REG-12 · E-11",
+    "`sanidad.py` (`chk_registros`); `puertas.py verificar autorizar-etapa`; `lecciones.py`"
+   ],
+   [
+    "Se prioriza sin saber para quién: requisitos Must que ninguna persona pide, usa ni aprovecha",
+    "requisito o épica Must sin persona, persona sin capacidades o sin fuente, recorrido con una persona no registrada (solo si existe `personas.csv`)",
+    "STK-13 · STK-14 · STK-15 · STK-16",
+    "`interesados.py personas`; `sanidad.py` (`chk_interesados`)"
+   ],
+   [
+    "Un producto de la WBS figura aceptado sin la revisión que lo respalde",
+    "elemento de `wbs.csv` aceptado o con su paquete recibido sin revisión aprobada que lo cite",
+    "QUA-04",
+    "`sanidad.py` (`chk_calidad`); `estado.py productos`"
+   ],
+   [
+    "El proyecto se cierra con issues o riesgos abiertos sin dueño, o con Must sin aceptar",
+    "cada issue y riesgo abierto, por id, en las recomendaciones de seguimiento con responsable (bloqueo); Must sin aceptar ni con concesión (condición)",
+    "C-03 · C-07",
+    "`puertas.py verificar autorizar-cierre`; `estado.py productos`"
+   ],
+   [
     "La inercia de un componente o un dolor del cliente queda en el taller y no llega al registro",
     "inercia sin riesgo, construir algo que ya es producto sin decisión, dolor sin tratamiento",
     "MAP-01 · MAP-02 · MAP-03",
@@ -1871,6 +1957,172 @@
     "t": "E2E-3 paso 13 · cadencia de contacto",
     "d": "Al 5/2, **STK-12** avisa: TI (gestionar de cerca, semanal) lleva 18 días sin contacto (máximo 10); Martín y Lucía, 21. La reunión con TI se registra (EN-008), se abre A-005, se corrige la frecuencia de Lucía y se registran los checkpoints (EN-009, EN-010). TI se reevalúa de neutral a resistente (brecha +2). Sanidad final: 0 ERROR · 0 AVISO · 1 INFO."
    }
+  ],
+  "opciones": [
+   {
+    "t": "Hoja de opciones por riesgo",
+    "d": "`riesgos.py opciones` toma los riesgos abiertos con P×I igual o mayor que el umbral alto (`estado.json.umbrales_riesgo.alto`) y lee su hoja `03-control/registros/opciones-riesgo/R-###.csv`: evitar, reducir, transferir, compartir si aplica, contingencia y aceptar. `--proponer` crea la plantilla sin pisar una existente."
+   },
+   {
+    "t": "Valor neto y recomendación",
+    "d": "Valor neto = EMV inherente − EMV residual − EMV secundario − costo, con la contingencia ponderada por la probabilidad. Ordena las opciones (primero las que dejan el riesgo bajo la línea) y marca la recomendada, sin decidir."
+   },
+   {
+    "t": "Decide el propietario",
+    "d": "`--elegir O# --por \"<rol: nombre>\"`: sin `--por` no registra y, si no elige la recomendada, exige `--motivo`. Escribe respuesta, residual, disparador y acciones en `riesgos.csv` y la decisión, con las opciones consideradas, en `decisiones.csv`."
+   },
+   {
+    "t": "Plan de contingencia y REG-10",
+    "d": "Plantilla `plan-contingencia.md`: disparador medible, acciones, propietario y ejecutor, monto y fuente, quién lo activa y cómo se registra la activación (`cambios.csv` con `cargo=reserva-riesgo` y el R-###). REG-10 avisa si una amenaza alta tiene respuesta con menos de dos opciones evaluadas, o `aceptar` o `contingencia` sin disparador o sin plan."
+   }
+  ],
+  "reserva": [
+   {
+    "t": "Dos fondos, dos dueños",
+    "d": "El presupuesto de riesgo financia las respuestas y las contingencias de los riesgos identificados (respuestas + EMV residual). La provisión para lo no identificado va a la reserva de gestión, que solo libera la junta (`estado.py presupuesto … gestion=<monto> --por …`)."
+   },
+   {
+    "t": "Uso controlado",
+    "d": "Cada uso del presupuesto de riesgo cita el R-### que responde (CAM-02) y su consumo se vigila de forma continua (CAM-03). Usar la reserva de gestión es un cambio con `cargo=reserva-gestion` que decide la junta (CAM-05)."
+   },
+   {
+    "t": "Configurable en el enfoque de riesgo",
+    "d": "§7 «Provisión para riesgos no identificados · Destino»: `reserva-gestion` (por defecto) o `presupuesto-riesgo`, nunca los dos. PRINCE2 7 §2.b R-18 y §2.c.6; PMBOK 8 §2.4.a y §2.7.a."
+   }
+  ],
+  "personas": [
+   {
+    "t": "Registro opcional PU",
+    "d": "`personas.csv` se crea al primer uso: arquetipo, objetivo, dolores, contexto de uso, fuente (entrevista, recorridos UJ de BMAD, encuesta, observación, documento o supuesto) con su evidencia, el interesado que la representa y las capacidades que pide (S), usa (U) o aprovecha (B), con los beneficios ligados. No es un interesado ni un estereotipo de comunicación."
+   },
+   {
+    "t": "Candidatas que confirma una persona",
+    "d": "`interesados.py personas candidatos` las propone desde los recorridos UJ-n de BMAD (solo lectura), desde los mapas de recorrido o desde las historias «Como <rol>, quiero…», y sugiere el representante y el comando para registrar cada una; no registra nada sola."
+   },
+   {
+    "t": "Capacidad × persona y priorización",
+    "d": "`personas mapa` cruza cada capacidad con S, U o B y su prioridad MoSCoW; `personas priorizacion` resume por persona lo Must, Should y Could que pide o usa, con el representante y los beneficios."
+   },
+   {
+    "t": "Controles STK-13…16",
+    "d": "Aviso si un requisito o una épica Must no tiene persona (STK-13), si una persona no tiene capacidades (STK-14), si le falta fuente o evidencia (STK-15) o si un recorrido cita una persona no registrada (STK-16)."
+   }
+  ],
+  "radar": [
+   {
+    "t": "Decidir, escalar, desbloquear, vigilar",
+    "d": "`estado.py radar` (solo lectura) agrupa lo pendiente en cuatro grupos; cada ítem lleva su regla (RAD-01…RAD-08 o el código de sanidad), id, fecha, responsable, siguiente paso y prioridad 1–4, en un orden reproducible, y una línea «Hoy» con lo primero de cada grupo."
+   },
+   {
+    "t": "Reutiliza lo que ya existe",
+    "d": "Sale de `estado.py contexto`, los controles de `sanidad.py`, el último EVM guardado, `puertas.py` y los presupuestos y tolerancias de `estado.json`. El hook de inicio agrega una línea de radar por proyecto y el orquestador lo usa ante «¿qué decido hoy?» o al retomar la sesión."
+   },
+   {
+    "t": "Briefing de incorporación",
+    "d": "`estado.py briefing --para ST-###` resume en ≤ 6.500 caracteres el contexto, el rol y la RACI de quien se incorpora con sus ítems del radar, las decisiones de nivel junta, los riesgos altos, los cambios pendientes con quién decide, el último EVM y la próxima puerta; cada cifra con su id o archivo y sin datos de un interesado confidencial."
+   }
+  ],
+  "periodo": [
+   {
+    "t": "Un solo cálculo del período",
+    "d": "`estado.py periodo --desde … --corte …` calcula una vez los datos del período: siete objetivos con semáforo por regla (tiempo y costo del EVM, riesgo con los umbrales, calidad con QUA-01…03, alcance con el EVM ágil) o por juicio marcado del gestor, y el estado general como el peor."
+   },
+   {
+    "t": "Highlight y tablero con las mismas cifras",
+    "d": "`--highlight` escribe el borrador con cifras, ids y estado de las puertas y deja la narrativa `[por redactar]`, sin pisar uno aprobado; `--tablero` escribe el tablero de avance. El juicio del gestor puede empeorar un semáforo derivado, nunca mejorarlo."
+   },
+   {
+    "t": "Cadena de reporte verificada",
+    "d": "`periodo --verificar INFORME` compara cada cifra rotulada del EVM con el corte guardado, al redondeo citado, y cada semáforo con su regla; termina con código 1 si algo difiere."
+   }
+  ],
+  "productos": [
+   {
+    "t": "Estado de productos derivado",
+    "d": "`estado.py productos` arma el registro de productos (A13 de PRINCE2 7) desde `backlog.csv` o `wbs.csv`, `calidad.csv`, `issues.csv`, las aceptaciones y los paquetes de trabajo, sin registro nuevo; los conteos suman el total y `--markdown` deja el borrador del product status account."
+   },
+   {
+    "t": "Lo registrado contra lo físico",
+    "d": "Señala cada producto terminado sin revisión aprobada (QUA-01) o aceptado sin la revisión que lo cite (QUA-04, con `wbs.csv`) y los Must sin aceptar."
+   },
+   {
+    "t": "Cierre verificado por id",
+    "d": "En `autorizar-cierre`, C-03 comprueba cada issue y riesgo abierto, por id, en las recomendaciones de seguimiento con responsable; C-07 lista los requisitos e historias Must que no están aceptados ni con concesión."
+   }
+  ],
+  "reuniones": [
+   {
+    "t": "Candidatos con cita",
+    "d": "`extraccion.py candidatos` lee una transcripción (VTT, SRT, texto o normalizada) y propone, oración por oración, decisiones tomadas y pendientes con su nivel, compromisos con responsable y fecha, supuestos y riesgos, cada uno con cita, hablante y hora; en una retrospectiva, también lecciones y acciones de mejora."
+   },
+   {
+    "t": "Fuentes = datos",
+    "d": "Una instrucción incrustada en la transcripción se informa como IN y nunca se registra. Las frases marcadoras son deterministas, en español y en inglés."
+   },
+   {
+    "t": "Confirmación humana al registrar",
+    "d": "`registrar --confirmar <ids> --por \"<rol: nombre>\"`, sin opción «todos»: valida todo antes de escribir con `registro.py`; las decisiones de nivel junta, ejecutivo o capa de negocio las registra pm-director y un candidato ya registrado se omite."
+   }
+  ],
+  "lecciones": [
+   {
+    "t": "Lecciones de otros proyectos",
+    "d": "`lecciones.py buscar` consulta, de solo lectura, las lecciones aprobadas de otros proyectos o de un índice exportado por la organización (`<proyecto>:L-###`); `incorporar` muestra la vista previa y solo con `--confirmar --por` las registra con su `origen`."
+   },
+   {
+    "t": "Ciclo con responsable",
+    "d": "`clasificar` (impacto y proceso donde aplicarla), `accionar` (con fecha de verificación), `verificar --resultado efectiva|no-efectiva --evidencia` y `descartar --motivo`, cada paso con `--por`."
+   },
+   {
+    "t": "Retrospectiva como reunión propia",
+    "d": "`extraccion.py --tipo retrospectiva` propone lecciones y acciones de mejora con su cita; la plantilla ordena qué funcionó, qué no funcionó y qué probamos."
+   },
+   {
+    "t": "Controles e informe",
+    "d": "E-11 en `autorizar-etapa` (lecciones de planificación abiertas sin acción), REG-11 (impacto alto sin acción ni decisión) y REG-12 (verificación vencida o impacto alto sin fecha). `informe` escribe el informe de lecciones desde el registro y alimenta el índice de la organización."
+   }
+  ],
+  "impacto": [
+   {
+    "t": "Tabla de impacto antes de decidir",
+    "d": "`impacto.py analizar C-###` calcula alcance y especificación, tiempo y camino crítico (con `cpm.py`), reserva de cronograma, capacidad del release, tiempo de la etapa, alcance del EVM ágil, costo y BAC, presupuesto de cambio, autoridad, VAN del beneficio principal (con `inversion.py`), persona afectada, riesgos y calidad."
+   },
+   {
+    "t": "Quién decide",
+    "d": "Aplica la misma regla de autoridad y presupuesto de cambio que `registro.py` (`motivos_autoridad`): dice si decide la autoridad de cambio o la junta antes de pedir la decisión."
+   },
+   {
+    "t": "Borrador, no decisión",
+    "d": "Escribe `03-control/reportes/<fecha>-solicitud-cambio-C-###.md` con las opciones aprobar, rechazar, diferir o pedir plan de excepción. No escribe registros."
+   }
+  ],
+  "estimacion": [
+   {
+    "t": "Tres valores",
+    "d": "`actividades.csv` acepta `optimista`, `mas_probable` y `pesimista`; `cpm.py` usa tE redondeada hacia arriba, con beta-PERT (práctica habitual) o triangular (la fórmula que cita la Guía PMBOK), según declare el plan."
+   },
+   {
+    "t": "Reserva de cronograma",
+    "d": "σ del camino crítico = √Σσ²; reserva = k·σ (`--confianza`, por defecto 2) y fin con reserva. `--estimacion` escribe el archivo que lee `impacto.py --pert` y el Gantt muestra la reserva como sección."
+   },
+   {
+    "t": "Capacidad del release",
+    "d": "`release.py capacidad` (solo lectura): por release, capacidad = velocidad × iteraciones contra los puntos Must, Should y Could, holgura y Must / capacidad frente a la regla práctica de ≤ 60 %, con una lectura: excepción, repriorizar, entran Must y Should o entra todo."
+   }
+  ],
+  "auditoria": [
+   {
+    "t": "Expediente con índice y cronología",
+    "d": "`paquete.py auditoria` arma un ZIP con `INDICE.md` e `INDICE.html`, `cronologia.csv` (puertas con su decisión, decisiones, cambios decididos, riesgos aceptados, productos aceptados y envíos), estado, registros, líneas base congeladas, evidencia de puertas, actas, informes, cortes de EVM, comunicaciones y hallazgos de sanidad al corte."
+   },
+   {
+    "t": "Para un tercero",
+    "d": "`--externo` omite el registro de interesados y los destinos de los envíos; las rutas externas al proyecto quedan fuera."
+   },
+   {
+    "t": "Integridad comprobable",
+    "d": "`MANIFIESTO.md` y `SHA256SUMS`; `paquete.py verificar <zip>` recalcula cada sha256 e informa archivos alterados, faltantes y agregados (código 1)."
+   }
   ]
  },
  "versiones": {
@@ -1878,13 +2130,13 @@
    [
     "Skills (`validar_paquete.py`)",
     "38 (32 invocables · listado de 6.582 caracteres)",
-    "**{{skills}}** ({{invocables}} invocables · **{{listado}}** caracteres; límite 7.500): `pm-mapas-estrategicos`",
-    "CHANGELOG 2.3.0; corrida del {{pruebas_fecha}}"
+    "**39** (33 invocables · **6.817** caracteres; límite 7.500): `pm-mapas-estrategicos`",
+    "CHANGELOG 2.3.0; corrida del 2026-10-20"
    ],
    [
     "Sanidad",
     "familias INS, EST, ART, REG, CAM, QUA, TOL, ESP, INT y STK",
-    "**{{codigos}} códigos en {{familias}} familias**: + **SUP** (SUP-01…03), **MAP** (MAP-00…05) y **REG-09**",
+    "**85 códigos en 12 familias**: + **SUP** (SUP-01…03), **MAP** (MAP-00…05) y **REG-09**",
     "SANIDAD §2.1"
    ],
    [
@@ -1896,25 +2148,25 @@
    [
     "Regresión (`probar_paquete.py`)",
     "138 OK · 0 FALLO (casos A–J)",
-    "**{{regresion_ok}} OK · 0 FALLO** con Python {{regresion_py}} ({{regresion_ok39}} con 3.9) · casos {{regresion_casos}}",
+    "**223 OK · 0 FALLO** con Python 3.13 (222 con 3.9) · casos A–N, J2, L2, P, S, X e Y",
     "PRUEBAS §2"
    ],
    [
     "Integración cruzada",
     "—",
-    "**{{integ_ok}} OK · 0 FALLO en {{integ_eslabones}} eslabones** (seis cadenas)",
+    "**61 OK · 0 FALLO en 24 eslabones** (seis cadenas)",
     "PRUEBAS §2.3"
    ],
    [
     "Guías E2E",
     "4 guías · 13/10/13/15 pasos",
-    "**{{guias}} guías · {{pasos}} pasos** ({{pasos_lista}}), dos clases de 90 minutos cada una",
+    "**5 guías · 70 pasos** (15, 10, 14, 13, 18), dos clases de 90 minutos cada una",
     "guias/README.md"
    ],
    [
     "Material de formación",
     "—",
-    "**{{web_clases}} clases**, {{web_diapositivas}} diapositivas de contenido y {{web_glosario}} términos de glosario; resumen ejecutivo comercial (PPTX y HTML)",
+    "**10 clases**, 186 diapositivas de contenido y 124 términos de glosario; resumen ejecutivo comercial (PPTX y HTML)",
     "webinar/README.md"
    ],
    [
@@ -1926,19 +2178,19 @@
    [
     "Seguridad y entorno",
     "—",
-    "revisión con 0 hallazgos altos ({{seg_hallazgos}} hallazgos SEG con estado); entorno Docker opcional verificado sin red",
+    "revisión con 0 hallazgos altos (17 hallazgos SEG con estado); entorno Docker opcional verificado sin red",
     "SEGURIDAD; DOCKER §10"
    ],
    [
     "Enrutamiento en vivo (Claude Code real)",
     "14/14 (frases que cambiaron) · 27/28 terminología · 25/25 con BMAD",
-    "**{{vivo_contexto}}** con el resumen de contexto · **{{vivo_mapas}}** mapas · integración con BMAD **{{vivo_integracion}}**",
+    "**14/14** con el resumen de contexto · **8/8** mapas · integración con BMAD **12/12**",
     "PRUEBAS §3.1"
    ],
    [
     "Casos de uso documentados",
     "48",
-    "**{{casos_uso}}** (caso 49: mapas desde la especificación)",
+    "**49** (caso 49: mapas desde la especificación)",
     "CASOS-DE-USO.md"
    ]
   ],
@@ -2064,6 +2316,86 @@
     "—",
     "Sonnet **59/60** · Haiku **56/60**",
     "PRUEBAS §3.1"
+   ]
+  ],
+  "antes_despues_24": [
+   [
+    "Skills (`validar_paquete.py`)",
+    "39 (33 invocables · listado de 6.817 caracteres)",
+    "**{{skills}}** ({{invocables}} invocables · **{{listado}}** caracteres; límite 7.500), con descripciones ampliadas",
+    "CHANGELOG 2.4.0; corrida del {{pruebas_fecha}}"
+   ],
+   [
+    "Registros",
+    "13 (9 base y 4 opcionales)",
+    "**{{registros}}** ({{registros_base}} base y {{registros_opcionales}} opcionales): + `personas.csv` (PU); `lecciones.csv` con ocho columnas al final",
+    "SPEC §1.10.8"
+   ],
+   [
+    "Sanidad",
+    "85 códigos en 12 familias",
+    "**{{codigos}} códigos en {{familias}} familias**: + REG-10, REG-11, REG-12, QUA-04 y STK-13…16",
+    "SANIDAD §2.1"
+   ],
+   [
+    "Controles de puerta",
+    "código por control y P-11 en `autorizar-proyecto`",
+    "+ **E-11** en `autorizar-etapa`; **C-03** por id y **C-07** (Must sin aceptar) en `autorizar-cierre`",
+    "PUERTAS §3"
+   ],
+   [
+    "Scripts nuevos o ampliados",
+    "—",
+    "`riesgos.py opciones`, `estado.py radar · briefing · periodo · productos`, `extraccion.py`, `impacto.py`, `release.py`, `lecciones.py`, `paquete.py auditoria · verificar`, `cpm.py --estimacion`, `interesados.py personas`",
+    "CHANGELOG 2.4.0"
+   ],
+   [
+    "Regresión (`probar_paquete.py`)",
+    "223 OK · 0 FALLO (222 con 3.9)",
+    "**{{regresion_ok}} OK · 0 FALLO** con Python {{regresion_py}} ({{regresion_ok39}} con 3.9)",
+    "PRUEBAS §2"
+   ],
+   [
+    "Integración cruzada",
+    "61 OK · 0 FALLO en 24 eslabones",
+    "**{{integ_ok}} OK · 0 FALLO en {{integ_eslabones}} eslabones**",
+    "PRUEBAS §2.3"
+   ],
+   [
+    "Guías E2E",
+    "5 guías · 70 pasos · 42 imágenes",
+    "**{{guias}} guías · {{pasos}} pasos** ({{pasos_lista}}) · {{imagenes_guias}} imágenes",
+    "guias/README.md"
+   ],
+   [
+    "Material de formación",
+    "10 clases · 186 diapositivas · 124 términos",
+    "**{{web_clases}} clases**, {{web_diapositivas}} diapositivas de contenido y {{web_glosario}} términos de glosario",
+    "webinar/README.md"
+   ],
+   [
+    "Frases de enrutamiento",
+    "102",
+    "**{{frases}}**",
+    "evaluacion/frases-enrutamiento.tsv"
+   ],
+   [
+    "Enrutamiento en vivo (Claude Code real)",
+    "14/14 con contexto · 8/8 mapas · 12/12 con BMAD",
+    "**{{vivo24_ok}}/{{vivo24_total}}** frases {{vivo24_desde}}–{{vivo24_hasta}} y de control · **{{vivo24_reg_ok}}/{{vivo24_reg_total}}** de regresión ({{vivo24_fechas}})",
+    "PRUEBAS §3.1"
+   ],
+   [
+    "Casos de uso documentados",
+    "49",
+    "**{{casos_uso}}** (parte 7: una capacidad por caso, con su paso en las guías)",
+    "CASOS-DE-USO.md"
+   ],
+   [
+    "Bloques Mermaid validados",
+    "127",
+    "**{{mermaid_bloques}}**, 0 errores",
+    "CHANGELOG 2.4.0"
    ]
   ]
  }

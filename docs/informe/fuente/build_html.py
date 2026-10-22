@@ -8,7 +8,7 @@ X = D["x"]
 Mt = D["meta"]
 e = html.escape
 LOGO = ("data:image/png;base64," + base64.b64encode(open("logo.png", "rb").read()).decode()) if os.path.exists("logo.png") else ""
-VER = Mt["version"]                                   # "v2.3"
+VER = Mt["version"]                                   # "v2.4"
 SALIDA = f"salida-{VER}/informe-2-ecosistema-pm-method-{VER}.html"
 pathlib.Path(f"salida-{VER}").mkdir(exist_ok=True)
 

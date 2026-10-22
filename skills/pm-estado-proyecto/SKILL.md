@@ -1,7 +1,7 @@
 ---
 name: pm-estado-proyecto
 description: "Carpeta del proyecto, estado.json y scripts compartidos (estado, registro, wbs, cpm, evm). Usar: crear proyecto, estado, etapa, tolerancias, project state. No: decidir puertas→pm-direccion-decisiones."
-version: 2.3.0
+version: 2.4.0
 author: pm-method
 license: MIT
 metadata:
@@ -31,7 +31,7 @@ Carpetas y cabeceras CSV en español técnico (`snake_case`); los scripts respon
 
 ## Conocimiento
 - `SPEC.md` §1.5 (carpeta), §1.6 (estado.json), §1.10 (convenciones canónicas), §1.12–§1.13 (integraciones, BMAD), §1.16 (fuente única).
-- `references/guia.md` (este skill): §1 modelo de puertas, §2 migración, §3 carpetas v2, §4 integraciones, §5 opciones de scripts, §6 quién usa cada script.
+- `references/guia.md` (este skill): §1 modelo de puertas, §2 migración, §3 carpetas v2, §4 integraciones, §5 opciones de scripts, §6 quién usa cada script, §9 radar y briefing, §10 estado de productos.
 - `pm-knowledge/references/prince2-principios-personas-procesos.md` — buscar `### 4.5` (etapas y puertas) y `### 5.` (procesos SU…CP).
 - `pm-knowledge/references/pmbok8-artefactos-tecnicas-anexos.md` — `### 3.8` (CPM) y `### 3.9` (EVM), fórmulas de `cpm.py` y `evm.py`.
 - `pm-knowledge/references/plantillas-documentos-registros-reportes.md` — `# PARTE V` (esquemas CSV de referencia); el esquema canónico es `scripts/esquema.py`.
@@ -44,7 +44,7 @@ Carpetas y cabeceras CSV en español técnico (`snake_case`); los scripts respon
 
 ## Procedimiento
 1. **Crear proyecto**: `python3 ${CLAUDE_SKILL_DIR}/../pm-estado-proyecto/scripts/nuevo_proyecto.py --ruta <dir> --nombre "<nombre>" --idioma es|en --enfoque predictivo|agil|hibrido [--ejecutivo .. --gestor ..]`. Crea las carpetas de SPEC §1.5 (incluidas `02-planificacion/especificacion/` derivada, `03-control/reuniones/` y `03-control/fuentes/`; guía §3), los nueve CSV, el diario y `estado.json` en `pre-proyecto`/SU/etapa 0. No sobrescribe un `estado.json` existente.
-2. **Consultar**: `estado.py --proyecto <dir> ver` y `siguiente` (qué toca, puertas pendientes, condiciones abiertas, tolerancias faltantes); `contexto` = resumen derivado con ids (≤ 2.000 caracteres; el del hook de inicio). Un `estado.json` antiguo se migra al leerse (`ejecucion` → `entrega`; guía §2).
+2. **Consultar**: `estado.py --proyecto <dir> ver` y `siguiente` (qué toca, puertas y condiciones pendientes, tolerancias faltantes); `contexto` = resumen del hook de inicio; `radar [--corte] [--json]` = qué decidir, escalar, desbloquear y vigilar; `briefing [--para ST-###]` = briefing (guía §9); `productos [--markdown]` = estado de productos (guía §10); `periodo` = tablero y highlight (guía §6). Un `estado.json` antiguo se migra al leerse (guía §2).
 3. **Artefactos**: `estado.py artefacto <clave> --ruta <ruta> --estado borrador|en-revision|aprobado|obsoleto --version x.y` con las claves canónicas de SPEC §1.10.3.
 4. **Aprobar un documento** (solo tras aprobación humana explícita): `estado.py aprobar <clave> --por "<rol: nombre>" [--version 1.0] [--nivel ..]`; sincroniza frontmatter y `estado.json` y agrega la fila en `decisiones.csv`.
 5. **Registrar una puerta** (solo `pm-director`, tras la decisión humana): `estado.py puerta <tipo> --decision aprobado|condicionado|rechazado|pendiente --por "<rol: nombre>" [--condiciones ..] [--forzar] (más opciones en guía §1)`. El script escribe la fila de `decisiones.csv` y su id en `puertas[].decision_id`. Efectos de cada puerta: guía §1. Condiciones: `cumplir-condiciones <tipo>`.

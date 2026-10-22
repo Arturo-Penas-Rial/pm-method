@@ -4,16 +4,18 @@
 Uso:  python3 scripts/pruebas/guias_e2e/correr.py [--guias 1,2,3,4,5] [--salida DIR]
 Cada guía crea su propio proyecto temporal (copia de scripts/pruebas/fixtures/bmad-v6.12-real), ejecuta los comandos
 que las skills usan por detrás y escribe en DIR salida-g<N>.md (comandos y salidas) y sus imágenes:
-  g1: g1-mapa-inherente-residual, g1-exposicion-respuestas, g1-exposicion-tendencia, g1-revisiones-vencidas,
-      g1-consumo-reserva, g1-tarjetas-etapa, g1-tablero
-  g2: g2-gantt, g2-roadmap-c001, g2-trazabilidad, g2-consumo-cambio, g2-alcance-evm, g2-business-case, g2-indicadores
-  g3: g3-interesados-matriz, g3-interesados-raci-perfiles, g3-highlight-indicadores, g3-okr-salud, g3-cadencia-stk12,
-      g3-brecha-compromiso, g3-tablero, g3-tablero-actor
-  g4: g4-calidad-entregas, g4-recorrido, g4-burnup, g4-beneficios, g4-cierre, g4-tablero, g4-tablero-mapas-169
-  g5: g5-mapa-supuestos, g5-van-opciones, g5-enfoque-entrega, g5-wardley, g5-recorrido, g5-presupuesto,
-      g5-tres-disenos, g5-tablero, g5-tablero-mapas, g5-tablero-mapas-169, g5-wardley-bmad, g5-recorrido-bmad,
-      g5-tablero-mapas-bmad
-(todas .png de 1600×900 salvo las capturas; los -169 son recortes 16:9 para diapositivas). Los gráficos usan visuales.py (matplotlib); las capturas de tableros,
+  g1 (8): g1-mapa-inherente-residual, g1-opciones-valor-neto, g1-exposicion-respuestas, g1-tablero,
+      g1-revisiones-vencidas, g1-exposicion-tendencia, g1-consumo-reserva, g1-tarjetas-etapa
+  g2 (9): g2-gantt, g2-capacidad-release, g2-business-case, g2-impacto-c002, g2-roadmap-c001, g2-trazabilidad,
+      g2-consumo-cambio, g2-alcance-evm, g2-indicadores
+  g3 (10): g3-interesados-matriz, g3-interesados-raci-perfiles, g3-candidatos-reunion, g3-radar,
+      g3-highlight-indicadores, g3-okr-salud, g3-tablero, g3-tablero-actor, g3-cadencia-stk12, g3-brecha-compromiso
+  g4 (9): g4-burnup, g4-tablero, g4-calidad-entregas, g4-recorrido, g4-tablero-mapas-169, g4-lecciones-ciclo,
+      g4-cierre, g4-expediente, g4-beneficios
+  g5 (15): g5-mapa-supuestos, g5-van-opciones, g5-enfoque-entrega, g5-wardley, g5-recorrido, g5-tablero-mapas,
+      g5-tablero-mapas-169, g5-presupuesto, g5-personas-mapa, g5-tres-disenos, g5-tablero, g5-personas-mapa-bmad,
+      g5-recorrido-bmad, g5-wardley-bmad, g5-tablero-mapas-bmad
+(51 imágenes, todas .png de 1600×900 salvo las capturas; los -169 son recortes 16:9 para diapositivas). Los gráficos usan visuales.py (matplotlib); las capturas de tableros,
 reportes HTML y recorridos usan playwright (sin playwright se omiten con un aviso); g5-wardley*.png usa mmdc.
 La guía 3 levanta un servidor SMTP y un receptor de webhooks de prueba en 127.0.0.1 para mostrar el envío real por la
 capa de canales sin salir a la red.

@@ -8,8 +8,8 @@
       "titulo": "Del alcance a la línea base",
       "duracion_min": 90,
       "objetivos": [
-        "Leer un alcance por productos con criterios de calidad y su cobertura de trazabilidad",
-        "Leer un camino crítico y calcular una reserva a 2σ con PERT",
+        "Leer un alcance por productos con criterios de calidad, su cobertura de trazabilidad y a qué persona sirve cada Must",
+        "Leer un camino crítico y una reserva a 2σ calculados con tres valores y la fórmula declarada",
         "Fijar la línea base de cambio: tolerancias, límite por cambio, presupuesto de cambio y VAN"
       ],
       "diapositivas": [
@@ -113,39 +113,45 @@
         },
         {
           "tipo": "contenido",
-          "titulo": "PERT y camino crítico",
+          "titulo": "Tres valores y camino crítico",
           "puntos": [
-            "Tres estimaciones: optimista, más probable, pesimista",
-            "tE = (O + 4M + P) / 6 · σ = (P − O) / 6",
-            "Camino crítico: actividades sin holgura",
-            "σ del camino = √Σσ² · reserva a 2σ",
-            "La reserva cubre la incertidumbre, no los cambios"
+            "Tres estimaciones: optimista, más probable y pesimista",
+            "Beta-PERT (práctica difundida): tE = (O + 4M + P) / 6 · σ = (P − O) / 6",
+            "Triangular (la que cita la Guía PMBOK): tE = (O + M + P) / 3",
+            "σ del camino = √Σσ² · reserva a 2σ ≈ 95 %",
+            "La fórmula se declara; la reserva cubre la incertidumbre, no los cambios"
           ],
-          "nota": "Para el público de negocio: el camino crítico es la cadena que fija la fecha; si una actividad se atrasa, se atrasa el proyecto. La reserva a 2σ cubre lo que no sabemos de las estimaciones, no los cambios de alcance."
+          "nota": "Para el público de negocio: el camino crítico es la cadena que fija la fecha; si una actividad se atrasa, se atrasa el proyecto. Las dos fórmulas son válidas, pero no dan lo mismo: por eso la elige el plan de gestión, no el modelo. La reserva a 2σ cubre lo que no sabemos de las estimaciones, no los cambios de alcance."
         },
         {
           "tipo": "demo",
-          "titulo": "Demo · Paso 3: PERT, camino crítico y reserva",
-          "prompt": "Estimá con PERT de tres puntos las actividades y armá el cronograma con camino crítico desde el 30/11, con exportación a MS Project. Lucía va a validar los valores. Calculá la reserva de cronograma a 2σ del camino crítico.",
-          "nota": "Si pregunta por los valores, usá la tabla de Lucía de la guía. Mostrá en la salida la duración total, el fin previsto y la línea del camino crítico, y después la reserva calculada."
+          "titulo": "Demo · Paso 3: tres valores, camino crítico y reserva",
+          "prompt": "Estimá con tres valores las actividades, con la fórmula beta-PERT que fijamos para el proyecto, y armá el cronograma con camino crítico desde el 30/11, con exportación a MS Project. Lucía va a validar los valores. Calculá la reserva de cronograma a 2σ del camino crítico.",
+          "nota": "Si pregunta por los valores, usá la tabla de Lucía de la guía. Mostrá en la salida de cpm.py la duración total, el fin previsto y el camino crítico, la línea de la fórmula (beta-PERT, rotulada) y la reserva con el fin con reserva. El modelo no hace las cuentas: las hace el script y deja estimacion-pert.csv para el análisis de impacto."
         },
         {
           "tipo": "imagen",
-          "titulo": "Camino crítico: 110 días, fin el 3/5/2027",
+          "titulo": "Camino crítico: 112 días, fin el 5/5/2027",
           "imagen": "docs/guias/img/g2-gantt.png",
-          "nota": "Cinco actividades sin holgura, en naranja, fijan el fin. A04 tiene 3 días de holgura y A02, 34. La reserva a 2σ es de 13,0 días laborables, dentro de la tolerancia de 15 que fija la junta en el paso 5."
+          "nota": "Cinco actividades sin holgura, en naranja, fijan el fin. A04 tiene 3 días de holgura y A02, 34. La reserva a 2σ es de 13,0 días laborables (fin con reserva el 24/5), dentro de la tolerancia de 15 que fija la junta en el paso 5. Con la triangular, la misma red daría 116 días y 16,2 de reserva: más que la tolerancia."
         },
         {
           "tipo": "contenido",
-          "titulo": "MoSCoW: el margen del product owner",
+          "titulo": "MoSCoW: el margen del PO y a quién sirve cada Must",
           "puntos": [
-            "Must: sin esto no hay producto",
-            "Should y Could: lo que se puede mover",
+            "Must: sin esto no hay producto; Should y Could, el margen del PO",
             "Orden: MoSCoW y después valor sobre puntos",
-            "R1: 47 de 48 puntos · R2: 21 de 24",
-            "Margen de alcance: 20 % Should/Could"
+            "Capacidad = velocidad × iteraciones: R1 47 de 48 · R2 21 de 24",
+            "Personas desde los recorridos de BMAD: Marta, Diego y Lucía",
+            "Must sin persona: FR-8 y FR-12 → ninguno (STK-13)"
           ],
-          "nota": "En un proyecto de costo y fecha fijos, Should y Could son el colchón. El PO puede intercambiarlos sin pedir permiso, siempre que no toque Must, fecha ni costo. Ese 20 % vuelve en el EVM de la clase 2."
+          "nota": "En un proyecto de costo y fecha fijos, Should y Could son el colchón que el PO puede intercambiar sin pedir permiso; ese 20 % vuelve en el EVM de la clase 2. Las personas de usuario salen de los recorridos de BMAD y las confirma Sofía. Un Must sin persona es una pregunta: acá faltaba el vínculo, que estaba escrito en el recorrido de Diego."
+        },
+        {
+          "tipo": "imagen",
+          "titulo": "El R1 entra con 1 punto de holgura y 88 % de Must",
+          "imagen": "docs/guias/img/g2-capacidad-release.png",
+          "nota": "release.py capacidad suma los puntos por MoSCoW contra la velocidad por las iteraciones de cada release. El R1 entra, pero los Must son el 88 % de la capacidad, contra la regla práctica de 60 %: casi no queda Should o Could para absorber un cambio sin tocar un Must. Guardá esta imagen: en la clase 2, C-002 cae justo ahí."
         },
         {
           "tipo": "tabla",
@@ -189,7 +195,7 @@
         {
           "tipo": "demo",
           "titulo": "Demo · Paso 5: presupuesto, business case y línea base",
-          "prompt": "Calculá el presupuesto desde la WBS, armá el release plan y el roadmap por etapas con las puertas, y preparame las puertas de inicio, proyecto y etapa 2. Antes de la de proyecto: documentá las tolerancias y la autoridad delegada (Sofía decide cambios de hasta 10.000 cada uno, con un presupuesto de cambio de 12.000 que fija la junta) y el enfoque de beneficios (B-01 a B-03, quién los mide y cuándo). En la de proyecto fijá la línea base del PRD y de las épicas, y que Sofía apruebe el backlog como línea base.",
+          "prompt": "Calculá el presupuesto desde la WBS, armá el release plan y el roadmap por etapas con las puertas, y preparame las puertas de inicio, proyecto y etapa 2. Antes de la de proyecto: documentá las tolerancias y la autoridad delegada (Sofía decide cambios de hasta 10.000 cada uno, con un presupuesto de cambio de 12.000 que fija la junta), el enfoque de beneficios (B-01 a B-03, quién los mide y cuándo) y el business case con su VAN a 5 años. En la de proyecto fijá la línea base del PRD y de las épicas, y que Sofía apruebe el backlog como línea base.",
           "nota": "Respondé como Sofía y Laura con el texto de la guía, incluida la tabla de flujos del business case. Mostrá el VAN de inversion.py, el comando estado.py presupuesto que registra la decisión y la verificación de la puerta de proyecto."
         },
         {
@@ -310,12 +316,12 @@
         {
           "tipo": "demo",
           "titulo": "Demo · Paso 7: cambio de alcance con análisis de impacto",
-          "prompt": "Verificá la especificación contra la línea base. Si hay algo nuevo, registralo como solicitud de cambio y analizá el impacto antes de decidir: paquete de la WBS nuevo, esfuerzo, camino crítico, reserva de cronograma, costo, presupuesto de cambio, autoridad, capacidad del release y beneficios. Estimá el simulador en O 8, M 10, P 16 días después de los sprints de solicitudes. Si la reserva de cronograma queda chica, registralo como riesgo.",
-          "nota": "Copiá el prompt tal cual. Si pregunta la decisión, respondé como Sofía: aprobado contra el presupuesto de cambio. Antes de esa respuesta, mostrá la tabla de impacto en la salida."
+          "prompt": "Verificá la especificación contra la línea base. Si hay algo nuevo, registralo como solicitud de cambio y analizá el impacto antes de decidir: paquete de la WBS nuevo, esfuerzo, camino crítico, reserva de cronograma, costo, presupuesto de cambio, autoridad, capacidad del release, business case y a qué personas de usuario afecta. Estimá el simulador en O 8, M 10, P 16 días después de los sprints de solicitudes; Sofía estima que suma 4.000 por año al beneficio B-03. Si la reserva de cronograma queda chica, registralo como riesgo.",
+          "nota": "Copiá el prompt tal cual. Si pregunta a quién afecta, respondé como Sofía: lo usa Diego (UJ-2). Antes de la decisión, mostrá la tabla de impacto.py, la línea «Decide» y el borrador de la solicitud de cambio; recién entonces respondé: aprobado contra el presupuesto de cambio."
         },
         {
           "tipo": "tabla",
-          "titulo": "Tabla de impacto de C-001, antes de decidir",
+          "titulo": "impacto.py sobre C-001: decide la autoridad de cambio",
           "tabla": {
             "cab": [
               "Objetivo",
@@ -326,49 +332,49 @@
             "filas": [
               [
                 "Tiempo",
-                "121 días (+11)",
+                "123 días (+11)",
                 "±3 semanas = 15 días",
                 "Dentro: 73 %"
               ],
               [
                 "Reserva",
                 "13,0 − 11 = 2,0 días",
-                "Atraso posible",
-                "Riesgo R-001"
+                "Atraso posible (tres valores)",
+                "Registrar riesgo: R-001"
+              ],
+              [
+                "Capacidad del R2",
+                "29 pts",
+                "Velocidad 8 × 3 sprints",
+                "+1 sprint"
               ],
               [
                 "Presupuesto de cambio",
                 "9.000 de 12.000 (75 %)",
-                "CAM-03",
+                "Saldo de la junta (CAM-03)",
                 "Dentro del saldo"
               ],
               [
                 "Autoridad",
-                "9.000 en un cambio",
+                "9.000 en este cambio",
                 "Límite 10.000",
-                "Decide Sofía"
+                "Dentro: decide Sofía"
               ],
               [
-                "Capacidad del R2",
-                "29 pts de 24",
-                "Velocidad 8",
-                "+1 sprint (32)"
-              ],
-              [
-                "Business case",
-                "VAN 45.939 (+6.163)",
+                "Beneficios (VAN)",
+                "45.939 (+6.163)",
                 "VAN de la línea base",
-                "Se paga solo"
+                "A favor: suma valor"
               ]
             ]
           },
-          "nota": "Recorré la tabla fila por fila. La pregunta habitual es cuánto cuesta; las que se olvidan son la reserva, la capacidad, la autoridad y el valor. Con esta tabla la decisión de Sofía es informada y sale con condiciones: R-001 y el sprint 10."
+          "nota": "Recorré la tabla fila por fila. La pregunta habitual es cuánto cuesta; las que se olvidan son la reserva, la capacidad, la autoridad y el valor. El análisis suma a quién sirve (lo pide el Consejo, lo usa Diego) y dice quién decide. La decisión de Sofía sale informada y con condiciones: R-001 y el sprint 10."
         },
         {
           "tipo": "imagen",
           "titulo": "C-001 no mueve el Release 1 y corre 11 días la puesta en producción",
           "imagen": "docs/guias/img/g2-roadmap-c001.png",
-          "nota": "El Release 1 sigue en el día 68. UAT y puesta en producción pasan de 110 a 121 días laborables: del 3/5 al 18/5, dentro de la tolerancia de 15 días."
+          "nota": "El Release 1 sigue en el día 69. UAT y puesta en producción pasan de 112 a 123 días laborables: del 5/5 al 20/5, dentro de la tolerancia de 15 días."
         },
         {
           "tipo": "imagen",
@@ -391,7 +397,7 @@
         {
           "tipo": "demo",
           "titulo": "Demo · Paso 10: el cambio que excede la autoridad",
-          "prompt": "Registrá el requisito regulatorio como solicitud de cambio: paquete nuevo 3.5, 13 puntos Must en R1, +1 sprint en la etapa 2, USD 15.000. Sofía lo aprobó el 17/2 porque es obligatorio: registralo. Guardá el corte de EVM del 19/2 (PV 75.000, EV 60.000, AC 77.000, BAC 133.000, ágil, 20 % Should/Could), corré sanidad al 19/2 y armá la tabla de impacto de C-002. Si hay excepción, prepará el informe de excepción para la junta y registrá el issue.",
+          "prompt": "Registrá el requisito regulatorio como solicitud de cambio: paquete nuevo 3.5, 13 puntos Must en R1, +1 sprint en la etapa 2, USD 15.000, sin beneficio propio. Sofía lo aprobó el 17/2 porque es obligatorio: registralo. Guardá el corte de EVM del 19/2 (PV 75.000, EV 60.000, AC 77.000, BAC 133.000, ágil, 20 % Should/Could), corré sanidad al 19/2 y analizá el impacto de C-002 (refuerza NFR-1 y NFR-5; para hacerle lugar en R1 saldría la 2.3) con su efecto en el business case: decime quién tiene que decidirlo. Si hay excepción, prepará el informe de excepción para la junta y registrá el issue.",
           "nota": "Corré solo el prompt 1 en vivo. Los prompts 2 y 3, de la junta, se leen en voz alta y se muestran en la evidencia para no depender de dos rondas más."
         },
         {
@@ -408,7 +414,7 @@
         },
         {
           "tipo": "tabla",
-          "titulo": "Tabla de impacto de C-002",
+          "titulo": "impacto.py sobre C-002: decide la junta",
           "tabla": {
             "cab": [
               "Objetivo",
@@ -425,37 +431,43 @@
               ],
               [
                 "Autoridad",
-                "15.000 en un cambio",
+                "15.000 en este cambio",
                 "Límite 10.000",
-                "Excedida: rechazada"
+                "Excede la autoridad"
               ],
               [
                 "Capacidad del R1",
-                "55 pts sin la 2-3",
-                "Velocidad 8 × 6",
+                "55 pts (sin la 2-3)",
+                "Velocidad 8 × 6 sprints",
                 "+1 sprint"
               ],
               [
-                "Tiempo de la etapa 2",
+                "Tiempo de la etapa",
                 "Fin 2027-03-19 (+14)",
                 "±10 % = 9,8 días",
-                "Fuera"
+                "Fuera → excepción"
               ],
               [
                 "Alcance (EVM)",
                 "No entra el 22,1 %",
                 "Margen 20 %",
-                "Must en riesgo"
+                "Must en riesgo → excepción"
               ],
               [
-                "Business case",
-                "VAN 30.939",
-                "Tolerancia de beneficios −10 %",
+                "Beneficios (VAN)",
+                "30.939 (−15.000)",
+                "Tolerancia −10 %",
                 "Justificado, B-01 −18 %"
               ]
             ]
           },
-          "nota": "Lo que la aprobación del 17/2 no miró: tres límites superados, los Must en riesgo y 15.000 menos de VAN. El caso sigue justificado, con menos margen. El fin del proyecto no se recalcula en la guía: lo actualiza el plan de proyecto junto con el plan de excepción."
+          "nota": "Lo que la aprobación del 17/2 no miró. El análisis da cuatro motivos para que decida la junta (límite, saldo, tiempo de la etapa y Must en riesgo) y recomienda pedir un plan de excepción. El caso sigue justificado, con menos margen. El fin del proyecto lo actualiza el plan de proyecto junto con el plan de excepción."
+        },
+        {
+          "tipo": "imagen",
+          "titulo": "C-002 supera los cinco límites del análisis",
+          "imagen": "docs/guias/img/g2-impacto-c002.png",
+          "nota": "Cada barra es cuánto del límite usaría C-002: 200 % del presupuesto de cambio, 150 % del límite de Sofía, 143 % de la tolerancia de la etapa, 115 % de la capacidad del R1 y 110 % del margen de Should/Could. Con un solo límite superado ya no decide la autoridad de cambio."
         },
         {
           "tipo": "imagen",
@@ -491,7 +503,7 @@
           "tipo": "indicadores",
           "titulo": "Al 26/2 cada cambio quedó medido; la reserva casi se agotó",
           "imagen": "docs/guias/img/g2-indicadores.png",
-          "nota": "Cerrá el recorrido con las seis tarjetas: VAN de 30.939 con los dos cambios, fin el 18/5, 2 días de reserva, presupuesto al 75 %, 22,1 % de alcance en riesgo en el corte del 19/2 y 13 de 13 requisitos trazados."
+          "nota": "Cerrá el recorrido con las seis tarjetas: VAN de 30.939 con los dos cambios, fin el 20/5, 2 días de reserva, presupuesto al 75 %, 22,1 % de alcance en riesgo en el corte del 19/2 y 13 de 13 requisitos trazados."
         },
         {
           "tipo": "ejercicio",
@@ -510,7 +522,7 @@
           "titulo": "Mensajes clave de la clase 2",
           "puntos": [
             "Tres caminos, tres dueños: PO, autoridad de cambio, junta",
-            "El impacto se mira antes, en todos los objetivos y en el VAN",
+            "El impacto se mira antes, en todos los objetivos, y dice quién decide",
             "Obligatorio no define quién decide",
             "Siguiente caso, E2E-3: interesados y comunicación"
           ],
@@ -537,8 +549,8 @@
       "definicion": "Relación requisito → historia → paquete de la WBS; en pm-method se recalcula en cada sincronización con BMAD."
     },
     {
-      "termino": "PERT de tres puntos",
-      "definicion": "Estimación con valores optimista, más probable y pesimista: tE = (O + 4M + P)/6 y σ = (P − O)/6."
+      "termino": "Estimación de tres valores",
+      "definicion": "Optimista, más probable y pesimista por actividad. Beta-PERT (la del caso): tE = (O + 4M + P)/6 y σ = (P − O)/6; triangular (la que cita la Guía PMBOK): tE = (O + M + P)/3. La fórmula se declara en el plan."
     },
     {
       "termino": "Camino crítico",
@@ -550,7 +562,11 @@
     },
     {
       "termino": "MoSCoW",
-      "definicion": "Clasificación del alcance en Must, Should, Could y Won't; Should y Could son el margen del product owner."
+      "definicion": "Clasificación del alcance en Must, Should, Could y Won't; Should y Could son el margen del product owner. Must y Should tienen que entrar en la capacidad del release (velocidad × iteraciones)."
+    },
+    {
+      "termino": "Persona de usuario",
+      "definicion": "Arquetipo de quien usa el producto, con objetivo, contexto y dolores; no es un interesado. Sirve para comprobar que cada Must le sirve a alguien (user persona)."
     },
     {
       "termino": "Business case",
@@ -585,8 +601,8 @@
       "definicion": "Cambio de Should/Could equivalentes sin tocar Must, fecha ni costo; no requiere solicitud de cambio."
     },
     {
-      "termino": "Tabla de impacto",
-      "definicion": "Análisis de un cambio antes de decidirlo: tiempo, reserva, costo, presupuesto, autoridad, capacidad y beneficios."
+      "termino": "Análisis de impacto",
+      "definicion": "Medición de un cambio antes de decidirlo (tiempo, reserva, capacidad, costo, presupuesto, autoridad y VAN) que dice qué nivel decide; impacto.py deja el borrador de la solicitud (impact assessment)."
     },
     {
       "termino": "BAC",
@@ -605,12 +621,8 @@
       "definicion": "Cada nivel decide dentro de su tolerancia y escala solo cuando un pronóstico la supera (management by exception)."
     },
     {
-      "termino": "Informe de excepción",
-      "definicion": "Documento con el que el gestor informa a la junta un desvío fuera de tolerancia, con opciones y recomendación."
-    },
-    {
-      "termino": "Plan de excepción",
-      "definicion": "Plan que reemplaza al vigente cuando la junta lo pide tras un informe de excepción; se aprueba en una puerta."
+      "termino": "Informe y plan de excepción",
+      "definicion": "El informe avisa a la junta un desvío fuera de tolerancia, con opciones y recomendación; si la junta lo pide, el plan de excepción reemplaza al vigente y se aprueba en una puerta."
     },
     {
       "termino": "Sanidad",

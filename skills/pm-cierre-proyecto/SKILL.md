@@ -1,7 +1,7 @@
 ---
 name: pm-cierre-proyecto
 description: "Cierre planificado o prematuro: aceptación, handover, informe final. Usar: cerrar proyecto, cierre prematuro, closeout, end project report. No: lecciones→pm-lecciones-aprendidas."
-version: 2.3.0
+version: 2.4.0
 author: pm-method
 license: MIT
 metadata:
@@ -42,11 +42,11 @@ metadata:
 ## Procedimiento
 1. **Situar y elegir ruta**: fin de la etapa final (planificado) o decisión de la junta (prematuro). Entrar a CP con `python3 ${CLAUDE_SKILL_DIR}/../pm-estado-proyecto/scripts/estado.py --proyecto <dir> cierre` o `cierre --prematuro` (si pm-director no lo ejecutó); si `fase` ya es `cierre`, no repetir. Resumir con `registro.py resumen` y `listar <registro> --abiertos`.
 2. **Preparar** el cierre planificado o el prematuro (inventario por estado y rescate; guía §2–§3).
-3. **Confirmar la aceptación**: cruzar product status account, `calidad.csv` y registros de aceptación (guía §4). Aceptación **por requisito** con la cobertura de la fachada (`listar requisitos`); con BMAD, además `bmad.py verificar` limpio y sin traspasos pendientes: cada FR/NFR aceptado, no aceptado o con concesión, citando ids (guía §4.1).
+3. **Confirmar la aceptación**: `estado.py --proyecto <dir> productos` cruza `calidad.csv`, aceptaciones y paquetes y lista los Must sin aceptar (C-07; guía §4). Aceptación **por requisito** con la cobertura de la fachada (`listar requisitos`); con BMAD, además `bmad.py verificar` limpio y sin traspasos pendientes: cada FR/NFR aceptado, no aceptado o con concesión, citando ids (guía §4.1).
 4. **🔒 Puerta humana — aceptación**: el usuario sénior acepta contra los criterios de la descripción del producto del proyecto (dos evidencias); el ejecutivo confirma. `04-cierre/registro-aceptacion.md` `en-revision` y, con ambas confirmaciones escritas, `estado.py aprobar registro-aceptacion --por "Usuario sénior: ..; Ejecutivo: .."`. Como subagente, la confirmación se pide en el bloque de retorno.
-5. **Handover, seguimiento y beneficios** (guía §5): `templates/handover.md` (propietario de operación, entregables, límite de cargo de costos); `templates/recomendaciones-seguimiento.md` (cada ítem con destinatario, responsable y fecha); con `pm-caso-de-negocio`, beneficios realizados con fuente y pendientes en `templates/plan-revision-beneficios.md`.
+5. **Handover, seguimiento y beneficios** (guía §5): `templates/handover.md` (propietario de operación, entregables, límite de cargo de costos); `templates/recomendaciones-seguimiento.md` (cada issue y riesgo abierto por id, con responsable y fecha: C-03); con `pm-caso-de-negocio`, beneficios realizados con fuente y pendientes en `templates/plan-revision-beneficios.md`.
 6. **Evaluar** línea base v1.0 vs vigente: tolerancias, variaciones con fórmulas declaradas, concesiones, equipo y método (guía §6).
-7. **Contratos y lecciones**: cada contrato con sus tres condiciones de cierre o en seguimiento (`pm-adquisiciones`); retrospectiva final e informe de lecciones (`pm-lecciones-aprendidas`).
+7. **Contratos y lecciones**: cada contrato con sus tres condiciones de cierre o en seguimiento (`pm-adquisiciones`); retrospectiva final e informe de lecciones (`pm-lecciones-aprendidas`: `lecciones.py informe`, índice de la organización con `--exportar`).
 8. **Informe de fin de proyecto** con `templates/informe-fin-proyecto.md`, cada cifra con fuente, terminando en la recomendación de cierre (guía §7).
 9. **Cerrar registros** con `registro.py actualizar` y estados finales válidos, sin borrar filas (guía §8).
 10. **Dejar `en-revision`** (`estado.py artefacto <clave> … --estado en-revision`): `registro-aceptacion`, `handover`, `recomendaciones-seguimiento`, `informe-lecciones`, `plan-revision-beneficios`, `informe-fin-proyecto`, `notificacion-cierre` (borrador). Faltantes: `python3 ${CLAUDE_SKILL_DIR}/../pm-exportar/scripts/paquete.py --proyecto <dir> listar cierre`.

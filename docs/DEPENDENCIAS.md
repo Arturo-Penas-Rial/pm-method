@@ -1,4 +1,4 @@
-# Dependencias · pm-method 2.3.0
+# Dependencias · pm-method 2.4.0
 
 Lista completa de lo que pm-method necesita o puede usar, con la **URL de origen** de cada elemento, para qué lo usa el
 paquete, si es obligatorio, la versión probada, la licencia y el comando de instalación. Cómo instalar y configurar
@@ -100,7 +100,7 @@ Las tres juntas: `python3 -m pip install pyyaml python-docx openpyxl`.
 
 | Nombre | Para qué lo usa pm-method | Nivel | Versión probada | Licencia | URL de origen | Instalación |
 |---|---|---|---|---|---|---|
-| pm-method | el propio paquete (plugin y marketplace `pm-method`) | — | 2.3.0 (este documento) | MIT (`LICENSE` del repositorio publicado) | https://github.com/Arturo-Penas-Rial/pm-method | `claude plugin marketplace add Arturo-Penas-Rial/pm-method` y `claude plugin install pm-method@pm-method` |
+| pm-method | el propio paquete (plugin y marketplace `pm-method`) | — | 2.4.0 (este documento) | MIT (`LICENSE` del repositorio publicado) | https://github.com/Arturo-Penas-Rial/pm-method | `claude plugin marketplace add Arturo-Penas-Rial/pm-method` y `claude plugin install pm-method@pm-method` |
 | BMAD Method | capa de especificación de solo lectura: `pm-bmad-puente` (`bmad.py`), `especificacion.py`, `pm-nuevo` (detección) | opcional | 4.x, 6.11 y 6.12; relevado `bmad-method@6.12.4` (`compatibilidad.json`) | MIT (npm) | https://github.com/bmad-code-org/BMAD-METHOD · npm https://registry.npmjs.org/bmad-method | en la raíz del repositorio del producto: `npx bmad-method@6.12.4 install --modules bmm --tools claude-code --yes --user-name <nombre> --set core.project_name=<proyecto> --no-shims` (requiere Node ≥ 20.12.0) |
 
 ### 4.2 Skills externas (diagramas y Office)

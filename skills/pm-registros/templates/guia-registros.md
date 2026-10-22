@@ -20,7 +20,7 @@ idioma: "{{idioma}}"
 **Autoridad de cambio / Change authority:** {{autoridad_cambio}}
 *Rol o persona a quien la junta delegó decisiones de cambio; copiar de `estado.json.roles.autoridad_cambio`.*
 
-Convenciones comunes a todos los CSV: codificación UTF-8, separador coma, fechas ISO `AAAA-MM-DD`, valores de enumeración en minúsculas sin acentos, `id` secuencial con prefijo fijo que nunca se reutiliza, `estado` nunca se borra (se cierra). Los valores se guardan en español; al registrar se aceptan alias en inglés (`threat`, `opportunity`, `open`, `closed`, `high`, `medium`, `low`, `avoid`, `reduce`, `change-request`, `off-specification`…) que `registro.py` convierte al valor canónico. / Values are stored in Spanish; English aliases are accepted on input. Los prefijos de id son: R (riesgos), I (issues), C (cambios), D (decisiones), S (supuestos), L (lecciones), ST (stakeholders), Q (calidad), A (acciones) y los opcionales ET (estereotipos), PF (preferencias), RC (raci), EN (envios); estos cuatro se crean al primer uso. `X-###` no es un registro: es el id de un informe de excepción (documento en `03-control/reportes/`).
+Convenciones comunes a todos los CSV: codificación UTF-8, separador coma, fechas ISO `AAAA-MM-DD`, valores de enumeración en minúsculas sin acentos, `id` secuencial con prefijo fijo que nunca se reutiliza, `estado` nunca se borra (se cierra). Los valores se guardan en español; al registrar se aceptan alias en inglés (`threat`, `opportunity`, `open`, `closed`, `high`, `medium`, `low`, `avoid`, `reduce`, `change-request`, `off-specification`…) que `registro.py` convierte al valor canónico. / Values are stored in Spanish; English aliases are accepted on input. Los prefijos de id son: R (riesgos), I (issues), C (cambios), D (decisiones), S (supuestos), L (lecciones), ST (stakeholders), Q (calidad), A (acciones) y los opcionales ET (estereotipos), PF (preferencias), RC (raci), EN (envios) y PU (personas); estos cinco se crean al primer uso. `X-###` no es un registro: es el id de un informe de excepción (documento en `03-control/reportes/`).
 
 **Fuente única del esquema / Single source of schema:** `${CLAUDE_SKILL_DIR}/../pm-estado-proyecto/scripts/esquema.py`. Esta guía documenta exactamente las mismas columnas, en el mismo orden, y los mismos valores permitidos; si cambia una, cambian las dos. Para consultar el esquema vigente desde la consola: `python3 ${CLAUDE_SKILL_DIR}/../pm-estado-proyecto/scripts/registro.py --proyecto <dir> esquema <registro>`.
 
@@ -31,9 +31,9 @@ transcripciones, Jira o BMAD); un valor que empieza con `=`, `+`, `-` o `@` se i
 abre con doble clic en Excel o LibreOffice. Para revisarlos en una planilla, usar `exportar.py xlsx` (guarda esas
 celdas como texto) o importar el CSV con todas las columnas como texto.
 
-**Estado inicial / Initial state** (lo pone `registro.py agregar` si no se indica): riesgos `abierto`, issues `abierto`, cambios `abierto`, supuestos `abierto`, lecciones `registrada`, calidad `planificada`, acciones `abierta`, estereotipos `activo`, preferencias `propuesta`, envios `pendiente`; decisiones, stakeholders y raci no tienen columna `estado`.
+**Estado inicial / Initial state** (lo pone `registro.py agregar` si no se indica): riesgos `abierto`, issues `abierto`, cambios `abierto`, supuestos `abierto`, lecciones `registrada`, calidad `planificada`, acciones `abierta`, estereotipos `activo`, preferencias `propuesta`, envios `pendiente`, personas `activa`; decisiones, stakeholders y raci no tienen columna `estado`.
 
-**Estados "abiertos" / Open states** (los que cuentan `registro.py listar --abiertos` y `resumen`): riesgos `abierto|en-seguimiento|escalado`; issues `abierto|en-evaluacion|en-accion|escalado|pendiente-cambio`; cambios `abierto|en-evaluacion|pendiente-decision|aprobado|diferido`; supuestos `abierto`; lecciones `registrada|revisada`; calidad `planificada|en-curso`; acciones `abierta|en-curso`; estereotipos `activo`; preferencias `propuesta`; envios `pendiente|fallido`.
+**Estados "abiertos" / Open states** (los que cuentan `registro.py listar --abiertos` y `resumen`): riesgos `abierto|en-seguimiento|escalado`; issues `abierto|en-evaluacion|en-accion|escalado|pendiente-cambio`; cambios `abierto|en-evaluacion|pendiente-decision|aprobado|diferido`; supuestos `abierto`; lecciones `registrada|revisada`; calidad `planificada|en-curso`; acciones `abierta|en-curso`; estereotipos `activo`; preferencias `propuesta`; envios `pendiente|fallido`; personas `activa`.
 
 ## 1. riesgos.csv · Risk register
 
@@ -172,8 +172,23 @@ junta: `pm-mandato-y-brief/templates/hipotesis-y-experimentos.md`.
 | recomendacion | Qué repetir o cambiar | Recommendation | texto accionable |
 | prioridad | Importancia | Priority | vacío o `alta`, `media`, `baja` |
 | responsable_seguimiento | Quien acciona el aprendizaje | Follow-up owner | nombre o rol |
-| estado | Situación | Status | inicial `registrada`; luego `revisada`, `accionada-proyecto`, `accionada-organizacion`, `descartada` |
+| estado | Situación | Status | inicial `registrada` (identificada); luego `revisada` (clasificada), `accionada-proyecto`, `accionada-organizacion`, `verificada`, `descartada` |
 | notas | Ids relacionados, si fue riesgo previo | Notes | texto |
+| origen | Proyecto, id y fecha de una lección previa traída de otro proyecto | Source | `<proyecto> · L-### · AAAA-MM-DD` (lo escribe `lecciones.py incorporar`; vacío en las propias) |
+| etiquetas | Palabras para buscarla entre proyectos | Tags | texto separado por `;` |
+| impacto | Efecto en tiempo, costo, alcance, calidad, beneficios o riesgo | Impact | vacío o `alto` (tolerancia, beneficio, riesgo alto o puerta), `medio` (margen o retrabajo dentro de tolerancia), `bajo` (local) |
+| recurrencia | Cuántas veces pasó o puede volver a pasar | Recurrence | vacío o `alta`, `media`, `baja` |
+| aplicar_en | Procesos donde se usa | Apply in | uno o más de `ideacion`, `descubrimiento`, `planificacion`, `seguimiento`, separados por `;` (alias `ideation`, `discovery`, `planning`, `monitoring`) |
+| accion | Dónde vive la acción derivada | Action | ids o artefacto: `A-###`, `R-###`, historia, `plan-etapa-<n>`, propuesta a la PMO |
+| verificar_en | Cuándo se comprueba el efecto de la acción | Check on | ISO |
+| verificacion | Resultado de la comprobación | Verification | `fecha · efectiva\|no-efectiva · evidencia · quién` (lo escribe `lecciones.py verificar`) |
+
+*Lecciones previas / Previous lessons:* las filas con `origen` citan ids de su proyecto de origen y la sanidad no las revisa con
+REG-08; `lecciones.py buscar` (pm-lecciones-aprendidas) no las devuelve como lecciones de este proyecto.
+
+*Ciclo / Life cycle:* `lecciones.py clasificar` (impacto, recurrencia, `aplicar_en` → `revisada`), `accionar` (`accion`,
+`verificar_en` → `accionada-…`), `verificar` (`verificacion` → `verificada`, o vuelve a `revisada`) y `descartar`; sanidad
+REG-11 (impacto alto sin acción), REG-12 (acción sin verificar a tiempo) y REG-05 (`aplicar_en` fuera del esquema).
 
 ## 7. stakeholders.csv · Stakeholder register
 
@@ -262,6 +277,29 @@ junta: `pm-mandato-y-brief/templates/hipotesis-y-experimentos.md`.
 | notas | Observaciones | Notes | texto (en reuniones y llamadas, la retroalimentación recibida: `retroalimentación: …`) |
 
 *Contactos que no son mensajes:* una reunión o una llamada se registra como envío manual (`registro.py agregar envios --campo fecha=… --campo stakeholder_id=ST-… --campo canal=reunion|llamada --campo modo=manual --campo estado=enviado --campo asunto=…`). La sanidad (STK-12) compara el último envío `enviado` de cada interesado de los cuadrantes gestionar de cerca, mantener satisfecho y mantener informado con la frecuencia de su perfil (tolerancia 1,5 ×).
+
+### 7.5 personas.csv · User personas (opcional; dueña `pm-interesados`, la consulta `interesados.py personas`)
+Arquetipo de quien **pide, usa o se beneficia** de una capacidad (PMBOK: análisis de usuarios al elicitar requisitos; PRINCE2: el usuario sénior representa a los usuarios). No es un interesado (persona u organización real de 7) ni un estereotipo de comunicación (7.1). El mapa capacidad × persona vive en las columnas `solicita`, `usa` y `beneficia`, que valen igual con o sin BMAD (BMAD es de solo lectura).
+
+| Columna | Significado ES | Meaning EN | Valores permitidos / formato |
+|---|---|---|---|
+| id | Identificador | Id | `PU-###` |
+| nombre | Nombre del arquetipo | Archetype name | texto («Paciente que agenda por teléfono», «Marta») |
+| descripcion | Quién es | Description | texto |
+| objetivo | Qué quiere lograr | Goal | texto |
+| dolores | Qué le duele hoy | Pains | texto |
+| contexto_uso | Dónde, cuándo y con qué usa el producto | Context of use | texto |
+| fuente | De dónde sale | Source | vacío o `entrevista`, `bmad-uj`, `encuesta`, `observacion`, `documento`, `supuesto` |
+| evidencia | Cita, archivo o UJ-n | Evidence | texto (`UJ-2 (prd.md:43)`, `recorrido-paciente.json; entrevistas 2 y 4`) |
+| stakeholder_id | Interesado que la representa | Representative | vacío o `ST-###` existente (se valida); por defecto, el usuario sénior |
+| solicita | Capacidades que pide | Requests | ids separados por `;`: `REQ-###`, `FR-n`, `NFR-n`, `E-n`, historias, productos de la WBS |
+| usa | Capacidades que usa | Uses | ídem |
+| beneficia | Capacidades de las que se beneficia sin usarlas | Benefits from | ídem |
+| beneficios | Beneficios vinculados | Linked benefits | `B-##` y `DB-##` del business case o del enfoque de beneficios, separados por `;` |
+| estado | Estado | Status | `activa`, `retirada` |
+| notas | Observaciones | Notes | texto |
+
+*Controles:* STK-13 (requisito o épica Must sin persona), STK-14 (persona sin capacidades), STK-15 (sin fuente o evidencia), STK-16 (recorrido con una persona no registrada) y STK-09 (id citado inexistente), en `interesados.py integridad` y en `sanidad.py`.
 
 ## 8. calidad.csv · Quality register
 

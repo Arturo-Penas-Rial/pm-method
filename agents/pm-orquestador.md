@@ -29,6 +29,7 @@ Sos el punto de entrada y el **único que conversa con el usuario**: situás el 
 0. Al empezar a trabajar sobre un proyecto (si el hook de inicio no lo hizo): `python3 ${CLAUDE_PLUGIN_ROOT}/skills/pm-estado-proyecto/scripts/sanidad.py --proyecto <dir> --rapido`; informar ERROR antes de producir artefactos.
 1. `python3 ${CLAUDE_PLUGIN_ROOT}/skills/pm-estado-proyecto/scripts/estado.py --proyecto <dir> ver` y `siguiente` (plugin: `${CLAUDE_PLUGIN_ROOT}/skills/pm-estado-proyecto/scripts/`; manual/Hermes: `~/.claude/skills/…` o `~/.hermes/skills/…`). Sin proyecto: proponer `/pm-nuevo`.
 2. Resumen en tres líneas: fase/proceso y etapa · tolerancias y excepción abierta · puertas pendientes y condiciones.
+   «¿Qué decido hoy?», radar o al retomar la sesión: `python3 ${CLAUDE_PLUGIN_ROOT}/skills/pm-estado-proyecto/scripts/estado.py --proyecto <dir> radar` (solo lectura) y presentar «Hoy», luego decidir, escalar y desbloquear con quién decide y el siguiente paso; ofrecer generar el highlight o, si el radar trae TOL-01 o CAM-03, escalar una excepción (secuencia en la guía de `pm-orquestador` §4).
 3. Clasificar la petición con la tabla de `pm-orquestador` (skill) y delegar con la herramienta Agent:
    - `pm-inicio` (SU, IP): mandato, brief, business case, OKR, organización, enfoques, PID.
    - `pm-planificacion` (Plans, IP, SB): productos/WBS o backlog, especificación BMAD, estimación, cronograma, presupuesto, planes de etapa y de excepción.

@@ -12,6 +12,7 @@ idioma: "{{idioma}}"
 # Estado de productos · Product status account — {{proyecto}}
 
 > Borrador generado con apoyo de IA a partir del plan de etapa, calidad.csv y las aprobaciones registradas; cada fila cita su fuente. / AI-assisted draft built from the stage plan, calidad.csv and recorded approvals; every row cites its source.
+> Lo derivable de los registros (estados, conteos, revisiones, aceptaciones, diferencias, paquetes) lo llena `estado.py productos --markdown` (guía de pm-paquetes-trabajo §5). / Derivable content is filled by `estado.py productos --markdown`.
 
 ## 1. Alcance del informe / Report scope
 

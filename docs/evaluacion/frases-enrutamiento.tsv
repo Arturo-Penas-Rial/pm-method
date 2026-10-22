@@ -100,3 +100,31 @@
 100	Draw a Wardley map of our platform showing inertia and build or buy decisions	pm-mapas-estrategicos
 101	Create a customer journey map for UJ-2 with emotions and touchpoints	pm-mapas-estrategicos
 102	Armá el mapa de stakeholders con poder e interés	pm-interesados	pm-visuales
+103	Para los riesgos altos compará evitar, reducir, transferir y aceptar con contingencia, y decime cuál conviene	pm-riesgos
+104	Write the contingency plan for R-003 with a measurable trigger and funding from the risk budget	pm-riesgos
+105	Definí las personas de usuario del portal y mapeá qué requisitos pide, usa o aprovecha cada una	pm-interesados
+106	¿Cuántos requisitos Must tiene cada persona de usuario y qué beneficios se le vinculan?	pm-interesados
+107	Create user personas from the BMAD user journeys and map them to the epics they use	pm-interesados
+108	¿Qué tengo que decidir, escalar y desbloquear hoy en el proyecto?	pm-orquestador
+109	Dame el radar del día: decisiones pendientes, excepciones y bloqueos	pm-orquestador
+110	What do I need to decide or unblock today on the project?	pm-orquestador
+111	Prepará un briefing de incorporación para la nueva integrante de la junta antes de la puerta	pm-progreso-reportes
+112	Write an onboarding briefing for the new auditor joining before the stage gate	pm-progreso-reportes
+113	¿Qué lecciones de otros proyectos sobre integraciones deberíamos tener en cuenta al arrancar?	pm-lecciones-aprendidas	pm-mandato-y-brief
+114	Search our previous projects' lessons learned about integration delays and add the relevant ones	pm-lecciones-aprendidas
+115	Pasame las decisiones y compromisos de la transcripción del comité de ayer, con responsable y fecha, y preguntame antes de registrarlos	pm-reuniones
+116	Process yesterday's steering committee transcript and propose the decisions, owners and due dates for me to confirm before you log anything	pm-reuniones
+117	Analizá el impacto del cambio C-004 en el camino crítico, el presupuesto de cambio y el VAN, y decime quién lo decide	pm-issues-cambios
+118	What is the impact of change request C-002 on the schedule, the change budget and the business case, and who has to approve it?	pm-issues-cambios
+119	Armá el expediente de auditoría del proyecto para la PMO con decisiones, líneas base, aprobaciones y evidencia de las puertas	pm-exportar
+120	Prepare a due diligence audit pack with the decision log, baselines and gate evidence, with hashes we can verify	pm-exportar
+121	Tengo la transcripción de la retrospectiva del sprint 4: proponeme las lecciones y las acciones de mejora con su cita antes de registrar nada	pm-reuniones	pm-lecciones-aprendidas
+122	Clasificá por impacto las lecciones de la retro y decime cuáles tiene que considerar el plan de la etapa 3	pm-lecciones-aprendidas	pm-plan-etapa-y-limites
+123	Which lessons did we act on but never verify, and did the high-impact one about change control actually work?	pm-lecciones-aprendidas
+124	Generá el informe de lecciones de la etapa 2 desde el registro y exportalo al índice de lecciones de la organización	pm-lecciones-aprendidas
+125	¿En qué estado está cada producto del Release 1? Armá el product status account y marcá lo que figura terminado o aceptado sin revisión de calidad	pm-paquetes-trabajo	pm-calidad
+126	Antes de pedir la puerta de cierre: ¿qué requisitos Must quedan sin aceptar y qué riesgos o issues abiertos no tienen responsable en las recomendaciones de seguimiento?	pm-cierre-proyecto
+127	Armá el highlight de la quincena desde los datos y el tablero con las mismas cifras; marcá qué semáforos son juicio mío	pm-progreso-reportes	pm-visuales
+128	Before I send the status report to the board, check that every SPI, CPI and EAC in it matches the saved earned value cut-off	pm-progreso-reportes
+129	Estimá con tres valores las actividades de la etapa 2 con la fórmula triangular que fija el plan y decime la reserva de cronograma a 1σ del camino crítico	pm-cronograma-estimacion
+130	Con la velocidad de 20 puntos, ¿entran los Must y Should del release 2 en sus cuatro sprints o tengo que repriorizar?	pm-agil-hibrido	pm-cronograma-estimacion

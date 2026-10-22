@@ -3,8 +3,8 @@
 ## Cómo funciona este ejercicio
 
 - **Para qué sirve:** llevar el caso a una idea o un proyecto tuyo. Vas a separar lo que sabés de lo que suponés,
-  diseñar un experimento barato antes de invertir, separar las reservas del presupuesto y dejar escrita la adaptación
-  de la gestión.
+  diseñar un experimento barato antes de invertir, separar las reservas del presupuesto, decir para quién es cada
+  requisito y dejar escrita la adaptación de la gestión.
 - **Cuándo se hace:** la parte A, al cierre de la clase 1, después de la demostración (10 minutos); la parte B, al
   cierre de la clase 2, después de la demostración (10 minutos). Si lo hacés por tu cuenta, calculá 20 minutos.
 - **Qué hacés:** completás la hoja de trabajo con una idea que alguien quiera aprobar en los próximos meses, o con un
@@ -35,9 +35,9 @@ La clase 1 decide si vale la pena autorizar la iniciación; la clase 2 diseña e
   proveedor permite reservar y cancelar en tiempo real desde otro sistema; la dirección médica libera las agendas con
   60 días de anticipación; la normativa permite enviar recordatorios con el consentimiento dado al pedir el turno; el
   costo por mensaje se mantiene en USD 0,02. Se mantienen el teléfono y el presencial (restricción, no supuesto).
-- Lecciones previas: la app de resultados de 2024 tuvo 11 % de uso en mayores de 65; la integración con la agenda
-  clínica de 2025 se estimó en 4 semanas y llevó 14; un piloto de recordatorios bajó el ausentismo, pero nadie midió la
-  línea base.
+- Lecciones previas (aprobadas en otros proyectos de la red): la app de resultados de 2024 tuvo 11 % de uso en mayores
+  de 65; la integración con la agenda clínica de 2025 se estimó en 4 semanas y llevó 14; un piloto de recordatorios bajó
+  el ausentismo, pero nadie midió la línea base.
 - Para A5: el piloto de recordatorios en una policlínica dio 13,5 % de ausentismo (criterio: 12 % o menos). Con el 10 %
   del mandato, el VAN de la opción completa es 431.782; con el 13,5 % medido, 272.569.
 
@@ -54,6 +54,9 @@ La clase 1 decide si vale la pena autorizar la iniciación; la clase 2 diseña e
 - Mapas: la agenda clínica del proveedor es un producto con inercia (sistema en uso en las 6 policlínicas, el
   proveedor controla la interfaz). En el recorrido del paciente, el paso «Intenta avisar que no va» (emoción −2) tiene
   un dolor: solo puede cancelar llamando en horario de atención.
+- Personas: el paciente que agenda por teléfono, la recepcionista del call center y el paciente mayor de 65 que no usa
+  aplicaciones. Requisitos Must: recordatorio 48 h antes (REQ-001), confirmar o cancelar desde el recordatorio y
+  liberar el turno (REQ-003), sacar turno en línea (REQ-004) y reservar en la agenda en tiempo real (REQ-006).
 
 ### Conceptos mínimos
 
@@ -76,6 +79,8 @@ La clase 1 decide si vale la pena autorizar la iniciación; la clase 2 diseña e
   documentos, no las decisiones.
 - **Aceptar un supuesto:** si un supuesto crítico no se valida antes de la puerta, la junta puede aceptarlo con una
   decisión escrita que lo cite y diga cómo se cubre; en pm-method, la puerta lo marca con P-11.
+- **Persona de usuario:** el arquetipo de quien pide, usa o aprovecha una capacidad (no es un interesado, pero un
+  interesado la representa). Un requisito Must sin persona es una señal: falta alguien o sobra la prioridad.
 - **Inercia y dolor:** en un mapa de Wardley, la inercia es algo difícil de cambiar (un sistema en uso); en un recorrido
   del cliente, el dolor es dónde sufre la persona. Los dos necesitan un tratamiento con id.
 
@@ -166,6 +171,16 @@ con lo que lo trata (en pm-method, `mapas.py tablero` los dibuja con su vínculo
 | Componente con inercia | | | |
 | Dolor del recorrido | | | |
 
+**B6. Para quién es cada requisito.** Dos personas de usuario y los requisitos imprescindibles (Must) que cada una
+pide, usa o aprovecha sin usarlos.
+
+| Persona (quién es, en una línea) | De dónde sale (entrevista, observación, documento, supuesto) | Pide | Usa | Aprovecha | Interesado que la representa |
+|---|---|---|---|---|---|
+| | | | | | |
+| | | | | | |
+
+> Must sin persona: ……………………………… · ¿Falta una persona o sobra la prioridad? ………………
+
 ### Autoevaluación de la parte B
 
 | Criterio | Cumple si… |
@@ -175,6 +190,7 @@ con lo que lo trata (en pm-method, `mapas.py tablero` los dibuja con su vínculo
 | Adaptación escrita | B3 dice qué se aligera y por qué, sin saltear ninguna decisión de la junta. |
 | Hipótesis a la vista | B4 tiene una decisión escrita de quien puede aceptar el supuesto, una cobertura y una fecha. |
 | Mapas con tratamiento | B5 nombra un id para la inercia y para el dolor; ninguno queda "para después". |
+| Cada Must con su persona | En B6 todo requisito Must tiene al menos una persona que lo pide, lo usa o lo aprovecha, y cada persona dice de dónde sale. |
 
 ---
 
@@ -249,7 +265,7 @@ regulado, pediría 16 artefactos y siete tolerancias; si fuera interno y pequeñ
 | Supuesto | ¿Validar o aceptar? | Quién lo acepta | Cobertura | Fecha |
 |---|---|---|---|---|
 | S-003, interfaz de la agenda | validado el 2027-01-14 (50 de 50, 1,4 s) | — | — | — |
-| S-006, consentimiento para recordatorios | aceptado sin validar | la junta, decisión D-009 del 2027-01-15 | riesgo R-003 y su contingencia; el dictamen es condición antes del release de recordatorios | 2027-01-29; al 2027-02-01 la sanidad avisa SUP-02 y REG-09 (paso 14) |
+| S-006, consentimiento para recordatorios | aceptado sin validar | la junta, decisión D-009 del 2027-01-15 | riesgo R-003 y su contingencia; el dictamen es condición antes del release de recordatorios | 2027-01-29; al 2027-02-01 la sanidad avisa SUP-02 y REG-09, y el radar pone S-006 primero en «decidir», a cargo de Carmen Olivera (paso 14) |
 
 **B5.** Tablero de mapas del proyecto autorizado (paso 14).
 
@@ -257,3 +273,16 @@ regulado, pediría 16 artefactos y siete tolerancias; si fuera interno y pequeñ
 |---|---|---|---|
 | Agenda clínica del proveedor (producto, con inercia) | el proveedor controla la interfaz y el adaptador depende de ella (paso 5b) | R-001, «La integración en tiempo real se atrasa», `en-seguimiento` (pasos 9 y 14) | Tomás Aguirre, propietario de R-001 (paso 9, en la evidencia) |
 | P5 «Intenta avisar que no va» (−2) | solo puede cancelar llamando en horario de atención (paso 5b) | REQ-003 (confirmar o cancelar y liberar el turno) y REQ-005 (reprogramar) (paso 6) | Inés Ferrer, usuaria sénior y product owner: confirmó el recorrido (paso 5b) y acepta cada release (enfoque de calidad del paso 11, en la evidencia) |
+
+**B6.** Personas de usuario del 2027-01-12 (paso 10b).
+
+| Persona | De dónde sale | Pide | Usa | Aprovecha | Representa |
+|---|---|---|---|---|---|
+| PU-001 Paciente que agenda por teléfono | observación: la propone `personas candidatos` desde el recorrido del paciente y el mandato | — | REQ-001, REQ-003, REQ-004, REQ-005 | REQ-006 | ST-006, comisión de usuarios |
+| PU-002 Recepcionista del call center | supuesto, a validar con entrevistas en recepción | REQ-003 | REQ-002 | REQ-004 | ST-005, recepción y call center |
+| PU-003 Paciente mayor de 65 | documento: la lección L-001 (11 % de uso en mayores de 65) | REQ-007 | REQ-001, REQ-003 | — | ST-006 |
+
+Must sin persona: REQ-006 (STK-13), hasta que se marca al paciente como quien lo aprovecha: nadie usa la integración,
+pero el paciente ve turnos reales. Resultado: los 4 Must con persona y REQ-003 sirve a las tres (paso 10b). En la
+variante con BMAD, las personas salen de los recorridos del PRD (Marta, Diego y Lucía) y los 12 FR quedan con persona
+(paso 16b).
