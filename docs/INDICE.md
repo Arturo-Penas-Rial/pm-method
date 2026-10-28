@@ -1,4 +1,4 @@
-# Índice de la documentación y las pruebas · pm-method 2.4.0
+# Índice de la documentación y las pruebas · pm-method 2.5.0
 
 Mapa de todo lo que hay en el repositorio para entenderlo rápido. EN: *documentation and test map.*
 
@@ -7,7 +7,7 @@ Mapa de todo lo que hay en el repositorio para entenderlo rápido. EN: *document
 | Perfil | Leer en este orden | Tiempo aproximado |
 |---|---|---|
 | Decisor / patrocinador | [RESUMEN-EJECUTIVO](RESUMEN-EJECUTIVO.md) → diagramas del [README](../README.md) → [PRUEBAS §3.1](PRUEBAS.md) → [PILOTO](PILOTO.md) | 20 min |
-| Gestor de proyectos (usuario) | [INSTALACION](INSTALACION.md) → [guías E2E](guias/README.md) (probar como usuario, por prompts) → [PRUEBAS §6](PRUEBAS.md) (aceptación) → [CASOS-DE-USO](CASOS-DE-USO.md) → [CASO-MAESTRO](CASO-MAESTRO.md) | 2–4 h |
+| Gestor de proyectos (usuario) | [INSTALACION](INSTALACION.md) (en Windows, uno de los dos caminos: [INSTALACION-WSL2](INSTALACION-WSL2.md) o [INSTALACION-DOCKER](INSTALACION-DOCKER.md)) → [guías E2E](guias/README.md) (probar como usuario, por prompts) → [PRUEBAS §6](PRUEBAS.md) (aceptación) → [CASOS-DE-USO](CASOS-DE-USO.md) → [CASO-MAESTRO](CASO-MAESTRO.md) | 2–4 h |
 | Equipo de producto con BMAD | [PUERTAS](PUERTAS.md) → [sincronizacion](sincronizacion.md) → [CASOS-DE-USO-INTEGRACIONES §7](CASOS-DE-USO-INTEGRACIONES.md) → [SANIDAD](SANIDAD.md) (familia ESP) | 45 min |
 | Responsable de comunicación con interesados | [guía E2E-3](guias/E2E-3-interesados-okr-avance.md) (14 pasos: matriz, preferencias, RACI, OKR, envío por canales, cadencia de contacto STK-12) → [CATALOGO: pm-interesados](CATALOGO.md) → [colisiones](colisiones.md) (qué frase va a cada skill) → `skills/pm-interesados/references/guia.md` | 1 h |
 | Quien integra herramientas | [DEPENDENCIAS](DEPENDENCIAS.md) → [INTEGRACIONES](INTEGRACIONES.md) → [CASOS-DE-USO-INTEGRACIONES](CASOS-DE-USO-INTEGRACIONES.md) → [INSTALACION §6](INSTALACION.md) | 1 h |
@@ -22,7 +22,9 @@ Mapa de todo lo que hay en el repositorio para entenderlo rápido. EN: *document
 | [README](../README.md) | qué es, diagramas, instalación rápida, componentes, dependencias, calidad verificada |
 | [RESUMEN-EJECUTIVO](RESUMEN-EJECUTIVO.md) | por qué usarlo: problema, capacidades, valor diferencial, evidencia, límites |
 | [INSTALACION](INSTALACION.md) | cómo instalar y configurar todo (plugin, credenciales y API-KEY §0.7, Orca opcional §0.8, Python, BMAD, skills externas, MCP, Cowork, Hermes), verificar y resolver problemas |
-| [DOCKER](DOCKER.md) | entorno Docker opcional (alternativa a la instalación manual): qué incluye, construir, usar con Claude Code sobre un proyecto montado, correr las pruebas sin red, actualizar, seguridad del contenedor, proxies, limitaciones y verificación registrada |
+| [INSTALACION-WSL2](INSTALACION-WSL2.md) | Windows con WSL2 paso a paso, para quien no programa: requisitos de Windows, Ubuntu 24.04 LTS, `.wslconfig` y `wsl.conf`, git, Python en un entorno virtual, navegador para capturas, Node con nvm, Mermaid y pptxgenjs, y luego Claude Code (plugin, inicio de sesión, BMAD) o Hermes; comprobación con la salida esperada en cada paso, lista de aceptación, solución de problemas (proxy y certificados, DNS, reloj, PATH, CRLF, disco), desinstalación y verificación registrada |
+| [INSTALACION-DOCKER](INSTALACION-DOCKER.md) | el camino Docker paso a paso, separado de la instalación sobre WSL2, para quien no programa: elegir entre Docker Desktop (backend WSL2 e integración con Ubuntu) y Docker Engine dentro de Ubuntu (systemd, repositorio oficial, grupo `docker`), obtener pm-method (clon o ZIP), construir la imagen, verificar con las pruebas, trabajar con un proyecto montado, Claude Code dentro del contenedor (inicio de sesión en un volumen, plugin con `--plugin-dir`), BMAD, actualizar, solución de problemas (proxy y certificados, disco, UID, memoria, Chromium), desinstalar y verificación registrada |
+| [DOCKER](DOCKER.md) | referencia técnica del entorno Docker: qué incluye y con qué versiones, construir (argumentos, redes cerradas), servicios y credenciales, pruebas sin red, actualizar las versiones fijadas, seguridad del contenedor, limitaciones y verificación registrada de la imagen |
 | [DEPENDENCIAS](DEPENDENCIAS.md) | cada dependencia con nivel, uso, versión probada, licencia, URL de origen y cómo se verificó |
 | [ARQUITECTURA](ARQUITECTURA.md) | capas, precedencia PRINCE2/PMBOK, agentes vs subagentes, carga progresiva, presupuesto de descripciones |
 | [INTEGRACIONES](INTEGRACIONES.md) | qué repositorio se integró y por qué, contratos, verificación en vivo, cómo agregar una integración |
@@ -44,8 +46,8 @@ Mapa de todo lo que hay en el repositorio para entenderlo rápido. EN: *document
 | [SPEC.md](../SPEC.md) | especificación de construcción y convenciones canónicas |
 | [CLAUDE.md](../CLAUDE.md) · [AGENTS.md](../AGENTS.md) | cómo seguir desarrollando el paquete con agentes de código |
 | [ieee/](ieee/README.md) | presentaciones light para miembros de IEEE sin jerga de gestión de proyectos (PPTX + HTML, con notas del orador): resumen de 5 diapositivas (qué resuelve, cómo trabaja, ventajas, programa de formación propuesto de 14 sesiones de 90 min y piloto de 4 a 6 sesiones) y resumen del Informe 2 en 9 diapositivas; generador en `fuente/` que verifica el programa contra el material del webinar |
-| [informe/](informe/README.md) | Informe 2 v2.4 (HTML + PPTX, 307 diapositivas): el ecosistema completo, con una diapositiva por capacidad, la figura de su guía E2E y la salida real de la evidencia; generador en `fuente/` (cifras extraídas del repositorio) |
-| [resumen-ejecutivo/](resumen-ejecutivo/README.md) | resumen ejecutivo comercial (PPTX + HTML): propuesta de valor, agentes y skills, arquitectura, ciclo de vida, controles permanentes, integraciones y un caso E2E por diapositiva (18 diapositivas, con las capacidades de 2.4.0); cifras extraídas del repositorio al regenerar (`fuente/extraer.py`) |
+| [informe/](informe/README.md) | Informe 2 v2.5 (HTML + PPTX, 314 diapositivas): el ecosistema completo, con los dos caminos de instalación (WSL2 o Docker), con una diapositiva por capacidad, la figura de su guía E2E y la salida real de la evidencia; generador en `fuente/` (cifras extraídas del repositorio) |
+| [resumen-ejecutivo/](resumen-ejecutivo/README.md) | resumen ejecutivo comercial (PPTX + HTML): propuesta de valor, agentes y skills, arquitectura, ciclo de vida, controles permanentes, integraciones y un caso E2E por diapositiva (18 diapositivas; «Cómo empezar» con los dos caminos de instalación); cifras extraídas del repositorio al regenerar (`fuente/extraer.py`) |
 | [resumen-ejecutivo/spot/](resumen-ejecutivo/spot/README.md) | spot para LinkedIn (MP4 de 54 s, 4:5, en español): locución sintética, música original y subtítulos incrustados, versión sin voz, `.srt` y guion de locución con tiempos; generador reproducible en `fuente/` |
 | [webinar/](webinar/README.md) | material del webinar por caso E2E (guion del instructor, ejercicio, diapositivas, ficha promocional del taller), el generador de diapositivas PPTX + HTML con glosario (`scripts/webinar/generar.py`; con `--ficha`, la ficha del taller desde `E2E-N/ficha.json`: `E2E-N-ficha.pptx` de 2 diapositivas con notas y `E2E-N-ficha.html`, volante A4) y los documentos en HTML autocontenido para presentar, repartir o imprimir (`scripts/webinar/documentos.py`): por caso `E2E-N-guia.html`, `E2E-N-guion-instructor.html` y `E2E-N-ejercicio.html` (una sola versión: la mecánica al comienzo y el ejemplo resuelto con el escenario del caso plegado al final), más `webinar/index.html` con todo el material |
 
@@ -71,7 +73,7 @@ Fuentes Mermaid y SVG en [`docs/diagramas/`](diagramas/) (los mismos del README)
 | `scripts/pruebas/integracion/correr.py` | integración cruzada: seis cadenas sobre un mismo proyecto (BMAD → plan → EVM → OKR → puertas; actas, Jira y BMAD → riesgos → opciones y contingencia → presupuestos → tablero y highlight, y comité → acuerdos registrados; interesados ↔ RACI ↔ OKR ↔ envíos; mapas → inversión, personas, impacto de un cambio, tres valores y capacidad; exportación, paquete, expediente de auditoría, radar y briefing, lecciones y estado de productos; recorridos E2E → webinar) con integridad referencial en cada eslabón ([PRUEBAS §2.3](PRUEBAS.md)) |
 | `scripts/pruebas/guias_e2e/correr.py` | corre los cinco recorridos E2E de `docs/guias/` con los scripts reales (≈ 2 min, sin tokens) y guarda la evidencia y las 51 imágenes (gráficos de `visuales.py` y capturas) |
 | `scripts/validar_mermaid.py` | lint de los bloques Mermaid (errores que GitHub no renderiza) y render con mmdc; `--png` para inspección visual (128 bloques, 0 errores) |
-| `scripts/probar_paquete.py` | 353 pruebas de regresión con Python 3.13 y 352 con 3.9 (casos A–N, P, S, X e Y y los de las capacidades de decisión y control: I2 opciones y contingencia, PU personas, RA radar y briefing, PE datos del período, LX y LC lecciones entre proyectos y su ciclo, RD reuniones, IM impacto, TV tres valores y capacidad, AU expediente de auditoría y PS estado de productos y cierre; el caso X corre la integración cruzada sin los recorridos; el caso Y, el `--help` de los 34 scripts y los mensajes ante entradas faltantes; el caso H cubre interesados, capa de canales con SMTP y webhooks locales y OKR; el caso K, supuestos críticos y P-11; el caso L, el esquema de las diapositivas del webinar; el caso L3, la ficha promocional del taller; el caso L2, los documentos del webinar en HTML; el caso P, las salidas de los scripts para el usuario; el caso I, candidatos de riesgo desde cuatro fuentes; el caso J, controles permanentes; el caso J2, autoridad y presupuesto de cambio al registrar; el caso S, las correcciones de [SEGURIDAD](SEGURIDAD.md); el caso N, el endurecimiento de SEG-03 a SEG-10, los presupuestos de contexto de [PRUEBAS §2.2](PRUEBAS.md) e `inversion.py`; el caso M, los mapas estratégicos) |
+| `scripts/probar_paquete.py` | 355 pruebas de regresión con Python 3.13 y 354 con 3.9 (casos A–N, P, S, X e Y y los de las capacidades de decisión y control: I2 opciones y contingencia, PU personas, RA radar y briefing, PE datos del período, LX y LC lecciones entre proyectos y su ciclo, RD reuniones, IM impacto, TV tres valores y capacidad, AU expediente de auditoría y PS estado de productos y cierre; DD, el contrato con diagram-design, completo con `PM_DIAGRAM_DESIGN` (5 OK; la imagen Docker la define); el caso X corre la integración cruzada sin los recorridos; el caso Y, el `--help` de los 34 scripts y los mensajes ante entradas faltantes; el caso H cubre interesados, capa de canales con SMTP y webhooks locales y OKR; el caso K, supuestos críticos y P-11; el caso L, el esquema de las diapositivas del webinar; el caso L3, la ficha promocional del taller; el caso L2, los documentos del webinar en HTML; el caso P, las salidas de los scripts para el usuario; el caso I, candidatos de riesgo desde cuatro fuentes; el caso J, controles permanentes; el caso J2, autoridad y presupuesto de cambio al registrar; el caso S, las correcciones de [SEGURIDAD](SEGURIDAD.md); el caso N, el endurecimiento de SEG-03 a SEG-10, los presupuestos de contexto de [PRUEBAS §2.2](PRUEBAS.md) e `inversion.py`; el caso M, los mapas estratégicos) |
 | `docker/` · `pm-pruebas` | entorno Docker opcional: `docker compose -f docker/compose.yaml run --rm pruebas` corre sin red todas las pruebas gratuitas dentro del contenedor ([DOCKER §5.5](DOCKER.md)); CI en `.github/workflows/docker.yml` |
 | `scripts/pruebas/generar_bmad_grande.py` | genera un BMAD sintético grande para pruebas de escala |
 | `scripts/pruebas/fixtures/` | BMAD v6 sintético, BMAD 6.12.4 real, BMAD v4 |
@@ -107,12 +109,14 @@ Fuentes Mermaid y SVG en [`docs/diagramas/`](diagramas/) (los mismos del README)
 
 - **Pruebas en vivo completas:** los escenarios de robustez `inyeccion`, `desorden`, `multisesion` y `escala` se
   corrieron el 2026-10-17 y no se repitieron con los cambios posteriores; la batería completa `suite.py todo` (consume
-  tokens) no se corrió con la versión 2.4.0. Las pruebas en vivo de 2.4.0 son las de enrutamiento de las frases 103 a 130
-  con sus frases de control (2026-10-21 y 2026-10-22, todas OK; [PRUEBAS §3.1](PRUEBAS.md)); las de 2.3.0, enrutamiento
+  tokens) no se corrió con las versiones 2.4.0 ni 2.5.0 (la 2.5.0 no cambia descripciones, agentes ni hooks respecto
+  de la 2.4.0). Las pruebas
+  en vivo de 2.4.0 son las de enrutamiento de las frases 103 a 130 con sus frases de control (2026-10-21 y 2026-10-22, todas OK; [PRUEBAS §3.1](PRUEBAS.md)); las de 2.3.0, enrutamiento
   (14/14 y 8/8), integración con BMAD instalado (12/12) y `controles` (7/7) del 2026-10-20.
-- **Docker:** la imagen se construyó y probó con la versión 2.3.0 ([DOCKER §10](DOCKER.md)); con 2.4.0 no se volvió a
-  construir [verificar]. Una sesión de Claude Code con credenciales dentro del contenedor (`claude -p`) y la arquitectura arm64
-  quedan [verificar] ([DOCKER §9](DOCKER.md)).
+- **Docker:** la imagen 2.5.0 (con diagram-design) se reconstruyó y probó el 2026-10-27 ([DOCKER §10](DOCKER.md)) y los
+  comandos de [INSTALACION-DOCKER](INSTALACION-DOCKER.md) se ejecutaron en Linux (§13). Quedan [verificar]: Docker
+  Desktop y todo lo de Windows, la instalación de Docker Engine (repositorio de Docker bloqueado en la red de prueba),
+  una sesión de Claude Code con credenciales dentro del contenedor y la arquitectura arm64 ([DOCKER §9](DOCKER.md)).
 - **Render de `wardley-beta` en GitHub** [verificar]: es un tipo de diagrama de Mermaid en beta (11.14 o posterior) y no
   todos los visores de Markdown lo dibujan; por eso `mapas.py render` deja también el PNG y el texto OWM.
 - Ítems marcados `[verificar]` en INSTALACION y DEPENDENCIAS (URLs de sitios no alcanzables desde el entorno de prueba,
@@ -121,5 +125,11 @@ Fuentes Mermaid y SVG en [`docs/diagramas/`](diagramas/) (los mismos del README)
 - Conectores MCP de terceros (Jira, Slack, Teams, Granola, Fireflies, Zoom, Tability, Perdoo) documentados pero no
   probados en vivo; la capa de canales se probó contra servidores SMTP y webhooks locales, no contra servicios reales;
   los hooks en Windows con `py.sh` no se probaron en una máquina Windows real.
+- **`npm` de la imagen Docker:** 1 aviso alto y 1 moderado en `undici` e `ip-address` empaquetados en `npm` 11.21.1, sin
+  versión publicada de `npm` que los corrija al 2026-10-27; aceptados temporalmente ([SEGURIDAD](SEGURIDAD.md) SEG-13).
+  Subir `npm` cuando se publique la corrección.
+- Base de conocimiento del proyecto: recomendación evaluada (índice SQLite derivado de los registros con consultas para
+  personas y agentes y exportación opcional a una bóveda de Obsidian; MCP propio de solo lectura más adelante); sin
+  implementar por decisión del autor.
 - Mejoras candidatas: Monte Carlo de contingencia (P50/P80), con los tres valores de `actividades.csv` como entrada; calendarios y feriados en `cpm.py`; trazado de
   `bmad-spec` (`SPEC.md`, ids `CAP-n`).

@@ -19,7 +19,7 @@ Estructura (54,3 s), pensada para directivos y PMO:
 | 0:11–0:17 | jerarquía | Un plugin para Claude Code: PRINCE2 manda, PMBOK aporta técnicas y BMAD es la especificación. | PRINCE2 7 / PMBOK 8 / BMAD |
 | 0:17–0:25 | caso | Un cambio llevaría el presupuesto al 200 %. Sin saldo ni autoridad, no se aprueba: sube a la junta el mismo día. | caso E2E-2, paso 10: C-002 de 15.000 aprobado de palabra con un límite de 10.000; 24.000 de 12.000; «no se puede registrar como aprobado»; pendiente de la junta |
 | 0:25–0:31 | estrategia | Mapas de Wardley y de recorrido del cliente, opciones con VAN y conexión con BMAD, Jira, Slack y Teams. | gráficos reales de E2E-5 y E2E-4 e integraciones |
-| 0:31–0:38 | prueba | 6 agentes, 39 skills, más de 200 pruebas automáticas y 5 casos completos con webinar. | mosaico de cifras (353 pruebas de regresión, 93 controles, 0 hallazgos altos) y rótulo de versión |
+| 0:31–0:38 | prueba | 6 agentes, 39 skills, más de 200 pruebas automáticas y 5 casos completos con webinar. | mosaico de cifras (355 pruebas de regresión, 93 controles, 0 hallazgos altos) y rótulo de versión |
 | 0:38–0:54 | cierre | pm-method: código abierto, en GitHub. ¿Estás en proyectos e innovación? Te invito a consultarme: capacitación y transferencia para lograr los beneficios de tus proyectos con IA. Escribime por LinkedIn. Iniciativa con el apoyo de PMI e IEEE (Uruguay). | URL de GitHub, invitación, oferta de capacitación y transferencia, «Escribime por LinkedIn» y la línea de apoyo, solo como texto |
 
 Sin marcas ni logos: las herramientas aparecen solo como texto y el único nombre propio es el usuario de GitHub de la
@@ -61,9 +61,9 @@ así que regenerar el video **no** necesita el modelo de voz. Para cambiar el te
 
 ## Cifras
 
-Todas salen del repositorio al 2026-10-22 (versión 2.4.0): 6 agentes (`agents/`), 39 skills (`skills/`; 33 que activa
+Todas salen del repositorio al 2026-10-27 (versión 2.5.0): 6 agentes (`agents/`), 39 skills (`skills/`; 33 que activa
 el modelo y 6 comandos), 3 hooks (`hooks/hooks.json`), 93 códigos de sanidad en 12 familias (contados en
-`skills/*/scripts/*.py` y en `docs/SANIDAD.md`), 353 pruebas de regresión con 0 fallos (`scripts/probar_paquete.py`;
+`skills/*/scripts/*.py` y en `docs/SANIDAD.md`), 355 pruebas de regresión con 0 fallos (`scripts/probar_paquete.py`;
 la locución, generada con la versión 2.3.0, dice «más de 200», que sigue siendo cierto) y 99 de integración cruzada ([PRUEBAS](../../PRUEBAS.md)), 5 casos E2E con webinar
 ([guías](../../guias/README.md)), revisión de seguridad con 0 hallazgos de severidad alta y 3 medios corregidos
 ([SEGURIDAD](../../SEGURIDAD.md)), caso E2E-2: C-002 de 15.000 aprobado de palabra por una autoridad de cambio con límite de 10.000, que llevaría el presupuesto de cambio a 24.000 de 12.000 (200 %) y que `registro.py` no deja registrar como aprobado: queda pendiente de la junta el mismo día ([guía E2E-2](../../guias/E2E-2-alcance-roadmap.md), introducción y paso 10; `docs/guias/img/g2-consumo-cambio.png`),

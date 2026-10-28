@@ -1,4 +1,4 @@
-# Guías de recorrido de punta a punta (E2E) · pm-method 2.4.0
+# Guías de recorrido de punta a punta (E2E) · pm-method 2.5.0
 
 Cinco guías paso a paso para **probar las capacidades del ecosistema como usuario**, escribiendo prompts en Claude
 Code. Cada una recorre un ciclo completo con un escenario ficticio y empieza por cuatro bloques breves: **por qué

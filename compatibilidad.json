@@ -1,6 +1,6 @@
 {
   "paquete": "pm-method",
-  "version": "2.4.0",
+  "version": "2.5.0",
   "spec": "SPEC.md v2 (§0, §1.10–§1.17)",
   "esquemas": {
     "estado.json": "v2 (migración automática desde v1)",
@@ -63,8 +63,9 @@
       },
       "diagram-design": {
         "repo": "https://github.com/cathrynlavery/diagram-design",
-        "commit": "550fd66",
-        "version": "2.6.110",
+        "commit": "66fa2e7",
+        "version": "2.6.133",
+        "verificado": "2026-10-27, Claude Code 2.1.311 con --plugin-dir (organigrama con fuentes del sistema, self_check.py --offline OK); antes 550fd66 / 2.6.110",
         "instalar": "claude plugin marketplace add cathrynlavery/diagram-design && claude plugin install diagram-design@diagram-design"
       },
       "visual-explainer": {

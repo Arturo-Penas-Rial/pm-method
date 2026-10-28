@@ -1,7 +1,7 @@
 ---
 name: pm-issues-cambios
 description: "Issues, control de cambios e informe de excepción. Usar: issue, incidencia, registro de incidentes, solicitud de cambio, change request, off-spec, concesión, desvío del PRD. No: pronóstico o semáforo→pm-progreso-reportes."
-version: 2.4.0
+version: 2.5.0
 author: pm-method
 license: MIT
 metadata:

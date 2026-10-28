@@ -1,10 +1,10 @@
 {
- "generado": "2026-10-22T11:07:19",
+ "generado": "2026-10-27T20:05:01",
  "meta": {
-  "version": "2.4.0",
+  "version": "2.5.0",
   "licencia": "MIT",
-  "fecha": "2026-10-22",
-  "fecha_larga": "22 de octubre de 2026"
+  "fecha": "2026-10-27",
+  "fecha_larga": "27 de octubre de 2026"
  },
  "jerarquia": [
   {
@@ -1472,6 +1472,7 @@
    }
   ]
  },
+ "vivo_serie": "2.4",
  "vivo": [
   {
    "fecha": "2026-10-21",
@@ -1516,7 +1517,7 @@
  ],
  "frases_enrutamiento": 130,
  "pruebas": {
-  "fecha": "2026-10-22",
+  "fecha": "2026-10-27",
   "validar": {
    "ok": true,
    "skills": 39,
@@ -1525,9 +1526,9 @@
    "agentes": 6
   },
   "regresion": {
-   "ok": 353,
+   "ok": 355,
    "fallo": 0,
-   "casos": 33
+   "casos": 34
   },
   "e2e": {
    "ok": 5,
@@ -1539,7 +1540,7 @@
   }
  },
  "n": {
-  "version": "2.4.0",
+  "version": "2.5.0",
   "agentes": 6,
   "subagentes": 5,
   "skills": 39,
@@ -1559,9 +1560,9 @@
   "pasos_casos": 74,
   "clases_webinar": 10,
   "diapositivas_webinar": 195,
-  "pruebas_ok": 353,
+  "pruebas_ok": 355,
   "pruebas_fallo": 0,
-  "pruebas_casos": 33,
+  "pruebas_casos": 34,
   "e2e_ok": 5,
   "e2e_total": 5,
   "mermaid": 128,
@@ -1571,14 +1572,15 @@
   "familias_permanentes": 4,
   "hooks_nombres": "guardian · idioma · inicio",
   "bmad_probado": "4.x, 6.11, 6.12",
-  "licencia": "MIT"
+  "licencia": "MIT",
+  "serie_vivo": "2.4"
  },
  "txt": {
-  "pie": "pm-method 2.4.0 · Resumen ejecutivo",
+  "pie": "pm-method 2.5.0 · Resumen ejecutivo",
   "portada": {
-   "kicker": "Resumen ejecutivo · pm-method 2.4.0",
+   "kicker": "Resumen ejecutivo · pm-method 2.5.0",
    "titulo": "Gestión de proyectos con IA, con método, gobierno y controles permanentes",
-   "subtitulo": "Un plugin para Claude Code y Cowork. PRINCE2 7 manda, PMBOK 8 aporta las técnicas y BMAD es la especificación del producto, de solo lectura. Con la versión 2.4.0: opciones e impacto medidos antes de decidir, un radar de lo que hay que decidir hoy e informes verificados contra el dato.",
+   "subtitulo": "Un plugin para Claude Code y Cowork. PRINCE2 7 manda, PMBOK 8 aporta las técnicas y BMAD es la especificación del producto, de solo lectura. Con opciones e impacto medidos antes de decidir, un radar de lo que hay que decidir hoy e informes verificados contra el dato.",
    "cifras": [
     [
      "6",
@@ -1902,9 +1904,9 @@
    "titulo": "La confianza se demuestra: pruebas reproducibles, pruebas en vivo y revisión de seguridad",
    "kpis": [
     [
-     "353",
+     "355",
      "pruebas de regresión OK",
-     "0 FALLO · 33 casos"
+     "0 FALLO · 34 casos"
     ],
     [
      "5/5",
@@ -1922,7 +1924,7 @@
      "para pruebas en vivo con Claude Code real"
     ]
    ],
-   "vivo": "Pruebas en vivo con Claude Code real",
+   "vivo": "Pruebas en vivo con Claude Code real (serie 2.4)",
    "seguridad": "Revisión de seguridad",
    "docker": "Contenedor Docker endurecido",
    "nota": "Los límites conocidos están declarados en docs/RESUMEN-EJECUTIVO.md §7: el enrutamiento en lenguaje natural es probabilístico, y los conectores MCP de terceros no se probaron en vivo.",
@@ -1937,9 +1939,9 @@
    ]
   },
   "empezar": {
-   "titulo": "Dos formas de empezar: instalación manual o contenedor Docker aislado",
-   "manual": "Instalación manual (Claude Code y Cowork)",
-   "docker": "Docker (probar sin instalar nada en el equipo)",
+   "titulo": "Dos formas de empezar: instalación sobre WSL2 o Linux, o contenedor Docker aislado",
+   "manual": "Sobre WSL2 o Linux (guía: docs/INSTALACION-WSL2.md)",
+   "docker": "Docker (guía: docs/INSTALACION-DOCKER.md)",
    "docker_pasos": [
     "Construir la imagen",
     "Trabajar sobre un proyecto montado",
@@ -1947,7 +1949,7 @@
    ],
    "luego": "Luego, en una sesión",
    "siguiente": "Siguiente paso: recorrer una guía E2E sobre la copia del proyecto de prueba (docs/guias/README.md) y planificar un piloto en paralelo (docs/PILOTO.md).",
-   "en": "EN: two ways to start: manual install or an isolated Docker container."
+   "en": "EN: two ways to start: install on WSL2 or Linux, or an isolated Docker container; each has its own step-by-step guide."
   },
   "glosario": {
    "titulo": "Glosario breve",

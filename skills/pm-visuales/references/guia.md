@@ -16,13 +16,18 @@ Está instalada si figura en el listado de skills de la sesión con cualquiera d
 ### 1.2 Tipo de cada visual por motor
 | Visual | `archify` (tipo JSON) | `diagram-design` (tipo) | `visual-explainer` (página) |
 |---|---|---|---|
-| Organigrama | `tree` | org chart | — |
-| PBS / WBS | `tree` | tree (importar el Mermaid de `wbs.py`) | — |
-| Mapa poder/interés | — | quadrant | — |
-| Flujo de productos | `workflow` | flowchart / dependency | — |
-| Roadmap por etapas | `timeline` | timeline | roadmap comentado |
-| Flujo de excepciones | `workflow` | swimlane | — |
+| Organigrama | `tree` | org chart (importar el `flowchart` de §1 de la plantilla) | — |
+| PBS / WBS | `tree` | tree (importar el `flowchart` de `wbs.py`) | — |
+| Mapa poder/interés | — | quadrant (desde la tabla intermedia) | — |
+| Flujo de productos | `workflow` | flowchart / dependency (importar el `flowchart`) | — |
+| Roadmap por etapas | `timeline` | timeline (desde la tabla intermedia) | roadmap comentado |
+| Flujo de excepciones | `workflow` | swimlane (importar el `flowchart`) | — |
 | One-pager (brief, canvas, resumen de etapa) | — | — | "One diagram" / explicador de una página |
+
+diagram-design importa solo `flowchart`/`graph`, `sequenceDiagram`, `stateDiagram-v2` y `erDiagram` (su
+`references/import-mermaid.md`); `quadrantChart`, `timeline` y `gantt` terminan con código 2 ("unsupported diagram
+kind"), por eso el mapa poder/interés y el roadmap se dibujan desde la tabla intermedia. El Gantt de `cpm.py`, los
+mapas de `pm-mapas-estrategicos` y el reporte de `pm-interesados` no se delegan: los generan sus scripts desde los datos.
 
 ### 1.3 Contrato de delegación (obligatorio cuando el motor está configurado e instalado)
 1. **Respaldo primero**: tabla intermedia (id, etiqueta, padre/dependencia, atributos, fuente) y Mermaid en `<carpeta>/<nombre>.md` (WBS con `wbs.py --mermaid`). Para el one-pager, la tabla de campos del brief.
@@ -35,7 +40,7 @@ Está instalada si figura en el listado de skills de la sesión con cualquiera d
 
 ### 1.4 Receta por motor
 - **archify**: escribir el candidato `<carpeta>/<nombre>.candidate.json` según el esquema del tipo (leer `schemas/<tipo>.schema.json` y el ejemplo que indica su SKILL.md), con `meta.output` = ruta de salida relativa al directorio de trabajo; luego, desde ese directorio, `node <archify>/bin/archify.mjs finalize <tipo> <nombre>.candidate.json <salida>.html --quality showcase --json` (rutas relativas al cwd). Éxito = `"ok": true` con `validate`, `deliver`, `check` y `browser-check` en `pass`. Si solo `browser-check` queda `skipped` por falta de Chrome, el HTML vale como "verificado sin navegador" (decirlo y anotarlo). Sin red: `ARCHIFY_UPDATE_CHECK_DISABLED=1`. El árbol `tree` es de un solo padre: aseguramiento y soporte se cuelgan de la junta o del gestor y se aclara en el pie.
-- **diagram-design**: la primera vez exige revisar `references/style-guide.md`; sin marcador `.diagram-design` en el proyecto, preguntar una vez al usuario (personalizar o estilo por defecto); sin usuario, estilo por defecto (opción e). Para la WBS u otro Mermaid de respaldo, usar la vía de importación: `python3 <diagram-design>/scripts/mermaid_extract.py <respaldo>.md` y redibujar con detalle `faithful` (conserva todos los nodos; zonas sobre 9, dividir sobre 24). Copiar `assets/template.html`, cargar la referencia del tipo y comprobar con `python3 <diagram-design>/scripts/self_check.py <salida>.html` (debe imprimir `OK`). PNG opcional con `scripts/export_png.py` (Playwright). Las tipografías se cargan de Google Fonts; sin conexión, pedir fuentes del sistema (style-guide § Font source).
+- **diagram-design**: la primera vez exige revisar `references/style-guide.md`; sin marcador `.diagram-design` en el proyecto, preguntar una vez al usuario (personalizar o estilo por defecto); sin usuario, estilo por defecto (opción e). Si el respaldo es un `flowchart` (organigrama, PBS/WBS, flujo de productos, flujo de excepciones; tabla 1.2), usar la vía de importación: `python3 <diagram-design>/scripts/mermaid_extract.py <respaldo>.md` y redibujar con detalle `faithful` (conserva todos los nodos; zonas sobre 9, dividir sobre 24); el mapa poder/interés y el roadmap se dibujan desde la tabla intermedia. **Sin red**, como las vistas internas: pedir fuentes del sistema (style-guide § Font source, valor `system`: sin el `<link>` a Google Fonts), salvo que el usuario pida las tipografías web. Copiar `assets/template.html`, cargar la referencia del tipo y comprobar con `python3 <diagram-design>/scripts/self_check.py --offline <salida>.html` (debe imprimir `OK`; sin `--offline` solo si el usuario eligió las tipografías web). PNG opcional con `scripts/export_png.py` (Playwright).
 - **visual-explainer**: escribir la fuente `<carpeta>/<nombre>.src.html` (registro `data-register`, `<link rel="stylesheet" href="kit.css" data-ve-kit>`) y renderizar con `node <visual-explainer>/kit/render.mjs <nombre>.src.html` **sin `--open`** → `<nombre>.html` (debe imprimir `✓`). `kit/check.mjs` solo si `playwright-core` está instalado. Nunca escribir en `~/.agent/diagrams/`.
 - **drawio**: servidor MCP oficial de draw.io (`jgraph/drawio-mcp`, npm `@drawio/mcp`) desde la tabla intermedia (nodo, padre, etiqueta); `.drawio` + PNG/SVG junto al `.md`.
 

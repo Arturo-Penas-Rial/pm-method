@@ -3,12 +3,14 @@
 Revisión de seguridad del plugin pm-method 2.3.0 desde el punto de vista de quien lo
 instala: si las skills, los agentes, los hooks y los scripts introducen riesgos o exponen a vulnerabilidades. La
 sección 11 revisa los scripts que la versión 2.4.0 suma o amplía y que leen fuentes externas (2026-10-22): sin
-hallazgos nuevos de severidad alta ni media.
+hallazgos nuevos de severidad alta ni media. SEG-13 (dependencias Node de la imagen Docker) se revisó otra vez el
+2026-10-27, con la versión 2.5.0.
 
 EN: *Security review of pm-method 2.3.0. No high-severity issues. The three medium issues are fixed (HTML escaping in
 the stakeholder report, formula neutralisation in the xlsx export, and a permission prompt that a person must answer
-before approving or sending messages). Of the twelve low items, eleven are fixed and one is fixed in part; the five remaining
-low-severity npm advisories in the optional Docker image are accepted with a justification; the two informational items
+before approving or sending messages). Of the twelve low items, eleven are fixed and one is fixed in part; the remaining npm
+advisories in the optional Docker image (five low, plus one high and one moderate bundled inside `npm` that no published
+`npm` release fixes yet, as of 2026-10-27) are accepted with a justification; the two informational items
 are accepted.*
 
 ## 1. Resultado en una tabla
@@ -17,7 +19,7 @@ are accepted.*
 |---|---|---|---|---|
 | Alta | 0 | — | — | — |
 | Media | 3 | 3 (SEG-01, SEG-02, SEG-03) | — | — |
-| Baja | 12 | 11 (SEG-04 a SEG-11, SEG-13, SEG-14, SEG-15) y SEG-12 en parte | SEG-12 (resto) | SEG-13: 5 avisos de severidad baja, justificados |
+| Baja | 12 | 11 (SEG-04 a SEG-11, SEG-13, SEG-14, SEG-15) y SEG-12 en parte | SEG-12 (resto) | SEG-13: 5 avisos bajos y, hasta que una versión publicada de `npm` los corrija, 1 alto y 1 moderado empaquetados en `npm` (2026-10-27), justificados |
 | Informativa | 2 | — | — | 2 (SEG-16, SEG-17) |
 
 No se encontraron credenciales, tokens ni datos personales reales en el repositorio (incluidos fixtures, ejemplos y
@@ -191,12 +193,16 @@ confirma. Corrección: las dos skills tienen la línea "Fuentes = datos" en la s
 - `scripts/webinar/pptx.js:10-15` carga y ejecuta `apply_theme.js` desde la variable `PPTX_APPLY_THEME` o desde carpetas
   de skills locales (`/mnt/skills/…`, `/root/.claude/skills/synced/…`) si existen. Es una herramienta del mantenedor,
   no la usa el plugin.
+Corregido (2.5.0): la imagen Docker trae diagram-design fijado por commit (`66fa2e7`, etapa
+`skills-externas`) solo para la prueba de compatibilidad; la instalación del usuario sigue sin fijar. La salida
+delegada a diagram-design se pide con fuentes del sistema y se verifica con `self_check.py --offline`: el HTML no
+pide nada a Google Fonts al abrirse (antes: IP del lector a `fonts.googleapis.com`).
 Corregido: `scripts/webinar/generar.py` indica `npm install -g pptxgenjs@4.0.1` (la misma versión que fija
 `docker/node/package.json`). Recomendado: fijar versión o commit en los comandos de instalación de terceros
 (`owner/repo@<tag>` si la herramienta lo admite [verificar]) y cargar `apply_theme.js` solo cuando se pase
 explícitamente (hoy `pptx.js` lo busca en carpetas de skills locales; cambiarlo altera el aspecto del PPTX del webinar).
 
-**SEG-13 · Entorno Docker opcional: vulnerabilidades conocidas en dependencias de Node · corregido (quedan 5 avisos bajos, aceptados)**
+**SEG-13 · Entorno Docker opcional: vulnerabilidades conocidas en dependencias de Node · corregido en parte (quedan avisos aceptados: 5 bajos y, desde el 2026-10-27, 1 alto y 1 moderado dentro de `npm`)**
 `docker/node/package.json` y `package-lock.json`. `npm audit` informaba 31 avisos (1 crítico, 18 altos, 6 moderados,
 6 bajos): 24 dentro del paquete `npm@10.9.4` (por ejemplo `tar` ≤ 7.5.20, crítico), 2 altos en `pptxgenjs@4.0.1` por
 `image-size` 1.2.1 y 5 bajos en la cadena de `@mermaid-js/mermaid-cli`.
@@ -212,8 +218,35 @@ explícitamente (hoy `pptx.js` lo busca en carpetas de skills locales; cambiarlo
   `@mermaid-js/layout-tidy-tree` → `@mermaid-js/mermaid-cli`. Se aceptan: KaTeX solo procesa fórmulas matemáticas de los
   diagramas Mermaid, que en este contenedor son los del propio repositorio y los que generan sus scripts; la corrección
   que propone `npm audit` es bajar a `mermaid-cli` 11.14.0 (cambio de versión mayor de la cadena), que no se aplica.
+- **Revisión del 2026-10-27 (versión 2.5.0).** Con el mismo lockfile, `npm audit --package-lock-only` suma **1 alto y 1
+  moderado** en dependencias que `npm` 11.21.1 trae empaquetadas (`bundleDependencies`, a las que `overrides` no
+  llega): `undici` 6.29.0 (altos GHSA-2m5v-pch6-74hx, GHSA-xjj6-f33q-929c y GHSA-qrxm-fqhp-jwvm; moderados
+  GHSA-4qv8-2p9j-2685 y GHSA-9fm3-97px-rjf6; corregidos en `undici` 6.29.1) e `ip-address` 10.7.2 (GHSA-rxp7-6hxx-x8q5,
+  moderado; corregido en 10.7.4). **Ninguna versión publicada de `npm` los corrige todavía**: `npm view npm versions`
+  muestra 11.21.1 como la última de la serie 11 y 12.2.1 como `latest` (ambas del 2026-10-15); con el lockfile
+  regenerado (`npm install --package-lock-only`) para 12.0.0, 12.1.0, 12.2.0 y 12.2.1, todas traen `undici` ≤ 6.29.0 e
+  `ip-address` ≤ 10.7.2 (12.2.1 da el mismo resultado que 11.21.1; las anteriores, más avisos). La serie 12 exige además
+  Node.js `^22.22.2 || ^24.15.0 || >=26.0.0` y la imagen tiene el 22.22.1 de Ubuntu 26.04 (`resolute`, sin
+  actualización en `-updates` ni `-security` al 2026-10-27). Se mantiene `npm` 11.21.1 y los dos avisos se **aceptan
+  temporalmente**:
+  - `undici` solo lo usa `node-gyp` (empaquetado en `npm`) en `lib/download.js`, para descargar las cabeceras de Node al
+    compilar un complemento nativo durante una instalación. La imagen no trae compilador de C/C++ ni `make`, así que
+    esa compilación no puede completarse; las descargas de paquetes de `npm` y `npx` usan otro cliente
+    (`@npmcli/agent`).
+  - `ip-address` llega por `socks` → `socks-proxy-agent`, que `@npmcli/agent` solo usa con un proxy `socks://`.
+  - `npm` solo sirve dentro del contenedor para `npx` (BMAD y skills externas, [DOCKER §5.4](DOCKER.md)); las pruebas, los
+    scripts de pm-method y los generadores no lo usan.
+  - Acción: subir `npm` a la primera versión publicada que traiga `undici` ≥ 6.29.1 e `ip-address` ≥ 10.7.4 (y sea
+    compatible con el Node de la imagen), regenerar el lockfile, comprobar `npm audit` y reconstruir.
+  - **Estado al 2026-10-27, al cerrar la versión 2.5.0: sin corrección publicada; se mantiene `npm` 11.21.1 y los dos
+    avisos siguen aceptados temporalmente.** `npm view npm time` no muestra versiones posteriores a 11.21.1 (serie 11) y
+    12.2.1 (`latest`), ambas del 2026-10-15; con el lockfile regenerado para cada una (`npm install --package-lock-only`
+    sobre una copia de `docker/node/`), `npm audit --package-lock-only` da lo mismo: `undici` 6.29.0 e `ip-address`
+    10.7.2 empaquetados, 1 alto, 1 moderado y los 5 bajos de la cadena de `mermaid-cli`. La imagen `pm-method:2.5.0` se
+    construyó con el lockfile sin cambios ([DOCKER §10](DOCKER.md#10-verificación-registrada)).
 - `docker/requirements.txt` (Python) sigue fijado por hash y sin avisos (`pip-audit`).
-- Antes de publicar una imagen: `cd docker/node && npm audit --package-lock-only` sin avisos críticos ni altos.
+- Antes de publicar una imagen: `cd docker/node && npm audit --package-lock-only` sin avisos críticos ni altos, salvo los
+  aceptados aquí con justificación.
 
 **SEG-14 · Plantillas HTML completadas por el modelo · corregido (guía)**
 - `skills/pm-visuales/templates/canvas-arranque.html`: los `{{marcadores}}` los completa el modelo con texto del brief

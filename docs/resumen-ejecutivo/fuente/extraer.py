@@ -330,9 +330,16 @@ D["seguridad"] = {"fecha": re.search(r"revisión del (\d{4}-\d{2}-\d{2})", seg).
                             for r in tablas(seccion(seg, r"Resultado en una tabla"))[0]["filas"]]}
 pru = leer("docs/PRUEBAS.md")
 vivo = []
-for r in tablas(seccion(pru, r"^3\.1 Resultados registrados"))[0]["filas"] + \
-        sum((t["filas"] for t in tablas(seccion(pru, r"^3\.1 Resultados registrados"))[1:]), []):
-    if len(r) >= 4 and r[1].startswith(D["meta"]["version"]):
+# Pruebas en vivo de la serie más reciente que las registró (la 2.5.0 no cambia descripciones, agentes ni hooks
+# respecto de la 2.4.0, así que valen las de la serie 2.4).
+filas_vivo = tablas(seccion(pru, r"^3\.1 Resultados registrados"))[0]["filas"] + \
+    sum((t["filas"] for t in tablas(seccion(pru, r"^3\.1 Resultados registrados"))[1:]), [])
+series = [tuple(int(x) for x in r[1].split(".")[:2]) for r in filas_vivo
+          if len(r) >= 4 and re.match(r"\d+\.\d+\.", r[1]) and re.search(r"\b\d+/\d+\b", r[3])]
+serie = ("%d.%d." % max(series)) if series else ""
+D["vivo_serie"] = serie.rstrip(".")
+for r in filas_vivo:
+    if len(r) >= 4 and serie and r[1].startswith(serie):
         fr = re.findall(r"\b\d+/\d+\b", r[3])
         if fr:
             vivo.append({"fecha": r[0], "prueba": plano(r[2]), "resultado": " · ".join(fr)})
@@ -382,6 +389,7 @@ D["n"] = {
     "familias_permanentes": len(permanentes),
     "hooks_nombres": " · ".join(pathlib.Path(s).stem for s in scripts_hook),
     "bmad_probado": ", ".join(D["bmad_probado"]), "licencia": D["meta"]["licencia"],
+    "serie_vivo": D["vivo_serie"],
 }
 
 

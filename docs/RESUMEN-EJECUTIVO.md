@@ -1,4 +1,4 @@
-# Resumen ejecutivo · pm-method 2.4.0
+# Resumen ejecutivo · pm-method 2.5.0
 
 **Gestión de proyectos asistida por IA, con método, gobierno y trazabilidad.**
 EN: *AI-assisted project management with a real method, real governance and end-to-end traceability.*
@@ -56,7 +56,7 @@ gobierna, y cada decisión queda registrada y verificada.
    cuándo y con qué condiciones. Los subagentes no pueden registrar decisiones de la junta.
 2. **La especificación no se duplica.** pm-method no edita BMAD: lee, mide y devuelve decisiones con un documento de
    traspaso. Un requisito nuevo en el PRD sin cambio aprobado aparece como **ESP-10** y bloquea la puerta.
-3. **Verificado, no solo diseñado.** 353 pruebas automáticas de regresión (incluida una instalación real de BMAD
+3. **Verificado, no solo diseñado.** 355 pruebas automáticas de regresión (incluida una instalación real de BMAD
    6.12.4 y envíos SMTP y por webhooks contra servidores locales), una suite de integración cruzada de 99 comprobaciones,
    cinco recorridos E2E reproducibles, validación del plugin con la CLI y pruebas en vivo con Claude Code real:
    enrutamiento, guardarraíles, idioma, robustez y skills externas.
@@ -74,14 +74,15 @@ gobierna, y cada decisión queda registrada y verificada.
 | Product owner / equipo ágil | backlog sincronizado con BMAD, MoSCoW, release plan, avance por puntos |
 | PMO / CoE de IA | un estándar reproducible de gestión asistida, con trazabilidad y controles |
 
-## 6. Evidencia (2026-10-22)
+## 6. Evidencia (2026-10-27)
 
 | Verificación | Resultado |
 |---|---|
 | Validación estructural (`validar_paquete.py`) | OK · 39 skills, listado de 6.957 caracteres (límite 7.500); sintaxis compatible con Python 3.9 |
-| Regresión (`probar_paquete.py`) | 353 OK · 0 FALLO con Python 3.13 (352 con 3.9) |
+| Regresión (`probar_paquete.py`) | 355 OK · 0 FALLO con Python 3.13 (354 con 3.9) |
 | Integración cruzada (`scripts/pruebas/integracion/correr.py`) | 99 OK · 0 FALLO en 34 eslabones |
 | Validación del plugin (`claude plugin validate .`) | aprobada |
+| Imagen Docker (`pm-pruebas`, sin red) | todas las pruebas OK sin red (regresión 358 OK con el caso DD y diagram-design; 5/5 recorridos E2E); imagen `pm-method:2.5.0` de 2,99 GB |
 | Enrutamiento en vivo | 60/60 en la batería base; 27/28 con vocabulario de PRINCE2 y PMBOK en español; 25/25 con las skills de BMAD instaladas; 14/14 con el resumen de contexto del hook de inicio; 8/8 en mapas estratégicos; 28/28 en las frases de opciones, personas, radar, reuniones, impacto, auditoría, lecciones, productos, período y estimación (detalle en [PRUEBAS](PRUEBAS.md)) |
 | Diagramas y recorridos | 128 bloques Mermaid, 0 errores; guías E2E 5/5 OK (E2E-1 15 pasos, E2E-2 10, E2E-3 14, E2E-4 15, E2E-5 20; 51 imágenes), con evidencia e imágenes idénticas en dos corridas |
 | Material de formación | 5 mazos del webinar sin errores: 10 clases de 90 minutos, 195 diapositivas de contenido, 125 términos de glosario |
@@ -101,9 +102,10 @@ gobierna, y cada decisión queda registrada y verificada.
 - Los controles permanentes se probaron con scripts (regresión, integración y guías E2E) y en vivo en un escenario
   (presupuesto de cambio excedido y calidad a volumen); con el presupuesto agotado, `registro.py` no deja que la
   autoridad delegada registre la aprobación y el cambio queda pendiente de la junta.
-- Los escenarios de robustez en vivo no se repitieron con la versión 2.4.0 (en vivo se probó el enrutamiento de las
-  frases 103 a 130); la imagen Docker se construyó y probó con 2.3.0, no se probó con una sesión de Claude Code con
-  credenciales ni en arm64.
+- Los escenarios de robustez en vivo no se repitieron con las versiones 2.4.0 y 2.5.0 (en vivo se probó el enrutamiento
+  de las frases 103 a 130 con 2.4.0; la 2.5.0 no cambia descripciones, agentes ni hooks respecto de la 2.4.0); la imagen
+  Docker se construyó y probó con 2.5.0, pero no con una sesión de Claude Code con credenciales ni en arm64; lo del lado
+  de Windows de las dos guías de instalación queda por comprobar.
 - El perfil de comunicación solo adapta mensajes: no infiere emociones, personalidad ni datos sensibles; la guía cita
   las normas consultadas, pero no es asesoramiento jurídico.
 - PRINCE2® y PMBOK® son marcas de sus titulares; el contenido está destilado en palabras propias.
@@ -115,7 +117,9 @@ claude plugin marketplace add Arturo-Penas-Rial/pm-method
 claude plugin install pm-method@pm-method
 ```
 
-Luego, en una sesión: `/pm-method:pm-nuevo "Mi proyecto"` y "¿qué sigue?". Guía completa: [INSTALACION](INSTALACION.md).
+Luego, en una sesión: `/pm-method:pm-nuevo "Mi proyecto"` y "¿qué sigue?". Guía paso a paso según el camino elegido:
+[INSTALACION-WSL2](INSTALACION-WSL2.md) (sobre WSL2 o Linux, con Claude Code o Hermes) o
+[INSTALACION-DOCKER](INSTALACION-DOCKER.md) (contenedor Docker); guía general: [INSTALACION](INSTALACION.md).
 
 Para probar las capacidades paso a paso, como usuario y con prompts: [guías de recorrido E2E](guias/README.md) (riesgos con
 opciones y contingencia; alcance, cambio, impacto y mapa de ruta; interesados, OKR, radar y avance; producto de la idea

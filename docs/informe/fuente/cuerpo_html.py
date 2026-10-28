@@ -258,6 +258,10 @@ s8 = sec("componentes", "9", "Componentes del paquete",
          + "<h3>¶Manifiesto de compatibilidad</h3>" + compat
          + "<h3>¶Plugins, skills y MCP opcionales: decisión de integración</h3><p>Los candidatos provienen del informe 1; la valoración en estrellas es la de ese informe.</p>"
          + T(X["decisiones_integracion"], "dec", ["14%", "8%", "18%", "13%", ""])
+         + "<h4>Diagramas externos: diagram-design verificado y ShowAI evaluado</h4>"
+         + f"<div class='two'><div class='callout blue'><h4>diagram-design · {inl(X['dd_showai']['dd'][2])}</h4><p>{inl(X['dd_showai']['dd'][4])}</p><p class='src'>{inl(X['dd_showai']['reverif'])}</p></div>"
+         + f"<div class='callout orange'><h4>ShowAI · {inl(X['dd_showai']['showai'][2])}</h4><p>{inl(X['dd_showai']['showai'][4])}</p></div></div>"
+         + "<p>Qué dibuja cada motor externo (guía de pm-visuales §1.2):</p>" + T(X["dd_showai"]["tabla"], "", ["28%", "", "", ""]) + f"<p class='src'>{inl(X['dd_showai']['importa'])}</p>"
          + "<h3>¶Contrato de cada integración</h3><p>Cada integración se declara en <code>estado.json.integraciones</code> y cumple tres reglas: insumo preparado por la skill dueña, salida guardada en la carpeta del proyecto y respaldo interno.</p>"
          + T(X["contratos"], "dec", ["10%", "14%", "11%", "", "", ""]),
          "mantenedor técnico, PMO")
@@ -294,6 +298,10 @@ vias = tabla_html(["Vía", "Cómo", "Hooks"], [[f"**{v['t']}**", v["d"], v["hook
 paso = lambda n, t, cuerpo: f"<div class='step'><span>{n}</span><div><h4>{t}</h4>{cuerpo}</div></div>"
 s10 = sec("instalacion", "11", "Guía de instalación y configuración",
           f"<p class='intro'>{inl(D['inst_intro'])}</p><p class='src'>Las referencias «§» dentro de los bloques citados remiten a <code>docs/INSTALACION.md</code>. Comandos comprobados el 17/10/2026 con Claude Code 2.1.302.</p>"
+          + "<h3>¶Instalación: WSL2 o Docker</h3><p>Dos caminos separados, cada uno con su guía paso a paso (se elige uno; <code>docs/INSTALACION.md</code> §1):</p>" + T(X["inst_caminos"], "", ["20%", "", "34%"])
+          + "<h4>Cómo elegir (INSTALACION-DOCKER §0.1)</h4>" + T(X["inst_comparacion"], "", ["22%", "", ""])
+          + "<div class='two'><div class='callout blue'><h4>INSTALACION-WSL2 · Claude Code o Hermes</h4><p>" + inl(f"Comandos de Ubuntu ejecutados tal cual el {'/'.join(reversed(X['inst_verif']['wsl2_fecha'].split('-')))} en una {X['inst_verif']['wsl2_entorno']}: **{X['inst_verif']['wsl2_ok']} de {X['inst_verif']['wsl2_total']} comprobaciones** como se esperaba.") + "</p><p class='src'>" + inl("Queda por comprobar [verificar]: " + X["inst_verif"]["wsl2_pendiente"]) + "</p></div>"
+          + "<div class='callout orange'><h4>INSTALACION-DOCKER · Docker Desktop o Docker Engine</h4><p>" + inl(f"Comandos de la guía ejecutados tal cual el {'/'.join(reversed(X['inst_verif']['docker_fecha'].split('-')))} en {X['inst_verif']['docker_entorno']}: **{X['inst_verif']['docker_resultado']}**.") + "</p><p class='src'>" + inl("Queda por comprobar [verificar]: " + X["inst_verif"]["docker_pendiente"]) + "</p></div></div>"
           + "<h3>¶Recorrido de punta a punta</h3>" + T(X["inst_recorrido"], "", ["8%", "", "14%"]) + "<h4>Vías de instalación</h4>" + vias
           + "<h3>¶Requisitos previos por sistema operativo</h3>" + T(X["inst_requisitos_so"], "", ["20%", "22%", "", ""])
           + "<div class='two'><div class='callout blue'><h4>Windows (Git for Windows + PowerShell)</h4>" + md(X["req_windows_md"]) + "</div><div><div class='callout blue'><h4>macOS</h4>" + md(X["req_macos_md"]) + "</div><div class='callout blue'><h4>Linux</h4>" + md(X["req_linux_md"]) + "</div></div></div>"
@@ -462,7 +470,7 @@ s15 = sec("caso-maestro", "16", "Caso maestro, guías E2E y formación",
 # ---------- 16 · Pruebas y calidad ----------
 acept = "<ol class='check'>" + "".join(f"<li>☐ {inl(x)}</li>" for x in X["pru_aceptacion"]) + "</ol>"
 s16 = sec("pruebas", "17", "Pruebas y calidad",
-          "<p class='intro'>Cómo se verifica el ecosistema, qué cubre cada prueba, qué resultados quedaron registrados y cómo hacer la prueba de aceptación antes de usarlo en un proyecto real (<code>docs/PRUEBAS.md</code>). La regresión da <b>" + str(CIF['regresion_ok']) + " OK · 0 FALLO</b> con Python " + CIF['regresion_py'] + " (" + str(CIF['regresion_ok39']) + " con 3.9) y la integración cruzada <b>" + str(CIF['integ_ok']) + " OK · 0 FALLO</b> en " + str(CIF['integ_eslabones']) + " eslabones (" + e(FECHA_P) + "). Las pruebas en vivo con Claude Code real de la versión " + e(CIF['version']) + " (" + e(CIF['vivo24_fechas']) + ") dan <b>" + str(CIF['vivo24_ok']) + "/" + str(CIF['vivo24_total']) + "</b> en las frases " + str(CIF['vivo24_desde']) + "–" + str(CIF['vivo24_hasta']) + " y de control, y " + str(CIF['vivo24_reg_ok']) + "/" + str(CIF['vivo24_reg_total']) + " de regresión; la integración con BMAD instalado (" + CIF['vivo_integracion'] + ") es del 20/10/2026 y los escenarios de robustez, del 17/10/2026.</p>"
+          "<p class='intro'>Cómo se verifica el ecosistema, qué cubre cada prueba, qué resultados quedaron registrados y cómo hacer la prueba de aceptación antes de usarlo en un proyecto real (<code>docs/PRUEBAS.md</code>). La regresión da <b>" + str(CIF['regresion_ok']) + " OK · 0 FALLO</b> con Python " + CIF['regresion_py'] + " (" + str(CIF['regresion_ok39']) + " con 3.9) y la integración cruzada <b>" + str(CIF['integ_ok']) + " OK · 0 FALLO</b> en " + str(CIF['integ_eslabones']) + " eslabones (" + e(FECHA_P) + "). Las pruebas en vivo con Claude Code real de la versión " + e(CIF['vivo_version']) + " (" + e(CIF['vivo24_fechas']) + "; la " + e(CIF['version']) + " no cambia descripciones, agentes ni hooks) dan <b>" + str(CIF['vivo24_ok']) + "/" + str(CIF['vivo24_total']) + "</b> en las frases " + str(CIF['vivo24_desde']) + "–" + str(CIF['vivo24_hasta']) + " y de control, y " + str(CIF['vivo24_reg_ok']) + "/" + str(CIF['vivo24_reg_total']) + " de regresión; la integración con BMAD instalado (" + CIF['vivo_integracion'] + ") es del 20/10/2026 y los escenarios de robustez, del 17/10/2026.</p>"
           + "<h3>¶Niveles de prueba</h3>" + T(X["pru_niveles"], "", ["20%", "38%", "16%", ""])
           + "<h3>¶Regresión determinista: casos " + e(CIF["regresion_casos"]) + "</h3>" + T(X["pru_regresion"], "", ["22%", ""]) + md(X["pru_regresion_res_md"])
           + f"<h3>¶Integración cruzada</h3><p>{inl(X['pru_integ_intro'])}</p>" + T(X["pru_integ"], "", ["16%", "30%", ""]) + pre(X["pru_integ_cmds"]) + f"<p>{inl(X['pru_integ_res'])}</p>"
@@ -527,14 +535,18 @@ s19 = sec("evolucionar", "21", "Cómo seguir evolucionando el ecosistema",
 # ---------- 22 · Historial de versiones ----------
 # Único lugar del informe que describe cambios entre versiones; el resto describe el ecosistema tal como es.
 VS = D["versiones"]
-grupos24 = "".join(f"<details{' open' if i == 0 else ''}><summary>{e(g['t'])} ({len(g['items'])})</summary>{vin(g['items'])}</details>" for i, g in enumerate(X["chl24_grupos"]))
+grupos25 = "".join(f"<details{' open' if i == 0 else ''}><summary>{e(g['t'])} ({len(g['items'])})</summary>{vin(g['items'])}</details>" for i, g in enumerate(X["chl25_grupos"]))
+grupos24 = "".join(f"<details><summary>{e(g['t'])} ({len(g['items'])})</summary>{vin(g['items'])}</details>" for i, g in enumerate(X["chl24_grupos"]))
 grupos23 = "".join(f"<details><summary>{e(g['t'])} ({len(g['items'])})</summary>{vin(g['items'])}</details>" for i, g in enumerate(X["chl23_grupos"]))
 grupos22 = "".join(f"<details><summary>{e(g['t'])} ({len(g['items'])})</summary>{('<p>' + inl(g['intro']) + '</p>') if g['intro'] else ''}{vin(g['items'])}</details>" for g in X["chl22_grupos"])
 grupos21 = "".join(f"<details><summary>{e(g['t'])} ({len(g['items'])})</summary>{vin(g['items'])}</details>" for g in X["chl_grupos"])
 s22 = sec("versiones", "22", "Historial de versiones",
           "<p class='intro'>Esta sección es el único lugar del informe que describe cambios entre versiones; el resto describe el ecosistema tal como es en la versión " + e(CIF["version"]) + ". Detalle completo: <code>CHANGELOG.md</code>.</p>"
-          + f"<h3>¶{e(CIF['version'])} · {e('/'.join(reversed(X['chl24_fecha'].split('-'))))} — {e(X['chl24_lema'])}</h3><p>{inl(X['chl24_intro'])}</p><p class='src'>{inl(X['chl24_cifras'])}</p>"
-          + tabla_html(["Indicador", "2.3.0", CIF["version"], "Fuente"], VS["antes_despues_24"], "", ["22%", "22%", "36%", ""])
+          + f"<h3>¶{e(CIF['version'])} · {e('/'.join(reversed(X['chl25_fecha'].split('-'))))} — {e(X['chl25_lema'])}</h3><p>{inl(X['chl25_intro'])}</p><p class='src'>{inl(X['chl25_cifras'])}</p>"
+          + tabla_html(["Indicador", "2.4.0", CIF["version"], "Fuente"], VS["antes_despues_25"], "", ["22%", "22%", "36%", ""])
+          + "<h4>Cambios por área</h4>" + grupos25
+          + f"<h3>¶2.4.0 · {e('/'.join(reversed(X['chl24_fecha'].split('-'))))} — {e(X['chl24_lema'])}</h3><p>{inl(X['chl24_intro'])}</p><p class='src'>{inl(X['chl24_cifras'])} Tabla tal como se publicó con la versión 2.4.0.</p>"
+          + tabla_html(["Indicador", "2.3.0", "2.4.0", "Fuente"], VS["antes_despues_24"], "", ["22%", "22%", "36%", ""])
           + "<h4>Cambios por área</h4>" + grupos24
           + f"<h3>¶2.3.0 · {e('/'.join(reversed(X['chl23_fecha'].split('-'))))} — {e(X['chl23_lema'])}</h3><p>{inl(X['chl23_intro'])}</p><p class='src'>{inl(X['chl23_cifras'])} Tabla tal como se publicó con la versión 2.3.0.</p>"
           + tabla_html(["Indicador", "2.2.0", "2.3.0", "Fuente"], VS["antes_despues_23"], "", ["22%", "22%", "36%", ""])

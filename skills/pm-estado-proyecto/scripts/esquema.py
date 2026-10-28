@@ -217,7 +217,7 @@ UMBRAL_RIESGO_ALTO = 15   # 15–25 alto
 UMBRAL_RIESGO_MEDIO = 6   # 6–12 medio; 1–5 bajo
 
 # ---------------------------------------------------------------- estado.json
-VERSION_PAQUETE = "2.4.0"          # debe coincidir con .claude-plugin/plugin.json y compatibilidad.json
+VERSION_PAQUETE = "2.5.0"          # debe coincidir con .claude-plugin/plugin.json y compatibilidad.json
 FASES = ["pre-proyecto", "inicio", "entrega", "cierre", "cerrado"]
 PROCESOS = ["SU", "IP", "CS", "SB", "CP"]          # DP y MP son continuos (junta y equipos), no "estado actual"
 DIMENSIONES_TOLERANCIA = ["tiempo", "costo", "alcance", "calidad", "beneficios", "riesgo", "sostenibilidad"]

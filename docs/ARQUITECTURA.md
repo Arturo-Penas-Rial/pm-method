@@ -1,4 +1,4 @@
-# Arquitectura · pm-method 2.4.0
+# Arquitectura · pm-method 2.5.0
 
 Este documento explica cómo está construido pm-method y por qué: las capas y su precedencia, el reparto entre agente
 orquestador y subagentes, las herramientas que usan las skills, los comandos, la carga progresiva del contexto y el
@@ -247,7 +247,7 @@ El paquete no usa la carpeta `commands/` (formato heredado): los comandos son sk
 | 2 | cuerpo de `SKILL.md` | al activarse la skill | ≤ 12.000 caracteres y ≤ 200 líneas (≈3,5 k tokens) |
 | 3 | `references/`, `templates/`, `scripts/` | solo cuando un paso lo pide | sin límite fijo; se consultan por sección |
 
-Cifras medidas con `scripts/validar_paquete.py` y sobre los archivos (2026-10-22):
+Cifras medidas con `scripts/validar_paquete.py` y sobre los archivos (2026-10-27):
 - Listado del nivel 1: **6.957 caracteres** para las 33 skills invocables por el modelo (las 6 skills-comando no
   cuentan).
 - El presupuesto del listado de skills en Claude Code es **≈1 % de la ventana de contexto**; si se instalan BMAD u otros

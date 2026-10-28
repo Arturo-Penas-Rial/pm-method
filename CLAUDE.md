@@ -3,7 +3,7 @@
 Este repositorio **es** el plugin pm-method (no un proyecto que lo usa). Leer esto antes de cambiar algo.
 
 ## Qué es
-Plugin de Claude Code (también Cowork y Hermes) con 6 agentes, 39 skills y 3 hooks para gestión de proyectos (versión 2.4.0).
+Plugin de Claude Code (también Cowork y Hermes) con 6 agentes, 39 skills y 3 hooks para gestión de proyectos (versión 2.5.0).
 Jerarquía fija, no negociable:
 1. **PRINCE2 7** = método y ciclo de vida; **siempre manda**.
 2. **PMBOK 8** = solo el "cómo" (técnicas) o vacíos de PRINCE2.
@@ -52,7 +52,12 @@ Bilingüe ES/EN: responder en el idioma del usuario; artefactos en `estado.json.
   `docs/webinar/E2E-N/diapositivas.json`; con `--ficha`, la ficha promocional del taller desde `ficha.json`) y
   `documentos.py` (guía, guion y ejercicio con el ejemplo resuelto plegado, en HTML, e índice `docs/webinar/index.html`).
 - `docker/` entorno Docker opcional (`Dockerfile`, `compose.yaml`, `requirements.txt` y `node/` con versiones fijadas,
-  `pm-pruebas.sh`); documentado en `docs/DOCKER.md`.
+  `pm-pruebas.sh`; etapa `skills-externas` con diagram-design fijado por commit para el caso DD); documentado en
+  `docs/DOCKER.md` (referencia técnica).
+- Guías de instalación, dos caminos separados: `docs/INSTALACION-WSL2.md` (Windows con WSL2 y Ubuntu, por Claude Code o
+  Hermes) y `docs/INSTALACION-DOCKER.md` (Docker Desktop o Docker Engine sobre WSL2); `docs/INSTALACION.md` es la guía
+  general (credenciales, BMAD, skills externas, MCP, verificación). Sus comandos se ejecutan tal cual y lo verificado
+  queda en su última sección (§11 y §13): si cambia un comando o una salida esperada, volver a ejecutarlos.
 - `docs/guias/` cinco casos E2E con `evidencia/` e `img/` (salen de `guias_e2e/correr.py`; nunca dejar PNG ni carpetas
   temporales fuera de `img/`); `docs/webinar/E2E-N/` guion, ejercicio y diapositivas por caso;
   `docs/resumen-ejecutivo/` (con el spot), `docs/informe/` y `docs/ieee/` (versiones breves para público no especialista)

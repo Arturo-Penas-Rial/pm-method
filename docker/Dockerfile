@@ -1,7 +1,7 @@
 # Entorno Docker opcional de pm-method: Linux aislado con Claude Code CLI, Python 3 y Node.js, más todas las
 # dependencias opcionales que usan los scripts, las pruebas y los generadores de diagramas y diapositivas.
 # Guía: docs/DOCKER.md.  Construir desde la raíz del repositorio:
-#   docker build -f docker/Dockerfile -t pm-method:2.4.0 .
+#   docker build -f docker/Dockerfile -t pm-method:2.5.0 .
 #
 # Nada de credenciales en la imagen: la clave de API o el inicio de sesión se pasan al ejecutar
 # (variables de entorno o volumen de configuración). Los secretos de construcción opcionales (un certificado de
@@ -96,6 +96,25 @@ FROM scratch AS navegadores
 COPY --from=descarga-navegadores /ms-playwright/ /
 
 # ---------------------------------------------------------------------------------------------------------------
+# skills-externas: diagram-design (MIT) fijado por commit, solo para la prueba de compatibilidad del caso DD de
+# probar_paquete.py (PM_DIAGRAM_DESIGN). No se instala como skill de Claude Code ni se ejecuta al construir.
+# ---------------------------------------------------------------------------------------------------------------
+FROM base AS skills-externas
+ARG DIAGRAM_DESIGN_COMMIT=66fa2e7c36ff5dc3fb681c7ebb6f9360f0bb7403
+RUN --mount=type=secret,id=ca_proxy,mode=0444 \
+    set -eu; \
+    if [ -s /run/secrets/ca_proxy ]; then export GIT_SSL_CAINFO=/run/secrets/ca_proxy; fi; \
+    git init -q /tmp/dd; \
+    git -C /tmp/dd fetch -q --depth 1 https://github.com/cathrynlavery/diagram-design "${DIAGRAM_DESIGN_COMMIT}"; \
+    git -C /tmp/dd checkout -q FETCH_HEAD; \
+    test "$(git -C /tmp/dd rev-parse HEAD)" = "${DIAGRAM_DESIGN_COMMIT}"; \
+    mkdir -p /opt/skills-externas/diagram-design/skills; \
+    cp /tmp/dd/LICENSE /tmp/dd/THIRD_PARTY_LICENSES.md /opt/skills-externas/diagram-design/; \
+    cp -r /tmp/dd/skills/diagram-design /opt/skills-externas/diagram-design/skills/; \
+    rm -rf /tmp/dd; \
+    chmod -R a+rX,go-w /opt/skills-externas
+
+# ---------------------------------------------------------------------------------------------------------------
 # paquete: el plugin y los navegadores con permisos normalizados (legibles por todos, escribibles solo por root).
 # Se hace en una etapa aparte para no duplicar capas en la imagen final.
 # ---------------------------------------------------------------------------------------------------------------
@@ -111,7 +130,7 @@ RUN chmod -R a+rX,go-w /opt/pm-method /opt/ms-playwright /etc/pm-method
 FROM base AS final
 ARG UID=1000
 ARG GID=1000
-ARG VERSION=2.4.0
+ARG VERSION=2.5.0
 LABEL org.opencontainers.image.title="pm-method" \
       org.opencontainers.image.description="Entorno aislado para usar y probar el plugin pm-method con Claude Code (Linux, Python 3, Node.js, Mermaid, Playwright)" \
       org.opencontainers.image.version="${VERSION}" \
@@ -134,6 +153,7 @@ COPY --from=herramientas-python /opt/venv /opt/venv
 COPY --from=herramientas-node /opt/node-tools /opt/node-tools
 COPY --from=paquete /opt/ms-playwright /opt/ms-playwright
 COPY --from=paquete /etc/pm-method /etc/pm-method
+COPY --from=skills-externas /opt/skills-externas /opt/skills-externas
 COPY --chmod=0755 docker/mmdc.sh /usr/local/bin/mmdc
 COPY --chmod=0755 docker/pm-pruebas.sh /usr/local/bin/pm-pruebas
 COPY --from=paquete /opt/pm-method /opt/pm-method
@@ -151,6 +171,7 @@ RUN set -eu; \
 ENV PATH=/usr/local/sbin:/usr/local/bin:/opt/venv/bin:/opt/node-tools/node_modules/.bin:/usr/sbin:/usr/bin:/sbin:/bin \
     HOME=/home/pm \
     PM_METHOD_DIR=/opt/pm-method \
+    PM_DIAGRAM_DESIGN=/opt/skills-externas/diagram-design/skills/diagram-design \
     NODE_PATH=/opt/node-tools/node_modules \
     PLAYWRIGHT_BROWSERS_PATH=/opt/ms-playwright \
     PUPPETEER_SKIP_DOWNLOAD=1 \

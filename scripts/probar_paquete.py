@@ -2194,6 +2194,69 @@ def caso_estado_productos(tmp):
     check("--markdown: borrador del product status account (plantilla de pm-paquetes-trabajo) con el total, el detalle y WP-001 completado (D-###)",
           "tipo: product-status-account" in t_ and "| **Total** | **3** |" in t_ and "| 1-2 |" in t_ and "WP-001 (1-1, 1-2)" in t_ and "completado (D-" in t_, r.stdout[-300:])
 
+# ------------------------------------------------------------------ caso DD: contrato con diagram-design (pm-visuales guía §1.2 y §1.4)
+DD_IMPORTABLES = {"flowchart", "graph", "sequenceDiagram", "stateDiagram-v2", "erDiagram"}   # su references/import-mermaid.md
+
+def caso_diagram_design(tmp):
+    """Lo que la guía declara importable con mermaid_extract.py debe ser un respaldo de gramática soportada; el resto
+    se dibuja desde la tabla intermedia. Con PM_DIAGRAM_DESIGN=<carpeta de la skill> (imagen Docker) se comprueba además
+    contra la versión instalada: importación de los respaldos y self_check.py --offline (sin Google Fonts)."""
+    print("Caso DD · contrato con diagram-design (importación de respaldos Mermaid y verificación sin red)")
+    vis = os.path.join(RAIZ, "skills", "pm-visuales")
+    plantilla = os.path.join(vis, "templates", "diagramas-mermaid.md")
+    texto = open(plantilla, encoding="utf-8").read()
+    gram = {}   # número de sección de la plantilla → gramática del primer bloque mermaid; orden de los bloques
+    orden = []
+    for m in re.finditer(r"^## (\d+)\. .*?^```mermaid\n\s*(\S+)", texto, re.S | re.M):
+        gram[int(m.group(1))] = m.group(2); orden.append(int(m.group(1)))
+    d = os.path.join(tmp, "dd"); os.makedirs(d)
+    open(os.path.join(d, "wbs.csv"), "w", encoding="utf-8").write(
+        "codigo,nombre,tipo,responsable,esfuerzo_h,costo,ref\n1,Acceso,producto,,,,\n1.1,Login,paquete,Dev,40,3000,\n2,Trámites,producto,,,,\n2.1,Consulta,paquete,Dev,80,6000,\n")
+    r = run([os.path.join(S, "wbs.py"), "wbs.csv", "--mermaid", "wbs.md"], d)
+    wbs = open(os.path.join(d, "wbs.md"), encoding="utf-8").read() if r.returncode == 0 else ""
+    m = re.search(r"```mermaid\n\s*(\S+)", wbs)
+    gram_wbs = m.group(1) if m else None
+    guia = open(os.path.join(vis, "references", "guia.md"), encoding="utf-8").read()
+    t12 = guia.split("### 1.2", 1)[-1].split("### 1.3", 1)[0]   # solo la tabla 1.2 (otras tablas repiten nombres)
+    filas = {f.split("|")[1].strip(): f.split("|")[3] for f in t12.splitlines() if f.startswith("| ") and f.count("|") >= 5}
+    # fila de la tabla 1.2 → sección de la plantilla que es su respaldo (WBS: además la salida de wbs.py)
+    respaldo = {"Organigrama": 1, "PBS / WBS": 3, "Mapa poder/interés": 2, "Flujo de productos": 4, "Roadmap por etapas": 6, "Flujo de excepciones": 7}
+    malos = []
+    for visual, sec in respaldo.items():
+        celda = filas.get(visual, "")
+        importa, tabla = "importar" in celda, "tabla intermedia" in celda
+        g = gram_wbs if visual == "PBS / WBS" else gram.get(sec)
+        if importa == tabla or (importa and g not in DD_IMPORTABLES) or (tabla and g in DD_IMPORTABLES):
+            malos.append(f"{visual}: celda «{celda.strip()}», respaldo {g}")
+    check("tabla 1.2: cada visual se importa solo si su respaldo es una gramática soportada (flowchart…); quadrantChart y timeline, desde la tabla intermedia",
+          not malos and gram.get(2) == "quadrantChart" and gram.get(6) == "timeline" and gram_wbs == "flowchart", malos or [gram, gram_wbs])
+    receta = next((l for l in guia.splitlines() if l.startswith("- **diagram-design**")), "")
+    check("receta §1.4: importación solo de respaldos flowchart, fuentes del sistema y self_check.py --offline",
+          "mermaid_extract.py" in receta and "flowchart" in receta and "`system`" in receta and "self_check.py --offline" in receta
+          and "u otro Mermaid" not in receta, receta[:300])
+    dd = os.environ.get("PM_DIAGRAM_DESIGN", "")
+    ext, chk = os.path.join(dd, "scripts", "mermaid_extract.py"), os.path.join(dd, "scripts", "self_check.py")
+    if not (dd and os.path.isfile(ext) and os.path.isfile(chk)):
+        print("  (compatibilidad con diagram-design omitida: definir PM_DIAGRAM_DESIGN=<carpeta skills/diagram-design>; la imagen Docker la define)")
+        return
+    ejecutar = lambda *a: subprocess.run([sys.executable, "-I"] + list(a), capture_output=True, text=True, cwd=d, stdin=subprocess.DEVNULL, timeout=120)
+    r = ejecutar(ext, "wbs.md")
+    nodos = len(re.findall(r"^\s+\w+[\[\(]", wbs.split("```mermaid", 1)[-1], re.M))
+    check(f"mermaid_extract.py importa la WBS de wbs.py ({nodos} nodos)", r.returncode == 0 and f"flowchart ({nodos}n/" in r.stdout, (r.stdout + r.stderr)[-300:])
+    malos = []
+    for i, sec in enumerate(orden):
+        r = ejecutar(ext, plantilla, "--diagram", str(i))
+        if (r.returncode == 0) != (gram[sec] in DD_IMPORTABLES) or (r.returncode not in (0, 2)):
+            malos.append(f"§{sec} {gram[sec]}: código {r.returncode} {(r.stderr or r.stdout)[-120:]}")
+    check(f"mermaid_extract.py: los {len(orden)} bloques de diagramas-mermaid.md se importan solo si su gramática es soportada (el resto, código 2)", not malos, malos)
+    base = open(os.path.join(dd, "assets", "template.html"), encoding="utf-8").read()
+    open(os.path.join(d, "web.html"), "w", encoding="utf-8").write(base)
+    open(os.path.join(d, "sistema.html"), "w", encoding="utf-8").write(re.sub(r'\s*<link[^>]*fonts\.(googleapis|gstatic)\.com[^>]*>', "", base))
+    rw, rs, rn = ejecutar(chk, "--offline", "web.html"), ejecutar(chk, "--offline", "sistema.html"), ejecutar(chk, "web.html")
+    check("self_check.py --offline rechaza Google Fonts y acepta la plantilla con fuentes del sistema; sin --offline acepta la web",
+          rw.returncode == 1 and "offline" in rw.stdout and rs.returncode == 0 and rs.stdout.startswith("OK") and rn.returncode == 0,
+          [rw.stdout[-200:], rs.stdout[-200:], rn.stdout[-200:]])
+
 def caso_ayuda(tmp):
     print("Caso Y · errores básicos: --help de todos los scripts y mensajes claros ante entradas faltantes")
     libs = {"esquema.py", "escenarios.py"}   # bibliotecas: no se ejecutan solas
@@ -2230,6 +2293,7 @@ def main():
         caso_radar(tmp); caso_lecciones_entre_proyectos(tmp); caso_ciclo_lecciones(tmp)
         caso_periodo(tmp)
         caso_estado_productos(tmp)
+        caso_diagram_design(tmp)
         caso_ayuda(tmp)
         if "--sin-integracion" not in sys.argv: caso_integracion(tmp)
     finally:

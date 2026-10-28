@@ -9,7 +9,7 @@ const { applyTheme } = APPLY_THEME ? require(APPLY_THEME) : { applyTheme: async 
 const D = JSON.parse(fs.readFileSync("data.json", "utf8"));
 const X = D.x;
 const CIF = X.cifras;
-const VER = D.meta.version;                       // "v2.4"
+const VER = D.meta.version;                       // "v2.5"
 const DIR = "salida-" + VER;
 fs.mkdirSync(DIR, { recursive: true });
 const SALIDA = `${DIR}/informe-2-ecosistema-pm-method-${VER}.pptx`;
@@ -802,6 +802,17 @@ tablaSlides(S8, "9 · Plugins, skills y MCP opcionales: decisión de integració
   X.decisiones_integracion.filas.map(f => [f[0], f[1], f[2], f[3]]), [3.0, 1.45, 5.48, 2.4], { size: 10,
   estilos: [{ bold: true, color: NAVY }, { color: "C9961A" }, {}, {}],
   nota: "Justificación de cada decisión y contratos de integración (insumo · salida · respaldo): HTML §9.4–§9.5 y docs/INTEGRACIONES.md." });
+{
+  // diagram-design (motor opcional verificado) y ShowAI (evaluado, no incorporado): INTEGRACIONES §2 y §3.1, guía de pm-visuales §1.2
+  const DS = X.dd_showai;
+  const s = slide(S8); s.addText("9 · Diagramas externos: diagram-design verificado y ShowAI evaluado", { placeholder: "title" });
+  tb(s, "Qué dibuja diagram-design (guía de pm-visuales §1.2)", { x: 0.5, y: 1.36, w: 6.2, h: 0.3, fontSize: 12.5, bold: true, color: NAVY });
+  tablaFija(s, ["Visual", "diagram-design"], DS.tabla.filas.filter(f => f[2] !== "—").map(f => [f[0], f[2]]), 0.5, 1.7, [2.3, 3.9], { size: 10, estilos: [{ bold: true, color: NAVY }, {}] });
+  tb(s, runs(DS.importa, { fontSize: 10.5, color: GRAY }), { x: 0.5, y: 4.15, w: 6.2, h: 2.7 });
+  card(s, 6.92, 1.36, 5.91, 2.3, "diagram-design · " + clean(DS.dd[2]).split(";")[0], DS.dd[4], { fill: BLUETINT, maxSize: 10.5, minSize: 9, titleSize: 11.5 });
+  card(s, 6.92, 3.76, 5.91, 1.2, "Reverificación en vivo", DS.reverif, { fill: LT, maxSize: 10, minSize: 9, titleSize: 11.5 });
+  card(s, 6.92, 5.06, 5.91, 1.79, "ShowAI · " + clean(DS.showai[2]).toLowerCase(), DS.showai[4], { fill: ORTINT, titleColor: ORANGE, maxSize: 10.5, minSize: 9, titleSize: 11.5 });
+}
 
 // ====================== 9 Dependencias ======================
 const S9 = "10 · Dependencias"; pres.addSection({ title: S9 });
@@ -838,6 +849,15 @@ tablaSlides(S9, "10 · Conectores MCP opcionales", ["Conector", "Capacidad · sk
 // ====================== 10 Instalación ======================
 const S10 = "11 · Instalación y configuración"; pres.addSection({ title: S10 });
 mark("11 · Guía de instalación y configuración");
+{
+  // los dos caminos de instalación (INSTALACION-DOCKER §0.1) y lo verificado en cada guía (§11 y §13)
+  const s = slide(S10); s.addText("11 · Instalación: WSL2 o Docker", { placeholder: "title" });
+  const C = X.inst_comparacion, V = X.inst_verif, fecha = f => f.split("-").reverse().join("/");
+  tablaFija(s, ["", "Sobre WSL2 / Linux · guía INSTALACION-WSL2", "Docker · guía INSTALACION-DOCKER"], C.filas.map(f => [f[0], f[1], f[2]]), 0.5, 1.36, [2.35, 4.95, 5.03],
+    { size: 11, estilos: [{ bold: true, color: NAVY }, {}, {}] });
+  card(s, 0.5, 5.2, 6.06, 1.65, "WSL2 / Linux: Claude Code o Hermes", `Comandos de Ubuntu ejecutados tal cual el ${fecha(V.wsl2_fecha)} en una ${V.wsl2_entorno}: **${V.wsl2_ok} de ${V.wsl2_total} comprobaciones** como se esperaba. Lo de Windows queda [verificar] (guía §11).`, { fill: BLUETINT, maxSize: 11, titleSize: 12 });
+  card(s, 6.77, 5.2, 6.06, 1.65, "Docker: Docker Desktop o Docker Engine", `Comandos de la guía ejecutados tal cual el ${fecha(V.docker_fecha)} en ${V.docker_entorno}: **${V.docker_resultado}**. Lo de Windows y la instalación de Docker quedan [verificar] (guía §13).`, { fill: ORTINT, titleColor: ORANGE, maxSize: 11, titleSize: 12 });
+}
 tablaSlides(S10, `11 · Instalación de punta a punta en ${T(X.inst_recorrido).length} pasos`, X.inst_recorrido.cab, T(X.inst_recorrido).map(f => [f[0], f[1], f[2].replace(/§/g, "INSTALACION §")]), [0.9, 8.4, 3.03], { size: 13,
   align: ["center"], estilos: [{ bold: true, color: BLUE }, {}, { color: GRAY }],
   nota: "Repositorio público: https://github.com/Arturo-Penas-Rial/pm-method (licencia MIT). La raíz es a la vez el plugin y su marketplace (pm-method). Comandos comprobados el 17/10/2026 con Claude Code 2.1.302." });
@@ -1196,7 +1216,7 @@ tablaSlides(S16, "17 · Recorridos E2E reproducibles (guias_e2e/correr.py)", X.p
     "**integracion:** con las skills de BMAD instaladas, recorrido UJ-2 y riesgos desde el PRD; verifica los topes de contexto de cada llamada."], 0.5, 1.4, 7.2, 3.6, 12);
   codeBox(s, "suite.py enrutamiento --ids 1,18,26 --par 4      # subconjunto\nsuite.py todo --salida ./pruebas-vivo            # ≈ USD 5–8\nsuite.py robustez --salida ./pruebas-robustez    # ≈ USD 4\nsuite.py integracion --skills-extra <…>/.claude/skills", 0.5, 5.0, 7.2, 1.25, 10, 9);
   tb(s, runs("Comandos en `scripts/pruebas_vivo/`; informe en `<salida>/INFORME.md`; código de salida 1 si alguna prueba falla.", { fontSize: 11, color: GRAY }), { x: 0.5, y: 6.35, w: 7.2, h: 0.5 });
-  [[CIF.vivo24_ok + "/" + CIF.vivo24_total, "capacidades de " + CIF.version, "frases " + CIF.vivo24_desde + "–" + CIF.vivo24_hasta + " y de control, en " + CIF.vivo24_corridas + " corridas (" + CIF.vivo24_fechas + ")"], [CIF.vivo24_reg_ok + "/" + CIF.vivo24_reg_total, "regresión de enrutamiento", "frases existentes cercanas a las nuevas, repetidas tras cambiar las descripciones"], [CIF.vivo_integracion, "integración con BMAD instalado", "versión 2.3.0 (20/10/2026) · 1.ª llamada " + CIF.vivo_tokens_primera + " tokens · máximo " + CIF.vivo_tokens_max + " · USD " + CIF.vivo_usd]].forEach((k, i) => {
+  [[CIF.vivo24_ok + "/" + CIF.vivo24_total, "capacidades de " + CIF.vivo_version, "frases " + CIF.vivo24_desde + "–" + CIF.vivo24_hasta + " y de control, en " + CIF.vivo24_corridas + " corridas (" + CIF.vivo24_fechas + ")"], [CIF.vivo24_reg_ok + "/" + CIF.vivo24_reg_total, "regresión de enrutamiento", "frases existentes cercanas a las nuevas, repetidas tras cambiar las descripciones"], [CIF.vivo_integracion, "integración con BMAD instalado", "versión 2.3.0 (20/10/2026) · 1.ª llamada " + CIF.vivo_tokens_primera + " tokens · máximo " + CIF.vivo_tokens_max + " · USD " + CIF.vivo_usd]].forEach((k, i) => {
     const y = 1.4 + i * 1.84;
     s.addShape(pres.ShapeType.roundRect, { x: 8.0, y, w: 4.83, h: 1.7, fill: { color: NAVY }, rectRadius: 0.1, line: { color: NAVY } });
     tb(s, k[0], { x: 8.22, y: y + 0.1, w: 4.4, h: 0.6, fontSize: 30, bold: true, color: WHITE });
@@ -1341,14 +1361,18 @@ mark("22 · Historial de versiones");
 {
   const VS = D.versiones;
   const fechaDe = f => f.split("-").reverse().join("/");
-  tablaSlides(S22, "22 · Versión " + CIF.version + ": antes y después", ["Indicador", "2.3.0", CIF.version, "Fuente"], VS.antes_despues_24,
+  tablaSlides(S22, "22 · Versión " + CIF.version + ": antes y después", ["Indicador", "2.4.0", CIF.version, "Fuente"], VS.antes_despues_25,
     [2.5, 2.6, 5.05, 2.18], { size: 9.5, top: 2.05, introRepeat: false, estilos: [{ bold: true, color: NAVY }, { color: GRAY }, { color: BLUE }, { color: GRAY }],
-    intro: "**" + CIF.version + " · " + fechaDe(X.chl24_fecha) + " — " + X.chl24_lema + ".** Cambios por área en las diapositivas siguientes; detalle completo en CHANGELOG.md.", introSize: 11 });
-  // cambios de la versión por área (CHANGELOG), en una tabla de una columna con filas de grupo
-  const filas = [];
-  X.chl24_grupos.forEach(g => { filas.push(["**" + g.t + "**"]); g.items.forEach(it => filas.push([it])); });
-  tablaSlides(S22, "22 · " + CIF.version + ": cambios por área (CHANGELOG)", ["Cambio"], filas, [12.33], { size: 10, grupo: 0, grupoRe: /^\*\*[^*]+\*\*$/, margin: 0.05,
-    nota: "Fuente: CHANGELOG.md, sección " + CIF.version + ". " + X.chl24_cifras });
+    intro: "**" + CIF.version + " · " + fechaDe(X.chl25_fecha) + " — " + X.chl25_lema + ".** Cambios por área en las diapositivas siguientes; detalle completo en CHANGELOG.md.", introSize: 11 });
+  // cambios de cada versión por área (CHANGELOG), en una tabla de una columna con filas de grupo
+  const porArea = grupos => { const f = []; grupos.forEach(g => { f.push(["**" + g.t + "**"]); g.items.forEach(it => f.push([it])); }); return f; };
+  tablaSlides(S22, "22 · " + CIF.version + ": cambios por área (CHANGELOG)", ["Cambio"], porArea(X.chl25_grupos), [12.33], { size: 10, grupo: 0, grupoRe: /^\*\*[^*]+\*\*$/, margin: 0.05,
+    nota: "Fuente: CHANGELOG.md, sección " + CIF.version + " (las cifras de la versión están en el resto del informe y en el HTML, sección 22)." });
+  tablaSlides(S22, "22 · Versión 2.4.0: antes y después (tal como se publicó)", ["Indicador", "2.3.0", "2.4.0", "Fuente"], VS.antes_despues_24,
+    [2.5, 2.6, 5.05, 2.18], { size: 9.5, top: 2.05, introRepeat: false, estilos: [{ bold: true, color: NAVY }, { color: GRAY }, { color: BLUE }, { color: GRAY }],
+    intro: "**2.4.0 · " + fechaDe(X.chl24_fecha) + " — " + X.chl24_lema + ".** Tabla tal como se publicó con la versión 2.4.0; las cifras vigentes están en el resto del informe.", introSize: 11 });
+  tablaSlides(S22, "22 · 2.4.0: cambios por área (CHANGELOG)", ["Cambio"], porArea(X.chl24_grupos), [12.33], { size: 10, grupo: 0, grupoRe: /^\*\*[^*]+\*\*$/, margin: 0.05,
+    nota: "Fuente: CHANGELOG.md, sección 2.4.0. " + X.chl24_cifras });
   tablaSlides(S22, "22 · Versión 2.3.0: antes y después (tal como se publicó)", ["Indicador", "2.2.0", "2.3.0", "Fuente"], VS.antes_despues_23,
     [2.5, 2.6, 5.05, 2.18], { size: 9.5, top: 2.05, introRepeat: false, estilos: [{ bold: true, color: NAVY }, { color: GRAY }, { color: BLUE }, { color: GRAY }],
     intro: "**2.3.0 · " + fechaDe(X.chl23_fecha) + " — " + X.chl23_lema + ".** Tabla tal como se publicó con la versión 2.3.0; las cifras vigentes están en el resto del informe.", introSize: 11 });
@@ -1374,7 +1398,7 @@ mark("22 · Historial de versiones");
   }
   tablaSlides(S22, "22 · Versión 2.1.0: " + X.chl_lema, ["Indicador", "2.0.0", "2.1.0", "Fuente"], VS.vigente21,
     [3.6, 3.0, 3.5, 2.23], { size: 11, estilos: [{ bold: true, color: NAVY }, { color: GRAY }, { color: BLUE }, { color: GRAY }],
-    nota: "2.1.0 (17/10/2026). Tabla tal como se publicó con esa versión; los resultados en vivo de 2.2.0 y " + CIF.version + " están en la sección 17." });
+    nota: "2.1.0 (17/10/2026). Tabla tal como se publicó con esa versión; los resultados en vivo de 2.2.0 a " + CIF.vivo_version + " están en la sección 17." });
   {
     const G = X.chl_grupos;
     const s = slide(S22); s.addText("22 · 2.1.0: " + G[0].t.toLowerCase() + " · " + G[1].t.toLowerCase(), { placeholder: "title" });

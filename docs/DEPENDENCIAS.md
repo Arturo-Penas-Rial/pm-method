@@ -1,4 +1,4 @@
-# Dependencias · pm-method 2.4.0
+# Dependencias · pm-method 2.5.0
 
 Lista completa de lo que pm-method necesita o puede usar, con la **URL de origen** de cada elemento, para qué lo usa el
 paquete, si es obligatorio, la versión probada, la licencia y el comando de instalación. Cómo instalar y configurar
@@ -44,13 +44,15 @@ El entorno de pruebas usó Node 22.22.0 y npm 10.9.4.
 
 | Nombre | Para qué lo usa pm-method | Nivel | Versión probada | Licencia | URL de origen | Instalación |
 |---|---|---|---|---|---|---|
-| Claude Code (CLI) | ejecuta las 39 skills, los 6 agentes y los 3 hooks (plugin) | obligatoria (uno de los tres clientes) | 2.1.302 (`compatibilidad.json`, `INTEGRACIONES.md` §3.1) | propietaria: "© Anthropic PBC. All rights reserved", sujeta a los términos comerciales de Anthropic (`LICENSE.md` del repositorio) | https://github.com/anthropics/claude-code · npm `@anthropic-ai/claude-code`: https://registry.npmjs.org/@anthropic-ai%2fclaude-code | según su README: macOS/Linux `curl -fsSL https://claude.ai/install.sh \| bash`; Homebrew `brew install --cask claude-code`; Windows (PowerShell) `irm https://claude.ai/install.ps1 \| iex` o `winget install Anthropic.ClaudeCode`; npm (marcado como obsoleto) `npm install -g @anthropic-ai/claude-code` |
+| Claude Code (CLI) | ejecuta las 39 skills, los 6 agentes y los 3 hooks (plugin) | obligatoria (uno de los tres clientes) | 2.1.302 (`compatibilidad.json`, `INTEGRACIONES.md` §3.1) | propietaria: "© Anthropic PBC. All rights reserved", sujeta a los términos comerciales de Anthropic (`LICENSE.md` del repositorio) | https://github.com/anthropics/claude-code · npm `@anthropic-ai/claude-code`: https://registry.npmjs.org/@anthropic-ai%2fclaude-code | según su README: macOS/Linux `curl -fsSL https://claude.ai/install.sh \| bash`; Homebrew `brew install --cask claude-code`; Windows (PowerShell) `irm https://claude.ai/install.ps1 \| iex` o `winget install Anthropic.ClaudeCode`; npm `npm install -g @anthropic-ai/claude-code` (opción avanzada; requiere Node.js 22 o posterior y no se usa con `sudo`); también repositorios apt, dnf y apk firmados (documentación oficial "Advanced setup", consultada el 2026-10-27) |
 | Cowork | usa el formato de plugin (skills y agentes) | alternativa | no registrada | no verificada | URL a confirmar por el usuario | gestión de plugins de la aplicación **[verificar]** |
 | Hermes Agent | usa las 39 skills como comandos `/skill`; los agentes como personas; sin hooks | alternativa | no registrada | MIT (`LICENSE` del repositorio) | https://github.com/NousResearch/hermes-agent | según su README: Linux/macOS `curl -fsSL https://hermes-agent.nousresearch.com/install.sh \| bash`; Windows (PowerShell) `iex (irm https://hermes-agent.nousresearch.com/install.ps1)` |
 
-Documentación de instalación citada en esos README, no accesible desde el entorno de verificación **[verificar]**:
-Claude Code `https://code.claude.com/docs/en/setup`; Hermes
-`https://hermes-agent.nousresearch.com/docs/getting-started/installation`.
+Documentación de instalación citada en esos README: Claude Code https://code.claude.com/docs/en/setup (consultada el
+2026-10-27: instalador nativo recomendado para macOS, Linux y WSL; requisitos Ubuntu 20.04+, 4 GB de RAM); Hermes
+`https://hermes-agent.nousresearch.com/docs/getting-started/installation`, no accesible desde el entorno de verificación
+(el mismo texto está en `website/docs/getting-started/installation.md` del repositorio de Hermes, leído el 2026-10-27).
+Instalación en Windows con WSL2, paso a paso: [INSTALACION-WSL2.md](INSTALACION-WSL2.md).
 
 ### 1.2 Herramientas de base
 
@@ -100,7 +102,7 @@ Las tres juntas: `python3 -m pip install pyyaml python-docx openpyxl`.
 
 | Nombre | Para qué lo usa pm-method | Nivel | Versión probada | Licencia | URL de origen | Instalación |
 |---|---|---|---|---|---|---|
-| pm-method | el propio paquete (plugin y marketplace `pm-method`) | — | 2.4.0 (este documento) | MIT (`LICENSE` del repositorio publicado) | https://github.com/Arturo-Penas-Rial/pm-method | `claude plugin marketplace add Arturo-Penas-Rial/pm-method` y `claude plugin install pm-method@pm-method` |
+| pm-method | el propio paquete (plugin y marketplace `pm-method`) | — | 2.5.0 (este documento) | MIT (`LICENSE` del repositorio publicado) | https://github.com/Arturo-Penas-Rial/pm-method | `claude plugin marketplace add Arturo-Penas-Rial/pm-method` y `claude plugin install pm-method@pm-method` |
 | BMAD Method | capa de especificación de solo lectura: `pm-bmad-puente` (`bmad.py`), `especificacion.py`, `pm-nuevo` (detección) | opcional | 4.x, 6.11 y 6.12; relevado `bmad-method@6.12.4` (`compatibilidad.json`) | MIT (npm) | https://github.com/bmad-code-org/BMAD-METHOD · npm https://registry.npmjs.org/bmad-method | en la raíz del repositorio del producto: `npx bmad-method@6.12.4 install --modules bmm --tools claude-code --yes --user-name <nombre> --set core.project_name=<proyecto> --no-shims` (requiere Node ≥ 20.12.0) |
 
 ### 4.2 Skills externas (diagramas y Office)
@@ -108,7 +110,7 @@ Las tres juntas: `python3 -m pip install pyyaml python-docx openpyxl`.
 | Nombre | Para qué lo usa pm-method | Nivel | Versión probada | Licencia | URL de origen | Instalación (de `compatibilidad.json` / `INSTALACION.md` §6.1) |
 |---|---|---|---|---|---|---|
 | archify | `pm-visuales` con `diagramas=archify` (HTML interactivo validado por su `finalize`) | opcional | 3.1 (según su `SKILL.md`), commit `88d1ae4` | MIT (`LICENSE` y `SKILL.md`) | https://github.com/tt-a1i/archify | `npx skills add tt-a1i/archify -a claude-code -s archify -y` · requiere Node ≥ 18 (su `package.json`) y Chrome/Chromium para `browser-check` |
-| diagram-design | `pm-visuales` con `diagramas=diagram-design` | opcional | 2.6.110 (su `plugin.json`), commit `550fd66` | MIT (`LICENSE` y `plugin.json`) | https://github.com/cathrynlavery/diagram-design | plugin: `claude plugin marketplace add cathrynlavery/diagram-design` y `claude plugin install diagram-design@diagram-design`; o copia: `npx skills add cathrynlavery/diagram-design -a claude-code -s diagram-design -y` |
+| diagram-design | `pm-visuales` con `diagramas=diagram-design` (organigrama, PBS/WBS, flujos, mapa poder/interés y roadmap editoriales, sin red); caso DD de `probar_paquete.py` con `PM_DIAGRAM_DESIGN` (imagen Docker) | opcional | 2.6.133 (su `plugin.json`), commit `66fa2e7`: delegación en vivo (organigrama con fuentes del sistema, `self_check.py --offline` OK) el 2026-10-27; antes 2.6.110 (`550fd66`) | MIT (`LICENSE` y `plugin.json`; terceros en su `THIRD_PARTY_LICENSES.md`: Tabler MIT, Simple Icons CC0, Devicon MIT, OFL) | https://github.com/cathrynlavery/diagram-design | plugin: `claude plugin marketplace add cathrynlavery/diagram-design` y `claude plugin install diagram-design@diagram-design`; o copia: `npx skills add cathrynlavery/diagram-design -a claude-code -s diagram-design -y` |
 | visual-explainer | `pm-visuales` con `diagramas=visual-explainer` (one-pagers, roadmap comentado) | opcional | 0.12.0 (su `marketplace.json` y `package.json`), commit `5a1b3c4` | MIT (`LICENSE` y `package.json`) | https://github.com/nicobailon/visual-explainer | copia: `npx skills add nicobailon/visual-explainer -a claude-code -s visual-explainer -y`; o plugin: `claude plugin marketplace add nicobailon/visual-explainer` y `claude plugin install visual-explainer@visual-explainer-marketplace` |
 | anthropics/skills (`docx`, `xlsx`, `pptx`) | `pm-exportar` con `export=skills-office` | opcional | commit `dbd4588` | **propietaria**: cada skill trae su `LICENSE.txt` ("© 2025 Anthropic, PBC. All rights reserved"; uso regido por el acuerdo del usuario con Anthropic). El repositorio no tiene `LICENSE` en la raíz | https://github.com/anthropics/skills | copia: `npx skills add anthropics/skills -a claude-code -s docx xlsx pptx -y`; o plugin: `claude plugin marketplace add anthropics/skills` y `claude plugin install document-skills@anthropic-agent-skills` (el plugin `document-skills` incluye también `pdf`) |
 
@@ -168,6 +170,7 @@ en `INSTALACION.md` §6.
 | `skills/pm-estado-proyecto/scripts/sanidad.py` | INS-01 (módulos Python), INS-03 (skills externas, Node, Chrome), INT-01 (valores de `integraciones`, lista en `esquema.py: VALORES_INTEGRACION`, incluidos `correo` y `okr=perdoo`) |
 | `skills/pm-integraciones/scripts/envios.py` | capa de canales: solo biblioteca estándar (`smtplib`, `email`, `urllib`); variables de entorno en su docstring y en `ENV` |
 | `INTEGRACIONES.md` §1–§3 | uso de cada dependencia y respaldo interno si falta |
+| `docker/Dockerfile` | versiones fijadas del entorno Docker opcional; etapa `skills-externas`: diagram-design por commit (`DIAGRAM_DESIGN_COMMIT`) para el caso DD de `probar_paquete.py` ([DOCKER](DOCKER.md) §2) |
 
 ---
 
@@ -197,7 +200,7 @@ la mayoría de los sitios de documentación está bloqueada por el proxy, por es
 | vercel-labs/skills | `13e4063` | `npx -y skills@1.7.0 add --help` (opciones `-a`, `-s`, `-y`, `-g`, `--copy`) |
 | bmad-code-org/BMAD-METHOD | `cfba3ff` | `npx -y bmad-method@6.12.4 install --help`, `--list-options core`, `--list-tools`; instalación real en un repositorio de prueba y `bmad.py detectar` → `version 6.12.4`, `soporte: soportada` |
 | tt-a1i/archify | `88d1ae4` | clon local: `LICENSE` MIT, `SKILL.md` (versión 3.1), `package.json` (`engines.node >=18`); `npx skills add tt-a1i/archify -a claude-code -s archify -y` en un repositorio de prueba → sanidad INS-03 INFO "instalada" |
-| cathrynlavery/diagram-design | `550fd66` | clon local: `LICENSE` MIT, `plugin.json` 2.6.110; `claude plugin install diagram-design@diagram-design` correcto (`HOME` aislado) → INS-03 INFO |
+| cathrynlavery/diagram-design | `66fa2e7` (antes `550fd66`) | clon local: `LICENSE` MIT, `plugin.json` 2.6.133; `mermaid_extract.py` importa los respaldos `flowchart` y rechaza `quadrantChart`, `gantt` y `timeline` (código 2); `self_check.py --offline` rechaza Google Fonts; sesión en vivo con `--plugin-dir` (Claude Code 2.1.311): Skill `diagram-design:diagram-design`, organigrama sin red. Con `550fd66`: `claude plugin install diagram-design@diagram-design` correcto (`HOME` aislado) → INS-03 INFO |
 | nicobailon/visual-explainer | `5a1b3c4` | clon local: `LICENSE` MIT, `marketplace.json` 0.12.0 (`visual-explainer-marketplace`); plugin instalado (`HOME` aislado) → INS-03 INFO |
 | anthropics/skills | `dbd4588` | clon local: `skills/{docx,xlsx,pptx}/LICENSE.txt` propietarias; sin `LICENSE` en la raíz; marketplace `anthropic-agent-skills`, plugin `document-skills` (xlsx, docx, pptx, pdf) instalado (`HOME` aislado) → INS-03 INFO |
 | jgraph/drawio-mcp | `a06f00a` | clonado: `LICENSE` Apache-2.0; README (`npx @drawio/mcp`, plugin `drawio@drawio`) y `mcp-tool-server/README.md` (`claude mcp add drawio -- npx -y @drawio/mcp`); plugin instalado (`HOME` aislado) |

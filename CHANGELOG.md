@@ -1,5 +1,112 @@
 # Cambios · Changelog
 
+## 2.5.0 · 2026-10-27 — dos caminos de instalación (WSL2 y Docker) y diagram-design como motor opcional verificado
+
+Versión que ordena cómo se instala y se verifica pm-method: dos caminos independientes, cada uno con su guía paso a paso
+y sus comandos ejecutados tal cual (sobre WSL2 o Linux, con Claude Code o Hermes, o dentro de un contenedor Docker), y
+diagram-design como motor opcional de diagramas reverificado, con una prueba de contrato que corre también dentro de la
+imagen Docker. No cambia esquemas, registros, scripts del núcleo, descripciones de skills, agentes ni hooks (las skills
+solo cambian el número de versión y la guía de pm-visuales, en la delegación a diagram-design). Retrocompatible: un
+proyecto creado con 2.4.0 se lee sin migración, sin dependencias nuevas en el núcleo y sin escribir en BMAD.
+
+En cifras: 39 skills (33 invocables por el modelo; listado de descripciones de 6.957 de 7.500 caracteres), 6 agentes,
+3 hooks, 14 registros (9 base y 5 opcionales), 93 códigos de sanidad en 12 familias, 39 controles de puerta, 5 casos
+E2E (74 pasos, 10 clases de 90 minutos, 51 imágenes), 195 diapositivas de contenido en los mazos del webinar y tres
+guías de instalación (general, WSL2 y Docker).
+
+### Agregado
+- **Docker: etapa `skills-externas`** con diagram-design fijado por commit (solo la carpeta de la skill y sus
+  licencias) y la variable `PM_DIAGRAM_DESIGN`, para que `pm-pruebas` corra el caso DD completo (ver «Pruebas»). El
+  `git fetch` de diagram-design funciona detrás de un proxy con los `--build-arg` y el certificado como `--secret`, sin
+  desactivar TLS.
+
+### Cambiado
+- **diagram-design reevaluado** (pm-visuales, guía §1.2 y §1.4). Se evaluaron diagram-design
+  (`cathrynlavery/diagram-design`, MIT), su sitio `diagramdesign.dev` y ShowAI (`Renaissance-Mind/ShowAI`, MIT).
+  diagram-design sigue como motor opcional que complementa a Mermaid: no sustituye a los generadores deterministas.
+  ShowAI no se incorpora (ver `docs/INTEGRACIONES.md` §2). Cambios en la delegación a diagram-design:
+  - La salida queda sin red, igual que las vistas internas: fuentes del sistema (sin Google Fonts) y verificación con
+    `self_check.py --offline`, salvo que el usuario pida las tipografías web.
+  - Versión verificada: 2.6.133, commit `66fa2e7` (antes 2.6.110, `550fd66`). Se reverificó en vivo con Claude Code
+    2.1.311: organigrama delegado sin enlaces externos y `self_check.py --offline` OK.
+- **Dos caminos de instalación separados**: instalación sobre WSL2 / Linux, o Docker. El README (instalación rápida,
+  con un bloque por camino), `docs/INSTALACION.md` §1 y `docs/INDICE.md` presentan las dos vías con su guía; las dos
+  guías se remiten entre sí y explican cuándo elegir cada camino (`INSTALACION-WSL2` §0 y §6.7, `INSTALACION-DOCKER`
+  §0.1). `docs/DOCKER.md` queda como referencia técnica de la imagen y enlaza la guía de Docker.
+
+### Corregido
+- **Contrato con diagram-design** (guía de pm-visuales): la guía decía que se podía importar "la WBS u otro Mermaid".
+  Solo se importan los respaldos `flowchart` (organigrama, PBS/WBS, flujo de productos y flujo de excepciones): el
+  importador de diagram-design rechaza `quadrantChart`, `timeline` y `gantt` con código 2, así que el mapa
+  poder/interés y el roadmap se dibujan desde la tabla intermedia.
+- **Documentación de instalación**: el Python del README e INSTALACION §3.1 usa `python3 -m pip` con nota de PEP 668;
+  INSTALACION §5 explica cómo activar el entorno virtual para scripts y hooks (antes [verificar]); DEPENDENCIAS ya no
+  marca como obsoleta la instalación de Claude Code por npm.
+
+### Seguridad
+- **SEG-13 revisado** (`docs/SEGURIDAD.md`): `npm audit --package-lock-only` sobre `docker/node/` muestra desde el
+  2026-10-27 **1 aviso alto y 1 moderado** en dependencias que `npm` 11.21.1 trae empaquetadas: `undici` 6.29.0
+  (GHSA-2m5v-pch6-74hx, GHSA-xjj6-f33q-929c y GHSA-qrxm-fqhp-jwvm, altos; GHSA-4qv8-2p9j-2685 y GHSA-9fm3-97px-rjf6,
+  moderados; corregidos en 6.29.1) e `ip-address` 10.7.2 (GHSA-rxp7-6hxx-x8q5, moderado; corregido en 10.7.4). **Ninguna
+  versión publicada de `npm` los corrige todavía**: se regeneró el lockfile con 12.0.0, 12.1.0, 12.2.0 y 12.2.1 (la más
+  reciente, del 2026-10-15, igual que 11.21.1) y todas traen `undici` ≤ 6.29.0 e `ip-address` ≤ 10.7.2; la serie 12
+  exige además Node.js ^22.22.2 y la imagen tiene el 22.22.1 de Ubuntu 26.04. Se mantiene `npm` 11.21.1 y los dos avisos
+  quedan **aceptados temporalmente** con su justificación: `undici` solo lo usa `node-gyp` para descargar las cabeceras
+  de Node al compilar un complemento nativo (la imagen no trae compilador de C/C++) e `ip-address` solo se usa con un
+  proxy `socks://`; `npm` solo sirve dentro del contenedor para `npx` (BMAD y skills externas). Se subirá `npm` cuando
+  una versión publicada los corrija. Comprobado otra vez al cerrar la versión (2026-10-27): `npm view npm time` no
+  muestra versiones posteriores a 11.21.1 y 12.2.1, y el lockfile regenerado con cada una da el mismo resultado de
+  `npm audit` (1 alto, 1 moderado y 5 bajos). `docs/DOCKER.md` §2 y §10 dejan de marcarlo [verificar].
+
+### Documentación
+- **`docs/INSTALACION-DOCKER.md`** (nueva): el camino Docker paso a paso, para quien no programa. Opción 1, Docker
+  Desktop para Windows con el *backend* WSL2 y la integración con Ubuntu; opción 2, Docker Engine dentro de Ubuntu en
+  WSL2 con systemd. Los comandos de Docker se tomaron de la documentación oficial (fuente `docker/docs`, consultada el
+  2026-10-27). Cubre obtener pm-method (clon o ZIP), construir la imagen, verificar con las pruebas y trabajar con un
+  proyecto montado. También Claude Code dentro del contenedor: el inicio de sesión queda en el volumen
+  `pm-method_claude-config` y la clave de API solo en la memoria de la terminal. Incluye BMAD, actualizar, solución de
+  problemas (proxy y certificados en tres niveles, disco, UID, memoria, Chromium), desinstalar y verificación
+  registrada. Sus comandos de Linux se ejecutaron tal cual, extraídos con un script, como usuario sin privilegios
+  (§13). Quedan [verificar] Windows, Docker Desktop y la instalación de Docker Engine.
+- **`docs/INSTALACION-WSL2.md`** (nueva): instalación en Windows con WSL2 y Ubuntu 24.04 LTS paso a paso, por Claude
+  Code o Hermes, con la salida esperada de cada comando, lista de aceptación, solución de problemas y desinstalación;
+  sus comandos se ejecutaron tal cual en una Ubuntu 24.04 limpia (§11).
+- **Pendientes** (`docs/INDICE.md` §6): base de conocimiento del proyecto, recomendación evaluada (índice SQLite
+  derivado de los registros, exportación opcional a Obsidian y, más adelante, un MCP propio de solo lectura), sin
+  implementar por decisión del autor.
+- **Informe 2 v2.5** (`docs/informe/informe-2-ecosistema-pm-method-v2.5.{html,pptx}`, reemplaza a la v2.4):
+  314 diapositivas (307 en la v2.4). Diapositiva nueva «Instalación: WSL2 o Docker» (los dos caminos con su guía,
+  cuándo elegir cada uno y lo verificado) y, en la sección de integraciones, diagram-design verificado (2.6.133) y ShowAI evaluado y no
+  incorporado; el historial de versiones suma la 2.5.0 y conserva la tabla de la 2.4.0 tal como se publicó.
+- **Resumen ejecutivo** regenerado: «Cómo empezar» presenta los dos caminos con su guía
+  (`INSTALACION-WSL2` e `INSTALACION-DOCKER`) y las pruebas en vivo citan la serie con la que se hicieron (2.4). Spot:
+  rótulo de versión y mosaico de cifras actualizados (sin regenerar la voz). Material del webinar regenerado (pies con
+  la versión 2.5.0; el contenido no cambia) y presentaciones light de `docs/ieee/` (versión y cifras de calidad).
+- Versión 2.5.0 en el README, la documentación que cita la versión vigente, `docker/` y el flujo de CI. Los registros
+  fechados y los resultados en vivo conservan la versión con la que se hicieron.
+
+### Pruebas
+- **Caso DD de `probar_paquete.py`** (contrato con diagram-design). Comprueba siempre que lo que la guía declara
+  importable tenga un respaldo de gramática soportada y que la receta use fuentes del sistema y `--offline`. Con
+  `PM_DIAGRAM_DESIGN=<carpeta skills/diagram-design>` comprueba además la versión instalada: importación de la WBS de
+  `wbs.py` y de los 8 bloques de la plantilla Mermaid, y `self_check.py --offline` con y sin Google Fonts.
+- **Imagen Docker `pm-method:2.5.0` reconstruida y verificada** (`docs/DOCKER.md` §10, 2026-10-27): construida desde
+  cero como en §11.1 (base Ubuntu 26.04 con `debootstrap`, proxy como `--build-arg`, certificado como `--secret` y Chromium con
+  `--build-context`), **2,99 GB** (752 MB de contenido comprimido); `pm-pruebas` sin red, como usuario sin privilegios:
+  `Resultado: todas las pruebas OK` en 15 min, con `probar_paquete.py` **358 OK · 0 FALLO** (Python 3.14, caso DD
+  completo con diagram-design `66fa2e7`), recorridos E2E 5/5, integración cruzada 98 OK en 34 eslabones, 128 bloques
+  Mermaid y webinar 5/5. Los pasos de `docs/INSTALACION-DOCKER.md` que dependen de la imagen se repitieron con ella
+  (§13). §11.1 indica además quitar de la base los paquetes y las listas de `apt` que deja `debootstrap`.
+- Resultados de la versión (2026-10-27): `probar_paquete.py` **355 OK · 0 FALLO** con Python 3.13 y **354 OK · 0 FALLO**
+  con 3.9.25 (sin `matplotlib`); caso DD con `PM_DIAGRAM_DESIGN` (diagram-design `66fa2e7`) **5 OK** con 3.13 y con 3.9;
+  integración cruzada **99 OK · 0 FALLO** en 34 eslabones (94 en 32 con `--sin-e2e`); `validar_mermaid.py --render`:
+  **128** bloques, 0 errores; guías E2E **5/5 OK** dos veces, con evidencia e imágenes idénticas a las de `docs/guias/`
+  (salvo la fecha del día en los nombres de los archivos exportados y de traspaso); `webinar/generar.py --todos
+  --validar` 5/5 sin errores (195 diapositivas de contenido, 125 términos) y `documentos.py --todos` 5/5 (15 HTML, 18
+  diagramas Mermaid); `claude plugin validate .` pasa con Claude Code 2.1.312 (aviso esperado sobre `CLAUDE.md`). Las
+  pruebas en vivo no se repitieron (las últimas son de la 2.4.0, 21 y 22/10/2026; esta versión no cambia descripciones,
+  agentes ni hooks).
+
 ## 2.4.0 · 2026-10-22 — decidir con opciones, impacto antes del cambio, radar diario y ciclo completo de las lecciones
 
 Versión que convierte en controles repetibles actividades que en la práctica se hacen a mano o una sola vez: comparar

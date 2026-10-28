@@ -1,7 +1,7 @@
 ---
 name: pm-cronograma-estimacion
 description: "Estimación y cronograma: PERT, puntos, CPM, Gantt, hitos, MS Project (MSPDI). Usar: estimar, cronograma, camino crítico, Gantt, schedule, critical path. No: presupuesto→pm-costos-presupuesto."
-version: 2.4.0
+version: 2.5.0
 author: pm-method
 license: MIT
 metadata:

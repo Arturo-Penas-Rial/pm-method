@@ -1,7 +1,7 @@
 ---
 name: pm-adquisiciones
 description: "Adquisiciones y contratos: make-or-buy, estrategia, selección, contratistas, cierre. Usar: proveedor, licitación, RFP, contrato, procurement, vendor. No: costo del plan→pm-costos-presupuesto."
-version: 2.4.0
+version: 2.5.0
 author: pm-method
 license: MIT
 metadata:

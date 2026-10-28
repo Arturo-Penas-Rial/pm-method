@@ -285,7 +285,7 @@
   "portada": {
    "kicker": "Resumen ejecutivo · pm-method {version}",
    "titulo": "Gestión de proyectos con IA, con método, gobierno y controles permanentes",
-   "subtitulo": "Un plugin para Claude Code y Cowork. PRINCE2 7 manda, PMBOK 8 aporta las técnicas y BMAD es la especificación del producto, de solo lectura. Con la versión {version}: opciones e impacto medidos antes de decidir, un radar de lo que hay que decidir hoy e informes verificados contra el dato.",
+   "subtitulo": "Un plugin para Claude Code y Cowork. PRINCE2 7 manda, PMBOK 8 aporta las técnicas y BMAD es la especificación del producto, de solo lectura. Con opciones e impacto medidos antes de decidir, un radar de lo que hay que decidir hoy e informes verificados contra el dato.",
    "cifras": [
     [
      "{agentes}",
@@ -623,7 +623,7 @@
      "para pruebas en vivo con Claude Code real"
     ]
    ],
-   "vivo": "Pruebas en vivo con Claude Code real",
+   "vivo": "Pruebas en vivo con Claude Code real (serie {serie_vivo})",
    "seguridad": "Revisión de seguridad",
    "docker": "Contenedor Docker endurecido",
    "nota": "Los límites conocidos están declarados en docs/RESUMEN-EJECUTIVO.md §7: el enrutamiento en lenguaje natural es probabilístico, y los conectores MCP de terceros no se probaron en vivo.",
@@ -638,9 +638,9 @@
    ]
   },
   "empezar": {
-   "titulo": "Dos formas de empezar: instalación manual o contenedor Docker aislado",
-   "manual": "Instalación manual (Claude Code y Cowork)",
-   "docker": "Docker (probar sin instalar nada en el equipo)",
+   "titulo": "Dos formas de empezar: instalación sobre WSL2 o Linux, o contenedor Docker aislado",
+   "manual": "Sobre WSL2 o Linux (guía: docs/INSTALACION-WSL2.md)",
+   "docker": "Docker (guía: docs/INSTALACION-DOCKER.md)",
    "docker_pasos": [
     "Construir la imagen",
     "Trabajar sobre un proyecto montado",
@@ -648,7 +648,7 @@
    ],
    "luego": "Luego, en una sesión",
    "siguiente": "Siguiente paso: recorrer una guía E2E sobre la copia del proyecto de prueba (docs/guias/README.md) y planificar un piloto en paralelo (docs/PILOTO.md).",
-   "en": "EN: two ways to start: manual install or an isolated Docker container."
+   "en": "EN: two ways to start: install on WSL2 or Linux, or an isolated Docker container; each has its own step-by-step guide."
   },
   "glosario": {
    "titulo": "Glosario breve",

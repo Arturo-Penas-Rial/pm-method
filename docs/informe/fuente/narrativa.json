@@ -4,10 +4,10 @@
   "corto": "Informe 2 · Ecosistema pm-method v{{version}}",
   "subtitulo": "Qué es, qué valor aporta, cómo está construido, cómo se instala, se asegura y se prueba un paquete bilingüe de {{agentes}} agentes, {{skills}} skills y {{hooks}} hooks que aplica PRINCE2 7 como método, el PMBOK 8 como técnicas y BMAD como capa de especificación: validar antes de invertir, decidir con opciones e impacto medidos, saber cada día qué decidir, informar desde el dato y cerrar el ciclo de las lecciones, con controles permanentes de sanidad",
   "autor": "Arturo",
-  "fecha": "22 de octubre de 2026",
-  "version": "v2.4",
+  "fecha": "27 de octubre de 2026",
+  "version": "v2.5",
   "tag": "Informe 2 · Documentación del ecosistema",
-  "alcance": "Todo lo que afirma este informe sale de los archivos del paquete pm-method {{version}} (README, CHANGELOG, SPEC, CLAUDE.md, compatibilidad.json, docs/ —incluidos RESUMEN-EJECUTIVO, INDICE, DEPENDENCIAS, INSTALACION, DOCKER, SEGURIDAD, INTEGRACIONES, PRUEBAS, PUERTAS, PILOTO, TERMINOLOGIA y CASOS-DE-USO—, docs/guias/ y su evidencia, docs/webinar/, docs/diagramas/, docs/evaluacion/resultados/ y agents/), de las cifras que el generador cuenta en el repositorio y de correr validar_paquete.py, probar_paquete.py, la integración cruzada, validar_mermaid.py --render y generar.py --todos --validar el {{pruebas_fecha}}. Las cifras del caso maestro, de los casos de uso y de las guías E2E provienen de corridas reales de los scripts; las personas, las organizaciones y las decisiones humanas son simuladas. Las pruebas en vivo con Claude Code real de la versión {{version}} ({{vivo24_fechas}}) cubren el enrutamiento de las capacidades nuevas; las de integración con BMAD instalado son del 2026-10-20 y los escenarios de robustez, del 2026-10-17. Lo que la documentación marca como [verificar] o \"URL a confirmar por el usuario\" se conserva tal cual."
+  "alcance": "Todo lo que afirma este informe sale de los archivos del paquete pm-method {{version}} (README, CHANGELOG, SPEC, CLAUDE.md, compatibilidad.json, docs/ —incluidos RESUMEN-EJECUTIVO, INDICE, DEPENDENCIAS, INSTALACION, DOCKER, SEGURIDAD, INTEGRACIONES, PRUEBAS, PUERTAS, PILOTO, TERMINOLOGIA y CASOS-DE-USO—, docs/guias/ y su evidencia, docs/webinar/, docs/diagramas/, docs/evaluacion/resultados/ y agents/), de las cifras que el generador cuenta en el repositorio y de correr validar_paquete.py, probar_paquete.py, la integración cruzada, validar_mermaid.py --render y generar.py --todos --validar el {{pruebas_fecha}}. Las cifras del caso maestro, de los casos de uso y de las guías E2E provienen de corridas reales de los scripts; las personas, las organizaciones y las decisiones humanas son simuladas. Las pruebas en vivo con Claude Code real de la versión {{vivo_version}} ({{vivo24_fechas}}) cubren el enrutamiento de sus capacidades nuevas (la {{version}} no cambia descripciones, agentes ni hooks); las de integración con BMAD instalado son del 2026-10-20 y los escenarios de robustez, del 2026-10-17. Lo que la documentación marca como [verificar] o \"URL a confirmar por el usuario\" se conserva tal cual."
  },
  "kpis": [
   {
@@ -37,7 +37,7 @@
   },
   {
    "v": "{{vivo24_ok}}/{{vivo24_total}}",
-   "t": "en vivo con Claude Code",
+   "t": "en vivo con Claude Code ({{vivo_version}})",
    "d": "frases {{vivo24_desde}}–{{vivo24_hasta}} y de control ({{vivo24_fechas}}); {{vivo24_reg_ok}}/{{vivo24_reg_total}} de regresión"
   }
  ],
@@ -214,7 +214,7 @@
    "d": "Versiones probadas, dependencias, skills externas probadas en vivo y conducta por cliente; especificación y convenciones canónicas; contexto para seguir desarrollando el paquete con agentes de código (`CLAUDE.md`, `AGENTS.md`)."
   }
  ],
- "inst_intro": "Hay cinco vías de instalación. La recomendada es instalar el plugin desde el repositorio público de GitHub (https://github.com/Arturo-Penas-Rial/pm-method, licencia MIT): la raíz del repositorio es a la vez el plugin y su marketplace, y cada integrante recibe las actualizaciones con dos comandos. La instalación como plugin es la única que activa los hooks de protección y de sanidad. Después vienen las dependencias: Python y sus paquetes, BMAD en el repositorio del producto, las skills externas de diagramas y Office y los conectores MCP de la organización. Como alternativa a la instalación manual, un entorno Docker opcional trae todo instalado, con versiones fijadas y aislado del equipo.",
+ "inst_intro": "Hay dos caminos de instalación separados, cada uno con su guía paso a paso y sus comandos ejecutados tal cual: sobre WSL2 o Linux (`docs/INSTALACION-WSL2.md`, con Claude Code o Hermes) o con Docker (`docs/INSTALACION-DOCKER.md`), que trae todo instalado, con versiones fijadas y aislado del equipo. Para el primero hay cinco vías. La recomendada es instalar el plugin desde el repositorio público de GitHub (https://github.com/Arturo-Penas-Rial/pm-method, licencia MIT): la raíz del repositorio es a la vez el plugin y su marketplace, y cada integrante recibe las actualizaciones con dos comandos. La instalación como plugin es la única que activa los hooks de protección y de sanidad. Después vienen las dependencias: Python y sus paquetes, BMAD en el repositorio del producto, las skills externas de diagramas y Office y los conectores MCP de la organización.",
  "inst_vias": [
   {
    "t": "GitHub (recomendada)",
@@ -584,7 +584,7 @@
   }
  ],
  "evolucion": [
-  "Repetir con Claude Code real la batería completa (`suite.py todo`) y los escenarios de robustez (`inyeccion`, `desorden`, `multisesion`, `escala`) con la versión {{version}}: hoy son del 2026-10-17; en vivo, la versión {{version}} cubre el enrutamiento de las capacidades nuevas ({{vivo24_ok}}/{{vivo24_total}}) y la integración con BMAD instalado es de la versión 2.3.0.",
+  "Repetir con Claude Code real la batería completa (`suite.py todo`) y los escenarios de robustez (`inyeccion`, `desorden`, `multisesion`, `escala`) con la versión {{version}}: hoy son del 2026-10-17; en vivo, la versión {{vivo_version}} cubre el enrutamiento de las capacidades nuevas ({{vivo24_ok}}/{{vivo24_total}}) y la integración con BMAD instalado es de la versión 2.3.0.",
   "Resolver la decisión abierta sobre un cambio con el presupuesto de cambio agotado: registrar `aprobado` con advertencia y ratificación pendiente (conducta actual) o forzar `pendiente-decision` hasta que la junta decida (INDICE §6).",
   "Corregir las limitaciones documentadas de los scripts (SANIDAD §10), en particular `bmad.py:303`, que pierde los traspasos al volver a detectar, y `bmad.py:568`, que pisa traspasos del mismo día.",
   "Probar en una sesión con credenciales Claude Code dentro de la imagen Docker y construirla en arm64; probar los hooks con `py.sh` en una máquina Windows real.",
@@ -1416,7 +1416,7 @@
   ],
   [
    "CHANGELOG.md",
-   "historial de versiones: 2.4.0 (opciones de respuesta, impacto antes del cambio, radar diario, informes desde el dato, estado de productos, reuniones, ciclo de las lecciones, tres valores y expediente de auditoría), 2.3.0, 2.2.0 y 2.1.0"
+   "historial de versiones: 2.5.0 (dos caminos de instalación, WSL2 y Docker, y diagram-design como motor opcional verificado), 2.4.0 (opciones de respuesta, impacto antes del cambio, radar diario, informes desde el dato, estado de productos, reuniones, ciclo de las lecciones, tres valores y expediente de auditoría), 2.3.0, 2.2.0 y 2.1.0"
   ],
   [
    "CLAUDE.md · AGENTS.md",
@@ -1536,7 +1536,7 @@
   ],
   [
    "docs/evaluacion/",
-   "{{frases}} frases de enrutamiento e informes de pruebas en vivo (2.0 a {{version}})"
+   "{{frases}} frases de enrutamiento e informes de pruebas en vivo (2.0 a {{vivo_version}})"
   ],
   [
    "agents/*.md",
@@ -2322,19 +2322,19 @@
    [
     "Skills (`validar_paquete.py`)",
     "39 (33 invocables · listado de 6.817 caracteres)",
-    "**{{skills}}** ({{invocables}} invocables · **{{listado}}** caracteres; límite 7.500), con descripciones ampliadas",
-    "CHANGELOG 2.4.0; corrida del {{pruebas_fecha}}"
+    "**39** (33 invocables · **6.957** caracteres; límite 7.500), con descripciones ampliadas",
+    "CHANGELOG 2.4.0; corrida del 2026-10-22"
    ],
    [
     "Registros",
     "13 (9 base y 4 opcionales)",
-    "**{{registros}}** ({{registros_base}} base y {{registros_opcionales}} opcionales): + `personas.csv` (PU); `lecciones.csv` con ocho columnas al final",
+    "**14** (9 base y 5 opcionales): + `personas.csv` (PU); `lecciones.csv` con ocho columnas al final",
     "SPEC §1.10.8"
    ],
    [
     "Sanidad",
     "85 códigos en 12 familias",
-    "**{{codigos}} códigos en {{familias}} familias**: + REG-10, REG-11, REG-12, QUA-04 y STK-13…16",
+    "**93 códigos en 12 familias**: + REG-10, REG-11, REG-12, QUA-04 y STK-13…16",
     "SANIDAD §2.1"
    ],
    [
@@ -2352,50 +2352,94 @@
    [
     "Regresión (`probar_paquete.py`)",
     "223 OK · 0 FALLO (222 con 3.9)",
-    "**{{regresion_ok}} OK · 0 FALLO** con Python {{regresion_py}} ({{regresion_ok39}} con 3.9)",
+    "**353 OK · 0 FALLO** con Python 3.13 (352 con 3.9)",
     "PRUEBAS §2"
    ],
    [
     "Integración cruzada",
     "61 OK · 0 FALLO en 24 eslabones",
-    "**{{integ_ok}} OK · 0 FALLO en {{integ_eslabones}} eslabones**",
+    "**99 OK · 0 FALLO en 34 eslabones**",
     "PRUEBAS §2.3"
    ],
    [
     "Guías E2E",
     "5 guías · 70 pasos · 42 imágenes",
-    "**{{guias}} guías · {{pasos}} pasos** ({{pasos_lista}}) · {{imagenes_guias}} imágenes",
+    "**5 guías · 74 pasos** (15, 10, 14, 15, 20) · 51 imágenes",
     "guias/README.md"
    ],
    [
     "Material de formación",
     "10 clases · 186 diapositivas · 124 términos",
-    "**{{web_clases}} clases**, {{web_diapositivas}} diapositivas de contenido y {{web_glosario}} términos de glosario",
+    "**10 clases**, 195 diapositivas de contenido y 125 términos de glosario",
     "webinar/README.md"
    ],
    [
     "Frases de enrutamiento",
     "102",
-    "**{{frases}}**",
+    "**130**",
     "evaluacion/frases-enrutamiento.tsv"
    ],
    [
     "Enrutamiento en vivo (Claude Code real)",
     "14/14 con contexto · 8/8 mapas · 12/12 con BMAD",
-    "**{{vivo24_ok}}/{{vivo24_total}}** frases {{vivo24_desde}}–{{vivo24_hasta}} y de control · **{{vivo24_reg_ok}}/{{vivo24_reg_total}}** de regresión ({{vivo24_fechas}})",
+    "**35/35** frases 103–130 y de control · **18/18** de regresión (21 y 22/10/2026)",
     "PRUEBAS §3.1"
    ],
    [
     "Casos de uso documentados",
     "49",
-    "**{{casos_uso}}** (parte 7: una capacidad por caso, con su paso en las guías)",
+    "**59** (parte 7: una capacidad por caso, con su paso en las guías)",
     "CASOS-DE-USO.md"
    ],
    [
     "Bloques Mermaid validados",
     "127",
-    "**{{mermaid_bloques}}**, 0 errores",
+    "**128**, 0 errores",
     "CHANGELOG 2.4.0"
+   ]
+  ],
+  "antes_despues_25": [
+   [
+    "Guías de instalación",
+    "`INSTALACION.md` (y `DOCKER.md` como referencia del entorno Docker)",
+    "**3**: `INSTALACION` (general), `INSTALACION-WSL2` (Windows con WSL2, por Claude Code o Hermes; {{wsl2_ok}} de {{wsl2_total}} comprobaciones) e `INSTALACION-DOCKER` (Docker Desktop o Docker Engine sobre WSL2)",
+    "INDICE §1; guías §11 y §13"
+   ],
+   [
+    "Caminos de instalación",
+    "manual, con Docker como alternativa",
+    "**dos caminos separados**, cada uno con su guía paso a paso: sobre WSL2 o Linux, o Docker",
+    "INSTALACION §1"
+   ],
+   [
+    "diagram-design (motor opcional)",
+    "2.6.110 (`550fd66`)",
+    "**{{dd_version}} (`{{dd_commit}}`)**: salida sin red (fuentes del sistema, `self_check.py --offline`); importa solo los respaldos `flowchart`",
+    "compatibilidad.json; guía de pm-visuales §1.2 y §1.4"
+   ],
+   [
+    "ShowAI",
+    "—",
+    "evaluado: **no incorporado**",
+    "INTEGRACIONES §2"
+   ],
+   [
+    "Imagen Docker",
+    "sin skills externas",
+    "etapa `skills-externas` con diagram-design fijado por commit; caso DD completo en `pm-pruebas`",
+    "DOCKER §2 y §10"
+   ],
+   [
+    "Regresión (`probar_paquete.py`)",
+    "353 OK · 0 FALLO (352 con 3.9)",
+    "**{{regresion_ok}} OK · 0 FALLO** con Python {{regresion_py}} ({{regresion_ok39}} con 3.9): + caso DD (contrato con diagram-design)",
+    "PRUEBAS §2"
+   ],
+   [
+    "`npm` de la imagen Docker (SEG-13)",
+    "5 avisos bajos aceptados",
+    "+ 1 alto y 1 moderado empaquetados en `npm` 11.21.1, sin versión publicada que los corrija: aceptados temporalmente",
+    "SEGURIDAD SEG-13"
    ]
   ]
  }

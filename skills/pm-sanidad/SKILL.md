@@ -1,7 +1,7 @@
 ---
 name: pm-sanidad
 description: "Sanidad y consistencia del ecosistema (estado, puertas, registros, BMAD↔PRINCE2, integraciones). Usar: sanidad, chequeo, consistencia, doctor, health check, antes de una puerta. No: cómo venimos→pm-orquestador; calidad→pm-calidad."
-version: 2.4.0
+version: 2.5.0
 author: pm-method
 license: MIT
 metadata:

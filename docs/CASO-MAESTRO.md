@@ -106,7 +106,7 @@ flowchart TB
 | Rol humano y decisión | ninguna |
 | Entradas (cómo las aporta el usuario) | el paquete pm-method instalado y el repositorio del producto con BMAD. En el caso, `repo/` es una copia de `scripts/pruebas/fixtures/bmad-v6` que el usuario prepara en su terminal |
 | Salidas y dónde verificarlas | ninguna dentro de `gestion/` (todavía no existe). Se verifica en la salida de `validar_paquete.py`: `Skills: 39 … · Agentes: 6` → `OK` |
-| Resultado | `Skills: 39 (33 invocables por el modelo, listado 6957 caracteres) · Agentes: 6` → `OK` (versión 2.4.0; en la corrida con 2.1.0, 37 skills) |
+| Resultado | `Skills: 39 (33 invocables por el modelo, listado 6957 caracteres) · Agentes: 6` → `OK` (versión 2.5.0; en la corrida con 2.1.0, 37 skills) |
 
 *Comandos que escribe el usuario en su terminal:*
 
@@ -986,7 +986,7 @@ Proyecto cerrado. Pendiente fuera del proyecto: revisiones de beneficios según 
 ### Integridad al final
 
 - **BMAD:** al comparar las huellas sha256 del principio y del final, solo cambiaron los tres archivos que editó el "equipo BMAD": `prd.md`, `epics.md` y `sprint-status.yaml`. Ningún script de pm-method escribió en `_bmad*`.
-- **Regresión:** `scripts/probar_paquete.py` → **353 OK · 0 FALLO** con la versión 2.4.0 (80 OK cuando se recorrió este caso con 2.1.0); detalle de los casos en [PRUEBAS §2](PRUEBAS.md).
+- **Regresión:** `scripts/probar_paquete.py` → **355 OK · 0 FALLO** con la versión 2.5.0 (80 OK cuando se recorrió este caso con 2.1.0); detalle de los casos en [PRUEBAS §2](PRUEBAS.md).
 
 ---
 

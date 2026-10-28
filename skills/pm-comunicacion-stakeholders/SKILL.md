@@ -1,7 +1,7 @@
 ---
 name: pm-comunicacion-stakeholders
 description: "Matriz de comunicaciones, mensajes por audiencia y su envío por correo, Slack o Teams. Usar: plan de comunicación, comunicado, status email, enviar a interesados. No: actas→pm-reuniones; mapa, RACI o preferencias→pm-interesados."
-version: 2.4.0
+version: 2.5.0
 author: pm-method
 license: MIT
 metadata:

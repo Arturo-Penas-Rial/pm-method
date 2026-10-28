@@ -3,7 +3,7 @@ name: pm-reporte
 description: "Genera el informe de avance pedido: highlight, checkpoint o excepción, vía pm-progreso-reportes. Uso manual: /pm-reporte highlight|checkpoint|excepcion [carpeta]. Progress report."
 disable-model-invocation: true
 argument-hint: "highlight|checkpoint|excepcion [carpeta]"
-version: 2.4.0
+version: 2.5.0
 author: pm-method
 license: MIT
 metadata:

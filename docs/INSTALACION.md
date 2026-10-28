@@ -1,4 +1,4 @@
-# Instalación y configuración · pm-method 2.4.0
+# Instalación y configuración · pm-method 2.5.0
 
 Guía para instalar, configurar, verificar, actualizar y desinstalar el paquete de agentes y skills **pm-method** en
 Claude Code, Cowork y Hermes Agent, y para instalar y conectar de punta a punta sus dependencias: Python y sus paquetes,
@@ -20,7 +20,7 @@ BMAD, las skills externas de diagramas y Office, y los conectores MCP de la orga
 
 | Paso | Qué | Sección |
 |---|---|---|
-| 1 | Revisar los requisitos previos según el sistema operativo | §1 |
+| 1 | Elegir el camino (instalación sobre WSL2 / Linux, o Docker) y revisar los requisitos previos según el sistema operativo | §1 |
 | 2 | Instalar el plugin desde GitHub (o desde una carpeta local) | §0 (o §2) |
 | 2b | Configurar la credencial del cliente (suscripción o clave de API) y, si se usan, los tokens MCP y las variables de la capa de canales (correo, Slack, Teams) | §0.7 |
 | 3 | Instalar los paquetes Python recomendados | §5 |
@@ -53,7 +53,7 @@ actualizaciones con dos comandos.
 ### 0.2 Publicar el repositorio (lo hace el responsable del paquete)
 ```bash
 # en la carpeta del paquete
-git init && git add . && git commit -m "pm-method 2.4.0"
+git init && git add . && git commit -m "pm-method 2.5.0"
 gh auth login                       # inicia sesión en el navegador
 gh repo create <usuario>/pm-method --public --source . --push
 ```
@@ -66,7 +66,7 @@ que muestra `claude plugin list` y la que usa `claude plugin update` para decidi
 ```bash
 claude plugin marketplace add Arturo-Penas-Rial/pm-method   # acepta owner/repo de GitHub; necesita git
 claude plugin install pm-method@pm-method                   # alcance por defecto: user
-claude plugin list                                          # pm-method@pm-method · Version: 2.4.0 · Status: enabled
+claude plugin list                                          # pm-method@pm-method · Version: 2.5.0 · Status: enabled
 ```
 - Dentro de una sesión: `/plugin marketplace add Arturo-Penas-Rial/pm-method` y `/plugin install pm-method@pm-method`.
 - Alcances: `claude plugin marketplace add … --scope user|project|local` (por defecto `user`) y
@@ -324,6 +324,17 @@ Privacidad: Orca envía datos de uso anónimos que se pueden desactivar (ver su 
 
 ## 1. Requisitos previos
 
+**Dos caminos de instalación, separados** (se elige uno):
+
+| Camino | Qué se instala | Guía |
+|---|---|---|
+| **Instalación sobre WSL2 / Linux** (también macOS y Windows con Git Bash) | el cliente (Claude Code, Cowork o Hermes), Python y, según lo que se use, Node.js, Mermaid y un navegador, directamente en el sistema | esta guía (requisitos en §1.1–§1.4); en Windows, paso a paso: [INSTALACION-WSL2](INSTALACION-WSL2.md) |
+| **Docker** | solo Docker (Docker Desktop con el *backend* WSL2, o Docker Engine en Linux o dentro de Ubuntu en WSL2); Claude Code CLI, Python, Node, Mermaid y Chromium vienen fijados en la imagen | paso a paso: [INSTALACION-DOCKER](INSTALACION-DOCKER.md); referencia técnica: [DOCKER](DOCKER.md). Sin Cowork ni Hermes |
+
+El resto de esta guía (credenciales, BMAD, skills externas, MCP, verificación) vale para los dos; en Docker, los
+comandos se escriben dentro del contenedor y el plugin se carga con `--plugin-dir /opt/pm-method`
+([INSTALACION-DOCKER §8](INSTALACION-DOCKER.md#8-claude-code-dentro-del-contenedor)).
+
 ### 1.1 Lista de comprobación
 
 | Requisito | Necesario para | Comprobar con | Esperado |
@@ -378,6 +389,10 @@ Origen, licencia y versión probada de cada uno: [DEPENDENCIAS.md](DEPENDENCIAS.
   (§1.1), porque las distribuciones suelen traer versiones anteriores.
 - En sistemas con Python gestionado por el sistema operativo, `pip install` puede rechazarse: usar un entorno virtual
   (§5).
+- **Windows con WSL2** (Ubuntu 24.04): guía paso a paso, con la salida esperada de cada comando, en
+  [INSTALACION-WSL2.md](INSTALACION-WSL2.md).
+- **Docker** (Docker Engine en Linux, o Docker Desktop / Docker Engine sobre WSL2): camino aparte, en
+  [INSTALACION-DOCKER.md](INSTALACION-DOCKER.md).
 
 ---
 
@@ -386,7 +401,7 @@ Origen, licencia y versión probada de cada uno: [DEPENDENCIAS.md](DEPENDENCIAS.
 ### 2.1 Como plugin desde el marketplace local
 
 Alternativa a §0 cuando se trabaja con una copia local (por ejemplo, el mantenedor). La carpeta del paquete es a la vez
-un plugin (`.claude-plugin/plugin.json`, nombre `pm-method`, versión 2.4.0) y un marketplace local
+un plugin (`.claude-plugin/plugin.json`, nombre `pm-method`, versión 2.5.0) y un marketplace local
 (`.claude-plugin/marketplace.json`, nombre `pm-method`). Junto con §0, es la única modalidad que activa los **hooks** de
 protección y de sanidad (§9).
 
@@ -458,7 +473,7 @@ entorno de prueba) **[verificar en el primer uso]**.
 git clone https://github.com/Arturo-Penas-Rial/pm-method.git ~/pm-method
 python3 ~/pm-method/scripts/instalar_hermes.py --verificar   # muestra qué hará
 python3 ~/pm-method/scripts/instalar_hermes.py               # copia adaptada en ~/.hermes/skills/pm-method/
-pip install pyyaml python-docx openpyxl                      # en el Python con que Hermes ejecuta comandos (§5)
+python3 -m pip install pyyaml python-docx openpyxl          # en el Python con que Hermes ejecuta comandos (§5)
 ```
 El script copia `skills/` reemplazando `${CLAUDE_SKILL_DIR}` por `${HERMES_SKILL_DIR}`, deja los agentes en
 `~/.hermes/skills/pm-method/_agentes/` con rutas absolutas y no copia los hooks. Si se prefiere una carpeta propia:
@@ -557,10 +572,15 @@ probada** con pm-method.
 python3 -m pip install pyyaml python-docx openpyxl
 ```
 
-- Con Python gestionado por el sistema operativo (frecuente en Linux), usar un entorno virtual:
-  `python3 -m venv ~/.venvs/pm-method` y luego `~/.venvs/pm-method/bin/python -m pip install pyyaml python-docx openpyxl`;
-  en ese caso, los scripts y los hooks deben ejecutarse con un `python3` que vea esos paquetes **[verificar]**. La
-  alternativa `--break-system-packages` instala en el Python del sistema.
+- Con Python gestionado por el sistema operativo (Ubuntu 24.04, Debian 12 y otras: `pip` responde
+  `error: externally-managed-environment`, PEP 668), usar un entorno virtual:
+  `python3 -m venv ~/.venvs/pm-method` y luego `~/.venvs/pm-method/bin/python -m pip install pyyaml python-docx openpyxl`.
+  Los scripts y los hooks deben ejecutarse con un `python3` que vea esos paquetes: activar el entorno en cada terminal
+  agregando `source ~/.venvs/pm-method/bin/activate` a `~/.bashrc`. Así `python3` es el del entorno y lo heredan Claude Code
+  y Hermes cuando se abren desde esa terminal. Comprobado el 2026-10-27 en Ubuntu 24.04: `hooks/py.sh` (el lanzador de los
+  hooks, también desde la copia instalada del plugin) resolvió `python3` al del entorno, con sus paquetes
+  ([INSTALACION-WSL2 §3.2 y §5.2](INSTALACION-WSL2.md)). No usar `--break-system-packages` ni `sudo pip`: alteran el Python
+  del sistema.
 - Windows: ver §1.2.
 - La sanidad informa la falta de cada módulo como **INS-01** con el comando de instalación.
 
@@ -778,11 +798,11 @@ Secuencia final, en este orden. `<raíz>` es la carpeta del paquete: un clon del
 
 | # | Paso | Comando | Resultado esperado |
 |---|---|---|---|
-| 1 | Plugin instalado y versión | `claude plugin list` | `pm-method@pm-method` · `Version: 2.4.0` · `Status: enabled` |
+| 1 | Plugin instalado y versión | `claude plugin list` | `pm-method@pm-method` · `Version: 2.5.0` · `Status: enabled` |
 | 2 | Manifiestos | `claude plugin validate <raíz>` | `Validation passed` |
 | 3 | Python y paquetes | `python3 --version` y `python3 -c "import yaml, docx, openpyxl; print('ok')"` | 3.9 o superior; `ok` |
 | 4 | Estructura del paquete | `python3 <raíz>/scripts/validar_paquete.py` | `Skills: 39 (33 invocables por el modelo, listado <n> caracteres) · Agentes: 6` y `OK` |
-| 5 | Regresión de punta a punta (requiere PyYAML; trabaja en una carpeta temporal) | `python3 <raíz>/scripts/probar_paquete.py` | `Resultado: <n> OK · 0 FALLO` (353 OK en la corrida del 2026-10-22, versión 2.4.0) |
+| 5 | Regresión de punta a punta (requiere PyYAML; trabaja en una carpeta temporal) | `python3 <raíz>/scripts/probar_paquete.py` | `Resultado: <n> OK · 0 FALLO` (355 OK en la corrida del 2026-10-27, versión 2.5.0) |
 | 6 | Skills visibles | `/pm-method:pm-ayuda` en una sesión | tabla "qué escribir", catálogo de skills y comandos |
 | 7 | Proyecto de prueba | `nuevo_proyecto.py --ruta <tmp>/prueba --nombre "Prueba"` y `estado.py --proyecto <tmp>/prueba siguiente` | carpeta creada y siguiente paso del método |
 | 8 | BMAD (si se instaló) | `bmad.py --proyecto ./gestion detectar` | layout `v6`, `version` 6.12.x, `soporte: soportada` |
@@ -899,7 +919,7 @@ claude plugin marketplace remove pm-method
 | Síntoma | Causa probable | Solución |
 |---|---|---|
 | `/pm-method:…` no aparece | plugin no instalado o deshabilitado | `claude plugin list`; `claude plugin enable pm-method`; reiniciar la sesión |
-| `claude plugin list` muestra una versión anterior a 2.4.0 | catálogo sin refrescar o versión aún no publicada | §0.4; si persiste, el repositorio publicado no tiene la versión nueva |
+| `claude plugin list` muestra una versión anterior a 2.5.0 | catálogo sin refrescar o versión aún no publicada | §0.4; si persiste, el repositorio publicado no tiene la versión nueva |
 | El modelo no activa la skill esperada | listado recortado por presupuesto (BMAD u otros repos) | `"skillListingBudgetFraction": 0.02` (§7.4); sanidad INS-05; invocar la skill por comando |
 | Responde una skill de otro repositorio | colisión de disparadores | sanidad INS-06; ajustar la descripción local u ocultar la externa con `skillOverrides`; ver `docs/colisiones.md` |
 | Windows: las ediciones o comandos quedan bloqueados por un hook, o no aparece el resumen de inicio | falta Git for Windows, no hay Python 3.9+ en Git Bash (`py.sh` lo avisa) o el clon tiene finales de línea CRLF en `hooks/py.sh` (volver a clonar con el `.gitattributes` vigente) | §1.2 |

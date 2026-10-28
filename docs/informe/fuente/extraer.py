@@ -228,6 +228,22 @@ X["orca_inst"] = tabla(INST, r"^0\.8 Orca")
 X["credenciales_md"] = seccion(INST, r"^0\.7 Claves").split("\n", 1)[1].strip()
 X["orca_md"] = seccion(INST, r"^0\.8 Orca").split("\n", 1)[1].strip()
 X["inst_requisitos_so"] = tabla(INST, r"^1\.1 Lista de comprobación")
+# Dos caminos de instalación (INSTALACION §1, INSTALACION-DOCKER §0.1) y lo verificado en cada guía
+IDK = leer("docs/INSTALACION-DOCKER.md")
+IWS = leer("docs/INSTALACION-WSL2.md")
+X["inst_caminos"] = tabla(INST, r"^1\. Requisitos previos")
+X["inst_comparacion"] = tabla(IDK, r"^0\.1 ")
+_ws = seccion(IWS, r"^11\. Qué se verificó")
+_wr = re.search(r"Verificación del (\d{4}-\d{2}-\d{2}) en una \*\*(.+?)\*\*", _ws.replace("\n", " "))
+_wn = re.search(r"\*\*Resultado: (\d+) de (\d+) comprobaciones", _ws)
+_ds = seccion(IDK, r"^13\. Qué se verificó")
+_dr = re.search(r"Verificación del (\d{4}-\d{2}-\d{2}) en (.+?) con \*\*(.+?)\*\*", _ds.replace("\n", " "))
+_dn = re.search(r"\*\*Resultado: (.+?)\*\*", _ds)
+assert _wr and _wn and _dr and _dn, "INSTALACION-WSL2 §11 o INSTALACION-DOCKER §13 sin el resultado esperado"
+X["inst_verif"] = {"wsl2_fecha": _wr.group(1), "wsl2_entorno": _wr.group(2), "wsl2_ok": int(_wn.group(1)), "wsl2_total": int(_wn.group(2)),
+                   "docker_fecha": _dr.group(1), "docker_entorno": _dr.group(2) + " con " + _dr.group(3), "docker_resultado": _dn.group(1).rstrip(","),
+                   "wsl2_pendiente": re.sub(r"\s+", " ", _ws.split("**Queda por comprobar en tu equipo [verificar]**")[1]).strip(),
+                   "docker_pendiente": re.sub(r"\s+", " ", _ds.split("**Queda por comprobar en tu equipo [verificar]**")[1]).strip()}
 X["bmad_opciones"] = tabla(INST, r"^4\.1 Instalar BMAD")
 X["python_paquetes"] = tabla(INST, r"^5\. Dependencias Python")
 X["mcp_ejemplos"] = tabla(INST, r"^Paso 1: conectar")
@@ -475,6 +491,26 @@ for m in re.finditer(r"^### (.+)$", s24, re.M):
     X["chl24_grupos"].append({"t": m.group(1), "items": [re.sub(r"^- ", "", x).replace("\n  ", " ").strip() for x in re.split(r"\n(?=- )", b) if x.startswith("- ")]})
 assert X["chl24_cifras"].startswith("En cifras"), X["chl24_cifras"][:60]
 
+# CHANGELOG 2.5.0: lema, introducción, cifras y grupos (mismo formato que 2.4.0)
+s25 = seccion(CHL, r"^2\.5\.0")
+X["chl25_lema"] = re.search(r"2\.5\.0 · (\S+) — (.+)", CHL).group(2)
+X["chl25_fecha"] = re.search(r"2\.5\.0 · (\S+) — ", CHL).group(1)
+X["chl25_intro"] = s25.strip().split("\n\n")[0].replace("\n", " ")
+X["chl25_cifras"] = s25.strip().split("\n\n")[1].replace("\n", " ")
+X["chl25_grupos"] = []
+for m in re.finditer(r"^### (.+)$", s25, re.M):
+    b = seccion(s25, "^" + re.escape(m.group(1)) + "$").strip()
+    X["chl25_grupos"].append({"t": m.group(1), "items": [re.sub(r"^- ", "", x).replace("\n  ", " ").strip() for x in re.split(r"\n(?=- )", b) if x.startswith("- ")]})
+assert X["chl25_cifras"].startswith("En cifras"), X["chl25_cifras"][:60]
+
+# diagram-design y ShowAI: decisión (INTEGRACIONES §2), contrato (guía de pm-visuales §1.2) y reverificación (INTEGRACIONES §3.1)
+_dec = {f[0].split(" (")[0]: f for f in tabla(INTG, r"^2\. Decisiones de integración")["filas"]}
+_gv = leer("skills/pm-visuales/references/guia.md")
+X["dd_showai"] = {"dd": _dec["diagram-design"], "showai": _dec["ShowAI"],
+                  "importa": re.sub(r"\s+", " ", seccion(_gv, r"^1\.2 Tipo de cada visual").strip().split("\n\n")[-1]),
+                  "tabla": tabla(_gv, r"^1\.2 Tipo de cada visual"),
+                  "reverif": re.sub(r"\s+", " ", re.search(r"(Reverificación del .+?)(?:\n\n)", seccion(INTG, r"^3\.1 Verificación en vivo"), re.S).group(1))}
+
 # Todas las figuras de las guías E2E (imagen, guía, paso, texto alternativo y lectura), no solo las de «Indicadores»
 X["guias_figuras"] = {}
 for g, ruta in GUIAS_E2E.items():
@@ -643,7 +679,7 @@ assert CIF["validar_skills"] == CIF["skills"] and CIF["validar_invocables"] == C
 assert CIF["guias_evidencia"] if False else int(X["guias_evidencia"][1]) == CIF["imagenes_guias"], ("guías: README dice", X["guias_evidencia"], "las guías citan", CIF["imagenes_guias"])
 _rr = re.search(r"Resultado al (\d{4}-\d{2}-\d{2}) \(versión ([\d.]+), casos ([^)]+)\): \*\*(\d+) OK · 0 FALLO\*\* con Python ([\d.]+); con Python 3\.9, \*\*(\d+) OK · 0 FALLO\*\*", X["pru_regresion_res_md"])
 _ri = re.search(r"\*\*(\d+) OK · 0 FALLO en (\d+) eslabones\*\*", X["pru_integ_res"])
-_rm = re.search(r"`validar_mermaid\.py --render`: (?:\*\*)?(\d+)(?:\*\*)? bloques, 0 errores", s24)
+_rm = re.search(r"`validar_mermaid\.py --render`:\s+(?:\*\*)?(\d+)(?:\*\*)? bloques, 0 errores", s25)
 # pasos por guía: el conteo de encabezados coincide con la tabla de docs/guias/README.md («15 pasos (el 6 en 6a y 6b)»)
 _pr = {re.search(r"E2E-\d", f[0]).group(): int(re.match(r"(\d+) pasos", f[4]).group(1)) for f in X["guias"]["filas"]}
 assert _pr == X["guias_pasos"], ("pasos: guias/README.md dice", _pr, "los encabezados de las guías dan", X["guias_pasos"])
@@ -662,9 +698,16 @@ CIF.update({"vivo_contexto": re.match(r"(\d+/\d+)", _v1).group(1), "vivo_mapas":
             "vivo_integracion": re.match(r"\*\*(\d+/\d+)\*\*", _v3).group(1),
             "vivo_tokens_primera": re.search(r"primera llamada ([\d.]+) tokens", _v3).group(1), "vivo_tokens_max": re.search(r"máximo ([\d.]+)", _v3).group(1),
             "vivo_usd": re.search(r"USD ([\d,]+) en total", _v3).group(1)})
-# pruebas en vivo de la versión vigente (PRUEBAS §3.1): frases nuevas y de control, y frases de regresión
-_vv = [f for f in X["pru_resultados"]["filas"] if f[1] == COMPAT["version"]]
-assert _vv, "PRUEBAS §3.1 no registra pruebas en vivo de la versión " + COMPAT["version"]
+# pruebas en vivo de la versión más reciente que las registró (PRUEBAS §3.1): frases nuevas y de control, y frases de
+# regresión. La 2.5.0 no cambia descripciones, agentes ni hooks: valen las de la 2.4.0.
+_vers = sorted({f[1] for f in X["pru_resultados"]["filas"] if re.match(r"^\d+\.\d+\.\d+$", f[1])}, key=lambda v: tuple(int(x) for x in v.split(".")))
+_vivo_ver = _vers[-1]
+_vv = [f for f in X["pru_resultados"]["filas"] if f[1] == _vivo_ver]
+assert _vv, "PRUEBAS §3.1 no registra pruebas en vivo"
+CIF["vivo_version"] = _vivo_ver
+_dd = COMPAT["integraciones_externas_opcionales"]["skills_probadas_en_vivo"]["diagram-design"]
+CIF.update({"wsl2_ok": X["inst_verif"]["wsl2_ok"], "wsl2_total": X["inst_verif"]["wsl2_total"],
+            "dd_version": _dd["version"], "dd_commit": _dd["commit"]})
 _ok = [re.match(r"\**(\d+)/(\d+) OK", f[3]) for f in _vv]
 _rg = [re.search(r"y (\d+)/(\d+) de regresión", f[3]) for f in _vv]
 _ids = [int(x) for f in _vv for x in re.findall(r"ids (\d+)–(\d+)", f[2])[0]] if all(re.search(r"ids \d+–\d+", f[2]) for f in _vv) else []

@@ -1,4 +1,4 @@
-# pm-method · Agentes y skills de gestión de proyectos (ES/EN) · v2.4.0
+# pm-method · Agentes y skills de gestión de proyectos (ES/EN) · v2.5.0
 
 Ecosistema bilingüe de **6 agentes**, **39 skills** y **3 hooks** para Claude Code (también Cowork y Hermes) que
 gestiona un proyecto de la idea al cierre con **PRINCE2 7** como método y ciclo de vida, **PMBOK 8** como caja de
@@ -32,7 +32,7 @@ tolerancias, gestión por excepción), **PMBOK 8** aporta solo técnicas, las **
 
 **Valor agregado:** gobierno auditable (cada puerta con su fila en `decisiones.csv`), trazabilidad requisito → historia →
 paquete de trabajo → aceptación, informes de avance y excepción con valor ganado, visuales y exportaciones listos para la
-junta, y un ecosistema probado con **353 pruebas de regresión**, una suite de integración cruzada de 99 comprobaciones,
+junta, y un ecosistema probado con **355 pruebas de regresión**, una suite de integración cruzada de 99 comprobaciones,
 cinco recorridos E2E reproducibles y pruebas en vivo con Claude Code real.
 
 ---
@@ -46,9 +46,9 @@ cinco recorridos E2E reproducibles y pruebas en vivo con Claude Code real.
 | Product owner / equipo ágil | backlog sincronizado con BMAD, MoSCoW, release plan y avance por puntos sin copiar la especificación |
 | PMO / CoE de IA | un estándar reproducible y auditable: `estado.json` + `decisiones.csv`, trazabilidad requisito → historia → paquete → aceptación |
 
-| Evidencia (2026-10-22) | Resultado |
+| Evidencia (2026-10-27) | Resultado |
 |---|---|
-| Pruebas de regresión (`probar_paquete.py`) | 353 OK · 0 FALLO con Python 3.13 (352 con 3.9), incluida una instalación real de BMAD 6.12.4 y envíos SMTP y por webhooks contra servidores locales |
+| Pruebas de regresión (`probar_paquete.py`) | 355 OK · 0 FALLO con Python 3.13 (354 con 3.9), incluida una instalación real de BMAD 6.12.4 y envíos SMTP y por webhooks contra servidores locales |
 | Integración cruzada (`scripts/pruebas/integracion/correr.py`) | 99 OK · 0 FALLO en 34 eslabones de seis cadenas sobre un mismo proyecto |
 | Recorridos E2E de las guías (`guias_e2e/correr.py`) | 5/5 OK con los scripts reales, evidencia e imágenes idénticas en dos corridas |
 | Diagramas Mermaid (`validar_mermaid.py --render`) | 128 bloques, 0 errores |
@@ -278,12 +278,21 @@ flowchart TB
 
 ## Instalación rápida
 
+Hay **dos caminos separados**; se elige uno:
+
+| Camino | Qué instalás | Guía paso a paso |
+|---|---|---|
+| **1 · Instalación sobre WSL2 / Linux** (también macOS) | Claude Code (o Hermes Agent), Python y, si los usás, Node.js, Mermaid y el navegador para capturas, directamente en tu sistema | Windows: **[docs/INSTALACION-WSL2.md](docs/INSTALACION-WSL2.md)** (Ubuntu 24.04 en WSL2, verificada comando por comando); todos los sistemas y opciones: **[docs/INSTALACION.md](docs/INSTALACION.md)** |
+| **2 · Docker** | solo Docker (Docker Desktop con WSL2, o Docker Engine); Claude Code, Python, Node, Mermaid y Chromium vienen fijados y probados en la imagen | **[docs/INSTALACION-DOCKER.md](docs/INSTALACION-DOCKER.md)**; referencia técnica de la imagen: [docs/DOCKER.md](docs/DOCKER.md) |
+
+### Camino 1 · Instalación sobre WSL2 / Linux
+
 ```bash
 # 1. Plugin desde GitHub (Claude Code)
 claude plugin marketplace add Arturo-Penas-Rial/pm-method
 claude plugin install pm-method@pm-method
-# 2. Python 3.9+ y paquetes recomendados
-pip install pyyaml python-docx openpyxl
+# 2. Python 3.9+ y paquetes recomendados (en Ubuntu/WSL, dentro de un entorno virtual: PEP 668)
+python3 -m pip install pyyaml python-docx openpyxl
 # 3. (opcional) BMAD en el repositorio del producto
 npx bmad-method@6.12.4 install --modules bmm --tools claude-code --yes --user-name "<nombre>" --set core.project_name=<proyecto> --no-shims
 ```
@@ -295,11 +304,21 @@ Actualizar: `claude plugin marketplace update pm-method` y `claude plugin update
 git clone https://github.com/Arturo-Penas-Rial/pm-method.git ~/pm-method
 python3 ~/pm-method/scripts/instalar_hermes.py      # adapta las rutas a ${HERMES_SKILL_DIR}; luego /reload-skills
 ```
-Windows: los hooks corren en Git Bash; el lanzador `hooks/py.sh` busca `python3`, `python` o `py -3`.
-Guía completa (requisitos por sistema operativo, BMAD, skills externas, MCP, Cowork, Hermes, verificación y problemas
-frecuentes): **[docs/INSTALACION.md](docs/INSTALACION.md)**.
-Alternativa opcional: **entorno Docker** aislado (Linux, Claude Code CLI, Python, Node, Mermaid y Chromium fijados y
-probados; la instalación manual no cambia): **[docs/DOCKER.md](docs/DOCKER.md)**.
+Windows sin WSL: los hooks corren en Git Bash; el lanzador `hooks/py.sh` busca `python3`, `python` o `py -3`
+([INSTALACION §1.2](docs/INSTALACION.md#12-windows-git-for-windows--powershell)).
+
+### Camino 2 · Docker
+
+```bash
+git clone https://github.com/Arturo-Penas-Rial/pm-method.git ~/pm-method && cd ~/pm-method
+docker compose -f docker/compose.yaml build pm                 # construir la imagen (10–20 min la primera vez)
+docker compose -f docker/compose.yaml run --rm pruebas         # todas las pruebas, sin red
+PROYECTO=~/proyectos/mi-proyecto docker compose -f docker/compose.yaml run --rm pm   # shell sobre tu proyecto
+# dentro del contenedor: claude --plugin-dir /opt/pm-method
+```
+
+El inicio de sesión de Claude Code queda en un volumen de Docker, nunca en la imagen ni en el proyecto. Cowork y Hermes
+no corren dentro del contenedor.
 
 ### Credenciales: dónde va la API-KEY
 
@@ -452,27 +471,28 @@ Versiones probadas, licencias, comandos de instalación y cómo se verificó cad
 | [PRUEBAS](docs/PRUEBAS.md) | pruebas automáticas, integración cruzada, pruebas en vivo y guía de aceptación |
 | [Guías E2E](docs/guias/README.md) · [Webinar](docs/webinar/README.md) | cinco recorridos por prompts con evidencia reproducible; guion, ejercicio y diapositivas por caso |
 | [SEGURIDAD](docs/SEGURIDAD.md) | revisión de seguridad del paquete: hallazgos, estado y pruebas |
-| [DOCKER](docs/DOCKER.md) | entorno Docker opcional, aislado y probado |
+| [INSTALACION-DOCKER](docs/INSTALACION-DOCKER.md) · [DOCKER](docs/DOCKER.md) | camino de instalación con Docker, paso a paso (Docker Desktop o Docker Engine sobre WSL2); referencia técnica de la imagen, aislada y probada |
 | [PILOTO](docs/PILOTO.md) | plan de piloto con métricas, rúbrica experta y prueba de usabilidad |
 | [PUERTAS](docs/PUERTAS.md) | verificación y registro de cada puerta; controles de BMAD integrados; ciclo de vida PRINCE2 + BMAD |
 | [Colisiones](docs/colisiones.md) | dueños únicos y pistas de alcance entre skills |
 | [CHANGELOG](CHANGELOG.md) | cambios por versión |
 | [SPEC.md](SPEC.md) | especificación de construcción y convenciones canónicas |
 | [CLAUDE.md](CLAUDE.md) · [AGENTS.md](AGENTS.md) | contexto para seguir desarrollando el paquete con Claude Code u otros agentes |
-| [Resumen ejecutivo](docs/resumen-ejecutivo/README.md) · [Informe 2](docs/informe/README.md) | presentación comercial e informe completo del ecosistema en HTML y PowerPoint, con sus generadores |
+| [Resumen ejecutivo](docs/resumen-ejecutivo/README.md) · [Informe 2](docs/informe/README.md) | presentación comercial e informe completo del ecosistema (Informe 2 v2.5) en HTML y PowerPoint, con sus generadores |
 
-### Calidad verificada (2026-10-22)
+### Calidad verificada (2026-10-27)
 
 | Verificación | Resultado |
 |---|---|
 | `python3 scripts/validar_paquete.py` | OK · 39 skills, 33 invocables, listado de 6.957 caracteres (límite 7.500); sintaxis verificada con Python 3.9 |
-| `python3 scripts/probar_paquete.py` | 353 OK · 0 FALLO con Python 3.13; 352 OK · 0 FALLO con Python 3.9 (sin `matplotlib` se omite una comprobación de visuales). Casos A–N (con A2, I2, J2 y L2), P, PU, RA, PE, LX, LC, RD, IM, TV, AU, PS, S, X e Y: BMAD v6, 6.12.4 real, v4 y nativo, hook guardian, puertas, interesados y canales, riesgos desde cuatro fuentes, opciones y contingencia, controles permanentes, autoridad y presupuesto de cambio al registrar, supuestos, webinar, seguridad, contexto, mapas, salidas de los scripts, personas, radar y briefing, datos del período, lecciones entre proyectos y su ciclo, reuniones, impacto, tres valores y capacidad, expediente de auditoría, estado de productos y cierre, integración y `--help` de 34 scripts |
+| `python3 scripts/probar_paquete.py` | 355 OK · 0 FALLO con Python 3.13; 354 OK · 0 FALLO con Python 3.9 (sin `matplotlib` se omite una comprobación de visuales; sin `PM_DIAGRAM_DESIGN`, la parte de compatibilidad del caso DD). Casos A–N (con A2, I2, J2 y L2), P, PU, RA, PE, LX, LC, RD, IM, TV, AU, PS, DD, S, X e Y: BMAD v6, 6.12.4 real, v4 y nativo, hook guardian, puertas, interesados y canales, riesgos desde cuatro fuentes, opciones y contingencia, controles permanentes, autoridad y presupuesto de cambio al registrar, supuestos, webinar, seguridad, contexto, mapas, salidas de los scripts, personas, radar y briefing, datos del período, lecciones entre proyectos y su ciclo, reuniones, impacto, tres valores y capacidad, expediente de auditoría, estado de productos y cierre, contrato con diagram-design, integración y `--help` de 34 scripts |
 | `python3 scripts/pruebas/integracion/correr.py` | 99 OK · 0 FALLO en 34 eslabones (seis cadenas); 94 OK en 32 eslabones con `--sin-e2e` |
-| `python3 scripts/pruebas/guias_e2e/correr.py` | 5/5 OK (E2E-1 15 pasos, E2E-2 10, E2E-3 14, E2E-4 15, E2E-5 20; 51 imágenes), evidencia e imágenes idénticas en dos corridas |
+| `python3 scripts/pruebas/guias_e2e/correr.py` | 5/5 OK (E2E-1 15 pasos, E2E-2 10, E2E-3 14, E2E-4 15, E2E-5 20; 51 imágenes), evidencia e imágenes idénticas en dos corridas y a las de `docs/guias/` (salvo la fecha del día en los nombres de los archivos exportados y de traspaso) |
 | `python3 scripts/validar_mermaid.py --render` | 128 bloques, 0 errores |
 | `python3 scripts/webinar/generar.py --todos --validar` | 5/5 mazos sin errores ni avisos (195 diapositivas de contenido, 125 términos de glosario) |
 | `python3 scripts/webinar/documentos.py --todos` | 5/5 casos sin errores: 15 documentos HTML (guía, guion y ejercicio con el ejemplo resuelto plegado) e `index.html`; 18 diagramas Mermaid dibujados |
-| `claude plugin validate .` | aprobado con Claude Code 2.1.308 (un aviso esperado: `CLAUDE.md` de la raíz es para quien desarrolla el repositorio, no contexto del plugin; los controles del directorio de plugins, que no cambian el resultado, señalan además que no hay ícono) |
+| Imagen Docker `pm-method:2.5.0` (`pm-pruebas`, sin red) | `Resultado: todas las pruebas OK`: 358 OK · 0 FALLO en la regresión con Python 3.14 (con el caso DD completo y diagram-design `66fa2e7`), 5/5 recorridos E2E, 98 OK en la integración cruzada, 128 bloques Mermaid y 5/5 mazos y documentos del webinar; imagen de 2,99 GB ([DOCKER §10](docs/DOCKER.md#10-verificación-registrada)) |
+| `claude plugin validate .` | aprobado con Claude Code 2.1.312 (un aviso esperado: `CLAUDE.md` de la raíz es para quien desarrolla el repositorio, no contexto del plugin; los controles del directorio de plugins, que no cambian el resultado, señalan además que no hay ícono) |
 | Enrutamiento en vivo (Claude Code real) | 130 frases en `docs/evaluacion/frases-enrutamiento.tsv`. Resultados registrados: 60/60 en la batería base (Sonnet 59/60, Haiku 56/60), 14/14 en las frases de las cinco skills de interesados, organización, comunicación, canales y OKR, 27/28 con vocabulario de PRINCE2 y PMBOK en español y de uso habitual, 25/25 con las skills de BMAD instaladas en el mismo proyecto, 14/14 con el resumen de contexto del hook de inicio, 8/8 en las frases de mapas estratégicos y 28/28 en las frases 103–130 ([resultados](docs/evaluacion/resultados/)) |
 | Guardarraíles, idioma y robustez en vivo | guardarraíles 4/4; idioma 5/5 con el hook `idioma.py`; inyección en fuentes 6/6; datos desordenados 7/7; escala 5/5; varias sesiones con `/compact` 10/10; controles permanentes 6/6; integración con BMAD instalado 12/12 |
 | Skills externas en vivo | archify, diagram-design, visual-explainer y docx/xlsx/pptx delegadas y funcionando; respaldo interno sin ellas |
@@ -483,7 +503,7 @@ Versiones probadas, licencias, comandos de instalación y cómo se verificó cad
 
 ```
 pm-method/
-  .claude-plugin/     plugin.json (pm-method 2.4.0) · marketplace.json (pm-method)
+  .claude-plugin/     plugin.json (pm-method 2.5.0) · marketplace.json (pm-method)
   agents/             6 agentes (orquestador + 5 subagentes; personas en Hermes)
   skills/             39 skills (SKILL.md + references/ + templates/ + scripts/)
   hooks/              hooks.json · py.sh · guardian.py (PreToolUse) · inicio.py (SessionStart) · idioma.py (UserPromptSubmit)
@@ -508,7 +528,7 @@ del usuario. Convenciones completas: `SPEC.md` §1.10.
 
 ## English summary
 
-pm-method 2.4.0 is a bilingual (Spanish/English) pack of 6 agents, 39 Agent Skills and 3 hooks for end-to-end project
+pm-method 2.5.0 is a bilingual (Spanish/English) pack of 6 agents, 39 Agent Skills and 3 hooks for end-to-end project
 management in Claude Code (also Cowork and Hermes). PRINCE2 7 provides the method and life cycle, PMBOK 8 only the
 techniques, a templates book the artifacts, BMAD the read-only product specification (single source of truth), and
 user-connected MCP tools the optional sources and channels. A main-thread orchestrator talks to the user; five phase

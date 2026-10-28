@@ -1,4 +1,4 @@
-# Casos de uso de integraciones · pm-method 2.4.0
+# Casos de uso de integraciones · pm-method 2.5.0
 
 Casos trabajados para cada repositorio o integración externa que pm-method incorpora, con más detalle en diseño visual,
 informes, planificación, OKR y canales de envío a interesados (correo, Teams, Slack, `.eml`). Cada caso dice en qué
@@ -187,18 +187,18 @@ INFO  INS-03 Skill externa 'visual-explainer' (visual-explainer) instalada: invo
   1. En tu terminal (una sola vez): `claude plugin marketplace add cathrynlavery/diagram-design` y `claude plugin install diagram-design@diagram-design` (o la copia con `npx skills add …`, ver Externa).
   2. "Usá diagram-design como motor de diagramas." (registra `integraciones.diagramas=diagram-design`).
   3. "Hacé el organigrama del proyecto." Variantes: "Armá el roadmap por etapas con las puertas como hitos." · "Dibujá el flujo de excepciones del PID."
-- **Respuestas del usuario:** la primera vez diagram-design pregunta si personalizar el estilo o usar el estilo por defecto: "Usá el estilo por defecto." Sin conexión a internet: "Usá fuentes del sistema, no Google Fonts."
+- **Respuestas del usuario:** la primera vez diagram-design pregunta si personalizar el estilo o usar el estilo por defecto: "Usá el estilo por defecto." pm-visuales ya le pide fuentes del sistema (sin Google Fonts, sin red); para las tipografías web: "Usá las tipografías web de diagram-design."
 - **Entradas (qué aporta el usuario y cómo):** el motor y el tipo de diagrama, en el prompt; roles de `gestion/estado.json` → `roles` (organigrama); etapas y puertas del plan de proyecto y de `estado.json` → `puertas` (roadmap); tolerancias y roles de `estado.json` (flujo de excepciones), según la guía de pm-visuales §6; para redibujar la WBS, el Mermaid `gestion/02-planificacion/visuales/wbs.md`. Nada se adjunta.
 - **Objetivo:** diagramas editoriales HTML/SVG (organigrama, mapa poder/interés tipo `quadrant`, flujo de excepciones tipo `swimlane`, roadmap por etapas tipo `timeline`) para la junta o el cliente.
 - **Momento PRINCE2:** organigrama en SU; flujo de excepciones en IP (enfoque de control del PID); roadmap en SU/IP con las puertas como hitos y actualizado en cada SB. Decide quien aprueba la fuente (ejecutiva en las puertas).
 - **Dueña y agente:** `pm-visuales`; desde `pm-inicio` o `pm-planificacion`.
-- **Externa:** diagram-design 2.6 (`cathrynlavery/diagram-design`, MIT). Como plugin: `claude plugin marketplace add cathrynlavery/diagram-design` y `claude plugin install diagram-design@diagram-design` (con `--scope project` queda para todo el equipo); como skill copiada: `npx skills add cathrynlavery/diagram-design -a claude-code -s diagram-design -y`. Se invoca como `diagram-design:diagram-design` (plugin) o `diagram-design`.
+- **Externa:** diagram-design 2.6 (`cathrynlavery/diagram-design`, MIT; verificada 2.6.133, commit `66fa2e7`). Como plugin: `claude plugin marketplace add cathrynlavery/diagram-design` y `claude plugin install diagram-design@diagram-design` (con `--scope project` queda para todo el equipo); como skill copiada: `npx skills add cathrynlavery/diagram-design -a claude-code -s diagram-design -y`. Se invoca como `diagram-design:diagram-design` (plugin) o `diagram-design`.
 - **Respaldo:** Mermaid de `templates/diagramas-mermaid.md` (§1 organigrama, §6 roadmap, §7 flujo de excepciones).
 - **Frase:** "Hacé el organigrama del proyecto" (sesión en vivo B2). EN: "Build a stage roadmap with the gates as milestones." (ejemplo de la propia skill).
-- **Pasos:** los ejecuta el sistema; el usuario no los escribe. Respaldo Mermaid; para la WBS u otro Mermaid, la vía de importación del motor y luego su chequeo:
+- **Pasos:** los ejecuta el sistema; el usuario no los escribe. Respaldo Mermaid; si es un `flowchart` (organigrama, WBS, flujo de productos, flujo de excepciones), la vía de importación del motor; el mapa poder/interés (`quadrantChart`) y el roadmap (`timeline`) se dibujan desde la tabla intermedia porque el importador los rechaza (código 2). Luego, el chequeo sin red:
   ```bash
   python3 <diagram-design>/scripts/mermaid_extract.py 02-planificacion/visuales/wbs.md
-  python3 <diagram-design>/scripts/self_check.py 02-planificacion/visuales/<nombre>.html     # debe imprimir OK
+  python3 <diagram-design>/scripts/self_check.py --offline 02-planificacion/visuales/<nombre>.html     # debe imprimir OK
   ```
   Salida real de `mermaid_extract.py` sobre la WBS del proyecto de prueba:
   ```text
@@ -208,7 +208,7 @@ INFO  INS-03 Skill externa 'visual-explainer' (visual-explainer) instalada: invo
   ```
 - **Salidas (qué queda y dónde verificarlo):** `02-planificacion/visuales/organigrama.html` (o `roadmap.html`, `flujo-excepciones.html`) junto a su `.md`. En vivo: B1 (`--plugin-dir` con el clon) generó `organigrama.html` y `wbs.html`, con `self_check.py` → `OK …/organigrama.html` y `OK …/wbs.html`; B2 (plugin instalado) generó el organigrama con `OK organigrama.html` y nota en `diario.md`. Dónde verificarlo: abrí `gestion/02-planificacion/visuales/organigrama.html` en el navegador (los roles vacíos se ven `[por confirmar]`); el sistema informa el `OK …` de `self_check.py`; por contrato (guía de pm-visuales §1.3, paso 6) queda en `gestion/estado.json` → `artefactos` (`organigrama`, `roadmap` o `flujo-excepciones`) como `borrador`; la nota de la sesión, en `gestion/03-control/registros/diario.md`.
 - **Controles:** INS-03 (no ve un plugin cargado solo con `--plugin-dir`: ahí emite AVISO y hay que ignorarlo); `self_check.py` = OK; regla de método: tres intereses en la junta y aseguramiento separado (la sesión B2 lo verificó y marcó `[por confirmar]` los roles vacíos).
-- **Límites:** la primera vez pide elegir estilo; sin usuario (subagente o `claude -p`) usa el estilo por defecto y lo anota. Su tope sugerido es de 9 nodos: con la regla `faithful` se conservan todos (la WBS de 11 nodos de B1 se mantuvo completa). Carga tipografías de Google Fonts; sin red, pedir fuentes del sistema. El roadmap y el flujo de excepciones con este motor **[sin verificar en vivo]**: solo se probaron organigrama y WBS. Un flujo de control de cambios distinto del de excepciones no figura como visual del catálogo; se dibujaría como `flowchart` **[sin verificar en vivo]**.
+- **Límites:** la primera vez pide elegir estilo; sin usuario (subagente o `claude -p`) usa el estilo por defecto y lo anota. Su tope sugerido es de 9 nodos: con la regla `faithful` se conservan todos (la WBS de 11 nodos de B1 se mantuvo completa). Por defecto cargaría tipografías de Google Fonts: pm-visuales pide fuentes del sistema y verifica con `--offline` (reverificado en vivo el 2026-10-27 con 2.6.133: organigrama sin red, `OK`). El roadmap y el flujo de excepciones con este motor **[sin verificar en vivo]**: solo se probaron organigrama y WBS. Un flujo de control de cambios distinto del de excepciones no figura como visual del catálogo; se dibujaría como `flowchart` **[sin verificar en vivo]**.
 
 ### 1.3 visual-explainer: one-pager del brief (o de los OKR)
 

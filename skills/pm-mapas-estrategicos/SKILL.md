@@ -1,7 +1,7 @@
 ---
 name: pm-mapas-estrategicos
 description: "Mapas de Wardley y de recorrido del cliente (journey, service blueprint) desde el proyecto o BMAD, con controles. Usar: mapa de Wardley, evolución de componentes, customer journey, puntos de dolor. No: diagramas de gestión→pm-visuales."
-version: 2.4.0
+version: 2.5.0
 author: pm-method
 license: MIT
 metadata:

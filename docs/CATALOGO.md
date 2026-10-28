@@ -1,4 +1,4 @@
-# Catálogo de pm-method 2.4.0 · Agents and skills catalog
+# Catálogo de pm-method 2.5.0 · Agents and skills catalog
 
 Referencia de los 6 agentes, las 39 skills (33 que el modelo puede activar solo y 6 comandos de uso humano) y los scripts del paquete. Todo lo que figura aquí sale de `SPEC.md`, de `agents/*.md` y del frontmatter y cuerpo de cada `skills/*/SKILL.md`. Si algo de este catálogo contradice esos archivos, mandan ellos.
 
@@ -136,7 +136,7 @@ Formato de cada ficha: **Produce** (artefactos y ruta), **PRINCE2** (procesos ·
 - **Produce:** organigrama, mapa poder/interés (restringido), PBS/WBS, flujo de productos, Gantt, roadmap por etapas, flujo de excepciones, canvas HTML y tablero de avance HTML con vista por actor (`?actor=<Nombre>`) y sección opcional de mapas estratégicos (la completa `mapas.py tablero --insertar`). Salidas en `02-planificacion/visuales/`, `01-inicio/canvas-arranque.html` y `03-control/reportes/AAAA-MM-DD-tablero-avance.html`.
 - **PRINCE2:** SU, IP, CS, SB, CP · organizing, plans, progress, risk.
 - **PMBOK como cómo:** estructuras jerárquicas (WBS, OBS), diagrama de Gantt, roadmap, mapa poder-interés, mapa de calor P×I, burn-up, controles visuales.
-- **Plantillas:** `diagramas-mermaid.md`, `canvas-arranque.html`, `tablero-avance.html`. **Scripts:** `wbs.py --mermaid`, `cpm.py --mermaid`, `estado.py periodo --tablero` (el bloque `datos-tablero` con semáforos por regla y el juicio del gestor). Motores opcionales: diagram-design, archify, visual-explainer, drawio (siempre con Mermaid de respaldo).
+- **Plantillas:** `diagramas-mermaid.md`, `canvas-arranque.html`, `tablero-avance.html`. **Scripts:** `wbs.py --mermaid`, `cpm.py --mermaid`, `estado.py periodo --tablero` (el bloque `datos-tablero` con semáforos por regla y el juicio del gestor). Motores opcionales: diagram-design, archify, visual-explainer, drawio (siempre con Mermaid de respaldo; diagram-design importa solo los respaldos `flowchart`, dibuja el mapa poder/interés y el roadmap desde la tabla intermedia y entrega sin red, con fuentes del sistema y `self_check.py --offline`).
 - **Lee de la fachada:** resumen y estados de requisitos, épicas e historias (`… --json`).
 - **Usar:** organigrama, mapa de stakeholders, diagrama de la WBS, roadmap visual, tablero, dashboard, vista por actor. **No:** Gantt→pm-cronograma-estimacion; contenido del informe→pm-progreso-reportes.
 

@@ -1,4 +1,4 @@
-# Pruebas y aceptación · pm-method 2.4.0
+# Pruebas y aceptación · pm-method 2.5.0
 
 Cómo se verifica el ecosistema, qué cubre cada prueba y cómo hacer la prueba de aceptación antes de usarlo en un
 proyecto real. EN: *test strategy, automated suites, live tests with real Claude Code and an acceptance checklist.*
@@ -53,10 +53,15 @@ proyecto real. EN: *test strategy, automated suites, live tests with real Claude
 | TV · Tres valores y capacidad del release (9 comprobaciones) | `cpm.py` con los tres valores de la guía E2E-2: beta-PERT por defecto (duración = tE hacia arriba, 112 días, fin 2027-05-05, σ del camino 6,51, reserva a 2σ 13,0, fin con reserva 2027-05-24, fórmula rotulada), `--estimacion` (columnas y distribución) y reserva aparte en el Gantt; `impacto.py --pert` lee ese archivo y da la misma reserva (112 → 123, quedan 2,0); triangular elegible (tE y σ de esa distribución, misma reserva a 1σ en `impacto.py`); errores claros (O > M, `--estimacion` sin tres valores); `release.py capacidad` sin velocidad (código 1), con el backlog de E2E-2 (R1 47 de 48, Must 88 %: vigilar; R2 21 de 24; sin épicas, descartados ni Won't), igual a la capacidad de `impacto.py` (21 de 24 → 29, +1 sprint) y lecturas «Must no entran», «repriorizar», «dividir» y release inexistente |
 | AU · Expediente de auditoría (7 comprobaciones) | `paquete.py auditoria`: índice MD y HTML (escapado, enlaces), cronología (puerta con D-### y lista confirmada, aprobación, envío por id de interesado, orden de fecha), línea base idéntica, sanidad al corte, paquetes de puerta citados por huella; `verificar` OK y con un registro alterado y un archivo agregado (código 1); período, `--externo` (sin `stakeholders.csv` ni destinos) y ruta externa excluida; ZIP sin `SHA256SUMS` sin traza |
 | PS · Estado de productos y cierre por id (13 comprobaciones) | `estado.py productos` sin backlog: hojas de la WBS sin hitos, conteos que suman el total, estado con su Q-### (aprobado, aceptado sin revisión, fuera de especificación por rechazo), `--corte` anterior a la revisión; QUA-04 solo para el elemento aceptado sin revisión aprobada; issue fuera de especificación que trata el rechazo; `puertas.py verificar autorizar-cierre`: C-03 sin recomendaciones (lista los ids), con Destinatario o «Responsable:» (sin C-03), citado sin responsable y no citado (bloqueo con los dos motivos), C-07 con los REQ Must de `requisitos.md` (no el Should); con backlog: historias sin épicas, `--alcance WP-###` por la descripción del paquete y `--alcance R2`, paquete recibido sin revisión, alcance inexistente con mensaje claro, `registro-aceptacion` que acepta solo lo aprobado y C-07 con la historia Must, `--markdown` con el total, el detalle y el WP completado con su D-### |
+| DD · Contrato con diagram-design (2 comprobaciones; 5 con `PM_DIAGRAM_DESIGN`) | Tabla 1.2 de la guía de pm-visuales: cada visual que se importa tiene un respaldo de gramática soportada por el importador de diagram-design (`flowchart` de la plantilla y de `wbs.py`), y el mapa poder/interés (`quadrantChart`) y el roadmap (`timeline`) van desde la tabla intermedia; receta §1.4 con fuentes del sistema y `self_check.py --offline`. Con `PM_DIAGRAM_DESIGN=<carpeta skills/diagram-design>` (la imagen Docker la define, commit fijado): `mermaid_extract.py` importa la WBS de `wbs.py` con todos sus nodos, los 8 bloques de `diagramas-mermaid.md` dan código 0 solo si su gramática es soportada (el resto, 2), y `self_check.py --offline` rechaza Google Fonts y acepta la plantilla con fuentes del sistema. Sin la variable, la parte de compatibilidad se omite con un aviso |
 | Y · Errores básicos (2 comprobaciones) | `--help` de los 34 scripts de las skills y de `scripts/` (código 0, texto de uso, sin traza); 17 entradas faltantes (CSV, acta, proyecto sin `estado.json`) terminan con código distinto de 0 y un mensaje claro, sin traza de Python |
 | X · Integración cruzada (32 comprobaciones, una por eslabón) | la suite de §2.3 sin la cadena 6 (`correr.py --sin-e2e`): cada eslabón cuenta como una comprobación y, si falla, muestra cuál de sus aserciones falló |
 
-Resultado al 2026-10-22 (versión 2.4.0, casos A–N con A2, I2, J2, L2 y L3, P, PU, RA, PE, LX, LC, RD, IM, TV, AU, PS, S, X e Y): **353 OK · 0 FALLO** con Python 3.13; con Python 3.9, **352 OK · 0 FALLO** (sin `matplotlib` se omite una comprobación de visuales). Requiere `pyyaml`. Los casos H, I y J no salen a la red: el caso H levanta un servidor SMTP mínimo y un receptor HTTP en 127.0.0.1.
+Resultado al 2026-10-27 (versión 2.5.0, casos A–N con A2, I2, J2, L2 y L3, P, PU, RA, PE, LX, LC, RD, IM, TV, AU, PS, DD, S, X e Y): **355 OK · 0 FALLO** con Python 3.13; con Python 3.9, **354 OK · 0 FALLO** (sin `matplotlib` se omite una comprobación de visuales). Requiere `pyyaml`. Los casos H, I y J no salen a la red: el caso H levanta un servidor SMTP mínimo y un receptor HTTP en 127.0.0.1.
+Las dos corridas son sin `PM_DIAGRAM_DESIGN` (la de 3.9, con 3.9.25 y sin `matplotlib`), de modo que la parte del caso
+DD que necesita diagram-design se omite; con `PM_DIAGRAM_DESIGN` apuntando a diagram-design `66fa2e7`, el caso DD dio **5 OK**
+con Python 3.13 y con 3.9. Dentro de la imagen Docker `pm-method:2.5.0` (Python 3.14, `PM_DIAGRAM_DESIGN` definida por
+la imagen): **358 OK · 0 FALLO**, con el caso DD completo (5 OK) ([DOCKER §10](DOCKER.md#10-verificación-registrada)).
 
 ### 2.1 Recorridos E2E (`scripts/pruebas/guias_e2e/`)
 
@@ -65,7 +70,7 @@ Resultado al 2026-10-22 (versión 2.4.0, casos A–N con A2, I2, J2, L2 y L3, P,
 escenario se fijan (`nuevo_proyecto.py --fecha` en `comun.base_su`, `sanidad.py --corte`, `evm.py --guardar --corte`,
 `puertas.py lista|confirmar --fecha`), de modo que dos corridas seguidas dan la misma evidencia; solo los nombres de
 archivo que fechan `bmad.py handoff`, `paquete.py` y `exportar.py` llevan el día de la corrida. Resultado al
-2026-10-22: **5/5 OK**, evidencia e imágenes idénticas en dos corridas.
+2026-10-27: **5/5 OK**, evidencia e imágenes idénticas en dos corridas y a las de `docs/guias/` (salvo esos nombres).
 
 | Guía | Pasos | Controles que muestra |
 |---|---|---|
@@ -137,7 +142,7 @@ python3 scripts/pruebas/integracion/correr.py --e2e DIR          # cadena 6 con 
 python3 scripts/pruebas/integracion/correr.py --conservar --json resultado.json
 ```
 
-Resultado al 2026-10-22: **99 OK · 0 FALLO en 34 eslabones** con Python 3.13 (las seis cadenas); cadenas 1–5,
+Resultado al 2026-10-27: **99 OK · 0 FALLO en 34 eslabones** con Python 3.13 (las seis cadenas); cadenas 1–5,
 **94 OK · 0 FALLO en 32 eslabones**, también con Python 3.9 (caso X de `probar_paquete.py`); con `--e2e DIR` reutiliza
 las salidas de los recorridos sin volver a correrlos. Duración en Linux x86_64: ≈ 1,5 min con las seis cadenas (los
 cinco recorridos corren en paralelo) y ≈ 20 s sin la sexta, según el disco. Si una guía o un mazo del webinar cita una imagen que todavía no está en
@@ -155,8 +160,8 @@ uv venv -p 3.9 /tmp/py39 && VIRTUAL_ENV=/tmp/py39 uv pip install pyyaml openpyxl
 /tmp/py39/bin/python scripts/validar_paquete.py && /tmp/py39/bin/python scripts/probar_paquete.py
 ```
 
-Resultado al 2026-10-22: `validar_paquete.py` OK con el intérprete 3.9; `probar_paquete.py` 352 OK · 0 FALLO con 3.9.25
-(sin `matplotlib`) y 353 OK · 0 FALLO con 3.13.
+Resultado al 2026-10-27 (versión 2.5.0): `validar_paquete.py` OK con el intérprete 3.9; `probar_paquete.py` 354 OK ·
+0 FALLO con 3.9.25 (sin `matplotlib`) y 355 OK · 0 FALLO con 3.13.
 
 ## 3. Pruebas en vivo (`scripts/pruebas_vivo/`)
 
@@ -252,7 +257,8 @@ python3 scripts/pruebas_vivo/suite.py enrutamiento --ids $(seq -s, 103 130)     
 
 Los informes completos de cada corrida están en `docs/evaluacion/resultados/`, con la fecha y la versión en el nombre.
 Los escenarios de robustez `inyeccion`, `desorden`, `multisesion` y `escala` se corrieron el 2026-10-17 y la batería
-completa `suite.py todo` no se repitió con la versión 2.4.0 ([INDICE §6](INDICE.md)).
+completa `suite.py todo` no se repitió con las versiones 2.4.0 ni 2.5.0 (la 2.5.0 no cambia descripciones, agentes
+ni hooks; [INDICE §6](INDICE.md)).
 
 ## 4. Próximo nivel: piloto real
 
@@ -270,7 +276,7 @@ Lo que no se puede probar en el laboratorio (Windows real, conectores reales, us
 
 Marcar cada punto en una carpeta de prueba (no en el proyecto real):
 
-1. [ ] `claude plugin list` muestra `pm-method` 2.4.0 habilitado.
+1. [ ] `claude plugin list` muestra `pm-method` 2.5.0 habilitado.
 2. [ ] `/pm-method:pm-ayuda` responde con la guía.
 3. [ ] `/pm-method:pm-nuevo "Prueba"` crea la carpeta; al reabrir la sesión aparece el resumen del hook de inicio con la
    ruta de los scripts.

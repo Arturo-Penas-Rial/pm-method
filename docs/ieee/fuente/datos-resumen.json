@@ -3,9 +3,9 @@
   "archivo": "pm-method-ieee-resumen-light",
   "titulo_doc": "pm-method · Resumen light para IEEE",
   "descripcion": "Resumen light de pm-method para miembros de IEEE: qué resuelve, cómo trabaja, ventajas y una propuesta de formación a ritmo tranquilo con su ruta de entrada.",
-  "pie": "pm-method 2.4.0 · Resumen light para IEEE · propuesta ajustable",
+  "pie": "pm-method 2.5.0 · Resumen light para IEEE · propuesta ajustable",
   "portada_linea": "propuesta ajustable",
-  "version": "2.4.0"
+  "version": "2.5.0"
  },
  "programa": {
   "minutos_sesion": 90,
@@ -254,7 +254,7 @@
  "siglas_titulo": "¿Qué significan las siglas?",
  "siglas_nota": "PRINCE2® y PMBOK® son marcas de sus titulares.",
  "valores": {
-  "version": "2.4.0",
+  "version": "2.5.0",
   "minutos_sesion": 90,
   "sesiones_total": 14,
   "min_total_txt": "1.260",
@@ -265,9 +265,9 @@
   "nuevas_horas": "6",
   "piloto_min": 4,
   "piloto_max": 6,
-  "regresion_ok": "346",
+  "regresion_ok": "355",
   "e2e_ok": "5",
-  "evidencia_fecha": "2026-10-22",
+  "evidencia_fecha": "2026-10-27",
   "talleres_n": 5,
   "calculo_sesiones": "2 + 5 × 2 + 2 = 14"
  },

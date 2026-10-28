@@ -1,7 +1,7 @@
 ---
 name: pm-interesados
 description: "Maestro de interesados: poder/interés, RACI (WBS, PRD, OKR), estereotipos, preferencias y personas de usuario × capacidades. Usar: interesados, stakeholders, RACI, preferencias, personas. No: enviar comunicados→pm-comunicacion-stakeholders."
-version: 2.4.0
+version: 2.5.0
 author: pm-method
 license: MIT
 metadata:
