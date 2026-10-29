@@ -1,7 +1,7 @@
 ---
 name: pm-visuales
 description: "Diagramas y tablero de avance HTML. Usar: organigrama, mapa de stakeholders, diagrama de la WBS, roadmap visual, one-pager, tablero, dashboard, vista por actor. No: Gantt→pm-cronograma-estimacion; contenido del informe→pm-progreso-reportes."
-version: 2.5.0
+version: 2.6.0
 author: pm-method
 license: MIT
 metadata:

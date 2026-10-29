@@ -3,9 +3,9 @@
   "archivo": "pm-method-ieee-informe-light",
   "titulo_doc": "pm-method · Informe 2 light para IEEE",
   "descripcion": "Resumen light del Informe 2 de pm-method para miembros de IEEE: qué resuelve, cómo está organizado, cómo controla y qué ventajas tiene, sin jerga.",
-  "pie": "pm-method 2.5.0 · Informe 2 en versión light para IEEE",
+  "pie": "pm-method 2.6.0 · Informe 2 en versión light para IEEE",
   "portada_linea": "resumen del Informe 2 (documentación del ecosistema)",
-  "version": "2.5.0"
+  "version": "2.6.0"
  },
  "diapositivas": [
   {
@@ -188,6 +188,20 @@
    "nota": "Cada vez que se abre una sesión, el sistema arma un resumen del proyecto a partir de los datos guardados y una línea con lo urgente. Esto es seguridad aplicada a la IA agéntica: el modelo propone, cita la fuente y espera confirmación. Si un texto de entrada trae instrucciones escondidas, se tratan como datos y no se ejecutan."
   },
   {
+   "tipo": "imagen_puntos",
+   "titulo": "Decidir con la evidencia a la vista y encontrarla después con la fuente citada",
+   "imagen": "docs/guias/img/g1-kb-busqueda.png",
+   "pie": "Caso de práctica: a la pregunta «¿por qué no se aprobó la compra de licencias de diseño?», el buscador trae primero el cambio rechazado, con el motivo y la cita",
+   "puntos_titulo": "Decidir y buscar con evidencia",
+   "puntos": [
+    "Antes de elegir, el sistema reúne la evidencia que aplica, cada dato con su fuente",
+    "Compara las opciones con criterios y pesos explícitos, y muestra qué peso cambiaría la elección",
+    "Decide la persona con la autoridad que corresponde; queda a la vista qué decisión sigue vigente",
+    "Buscador opcional: preguntas en español o inglés sobre todo el proyecto, con la cita de cada respuesta"
+   ],
+   "nota": "Elegir entre alternativas es donde más se improvisa: se decide con lo que uno recuerda y después nadie encuentra en qué se basó. El sistema arma primero un expediente con la evidencia, compara las opciones con criterios explícitos y deja que decida quien tiene la autoridad. Un componente opcional indexa los documentos del proyecto y responde preguntas citando la fuente; nunca escribe en el proyecto."
+  },
+  {
    "tipo": "ventajas",
    "titulo": "Ventajas: decisiones trazables, datos que cuadran y menos trabajo administrativo",
    "tarjetas": [
@@ -208,7 +222,7 @@
      "Un estándar repetible y auditable: cada decisión, con su fuente y su registro"
     ]
    ],
-   "calidad": "Calidad verificada (2026-10-27): 355 pruebas automáticas sin fallos y 5 recorridos completos reproducibles",
+   "calidad": "Calidad verificada (2026-10-29): 463 pruebas automáticas sin fallos y 5 recorridos completos reproducibles",
    "abierto": "Abierto: licencia MIT; los datos son archivos de texto que se leen sin pm-method",
    "nota": "Las ventajas cambian según el rol, pero tienen un denominador común: lo que se decide queda registrado y los números cuadran entre el informe, el tablero y el correo. La línea de calidad resume la evidencia del informe completo. Al ser abierto, nada queda atado al sistema."
   },
@@ -257,7 +271,7 @@
  "siglas_titulo": "¿Qué significan las siglas?",
  "siglas_nota": "PRINCE2® y PMBOK® son marcas de sus titulares.",
  "valores": {
-  "version": "2.5.0",
+  "version": "2.6.0",
   "minutos_sesion": 90,
   "sesiones_total": 14,
   "min_total_txt": "1.260",
@@ -268,9 +282,9 @@
   "nuevas_horas": "6",
   "piloto_min": 4,
   "piloto_max": 6,
-  "regresion_ok": "355",
+  "regresion_ok": "463",
   "e2e_ok": "5",
-  "evidencia_fecha": "2026-10-27",
+  "evidencia_fecha": "2026-10-29",
   "talleres_n": 5,
   "calculo_sesiones": "2 + 5 × 2 + 2 = 14"
  },

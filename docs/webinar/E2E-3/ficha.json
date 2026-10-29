@@ -10,18 +10,18 @@
   "objetivos": [
     "Construir un maestro único de interesados con matriz poder/interés y de compromiso",
     "Registrar los acuerdos de una reunión desde candidatos con cita, solo con confirmación humana",
-    "Distinguir un beneficio del business case de un KR y leer la salud de un KR",
+    "Distinguir un beneficio de un KR y elegir la meta de un KR con quien decide en la RACI",
     "Armar el highlight desde el dato y comprobar sus cifras antes de enviarlo",
     "Vigilar la cadencia de contacto prometida y reevaluar la brecha de compromiso"
   ],
   "sistema_agentico": {
     "agente": [
-      "Propone acuerdos y compromisos de una transcripción, con cita y hora",
+      "Propone acuerdos de una transcripción y alternativas de una meta, con cita y fuente",
       "Arma el highlight y el tablero con un solo cálculo y verifica cada cifra",
       "Prepara mensajes por perfil y avisa quién está fuera de su cadencia de contacto"
     ],
     "persona": [
-      "Quien presidió la reunión confirma qué acuerdos se registran",
+      "Quien presidió confirma los acuerdos; la A de la RACI elige la meta de un KR",
       "Una persona aprueba cada comunicado y confirma cada envío",
       "El gestor decide la acción correctiva con cada interesado"
     ],
@@ -43,7 +43,7 @@
       "temas": [
         "Junta y maestro único de interesados",
         "Matriz poder/interés, estereotipos y preferencias",
-        "Plan de compromiso, beneficios, OKR y RACI",
+        "Beneficios, OKR, RACI y quién decide la meta de un KR",
         "Taller → acuerdos con cita, confirmación y acta"
       ]
     },

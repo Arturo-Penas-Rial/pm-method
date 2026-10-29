@@ -11,7 +11,7 @@
     "Construir un maestro único de interesados con matriz poder/interés y de compromiso",
     "Distinguir preferencias declaradas de inferidas y leer un perfil de comunicación",
     "Separar beneficios del business case de OKR y explicar P-04",
-    "Armar una RACI con un solo aprobador por elemento",
+    "Armar una RACI con un solo aprobador y decidir una meta de OKR según ella",
     "Registrar los acuerdos de una reunión desde candidatos con cita, solo con confirmación humana"
    ],
    "diapositivas": [
@@ -80,14 +80,14 @@
         "B-01…B-03 con dueña"
        ],
        [
-        "Aprobadores",
-        "Dos o ninguno",
-        "Un A por elemento (STK-02)",
-        "6 elementos RACI"
+        "Aprobar y decidir",
+        "Dos o ninguno; decide quien está",
+        "Un A por elemento; decide la A",
+        "Meta del KR: D-007 por la A"
        ]
       ]
      },
-     "nota": "Esta es la tesis del caso: actividades que hoy se hacen una vez, a mano o nunca, pasan a ser controles que corren solos. Contacto, compromiso y highlight son la clase 2; acuerdos de reunión, criterios de éxito y aprobadores, la de hoy. La salud de los KR y el radar al retomar la sesión se ven en la clase 2."
+     "nota": "Esta es la tesis del caso: actividades que hoy se hacen una vez, a mano o nunca, pasan a ser controles que corren solos. Contacto, compromiso y highlight son la clase 2; acuerdos de reunión, criterios de éxito, aprobadores y quién decide una meta, la de hoy. La salud de los KR y el radar al retomar la sesión se ven en la clase 2."
     },
     {
      "tipo": "contenido",
@@ -229,18 +229,8 @@
        ]
       ]
      },
-     "nota": "El beneficio es el compromiso con la junta: dueña Sofía, tolerancia y revisión después del cierre. Los KR son metas de ciclo y pueden apuntar más alto sin mover el compromiso. Paso 6."
-    },
-    {
-     "tipo": "contenido",
-     "titulo": "P-04: criterios de éxito con dueño",
-     "puntos": [
-      "Condición si los criterios de éxito están solo en OKR",
-      "Aviso si hay B-n sin enfoque de beneficios",
-      "Con el enfoque: autorizar-proyecto sin P-04",
-      "Puerta: 1 bloqueo (la lista de la junta), 0 condiciones, 0 avisos"
-     ],
-     "nota": "P-04 es un control de la verificación de autorizar-proyecto. El enfoque de beneficios dice cómo, cuándo y quién mide cada beneficio, incluso después del proyecto. Pasos 6 y 7."
+     "nota": "El beneficio es el compromiso con la junta: dueña Sofía, tolerancia y revisión después del cierre. Los KR son metas de ciclo y pueden apuntar más alto sin mover el compromiso. P-04, en la verificación de autorizar-proyecto, pone una condición si los criterios de éxito están solo en OKR y un aviso si hay B-n sin enfoque de beneficios; con el enfoque, la puerta queda en 1 bloqueo (la lista de la junta), 0 condiciones y 0 avisos. Pasos 6 y 7.",
+     "subtitulo": "P-04 en autorizar-proyecto: condición si los criterios de éxito están solo en OKR"
     },
     {
      "tipo": "demo",
@@ -301,16 +291,34 @@
      "nota": "Seis elementos: dos épicas, un requisito, un paquete de la WBS y dos KR. El segundo A en E-1 no se registró. El reporte de interesados del paso 12 muestra esta matriz junto al perfil resuelto de cada interesado con su procedencia."
     },
     {
+     "tipo": "imagen",
+     "titulo": "La meta del KR de adopción, decidida por la A",
+     "imagen": "docs/guias/img/g3-decision-kr-b02.png",
+     "nota": "Paso 7b. Tres alternativas para el KR de adopción, con la plantilla de criterios de OKR y la ambición sumada por Laura antes de puntuar. O3 queda eliminada porque no se alinea con ningún beneficio. La matriz recomienda O1; la registra Laura, que es la A de KR-1.1 en la RACI (D-007)."
+    },
+    {
+     "tipo": "contenido",
+     "titulo": "Decide la A de la RACI, no quien armó la matriz",
+     "puntos": [
+      "Pesos y puntajes con fuente, fijados antes de puntuar",
+      "Sensibilidad: con la ambición en 7,7 o menos, gana el 25 %",
+      "Martín, sin motivo: no se registra nada",
+      "C consultado antes (panel de socios); revisión de la meta el 12/3",
+      "I avisado: borrador al Consejo, nada sale sin aprobar"
+     ],
+     "nota": "PRINCE2 define la autoridad y la RACI la refleja: decision.py exige motivo si decide quien no es la A ni una autoridad superior. El expediente muestra A, C e I de los elementos afectados, sin valoraciones. Tras registrar, recuerda a los C y deja el borrador del aviso a los I con plan-envio. Paso 7b."
+    },
+    {
      "tipo": "contenido",
      "titulo": "Del taller a los registros, con cita",
      "puntos": [
       "Transcripción VTT: 6 intervenciones de 4 hablantes",
       "Candidatos con cita y hora; nada se registra solo",
-      "Confirmados: D-007 (métricas de equipo) y A-004 (prototipo, 11/12)",
+      "Confirmados: D-008 (métricas de equipo) y A-004 (prototipo, 11/12)",
       "La instrucción incrustada (IN-01) rechaza el lote entero",
-      "PF-005…PF-008: solo frases en primera persona"
+      "El agente propone el cambio del sindicato (P-001); lo aprueba Martín"
      ],
-     "nota": "extraccion.py propone; quien presidió confirma con --por y corrige lo que haga falta (decidió Sofía como product owner, no como autoridad de cambio). El riesgo del delegado va al acta y lo responde D-007. Las preferencias siguen el mismo principio: se proponen con cita y se confirman. Paso 8."
+     "nota": "extraccion.py propone; quien presidió confirma con --por y corrige lo que haga falta (decidió Sofía como product owner, no como autoridad de cambio). El riesgo del delegado va al acta y lo responde D-008. El paso del sindicato a neutral lo propone el agente con registro.py proponer: el mismo agente no puede aprobarlo y la aprobación de Martín pasa por el pedido de permiso. Las preferencias PF-005…PF-008 siguen el mismo principio: se proponen con cita y se confirman. Paso 8."
     },
     {
      "tipo": "imagen",
@@ -343,6 +351,7 @@
       "Un maestro único: una persona, un id",
       "Preferencias declaradas y confirmadas, nunca inferidas",
       "Beneficios con dueño y tolerancia; los OKR los complementan",
+      "La meta se elige entre alternativas y la decide la A",
       "Próxima clase: ¿estamos cumpliendo lo que prometimos?"
      ],
      "nota": "Cerrá con la pregunta de la clase 2. Pedí que traigan la fecha del último contacto con sus cinco interesados y su último informe de avance: los vamos a usar en la parte B del ejercicio."
@@ -393,7 +402,7 @@
      "tipo": "demo",
      "titulo": "Demo · ¿qué decido hoy? (paso 10a)",
      "prompt": "¿Qué tengo que decidir, escalar y desbloquear hoy?",
-     "nota": "Antes del prompt, mostrá lo que agrega el hook de inicio: el contexto (A-004 vencida, condición abierta de autorizar-etapa) y la línea «radar al 2027-01-08: decidir 2 · escalar 0 · desbloquear 1 (A-004) · vigilar 1». Los registros mandan sobre cualquier nota de memoria. El radar es de solo lectura: no decide nada."
+     "nota": "Antes del prompt, mostrá lo que agrega el hook de inicio: el contexto (A-004 vencida, condición abierta de autorizar-etapa) y la línea «radar al 2027-01-08: decidir 2 · escalar 0 · desbloquear 1 (A-004) · vigilar 1». Los registros mandan sobre cualquier nota de memoria. El radar es de solo lectura: no decide nada. Si Ana pregunta qué se decidió sobre la métrica individual de los operadores, decision.py vigentes --tema encuentra D-008, que el briefing no trae."
     },
     {
      "tipo": "imagen",
@@ -649,6 +658,10 @@
    "definicion": "Quién es responsable (R), aprobador (A), consultado (C) e informado (I) en cada elemento; un solo A."
   },
   {
+   "termino": "Matriz de decisión",
+   "definicion": "Alternativas puntuadas en criterios con peso fijado antes de puntuar, eliminatorios y sensibilidad; la recomendada es una propuesta y registra la persona que decide (decision.py matriz)."
+  },
+  {
    "termino": "Beneficio (B-n)",
    "definicion": "Mejora medible comprometida en el business case, con dueño, línea base, meta, fecha y tolerancia."
   },
@@ -677,8 +690,8 @@
    "definicion": "Desvío permitido sobre un objetivo antes de escalar a la junta (gestión por excepción)."
   },
   {
-   "termino": "Valor ganado (EVM)",
-   "definicion": "Mide avance y costo con PV, EV y AC; de ahí SPI, CPI y el pronóstico EAC."
+   "termino": "Valor ganado (EVM) y TOL-03",
+   "definicion": "Mide avance y costo con PV, EV y AC; de ahí SPI, CPI y el pronóstico EAC. TOL-03 avisa si no hay corte guardado o el último tiene más de 31 días."
   },
   {
    "termino": "Junta del proyecto (project board)",
@@ -703,10 +716,6 @@
   {
    "termino": "STK-12",
    "definicion": "Control de cadencia de contacto: avisa si un interesado lleva más de 1,5 × su frecuencia sin contacto registrado."
-  },
-  {
-   "termino": "TOL-03",
-   "definicion": "Aviso de sanidad: etapa de entrega sin corte de EVM guardado o con el último de más de 31 días."
   },
   {
    "termino": "P-04",

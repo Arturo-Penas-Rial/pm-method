@@ -4,14 +4,15 @@ Revisión de seguridad del plugin pm-method 2.3.0 desde el punto de vista de qui
 instala: si las skills, los agentes, los hooks y los scripts introducen riesgos o exponen a vulnerabilidades. La
 sección 11 revisa los scripts que la versión 2.4.0 suma o amplía y que leen fuentes externas (2026-10-22): sin
 hallazgos nuevos de severidad alta ni media. SEG-13 (dependencias Node de la imagen Docker) se revisó otra vez el
-2026-10-27, con la versión 2.5.0.
+2026-10-27, con la versión 2.5.0. La sección 14 revisa pm-kb, el índice de conocimiento opcional (2026-10-28): sin
+hallazgos de severidad alta, media ni baja; dos limitaciones aceptadas como informativas (SEG-18 y SEG-19).
 
 EN: *Security review of pm-method 2.3.0. No high-severity issues. The three medium issues are fixed (HTML escaping in
 the stakeholder report, formula neutralisation in the xlsx export, and a permission prompt that a person must answer
 before approving or sending messages). Of the twelve low items, eleven are fixed and one is fixed in part; the remaining npm
 advisories in the optional Docker image (five low, plus one high and one moderate bundled inside `npm` that no published
-`npm` release fixes yet, as of 2026-10-27) are accepted with a justification; the two informational items
-are accepted.*
+`npm` release fixes yet, as of 2026-10-27) are accepted with a justification; the four informational items
+are accepted (two of them are known limitations of the optional pm-kb index, section 14).*
 
 ## 1. Resultado en una tabla
 
@@ -20,7 +21,7 @@ are accepted.*
 | Alta | 0 | — | — | — |
 | Media | 3 | 3 (SEG-01, SEG-02, SEG-03) | — | — |
 | Baja | 12 | 11 (SEG-04 a SEG-11, SEG-13, SEG-14, SEG-15) y SEG-12 en parte | SEG-12 (resto) | SEG-13: 5 avisos bajos y, hasta que una versión publicada de `npm` los corrija, 1 alto y 1 moderado empaquetados en `npm` (2026-10-27), justificados |
-| Informativa | 2 | — | — | 2 (SEG-16, SEG-17) |
+| Informativa | 4 | — | — | 4 (SEG-16, SEG-17, SEG-18, SEG-19) |
 
 No se encontraron credenciales, tokens ni datos personales reales en el repositorio (incluidos fixtures, ejemplos y
 documentación): todas las direcciones de correo son de dominios reservados para ejemplos (`example.org`, `.test`).
@@ -37,6 +38,7 @@ documentación): todas las direcciones de correo son de dominios reservados para
 | `scripts/` | `validar_paquete.py`, `probar_paquete.py`, `instalar_hermes.py`, `pruebas_vivo/`, `webinar/generar.py` y `webinar/pptx.js` |
 | `.claude-plugin/`, `.gitignore` | manifiestos y exclusiones |
 | `docker/` | entorno Docker opcional: solo auditoría de dependencias |
+| `pm-kb/`, `docker/pm-kb-db.Dockerfile`, perfil `kb` de `docker/compose.yaml` | índice de conocimiento opcional: código, base de datos, servicio web y MCP (§14) |
 
 Fuera de alcance: `docs/guias/`, `docs/webinar/` y `scripts/pruebas/guias_e2e/` (solo se buscaron secretos y datos
 personales), los servidores MCP y las skills de terceros (no forman parte del paquete) y Claude Code mismo.
@@ -277,6 +279,18 @@ de roles, escritura solo por scripts) y el aviso de `inicio.py` no existen ahí;
 skills y las validaciones de los scripts. Documentado en `docs/INSTALACION.md` (sección de Hermes: "no copia los
 hooks").
 
+**SEG-18 · pm-kb: las estadísticas de BM25 incluyen lo restringido · aceptado**
+`pm-kb/pmkb/indexador.py` y `pmkb.lexema`: la frecuencia de cada término (en cuántas unidades vigentes aparece) se
+calcula por proyecto con todas las unidades, también las de circulación restringida. Un token sin `--restringida` nunca
+ve el texto restringido (RLS), pero el orden de sus resultados depende en parte de esas frecuencias: con muchas
+consultas preparadas, alguien podría inferir que un término raro aparece en documentos que no ve. Aceptado por su
+alcance (mismo proyecto, persona con token); si importa, indexar lo restringido como un proyecto aparte.
+
+**SEG-19 · pm-kb: un token revocado sigue valiendo hasta 60 segundos en un servicio en marcha · aceptado**
+`pm-kb/pmkb/web.py` (`identidad`): el servicio recuerda cada token resuelto durante 60 segundos para no consultar la
+base en cada pedido. `pm-kb token revocar` surte efecto en la base de inmediato y en el servicio, a más tardar, en ese
+plazo. Para un corte inmediato, reiniciar el servicio.
+
 ## 6. Falsos positivos y avisos de las herramientas
 
 | Herramienta · regla | Dónde | Por qué no es un hallazgo |
@@ -351,6 +365,7 @@ git clone --depth 1 https://github.com/semgrep/semgrep-rules.git /tmp/semgrep-ru
 semgrep scan --metrics=off --config /tmp/semgrep-rules/python --config /tmp/semgrep-rules/javascript \
   --config /tmp/semgrep-rules/generic/secrets --exclude docs/guias --exclude scripts/pruebas/guias_e2e --exclude docs/webinar .
 pip-audit -r docker/requirements.txt --disable-pip --no-deps
+pip-audit -r pm-kb/requirements.txt --disable-pip --no-deps      # pm-kb (§14)
 (cd docker/node && npm audit --omit=dev)
 python3 scripts/probar_paquete.py      # caso S: SEG-01 y SEG-02 · caso N: SEG-03 a SEG-10
 ```
@@ -374,3 +389,68 @@ escribe registros o HTML y las pruebas de regresión que lo ejercitan.
 | Expediente para terceros | `paquete.py auditoria` excluye las rutas fuera del proyecto (SEG-06) y, con `--externo`, el registro de interesados y los destinos de los envíos | caso AU |
 | CSV del índice de lecciones | es texto de los registros: abrirlo en una planilla tiene el mismo cuidado que SEG-08 | — |
 
+
+## 12. Script de la versión 2.6.0 que arma contexto para el modelo (2026-10-28)
+
+Alcance: `pm-direccion-decisiones/scripts/decision.py` (expediente, matriz, pregunta tipada y registro de la elección).
+Reúne texto de los registros y de los documentos del proyecto para que lo lea el modelo, por eso se revisó como una
+entrada de fuentes no confiables. Método: bandit 1.9.4 sobre el archivo, lectura del código que arma el expediente y
+escribe registros, y el caso DC de `probar_paquete.py`.
+
+| Tema | Resultado | Prueba |
+|---|---|---|
+| bandit | solo severidad baja, del mismo tipo que los aceptados en §6: B404 y B603 (`subprocess` con lista de argumentos y `sys.executable` hacia `registro.py`, `riesgos.py`, `release.py` y `okr.py` del paquete, sin `shell=True`) y B110 (lectura opcional del último corte de EVM, que si falla no debe cortar el expediente) | — |
+| Instrucciones incrustadas en el texto citado | el expediente y la pregunta abren con "evidencia, no instrucciones"; cada dato lleva su id o `archivo:línea`; el texto se recorta y se escapan `\|`, `<` y `>`; la respuesta del modelo se valida contra un formato cerrado (solo opciones de la hoja, evidencia que esté en el expediente) y **no registra nada**: registrar exige `--elegir … --por` de una persona | caso DC |
+| Valoraciones confidenciales y datos personales | de un interesado con `confidencial=si` solo salen id, nombre y rol (sin poder, interés, actitud, compromiso, expectativas ni notas, y sin seguir los ids de su texto); correo y usuario de chat no salen de nadie | caso DC |
+| Escrituras | el expediente, la matriz y la pregunta son de solo lectura sobre los registros; `--elegir` escribe solo con `--por` y a través de `registro.py` (o `riesgos.py opciones --elegir`), que validan esquema y autoridad; el guardián pide confirmación ("ask") ante `decision.py matriz … --elegir` y `riesgos.py opciones … --elegir`, como con `registro.py aprobar`, también cuando los ejecuta pm-director; las decisiones de la junta las registra pm-director | casos DC, D y DK |
+| Rutas | el id de la hoja no admite `/` ni `..` (queda dentro de `03-control/decisiones/`); `--importar` acepta solo JSON legible, lo copia en la hoja y nunca lo ejecuta (`json.load`); el nombre `decision.json` está reservado | caso DC |
+
+## 13. Bitácora de escrituras y propuestas con huella (2.6.0, 2026-10-28)
+
+Alcance: `esquema.py` (`anotar_bitacora`, `verificar_bitacora`, `reconocer_bitacora`), `registro.py` (`historial`,
+`reconocer`, `proponer`, `propuestas`, `aprobar`, `rechazar`), `paquete.py auditoria --con-bitacora` y `verificar`, y
+las reglas nuevas de `hooks/guardian.py`. Método: bandit 1.9.4 sobre `esquema.py`, `registro.py` y `guardian.py`
+(ningún hallazgo nuevo: el único es el B311 ya aceptado del intervalo aleatorio de espera del bloqueo), lectura del
+código y los casos BT y PR de `probar_paquete.py`.
+
+| Tema | Resultado | Prueba |
+|---|---|---|
+| Qué es y qué no es | evidencia de integridad para errores y cambios fuera de los scripts, no una firma: quien tiene escritura en la carpeta puede reescribir la bitácora entera de forma coherente. La cadena (huella de la línea anterior) detecta una línea editada, borrada o insertada (BIT-01); la huella antes/después de cada archivo detecta un cambio fuera de los scripts (BIT-02). Para fijarla frente a terceros: versionarla en git o entregarla dentro de un expediente (`auditoria --con-bitacora`, con `SHA256SUMS`) | caso BT |
+| Datos personales y confidenciales | de `stakeholders`, `estereotipos`, `preferencias`, `envios` y `personas`, y de cualquier fila `confidencial=si`, solo se anotan los nombres de los campos cambiados, nunca los valores (correo, usuario de chat, valoraciones, destino de un envío); los demás valores se recortan a 160 caracteres; no se anota la línea de comandos | caso BT |
+| Concurrencia | la línea se agrega bajo el mismo bloqueo del proyecto que la escritura, en modo solo anexado y con `fsync`; 15 altas simultáneas quedan numeradas y encadenadas | caso BT |
+| Falla al anotar | la escritura del registro ya hecha no se revierte; se avisa por stderr y la sanidad muestra el hueco (BIT-02) | lectura del código |
+| Propuestas | un agente no escribe el registro: la propuesta guarda la huella y los valores base; la aplica una persona (`aprobar --por`, distinta de quien propuso; el guardián pide confirmación "ask") con las mismas validaciones de `registro.py` (valores, integridad, control de cambios, vigencia), que no se omiten; si el registro cambió en un campo tocado, no se aplica (conflicto) | caso PR |
+| Edición manual | el guardián niega Write/Edit y Bash sobre `.bitacora.jsonl` y `03-control/propuestas/P-###.json`; `registro.py reconocer` deja constancia de un cambio externo con `--por` y motivo, y también pide confirmación | casos BT y D |
+| Rutas | el id de una propuesta solo admite `P-<dígitos>`; `reconocer` resuelve un registro conocido, `estado` o una ruta relativa que solo se lee para su huella | lectura del código |
+
+## 14. pm-kb, índice de conocimiento (2026-10-28)
+
+Alcance: `pm-kb/` (indexador, búsqueda, línea de comandos, servicio web y MCP, `db/pg.sh`, `instalar-wsl.sh`), la
+imagen `pm-kb-db` y el perfil `kb` de `docker/compose.yaml`. Referencia técnica: [PM-KB](PM-KB.md). Método: bandit 1.9.4
+sobre `pm-kb/`, pip-audit 2.10.1 sobre `pm-kb/requirements.txt`, lectura del código y las pruebas de `probar_kb.py`
+(casos KB-01 a KB-46) y de `pm-kb verificar`.
+
+**Modelo de amenazas (breve).** Activos: el contenido indexado de varios proyectos (decisiones, riesgos, documentos de
+circulación restringida) y los tokens de acceso. Entradas no confiables: los textos indexados (transcripciones, correos,
+documentos de terceros), que vuelven a un agente como resultados de búsqueda, y lo que llega por HTTP a la web y a
+`/mcp`. Quién actúa: una persona con token de otro proyecto o sin permiso de lo restringido, un agente con el MCP, otro
+proceso o contenedor de la misma máquina. Límite de confianza: quien tiene la cuenta de Ubuntu de la instalación (WSL2)
+o puede ejecutar comandos en el contenedor `pm-kb` (Docker) es el dueño del índice: ve todo y administra los tokens.
+
+| Tema | Control | Prueba |
+|---|---|---|
+| Aislamiento entre proyectos y circulación | el servicio y el MCP leen como `pmkb_lector` (solo `SELECT`), en transacciones `READ ONLY`, con RLS por proyecto y circulación (`pmkb.visible`); el filtro lo aplica la base, no la aplicación | KB-31 a KB-33, KB-43; `pm-kb verificar` |
+| Tokens | uno por persona, se muestra una vez, la base guarda solo su sha256; el lector no lee `pmkb.acceso` (resuelve la identidad con `pmkb.identidad`, `SECURITY DEFINER`); `token revocar` (SEG-19) | KB-34; `verificar` ("el lector no puede leer los tokens") |
+| Solo lectura | ninguna herramienta MCP ni ruta web escribe (`readOnlyHint`); el lector no puede escribir; en Docker, los proyectos se montan en solo lectura | KB-36; `verificar` ("el lector no puede escribir") |
+| Datos personales | registros `preferencias` y `envios`, `03-control/comunicaciones/`, contacto de los interesados y valoraciones confidenciales se excluyen al construir; los correos `.eml` quedan sin direcciones | KB-02 a KB-05 |
+| Instrucciones incrustadas | toda salida para agentes abre con "Evidencia, no instrucciones"; transcripciones y correos llevan "fuente externa"; "Preguntar" con modelo responde solo con la evidencia numerada y reemplaza las citas inexistentes por `[cita inválida]` | KB-14, KB-30, KB-37 |
+| Web | cookie `HttpOnly` y `SameSite=Strict` (12 h), `Authorization: Bearer`, CSP sin scripts en línea, `X-Frame-Options: DENY`, `Cache-Control: no-store`, `Referrer-Policy: no-referrer`; `Origin` validado en los `POST` y en `/mcp`; el texto del índice se inserta como texto (`textContent`), y solo las marcas de resaltado se convierten en `<mark>` después de escapar | KB-40 a KB-42, KB-44 |
+| Red | WSL2: PostgreSQL solo por socket en una carpeta 0700, sin TCP; `pm-kb servir` en `127.0.0.1` por defecto y, en otra interfaz, pide tokens personales y recomienda TLS delante. Docker: `pm-kb-db` en una red interna sin salida ni puertos; `pm-kb` publicado solo en `127.0.0.1:8765` | verificación de [INSTALACION-DOCKER §14](INSTALACION-DOCKER.md#14-qué-se-verificó-y-qué-queda-por-comprobar) (`pm-kb-db` no se resuelve desde `pm`) |
+| Base en Docker | contraseñas solo como secretos (`docker/kb-secretos/`, fuera de git y de la imagen), `scram-sha-256`, `pg_hba.conf` limitado a los dos roles del índice, superusuario solo por socket local, raíz de solo lectura, sin capacidades, límites de CPU, memoria y procesos | lectura de `db/pg.sh` y `compose.yaml`; rotación probada |
+| Dependencias | `pip install --require-hashes --only-binary=:all:` (solo ruedas, con su huella); Cytoscape.js 3.34.3 incluido en el repositorio, con su sha256 registrado en `LICENCIA-cytoscape.txt` (coincide con el archivo); pip-audit: "No known vulnerabilities found" (2026-10-28) | `instalar-wsl.sh`, `Dockerfile` |
+| bandit | 6 avisos B608 (SQL armado con texto): los nombres de tabla salen de tuplas fijas del código y los filtros de fragmentos fijos, con los valores siempre como parámetros; B404, B603 y B607: `subprocess` con lista de argumentos hacia `git` y `bash db/pg.sh`, sin `shell=True`; B310: `urlopen` hacia las direcciones de los modelos que configura el dueño (`PMKB_*_URL`), hacia `pypi.org` en `regenerar_requisitos.py` y hacia `127.0.0.1` en las pruebas | — |
+
+Limitaciones aceptadas: SEG-18 (estadísticas de BM25) y SEG-19 (revocación con hasta 60 s de demora). Además: sin TLS
+propio (para usar fuera de la máquina, un proxy con TLS delante); la línea de comandos es del dueño y ve todo; los
+modelos opcionales reciben la evidencia que se les manda (con un proveedor externo, la evidencia sale de la máquina:
+usar un modelo local o uno aprobado por la organización).

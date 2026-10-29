@@ -1,8 +1,9 @@
 # Resumen ejecutivo comercial · pm-method
 
 - `resumen-ejecutivo-pm-method.pptx` y `.html`: el resumen para presentar y vender pm-method (mismo contenido en los dos
-  formatos; 18 diapositivas): problema y propuesta de valor, para quién, qué es, arquitectura, agentes y skills por fase, ciclo de vida
-  con las puertas, controles permanentes, integraciones, catálogo de los casos E2E (uno por diapositiva, con una imagen
+  formatos; 19 diapositivas): problema y propuesta de valor, para quién, qué es, arquitectura (con pm-kb, opcional), agentes y
+  skills por fase, ciclo de vida con las puertas, controles permanentes, decidir con contexto, controlar cada escritura y
+  buscar en los proyectos con evidencia citada, integraciones, catálogo de los casos E2E (uno por diapositiva, con una imagen
   real de cada guía), webinar e inducción, calidad y confianza, cómo empezar y glosario. El HTML es un solo archivo
   (claro, oscuro o automático; imprimible, una diapositiva por página; navegación con ◀ ▶ y las flechas del teclado;
   glosario con anclas).

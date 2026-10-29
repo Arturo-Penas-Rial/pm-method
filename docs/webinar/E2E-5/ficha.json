@@ -10,14 +10,14 @@
   "objetivos": [
     "Armar un mapa de supuestos y elegir dónde invertir primero en aprender",
     "Diseñar un experimento barato con el criterio de decisión fijado antes de ver el resultado",
-    "Comparar opciones contra no hacer nada con VAN, TIR, repago y punto de equilibrio",
+    "Comparar opciones contra no hacer nada con VAN, TIR, repago y una matriz de pesos explícitos",
     "Elegir el enfoque de entrega por entregable con criterios explícitos",
     "Separar contingencia, reserva de gestión y presupuesto de cambio, y adaptar la gestión"
   ],
   "sistema_agentico": {
     "agente": [
       "Busca lecciones aprobadas de otros proyectos, en solo lectura",
-      "Calcula VAN, TIR, repago y sensibilidad desde los flujos de cada opción",
+      "Calcula VAN, TIR y repago y compara opciones con pesos explícitos y su sensibilidad",
       "Avisa de supuestos sin experimento, fechas vencidas y resultados sin tratar"
     ],
     "persona": [
@@ -43,7 +43,7 @@
       "temas": [
         "Mandato y lecciones de otros proyectos",
         "Mapa de supuestos y experimentos baratos",
-        "Opciones de negocio con VAN, TIR y repago",
+        "Opciones de negocio con VAN y matriz de decisión",
         "Enfoque de entrega, mapa de valor y recorrido"
       ]
     },

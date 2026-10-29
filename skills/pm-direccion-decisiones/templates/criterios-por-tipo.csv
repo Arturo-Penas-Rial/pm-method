@@ -1,0 +1,30 @@
+tipo,criterio,descripcion,peso,sentido,escala,eliminatorio,importar,fuente_peso,notas
+riesgo,valor_neto,Valor neto de la respuesta: EMV inherente − EMV residual − EMV secundario − costo,35,mayor,num,,valor_neto,[por confirmar],de riesgos.py opciones --json (se importa sin recalcular)
+riesgo,apetito,Ajuste al apetito de riesgo del objetivo afectado (1 = lo contradice; 5 = dentro del apetito),25,mayor,1-5,2,,[por confirmar],enfoque de riesgo y business case; 1 = fuera del apetito: la opción se elimina
+riesgo,riesgo_secundario,Riesgo secundario o efecto colateral que crea la respuesta (1 = ninguno; 5 = grave),10,menor,1-5,,,[por confirmar],
+riesgo,factibilidad,Capacidad y autoridad para implementarla a tiempo (1 = baja; 5 = alta),20,mayor,1-5,,,[por confirmar],
+riesgo,plazo_para_actuar,Días hasta que la respuesta surte efecto frente a la proximidad del riesgo,10,menor,num,,,[por confirmar],
+negocio,van,VAN de la opción a la tasa que fija finanzas,40,mayor,num,,van,[por confirmar],de inversion.py --json (se importa sin recalcular)
+negocio,beneficios,Beneficios fuera del VAN alineados con los B-n del business case (1 = ninguno; 5 = decisivos),20,mayor,1-5,,,[por confirmar],
+negocio,riesgo,Riesgo de la opción (1 = bajo; 5 = alto),20,menor,1-5,,,[por confirmar],
+negocio,ajuste_estrategico,Ajuste con los objetivos del mandato y OBJ-n (1 = bajo; 5 = alto),20,mayor,1-5,,,[por confirmar],
+planificacion,valor,Valor para el negocio o beneficios que habilita (1 = bajo; 5 = alto),35,mayor,1-5,,,[por confirmar],
+planificacion,dependencias,Dependencias abiertas que condicionan la opción (1 = ninguna; 5 = muchas o en el camino crítico),20,menor,1-5,,,[por confirmar],cpm.py e impacto.py
+planificacion,capacidad,Holgura de capacidad del release en puntos (capacidad − Must − Should),25,mayor,num,,holgura,[por confirmar],de release.py capacidad --json (se importa sin recalcular)
+planificacion,riesgo,Riesgo de la opción (1 = bajo; 5 = alto),20,menor,1-5,,,[por confirmar],
+okr,alineacion_beneficios,Alineación con los beneficios B-n y las métricas SM-n (1 = ninguna; 5 = directa),40,mayor,1-5,2,,[por confirmar],1 = sin vínculo con un beneficio: la alternativa se elimina
+okr,medibilidad,Métrica con línea base y fuente de medición disponibles (1 = no; 5 = sí),35,mayor,1-5,2,,[por confirmar],
+okr,esfuerzo,Esfuerzo para medir y alcanzar la meta (1 = bajo; 5 = alto),25,menor,1-5,,,[por confirmar],
+cambio,impacto,Impacto neto sobre los siete objetivos y el business case (1 = muy negativo; 5 = muy positivo),40,mayor,1-5,,,[por confirmar],impacto.py analizar C-### (tabla de impacto)
+cambio,tolerancias,Margen dentro de las tolerancias de etapa y de proyecto (1 = fuera: excepción; 5 = holgado),35,mayor,1-5,,,[por confirmar],impacto.py y evm.py
+cambio,autoridad,Dentro de la autoridad y del presupuesto de cambio (1 = no; 5 = sí con saldo),25,mayor,1-5,,,[por confirmar],registro.py (motivos_autoridad) y CAM-03
+adquisicion,costo,Costo del ciclo de vida en la moneda del proyecto,35,menor,num,,,[por confirmar],
+adquisicion,riesgo,Riesgo del proveedor o de la modalidad (1 = bajo; 5 = alto),20,menor,1-5,,,[por confirmar],
+adquisicion,calidad,Calidad técnica de la propuesta con los descriptores de criterios-seleccion.md (1–5),30,mayor,1-5,2,,[por confirmar],pm-adquisiciones: criterios congelados antes de recibir ofertas
+adquisicion,dependencia,Dependencia del proveedor (1 = baja; 5 = alta),15,menor,1-5,,,[por confirmar],
+adquisicion:hacer-o-comprar,diferenciacion,Diferenciación que conserva la opción: control para adaptar el componente a lo que distingue al servicio (1 = igual que cualquiera; 5 = propia),15,mayor,1-5,,,[por confirmar],el mapa de Wardley dice si el componente diferencia; no lo puntúa
+adquisicion:hacer-o-comprar,costo_total,Costo total de propiedad en el horizonte del business case (adquirir o construir + operar y mantener + transición y salida),25,menor,num,,,[por confirmar],en la moneda del proyecto; con flujos por año: inversion.py --json
+adquisicion:hacer-o-comprar,tiempo_disponible,Semanas hasta que el componente está disponible en producción,20,menor,num,,,[por confirmar],
+adquisicion:hacer-o-comprar,dependencia_proveedor,Dependencia del proveedor: dificultad para cambiarlo o salir (1 = baja; 5 = alta),15,menor,1-5,,,[por confirmar],datos y contrato: exportación y plazo de salida
+adquisicion:hacer-o-comprar,capacidad_interna,Capacidad interna para la opción: construir y mantener o administrar el producto o el contrato (1 = no la hay; 5 = disponible y probada),10,mayor,1-5,,,[por confirmar],
+adquisicion:hacer-o-comprar,riesgo_commodity,Riesgo de construir algo que va a volverse commodity: esfuerzo propio que el mercado ya ofrece o va a ofrecer como producto o servicio (1 = bajo; 5 = alto),15,menor,1-5,,,[por confirmar],la etapa y el movimiento del componente en el mapa de Wardley son la fuente del puntaje

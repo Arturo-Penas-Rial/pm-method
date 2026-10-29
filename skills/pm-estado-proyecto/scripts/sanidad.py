@@ -12,7 +12,8 @@ Uso / Usage:
 Salida: hallazgos ERROR / AVISO / INFO con código, mensaje y cómo corregir. Código de salida 1 si hay ERROR.
 Familias: INS instalación · EST estado y puertas · ART artefactos · REG registros · ESP especificación/BMAD · INT integraciones ·
   CAM cambios y presupuestos · QUA calidad · TOL pronóstico contra tolerancias · SUP supuestos críticos · STK interesados ·
-  MAP mapas de Wardley y de recorrido (solo avisos).
+  MAP mapas de Wardley y de recorrido (solo avisos) · DEC hojas de decisión con matriz y vigencia de decisiones (solo avisos) ·
+  BIT bitácora de escrituras: cadena y cambios fuera de los scripts (solo avisos).
 """
 import argparse, csv, datetime, glob, importlib.util, json, os, re, sys
 AQUI = os.path.dirname(os.path.abspath(__file__))
@@ -535,6 +536,41 @@ def chk_mapas(proyecto):
     except BaseException as x:
         add("AVISO", "MAP-00", f"No se pudieron verificar los mapas: {x}", "Revisar que pm-mapas-estrategicos esté instalada junto a pm-estado-proyecto.")
 
+def chk_decisiones(proyecto, e):
+    """DEC: hojas de decisión con matriz (pm-direccion-decisiones/decision.py) que ya tienen una decisión registrada."""
+    if not os.path.isdir(os.path.join(proyecto, "03-control", "decisiones")): return
+    d = os.path.normpath(os.path.join(AQUI, "..", "..", "pm-direccion-decisiones", "scripts"))
+    try:
+        sys.path.insert(0, d); import decision as DC
+        for sev, cod, msg, arreglo in DC.controles(proyecto, e): add(sev, cod, msg, arreglo)
+    except BaseException as x:
+        add("AVISO", "DEC-01", f"No se pudieron verificar las hojas de decisión: {x}", "Revisar que pm-direccion-decisiones esté instalada junto a pm-estado-proyecto.")
+
+def chk_vigencia(e, filas_por, corte):
+    """DEC-05/DEC-06: decisiones vigentes del mismo asunto que parecen contradecirse sin reemplaza ni conviven, y
+    revisar_en vencido sin una decisión posterior del mismo asunto (vigencia.py; solo avisos)."""
+    if not filas_por.get("decisiones"): return
+    try:
+        import vigencia as V
+        for sev, cod, msg, arreglo in V.controles(filas_por["decisiones"], corte, e.get("idioma", "es"), filas_por): add(sev, cod, msg, arreglo)
+    except BaseException as x:
+        add("AVISO", "DEC-05", f"No se pudo revisar la vigencia de las decisiones: {x}", "Revisar vigencia.py y texto.py en pm-estado-proyecto/scripts.")
+
+def chk_bitacora(proyecto, e):
+    """BIT: bitácora de escrituras (.bitacora.jsonl, 2.6.0): cadena rota (BIT-01) y cambios de estado.json, registros o
+    propuestas hechos fuera de los scripts y no reconocidos (BIT-02). Sin bitácora (proyectos anteriores) no hay nada que verificar."""
+    try:
+        _, probs = E.verificar_bitacora(proyecto, e.get("idioma", "es"))
+    except BaseException as x:
+        add("AVISO", "BIT-01", f"No se pudo leer la bitácora {E.ARCHIVO_BITACORA}: {x}", "Revisar los permisos y el contenido del archivo."); return
+    for cod, msg in probs:
+        add("AVISO", cod, msg, ARREGLO_BIT[cod])
+
+ARREGLO_BIT = {
+    "BIT-01": "La bitácora no se edita: restaurarla desde git o desde la copia de un expediente (paquete.py auditoria --con-bitacora); si no es posible, dejar constancia en un issue para la auditoría (pm-issues-cambios).",
+    "BIT-02": "Ver qué cambió (git diff, registro.py historial <registro>). Si es correcto (merge de git, corrección revisada): registro.py reconocer <registro|estado> --por \"<rol: nombre>\" --motivo \"…\"; si no, restaurar el archivo y escribir con registro.py o estado.py.",
+}
+
 def chk_interesados(proyecto, corte=None):
     hay = any(os.path.exists(E.ruta_registro(proyecto, r)) for r in ("estereotipos", "preferencias", "raci", "envios", "personas"))
     if not hay: return     # sin maestro extendido: nada que verificar (compatibilidad con proyectos 2.1)
@@ -561,6 +597,9 @@ def main():
     chk_supuestos(a.proyecto, e, filas, corte)
     chk_interesados(a.proyecto, corte)
     chk_mapas(a.proyecto)
+    chk_decisiones(a.proyecto, e)
+    chk_vigencia(e, filas, corte)
+    chk_bitacora(a.proyecto, e)
     if not a.rapido: chk_integraciones(a.proyecto, e)
     orden = {"ERROR": 0, "AVISO": 1, "INFO": 2}
     H.sort(key=lambda h: (orden[h["severidad"]], h["codigo"]))

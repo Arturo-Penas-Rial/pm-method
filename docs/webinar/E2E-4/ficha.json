@@ -18,7 +18,7 @@
     "agente": [
       "Lee la especificación de BMAD en solo lectura y devuelve decisiones por traspaso",
       "Señala cada historia terminada sin revisión y cada rechazo sin tratar",
-      "Propone lecciones con cita y arma el expediente con la huella de cada archivo"
+      "Propone lecciones con cita y arma el expediente con huellas y bitácora"
     ],
     "persona": [
       "La junta fija condiciones, aprueba cambios y autoriza el cierre",
@@ -34,7 +34,7 @@
     ],
     "para_la_organizacion": [
       "Calidad visible en cada entrega: en el caso, cierre con 11 de 11 productos aceptados",
-      "Evidencia verificable: una palabra cambiada en una copia del expediente se detecta"
+      "Evidencia verificable: una edición en una copia se detecta y se explica"
     ]
   },
   "clases": [
@@ -52,7 +52,7 @@
       "temas": [
         "Recorrido de la socia y dolores tratados",
         "Retrospectiva: lecciones con cita y acciones verificadas",
-        "Cierre verificado por id y expediente de auditoría",
+        "Cierre por id y expediente de auditoría con bitácora",
         "Beneficios contra trayectoria y tolerancia"
       ]
     }

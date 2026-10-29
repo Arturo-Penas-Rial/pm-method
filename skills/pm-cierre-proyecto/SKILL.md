@@ -1,7 +1,7 @@
 ---
 name: pm-cierre-proyecto
 description: "Cierre planificado o prematuro: aceptación, handover, informe final. Usar: cerrar proyecto, cierre prematuro, closeout, end project report. No: lecciones→pm-lecciones-aprendidas."
-version: 2.5.0
+version: 2.6.0
 author: pm-method
 license: MIT
 metadata:

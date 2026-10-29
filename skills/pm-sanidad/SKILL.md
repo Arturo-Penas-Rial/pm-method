@@ -1,7 +1,7 @@
 ---
 name: pm-sanidad
 description: "Sanidad y consistencia del ecosistema (estado, puertas, registros, BMAD↔PRINCE2, integraciones). Usar: sanidad, chequeo, consistencia, doctor, health check, antes de una puerta. No: cómo venimos→pm-orquestador; calidad→pm-calidad."
-version: 2.5.0
+version: 2.6.0
 author: pm-method
 license: MIT
 metadata:
@@ -35,9 +35,9 @@ metadata:
 - Script: `python3 ${CLAUDE_SKILL_DIR}/../pm-estado-proyecto/scripts/sanidad.py --proyecto <dir> [--rapido] [--informe] [--reparar] [--json] [--corte AAAA-MM-DD]`. `--corte`: fecha de los controles con vencimiento (REG-07, REG-09, QUA-02, TOL, STK-12); usar la del informe o tablero.
 
 ## Procedimiento
-1. **Ejecutar** `sanidad.py --proyecto <dir> --informe` (completo) o `--rapido` (inicio de sesión). Familias: INS instalación e integraciones externas · EST estado, roles y puertas · ART artefactos · REG registros · CAM cambios contra presupuestos · QUA calidad a volumen · TOL pronóstico de EVM contra tolerancias · ESP especificación y BMAD · STK maestro de interesados (STK-12 cadencia de contacto) · MAP mapas de Wardley y de recorrido (solo avisos) · INT integraciones MCP. CAM, QUA, TOL y STK-12 son controles permanentes: lo que a mano se revisa tarde o nunca (guía §1).
+1. **Ejecutar** `sanidad.py --proyecto <dir> --informe` (completo) o `--rapido` (inicio de sesión). Familias: INS instalación e integraciones externas · EST estado, roles y puertas · ART artefactos · REG registros · CAM cambios contra presupuestos · QUA calidad a volumen · TOL pronóstico de EVM contra tolerancias · ESP especificación y BMAD · STK maestro de interesados (STK-12 cadencia de contacto) · MAP mapas de Wardley y de recorrido (solo avisos) · DEC hojas de decisión (solo avisos) · BIT bitácora de escrituras: cadena y cambios fuera de los scripts (solo avisos; `registro.py reconocer`) · INT integraciones MCP. CAM, QUA, TOL y STK-12 son controles permanentes: lo que a mano se revisa tarde o nunca (guía §1).
 2. **Reparar lo seguro** con `--reparar` (solo agrega columnas de esquema faltantes y reconstruye el índice de especificación). Nada más se corrige automáticamente.
-3. **Clasificar** cada ERROR por dueño (ver `references/guia.md` §2) y derivar: estado/puertas → pm-director; registros → pm-registros, pm-riesgos o pm-issues-cambios; especificación → pm-bmad-puente o pm-planificacion-por-productos; cambio no controlado (ESP-10) → pm-issues-cambios; presupuestos y cambios (CAM) → pm-issues-cambios, y a pm-director si exceden el presupuesto o la autoridad delegada; calidad (QUA) → pm-calidad; tolerancias (TOL) → pm-progreso-reportes; interesados (STK) → pm-interesados; mapas (MAP) → pm-mapas-estrategicos; integraciones → pm-integraciones; instalación → usuario.
+3. **Clasificar** cada ERROR por dueño (ver `references/guia.md` §2) y derivar: estado/puertas → pm-director; registros → pm-registros, pm-riesgos o pm-issues-cambios; especificación → pm-bmad-puente o pm-planificacion-por-productos; cambio no controlado (ESP-10) → pm-issues-cambios; presupuestos y cambios (CAM) → pm-issues-cambios, y a pm-director si exceden el presupuesto o la autoridad delegada; calidad (QUA) → pm-calidad; tolerancias (TOL) → pm-progreso-reportes; interesados (STK) → pm-interesados; mapas (MAP) → pm-mapas-estrategicos; hojas de decisión (DEC) → pm-direccion-decisiones; integraciones → pm-integraciones; instalación → usuario.
 4. **Regla de puerta**: con ERROR abierto no se presenta una puerta a la junta; si el humano decide seguir igual, queda como condición en la decisión (`--condiciones`) y en `decisiones.csv`.
 5. **Registrar** el resultado: el informe queda en `03-control/reportes/<fecha>-sanidad.md`; los ERROR que requieren trabajo se convierten en acciones (`registro.py agregar acciones`) con responsable.
 6. Si corre como subagente: devolver el bloque de retorno (SPEC §1.11) con los ERROR como "decisiones humanas requeridas" cuando haga falta decidir.

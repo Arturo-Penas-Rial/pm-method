@@ -1,7 +1,7 @@
 {
   "name": "pm-method",
   "displayName": "pm-method · Gestión de proyectos PRINCE2 + PMBOK",
-  "version": "2.5.0",
+  "version": "2.6.0",
   "description": "Método de gestión de proyectos bilingüe ES/EN: PRINCE2 7 como método y ciclo de vida, PMBOK 8 como técnicas, plantillas como artefactos y BMAD (opcional) como capa de especificación. Orquestador, 5 subagentes de fase, skills, comandos y controles de sanidad.",
   "author": {
     "name": "pm-method"

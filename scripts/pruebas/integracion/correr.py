@@ -19,13 +19,20 @@ Cadenas (un solo proyecto, copia de scripts/pruebas/fixtures/bmad-v6.12-real; la
      familia MAP de sanidad → inversion.py con las opciones del business case; recorridos UJ y MoSCoW del backlog →
      personas de usuario (interesados.py personas, personas.csv) → STK-13…16; cambio nuevo + CPM, presupuestos y
      opciones → impacto.py (tabla de impacto y borrador de solicitud, sin escribir registros); tres valores → cpm.py
-     --estimacion → impacto.py --pert; backlog → release.py capacidad = capacidad de impacto.py
+     --estimacion → impacto.py --pert; backlog → release.py capacidad = capacidad de impacto.py; riesgo decidido,
+     inversion.py e impacto.py → decision.py expediente (cifras sin recalcular) → matriz con el VAN importado → --elegir;
+     RACI de la cadena 3 + roles → decision.py (A, C, I; --motivo si no decide el A) → borrador del aviso a los I;
+     decisión de negocio reabierta → --elegir --reemplaza (autoridad) → decision.py vigentes y expediente --tema en inglés;
+     componente del mapa en producto marcado construir (MAP-01) → expediente con <mapa>:<id> → hoja de hacer o comprar
+     → --elegir → la decisión queda citada en el componente (mapas.py vincular) → sanidad sin MAP-01
   5. exportar.py (xlsx y docx) y paquete.py de una puerta con todos los artefactos → verificación del contenido;
      expediente de auditoría (paquete.py auditoria) → verificar (sha256); radar de atención y briefing de incorporación
      (estado.py radar|briefing) sobre todo lo anterior; lección revisada → lecciones.py buscar e incorporar desde otro
      proyecto; retrospectiva → extraccion.py → lección clasificada, accionada con la acción de mejora y verificada
      (REG-11, E-11, REG-12) → informe de lecciones exportado al índice de la organización → buscar --para; estado de
-     productos (estado.py productos) = QUA-01, QUA-04 y C-07 de autorizar-cierre; huella de BMAD sin cambios
+     productos (estado.py productos) = QUA-01, QUA-04 y C-07 de autorizar-cierre; escrituras simultáneas (registro.py,
+     estado.py, bmad.py) sobre una copia del proyecto sin pérdidas ni ids repetidos; bitácora de escrituras íntegra →
+     propuesta de un agente reaplicada al aprobarla → auditoria --con-bitacora; huella de BMAD sin cambios
   6. salidas de los recorridos E2E (scripts/pruebas/guias_e2e/, en paralelo) → webinar/generar.py --validar y, si hay
      Node.js con pptxgenjs, la generación real (HTML y PPTX con las imágenes de los recorridos)
 Lo que en la práctica decide o redacta una persona o el modelo (estimaciones, coordenadas del mapa, texto de un
@@ -809,6 +816,65 @@ def c5_paquete():
           (zs[-1], lst[:300]))
 
 
+@eslabon("5.9", "copia del proyecto integrado → escrituras simultáneas (registro.py, estado.py y bmad.py avance) → ids únicos, estado.json sin pérdidas y sanidad sin ERROR nuevos")
+def c5_concurrencia():
+    copia = os.path.join(D["tmp"], "concurrencia"); shutil.copytree(D["repo"], copia, ignore=shutil.ignore_patterns(".pm-bloqueo"))
+    g = os.path.join(copia, G); R = lambda *p: os.path.join(g, "03-control", "registros", *p)
+    base_r = leer_csv(R("riesgos.csv")); base_d = leer_csv(R("decisiones.csv"))
+    e0 = json.load(open(os.path.join(g, "estado.json"), encoding="utf-8")); r0 = base_r[0]
+    campos = [x for k in ("probabilidad", "impacto", "propietario", "categoria", "tipo", "causa", "efecto") if r0.get(k) for x in ("--campo", f"{k}={r0[k]}")]
+    cmds = [[SCR["registro"], "--proyecto", g, "agregar", "riesgos", "--campo", f"evento=riesgo simultáneo {i}"] + campos for i in range(12)]
+    cmds += [[SCR["registro"], "--proyecto", g, "agregar", "decisiones", "--campo", f"decision=decisión simultánea {i}", "--campo", "decidido_por=Gestor", "--campo", "nivel=gestor"] for i in range(6)]
+    cmds += [[SCR["estado"], "--proyecto", g, "presupuesto", f"{k}={v}"] for k, v in e0["presupuestos"].items() if v]
+    cmds += [[SCR["estado"], "--proyecto", g, "set", "enfoque_entrega=" + e0["enfoque_entrega"]],
+             [SCR["bmad"], "--proyecto", g, "avance", "--corte", "2027-01-16"]]
+    ps = [subprocess.Popen([sys.executable] + c, cwd=copia, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True) for c in cmds]
+    res = [(p.communicate(), p.returncode) for p in ps]
+    malos = [(" ".join(os.path.basename(x) for x in c[:4]), o[1][-200:]) for c, (o, rc) in zip(cmds, res) if rc != 0]
+    check("5.9", f"{len(cmds)} procesos simultáneos sobre el mismo proyecto terminan con código 0", not malos, malos[:3])
+    rr, dd = leer_csv(R("riesgos.csv")), leer_csv(R("decisiones.csv"))
+    ids_r, ids_d = [f["id"] for f in rr], [f["id"] for f in dd]
+    nuevos_r = sorted(i for i in ids_r if i not in {f["id"] for f in base_r})
+    check("5.9", f"riesgos: {len(base_r)} + 12 filas, ids únicos y los 12 nuevos consecutivos tras el último", len(rr) == len(base_r) + 12 and len(set(ids_r)) == len(ids_r)
+          and [int(i[2:]) for i in nuevos_r] == list(range(max(int(f["id"][2:]) for f in base_r) + 1, max(int(f["id"][2:]) for f in base_r) + 13)), nuevos_r)
+    check("5.9", f"decisiones: {len(base_d)} + 6 filas con ids únicos (ninguna pisada por otro proceso)", len(dd) == len(base_d) + 6 and len(set(ids_d)) == len(ids_d), (len(dd), len(base_d)))
+    e1 = json.load(open(os.path.join(g, "estado.json"), encoding="utf-8")); n_est = sum(1 for c in cmds if c[0] == SCR["estado"])   # bmad.py avance no guarda estado.json
+    check("5.9", "estado.json legible, mismas claves y valores de gobierno; version_estado sube una vez por cada estado.py", set(e1) == set(e0) and e1["presupuestos"] == e0["presupuestos"]
+          and e1["puertas"] == e0["puertas"] and e1["version_estado"] == e0["version_estado"] + n_est, (e0["version_estado"], e1["version_estado"], n_est))
+    a0 = leer_csv(P("03-control", "reportes", "avance-bmad.csv")); a1 = leer_csv(os.path.join(g, "03-control", "reportes", "avance-bmad.csv"))
+    check("5.9", "avance-bmad.csv reescrito bajo el bloqueo: una fila por corte, sin duplicados", len({f["fecha"] for f in a1}) == len(a1) >= len(a0), (len(a0), len(a1)))
+    errores = lambda dir_: {h["codigo"] for h in json.loads(subprocess.run([sys.executable, SCR["sanidad"], "--proyecto", G, "--json", "--corte", "2027-01-23"], cwd=dir_,
+                                                                          capture_output=True, text=True).stdout)["hallazgos"] if h["severidad"] == "ERROR"}
+    check("5.9", "sanidad de la copia sin ERROR nuevos respecto del proyecto integrado", errores(copia) <= errores(D["repo"]), errores(copia) - errores(D["repo"]))
+
+
+@eslabon("5.10", "bitácora de todas las escrituras de las cadenas 1–5 (cadena íntegra, sin cambios fuera de los scripts) → propuesta de un agente sobre un riesgo de 2.3 → la persona cambia la misma fila → aprobar reaplica → auditoria --con-bitacora → verificar")
+def c5_bitacora():
+    sys.path.insert(0, S); import esquema as ESQ
+    lineas, prob = ESQ.verificar_bitacora(P())
+    scripts = {x.get("script") for x in lineas}
+    check("5.10", f"{len(lineas)} escrituras anotadas por {', '.join(sorted(s_ for s_ in scripts if s_))}; cadena íntegra y cada archivo igual a su última escritura anotada (BIT sin avisos)",
+          lineas and not prob and {"registro.py", "estado.py", "bmad.py"} <= scripts, prob[:3])
+    dec = leer_csv(P("03-control", "registros", "decisiones.csv")); hd = js("registro", "--proyecto", G, "historial", "decisiones", "--max", "0", "--json")
+    altas = {i for x in hd["lineas"] for i in x.get("altas") or []}
+    check("5.10", f"historial decisiones: el alta de cada una de las {len(dec)} decisiones está en la bitácora", {f["id"] for f in dec} <= altas, sorted({f["id"] for f in dec} - altas)[:5])
+    copia = os.path.join(D["tmp"], "propuestas"); shutil.copytree(D["repo"], copia, ignore=shutil.ignore_patterns(".pm-bloqueo"))
+    rid = D["riesgos"][0]; r0 = {f["id"]: f for f in leer_csv(os.path.join(copia, G, "03-control", "registros", "riesgos.csv"))}[rid]
+    pid = run("registro", "--proyecto", G, "proponer", "riesgos", rid, "--campo", "acciones=" + ((r0.get("acciones") or "") + "; revisar con el proveedor alternativo").lstrip("; "),
+              "--por", "agente: pm-riesgos", "--motivo", "acta del comité de 2.7", cwd=copia).stdout.strip()
+    run("registro", "--proyecto", G, "actualizar", "riesgos", rid, "--campo", "notas=revisado por la propietaria", cwd=copia)
+    ap_ = run("registro", "--proyecto", G, "aprobar", pid, "--por", "Gestor: Martín Suárez", cwd=copia)
+    r1 = {f["id"]: f for f in leer_csv(os.path.join(copia, G, "03-control", "registros", "riesgos.csv"))}[rid]
+    ult = [x for x in ESQ.verificar_bitacora(os.path.join(copia, G))[0] if x.get("archivo", "").endswith("riesgos.csv")][-1]
+    check("5.10", f"{pid} sobre {rid}: la persona cambió notas en la misma fila; aprobar reaplica (acciones propuestas y notas de la persona) y la bitácora anota aprobar con --por y {pid}",
+          "reaplicada" in ap_.stderr and r1["notas"] == "revisado por la propietaria" and r1["acciones"].endswith("proveedor alternativo") and ult.get("propuesta") == pid
+          and ult.get("por") == "Gestor: Martín Suárez", ap_.stderr[-300:])
+    z = os.path.join(D["tmp"], "expediente-bitacora.zip")
+    run("paquete", "--proyecto", G, "auditoria", "--con-bitacora", "--salida", z, cwd=copia)
+    v = run("paquete", "--proyecto", G, "verificar", z, cwd=copia)
+    check("5.10", "auditoria --con-bitacora: bitacora.jsonl en el expediente y verificar OK", "bitacora.jsonl" in zipfile.ZipFile(z).namelist() and "INTEGRIDAD: OK" in v.stdout, v.stdout[-200:])
+
+
 @eslabon("5.3", "integridad final: BMAD sin escrituras de pm-method y sanidad sin ERROR")
 def c5_final():
     ahora = huella_bmad()
@@ -885,6 +951,7 @@ def c4_impacto():
     check("4.5", f"VAN de «{o1}» = el de inversion.py en 4.3 ({n(ops[o1]['van'])}); quién decide sale de la regla (autoridad de cambio salvo que el caso deje de justificarse)",
           f["Beneficios (VAN)"]["con"].startswith(n(ops[o1]["van"])) and j["nivel"] == ("junta" if j["fuera_de_tolerancia"]["beneficios"] else "autoridad-cambio"), (f.get("Beneficios (VAN)"), j["nivel"]))
     check("4.5", "solo lectura: cambios.csv sin tocar; borrador de solicitud de cambio en 03-control/reportes", sha(P("03-control", "registros", "cambios.csv")) == h0 and os.path.exists(os.path.join(D["repo"], j["salida"])), j["salida"])
+    D["impacto"] = j; D["cid_impacto"] = cid
 
 
 SCR["release"] = os.path.join(SK, "pm-agil-hibrido", "scripts", "release.py")
@@ -935,6 +1002,135 @@ def c4_tres_valores_release():
     check("4.6", f"release.py capacidad con el backlog de 1.2: R1 Must {m} + Should {s_} contra {its} iteraciones × {vel:g}; impacto.py --release R1 muestra los mismos puntos y capacidad",
           r1["must"] == m and r1["should"] == s_ and r1["capacidad"] == its * vel
           and f[f"Capacidad del R1"]["antes"] == f"{r1['total']:.0f} pts de {r1['capacidad']:.0f} ({its} sprints)", (r1, f.get("Capacidad del R1")))
+
+
+SCR["decision"] = os.path.join(SK, "pm-direccion-decisiones", "scripts", "decision.py")
+
+
+@eslabon("4.7", "riesgo decidido en 2.6 + inversion.py de 4.3 + impacto.py de 4.5 → decision.py expediente (cifras sin recalcular, nivel que decide) → matriz con el VAN importado → --elegir → decisiones.csv")
+def c4_decision():
+    n = lambda x: f"{x:,.0f}".replace(",", "§").replace(".", ",").replace("§", ".")
+    rid = D["riesgos"][1]                            # el alto que 2.6 decidió con riesgos.py opciones --elegir
+    jr = {x["id"]: x for x in js("riesgos", "--proyecto", G, "opciones", "--riesgo", rid, "--json")["riesgos"]}[rid]
+    rec = next(o for o in jr["opciones"] if o["recomendada"])
+    ex = js("decision", "--proyecto", G, "expediente", "--tipo", "riesgo", "--ids", rid, "--json")
+    lineas = [l for c in ex["cifras"] for l in c["lineas"]]; rel_ids = {x["id"] for x in ex["relacionados"]}
+    dec = [x["id"] for x in reg_js("listar", "decisiones") if rid in x.get("decision", "")][-1]
+    act = [x["id"] for x in reg_js("listar", "cambios") if rid in x.get("descripcion", "")]
+    check("4.7", f"expediente de {rid}: valor neto de {rec['opcion']} ({n(rec['valor_neto'])}) igual al de riesgos.py; a un salto, la decisión {dec} y la activación {', '.join(act)} de 2.6; saldo de la reserva de 2.4",
+          any(f"{rid}/{rec['opcion']}" in l and f"valor neto {n(rec['valor_neto'])}" in l for l in lineas) and dec in rel_ids and act and set(act) <= rel_ids
+          and ex["nivel"] == "gestor" and any("presupuesto de riesgo" in m for m in ex["motivos"]), (lineas[:4], sorted(rel_ids)[:12], ex["motivos"]))
+    imp = P("03-control", "reportes", f"impacto-{D['cid_impacto']}.json"); json.dump(D["impacto"], open(imp, "w", encoding="utf-8"), ensure_ascii=False)
+    exc = js("decision", "--proyecto", G, "expediente", "--tipo", "cambio", "--ids", D["cid_impacto"], "--importar", imp, "--json")
+    fi = [l for c in exc["cifras"] if "impacto.py" in c["fuente"] for l in c["lineas"]]
+    check("4.7", f"expediente de {D['cid_impacto']} con el --json de impacto.py (4.5): decide {D['impacto']['nivel']} como en el análisis, con sus filas de impacto sin recalcular",
+          exc["nivel"] == D["impacto"]["nivel"] and any("Presupuesto de cambio" in l for l in fi) and any(D["cid_impacto"] in l for l in fi), (exc["nivel"], fi[:3]))
+    inv = P("00-direccion", "inversion-opciones.json"); json.dump(D["inversion"], open(inv, "w", encoding="utf-8"), ensure_ascii=False)
+    run("decision", "--proyecto", G, "matriz", "negocio-4-3", "--proponer", "--tipo", "negocio", "--importar", inv, "--pregunta", "¿Qué opción del business case se recomienda a la ejecutiva?")
+    hoja = P("03-control", "decisiones", "negocio-4-3"); ops = leer_csv(os.path.join(hoja, "opciones.csv")); cab = list(ops[0].keys())
+    for k, f in enumerate(ops):                      # la persona o el modelo puntúan lo que el VAN no mide (simulado), con su fuente
+        f.update(beneficios=str(1 + 2 * k), beneficios_fuente="business case §5 (B-01)", riesgo=str(1 + k), riesgo_fuente=f"mapa de Wardley de 4.1 y {rid}",
+                 ajuste_estrategico=str(2 + k), ajuste_estrategico_fuente="mandato")
+    escribir_csv(os.path.join(hoja, "opciones.csv"), cab, ops)
+    cr = leer_csv(os.path.join(hoja, "criterios.csv")); cc = list(cr[0].keys())
+    for f in cr: f["fuente_peso"] = "Ejecutivo: Laura Méndez (taller del 2027-01-21)"
+    escribir_csv(os.path.join(hoja, "criterios.csv"), cc, cr)
+    m = js("decision", "--proyecto", G, "matriz", "negocio-4-3", "--json"); om = {o["ref"]: o for o in m["opciones"]}
+    check("4.7", "matriz de negocio propuesta desde inversion.py: una opción por alternativa del business case y el VAN importado sin recalcular (con su fuente)",
+          set(om) == set(D["inversion"]["opciones"]) and all(abs(om[k]["valores"]["van"] - v["van"]) < 1e-6 and "inversion-opciones.json" in om[k]["fuentes"]["van"] for k, v in D["inversion"]["opciones"].items())
+          and m["accion"] == "elegir" and m["recomendada"], (m.get("accion"), m.get("recomendada"), m.get("avisos")))
+    n0 = len(reg_js("listar", "decisiones"))
+    run("decision", "--proyecto", G, "matriz", "negocio-4-3", "--elegir", m["recomendada"], "--por", "Ejecutivo: Laura Méndez", "--motivo", "taller del 2027-01-21", "--fecha", "2027-01-21")
+    ds = reg_js("listar", "decisiones"); dn = ds[-1]
+    check("4.7", f"--elegir {m['recomendada']} (ejecutiva): una fila {dn['id']} en decisiones.csv, nivel ejecutivo, con las opciones y sus puntajes y la hoja citada; sanidad sin DEC",
+          len(ds) == n0 + 1 and dn["nivel"] == "ejecutivo" and f"{m['recomendada']} " in dn["opciones_consideradas"] and "03-control/decisiones/negocio-4-3/" in dn["artefactos_afectados"]
+          and not [h for h in san("2027-01-21")["hallazgos"] if h["codigo"].startswith("DEC-")], dn)
+
+
+@eslabon("4.9", "decisión de negocio de 4.7 (ejecutiva) reabierta en una hoja nueva → el gestor no puede reemplazarla → la ejecutiva elige con --reemplaza → decision.py vigentes (cadena) y expediente --tema en inglés (solo la vigente, la otra como historia) → sanidad sin DEC-05")
+def c4_vigencia():
+    d47 = next(x for x in reg_js("listar", "decisiones") if "03-control/decisiones/negocio-4-3/" in x.get("artefactos_afectados", ""))
+    run("decision", "--proyecto", G, "matriz", "negocio-reabierta", "--proponer", "--tipo", "negocio", "--forma", "si-no",
+        "--pregunta", "¿Se posterga la opción del business case elegida en enero hasta el dictamen legal?")
+    hj = P("03-control", "decisiones", "negocio-reabierta", "decision.json"); m = json.load(open(hj, encoding="utf-8")); m["nivel"] = "gestor"; json.dump(m, open(hj, "w", encoding="utf-8"))
+    ro = json.load(open(P("estado.json"), encoding="utf-8"))["roles"]; n0 = len(reg_js("listar", "decisiones"))
+    r = run("decision", "--proyecto", G, "matriz", "negocio-reabierta", "--elegir", "si", "--por", f"Gestor: {ro['gestor_proyecto']}", "--reemplaza", d47["id"],
+            "--motivo", "pedido del comité", "--fecha", "2027-02-10", "--sin-aviso", ok=(1,))
+    check("4.9", f"el gestor no reemplaza {d47['id']} (nivel {d47['nivel']}) desde una hoja de nivel gestor: rechazado antes de registrar",
+          "nivel igual o superior" in r.stderr and len(reg_js("listar", "decisiones")) == n0, r.stderr[-300:])
+    m = json.load(open(hj, encoding="utf-8")); m["nivel"] = "ejecutivo"; json.dump(m, open(hj, "w", encoding="utf-8"))
+    run("decision", "--proyecto", G, "matriz", "negocio-reabierta", "--elegir", "si", "--por", "Ejecutivo: Laura Méndez", "--reemplaza", d47["id"],
+        "--motivo", "el dictamen legal llega en marzo", "--fecha", "2027-02-10", "--sin-aviso")
+    nueva = reg_js("listar", "decisiones")[-1]
+    v = js("decision", "--proyecto", G, "vigentes", "--ids", nueva["id"], "--corte", "2027-02-10", "--json")
+    x = next((y for y in v["decisiones"] if y["id"] == nueva["id"]), {})
+    check("4.9", f"la ejecutiva reabre: {nueva['id']} reemplaza a {d47['id']}; decision.py vigentes muestra la cadena {d47['id']} → {nueva['id']} y {d47['id']} ya no figura como vigente",
+          nueva["reemplaza"] == d47["id"] and x.get("cadena") == [d47["id"], nueva["id"]] and d47["id"] not in [y["id"] for y in v["decisiones"]], (nueva, v))
+    ex = js("decision", "--proyecto", G, "expediente", "--tipo", "negocio", "--tema", "postponed business case option", "--json")
+    rel = [y["id"] for y in ex["relacionados"]]
+    check("4.9", "expediente --tema en inglés («postponed business case option») sobre filas en español (se posterga la opción del business case): trae la vigente y menciona la reemplazada como historia",
+          nueva["id"] in rel and d47["id"] not in rel and any(h["id"] == d47["id"] and h["reemplazada_por"] == nueva["id"] for h in ex["historia"]), (rel[:10], ex["historia"]))
+    check("4.9", "sanidad sin DEC-05 ni DEC-06 en el proyecto integrado", not [h for h in san("2027-02-10")["hallazgos"] if h["codigo"] in ("DEC-05", "DEC-06")],
+          [h["mensaje"] for h in san("2027-02-10")["hallazgos"] if h["codigo"] in ("DEC-05", "DEC-06")])
+
+@eslabon("4.10", "mapa de Wardley de 4.2 (componente en producto marcado construir: MAP-01) → decision.py expediente con <mapa>:<id> → hoja de hacer o comprar (--criterios) → --elegir → mapas.py vincular cita la decisión → sanidad sin MAP-01")
+def c4_hacer_comprar():
+    mp = P("02-planificacion", "mapas"); w = json.load(open(os.path.join(mp, "wardley-portal.json"), encoding="utf-8"))
+    c = next(x for x in w["componentes"] if x.get("etapa") == "producto" and x["id"] not in (D["comprar"]["id"], D["construir"]["id"]) and not x.get("inercia"))
+    c["decision"] = "construir"
+    json.dump(w, open(os.path.join(mp, "wardley-portal.json"), "w", encoding="utf-8"), ensure_ascii=False, indent=2)
+    m01 = lambda: [h for h in san("2027-02-11")["hallazgos"] if h["codigo"] == "MAP-01"]
+    antes = m01(); el = f"portal:{c['id']}"
+    ex = js("decision", "--proyecto", G, "expediente", "--tipo", "adquisicion", "--ids", el, "--pregunta", f"¿Construimos o compramos {c['nombre']}?", "--json")
+    x = next((y for y in ex["mapas"] if y["elemento"] == c["id"]), {})
+    check("4.10", f"expediente con {el}: el componente de 4.2 con su etapa ({c['etapa']}), evidencia y refs de BMAD tal como están en el mapa, citado archivo#id; MAP-01 abierto antes de decidir",
+          x.get("cita") == f"02-planificacion/mapas/wardley-portal.json#{c['id']}" and x.get("etapa") == "producto" and x.get("evidencia") == c["evidencia"] and x.get("refs") == c.get("refs", [])
+          and x.get("decision") == "construir" and any(c["id"] in h["mensaje"] for h in antes), (x, [h["mensaje"] for h in antes]))
+    run("decision", "--proyecto", G, "matriz", "hacer-comprar", "--proponer", "--tipo", "adquisicion", "--criterios", "hacer-o-comprar", "--ids", el,
+        "--pregunta", f"¿Construimos, compramos o tercerizamos {c['nombre']}?", "--fecha", "2027-02-11")
+    hoja = P("03-control", "decisiones", "hacer-comprar"); cr = leer_csv(os.path.join(hoja, "criterios.csv")); cc = list(cr[0].keys())
+    for f in cr: f["fuente_peso"] = "Ejecutivo: Laura Méndez (2027-02-11)"
+    escribir_csv(os.path.join(hoja, "criterios.csv"), cc, cr)
+    ops = leer_csv(os.path.join(hoja, "opciones.csv")); cab = list(ops[0].keys())
+    val = {"O1": ("Comprar", 2, 50000, 6, 3, 4, 1), "O2": ("Construir", 4, 90000, 20, 1, 2, 5), "O3": ("Tercerizar", 1, 70000, 10, 4, 3, 2)}
+    for f in ops:
+        nom, *vs = val[f["opcion"]]; f["descripcion"] = nom
+        for k, v in zip(("diferenciacion", "costo_total", "tiempo_disponible", "dependencia_proveedor", "capacidad_interna", "riesgo_commodity"), vs):
+            f[k] = str(v); f[k + "_fuente"] = f"mapa {el} y cotizaciones (simulado)"
+    escribir_csv(os.path.join(hoja, "opciones.csv"), cab, ops)
+    m = js("decision", "--proyecto", G, "matriz", "hacer-comprar", "--json")
+    run("decision", "--proyecto", G, "matriz", "hacer-comprar", "--elegir", m["recomendada"], "--por", "Ejecutivo: Laura Méndez", "--fecha", "2027-02-11", "--sin-aviso")
+    dn = reg_js("listar", "decisiones")[-1]; w2 = json.load(open(os.path.join(mp, "wardley-portal.json"), encoding="utf-8"))
+    c2 = next(y for y in w2["componentes"] if y["id"] == c["id"])
+    check("4.10", f"--elegir {m['recomendada']}: {dn['id']} queda citada en {c['id']} (refs del mapa), decision.json la registra en eleccion.mapas y MAP-01 se cierra; la columna decision del componente no cambia",
+          m["recomendada"] == "O1" and dn["id"] in c2["refs"] and c2["decision"] == "construir" and not m01()
+          and json.load(open(os.path.join(hoja, "decision.json"), encoding="utf-8"))["eleccion"].get("mapas") == [f"02-planificacion/mapas/wardley-portal.json#{c['id']}"], (dn["id"], c2.get("refs")))
+
+@eslabon("4.8", "RACI de 3.2 (épica: A usuaria sénior, I ejecutiva) + roles de estado.json → decision.py expediente (A, C, I y autoridad) → --elegir del gestor exige --motivo → borrador del aviso a los I (interesados.py plan-envio) → envios.py estado, nada enviado → sanidad sin DEC-03/DEC-04")
+def c4_decision_raci():
+    st = D["st"]; e1 = D["epi"][0]["id"]
+    ro = json.load(open(P("estado.json"), encoding="utf-8"))["roles"]; gestor = ro["gestor_proyecto"]
+    run("decision", "--proyecto", G, "matriz", "raci-e1", "--proponer", "--tipo", "planificacion", "--forma", "si-no", "--ids", e1,
+        "--pregunta", f"¿Pasamos {e1} al Release 2?")
+    ex = js("decision", "--proyecto", G, "expediente", "--hoja", "raci-e1", "--json")
+    x = next((r for r in ex.get("raci", []) if r["elemento"] == e1), {})
+    check("4.8", f"expediente de la hoja: RACI de {e1} desde 3.2 con A {st['Sofía Ramírez']} (nivel junta por estado.json.roles.usuario_senior ≥ gestor) e I {st['Laura Méndez']}, con nombre y rol",
+          x and [p["id"] for p in x["A"]] == [st["Sofía Ramírez"]] and [p["id"] for p in x["I"]] == [st["Laura Méndez"]] and x["nivel_a"] == "junta" and x["coherente"]
+          and x["A"][0]["nombre"] == "Sofía Ramírez", x)
+    n0 = len(reg_js("listar", "decisiones")); n_env = len(leer_csv(P("03-control", "registros", "envios.csv")))
+    r = run("decision", "--proyecto", G, "matriz", "raci-e1", "--elegir", "si", "--por", f"Gestor: {gestor}", ok=(1,))
+    check("4.8", f"--elegir del gestor ({gestor}) sin --motivo: no es el A de {e1} ni autoridad superior → rechazado sin registrar", "no es el A de " + e1 in r.stderr
+          and len(reg_js("listar", "decisiones")) == n0, r.stderr[-300:])
+    r = run("decision", "--proyecto", G, "matriz", "raci-e1", "--elegir", "si", "--por", f"Gestor: {gestor}", "--motivo", "la usuaria sénior delegó el reordenamiento (comité 2027-01-22)",
+            "--fecha", "2027-01-22")
+    carpeta = json.load(open(P("03-control", "decisiones", "raci-e1", "decision.json"), encoding="utf-8"))["eleccion"]["raci"]["aviso"]
+    est = js("envios", "--proyecto", G, "estado", P(*carpeta.split("/")), "--json") if carpeta else []
+    check("4.8", f"con --motivo: una decisión nueva y el borrador del aviso a la I ({st['Laura Méndez']}) en {carpeta or '—'}; envios.py estado = borrador y envios.csv sin filas nuevas",
+          len(reg_js("listar", "decisiones")) == n0 + 1 and [m["para"] for m in est] == [st["Laura Méndez"]] and all(m["estado"] == "borrador" for m in est)
+          and len(leer_csv(P("03-control", "registros", "envios.csv"))) == n_env, (r.stdout[-300:], est))
+    d = san("2027-01-22")
+    check("4.8", "sanidad sin DEC-03 ni DEC-04 (la RACI refleja la autoridad y la decisión tiene motivo)", not [h for h in d["hallazgos"] if h["codigo"] in ("DEC-03", "DEC-04")],
+          [h["mensaje"] for h in d["hallazgos"] if h["codigo"].startswith("DEC")])
 
 
 @eslabon("5.4", "puertas de 1.7, líneas base, registros de las cadenas 1–4, envíos de 3.3 y cortes de EVM → paquete.py auditoria → verificar (sha256)")
@@ -1184,9 +1380,9 @@ def main():
         print("\nCadena 3 · interesados ↔ RACI ↔ OKR ↔ envíos → STK")
         for f in (c3_maestro, c3_raci, c3_envios, c3_stk): f()
         print("\nCadena 4 · mapas desde BMAD y artefactos → vínculos → MAP → inversión → personas de usuario")
-        for f in (c4_semillas, c4_vinculos, c4_inversion, c4_personas, c4_impacto, c4_tres_valores_release): f()
+        for f in (c4_semillas, c4_vinculos, c4_inversion, c4_personas, c4_impacto, c4_tres_valores_release, c4_decision, c4_decision_raci, c4_vigencia, c4_hacer_comprar): f()
         print("\nCadena 5 · exportar y paquete de puerta")
-        for f in (c5_exportar, c5_paquete, c5_auditoria, c5_radar, c5_lecciones, c5_ciclo_lecciones, c5_productos, c5_final): f()
+        for f in (c5_exportar, c5_paquete, c5_auditoria, c5_radar, c5_lecciones, c5_ciclo_lecciones, c5_productos, c5_concurrencia, c5_bitacora, c5_final): f()
         if not a.sin_e2e:
             print("\nCadena 6 · recorridos E2E → webinar")
             dir_e2e = a.e2e or os.path.join(D["tmp"], "e2e")

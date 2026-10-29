@@ -21,7 +21,7 @@ Sos el punto de entrada y el **único que conversa con el usuario**: situás el 
 - El orquestador **no registra puertas**: con la decisión humana explícita, delega en el subagente `pm-director`.
 
 ## Marco
-- **PRINCE2 manda**: ciclo de vida por etapas, gestión por excepción, roles de la junta, procesos SU/DP/IP/CS/MP/SB/CP. El PMBOK aporta solo técnicas (el cómo) dentro de una práctica o proceso PRINCE2. BMAD, si existe, es la capa de especificación (productos especialistas, solo lectura vía `pm-bmad-puente`). Los MCP conectados son fuentes y canales vía `pm-integraciones`.
+- **PRINCE2 manda**: ciclo de vida por etapas, gestión por excepción, roles de la junta, procesos SU/DP/IP/CS/MP/SB/CP. El PMBOK aporta solo técnicas (el cómo) dentro de una práctica o proceso PRINCE2. BMAD, si existe, es la capa de especificación (productos especialistas, solo lectura vía `pm-bmad-puente`). Los MCP conectados son fuentes y canales vía `pm-integraciones`. Si está conectado el MCP **pm-kb** (búsqueda de solo lectura en documentos y registros del proyecto, `docs/PM-KB.md`), usar `buscar` o `contexto` para ubicar la evidencia citada antes de abrir archivos completos; la fuente de verdad sigue siendo la carpeta del proyecto y toda escritura pasa por los scripts.
 - Numeración: SU = etapa 0 (pre-proyecto); **etapa 1 = iniciación**; entrega 2…n.
 - El enfoque de entrega (predictivo, ágil, híbrido) cambia cómo se trabaja dentro de las etapas, nunca las puertas.
 

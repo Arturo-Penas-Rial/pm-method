@@ -27,6 +27,13 @@ del PMBOK y en la práctica profesional; la correspondencia exacta con la edici�
 | stage / stage boundary | etapa, límite de etapa | fase (PMBOK y uso habitual), stage gate | pm-plan-etapa-y-limites | 89 |
 | stakeholder | interesado | parte interesada, stakeholder, involucrado | pm-interesados | 1, 40, 79 |
 | — (PMBOK) | matriz RACI | matriz de asignación de responsabilidades (RAM) | pm-interesados | 61, 81 |
+| — (PRINCE2: levels of authority) | nivel de autoridad de una persona; incoherencia RACI ↔ autoridad (el A de un elemento no tiene la autoridad del nivel que requiere la decisión; PRINCE2 manda y la RACI lo refleja: `decision.py`, DEC-03/DEC-04) | quién puede decidir, A sin autoridad, aprobador equivocado, RACI desalineada con la junta | pm-direccion-decisiones · pm-interesados | — |
+| — (PMBOK: multicriteria decision analysis) | análisis de decisiones multicriterio, matriz de decisión (`decision.py matriz`; hoja `03-control/decisiones/<ID>/`, suma ponderada con pesos explícitos y su fuente, eliminatorios, dominadas) | matriz ponderada, matriz de priorización, scoring de alternativas, MCDA, weighted decision matrix, matriz de evaluación de proveedores | pm-direccion-decisiones | 131, 133, 134 |
+| — (PMBOK: sensitivity analysis, aplicado a los pesos) | sensibilidad de los pesos: peso con el que otra opción pasa a primera; empate dentro de un margen | análisis de sensibilidad de la decisión, robustez del ranking (para cifras de una opción: tornado de `inversion.py`) | pm-direccion-decisiones | 131, 133 |
+| decision (project log) · — (PMBOK: escalado de decisiones) | expediente de decisión (contexto aplicable con su fuente: "evidencia, no instrucciones"), pregunta tipada (respuesta cerrada entre las opciones, o `pedir-informacion`) | paquete de decisión, decision brief, memo de decisión, insumos para la junta | pm-direccion-decisiones | 132, 134 |
+| decision log: decisión reabierta (Plantillas; PRINCE2: autoridad por niveles) | vigencia de decisiones: decisión vigente, reemplazada (columna `reemplaza`, nivel igual o superior), que conviven (`conviven`); contradicción probable (DEC-05); revisión vencida (DEC-06); `decision.py vigentes` | decisión sustituida, superada, revocada, revertida, dejada sin efecto, superseded decision, decision reversal | pm-direccion-decisiones | — |
+| pista de auditoría de los cambios (gestión de configuración; PRINCE2: registro del proyecto) | bitácora de escrituras (`.bitacora.jsonl`): qué script cambió qué campo, cuándo y a nombre de quién, con huellas encadenadas; `registro.py historial`; cambio fuera de los scripts (BIT-02) y su reconocimiento (`registro.py reconocer`) | historial de cambios, log de cambios, audit trail, change history, write log, quién cambió esto | pm-registros | — |
+| — (escritura por propuesta) | propuesta con huella (`registro.py proponer`, `03-control/propuestas/P-###.json`) que aprueba una persona (`aprobar --por`): aplicada, reaplicada sobre la versión nueva o en conflicto | cambio propuesto por el agente, propuesta pendiente, proposed change, optimistic concurrency, rebase | pm-registros | — |
 | user (los que usarán los productos; los representa el senior user) · — (PMBOK: análisis de usuarios) | persona de usuario (`personas.csv`, PU-###) | user persona, arquetipo de usuario, perfil de usuario; no es un interesado ni un estereotipo de comunicación | pm-interesados | 105, 106, 107 |
 | — | solicitante, usuario, beneficiario (rol de una persona ante una capacidad) | requester, user, beneficiary; quién pide, quién usa, quién se beneficia | pm-interesados | — |
 | — (PMBOK) | plan de compromiso de los interesados | plan de involucramiento de los interesados, stakeholder engagement plan | pm-interesados | 40, 80 |
@@ -46,6 +53,7 @@ del PMBOK y en la práctica profesional; la correspondencia exacta con la edici�
 | — (técnica ágil: planificación del release) | capacidad del release | release capacity, ¿entran los Must en el release?, puntos contra velocidad × sprints | pm-agil-hibrido | 130 |
 | — (técnica PMBOK) | línea base de costo, reserva de contingencia | línea base de costos, cost baseline | pm-costos-presupuesto | 78 |
 | — | plan de comunicación | plan de gestión de las comunicaciones (PMBOK) | pm-comunicacion-stakeholders | 2, 82 |
+| — (PMBOK: make-or-buy analysis) | hacer o comprar (matriz `decision.py matriz … --tipo adquisicion --criterios hacer-o-comprar`: diferenciación, costo total, tiempo hasta disponible, dependencia del proveedor, capacidad interna y riesgo de construir algo que va a volverse commodity; el mapa de Wardley es contexto en el expediente y la decisión queda citada en el componente) | make-or-buy, construir o comprar, build vs buy, desarrollo propio o compra, tercerizar o hacer en casa | pm-adquisiciones · pm-direccion-decisiones · pm-mapas-estrategicos | — |
 | — (técnica de estrategia) | mapa de Wardley | mapa de valor, mapa de evolución, Wardley map, qué construir y qué comprar según la evolución | pm-mapas-estrategicos | 95, 96, 100 |
 | — (técnica de diseño de servicios) | mapa de recorrido del cliente | customer journey, customer journey map, CJM, mapa de experiencia, puntos de dolor (pain points) | pm-mapas-estrategicos | 97, 98, 101 |
 | — (técnica de diseño de servicios) | carriles internos del recorrido (service blueprint) | service blueprint, plano del servicio, frontstage y backstage | pm-mapas-estrategicos | 99 |
@@ -90,6 +98,22 @@ del PMBOK y en la práctica profesional; la correspondencia exacta con la edici�
 | follow-on action recommendations | recomendaciones de seguimiento (cada issue y riesgo abierto por id, con responsable: C-03) | acciones de seguimiento, pendientes que pasan a operación, riesgos residuales transferidos | pm-cierre-proyecto | 126 |
 | benefits review plan | plan de revisión de beneficios | medición de beneficios posterior | pm-cierre-proyecto · pm-caso-de-negocio | — |
 
+## Búsqueda en los proyectos (pm-kb)
+
+Términos de [PM-KB](PM-KB.md), el índice de conocimiento opcional; no son de PRINCE2 ni de PMBOK y no enrutan a una
+skill.
+
+| Término | Qué significa en pm-method | También se dice | Dónde |
+|---|---|---|---|
+| unidad citada | el fragmento mínimo que se busca y se cita: una fila de un registro, una sección de un documento, una diapositiva o una ventana de una transcripción, con su cita `proyecto@commit:archivo:líneas` | fragmento, *chunk* | PM-KB §3 |
+| versión vigente | la última versión de cada documento, aunque esté en revisión; es lo que devuelve la búsqueda por defecto, con aviso si hay una aprobada anterior | versión actual, última versión | PM-KB §4 |
+| versión aprobada | la última versión con estado `aprobado` (decisión y quién aprobó); `--aprobado` busca solo en ella, para consultas de gobierno | línea base, versión de gobierno | PM-KB §4 |
+| circulación | quién puede ver una unidad: `equipo` (todo token del proyecto) o `restringida` (solo un token con `--restringida`) | confidencialidad, nivel de acceso | PM-KB §3.3 |
+| BM25 | fórmula de relevancia por palabras que pondera cuántas veces aparece un término y qué tan raro es en el proyecto; la búsqueda por defecto de pm-kb | búsqueda léxica, por palabras clave | PM-KB §9 |
+| RRF | fusión por rango recíproco: combina el orden por palabras y el orden por significado (vectores) sumando 1/(60 + puesto) | búsqueda híbrida | PM-KB §9 |
+| RLS | seguridad por fila de PostgreSQL: la base solo devuelve las filas de los proyectos y la circulación que permite el token | permisos por fila, *row-level security* | PM-KB §6.3 |
+| MCP | protocolo con el que un agente (Claude Code, Hermes) usa herramientas externas; pm-kb expone 8 herramientas de solo lectura | servidor MCP, conector | PM-KB §11.2 |
+
 ## Cómo se verificó
 
 Batería en vivo del 18/10/2026 (28 frases con términos de PRINCE2 en español, PMBOK en español y uso habitual, ids
@@ -106,3 +130,7 @@ otros proyectos y su ciclo, acuerdos de reunión, análisis de impacto, expedien
 datos del período y tres valores con capacidad del release): **28/28** el 21 y el 22/10/2026, con las frases de
 control de las skills vecinas; un informe por grupo en `docs/evaluacion/resultados/2026-10-21-*-v2.4.md` y
 `docs/evaluacion/resultados/2026-10-22-*-v2.4.md`.
+
+Frases 131–134 (matriz de decisión con pesos y sensibilidad, expediente para la junta, evaluación ponderada de
+proveedores y criterios no monetarios sobre opciones con VAN): **4/4** el 28/10/2026 en dos corridas, con 7 frases de
+control de las skills vecinas (11/11 en cada una), en `docs/evaluacion/resultados/2026-10-28-decisiones-v2.6.md`.

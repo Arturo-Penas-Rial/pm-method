@@ -66,7 +66,7 @@ Con BMAD (`integraciones.especificacion = bmad`), en `autorizar-proyecto`, `auto
 ### 3.1 Expediente de auditoría y verificación de integridad
 Para la PMO, una auditoría interna, una due diligence o la entrega a un cliente, el expediente reúne bajo demanda la
 evidencia que ya está en la carpeta del proyecto, sin reescribirla:
-`python3 ${CLAUDE_SKILL_DIR}/../pm-exportar/scripts/paquete.py --proyecto <dir> auditoria [--desde AAAA-MM-DD] [--hasta AAAA-MM-DD] [--proposito "…"] [--externo] [--salida …] [--extra …]`
+`python3 ${CLAUDE_SKILL_DIR}/../pm-exportar/scripts/paquete.py --proyecto <dir> auditoria [--desde AAAA-MM-DD] [--hasta AAAA-MM-DD] [--proposito "…"] [--externo] [--con-bitacora] [--salida …] [--extra …]`
 → `exportados/<hoy>-expediente-auditoria[-<desde>_<hasta>].zip`.
 
 | En el ZIP | De dónde sale |
@@ -78,6 +78,7 @@ evidencia que ya está en la carpeta del proyecto, sin reescribirla:
 | `00-direccion/decisiones/**` | listas de verificación de puertas, solicitudes y actas de junta |
 | `03-control/reuniones/*acta*`, `03-control/reportes/*` (incluidos los cortes `evm-*.json`), `03-control/comunicaciones/**`, `04-cierre/*aceptacion*` | comunicaciones, informes y aceptaciones (con período, se omiten los fechados fuera de él) |
 | `sanidad-<corte>.json` | `sanidad.py --json --corte <hasta o hoy>` (solo lectura) |
+| `bitacora.jsonl` (solo con `--con-bitacora`) | `<proyecto>/.bitacora.jsonl` completa aunque haya período (cadena de huellas: qué script escribió qué campo, cuándo y a nombre de quién; sin valores de interesados ni confidenciales; SPEC §1.10.16) |
 | `MANIFIESTO.md` y `SHA256SUMS` | sha256 de cada archivo |
 
 Los paquetes de puerta ya generados (`exportados/*.zip`) se citan en el índice con su huella y no se reincluyen; una ruta
@@ -86,7 +87,10 @@ registro de interesados y sus valoraciones (`stakeholders`, `estereotipos`, `pre
 los envíos. El expediente no aprueba ni dictamina.
 
 **Verificar:** `paquete.py --proyecto <dir> verificar <zip>` recalcula el sha256 de cada archivo y lo compara con
-`SHA256SUMS`: informa alterados, faltantes y agregados (código 1) o `INTEGRIDAD: OK`. Respaldo: PRINCE2 7, líneas base y
+`SHA256SUMS`: informa alterados, faltantes y agregados (código 1) o `INTEGRIDAD: OK`. Si el expediente lleva la
+bitácora, para cada `estado.json` o registro alterado muestra su última escritura anotada (línea, fecha, script,
+operación, `--por`, ids) y si esa escritura dejó la versión del expediente: entonces la diferencia de la copia recibida no
+salió de los scripts. Respaldo: PRINCE2 7, líneas base y
 gestión de configuración (pista de auditoría de todos los cambios, archivo de versiones anteriores:
 `pm-knowledge/references/prince2-practicas-riesgo-issues-progreso-productos.md` §3.c.4), registro del proyecto (§5.4 A13)
 y enfoque de gestión de datos (integridad y auditorías de datos, §4.d); PMBOK 8, auditorías

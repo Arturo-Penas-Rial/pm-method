@@ -45,6 +45,18 @@ Comandos: `interesados.py --proyecto <dir> matriz [--json]` · `reporte --html �
   responde «¿quién aprueba FR-3?».
 - Las columnas son interesados del maestro (personas, roles o grupos). Proveedores como columnas cuando ejecutan
   paquetes. En proyectos chicos, RACI por entregable (tres a seis columnas).
+- **La RACI refleja la autoridad de PRINCE2; no la define.** Quién decide sale de los niveles de decisión, las
+  tolerancias y la autoridad de cambio (SPEC §1.10.8; `pm-direccion-decisiones` guía §13.1 y §13.9): el A de un elemento
+  debe tener la autoridad del nivel que esas decisiones requieren (p. ej., A de una épica cuyo alcance decide la junta:
+  la usuaria sénior o la ejecutiva, no una jefa de equipo). El nivel de cada persona se toma de los roles de
+  `estado.json` por nombre y, si no, de las palabras de su `rol_proyecto` o `rol_organizacion` (`esquema.nivel_autoridad`);
+  conviene que el maestro tenga el rol escrito para que el control sea objetivo.
+- **Uso en decisiones** (`decision.py`, solo lectura de `raci.csv`): el expediente muestra, por elemento afectado, el A,
+  los C (consultar antes) y los I (informar después) con nombre y rol (sin valoraciones, también con `confidencial=si`);
+  `matriz … --elegir` exige `--motivo` si decide quien no es el A ni una autoridad superior, avisa la incoherencia si el
+  A no alcanza el nivel requerido (sanidad DEC-03 y DEC-04) y prepara el borrador del aviso a los I con `plan-envio`
+  (audiencia `raci:<elemento>:I`; el envío sigue en `envios.py` con confirmación humana). Corregir una incoherencia es
+  tarea de esta skill: `registro.py actualizar raci RC-… --campo rol=…` (primero el A anterior a R, C o I).
 
 ## 3. Estereotipos
 

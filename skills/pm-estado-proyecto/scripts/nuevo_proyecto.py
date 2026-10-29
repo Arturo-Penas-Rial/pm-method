@@ -36,16 +36,19 @@ def main():
         sys.exit(t("Ya existe estado.json en esa ruta; no se sobrescribe.", "estado.json already exists there; not overwritten."))
     for c in E.CARPETAS:
         os.makedirs(os.path.join(a.ruta, c), exist_ok=True)
-    for reg, spec in E.REGISTROS.items():
-        if not spec.get("opcional"): E.asegurar_registro(a.ruta, reg)   # los opcionales se crean al primer uso
-    diario = os.path.join(a.ruta, "03-control", "registros", "diario.md")
-    if not os.path.exists(diario):
-        open(diario, "w", encoding="utf-8").write(DIARIO[a.idioma])
+    with E.bloqueo(a.ruta, nuevo=True):   # dos creaciones simultáneas en la misma ruta: la segunda no pisa a la primera
+        if os.path.exists(os.path.join(a.ruta, "estado.json")):
+            sys.exit(t("Ya existe estado.json en esa ruta; no se sobrescribe.", "estado.json already exists there; not overwritten."))
+        for reg, spec in E.REGISTROS.items():
+            if not spec.get("opcional"): E.asegurar_registro(a.ruta, reg)   # los opcionales se crean al primer uso
+        diario = os.path.join(a.ruta, "03-control", "registros", "diario.md")
+        if not os.path.exists(diario):
+            open(diario, "w", encoding="utf-8").write(DIARIO[a.idioma])
 
-    estado = E.estado_inicial(a.nombre, a.idioma, a.enfoque, a.ejecutivo, a.gestor)
-    if a.fecha:
-        estado["creado"] = estado["actualizado"] = estado["etapa_actual"]["inicio"] = a.fecha
-    json.dump(estado, open(os.path.join(a.ruta, "estado.json"), "w", encoding="utf-8"), ensure_ascii=False, indent=2)
+        estado = E.estado_inicial(a.nombre, a.idioma, a.enfoque, a.ejecutivo, a.gestor)
+        if a.fecha:
+            estado["creado"] = estado["actualizado"] = estado["etapa_actual"]["inicio"] = a.fecha
+        E.escribir_json(os.path.join(a.ruta, "estado.json"), estado)
     print(t(f"Proyecto creado en {a.ruta} · enfoque de entrega: {a.enfoque} · siguiente: estado.py siguiente",
             f"Project created in {a.ruta} · delivery approach: {a.enfoque} · next: estado.py siguiente"))
 

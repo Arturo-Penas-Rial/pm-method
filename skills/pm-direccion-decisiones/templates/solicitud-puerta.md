@@ -94,6 +94,9 @@ puerta: "{{tipo_puerta}}"
 
 *Cuantificar en unidades del objetivo. Incluir siempre la opción de no autorizar. Eliminar E solo si la puerta es autorizar-inicio (rechazar el inicio no requiere cierre). Pedir más información se registra como `pendiente`. En autorizar-cierre, E se reemplaza por "Cierre con salvedades" si la junta acepta productos incompletos mediante concesión.*
 
+**Matriz multicriterio (si la hubo) / Multi-criteria matrix (if used):** {{bloque_matriz}}
+*Pegar el bloque de `decision.py matriz <ID> --markdown` (criterios, pesos con su fuente, puntajes, eliminadas, dominadas, sensibilidad y empates) y citar la hoja `03-control/decisiones/<ID>/`. La recomendada por la matriz es una propuesta; si la junta elige otra, el motivo queda en el acta (guía §13).*
+
 ## 6. Recomendación / Recommendation
 
 **Opción recomendada / Recommended option:** {{opcion_recomendada}}
@@ -118,6 +121,7 @@ puerta: "{{tipo_puerta}}"
 - [ ] Cada producto requerido tiene estado y aprobador; los bloqueantes están marcados.
 - [ ] Pronóstico (no acumulado) contra tolerancias de etapa y de proyecto, con fuente por fila.
 - [ ] Al menos tres opciones, incluida no autorizar, con consecuencias cuantificadas.
+- [ ] Si se usó matriz: pesos y puntajes con fuente, sensibilidad y empates declarados.
 - [ ] Recomendación con grado de confianza, condiciones y supuestos.
 - [ ] Ninguna cifra sin fuente; faltantes marcados `[por confirmar]` con quién la aporta.
 - [ ] Versión ejecutiva en una página; detalle en anexos o enlaces a registros.

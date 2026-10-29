@@ -10,7 +10,8 @@
       "objetivos": [
         "Leer un alcance por productos con criterios de calidad, su cobertura de trazabilidad y a qué persona sirve cada Must",
         "Leer un camino crítico y una reserva a 2σ calculados con tres valores y la fórmula declarada",
-        "Fijar la línea base de cambio: tolerancias, límite por cambio, presupuesto de cambio y VAN"
+        "Fijar la línea base de cambio: tolerancias, límite por cambio, presupuesto de cambio y VAN",
+        "Leer una matriz de decisión con pesos explícitos y decir qué dice su sensibilidad"
       ],
       "diapositivas": [
         {
@@ -54,15 +55,15 @@
                 "+11 días; 200 %; VAN 30.939"
               ],
               [
-                "Presupuesto de cambio",
-                "Nadie lo suma",
-                "registro.py y CAM-03",
-                "75 %: C-002 no entra sin saldo"
+                "Elegir entre alternativas",
+                "En una reunión, sin pesos",
+                "Expediente y matriz con sensibilidad",
+                "R1: 56,2 contra 47,5"
               ],
               [
-                "Autoridad delegada",
-                "Sin tope escrito",
-                "registro.py contra el límite",
+                "Presupuesto y autoridad",
+                "Nadie los suma; sin tope escrito",
+                "registro.py contra límite y saldo · CAM-03",
                 "15.000 sobre 10.000: rechazado"
               ],
               [
@@ -194,9 +195,9 @@
         },
         {
           "tipo": "demo",
-          "titulo": "Demo · Paso 5: presupuesto, business case y línea base",
-          "prompt": "Calculá el presupuesto desde la WBS, armá el release plan y el roadmap por etapas con las puertas, y preparame las puertas de inicio, proyecto y etapa 2. Antes de la de proyecto: documentá las tolerancias y la autoridad delegada (Sofía decide cambios de hasta 10.000 cada uno, con un presupuesto de cambio de 12.000 que fija la junta), el enfoque de beneficios (B-01 a B-03, quién los mide y cuándo) y el business case con su VAN a 5 años. En la de proyecto fijá la línea base del PRD y de las épicas, y que Sofía apruebe el backlog como línea base.",
-          "nota": "Respondé como Sofía y Laura con el texto de la guía, incluida la tabla de flujos del business case. Mostrá el VAN de inversion.py, el comando estado.py presupuesto que registra la decisión y la verificación de la puerta de proyecto."
+          "titulo": "Demo · Paso 5: línea base y decisión del R1",
+          "prompt": "Calculá el presupuesto desde la WBS, armá el release plan y el roadmap por etapas con las puertas, y preparame las puertas de inicio, proyecto y etapa 2. Antes de la de proyecto: documentá las tolerancias y la autoridad delegada (Sofía decide cambios de hasta 10.000 cada uno, con un presupuesto de cambio de 12.000 que fija la junta), el enfoque de beneficios (B-01 a B-03, quién los mide y cuándo) y el business case con su VAN a 5 años. En la de proyecto fijá la línea base del PRD y de las épicas, y que Sofía apruebe el backlog como línea base. Sofía pide que el R1 lleve las solicitudes del socio en lugar de la consola de operador: compará las dos alternativas con la capacidad de cada una y armame la matriz; decido yo.",
+          "nota": "Respondé como Sofía, Lucía, Laura y Martín con el texto de la guía, incluida la tabla de flujos del business case y los puntajes de la matriz del R1. Mostrá el VAN de inversion.py, el comando estado.py presupuesto que registra la decisión, la matriz release-1 y la verificación de la puerta de proyecto."
         },
         {
           "tipo": "contenido",
@@ -209,6 +210,24 @@
             "Sin aviso P-04: enfoque de beneficios registrado"
           ],
           "nota": "El VAN sale de inversion.py con los flujos que da Sofía y la tasa de 10 % de la cooperativa; B-01 puede caer 23 % antes de que el VAN llegue a 0. El bloqueo L-01 es la lista de control, que Laura confirma; P-09 y P-10 se trabajan en E2E-3. Desde acá, todo cambio se mide contra esta foto."
+        },
+        {
+          "tipo": "contenido",
+          "titulo": "Paso 5 · ¿Consola o solicitudes en el R1?",
+          "puntos": [
+            "A: acceso, consulta y consola · holgura 1",
+            "B: acceso, consulta y solicitudes · holgura 6",
+            "La holgura entra de release.py, sin recalcular",
+            "Pesos de la plantilla, confirmados antes de puntuar",
+            "A 56,2 · B 47,5: decide el gestor (D-003)"
+          ],
+          "nota": "Sofía pidió las solicitudes en el R1. release.py mide las dos alternativas: la B tiene 5 puntos más de holgura, pero las solicitudes esperan la bandeja y la resolución de la consola, que está en el camino crítico. El expediente reúne el contexto con su fuente, la matriz calcula y Martín elige la recomendada: no hace falta motivo porque el menor movimiento de un peso que cambia la primera es de 6 puntos."
+        },
+        {
+          "tipo": "imagen",
+          "titulo": "El R1 lleva la consola, aun con menos holgura",
+          "imagen": "docs/guias/img/g2-decision-release.png",
+          "nota": "Cada barra es el aporte de un criterio. La A gana por valor y dependencias; la B, solo por capacidad. Si la capacidad pesara 31 en lugar de 25, ganaría la B: ese es el costo que se acepta al decidir, y la clase 2 lo cobra."
         },
         {
           "tipo": "pregunta",
@@ -235,9 +254,10 @@
             "El alcance es una lista de productos con criterios",
             "La trazabilidad sirve si se recalcula",
             "La línea base de cambio son tres números de la junta",
+            "Cada decisión con alternativas deja escrito su costo",
             "Próxima clase: tres cambios bajo control"
           ],
-          "nota": "Resumí los tres mensajes y anticipá la clase 2: un intercambio del PO, un cambio de alcance y una excepción. Pedí que traigan un cambio real de su proyecto para la parte B del ejercicio."
+          "nota": "Resumí los cuatro mensajes y anticipá la clase 2: un intercambio del PO, un cambio de alcance y una excepción, que llega a la junta con su matriz. Pedí que traigan un cambio real de su proyecto para la parte B del ejercicio."
         }
       ]
     },
@@ -248,7 +268,8 @@
       "objetivos": [
         "Distinguir los tres caminos de un cambio y su dueño",
         "Armar una tabla de impacto antes de decidir, con el VAN del business case",
-        "Reconocer y recorrer una excepción hasta la puerta de la junta"
+        "Reconocer y recorrer una excepción hasta la puerta de la junta",
+        "Leer la matriz que recibe la junta: eliminatorios, dominadas y pregunta tipada"
       ],
       "diapositivas": [
         {
@@ -283,7 +304,7 @@
                 "Intercambio",
                 "Product owner",
                 "Should/Could sin tocar Must, fecha ni costo",
-                "D-009"
+                "D-010"
               ],
               [
                 "Cambio de alcance",
@@ -307,7 +328,7 @@
           "puntos": [
             "La 2.3 (Could) pasa a R1 y la 1.4 (Should) a R2",
             "Sin tocar Must, fecha ni costo",
-            "Decisión D-009, nivel product-owner",
+            "Decisión D-010, nivel product-owner",
             "Sin solicitud de cambio",
             "Traspaso de prioridades a BMAD"
           ],
@@ -397,7 +418,7 @@
         {
           "tipo": "demo",
           "titulo": "Demo · Paso 10: el cambio que excede la autoridad",
-          "prompt": "Registrá el requisito regulatorio como solicitud de cambio: paquete nuevo 3.5, 13 puntos Must en R1, +1 sprint en la etapa 2, USD 15.000, sin beneficio propio. Sofía lo aprobó el 17/2 porque es obligatorio: registralo. Guardá el corte de EVM del 19/2 (PV 75.000, EV 60.000, AC 77.000, BAC 133.000, ágil, 20 % Should/Could), corré sanidad al 19/2 y analizá el impacto de C-002 (refuerza NFR-1 y NFR-5; para hacerle lugar en R1 saldría la 2.3) con su efecto en el business case: decime quién tiene que decidirlo. Si hay excepción, prepará el informe de excepción para la junta y registrá el issue.",
+          "prompt": "Registrá el requisito regulatorio como solicitud de cambio: paquete nuevo 3.5, 13 puntos Must en R1, +1 sprint en la etapa 2, USD 15.000, sin beneficio propio. Sofía lo aprobó el 17/2 porque es obligatorio: registralo. Guardá el corte de EVM del 19/2 (PV 75.000, EV 60.000, AC 77.000, BAC 133.000, ágil, 20 % Should/Could), corré sanidad al 19/2 y analizá el impacto de C-002 (refuerza NFR-1 y NFR-5; para hacerle lugar en R1 saldría la 2.3) con su efecto en el business case: decime quién tiene que decidirlo. Si hay excepción, prepará el informe de excepción para la junta y registrá el issue. Medí también la opción de diferirlo al R2 y armá la matriz de decisión para la junta: rechazar, diferir o pedir plan de excepción.",
           "nota": "Corré solo el prompt 1 en vivo. Los prompts 2 y 3, de la junta, se leen en voz alta y se muestran en la evidencia para no depender de dos rondas más."
         },
         {
@@ -471,9 +492,9 @@
         },
         {
           "tipo": "imagen",
-          "titulo": "El 19/2 no entra el 22 % del alcance, más que el 20 % de margen",
-          "imagen": "docs/guias/img/g2-alcance-evm.png",
-          "nota": "El mismo indicador, guardado por corte, pasa de ámbar a rojo. El segundo corte supera el margen de Should/Could y dispara TOL-01: ya no lo puede resolver el PO."
+          "titulo": "La junta elige el plan de excepción con la matriz",
+          "imagen": "docs/guias/img/g2-decision-c002.png",
+          "nota": "Rechazar sale por el eliminatorio: es obligatorio por la Ley 18.331. Diferir se midió con el mismo análisis: +2 sprints en el R2, la misma autoridad y el mismo presupuesto excedidos, y B-01 demorado; queda dominada. Los puntajes son bajos porque ninguna opción entra en las tolerancias: es una excepción. La pregunta tipada no acepta la opción eliminada como respuesta, y la junta registra su elección en D-013 con la matriz."
         },
         {
           "tipo": "imagen",
@@ -486,12 +507,12 @@
           "titulo": "La ruta de la excepción",
           "puntos": [
             "19/2: informe de excepción X-001 e issue I-003",
-            "22/2: la junta pide plan de excepción; límite de etapa",
+            "22/2: la junta elige con la matriz (D-013); límite de etapa",
             "24/2: plan y business case actualizado",
             "26/2: presupuesto de 32.000 y C-002 aprobado",
             "26/2: puerta aprobada; REG-09 y revisión de R-001"
           ],
-          "nota": "La excepción no es un fracaso: es la ruta prevista. En una semana la junta recibió el informe, pidió un plan, verificó el business case, amplió el presupuesto y autorizó el fin de etapa del 19/3. Ese día sanidad recordó con REG-09 que R-001 tenía la revisión vencida: el gestor la hizo y la probabilidad subió de 3 a 4."
+          "nota": "La excepción no es un fracaso: es la ruta prevista. En una semana la junta recibió el informe con la matriz, pidió un plan, verificó el business case, amplió el presupuesto y autorizó el fin de etapa del 19/3. Ese día sanidad recordó con REG-09 que R-001 tenía la revisión vencida: el gestor la hizo y la probabilidad subió de 3 a 4. Las decisiones vigentes del presupuesto de cambio son dos: D-002 fija el límite de 10.000 y D-015 el tope de 32.000."
         },
         {
           "tipo": "pregunta",
@@ -524,6 +545,7 @@
             "Tres caminos, tres dueños: PO, autoridad de cambio, junta",
             "El impacto se mira antes, en todos los objetivos, y dice quién decide",
             "Obligatorio no define quién decide",
+            "La junta decide con la matriz, no con la urgencia",
             "Siguiente caso, E2E-3: interesados y comunicación"
           ],
           "nota": "Todo lo que vimos lo decidieron la junta, la PO y el equipo. En E2E-3 sumamos al resto: quiénes son los interesados, qué quieren saber y cómo se verifica que el contacto prometido se cumple."
@@ -618,11 +640,7 @@
     },
     {
       "termino": "Gestión por excepción",
-      "definicion": "Cada nivel decide dentro de su tolerancia y escala solo cuando un pronóstico la supera (management by exception)."
-    },
-    {
-      "termino": "Informe y plan de excepción",
-      "definicion": "El informe avisa a la junta un desvío fuera de tolerancia, con opciones y recomendación; si la junta lo pide, el plan de excepción reemplaza al vigente y se aprueba en una puerta."
+      "definicion": "Cada nivel decide dentro de su tolerancia y escala solo cuando un pronóstico la supera (management by exception): el informe de excepción avisa a la junta con opciones y recomendación y, si la junta lo pide, el plan de excepción reemplaza al vigente y se aprueba en una puerta."
     },
     {
       "termino": "Sanidad",
@@ -631,6 +649,10 @@
     {
       "termino": "Puerta",
       "definicion": "Decisión formal de la junta; pm-method la verifica y la bloquea si sanidad tiene un ERROR."
+    },
+    {
+      "termino": "Matriz de decisión",
+      "definicion": "Comparación de alternativas con pesos explícitos: puntaje = Σ peso × valor normalizado. Los eliminatorios sacan opciones, la sensibilidad dice cuánto habría que mover un peso para que gane otra y la pregunta tipada solo acepta una opción evaluada."
     }
   ]
 }

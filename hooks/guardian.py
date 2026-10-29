@@ -12,6 +12,11 @@
   ejecuta estado.py puerta/rol/tolerancia/presupuesto/agil/umbrales-riesgo/cumplir-condiciones, limite-etapa --excepcion,
   set --forzar, ni aprobar o set con nivel superior a gestor. (Los comandos que la persona escribe en su propia terminal
   no pasan por el hook.)
+- Con Write/Edit ni con Bash se escriben la bitácora (.bitacora.jsonl) ni las propuestas (03-control/propuestas/P-###.json):
+  las escriben registro.py y el mecanismo común de escritura (2.6.0).
+- registro.py aprobar y registro.py reconocer: el hook pide confirmación ("ask"), como envios.py aprobar.
+- decision.py matriz … --elegir y riesgos.py opciones … --elegir: el hook pide confirmación ("ask"); registran en
+  decisiones.csv la decisión de la persona que figura en --por.
 - envios.py aprobar y envios.py enviar --confirmar: el hook pide confirmación ("ask"), de modo que Claude Code muestre
   el pedido de permiso y lo resuelva una persona, también cuando lo ejecuta pm-director (docs/SEGURIDAD.md, SEG-03).
 El hilo principal puede escribir en BMAD porque los flujos del propio BMAD lo hacen.
@@ -45,6 +50,10 @@ def protegido(ruta):
         return "estado.json se actualiza solo con estado.py (o nuevo_proyecto.py / bmad.py), para mantener puertas, decisiones y migración coherentes."
     if "/03-control/registros/" in "/" + r and base in REGISTROS:
         return f"{base} se modifica con registro.py (valida valores, ids y referencias): registro.py --proyecto <dir> agregar|actualizar …"
+    if base == ".bitacora.jsonl":
+        return ".bitacora.jsonl es la bitácora de escrituras (solo anexado, encadenada por huellas): la escriben los scripts; un cambio hecho fuera de ellos se reconoce con registro.py reconocer … --por … --motivo …"
+    if "/03-control/propuestas/" in "/" + r and re.fullmatch(r"P-\d+\.json", base):
+        return f"{base} es una propuesta con huella: se crea con registro.py proponer y se resuelve con registro.py aprobar|rechazar --por …"
     if base in DERIVADOS:
         return f"{base} es un derivado regenerable; se regenera con especificacion.py o bmad.py, no se edita."
     if "/03-control/fuentes/" in "/" + r and os.path.exists(ruta):
@@ -181,6 +190,15 @@ def revisar_bash(cmd, sub_pm, director):
     if not algun_script and all(rx.search(cmd) for rx in ESCRITURA_EN_LINEA):    # código en línea repartido en varias líneas
         negar("escritura directa de estado.json o de un registro desde código en línea: usar estado.py o registro.py.")
     # acto humano: aprobar o enviar comunicaciones lo confirma siempre una persona en el pedido de permiso (SEG-03)
+    for sc, resto in subcomandos_estado(cmd, "registro.py"):
+        if sc in ("aprobar", "reconocer"):
+            decidir("ask", f"registro.py {sc} registra un acto humano (aprobar una propuesta de cambio a un registro, o reconocer un cambio hecho fuera de los scripts) "
+                           "a nombre de --por. Confirmar solo si esa persona lo revisó y lo pidió. / Records a human act on behalf of --por: confirm only if that person reviewed and asked for it.")
+    for script, sub_ in (("decision.py", "matriz"), ("riesgos.py", "opciones")):
+        for sc, resto in subcomandos_estado(cmd, script):
+            if sc == sub_ and tiene_opcion(resto, "--elegir"):
+                decidir("ask", f"{script} {sub_} --elegir registra en decisiones.csv la decisión de la persona que figura en --por (PUERTA HUMANA). "
+                               "Confirmar solo si esa persona decidió esa opción y lo pidió. / Records a person's decision on behalf of --por: confirm only if that person decided it and asked for it.")
     for sc, resto in subcomandos_estado(cmd, "envios.py"):
         if sc == "aprobar":
             decidir("ask", "envios.py aprobar registra la aprobación humana de un mensaje (aprobado_por). Confirmar solo si la persona "

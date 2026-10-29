@@ -10,7 +10,10 @@ no alcanza. Revisar todo eso a mano en cada sprint cuesta horas de planilla, y p
 urgencias.
 
 En este caso las respuestas de los riesgos altos se eligen entre opciones comparadas por su valor neto, la contingencia
-se escribe como un plan listo para activar y el registro trabaja solo entre revisiones. Al abrir cada sesión, pm-method
+se escribe como un plan listo para activar y el registro trabaja solo entre revisiones. Cuando el dinero no alcanza para
+decidir (el apetito en seguridad o en cumplimiento, un efecto secundario, el plazo), la decisión se toma con su contexto
+reunido y citado, con criterios y pesos a la vista y con la prueba de cuánto depende de esos pesos; queda registrada con
+quién la tomó y avisa a quien la matriz de responsabilidades (RACI) dice que hay que informar. Al abrir cada sesión, pm-method
 muestra un resumen derivado de los registros y una línea de radar con lo que hay que decidir, escalar, desbloquear y
 vigilar; la sanidad (el control automático de pm-method, ver [SANIDAD.md](../SANIDAD.md)) avisa de los riesgos altos sin
 respuesta o sin opciones evaluadas, las contingencias sin plan, los riesgos con la revisión vencida, las acciones
@@ -26,21 +29,33 @@ límite de cualquier control: el aviso llega a tiempo, pero alguien tiene que ac
 3. Para los riesgos altos, **opciones de respuesta** (evitar, reducir, transferir, contingencia, aceptar) comparadas por
    su **valor neto**: la reducción del valor monetario esperado (EMV, expected monetary value) menos el costo y el riesgo
    secundario. El script marca la recomendada y decide el propietario; elegir otra exige un motivo.
-4. Un **plan de contingencia** con disparador medible, acciones, monto, fuente y quién lo activa, escrito antes de
+4. **Decisiones con contexto** para lo que el valor neto no captura: un **expediente** (tolerancias, saldo de la
+   reserva, apetito, registros relacionados, RACI y cifras de los scripts, cada dato con su fuente), una **matriz
+   multicriterio** con pesos fijados antes de puntuar, eliminatorios y **sensibilidad**, y la decisión registrada,
+   contrastada con la autoridad de PRINCE2 y la RACI, con el borrador del aviso a los informados.
+5. Un **plan de contingencia** con disparador medible, acciones, monto, fuente y quién lo activa, escrito antes de
    necesitarlo y activado tal como está escrito cuando el disparador llega.
-5. Respuestas de los demás riesgos **justificadas por su costo frente a la reducción del EMV**, con la aceptación de cada
+6. Respuestas de los demás riesgos **justificadas por su costo frente a la reducción del EMV**, con la aceptación de cada
    propietario.
-6. Un **presupuesto de riesgo** (risk budget) calculado con fórmula y vigilado como presupuesto vivo de la junta: cada uso
+7. Un **presupuesto de riesgo** (risk budget) calculado con fórmula y vigilado como presupuesto vivo de la junta: cada uso
    cita su riesgo, y la sanidad avisa al 80 % y bloquea las puertas por encima del 100 %.
-7. Una **revisión periódica** vigilada por la sanidad, que detecta lo que se deja de mirar: riesgos con la revisión
-   vencida (REG-09), acciones de respuesta vencidas (REG-07) y disparadores alcanzados, y un **radar** que ordena qué
-   decidir primero.
+8. Una **revisión periódica** vigilada por la sanidad, que detecta lo que se deja de mirar: riesgos con la revisión
+   vencida (REG-09), acciones de respuesta vencidas (REG-07), disparadores alcanzados y decisiones con la revisión vencida
+   (DEC-06), un **radar** que ordena qué decidir primero y los cambios que sugiere el agente como **propuestas** que
+   aprueba una persona.
+9. Respuestas a las preguntas de la junta **citadas** desde el proyecto (con pm-kb, opcional): qué se decidió y por
+   qué, qué está relacionado con un riesgo y qué cambió entre versiones aprobadas del business case.
 
 ## Indicadores que vas a ver
 
 ![Valor neto de las opciones de respuesta](img/g1-opciones-valor-neto.png)
 Para R-001 conviene reducir; para R-003, preparar la contingencia. En los dos, evitar deja el residual más bajo pero no
 el mayor valor neto: cuesta más y crea un riesgo secundario.
+
+![Sensibilidad de la decisión de R-003](img/g1-sensibilidad-r003.png)
+Con el apetito y la factibilidad en la cuenta, la contingencia de R-003 sigue primera (82,5 frente a 55,4 de reducir).
+Para que gane reducir, el peso del apetito tendría que pasar de 25 a 51,4: la recomendación no depende de un peso
+acomodado.
 
 ![Mapa de calor inherente frente a residual](img/g1-mapa-inherente-residual.png)
 Dos amenazas en zona alta al salir del taller; con las respuestas elegidas en el paso 6, ninguna queda en zona alta.
@@ -61,8 +76,8 @@ la reserva de gestión sigue intacta.
 
 | Clase (90 min) | Pasos | Tema |
 |---|---|---|
-| 1 · Del taller al plan de respuesta | 1–7 y 15 | Enfoque y apetito, identificación con cita (con y sin BMAD), evaluación, opciones de respuesta por valor neto, plan de contingencia, respuestas costeadas, presupuesto de riesgo y puertas |
-| 2 · El control continuo | 8–14 | Revisión del sprint, riesgo que ocurre (Jira), reserva usada y mal usada, escalamiento a la junta con opciones y motivo, informe, revisión periódica (REG-09, resumen de inicio de sesión y radar), plan de contingencia activado con la reserva sobre el 80 % y límite de etapa |
+| 1 · Del taller al plan de respuesta | 1–7 y 15 | Enfoque y apetito, identificación con cita (con y sin BMAD), evaluación, opciones de respuesta por valor neto, expediente y matriz multicriterio con sensibilidad y RACI, plan de contingencia, respuestas costeadas, presupuesto de riesgo y puertas |
+| 2 · El control continuo | 8–14 y 16 | Revisión del sprint, riesgo que ocurre (Jira), reserva usada y mal usada, escalamiento a la junta con expediente, matriz y motivo, informe, revisión periódica (REG-09, resumen de inicio de sesión y radar), plan de contingencia activado con la reserva sobre el 80 % y límite de etapa con propuestas y decisiones vigentes; las preguntas de la junta respondidas con cita (pm-kb, opcional) |
 
 Material de clase: [guion del instructor](../webinar/E2E-1/guion-instructor.md) · [ejercicio](../webinar/E2E-1/ejercicio.md)
 (con un ejemplo resuelto del caso al final) · [diapositivas](../webinar/E2E-1/diapositivas.json).
@@ -75,25 +90,29 @@ a un interesado y a requisitos o decisiones de arquitectura de BMAD.
 
 **Skills y agentes:** pm-orquestador · pm-inicio y pm-control → `pm-riesgos`, `pm-enfoques-gestion`, `pm-registros`,
 `pm-issues-cambios`, `pm-caso-de-negocio`, `pm-planificacion-por-productos`, `pm-interesados`, `pm-reuniones`,
-`pm-bmad-puente`, `pm-integraciones`, `pm-progreso-reportes`, `pm-visuales`, `pm-lecciones-aprendidas`, `pm-exportar` ·
-`pm-director` (decisiones de la junta).
+`pm-bmad-puente`, `pm-integraciones`, `pm-progreso-reportes`, `pm-visuales`, `pm-lecciones-aprendidas`, `pm-exportar`,
+`pm-direccion-decisiones` (expediente, matriz y vigencia de decisiones) · `pm-director` (decisiones de la junta) ·
+pm-kb (opcional, paso 16: búsqueda citada por línea de comandos, web y MCP).
 
-**Duración:** 15 pasos (el 6 en dos partes), 120–150 minutos de práctica individual (dos clases de 90 minutos en el webinar).
+**Duración:** 16 pasos (el 6 en dos partes), 120–150 minutos de práctica individual (dos clases de 90 minutos en el webinar).
 **Preparación:** [README de las guías](README.md#cómo-usar-las-guías) (copia del fixture en
-`~/proyectos-prueba/portal-e2e-1` y `claude` abierto allí). Evidencia de referencia: [salida-g1.md](evidencia/salida-g1.md).
+`~/proyectos-prueba/portal-e2e-1` y `claude` abierto allí). Para el paso 16, pm-kb instalado (opcional:
+[INSTALACION-WSL2.md](../INSTALACION-WSL2.md) §8 o [INSTALACION-DOCKER.md](../INSTALACION-DOCKER.md) §8); sin pm-kb, el
+resto del caso funciona igual. Evidencia de referencia: [salida-g1.md](evidencia/salida-g1.md).
 Términos: [TERMINOLOGIA.md](../TERMINOLOGIA.md).
 
 ```mermaid
 flowchart TB
-    a["1 · Proyecto, junta<br/>y tolerancias"] --> b["2 · Contexto: WBS,<br/>interesados y especificación"]
+    a["1 · Proyecto, junta<br/>y tolerancias"] --> b["2 · Contexto: WBS,<br/>interesados, RACI<br/>y especificación"]
     b --> c["3 · Enfoque de riesgo<br/>y escala P×I"] --> d["4 · Candidatos de BMAD<br/>y de la ronda → taller"]
-    d --> e["5 · Evaluación<br/>y perfil · REG-06"] --> f["6a · Opciones por<br/>valor neto y decisión<br/>· REG-10"]
+    d --> e["5 · Evaluación<br/>y perfil · REG-06"] --> f["6a · Opciones por<br/>valor neto, matriz<br/>y RACI · REG-10"]
     f --> f2["6b · Plan de contingencia<br/>y demás respuestas"]
     f2 --> g["7 · Presupuesto de riesgo<br/>y puertas · CAM-03"] --> h["8 · Revisión del sprint<br/>· REG-07"]
-    h --> i["9 · Jira: riesgo → issue<br/>y reserva · CAM-02"] --> j["10 · Riesgo sobre la línea:<br/>opciones, hoja y junta"]
+    h --> i["9 · Jira: riesgo → issue<br/>y reserva · CAM-02"] --> j["10 · Riesgo sobre la línea:<br/>matriz, hoja y junta"]
     j --> k["11 · Informe de riesgos"] --> l["12 · Revisión periódica,<br/>resumen y radar<br/>· REG-09"]
-    l --> m["13 · Plan de contingencia<br/>activado y reserva<br/>sobre el 80 %"] --> n["14 · Límite de etapa:<br/>auditoría y lecciones"]
+    l --> m["13 · Plan de contingencia<br/>activado y reserva<br/>sobre el 80 %"] --> n["14 · Límite de etapa:<br/>propuestas, vigencia<br/>y lecciones · DEC-06"]
     n --> o["15 · Variante sin BMAD"]
+    n --> p["16 · Pregunta de la junta:<br/>búsqueda citada<br/>con pm-kb (opcional)"]
 ```
 
 ## Del uso único al control continuo
@@ -103,6 +122,11 @@ flowchart TB
 | Responder los riesgos altos | una vez, en el taller | cada corrida de la sanidad (REG-06) y en `autorizar-etapa` (E-06) | altos sin respuesta | 5, 7 |
 | Elegir la respuesta entre opciones | la primera que surge, sin alternativas ni costo | `riesgos.py opciones` en cada riesgo alto (valor neto y recomendada; decide el propietario, con motivo si elige otra) y cada sanidad (REG-10: menos de dos opciones evaluadas) | altos con una sola opción | 6a, 10 |
 | Tener lista la contingencia | una palabra en el registro | plan con disparador, acciones, monto, fuente y quién lo activa; cada sanidad (REG-10: contingencia sin plan) y el radar («decidir» cuando el disparador es inminente) | contingencias sin plan o por activar | 6b, 12, 13 |
+| Decidir con el contexto a la vista | cada uno junta lo que recuerda | `decision.py expediente` en cada decisión que no se resuelve solo por dinero: tolerancias, saldo de la reserva, apetito, registros relacionados, RACI y cifras de los scripts, cada dato con su fuente y sin valoraciones confidenciales | datos citados por decisión | 6a, 10 |
+| Comparar con más de un criterio | pesos implícitos, o acomodados después de ver el resultado | `decision.py matriz`: pesos con fuente fijados antes de puntuar, eliminatorios, dominadas y sensibilidad; la sanidad avisa si se decidió sin motivo (DEC-01) o con pesos sin fuente (DEC-02) | peso con el que cambia la recomendada | 6a, 10 |
+| Decidir quien corresponde y avisar | se decide en el pasillo y nadie informa | `--elegir --por` contrasta a quien decide con la autoridad de PRINCE2 y la RACI (sin motivo, DEC-03) y deja el borrador del aviso a los I | decisiones sin motivo o sin aviso | 6a, 10 |
+| Saber qué decisiones siguen vigentes | se busca en las actas | `decision.py vigentes` (cadena de reemplazos, búsqueda en español e inglés) y cada sanidad (DEC-06: revisión vencida) | decisiones con la revisión vencida | 14 |
+| Aceptar lo que sugiere un agente | el agente cambia el registro, o nadie revisa | `registro.py proponer` → `propuestas` → `aprobar --por` (quien propone no aprueba); la bitácora guarda quién propuso y quién aprobó | propuestas pendientes | 14 |
 | Saber qué decidir hoy | se revisa todo o nada | al abrir cada sesión, la línea del radar; a pedido, `estado.py radar` (decidir, escalar, desbloquear, vigilar, con prioridad) | ítems por grupo | 12 |
 | Cerrar las acciones de respuesta | se hacen y no se cierran, o vencen sin aviso | cada sanidad con fecha de corte (REG-07) | acciones vencidas | 7, 8, 12 |
 | Revisar el registro | taller inicial y después nunca | cada sanidad (REG-09: riesgo abierto con `fecha_revision` anterior al corte) | riesgos con la revisión vencida | 10, 12, 14 |
@@ -114,6 +138,7 @@ flowchart TB
 | Citar requisitos e interesados reales | nunca se valida | cada sanidad (ESP-04 ERROR, REG-08 AVISO) | referencias rotas | 4 |
 | Medir la exposición contra la tolerancia | a mano, en el informe mensual | en cada revisión, desde `riesgos.csv` (suma de EMV; sin código de sanidad) | exposición frente a USD 60.000 | 5, 12, 14 |
 | Fijar quién mide los beneficios | se supone | `autorizar-proyecto` (P-04) | aviso P-04 | 7 |
+| Responder qué se decidió y por qué | se busca en actas, planillas y correos | a pedido, con pm-kb (opcional): búsqueda citada por proyecto, commit, archivo y línea; relaciones por ids y versiones del índice reconstruido con `pm-kb indexar` | respuestas con cita | 16 |
 
 La justificación económica de las respuestas no tiene código propio: para los altos la calcula `riesgos.py opciones`
 (valor neto con el costo y el riesgo secundario) y para el resto `pm-riesgos` (costo < reducción de EMV en
@@ -147,9 +172,11 @@ Atajo para el primer paso: `/pm-method:pm-nuevo "Portal de autoservicio para soc
 
 ---
 
-## Paso 2 · Contexto del riesgo: productos y WBS, interesados y especificación
+## Paso 2 · Contexto del riesgo: productos y WBS, interesados, RACI y especificación
 
-Los riesgos se identifican **contra algo**: objetivos, productos, paquetes de trabajo, interesados y requisitos.
+Los riesgos se identifican **contra algo**: objetivos, productos, paquetes de trabajo, interesados y requisitos. Y las
+decisiones sobre ellos, **con alguien**: la RACI dice quién responde por cada paquete, a quién se consulta antes y a
+quién se informa después. No reemplaza la autoridad de PRINCE2 (la junta decide; el gestor recomienda): la refleja.
 
 **Prompt**
 ```text
@@ -160,22 +187,27 @@ Cargá la WBS por productos del portal con estos paquetes y costos (USD 50 por h
 Registrá estos interesados: Laura Méndez (ejecutiva; poder alto, interés alto, líder); Sindicato de operadores
 (poder medio, interés alto, resistente; queremos neutral); Área de TI del núcleo operativo (poder alto, interés medio,
 neutral; queremos partidaria); Unidad de cumplimiento (protección de datos; poder alto, interés medio, neutral;
-queremos partidaria).
+queremos partidaria); Diego Ferreira (proveedor sénior; poder alto, interés alto, partidario) y Lucía Benítez (jefa de
+equipo; poder medio, interés alto, partidaria).
+RACI del paquete 3.1 Acceso seguro: A Diego, R Lucía, C cumplimiento y TI (los teléfonos del segundo factor salen del
+padrón), I Laura y el sindicato (un socio que no puede ingresar termina en la sucursal).
 Después mostrame las decisiones de arquitectura de BMAD que más riesgo pueden traer.
 ```
 
 **Si te pregunta** por el costo por hora o la profundidad de la WBS: "USD 50 la hora; mostrame el primer nivel".
 
 **Qué hace el sistema:** pm-planificacion → `pm-planificacion-por-productos` (`wbs.csv` + `wbs.py`); pm-inicio →
-`pm-interesados` (`registro.py agregar stakeholders` × 4); lectura de la especificación **solo por la fachada**
+`pm-interesados` (`registro.py agregar stakeholders` × 6, `registro.py agregar raci` × 6, con un solo A por elemento, e
+`interesados.py raci --elemento 3.1`); lectura de la especificación **solo por la fachada**
 (`especificacion.py listar requisitos`, `consultar AD-5`).
 
-**Qué deberías ver:** "13 elementos, 8 hojas · esfuerzo 2480 h · costo 124,000"; interesados **ST-001…ST-004**; 42
+**Qué deberías ver:** "13 elementos, 8 hojas · esfuerzo 2480 h · costo 124,000"; interesados **ST-001…ST-006**; la
+RACI de 3.1 (A ST-005 Diego Ferreira · R ST-006 Lucía Benítez · C ST-004 y ST-003 · I ST-001 y ST-002); 42
 identificadores de la especificación (12 FR, 6 NFR, 8 SM, 13 AD, 3 UJ) y el detalle de AD-5 (autenticación detrás de
 `IdentityPort`, segundo factor obligatorio).
 
-**Dónde verificar:** `gestion/02-planificacion/wbs.csv` · `gestion/03-control/registros/stakeholders.csv` · prompt:
-"Mostrame la WBS con costos" / "Listá los interesados con poder e interés".
+**Dónde verificar:** `gestion/02-planificacion/wbs.csv` · `gestion/03-control/registros/stakeholders.csv` y `raci.csv` ·
+prompt: "Mostrame la WBS con costos" / "Listá los interesados con poder e interés" / "¿Quién es quién en la RACI de 3.1?".
 
 ---
 
@@ -314,6 +346,11 @@ que primero se le ocurre a alguien rara vez es la que más conviene. PRINCE2 7 p
 que equilibra costo y efecto; el PMBOK 8 aporta la cuenta. Aquí `riesgos.py opciones` hace esa cuenta para los riesgos
 con P×I ≥ 15, marca la recomendada y deja la decisión al propietario.
 
+En R-003 la cuenta no alcanza: toca el acceso de los socios, donde el apetito es bajo, y la recomendada deja el riesgo en
+zona media hasta el disparo. Para decisiones así, `decision.py` (skill `pm-direccion-decisiones`) agrega tres piezas: un
+**expediente** con el contexto que aplica, citado; una **matriz multicriterio** con pesos explícitos y la prueba de
+cuánto depende el resultado de esos pesos (sensibilidad), y el registro de la decisión **contrastado con la RACI**.
+
 **Datos de las opciones** (los juntó el equipo con Diego; pegalos debajo del prompt):
 
 | Riesgo | Opción | Qué es | Costo USD | Residual P×I | Impacto residual USD | Contingencia al disparo USD | Secundario (EMV USD) |
@@ -329,14 +366,28 @@ con P×I ≥ 15, marca la recomendada y deja la decisión al propietario.
 
 Sin impacto residual, se toma el original (no se rebaja). La plantilla del script ya trae «aceptar» evaluada, como referencia.
 
+**Puntajes para la matriz de R-003** (los da Diego con el equipo; los pesos son los de la plantilla del script, que
+Laura confirma antes de puntuar: valor neto 35, apetito 25 con eliminatorio < 2, riesgo secundario 10, factibilidad 20,
+plazo para actuar 10):
+
+| Opción de R-003 | Apetito (1–5) | Riesgo secundario (1–5, menos es mejor) | Factibilidad (1–5) | Días hasta que surte efecto |
+|---|---|---|---|---|
+| O1 evitar | 3: seguridad dentro del apetito, pero resigna la adopción de B-02 | 4 | 3: reabre AD-5 | 30 |
+| O2 reducir | 5: residual P1 × I4 | 1 | 3: dos integraciones antes del Release 1 | 20 |
+| O3 transferir | 2: la penalidad no protege el acceso | 2 | 4 | 10 |
+| O4 contingencia | 3: residual P3 × I3 aceptado hasta el disparo, con plan | 1 | 4 | 8 (plan: días hábiles desde el disparo) |
+| O5 aceptar | 1: un alto sin respuesta contradice la tolerancia | 1 | 5 | 0 |
+
 **Prompt**
 ```text
 Antes de elegir respuestas para R-001 y R-003, armá sus opciones con estos datos (evitar, reducir, transferir,
-contingencia y aceptar), compará el valor neto de cada una y decime cuál conviene en cada riesgo.
+contingencia y aceptar), compará el valor neto de cada una y decime cuál conviene en cada riesgo. R-003 toca el acceso
+de los socios: armá además el expediente de esa decisión y una matriz con los criterios de riesgo y estos puntajes, y
+mostrame cuánto depende la recomendación de los pesos.
 ```
 
 **Si te pregunta** qué elige el propietario: "Diego Ferreira, proveedor sénior y propietario de los dos, elige la
-recomendada en cada uno. Próxima revisión: 15/12".
+recomendada en cada uno. Próxima revisión: 15/12. Cumplimiento y TI, consultadas el 3/11 por R-003: sin objeciones".
 
 **Qué hace el sistema:** `pm-riesgos` → `riesgos.py opciones --proponer` crea las plantillas
 `03-control/registros/opciones-riesgo/R-001.csv` y `R-003.csv` (no registra nada: con la plantilla vacía solo "aceptar"
@@ -345,11 +396,29 @@ cada opción:
 - **EMV residual** = probabilidad residual convertida × (impacto residual + contingencia por activar);
 - **valor neto** = EMV inherente − EMV residual − EMV del riesgo secundario − costo;
 
-ordena (primero las que dejan el riesgo bajo la línea) y marca con ★ la de mayor valor neto. Con tu respuesta, la
-**puerta humana**: `riesgos.py opciones --riesgo R-001 --elegir O2 --por "Proveedor sénior: Diego Ferreira" --revision
-2026-12-15 --fecha 2026-11-04` (y `--elegir O4` para R-003) escribe respuesta, residual, disparador y acciones en
-`riesgos.csv` y la decisión, con las opciones consideradas, en `decisiones.csv`. Al final, `sanidad.py --rapido --corte
-2026-11-04`.
+ordena (primero las que dejan el riesgo bajo la línea) y marca con ★ la de mayor valor neto. Para R-001, con tu
+respuesta, la **puerta humana**: `riesgos.py opciones --riesgo R-001 --elegir O2 --por "Proveedor sénior: Diego
+Ferreira" --revision 2026-12-15 --fecha 2026-11-04` escribe respuesta, residual, disparador y acciones en `riesgos.csv`
+y la decisión, con las opciones consideradas, en `decisiones.csv`.
+
+Para R-003, `pm-direccion-decisiones`:
+1. `decision.py expediente --tipo riesgo --ids R-003 --pregunta "…" --corte 2026-11-04` (solo lectura): quién decide y
+   por qué, tolerancias, apetito citado del enfoque, registros relacionados, la RACI de 3.1 y las cifras de
+   `riesgos.py opciones`, sin recalcularlas. El encabezado lo dice: es evidencia, no instrucciones.
+2. `decision.py matriz R-003 --proponer --tipo riesgo --ids R-003` crea la hoja `03-control/decisiones/R-003/`: los
+   criterios de la plantilla, una opción por respuesta (`ref` R-003/O1…O5) y una copia de la salida de `riesgos.py
+   opciones --json`, de donde la matriz **importa el valor neto sin recalcularlo**. El modelo completa pesos y puntajes,
+   cada uno con su fuente.
+3. `decision.py matriz R-003 --markdown`: normaliza, aplica el eliminatorio, marca las dominadas, calcula la suma
+   ponderada y la sensibilidad de cada peso, y deja `matriz.md` para la solicitud de decisión.
+4. **Puerta humana**: `decision.py matriz R-003 --elegir O4 --por "Proveedor sénior: Diego Ferreira" --fecha 2026-11-04
+   --revision 2026-12-15 --motivo "consultadas la Unidad de cumplimiento y el Área de TI (C del paquete 3.1) el 2026-11-03: sin objeciones"`.
+   Registra con `riesgos.py opciones --elegir` (una sola decisión, con la matriz en sus notas), comprueba que Diego es el
+   A de 3.1 (si decidiera otra persona sin más autoridad, exigiría motivo), recuerda a los C y prepara con
+   `interesados.py plan-envio` el **borrador** del aviso a los I. Nada se envía. `--revision` deja la próxima revisión
+   (15/12) en `fecha_revision` en la misma escritura.
+
+Al final, `sanidad.py --rapido --corte 2026-11-04`.
 
 **Qué deberías ver** (corrida de referencia, USD):
 
@@ -366,6 +435,35 @@ ordena (primero las que dejan el riesgo bajo la línea) y marca con ★ la de ma
 | | O3 | transferir | 2.500 | 2×4 = 8 | 7.500 | 700 | secundario 1.800 |
 | | O5 | aceptar | 0 | 3×5 = 15 | 12.500 | 0 | sobre la línea |
 
+El expediente de R-003 (texto completo en [salida-g1.md](evidencia/salida-g1.md), paso 6a) reúne, entre otras cosas:
+«Nivel que decide: `gestor` — Propietario del riesgo: Diego Ferreira», la línea de apetito de `enfoque-riesgo.md:30`, la
+RACI de 3.1 («A ST-005 Diego Ferreira … C, consultar antes: ST-004 Unidad de cumplimiento …, ST-003 Área de TI … I,
+informar después: ST-001 Laura Méndez …, ST-002 Sindicato de operadores … autoridad del A: junta … ≥ gestor») y las
+cinco opciones con su valor neto. La matriz:
+
+| Opción de R-003 | Puntaje | Valor neto | Apetito | Secundario | Factibilidad | Días | Estado |
+|---|---|---|---|---|---|---|---|
+| **O4 ★** contingencia | **82,5** | 2.500 | 3 | 1 | 4 | 8 | recomendada |
+| O2 reducir | 55,4 | 1.000 | 5 | 1 | 3 | 20 | |
+| O3 transferir | 37,8 | 700 | 2 | 2 | 4 | 10 | dominada por O4 |
+| O1 evitar | 28,9 | 900 | 3 | 4 | 3 | 30 | dominada por O2 |
+| O5 aceptar | — | 0 | 1 | 1 | 5 | 0 | eliminada: apetito 1 < 2 |
+
+- Sensibilidad: «valor_neto 35,0: si baja a 3,6 (-31,4) pasa O2» y «apetito 25,0: … si sube a 51,4 (+26,4) pasa O2»; el
+  riesgo secundario, la factibilidad y el plazo, «estable». Ningún peso cambia la primera moviéndose 5 puntos o menos:
+  la sensibilidad no es baja y no hace falta motivo por ese lado.
+- Al elegir: «R-003: elegida O4 por Proveedor sénior: Diego Ferreira · decisión D-004 (nivel gestor) · recomendada O4»,
+  el recordatorio a los C («RACI · consultados (C) de 3.1: ST-003 Área de TI …, ST-004 Unidad de cumplimiento …») y
+  «Borrador del aviso → 03-control/comunicaciones/2026-11-04-decision-d-004-…/ (2 destinatario(s), estado borrador; NADA
+  ENVIADO)», uno para Laura Méndez y otro para el sindicato, cada uno según su perfil (los dos prefieren la reunión: el
+  script lo avisa para registrarlo como entrega manual).
+
+![Sensibilidad de la decisión de R-003](img/g1-sensibilidad-r003.png)
+Cada línea es el puntaje de una respuesta según el peso del apetito; los demás pesos conservan sus proporciones. Con el
+peso acordado (25), la contingencia saca 27 puntos a reducir; las dos líneas se cruzan en 51,4. Evitar y transferir no
+ganan con ningún peso: cada una tiene otra opción mejor o igual en todos los criterios (dominadas). Aceptar no está:
+el apetito la elimina.
+
 Decisiones **D-003** (R-001, O2) y **D-004** (R-003, O4). Al elegir O4, el script avisa «Falta el plan de contingencia:
 templates/plan-contingencia.md → 03-control/registros/R-003-plan-contingencia.md (sanidad REG-10)» y la sanidad lo
 confirma: `AVISO REG-10 Riesgo alto R-003 con respuesta 'contingencia' sin plan de contingencia.` Se resuelve en el 6b.
@@ -375,9 +473,12 @@ Las recomendadas no son las de menor residual: evitar deja R-001 en P×I 3, pero
 secundario sobre B-01. La contingencia de R-003 no cuesta nada hasta el disparo; sus USD 12.000 entran ponderados por la
 probabilidad residual (50 %), y aun así es la opción de mayor valor neto.
 
-**Dónde verificar:** `03-control/registros/opciones-riesgo/R-001.csv` y `R-003.csv` · `riesgos.csv` (`respuesta`,
-`acciones` con la opción, el valor neto y la decisión) · `decisiones.csv` (D-003 y D-004, `opciones_consideradas`) ·
-prompt: "¿Qué opciones evaluamos para R-003 y por qué elegimos la contingencia?".
+**Dónde verificar:** `03-control/registros/opciones-riesgo/R-001.csv` y `R-003.csv` · `03-control/decisiones/R-003/`
+(`criterios.csv`, `opciones.csv`, `matriz.md` y `decision.json` con la elección, los puntajes y la RACI) ·
+`03-control/comunicaciones/2026-11-04-decision-d-004-…/` (borradores del aviso) · `riesgos.csv` (`respuesta`, `acciones`
+con la opción, el valor neto y la decisión) · `decisiones.csv` (D-003 y D-004, `opciones_consideradas`; en D-004, la
+matriz y la consulta en `notas`) · prompt: "¿Qué opciones evaluamos para R-003, por qué elegimos la contingencia y a
+quién avisamos?".
 
 ---
 
@@ -493,7 +594,8 @@ aprobado`. `autorizar-etapa` revisa **E-06** (riesgos altos sin respuesta): ya n
   gestion=6200`.
 - `AVISO REG-07 Acción vencida A-002 (Martín Suárez, 2026-11-20).` y lo mismo para A-003: el taller y el acuerdo marco
   ya se hicieron, pero nadie cerró las acciones. Se cierran en el paso 8.
-- La verificación de `autorizar-proyecto` sin P-04; queda solo el aviso de la matriz RACI, que no es el foco.
+- La verificación de `autorizar-proyecto` sin avisos: ni P-04 (enfoque de beneficios) ni P-10 (la RACI del paso 2 cuenta
+  como matriz RACI).
 - "Copia congelada … business-case-v1.0.md"; las tres puertas registradas; fase `entrega`, etapa 2 "Release 1".
 
 **Dónde verificar:** `02-planificacion/presupuesto.md` · `estado.json` → `presupuestos.riesgo` y `.gestion` · `cambios.csv` (C-001,
@@ -586,10 +688,20 @@ monto las frenaría. El control mira **el propósito**: sin un R-### citado no e
 
 ---
 
-## Paso 10 · Riesgo nuevo sobre la línea: opciones, hoja de riesgo, escalamiento a la junta y revisión del business case
+## Paso 10 · Riesgo nuevo sobre la línea: opciones, matriz, hoja de riesgo, escalamiento a la junta y revisión del business case
 
-La recomendación del script es una propuesta, no una orden. Aquí la junta elige otra opción por una razón que el valor
-neto no captura (el apetito bajo en cumplimiento), y el sistema le pide que la deje escrita.
+La recomendación de un script es una propuesta, no una orden. Aquí hay dos y la junta no sigue ninguna: el valor neto
+recomienda esperar la norma; la matriz, con el apetito como eliminatorio, descarta esa opción y recomienda otra; la junta
+elige una tercera por una razón que deja escrita, y la sensibilidad muestra cuánto pesa esa razón.
+
+**Puntajes para la matriz de R-007** (mismos criterios y pesos que en R-003, fijados antes de puntuar):
+
+| Opción de R-007 | Apetito (1–5) | Riesgo secundario (1–5) | Factibilidad (1–5) | Días hasta que surte efecto |
+|---|---|---|---|---|
+| O1 evitar | 3: cumplimiento a salvo, pero resigna la adopción temprana de B-02 | 4: B-02 se demora un trimestre | 4 | 5 |
+| O2 reducir | 5: se anticipa a la norma | 1 | 4: USD 10.000 dentro del saldo de la reserva | 24: análisis el 5/2 |
+| O3 contingencia | 1: esperar deja el acceso expuesto a una norma de cumplimiento | 1 | 3 | 60 |
+| O4 aceptar | 1: un alto sin respuesta contradice la tolerancia | 1 | 5 | 0 |
 
 **Prompt**
 ```text
@@ -598,28 +710,35 @@ P3, I5, USD 40.000, afecta los paquetes 3.1 y 3.3 y el business case. Propietari
 evitar, sacando los préstamos del Release 2 (USD 1.000; P1 I3, impacto 10.000; secundario: la adopción de B-02 se
 demora un trimestre, EMV 16.000); reducir, con un análisis normativo con asesoría externa y autenticación reforzada
 detrás de IdentityPort (USD 10.000; P2 I4); contingencia, esperar la publicación y recién entonces implementar la
-biometría (P3 I4, impacto 20.000, contingencia 14.000). Transferir no aplica. Prepará la hoja de riesgo proponiendo
-reducir y escalalo: esto lo tiene que decidir la junta. Si lo aprueba, revisá el business case y agendá la entrega del
-análisis a la junta para el 5/2, a cargo de Martín.
+biometría (P3 I4, impacto 20.000, contingencia 14.000). Transferir no aplica. Armá el expediente y la matriz con estos
+puntajes y prepará la hoja de riesgo proponiendo reducir. Escalalo: esto lo tiene que decidir la junta. Si lo aprueba,
+revisá el business case y agendá la entrega del análisis a la junta para el 5/2, a cargo de Martín.
 ```
 **Si te pregunta** la decisión: "Laura Méndez, ejecutiva: aprobado usar USD 10.000 del presupuesto de riesgo para el
 análisis normativo (O2); revisar el riesgo en la próxima junta. Motivo: con apetito bajo en cumplimiento no esperamos a
-que se publique la norma. El business case sigue siendo viable; aprobalo como v1.1".
+que se publique la norma, y no sacamos los préstamos del Release 2 porque demora B-02 un trimestre; para la junta el
+apetito pesa más que en la plantilla y acepta el valor neto negativo. El business case sigue siendo viable; aprobalo como
+v1.1".
 
 **Qué hace el sistema:** `pm-riesgos` registra **R-007** (`respuesta=escalar`, `estado=escalado`), completa su hoja de
 opciones y corre `riesgos.py opciones --riesgo R-007`: recomienda **O3 contingencia** (valor neto 3.000), avisa que
 reducir «cuesta más de lo que reduce: requiere justificación no económica (R-10)» y que faltan estrategias
-(transferir). Redacta `03-control/registros/R-007-hoja-riesgo.md` con `templates/hoja-riesgo.md`, la tabla de opciones
-y la justificación regulatoria de O2: por eso decide la junta. `pm-director` registra `estado.py puerta
-decision-ad-hoc --decision aprobado --condiciones "…"` → `pm-issues-cambios` registra **C-004** (`costo=10000`,
-`cargo=reserva-riesgo`, cita R-007) → **puerta humana**: `riesgos.py opciones --riesgo R-007 --elegir O2 --por
-"Ejecutiva: Laura Méndez" --nivel ejecutivo …` sin `--motivo` no registra nada; con el motivo de Laura escribe la
-respuesta reducir, residual P2 I4 y próxima revisión 2027-01-26 → la acción **A-004** (entregar el análisis, Martín
-Suárez, 2027-02-05) → `pm-caso-de-negocio` agrega la revisión al business case y `pm-director` lo aprueba como v1.1 →
-`sanidad.py --rapido --corte 2027-01-12`.
+(transferir). `pm-direccion-decisiones` arma el expediente (`decision.py expediente --tipo riesgo --ids R-007 …
+--corte 2027-01-12`: decide la junta porque el riesgo está escalado, y el saldo de la reserva es 24.500 de 39.800) y la
+hoja `03-control/decisiones/R-007/` con la matriz. `pm-riesgos` redacta `03-control/registros/R-007-hoja-riesgo.md`
+con `templates/hoja-riesgo.md`, las dos tablas y la justificación regulatoria de O2: por eso decide la junta.
+`pm-director` registra `estado.py puerta decision-ad-hoc --decision aprobado --condiciones "…"` (**D-015**) →
+`pm-issues-cambios` registra **C-004** (`costo=10000`, `cargo=reserva-riesgo`, cita R-007) → **puerta humana**:
+`decision.py matriz R-007 --elegir O2 --por "Ejecutiva: Laura Méndez"` sin `--decision` no registra
+nada (una decisión de la junta la registra pm-director, y aquí solo se cita); con `--decision D-015` y sin `--motivo`,
+tampoco (no es la recomendada); con el motivo de Laura, `riesgos.py opciones --elegir` escribe la respuesta reducir y el
+residual P2 I4 citando D-015, y la matriz y el motivo quedan en las notas de D-015, sin una fila nueva. El aviso a los I
+de la RACI de 3.1 va al sindicato (Laura decidió). Después: próxima revisión de R-007 el 2027-01-26 (`registro.py
+actualizar`) → la acción **A-004** (entregar el análisis, Martín Suárez, 2027-02-05) → `pm-caso-de-negocio` agrega la
+revisión al business case y `pm-director` lo aprueba como v1.1 → `sanidad.py --rapido --corte 2027-01-12`.
 
 **Qué deberías ver:**
-- R-007 (15, alto, EMV 20.000) y sus opciones (USD):
+- R-007 (15, alto, EMV 20.000) y sus opciones por valor neto (USD):
 
 | Opción | Estrategia | Costo | Residual P×I | EMV residual | Valor neto |
 |---|---|---|---|---|---|
@@ -628,8 +747,14 @@ Suárez, 2027-02-05) → `pm-caso-de-negocio` agrega la revisión al business ca
 | **O2** (elegida por la junta) | reducir | 10.000 | 2×4 | 12.000 | −2.000 |
 | O4 | aceptar | 0 | 3×5 | 20.000 | 0 |
 
-- Sin motivo: «La recomendada es O3 y se eligió O2: indicar --motivo (p. ej. justificación no económica, regulatoria o
-  de plazo).» Con el motivo: «R-007: respuesta reducir (O2) registrada en riesgos.csv · decisión D-016».
+- La matriz: **O3 y O4 eliminadas** («apetito 1 < 2 (eliminatorio)»); entre las que quedan, **★ O1 evitar 75,0** y
+  **O2 reducir 50,0**. Sensibilidad: O2 pasa a primera si el peso del apetito sube a **50,0** (el doble del acordado), si
+  el del valor neto baja a 13,3 o si el del riesgo secundario sube a 32,5.
+- Sin `--decision`: «Decisión de nivel junta (decision.json): la registra pm-director con estado.py puerta
+  decision-ad-hoc …». Sin motivo: «Indicar --motivo: la recomendada es O1 y se eligió O2 (…)». Con el motivo: «R-007:
+  respuesta reducir (O2) registrada en riesgos.csv · decisión D-015 (Ejecutiva: Laura Méndez, nivel junta).» y
+  «R-007: elegida O2 por Ejecutiva: Laura Méndez · decisión D-015 (nivel junta) · recomendada O1 · motivo: …», con el
+  borrador del aviso para el sindicato.
 - La hoja (texto en [salida-g1.md](evidencia/salida-g1.md), paso 10); "Copia congelada … business-case-v1.1.md";
   `INFO  CAM-03 Reserva de riesgo: 25.300 de 39.800 (64 %).` y `AVISO EST-12 Condiciones abiertas de decision-ad-hoc:
   …`. La sanidad recuerda la condición de la junta en cada sesión hasta que se dé por cumplida (paso 14), en lugar de
@@ -638,10 +763,16 @@ Suárez, 2027-02-05) → `pm-caso-de-negocio` agrega la revisión al business ca
   Ramírez).` y lo mismo para R-003, R-004 y R-005: la revisión prevista del 29/12, en plena semana de fiestas, no se
   hizo. El equipo prioriza la junta; el paso 12 muestra lo que cuesta postergarla.
 
-**Dónde verificar:** `03-control/registros/opciones-riesgo/R-007.csv` · `03-control/registros/R-007-hoja-riesgo.md` ·
+![Decisión de la junta sobre R-007](img/g1-decision-r007.png)
+El valor neto recomendaba esperar la norma; el apetito la elimina. Entre evitar y reducir, la matriz prefiere evitar con
+los pesos acordados, y la junta elige reducir: su motivo equivale a pesar el apetito el doble. Ese peso no se tocó en la
+hoja después de ver los puntajes (sería acomodarlo): quedó escrito como motivo.
+
+**Dónde verificar:** `03-control/registros/opciones-riesgo/R-007.csv` · `03-control/decisiones/R-007/` (`matriz.md`,
+`decision.json` con la elección, el motivo y la RACI) · `03-control/registros/R-007-hoja-riesgo.md` ·
 `00-direccion/business-case.md` e `historial/business-case-v1.0.md` / `-v1.1.md` · `estado.json` → `puertas` ·
-`cambios.csv` (C-004) · `acciones.csv` (A-004) · `decisiones.csv` (D-015 decisión de la junta, D-016 opción elegida con
-el motivo en `notas`, D-017 business case v1.1).
+`cambios.csv` (C-004) · `acciones.csv` (A-004) · `decisiones.csv` (D-015, decisión de la junta con la matriz y el motivo
+en `notas`; D-016, business case v1.1).
 
 ---
 
@@ -778,7 +909,7 @@ supere el remanente va a la junta".
 
 **Qué hace el sistema:** sigue la sección «Activación» del plan (`R-003-plan-contingencia.md`, §4):
 `pm-issues-cambios` registra **C-005** (acción 1: `costo=12000`, `cargo=reserva-riesgo`, cita R-003 y el plan, decide
-la ejecutiva); `pm-director` registra la decisión de activar (**D-018**, nivel `ejecutivo`, con las opciones
+la ejecutiva); `pm-director` registra la decisión de activar (**D-017**, nivel `ejecutivo`, con las opciones
 consideradas: activar el plan, esperar una tercera caída o solo el correo); `pm-riesgos` registra la acción 2 (**A-005**,
 conmutar el segundo factor, Lucía Benítez, 25/2) y actualiza R-003 («contingencia activada el 2027-02-15 (C-005,
 A-005)», residual P2 I3). Desde ahí la contingencia, ya pagada, deja de entrar ponderada en su EMV residual.
@@ -791,7 +922,7 @@ reserva (con las opciones consideradas y `revisar_en=2027-03-01`).
   cambios». Por encima del 100 % sería ERROR y bloquearía las puertas (la verificación exige sanidad sin ERROR).
 - Remanente **2.500** frente a un EMV residual planificado de **27.900** (R-002 4.500 · R-003 2.400 · R-004 3.600 ·
   R-005 5.400 · R-007 12.000); la reserva de gestión (**6.200**, lo no identificado) sigue sin uso.
-- **D-019**: mantener el presupuesto en 39.800, suspender la delegación de USD 5.000 al gestor hasta el límite de etapa y
+- **D-018**: mantener el presupuesto en 39.800, suspender la delegación de USD 5.000 al gestor hasta el límite de etapa y
   llevar a la junta lo que supere el remanente; opciones consideradas: pedir a la junta que pase reserva de gestión al
   presupuesto de riesgo, mantener y concentrar la autoridad, pedir plan de excepción. La reserva de gestión no se usa
   para cubrir lo identificado: la libera solo la junta y existe para lo que nadie identificó.
@@ -800,32 +931,58 @@ reserva (con las opciones consideradas y `revisar_en=2027-03-01`).
 Cada barra es una corrida de la sanidad: verde hasta el 64 % y naranja al 94 %, cuando la activación del plan lleva
 CAM-03 a aviso.
 
-**Dónde verificar:** `cambios.csv` (C-005) · `decisiones.csv` (D-018 y D-019) · `acciones.csv` (A-005) ·
+**Dónde verificar:** `cambios.csv` (C-005) · `decisiones.csv` (D-017 y D-018) · `acciones.csv` (A-005) ·
 `riesgos.csv` (R-003) · `03-control/registros/R-003-plan-contingencia.md` · `estado.py resumen`
 (`Presupuestos: riesgo=39800, gestion=6200`) · prompt: "¿Cuánto queda de la reserva y qué riesgos la pueden necesitar?".
 
 ---
 
-## Paso 14 · Límite de etapa: auditoría, lecciones y cierre de riesgos
+## Paso 14 · Límite de etapa: auditoría, lecciones, propuestas, decisiones vigentes y cierre de riesgos
+
+En el límite de etapa se revisa todo, y dos cosas suelen quedar a mitad de camino: los cambios que alguien sugiere sin
+que el responsable los apruebe, y las decisiones que se tomaron "hasta el límite de etapa" y nadie vuelve a mirar. Aquí
+el agente **propone** y el propietario aprueba, y las decisiones que vencen se revisan con quien las tomó.
 
 **Prompt**
 ```text
 Cerramos la etapa 2 el 1/3. El análisis normativo se entregó el 26/2: cerrá A-004. Según el análisis, la biometría se
 exigiría desde 2028, después del Release 2: bajá R-007 a P2. La conmutación al proveedor alternativo quedó verificada
-el 24/2: cerrá A-005; con la contingencia funcionando, bajá R-003 a P2. R-005 no se dio, retiralo. Reevaluá el resto con próxima revisión el 15/3. Hacé la auditoría de
-riesgos de la etapa, registrá las lecciones de R-001 y de la revisión que se cortó, y dá por cumplida la condición de
-la junta sobre R-007. ¿Qué le falta a la puerta de la etapa 3? Exportame los registros a Excel para la junta.
+el 24/2: cerrá A-005; con la contingencia funcionando, bajá R-003 a P2. Proponé qué riesgos se pueden retirar: los
+aprueba su propietario. Reevaluá el resto con próxima revisión el 15/3. Hacé la auditoría de riesgos de la etapa,
+registrá las lecciones de R-001 y de la revisión que se cortó, y dá por cumplida la condición de la junta sobre R-007.
+¿Qué decisiones sobre el presupuesto de riesgo (risk budget) siguen vigentes y cuáles hay que revisar hoy? ¿Qué le falta
+a la puerta de la etapa 3? Exportame los registros a Excel para la junta.
 ```
 
-**Si te pregunta** por la condición de la junta: "Laura Méndez, ejecutiva: cumplida; R-007 revisado y análisis entregado".
+**Si te pregunta** por la condición de la junta: "Laura Méndez, ejecutiva: cumplida; R-007 revisado y análisis entregado"
+· por la propuesta de retirar R-005: "Diego Ferreira, propietario: aprobada" · por las decisiones que vencen: "Laura
+Méndez, ejecutiva: la activación del plan de R-003 queda confirmada y se revisa con el riesgo el 15/3; desde la etapa 3
+se restituye la delegación de USD 5.000 al gestor y el presupuesto de riesgo de la etapa 3 se fija con su plan".
 
-**Qué hace el sistema:** `estado.py limite-etapa` (límite de etapa, stage boundary); `pm-riesgos` (A-004 y A-005 completadas,
-R-003 y R-007 a P2, R-005 retirado, `templates/auditoria-riesgos.md`); `pm-lecciones-aprendidas` (**L-001** sobre R-001 y
-**L-002** sobre la revisión cortada); `pm-director` cierra la condición con `estado.py cumplir-condiciones decision-ad-hoc
---fecha 2027-03-01 --por "Ejecutiva: Laura Méndez" --nota "…"` (D-020; sin eso la verificación mostraría G-01);
-`puertas.py verificar autorizar-etapa`; `pm-exportar` → `exportar.py xlsx`; sanidad al 01/03.
+**Qué hace el sistema:** `estado.py limite-etapa` (límite de etapa, stage boundary); `pm-riesgos` (A-004 y A-005
+completadas, R-003 y R-007 a P2, `templates/auditoria-riesgos.md`) y, para R-005, una **propuesta**: `registro.py
+proponer riesgos R-005 --campo estado=retirado … --por "agente: pm-riesgos" --motivo "…"` valida el cambio y lo guarda en
+`03-control/propuestas/P-001.json` sin tocar el registro; `registro.py propuestas` muestra qué pasaría al aprobarla
+hoy; `registro.py aprobar P-001 --por "Proveedor sénior: Diego Ferreira"` la aplica (quien propone no puede aprobar) y
+`registro.py historial R-005` muestra en la bitácora quién propuso y quién aprobó. `pm-lecciones-aprendidas` (**L-001**
+sobre R-001 y **L-002** sobre la revisión cortada); `pm-director` cierra la condición con `estado.py
+cumplir-condiciones decision-ad-hoc --fecha 2027-03-01 --por "Ejecutiva: Laura Méndez" --nota "…"` (D-019; sin eso la
+verificación mostraría G-01). Para las decisiones: `decision.py vigentes --tema "risk budget" --corte 2027-03-01` busca
+en inglés sobre registros en español (lemas, glosario y cifras de `texto.py`) y muestra solo las vigentes; con la
+respuesta de Laura, `pm-director` confirma D-017 con una nueva fecha de revisión (`registro.py actualizar decisiones
+D-017 --campo revisar_en=2027-03-15`) y registra **D-020**, que reemplaza a D-018 (`reemplaza=D-018`: mismo nivel, la
+anterior queda como historia); `decision.py vigentes --ids D-020` muestra la cadena. Después, `puertas.py verificar
+autorizar-etapa`; `pm-exportar` → `exportar.py xlsx`; sanidad al 01/03.
 
 **Qué deberías ver:**
+- La propuesta antes de aprobarla: «P-001 · pendiente · actualizar riesgos R-005 · propuso agente: pm-riesgos …» con
+  los campos que cambia, el motivo y «al aprobar hoy: se aplica tal cual»; después, «P-001 aplicada en riesgos R-005» y,
+  en el historial, «registro.py aprobar · --por Proveedor sénior: Diego Ferreira · P-001 (propuso agente: pm-riesgos)».
+  La bitácora guarda la fecha y la hora reales de cada escritura (en la evidencia, enmascaradas).
+- Las decisiones vigentes sobre el presupuesto de riesgo: D-008 (presupuestos de la junta), D-015 (decisión de la junta
+  sobre R-007) y «D-018 · 2027-02-15 · Mantener el presupuesto de riesgo en 39.800; … · revisar en 2027-03-01». Si nadie
+  las revisa, desde el día siguiente la sanidad avisa DEC-06 en D-017 y D-018 (2 avisos); después de la revisión de
+  Laura, 0. «D-020 · … · cadena D-018 → D-020».
 - `altos_abiertos: 0`; exposición final de amenazas abiertas **USD 27.600** (R-002 4.500 · R-003 7.500 · R-004 3.600 ·
   R-007 12.000).
 - L-001: «exigir el entorno de pruebas como condición de la puerta autorizar-etapa». L-002: «empezar cada revisión de
@@ -840,8 +997,10 @@ R-003 y R-007 a P2, R-005 retirado, `templates/auditoria-riesgos.md`); `pm-lecci
 Seis indicadores para la junta: cinco en rango y la reserva de riesgo en atención, que se recalcula con el plan de la
 etapa 3; la reserva de gestión (6.200) llega intacta al límite de etapa.
 
-**Dónde verificar:** `03-control/reportes/2027-03-01-auditoria-riesgos.md` · `lecciones.csv` · `decisiones.csv`
-(D-020) · el Excel exportado.
+**Dónde verificar:** `03-control/reportes/2027-03-01-auditoria-riesgos.md` · `lecciones.csv` ·
+`03-control/propuestas/P-001.json` · `decisiones.csv` (D-017 con `revisar_en`, D-019 condición cumplida, D-020 con
+`reemplaza`) · el Excel exportado · prompt: "¿Qué decisiones de la reserva siguen vigentes?" / "¿Quién aprobó retirar
+R-005?".
 
 ---
 
@@ -882,6 +1041,89 @@ y EMV 10.000.
 | Incidencias emergentes (Jira u otro tracker) | paso 9 | issues con su riesgo derivado; riesgos etiquetados; relación o duplicado con riesgos existentes | instantánea fechada vía pm-integraciones |
 | Artefactos del proyecto (sin BMAD) | paso 15 | restricciones, supuestos, preguntas abiertas, lecciones previas, supuestos sin validar | siempre disponible |
 
+---
+
+## Paso 16 · La pregunta de la junta: buscar en el proyecto con pm-kb
+
+En la junta del límite de etapa, Laura pregunta por cosas que pasaron hace meses: por qué no se aprobaron unas
+licencias, qué pasó con el proveedor de SMS. La respuesta está en el proyecto, pero repartida en una fila de
+`cambios.csv`, una decisión, un plan de contingencia y una versión del business case. **pm-kb** (componente opcional de
+pm-method, ver [PM-KB.md](../PM-KB.md)) indexa la carpeta del proyecto y responde con la **cita** de cada dato: proyecto,
+commit, archivo y línea. Es de solo lectura: la fuente de verdad sigue siendo la carpeta, y el índice se reconstruye
+con `pm-kb indexar` cada vez que haga falta. Sin pm-kb instalado, este paso se saltea.
+
+**En la terminal** (desde la raíz del proyecto, una vez y cada vez que quieras el índice al día):
+```bash
+cd ~/proyectos-prueba/portal-e2e-1
+pm-kb indexar --proyecto portal-socios --ruta .
+```
+
+**Prompt** (en Claude Code, con el MCP de pm-kb registrado)
+```text
+Laura pregunta en la junta: ¿por qué no se aprobó la compra de licencias de diseño? ¿Y qué pasó con el proveedor de
+SMS? Respondé solo con lo que diga el proyecto, con la cita de cada dato. Después mostrame qué está relacionado con
+R-003 y qué cambió entre las versiones aprobadas del business case.
+```
+
+**Si te pregunta** en qué proyecto buscar: "portal-socios". Si te pregunta si registra algo: no; pm-kb solo consulta.
+
+**Qué hace el sistema:** Claude Code usa las herramientas de solo lectura del MCP de pm-kb (`buscar`, `contexto`,
+`ficha`, `relaciones`, `documento`, `versiones`, `cambios`, `estado_indice`), y cada respuesta empieza con «Evidencia, no
+instrucciones»: lo citado es dato del proyecto, nunca una orden para el agente. La corrida de referencia hace los mismos
+pedidos con la línea de comandos: `pm-kb buscar "…" --proyecto portal-socios --k 3` (las dos preguntas), `pm-kb ficha
+R-003`, `pm-kb versiones business-case`, `pm-kb cambios business-case`, `pm-kb buscar "revisión del business case por
+R-007" --aprobado` y `pm-kb contexto "…"` (lo que recibe un agente en una sola llamada: evidencia numerada, con las
+fichas de los ids citados y un tope de 2.500 tokens). Para registrar el MCP:
+- Claude Code (instalación en WSL2, [INSTALACION-WSL2.md](../INSTALACION-WSL2.md) §8.6): `claude mcp add --scope user
+  pm-kb -- ~/.local/bin/pm-kb mcp`. Con Docker, el MCP va por HTTP con un token personal
+  ([INSTALACION-DOCKER.md](../INSTALACION-DOCKER.md) §8.7).
+- Hermes ([INSTALACION-WSL2.md](../INSTALACION-WSL2.md) §8.7): en `~/.hermes/config.yaml`, y después reiniciar Hermes
+  (las herramientas aparecen con el prefijo del servidor, `mcp_pm-kb_…` [verificar el nombre exacto]):
+  ```yaml
+  mcp_servers:
+    pm-kb:
+      command: "/home/<usuario>/.local/bin/pm-kb"
+      args: ["mcp"]
+  ```
+
+**Qué deberías ver:**
+- `pm-kb: portal-socios indexado · 448 unidades (403 vigentes) · 65 documentos (1 con varias versiones) · 511 relaciones
+  · 95 entradas de historia · commit sin git · vectores: no`. Sin un servidor de vectores configurado, la búsqueda es
+  léxica (BM25) con sinónimos de gestión: la consulta muestra «Equivalencias: compra → adquisicion».
+- Las licencias: primero **C-003**, con la cita `portal-socios@sin-git:gestion/03-control/registros/cambios.csv:L4`,
+  «decision: rechazado», «decidido_por: Autoridad de cambio: Sofía Ramírez», 2026-12-18, y el motivo: «no responde a
+  ningún riesgo: la reserva de riesgo no es una bolsa general; si hace falta, va como solicitud de cambio contra el
+  presupuesto de cambio cuando la junta lo fije» (paso 9). La cita lleva `sin-git` porque la carpeta del caso no es un
+  repositorio git; en un proyecto con git, en ese lugar va el commit indexado, y la cita apunta a una versión exacta.
+- El proveedor de SMS: primero **C-005** (activar el plan de contingencia de R-003, aprobado por la ejecutiva el
+  2027-02-15), después las opciones de R-003 y el aviso de la decisión D-004.
+- `pm-kb ficha R-003`: la fila completa y sus **relaciones por ids**, sin que nadie las dibuje: salen hacia A-005, C-005
+  y D-004 (citados en `acciones`), AD-5 (`causa`), FR-1 y NFR-2 (`efecto`); llegan desde D-017 y D-020, L-002, A-003, el
+  plan de contingencia y la hoja de la decisión.
+- `pm-kb versiones business-case`: v1.0 aprobada el 2026-11-27 (D-010) y v1.1 el 2027-01-12 (D-016), cada una con su
+  copia congelada en `historial/`, y el archivo vivo marcado «← vigente». `pm-kb cambios business-case`: «v1.0 → v1.1 ·
+  1 agregadas, 0 quitadas, 0 modificadas», la sección «Revisión 2027-01-12 por R-007 (norma de biometría)» (paso 10).
+- Con `--aprobado`, la sección del business case con «v1.1 · aprobado · Ejecutiva: Laura Méndez, D-016». La búsqueda
+  por defecto trae la última versión de cada documento aunque esté en revisión, con el aviso «hay una vX aprobada»;
+  `--aprobado`, la última aprobada (la que vale para el gobierno); `--historia`, todas, marcadas. Aquí la vigente es la
+  aprobada y las dos coinciden.
+- `pm-kb contexto`: la misma evidencia numerada, «~1495 tokens», con las fichas de los ids citados (R-007, NFR-4).
+- En la interfaz web (`pm-kb servir`, que muestra el enlace de ingreso `http://localhost:8765/ingresar?token=…`), las
+  mismas consultas con filtros, la ficha con el grafo de relaciones y la comparación de versiones:
+
+![Búsqueda en pm-kb: C-003 primero, con su cita](img/g1-kb-busqueda.png)
+La pregunta de Laura, tal como la dijo: C-003 primero, con el motivo del rechazo y la cita para copiar.
+
+![Ficha de R-003 con el grafo de relaciones](img/g1-kb-ficha.png)
+R-003 en el centro y, alrededor, las decisiones, acciones, cambios, requisitos y documentos que lo citan o que cita.
+
+![Comparación de versiones del business case](img/g1-kb-versiones.png)
+v1.0 y v1.1 aprobadas por Laura, y la única sección que agregó la revisión por R-007.
+
+**Dónde verificar:** `pm-kb estado` (proyectos indexados, commit y fecha del indexado) · la línea citada en
+`gestion/03-control/registros/cambios.csv` · prompt: "¿Quién rechazó C-003 y por qué? Citá la fuente". La corrida de
+referencia borra el índice al terminar (`pm-kb quitar --proyecto portal-socios`); la carpeta no se toca.
+
 ## Reporte: informe de riesgos al 2027-01-15 (ejemplo)
 
 > Estructura de `pm-riesgos/templates/informe-riesgos.md`; cifras de la corrida de referencia. El texto lo redacta el
@@ -890,8 +1132,9 @@ y EMV 10.000.
 **1. Resumen ejecutivo.** Exposición de amenazas abiertas USD 49.600 (tolerancia ≤ 60.000). Un riesgo se materializó
 (R-001 → I-001) y se cubrió con la opción de contingencia que se había evaluado para él: un entorno de pruebas temporal
 pagado con la reserva (C-002: 3 días de atraso en lugar de 2 semanas). Uno nuevo se escaló a la junta (R-007, norma de
-biometría), que eligió el análisis normativo (USD 10.000 de la reserva, C-004) frente a la opción recomendada por valor
-neto, por el apetito bajo en cumplimiento, y aprobó el business case revisado v1.1. Ningún riesgo alto queda sin respuesta.
+biometría), que eligió el análisis normativo (USD 10.000 de la reserva, C-004) con el motivo escrito: esperar la norma,
+la recomendada por valor neto, queda fuera del apetito bajo en cumplimiento, y sacar los préstamos del Release 2, la
+recomendada por la matriz, demora B-02. Aprobó el business case revisado v1.1. Ningún riesgo alto queda sin respuesta.
 
 **2. Tendencia.** 53.600 (3/11) → 50.600 (15/12) → 49.600 (12/1). Baja por la respuesta a R-002 (−3.000); luego sale
 R-001, ocurrido (−21.000), y entra R-007 (+20.000).
@@ -938,7 +1181,8 @@ en el límite de etapa).
 | **2** | | | | R-004 (8) | |
 | **1** | | | | | |
 
-Los gráficos de las opciones, la exposición y la reserva están en los pasos 6a, 6b, 12, 13 y 14; sus datos están en
+Los gráficos de las opciones y su sensibilidad, la decisión de la junta, la exposición y la reserva están en los pasos
+6a, 6b, 10, 12, 13 y 14; sus datos están en
 [salida-g1.md](evidencia/salida-g1.md) (bloques "gráficos … datos").
 
 **Riesgos ligados a productos, paquetes de la WBS e interesados (al límite de etapa):**
@@ -974,8 +1218,9 @@ requieren atención y la vista por actor.
 - [ ] Escala P×I y **enfoque de gestión de riesgos** (apetito, tolerancia, autoridad sobre la reserva, cadencia) **aprobados por la ejecutiva** (copias congeladas en `historial/`).
 - [ ] Puntuación y EMV calculados por script (no por el modelo).
 - [ ] Opciones de respuesta de los riesgos altos (evitar, reducir, transferir, contingencia, aceptar) comparadas por valor neto con `riesgos.py opciones`, con el riesgo secundario en la cuenta y la recomendada marcada por script; decide el propietario y registra la decisión con las opciones consideradas.
-- [ ] Puerta humana: elegir una opción distinta de la recomendada exige `--motivo` (paso 10, la junta con R-007).
-- [ ] Plan de contingencia de R-003 con disparador, alerta temprana, acciones, monto, fuente y quién lo activa; REG-10 avisa mientras falta y el paso 13 lo activa tal como está escrito (C-005, D-018, A-005).
+- [ ] Decisión de R-003 con expediente citado, matriz multicriterio (valor neto importado sin recalcular, apetito eliminatorio, dominadas y sensibilidad) y elección del A de la RACI de 3.1, con recordatorio a los C y borrador del aviso a los I (nada enviado).
+- [ ] Puerta humana y de autoridad: la decisión de la junta sobre R-007 la registra pm-director (D-015) y la matriz solo la cita con `--decision`; elegir una opción distinta de la recomendada exige `--motivo` (paso 10).
+- [ ] Plan de contingencia de R-003 con disparador, alerta temprana, acciones, monto, fuente y quién lo activa; REG-10 avisa mientras falta y el paso 13 lo activa tal como está escrito (C-005, D-017, A-005).
 - [ ] Respuestas de los demás riesgos con residual, disparador, costo justificado por la reducción de EMV y la aceptación de **cada** propietario en `decisiones.csv`.
 - [ ] Mapa de calor inherente frente a residual y exposición por amenaza antes y después de responder.
 - [ ] Presupuesto de riesgo = respuestas + EMV residual, fijado por la ejecutiva con `estado.py presupuesto`; la provisión para riesgos no identificados, en la reserva de gestión fijada por la junta (`gestion=`).
@@ -983,8 +1228,11 @@ requieren atención y la vista por actor.
 - [ ] Incidencia de Jira → riesgo materializado → issue → contingencia (la opción O4 evaluada en el paso 6a) financiada con la reserva citando el riesgo.
 - [ ] Riesgo sobre la línea con opciones y hoja de riesgo → decisión de la junta → business case revisado (v1.1) → condición vigilada por EST-12 hasta cumplirse.
 - [ ] Revisión periódica: resumen de inicio de sesión (`estado.py contexto` y línea del radar), cinco REG-09 con sus días de atraso, acción vencida replanificada y disparador alcanzado; después de la revisión, sanidad sin REG-09 y radar con la contingencia de R-003 primera en «decidir».
-- [ ] Reserva como presupuesto vivo: la activación del plan lleva CAM-03 a AVISO al 94 % y la ejecutiva registra su decisión (D-019) sin tocar la reserva de gestión.
-- [ ] Límite de etapa: auditoría, lecciones L-001 y L-002, condición cumplida (D-020), verificación de la puerta con códigos E-01 y E-04, tarjetas de indicadores y exportación a Excel.
+- [ ] Reserva como presupuesto vivo: la activación del plan lleva CAM-03 a AVISO al 94 % y la ejecutiva registra su decisión (D-018) sin tocar la reserva de gestión.
+- [ ] Límite de etapa: auditoría, lecciones L-001 y L-002, condición cumplida (D-019), verificación de la puerta con códigos E-01 y E-04, tarjetas de indicadores y exportación a Excel.
+- [ ] Propuesta del agente (retirar R-005) aprobada por el propietario, con quién propuso y quién aprobó en la bitácora.
+- [ ] Decisiones vigentes buscadas en inglés («risk budget»), revisión de las que vencen (DEC-06: 2 → 0) y reemplazo registrado (cadena D-018 → D-020).
+- [ ] Con pm-kb (opcional): proyecto indexado, preguntas de la junta respondidas con cita (C-003 primero), ficha de R-003 con sus relaciones por ids, versiones y cambios del business case, filtro `--aprobado`, contexto para un agente y MCP registrado en Claude Code o Hermes.
 
 ## Siguiente caso
 

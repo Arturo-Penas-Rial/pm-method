@@ -25,13 +25,16 @@ La idea y el diseño del proyecto se ven en [E2E-5](../../guias/E2E-5-idea-a-pro
 Al terminar, cada asistente puede:
 
 1. Explicar la división de trabajo: BMAD especifica y construye; pm-method gobierna y nunca escribe en `_bmad-output/`.
-2. Convertir una aprobación "con condiciones" en una condición formal con seguimiento y cierre registrado.
+2. Convertir una aprobación "con condiciones" en una condición formal con seguimiento y cierre registrado, y decidir
+   con las decisiones vigentes (lo reemplazado queda en la historia).
 3. Controlar un cambio con costo y cargo contra el presupuesto de cambio de la junta.
-4. Diseñar la calidad **por entrega** (una revisión registrada por historia) y tratar un rechazo con traza.
+4. Diseñar la calidad **por entrega** (una revisión registrada por historia) y tratar un rechazo con traza, comparando
+   corregir y conceder.
 5. Mapear el recorrido del cliente sobre lo entregado y darle a cada dolor un tratamiento con id.
 6. Llevar una lección de la retrospectiva hasta el cambio que produce: clasificada por impacto y ámbito, con acción en
    el sprint o en el plan de la etapa, verificada, y compartida en el índice de la organización.
-7. Entregar a una auditoría un expediente armado desde los registros y verificar la integridad de cada copia.
+7. Entregar a una auditoría un expediente armado desde los registros, verificar la integridad de cada copia y mostrar
+   con la bitácora de escrituras si un cambio salió o no de los scripts.
 8. Distinguir puntaje de OKR, salud contra la trayectoria y tolerancia de beneficios al revisar beneficios después del
    cierre.
 
@@ -41,10 +44,12 @@ Al terminar, cada asistente puede:
   No hace falta saber programar ni conocer BMAD.
 - **Instructor:** Claude Code con pm-method; copia del fixture `scripts/pruebas/fixtures/bmad-v6.12-real` en
   `~/proyectos-prueba/portal-e2e-4`; la evidencia y las imágenes `docs/guias/img/g4-*.png` abiertas en pestañas; para
-  la clase 2, el driver `scripts/pruebas/guias_e2e/g4.py` ya corrido (unos 40 segundos) y su carpeta abierta, con
+  la clase 2, el driver `scripts/pruebas/guias_e2e/g4.py` ya corrido (menos de un minuto) y su carpeta abierta, con
   `02-planificacion/visuales/recorrido-uj-1.html` en el navegador; para la demostración del paso 6c en vivo, copiá la
   transcripción de la retrospectiva (está en la evidencia, paso 6c) a
   `gestion/03-control/reuniones/2027-02-26-retro-sprint-4-original.vtt`.
+- **Opcional, para el paso 9c:** pm-kb instalado ([INSTALACION-WSL2.md](../../INSTALACION-WSL2.md) §8 o
+  [INSTALACION-DOCKER.md](../../INSTALACION-DOCKER.md) §8); sin pm-kb, el paso se muestra con la evidencia.
 - **Recomendado:** haber dado E2E-5 antes (la idea y el diseño del mismo tipo de proyecto).
 
 ## El ejercicio
@@ -118,7 +123,7 @@ Si el tiempo aprieta, el paso 4 se muestra solo con la evidencia y el radar del 
 |---|---|---|---|
 | 0–10 | Gancho | "¿Cuántas lecciones de tu último proyecto cambiaron algo?" Mostrar `g4-lecciones-ciclo.png` como destino: 3 lecciones con cita, 2 de 2 acciones verificadas, 3 en el índice de la organización | diapositivas 1–2 |
 | 10–25 | Concepto | Recorrido del cliente (dolor con tratamiento, MAP-03); la retrospectiva como reunión propia; impacto y ámbito de una lección; beneficios: puntaje, salud y tolerancia | diapositivas 3–7 |
-| 25–65 | Demostración | Pasos 6b a 11 (detalle abajo) | diapositivas 8–16, guía y evidencia |
+| 25–65 | Demostración | Pasos 6b a 11 (detalle abajo) | diapositivas 8–17, guía y evidencia |
 | 65–75 | Pregunta y discusión | El objetivo O-1 sale 0,91 en verde: ¿está todo bien? | diapositiva 17 |
 | 75–85 | Ejercicio | Parte B del ejercicio (calidad por entrega, un dolor del recorrido y plan de revisión de beneficios); ejemplo resuelto al cerrar el bloque | diapositiva 19, [ejercicio.md](ejercicio.md) · [cómo conducirlo](#el-ejercicio) |
 | 85–90 | Cierre | Mensajes clave; conexión con los otros casos | diapositivas 18 y 20 |
@@ -129,10 +134,10 @@ Si el tiempo aprieta, el paso 4 se muestra solo con la evidencia y el radar del 
 |---|---|---|---|
 | 25–31 | 6b · recorrido de la socia | prompt "Armá el mapa de recorrido de UJ-1 desde la especificación de BMAD …" | dos MAP-03; candidatos; R-001; "0 aviso(s) de la familia MAP"; `g4-recorrido.png` o el HTML del recorrido |
 | 31–39 | 6c · retrospectiva del sprint 4 | prompts "Te dejo la transcripción de la retrospectiva del sprint 4 …" y "Confirmo las tres lecciones y las dos acciones …" | "Retrospectiva: se detectaron 3 lecciones candidatas, 2 acciones de mejora, 0 supuestos y 0 riesgos nuevos (sin decisiones de gobierno)"; CL-02 con la cita de Lucía y "recurrencia alta"; L-001…L-003, A-001 y A-002; L-003 alto; REG-11 en la sanidad; L-002 con verificación el 19/3 |
-| 39–44 | 7 · lección en el plan y condición cumplida | prompt "La prueba de carga de NFR-3 se hizo el 2/3 …" y "¿Qué lecciones tiene que considerar el plan de la etapa 3? …" | verificación "0 bloqueo(s) · 1 condición(es) · 1 aviso(s)" con G-01 y **E-11** (L-003); plan con «Lecciones incorporadas»; informe de lecciones de la etapa 2; después "0 bloqueo(s) · 0 condición(es) · 0 aviso(s)"; `g4-tablero.png` y su sección de mapas (`g4-tablero-mapas-169.png`) |
-| 44–52 | 8 · acción verificada y rechazo tratado | prompts del 8/3 (planificación del sprint 5), del 22/3 y "Release 2 terminado en BMAD …" | la planificación propone "1 compromiso … 1 decisión tomada" y ninguna lección; al 22/3 **REG-12** de L-002 en la sanidad y en Vigilar del radar → "L-002 verificada · … · efectiva"; QUA-01 y QUA-03 por Q-012; I-002; Q-013; "L-003 verificada · 2027-05-12"; `g4-calidad-entregas.png` |
-| 52–57 | 9 y 9b · cierre verificado por id, informe de lecciones y expediente | prompt del informe de lecciones; el resto, solo evidencia | verificación previa con **C-03** "1 issues/riesgos abiertos sin recomendaciones de seguimiento: R-001" y **C-07** "Must sin aceptar: requisitos FR-1 … y 4 más; productos 1-1 …"; después de la aceptación, "aceptado 11 … = 11" en el product status account final; "Informe de lecciones (proyecto): … 3 lecciones (alto 1, medio 2, bajo 0) · 0 pendientes · 3 para el índice"; `buscar --para descubrimiento` devuelve L-001; verificación de cierre solo con L-01 (sin C-03 ni C-07); paquete "COMPLETO PARA LA PUERTA"; expediente: "41 eventos en la cronología", "INTEGRIDAD: OK · 43 archivos" y, en la copia con D-013 cambiada, "INTEGRIDAD: FALLA" en `decisiones.csv`; `g4-expediente.png` |
-| 57–65 | 10 y 11 · beneficios | prompt del paso 10 "Soy Sofía Ramírez, de servicios al socio …" | 30/6: O-1 0,37 rojo, salud en camino (esperado 0,20); 31/12: O-1 0,91 verde, KR-1.1 0,83 en riesgo y fuera de tolerancia; D-029 apunta a R-001; `g4-beneficios.png` |
+| 39–44 | 7 · lección en el plan, condición cumplida y decisiones vigentes | prompt "La prueba de carga de NFR-3 se hizo el 2/3 …" y "¿Qué lecciones tiene que considerar el plan de la etapa 3? …" | verificación "0 bloqueo(s) · 1 condición(es) · 1 aviso(s)" con G-01 y **E-11** (L-003); plan con «Lecciones incorporadas»; informe de lecciones de la etapa 2; D-018 (PASS) con `reemplaza=D-012`; después "0 bloqueo(s) · 0 condición(es) · 0 aviso(s)" y "Decisiones vigentes: 16 de 19 (reemplazadas: 3) · … · tema: BMAD" con las cadenas D-010 → D-016, D-011 → D-017 y D-012 → D-018; `g4-tablero.png` y su sección de mapas (`g4-tablero-mapas-169.png`) |
+| 44–52 | 8 · acción verificada y rechazo tratado | prompts del 8/3 (planificación del sprint 5), del 22/3 y "Release 2 terminado en BMAD …" | la planificación propone "1 compromiso … 1 decisión tomada" y ninguna lección; al 22/3 **REG-12** de L-002 en la sanidad y en Vigilar del radar → "L-002 verificada · … · efectiva"; QUA-01 y QUA-03 por Q-012; I-002; matriz "★O1 81,2" (corregir) contra "O2 63,7" (conceder), sensibilidad "impacto 40,0: si baja a 7,7 (-32,3) pasa O2" y "decisión D-022 (nivel autoridad-cambio)"; Q-013; "L-003 verificada · 2027-05-12"; `g4-calidad-entregas.png` |
+| 52–57 | 9, 9b y 9c · cierre verificado por id, informe de lecciones, expediente y versiones | prompt del informe de lecciones; el resto, solo evidencia | verificación previa con **C-03** "1 issues/riesgos abiertos sin recomendaciones de seguimiento: R-001" y **C-07** "Must sin aceptar: requisitos FR-1 … y 4 más; productos 1-1 …"; después de la aceptación, "aceptado 11 … = 11" en el product status account final; "Informe de lecciones (proyecto): … 3 lecciones (alto 1, medio 2, bajo 0) · 0 pendientes · 3 para el índice"; `buscar --para descubrimiento` devuelve L-001; verificación de cierre solo con L-01 (sin C-03 ni C-07); paquete "COMPLETO PARA LA PUERTA"; expediente con `--con-bitacora`: "42 eventos en la cronología", "bitacora.jsonl: 132 escrituras", "INTEGRIDAD: OK · 44 archivos" y, en la copia con D-013 cambiada, "INTEGRIDAD: FALLA" en `decisiones.csv` con "el cambio no salió de los scripts"; `registro.py historial D-013`: una sola escritura (#42, `estado.py puerta`, «condicionado»); `g4-expediente.png`; con pm-kb (opcional), `pm-kb versiones business-case` (v1.0, v1.1 y v1.2 con D-005, D-021 y D-026), `pm-kb cambios business-case` (1.1 → 1.2: 1 agregada, 1 quitada), la misma búsqueda vigente, `--aprobado` y `--historia` (solo esta trae la 1.1, «versión anterior») y `pm-kb ficha D-013 --historia` (la misma escritura #42) |
+| 57–65 | 10 y 11 · beneficios | prompt del paso 10 "Soy Sofía Ramírez, de servicios al socio …" | 30/6: O-1 0,37 rojo, salud en camino (esperado 0,20); 31/12: O-1 0,91 verde, KR-1.1 0,83 en riesgo y fuera de tolerancia; D-030 apunta a R-001; `g4-beneficios.png` |
 
 Si el tiempo aprieta, el paso 7 se muestra con el tablero, el paso 8 solo con la parte del 22/3 y los pasos 9 y 9b con
 `g4-lecciones-ciclo.png` y `g4-expediente.png`.
@@ -149,7 +154,11 @@ Si el tiempo aprieta, el paso 7 se muestra con el tablero, el paso 8 solo con la
 - Todo `done` no es lo mismo que un recorrido sin fricción: cada dolor de la persona necesita un tratamiento con id
   (MAP-03). El tratamiento no siempre es alcance: puede ser un riesgo con respuesta del negocio.
 - La evidencia para una auditoría sale de los registros y lleva una huella por archivo: una sola palabra cambiada en
-  una copia (D-013 «aprobado» en lugar de «condicionado») y la verificación la delata.
+  una copia (D-013 «aprobado» en lugar de «condicionado») y la verificación la delata; la bitácora de escrituras dice
+  que ese cambio no salió de los scripts.
+- La junta decide con lo vigente: el PASS reemplaza al CONCERNS y la línea base 1.1 a la 1.0; lo reemplazado queda en
+  la historia, no en la mesa. Algo fuera de especificación se corrige o se concede, y la autoridad de cambio elige con
+  la comparación a la vista.
 - Los beneficios los mide el negocio después del cierre; el proyecto deja el plan, la línea base, el criterio de desvío
   y los riesgos que los amenazan.
 - Rojo en el OKR no es desvío (comparar con la trayectoria), y verde en el objetivo no garantiza que cada beneficio
@@ -163,9 +172,10 @@ Si el tiempo aprieta, el paso 7 se muestra con el tablero, el paso 8 solo con la
 | ¿Por qué L-003 es de impacto alto y L-002 de impacto medio, si L-002 pasó más veces? | El impacto mide el efecto: L-003 bloqueó una puerta (ESP-10); L-002 obligó a retrabajo sin salir de tolerancia. La recurrencia (alta en L-002) ordena dentro del mismo impacto. |
 | El sistema propuso tratar el dolor del primer ingreso como requisito. ¿Por qué se registró como riesgo? | A una etapa del cierre no justifica alcance nuevo, pero amenaza B-02 adopción: R-001 con dueña en el negocio y respuesta (alta asistida). |
 | Las recomendaciones de seguimiento existen pero no nombran a R-001. ¿Pasa la puerta de cierre? | No: C-03 busca cada issue y riesgo abierto por id, con responsable o destinatario, y bloquea con "R-001 (no citado)". |
-| La auditoría recibió una copia del expediente donde la etapa 2 figura aprobada sin condición. ¿Cómo lo saben? | `paquete.py verificar` recalcula el sha256 de cada archivo: "INTEGRIDAD: FALLA" con "alterado: 03-control/registros/decisiones.csv". |
+| La auditoría recibió una copia del expediente donde la etapa 2 figura aprobada sin condición. ¿Cómo lo saben? | `paquete.py verificar` recalcula el sha256 de cada archivo: "INTEGRIDAD: FALLA" con "alterado: 03-control/registros/decisiones.csv"; con la bitácora del expediente agrega que la última escritura anotada dejó otra versión (el cambio no salió de los scripts), y `registro.py historial D-013` muestra que los scripts solo escribieron «condicionado». |
+| Al preparar la puerta de la etapa 3, ¿sigue en la mesa el CONCERNS de noviembre? | No como decisión vigente: D-018 (PASS, mismo nivel) lo reemplaza y `decision.py vigentes` lo deja en la historia (cadena D-012 → D-018). D-013, la etapa 2 condicionada, sigue vigente: fue lo que se decidió, y D-019 registra que la condición se cumplió. |
 | Al 30/6 el OKR está en rojo (0,37). ¿Hay que informar a la ejecutiva? | No: la salud es "en camino" (esperado 0,20: van 46 de los 230 días entre el 15/5 y el 31/12); el plan escala la revisión intermedia solo si está en riesgo o desviada. |
-| Al 31/12 el objetivo sale 0,91 en verde. ¿Todo bien? | No: B-02 adopción llega a 0,83, por debajo de 0,90 (tolerancia −10 %); se informa a la ejecutiva (D-029), que empieza por R-001. |
+| Al 31/12 el objetivo sale 0,91 en verde. ¿Todo bien? | No: B-02 adopción llega a 0,83, por debajo de 0,90 (tolerancia −10 %); se informa a la ejecutiva (D-030), que empieza por R-001. |
 
 ## Dudas frecuentes
 
@@ -200,6 +210,14 @@ Si el tiempo aprieta, el paso 7 se muestra con el tablero, el paso 8 solo con la
 - **¿Por qué el paquete de cierre no incluyó el PRD de BMAD?** Porque está fuera de la carpeta del proyecto: el paquete
   solo lleva archivos de `gestion/` y anota en el manifiesto lo que excluyó. La especificación viaja como línea base
   congelada (`00-direccion/historial/bmad-prd-v1.1/`).
+- **¿Por qué la evidencia muestra «<fecha y hora de la escritura>» en la bitácora?** Porque la bitácora anota la fecha
+  y hora reales de cada escritura y huellas que dependen de ellas; el driver las enmascara para que dos corridas den la
+  misma evidencia. En tu proyecto vas a ver las reales.
+- **¿Quién marca que una decisión reemplaza a otra?** Quien decide, con `registro.py actualizar decisiones D-### --campo
+  reemplaza=D-###`: el script rechaza reemplazar una decisión posterior y exige nivel igual o superior (una decisión
+  del gestor no deja sin efecto una de la junta). Al aprobar una versión nueva de un
+  artefacto o una línea base, y al registrar un gate de preparación de BMAD posterior (el PASS de D-018 reemplaza al
+  CONCERNS de D-012), el reemplazo se marca solo.
 - **¿Las decisiones humanas están simuladas?** Sí, con los nombres del escenario; en uso real las toma cada rol y el
   hook reserva a pm-director los comandos de la junta.
 - **¿Las fechas del paquete de cierre y del expediente son distintas a las de la guía?** `paquete.py`, `exportar.py`
@@ -211,7 +229,7 @@ Si el tiempo aprieta, el paso 7 se muestra con el tablero, el paso 8 solo con la
 2. Mostrar las imágenes ya generadas (`g4-calidad-entregas.png`, `g4-recorrido.png`, `g4-lecciones-ciclo.png`, `g4-burnup.png`,
    `g4-tablero.png`, `g4-tablero-mapas-169.png`, `g4-cierre.png`, `g4-expediente.png`, `g4-beneficios.png`): cuentan la
    historia completa sin terminal.
-3. Si falla solo un paso, correr el driver completo en segundo plano (`g4.py`, unos 40 segundos) y abrir la carpeta del
+3. Si falla solo un paso, correr el driver completo en segundo plano (`g4.py`, menos de un minuto) y abrir la carpeta del
    recorrido que imprime al final.
 
 ## Conexión con los otros casos

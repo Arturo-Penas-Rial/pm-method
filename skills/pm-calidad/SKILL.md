@@ -1,7 +1,7 @@
 ---
 name: pm-calidad
 description: "Calidad y aceptación de productos. Usar: registro de calidad, revisar o auditar la calidad de un entregable, criterios de aceptación, aceptar producto, quality review, DoD. No: off-spec→pm-issues-cambios; consistencia→pm-sanidad."
-version: 2.5.0
+version: 2.6.0
 author: pm-method
 license: MIT
 metadata:

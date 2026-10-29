@@ -1,4 +1,4 @@
-# Puertas de la junta: verificación y registro · pm-method 2.5.0
+# Puertas de la junta: verificación y registro · pm-method 2.6.0
 
 Qué se verifica en cada puerta PRINCE2, cómo se integran los controles propios de BMAD y cómo queda registrada la
 decisión. EN: *board gates — health, automatic PRINCE2/BMAD checks, board checklist and decision record.*

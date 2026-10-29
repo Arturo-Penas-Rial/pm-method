@@ -68,6 +68,9 @@ supera la autoridad delegada.
 - **Tres caminos para un cambio:** el **intercambio** del product owner (no toca Must, fecha ni costo), la **autoridad
   de cambio** (dentro de su límite y del saldo del presupuesto) y la **excepción** a la junta (supera el límite, el
   presupuesto o una tolerancia).
+- **Matriz de decisión:** las alternativas comparadas con pesos explícitos (puntaje = Σ peso × valor de 0 a 1). Un
+  criterio **eliminatorio** saca una opción que no lo cumple; una opción **dominada** es peor o igual que otra en todo;
+  la **sensibilidad** dice cuánto habría que mover un peso para que gane otra. Incluí siempre rechazar o diferir.
 
 ---
 
@@ -138,6 +141,16 @@ supera la autoridad delegada.
 
 > Justificación: ……………………………………………………………………………………………
 
+**B4. Las alternativas.** ¿Qué otras opciones tenía quien decidió? Escribí al menos dos, una de ellas rechazar o
+diferir.
+
+| Opción | ¿Algún criterio la elimina? (por ejemplo, un requisito obligatorio) | ¿Por qué ganó, o por qué no? |
+|---|---|---|
+| | | |
+| | | |
+
+> ¿Qué tendría que pesar más para que ganara otra opción? ……………………………………………
+
 ### Autoevaluación de la parte B
 
 | Criterio | Cumple si… |
@@ -146,6 +159,7 @@ supera la autoridad delegada.
 | Antes de decidir | Las cifras de "Con el cambio" se podían conocer antes de aprobarlo. |
 | Camino correcto | El camino de B3 coincide con quien aprobó en B1; si no coincide, encontraste un caso de autoridad excedida. |
 | Riesgo derivado | Si la reserva quedó chica, registraste (o registrarías) un riesgo con disparador. |
+| Alternativas explícitas | B4 tiene al menos dos opciones, una de ellas rechazar o diferir, y escribiste qué haría ganar a otra. |
 
 ---
 
@@ -223,3 +237,15 @@ VAN baja de 45.939 a 30.939, pero sigue positivo y B-01 puede caer 18 % antes de
 análisis de impacto lo resume: "Decide: Junta", con cuatro motivos, y recomienda pedir un plan de excepción. La
 junta pide un plan de excepción con el business case actualizado, amplía el presupuesto a 32.000, aprueba C-002 con
 cargo a ese presupuesto y aprueba `autorizar-plan-excepcion` el 26/2; ese día, REG-09 recuerda revisar R-001.
+
+**B4.** Con C-002, las alternativas que recibió la junta en la matriz `03-control/decisiones/C-002/` (paso 10):
+
+| Opción | ¿Algún criterio la elimina? | ¿Por qué ganó, o por qué no? |
+|---|---|---|
+| Rechazar C-002 | sí: impacto 1, menor que el eliminatorio 2 (es obligatorio por la Ley 18.331) | eliminada |
+| Diferir C-002 al R2 | no (impacto 2) | 10,0 y dominada: el mismo análisis aplicado a diferir da 2 sprints más en el R2 (28 días corridos) y excede igual la autoridad y el presupuesto |
+| Pedir plan de excepción | no (impacto 4) | 30,0, recomendada; la junta la elige el 22/2 y queda en D-013 con la matriz |
+
+Ningún peso de 0 a 100 cambia la primera: la recomendación es estable. Para comparar, la decisión del R1 (paso 5) sí
+tiene un peso que la cambia: la consola gana 56,2 contra 47,5, y ganarían las solicitudes si la capacidad pesara 31 en
+lugar de 25.

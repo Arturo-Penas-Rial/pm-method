@@ -81,17 +81,18 @@ def carpeta_ok(proyecto, carpeta):
 
 # ------------------------------------------------------------------ registro de envíos (envios.csv) y diario
 def registrar_filas(proyecto, filas_nuevas, fecha=None):
-    p = E.asegurar_registro(proyecto, "envios"); cols, filas = E.leer_csv(p); ids = []
-    for nf in filas_nuevas:
-        previa = next((f for f in filas if f.get("archivo") == nf["archivo"] and f.get("stakeholder_id") == nf["stakeholder_id"]
-                       and f.get("estado") in ("pendiente", "fallido")), None)
-        if previa: previa.update({k: v for k, v in nf.items() if k in cols and v != ""}); ids.append(previa["id"]); continue
-        f = {c: "" for c in cols}; f.update({k: v for k, v in nf.items() if k in cols})
-        f["id"] = E.siguiente_id("envios", filas); f["fecha"] = f.get("fecha") or fecha or datetime.date.today().isoformat()
-        err = I.validar_valores("envios", f)
-        if err: sys.exit("envios.csv: " + "; ".join(err))
-        filas.append(f); ids.append(f["id"])
-    E.escribir_csv(p, cols, filas)
+    with E.bloqueo(proyecto):            # lectura, ids siguientes y escritura atómica bajo el bloqueo del proyecto
+        p = E.asegurar_registro(proyecto, "envios"); cols, filas = E.leer_csv(p); ids = []
+        for nf in filas_nuevas:
+            previa = next((f for f in filas if f.get("archivo") == nf["archivo"] and f.get("stakeholder_id") == nf["stakeholder_id"]
+                           and f.get("estado") in ("pendiente", "fallido")), None)
+            if previa: previa.update({k: v for k, v in nf.items() if k in cols and v != ""}); ids.append(previa["id"]); continue
+            f = {c: "" for c in cols}; f.update({k: v for k, v in nf.items() if k in cols})
+            f["id"] = E.siguiente_id("envios", filas); f["fecha"] = f.get("fecha") or fecha or datetime.date.today().isoformat()
+            err = I.validar_valores("envios", f)
+            if err: sys.exit("envios.csv: " + "; ".join(err))
+            filas.append(f); ids.append(f["id"])
+        E.escribir_csv(p, cols, filas)
     return ids
 
 def ya_enviado(proyecto, archivo, sid):

@@ -1,4 +1,4 @@
-# Dependencias · pm-method 2.5.0
+# Dependencias · pm-method 2.6.0
 
 Lista completa de lo que pm-method necesita o puede usar, con la **URL de origen** de cada elemento, para qué lo usa el
 paquete, si es obligatorio, la versión probada, la licencia y el comando de instalación. Cómo instalar y configurar
@@ -30,6 +30,7 @@ todo de punta a punta: [INSTALACION.md](INSTALACION.md). Decisiones y contratos 
 | Skills externas de diagramas u Office instaladas con `npx skills` | además Node.js ≥ 22.20 (lo exige `skills@1.7.0`) (§3, §6) |
 | Conectores MCP (Jira, Slack, reuniones, OKR…) | el servidor MCP correspondiente, configurado en el cliente (§5) |
 | Enviar comunicaciones a interesados por correo SMTP, webhooks de Slack o Teams, o `.eml` (`envios.py`) | nada que instalar (biblioteca estándar de Python); solo las variables de entorno del modo elegido (§5, `INSTALACION.md` §0.7); `.eml` sin configuración |
+| pm-kb, índice de conocimiento con búsqueda citada, web y MCP (opcional) | PostgreSQL con pgvector de Ubuntu y sus dependencias de Python fijadas por hash, que instala su instalador (WSL2) o trae la imagen Docker (§3.1) |
 
 **Node.js: versión mínima efectiva.** Cada componente declara un mínimo distinto en su `package.json` (`engines`,
 consultado con `npm view`): archify ≥ 18, `@drawio/mcp` ≥ 18, `minutes-mcp` ≥ 20, `bmad-method@6.12.4` ≥ 20.12.0,
@@ -94,6 +95,31 @@ Las tres juntas: `python3 -m pip install pyyaml python-docx openpyxl`.
 | matplotlib (PyPI) | gráficos de 1600 × 900 de las guías E2E (`scripts/pruebas/guias_e2e/visuales.py`, mantenimiento); sin él, `probar_paquete.py` omite una comprobación | opcional | 3.11.2 (entorno de pruebas e imagen Docker) | no verificada | https://pypi.org/project/matplotlib/ | `python3 -m pip install matplotlib` |
 | Orca (stablyai/orca) | ver en una sola aplicación varias sesiones de Claude Code o Hermes (gestión y producto) en paralelo, con worktrees, terminales, tableros de GitHub/Linear y notificaciones; no la usan los scripts | opcional (sugerida) | no probada en este entorno **[verificar]** | MIT (README del repositorio) | https://github.com/stablyai/orca | Windows/macOS/Linux desde onorca.dev/download o *releases*; macOS `brew install --cask stablyai/orca/orca`; detalle en `INSTALACION.md` §0.8 |
 
+### 3.1 pm-kb: índice de conocimiento (opcional)
+
+Componente opcional de pm-method ([PM-KB](PM-KB.md)); no lo necesita el plugin. Las dependencias de Python están
+fijadas con versión y hash en `pm-kb/requirements.txt` (41 paquetes; ruedas de CPython 3.12 y 3.14 para `manylinux`
+x86_64 y aarch64, o puras) y se instalan con `pip install --require-hashes --only-binary=:all:`, en el entorno propio de
+la instalación WSL2 (`~/.local/share/pm-kb/venv`) o en `/opt/venv` de la imagen Docker. Licencias de los metadatos de
+PyPI (§7.6).
+
+| Nombre | Para qué lo usa pm-kb | Nivel | Versión fijada | Licencia | URL de origen |
+|---|---|---|---|---|---|
+| PostgreSQL | motor del índice: texto, relaciones, transacciones y RLS | obligatoria para pm-kb | 16 (Ubuntu 24.04, WSL2) · 18.6 (imagen `pm-kb-db`, Ubuntu 26.04) | PostgreSQL (archivo `copyright` del paquete de Ubuntu) | paquetes `postgresql-<v>` y `postgresql-common` de los repositorios oficiales de Ubuntu |
+| pgvector | vectores opcionales | obligatoria para pm-kb (la extensión se crea siempre) | 0.6.0 (Ubuntu 24.04) · 0.8.1 (Ubuntu 26.04) | PostgreSQL (archivo `copyright` de `postgresql-18-pgvector` 0.8.1-2: "License: PostgreSQL") | paquete `postgresql-<v>-pgvector` de Ubuntu · fuente https://github.com/pgvector/pgvector |
+| `psycopg` y `psycopg-binary` | conexión a PostgreSQL (con la biblioteca `libpq` incluida en la rueda) | obligatoria | 3.3.6 | LGPL-3.0-only; se usan como biblioteca, sin modificarlos | https://pypi.org/project/psycopg/ |
+| `starlette` | servicio web y ruta `/mcp` | obligatoria | 1.10.0 | BSD-3-Clause | https://pypi.org/project/starlette/ |
+| `uvicorn` | servidor HTTP | obligatoria | 0.54.0 | BSD-3-Clause | https://pypi.org/project/uvicorn/ |
+| `markitdown` (con los extras `docx`, `pptx`, `xlsx` y `pdf`) | convertir DOCX, PPTX, XLSX, PDF y HTML a Markdown para indexarlos; sin él, esos formatos se omiten con aviso | recomendada | 0.1.9 | MIT | https://pypi.org/project/markitdown/ |
+| Transitivas relevantes | `onnxruntime` 1.31.1 (MIT) y `magika` 1.0.3 (Apache-2.0), que trae `markitdown` para detectar tipos de archivo; `pdfminer-six` 20260107 (MIT), `pdfplumber` 0.11.10 (MIT) y `pypdfium2` 5.14.0 ("BSD-3-Clause, Apache-2.0, dependency licenses") para PDF; `mammoth` 1.13.0 (BSD-2-Clause), `python-pptx` 1.0.2 (MIT), `openpyxl` 3.1.5 (MIT), `pandas` 3.1.0 (BSD-3-Clause), `numpy` 2.5.4 (BSD-3-Clause AND 0BSD AND MIT AND Zlib AND CC0-1.0), `lxml` 6.1.3 (BSD-3-Clause), `pillow` 13.0.0 (MIT-CMU), `cryptography` 50.0.2 (Apache-2.0 OR BSD-3-Clause), `certifi` 2026.10.23 (MPL-2.0); lista completa en `pm-kb/requirements.txt` | — | las de `requirements.txt` | §7.6 | PyPI |
+| Cytoscape.js | grafo de relaciones de la interfaz web | incluida en el repositorio (`pm-kb/pmkb/estatico/cytoscape.min.js`) | 3.34.3 (npm `cytoscape@3.34.3`, integridad `sha512-yfYGhRcGAntq6YBD583j4n0Eg3jIxvWmZtz/5uz9UYkeIStSlMxuUja+ec5j3iBD8nv1rwaOAYMW09tBdkSeaQ==`; sha256 del archivo `5f3b5b52…228b91`, comprobado) | MIT (`pm-kb/pmkb/estatico/LICENCIA-cytoscape.txt`) | https://github.com/cytoscape/cytoscape.js |
+| `tini` | proceso init de la imagen `pm-kb-db` | obligatoria en Docker | 0.19.0 (Ubuntu 26.04) | no verificada | paquete `tini` de Ubuntu |
+
+No son dependencias: el SDK oficial de MCP para Python (`mcp==2.3.0`) se instala aparte solo para la prueba de
+conformidad (`pm-kb/pruebas/conformidad_mcp.py`); pm-kb implementa su propio servidor MCP con la biblioteca estándar.
+Los modelos opcionales (Text Embeddings Inference, Ollama, la API de Anthropic) son servicios externos que se configuran
+por URL ([PM-KB §8](PM-KB.md#8-configuración)); no se instalan con pm-kb.
+
 ---
 
 ## 4. Repositorios externos integrados
@@ -102,7 +128,7 @@ Las tres juntas: `python3 -m pip install pyyaml python-docx openpyxl`.
 
 | Nombre | Para qué lo usa pm-method | Nivel | Versión probada | Licencia | URL de origen | Instalación |
 |---|---|---|---|---|---|---|
-| pm-method | el propio paquete (plugin y marketplace `pm-method`) | — | 2.5.0 (este documento) | MIT (`LICENSE` del repositorio publicado) | https://github.com/Arturo-Penas-Rial/pm-method | `claude plugin marketplace add Arturo-Penas-Rial/pm-method` y `claude plugin install pm-method@pm-method` |
+| pm-method | el propio paquete (plugin y marketplace `pm-method`) | — | 2.6.0 (este documento) | MIT (`LICENSE` del repositorio publicado) | https://github.com/Arturo-Penas-Rial/pm-method | `claude plugin marketplace add Arturo-Penas-Rial/pm-method` y `claude plugin install pm-method@pm-method` |
 | BMAD Method | capa de especificación de solo lectura: `pm-bmad-puente` (`bmad.py`), `especificacion.py`, `pm-nuevo` (detección) | opcional | 4.x, 6.11 y 6.12; relevado `bmad-method@6.12.4` (`compatibilidad.json`) | MIT (npm) | https://github.com/bmad-code-org/BMAD-METHOD · npm https://registry.npmjs.org/bmad-method | en la raíz del repositorio del producto: `npx bmad-method@6.12.4 install --modules bmm --tools claude-code --yes --user-name <nombre> --set core.project_name=<proyecto> --no-shims` (requiere Node ≥ 20.12.0) |
 
 ### 4.2 Skills externas (diagramas y Office)
@@ -135,6 +161,12 @@ terceros.
 | Mapas de Wardley (Simon Wardley) | el concepto y su vocabulario (ancla, cadena de valor, evolución, inercia) | el contenido del autor se publica bajo CC BY-SA 4.0 según su sitio [verificar versión]; se citan ideas, no texto | https://www.wardleymaps.com/faqs/is-wardley-mapping-free |
 | Mermaid `wardley-beta` y `journey` | sintaxis de salida de `mapas.py render` | MIT (Mermaid); `wardley-beta` disponible desde 11.14 según la documentación y en beta | https://mermaid.js.org/syntax/wardley.html · https://mermaid.js.org/syntax/userJourney.html |
 | Lenguaje de OnlineWardleyMaps (OWM) | formato del export `.owm` (`title`, `evolution`, `anchor`, `component … [v, e]`, `(build)`, `(buy)`, `(outsource)`, `(market)`, `inertia`, `evolve`, `note`), verificado contra su documentación el 2026-10-20 | MIT (repositorio de OWM); solo se escribe texto en ese formato | https://docs.onlinewardleymaps.com/docs/dsl-overview |
+
+### 4.5 Ideas tomadas de otros proyectos (sin dependencia ni código)
+
+| Fuente | Qué toma pm-method (en palabras y código propios) | Licencia o condición | URL |
+|---|---|---|---|
+| exxperts (EXXETA), memoria de los "rooms" | ideas, no código ni estructura: la reversión como evento propio (aquí `reemplaza`, con autoridad en lugar de "la fecha más nueva decide"), la marca de contradicciones que la persona decidió conservar (aquí `conviven`) el plegado de cifras y fechas en la búsqueda (aquí `texto.py`, con español y meses), el historial de cada guardado con huellas SHA-256 antes y después (aquí `.bitacora.jsonl` por escritura de registro, encadenada línea a línea y sin deshacer) y la aprobación que compara la huella de la fuente e intenta reaplicar antes de rechazar (aquí `registro.py proponer|aprobar`, con conflicto por campo y validaciones de `registro.py`); evaluado en el clon de HEAD `7e7d635` | Apache-2.0; se citan ideas, no se copió código ni texto | https://github.com/EXXETA/exxperts |
 
 ---
 
@@ -170,7 +202,9 @@ en `INSTALACION.md` §6.
 | `skills/pm-estado-proyecto/scripts/sanidad.py` | INS-01 (módulos Python), INS-03 (skills externas, Node, Chrome), INT-01 (valores de `integraciones`, lista en `esquema.py: VALORES_INTEGRACION`, incluidos `correo` y `okr=perdoo`) |
 | `skills/pm-integraciones/scripts/envios.py` | capa de canales: solo biblioteca estándar (`smtplib`, `email`, `urllib`); variables de entorno en su docstring y en `ENV` |
 | `INTEGRACIONES.md` §1–§3 | uso de cada dependencia y respaldo interno si falta |
-| `docker/Dockerfile` | versiones fijadas del entorno Docker opcional; etapa `skills-externas`: diagram-design por commit (`DIAGRAM_DESIGN_COMMIT`) para el caso DD de `probar_paquete.py` ([DOCKER](DOCKER.md) §2) |
+| `docker/Dockerfile` | versiones fijadas del entorno Docker opcional; etapa `skills-externas`: diagram-design por commit (`DIAGRAM_DESIGN_COMMIT`) para el caso DD de `probar_paquete.py` ([DOCKER](DOCKER.md) §2); instala también `pm-kb/requirements.txt` |
+| `pm-kb/requirements.txt` · `pm-kb/regenerar_requisitos.py` | dependencias de pm-kb con versión y hash, y su regenerador desde PyPI (§3.1) |
+| `docker/pm-kb-db.Dockerfile` | PostgreSQL y pgvector de Ubuntu para la base de pm-kb, sobre la misma base fijada por digest |
 
 ---
 
@@ -260,3 +294,17 @@ pm-method.
 | Google re:Work, OKR | https://rework.withgoogle.com/en/guides/set-goals-with-okrs | escala 0,0–1,0 y "punto óptimo" en 60–70 %, base del umbral 0,7 aspiracional de `okr.py`; el semáforo comprometido 1,0/0,7 es convención de la práctica OKR, no figura en esa página |
 
 Atlassian Goals y Asana Goals no estaban expuestos por sus MCP oficiales al 2026-10-17 **[verificar]**.
+
+### 7.6 pm-kb: licencias y paquetes consultados el 2026-10-28
+
+| Fuente | Qué se tomó |
+|---|---|
+| `https://pypi.org/pypi/<paquete>/<versión>/json` de los 41 paquetes de `pm-kb/requirements.txt` | campo `license_expression` o, si falta, `license` y los clasificadores `License ::`; las de §3.1 |
+| `/usr/share/doc/postgresql-18-pgvector/copyright` y `/usr/share/doc/postgresql-18/copyright` en la imagen `pm-kb-db:2.6.0` | "License: PostgreSQL" (pgvector 0.8.1-2 y PostgreSQL 18.6-0ubuntu0.26.04.1) |
+| `dpkg -l` en la imagen `pm-kb-db:2.6.0` | `postgresql-18` 18.6-0ubuntu0.26.04.1, `postgresql-18-pgvector` 0.8.1-2, `tini` 0.19.0-6 |
+| `pm-kb base estado` en Ubuntu 24.04 | PostgreSQL 16.15 (Ubuntu 16.15-0ubuntu0.24.04.1), `vector` 0.6.0, `unaccent` 1.1, `pg_trgm` 1.6 |
+| `sha256sum pm-kb/pmkb/estatico/cytoscape.min.js` | coincide con el registrado en `LICENCIA-cytoscape.txt` |
+| `pip-audit -r pm-kb/requirements.txt --disable-pip --no-deps` (pip-audit 2.10.1) | "No known vulnerabilities found" |
+
+No verificadas: la licencia de `tini` y la de pgvector 0.6.0 de Ubuntu 24.04 (se leyó la del paquete 0.8.1 de Ubuntu
+26.04).

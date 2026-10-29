@@ -128,3 +128,7 @@
 128	Before I send the status report to the board, check that every SPI, CPI and EAC in it matches the saved earned value cut-off	pm-progreso-reportes
 129	Estimá con tres valores las actividades de la etapa 2 con la fórmula triangular que fija el plan y decime la reserva de cronograma a 1σ del camino crítico	pm-cronograma-estimacion
 130	Con la velocidad de 20 puntos, ¿entran los Must y Should del release 2 en sus cuatro sprints o tengo que repriorizar?	pm-agil-hibrido	pm-cronograma-estimacion
+131	Armá una matriz de decisión con pesos para elegir entre las tres alternativas de OKR del ciclo y decime qué tan sensible es el resultado a los pesos	pm-direccion-decisiones	pm-okr
+132	Antes de que la junta decida sobre R-007, prepará el expediente con todo lo aplicable: tolerancias, apetito, registros relacionados, lecciones y las cifras de las opciones	pm-direccion-decisiones	pm-riesgos
+133	Score the two vendors with weighted criteria and knock-out thresholds, check how sensitive the ranking is to the weights, and record the executive's choice	pm-direccion-decisiones	pm-adquisiciones
+134	Ya tengo el VAN de las tres opciones de negocio; sumá riesgo y ajuste estratégico con pesos explícitos y dame una pregunta cerrada para que la ejecutiva elija	pm-direccion-decisiones	pm-caso-de-negocio

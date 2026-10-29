@@ -175,3 +175,71 @@ def captura_html(html, png, ancho=1280, alto=900):
         return True
     except Exception as x:
         print("captura omitida:", x); return False
+
+
+# ---- pm-kb (componente opcional, docs/PM-KB.md): búsqueda citada sobre la carpeta del proyecto
+_KB_OK = []
+def kb_disponible():
+    """True si el lanzador de pm-kb existe y su base responde (`pm-kb base estado`). Sin pm-kb, el paso se omite."""
+    if not _KB_OK:
+        try:
+            r = subprocess.run([KB, "base", "estado"], capture_output=True, text=True, timeout=60)
+            _KB_OK.append(r.returncode == 0)
+        except (OSError, subprocess.TimeoutExpired):
+            _KB_OK.append(False)
+    return _KB_OK[0]
+
+def kb_omitido(paso):
+    """Paso de pm-kb sin pm-kb: se anota y el recorrido sigue."""
+    m = f"OMITIDO pm-kb (no instalado): {paso} · instalar con docs/INSTALACION-WSL2.md o docs/INSTALACION-DOCKER.md"
+    print(m); LOG.append((f"({m})", "sin pm-kb: `pm-kb base estado` no responde"))
+
+def sin_variables_kb(texto):
+    """Lo que cambia en cada corrida se enmascara (como la bitácora en g4): fecha y hora del indexado, fechas reales de
+    la bitácora en la historia de una fila, puerto y token de la sesión de `pm-kb servir`."""
+    texto = re.sub(r"indexado \d{4}-\d{2}-\d{2}T[\d:.]+(?:[+-]\d{2}:\d{2})?", "indexado <fecha y hora del indexado>", texto)
+    texto = re.sub(r"^(\s*#\d+) \d{4}-\d{2}-\d{2} ", r"\1 <fecha real> ", texto, flags=re.M)
+    return re.sub(r"http://localhost:\d+/ingresar\?token=\S+", "http://localhost:<puerto>/ingresar?token=<token de la sesión>", texto)
+
+def kb(args, repo, **kw):
+    """pm-kb con la salida enmascarada en la evidencia; en el registro el comando se ve como `pm-kb …`."""
+    out = run(f'{KB} {args}', repo, mostrar=False, **kw)
+    c_, o_ = LOG[-1]; LOG[-1] = (c_, sin_variables_kb(o_)); print("$", c_); print(LOG[-1][1]); print()
+    return out
+
+def kb_capturas(proyecto, pasos):
+    """Sirve la interfaz web (`pm-kb servir` en un puerto libre de 127.0.0.1), ingresa con el enlace de la sesión y
+    captura con playwright cada pantalla de `pasos`: lista de (png, función(página, url_base)). Cierra el servidor al
+    terminar. Sin playwright, se omiten las capturas con un aviso."""
+    import socket, select, time as _t
+    try:
+        from playwright.sync_api import sync_playwright
+    except ImportError:
+        print("AVISO: playwright no está instalado; se omiten las capturas de pm-kb"); return []
+    s = socket.socket(); s.bind(("127.0.0.1", 0)); puerto = s.getsockname()[1]; s.close()
+    env = {**os.environ, "NO_PROXY": "127.0.0.1,localhost", "no_proxy": "127.0.0.1,localhost", "PYTHONUNBUFFERED": "1"}
+    pr = subprocess.Popen([KB, "servir", "--puerto", str(puerto)], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, env=env)
+    hechas, enlace, fin = [], None, _t.time() + 30
+    try:
+        while enlace is None and _t.time() < fin and pr.poll() is None:
+            if select.select([pr.stdout], [], [], 1)[0]:
+                linea = pr.stdout.readline(); m = re.search(r"(http://\S+/ingresar\?token=\S+)", linea)
+                if m: enlace = m.group(1)
+        if not enlace:
+            print("AVISO: pm-kb servir no mostró el enlace de ingreso; se omiten las capturas"); return []
+        LOG.append((f"pm-kb servir --puerto <puerto libre>", sin_variables_kb(linea.strip()) + "\n(ingreso con ese enlace; capturas: " + ", ".join(os.path.basename(p) for p, _ in pasos) + ")"))
+        base_url = enlace.split("/ingresar")[0]
+        with sync_playwright() as p:
+            b = p.chromium.launch()
+            pg = b.new_page(viewport={"width": 1280, "height": 720}, device_scale_factor=1.5, color_scheme="light")
+            pg.goto(enlace); pg.wait_for_selector("#q")
+            for png, accion in pasos:
+                accion(pg, base_url); pg.screenshot(path=png); hechas.append(png)
+            b.close()
+    finally:
+        pr.terminate()
+        try: pr.wait(timeout=10)
+        except subprocess.TimeoutExpired: pr.kill()
+        # el token de la sesión local no queda activo después de la corrida
+        subprocess.run([KB, "token", "revocar", "--persona", "sesión local (servir)"], capture_output=True, text=True)
+    return hechas

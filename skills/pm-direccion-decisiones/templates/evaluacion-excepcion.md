@@ -71,7 +71,7 @@ informe_excepcion: "{{ruta_informe_excepcion}}"
 *Al menos una opción sin plan de excepción y una con él. Autoridad: junta · capa de negocio · autoridad de cambio. Cuantificar en unidades; "sin impacto" cuando corresponda para dejar constancia de que se consideró.*
 
 **Técnica usada para comparar / Technique used:** {{tecnica}}
-*Análisis de alternativas, multicriterio con pesos explícitos, árbol de decisión con EMV. Declarar pesos y fórmulas.*
+*Análisis de alternativas, multicriterio con pesos explícitos, árbol de decisión con EMV. Declarar pesos y fórmulas. Con matriz: pegar el bloque de `decision.py matriz <ID> --markdown` (tipo `cambio` o `planificacion`; hoja `03-control/decisiones/<ID>/`, guía §13) con la sensibilidad de los pesos.*
 
 ## 4. Recomendación / Recommendation
 

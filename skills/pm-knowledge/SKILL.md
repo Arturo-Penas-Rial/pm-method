@@ -1,7 +1,7 @@
 ---
 name: pm-knowledge
 description: "Método con las convenciones de pm-method: PRINCE2 (método), PMBOK (técnicas), plantillas (campos), etapas, quién aprueba. Usar: qué es, quién aprueba, qué campos, fórmula, glosario, what is, explain. No: producir artefactos→skill dueña."
-version: 2.5.0
+version: 2.6.0
 author: pm-method
 license: MIT
 metadata:

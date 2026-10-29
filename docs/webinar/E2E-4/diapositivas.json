@@ -305,7 +305,7 @@
    "objetivos": [
     "Dar a cada dolor del recorrido un tratamiento con id",
     "Llevar una lección de la retrospectiva hasta el cambio verificado",
-    "Cerrar verificado por id (C-03, C-07), con informe de lecciones y expediente verificable",
+    "Cerrar verificado por id (C-03, C-07), con informe de lecciones y expediente con bitácora",
     "Leer beneficios con puntaje, salud y tolerancia"
    ],
    "diapositivas": [
@@ -432,8 +432,8 @@
        [
         "Evidencia para auditoría",
         "se junta a mano",
-        "expediente con sha256",
-        "paquete.py verificar"
+        "expediente con sha256 y bitácora de escrituras",
+        "paquete.py verificar · BIT-01/02"
        ],
        [
         "Medir beneficios",
@@ -443,13 +443,13 @@
        ]
       ]
      },
-     "nota": "El recorrido mira lo entregado desde la persona; las tres filas del medio son el ciclo de las lecciones (capturar, llevar al plan, verificar); el expediente sale de los registros cuando la auditoría lo pide; la última es la responsabilidad de los beneficios, que se exige desde la puerta de proyecto con P-04."
+     "nota": "El recorrido mira lo entregado desde la persona; las tres filas del medio son el ciclo de las lecciones (capturar, llevar al plan, verificar); el expediente sale de los registros cuando la auditoría lo pide y lleva la bitácora, que dice si un cambio salió de los scripts; la última es la responsabilidad de los beneficios, que se exige desde la puerta de proyecto con P-04."
     },
     {
      "tipo": "seccion",
      "titulo": "Demostración: pasos 6b a 11",
      "subtitulo": "Recorrido, lecciones, Release 2, cierre y después",
-     "nota": "Pasos 6b, 6c, 7 y 8 en vivo; el 9 y el 9b con la evidencia; el 10 en vivo y el 11 con la evidencia."
+     "nota": "Pasos 6b, 6c, 7 y 8 en vivo; el 9, el 9b y el 9c con la evidencia; el 10 en vivo y el 11 con la evidencia."
     },
     {
      "tipo": "demo",
@@ -478,16 +478,16 @@
     },
     {
      "tipo": "demo",
-     "titulo": "Paso 7 · Lección en el plan, condición cumplida y puerta",
-     "prompt": "La prueba de carga de NFR-3 se hizo el 2/3: p95 2,4 s con 400 sesiones concurrentes (meta menor a 3 s); aprobada. El gate de preparación de BMAD dio PASS el 3/3. Terminamos el Release 1: traé el avance al 5/3, abrí el límite de etapa, calculá el valor ganado (PV 82.000, EV 80.000, AC 83.500, BAC 130.000) y guardá el corte, actualizá el business case con reales y pronóstico, armá el informe de fin de etapa, el plan de la etapa 3 y el tablero con el recorrido de la socia, y preparame la puerta.",
+     "titulo": "Paso 7 · Condición cumplida, decisiones vigentes y puerta",
+     "prompt": "La prueba de carga de NFR-3 se hizo el 2/3: p95 2,4 s con 400 sesiones concurrentes (meta menor a 3 s); aprobada. El gate de preparación de BMAD dio PASS el 3/3: reemplaza al CONCERNS del 26/11. Terminamos el Release 1: traé el avance al 5/3, abrí el límite de etapa, calculá el valor ganado (PV 82.000, EV 80.000, AC 83.500, BAC 130.000) y guardá el corte, actualizá el business case con reales y pronóstico, armá el informe de fin de etapa, el plan de la etapa 3 y el tablero con el recorrido de la socia, y preparame la puerta con las decisiones sobre BMAD que siguen vigentes.",
      "puntos": [
       "Q-001: p95 2,4 s, aprobada",
-      "E-11: L-003 sin considerar en el plan",
-      "Plan de la etapa 3 la incorpora (A-002)",
-      "cumplir-condiciones por la ejecutiva",
-      "Después: 0 bloqueos · 0 condiciones · 0 avisos"
+      "E-11: L-003 sin considerar → el plan la incorpora (A-002)",
+      "D-018 (PASS) reemplaza a D-012 (CONCERNS)",
+      "Vigentes sobre BMAD: 16 de 19; D-012 queda en la historia",
+      "cumplir-condiciones → 0 bloqueos · 0 condiciones · 0 avisos"
      ],
-     "nota": "La verificación de la puerta avisa E-11 hasta que el plan de la etapa 3 incorpora L-003 con su acción y fecha de verificación (12/5); el informe de lecciones de la etapa 2 sale del registro. La condición tampoco se cierra sola: alguien con rol la verifica y queda en decisiones.csv. El tablero del 5/3 muestra el recorrido de la socia en su sección de mapas (g4-tablero-mapas-169.png en la guía)."
+     "nota": "La verificación de la puerta avisa E-11 hasta que el plan de la etapa 3 incorpora L-003 con su acción y fecha de verificación (12/5); el informe de lecciones de la etapa 2 sale del registro. La condición tampoco se cierra sola: alguien con rol la verifica y queda en decisiones.csv. Antes de la puerta, el PASS se marca como reemplazo del CONCERNS (mismo nivel) y decision.py vigentes --tema BMAD muestra lo que rige: D-013 condicionada, las líneas base 1.1 (cadenas D-010 → D-016 y D-011 → D-017, marcadas solas al aprobarlas) y D-018 con la cadena D-012 → D-018. El tablero del 5/3 muestra el recorrido de la socia en su sección de mapas (g4-tablero-mapas-169.png en la guía)."
     },
     {
      "tipo": "demo",
@@ -495,12 +495,12 @@
      "prompt": "La historia 2.1 pasó a done el 19/3 y su revisión se registró ese mismo día, aprobada. Sincronizá, traé el avance al 22/3, corré la sanidad y el radar y decime qué lecciones de seguimiento tengo que verificar.",
      "puntos": [
       "Planificación del sprint 5: compromisos, ninguna lección",
-      "22/3: REG-12 en la sanidad y en Vigilar",
-      "L-002 verificada efectiva (Q-009)",
-      "7/5: QUA-01 y QUA-03 por Q-012 → I-002 y Q-013",
-      "12/5: L-003 verificada; sanidad 0 AVISO"
+      "22/3: REG-12 → L-002 verificada efectiva (Q-009)",
+      "7/5: QUA-01 y QUA-03 por Q-012 → I-002",
+      "Corregir 81,2 · conceder 63,7: Sofía elige corregir (D-022)",
+      "Q-013; 12/5: L-003 verificada, sanidad 0 AVISO"
      ],
-     "nota": "Primero el contraste: la misma herramienta sobre la planificación del sprint 5 propone 1 compromiso y 1 decisión y ninguna lección. Al 22/3 vence la verificación de L-002 y la sanidad y el radar la muestran; con la evidencia del sprint 5 queda verificada. Después, el rechazo de la 2-4 se trata con I-002 y Q-013; al cerrar el Release 2, L-003 se verifica con esa misma evidencia: el rechazo entró como issue sin tocar la especificación."
+     "nota": "Primero el contraste: la misma herramienta sobre la planificación del sprint 5 propone 1 compromiso y 1 decisión y ninguna lección. Al 22/3 vence la verificación de L-002 y la sanidad y el radar la muestran; con la evidencia del sprint 5 queda verificada. Después, el rechazo de la 2-4: PRINCE2 admite corregir o conceder; la matriz de pm-direccion-decisiones las compara (impacto 40, tolerancias 35, autoridad 25, cada puntaje con su fuente), recomienda corregir con 81,2 contra 63,7 (conceder ganaría solo si el peso del impacto bajara a 7,7) y Sofía, autoridad de cambio, elige: D-022. Se corrige con I-002 y Q-013; al cerrar el Release 2, L-003 se verifica con esa misma evidencia: el rechazo entró como issue sin tocar la especificación."
     },
     {
      "tipo": "demo",
@@ -517,9 +517,21 @@
     },
     {
      "tipo": "imagen",
-     "titulo": "Paso 9b · El expediente delata una edición",
+     "titulo": "Paso 9b · La huella delata la edición; la bitácora la explica",
      "imagen": "docs/guias/img/g4-expediente.png",
-     "nota": "Paso 9: verificación de cierre solo con L-01, la lista de la junta (sin G-01 ni C-03: R-001 pasó al negocio en las recomendaciones de seguimiento), paquete de cierre completo con la línea base del PRD y D-027, que traspasa los beneficios al negocio. Paso 9b: Andrea Costa, de aseguramiento, pide el expediente para la auditoría externa: 41 eventos en la cronología, 16 copias congeladas, 8 registros sin el de interesados (--externo) e INTEGRIDAD: OK con 43 archivos. En la copia que recibió la auditoría, D-013 dice «aprobado» en lugar de «condicionado»: la verificación falla en decisiones.csv. Preguntá: ¿cómo probarían hoy que la evidencia que entregaron no se editó?"
+     "nota": "Paso 9: verificación de cierre solo con L-01, la lista de la junta (sin G-01 ni C-03: R-001 pasó al negocio en las recomendaciones de seguimiento), paquete de cierre completo con la línea base del PRD y D-028, que traspasa los beneficios al negocio. Paso 9b: Andrea Costa, de aseguramiento, pide el expediente para la auditoría externa con la bitácora de escrituras: 42 eventos en la cronología, 16 copias congeladas, 8 registros sin el de interesados (--externo), 132 escrituras en la bitácora e INTEGRIDAD: OK con 44 archivos. En la copia que recibió la auditoría, D-013 dice «aprobado» en lugar de «condicionado»: la verificación falla en decisiones.csv y explica que la última escritura anotada dejó otra versión: el cambio no salió de los scripts. registro.py historial D-013 muestra una sola escritura, la de la puerta, con «condicionado». Preguntá: ¿cómo probarían hoy quién escribió cada fila de la evidencia que entregaron?"
+    },
+    {
+     "tipo": "contenido",
+     "titulo": "Paso 9c · Qué decía el business case en cada versión",
+     "puntos": [
+      "Tres versiones aprobadas por Laura: D-005, D-021 y D-026",
+      "De la 1.1 a la 1.2: 1 sección agregada y 1 quitada",
+      "Vigente y aprobada coinciden; con historia aparece la 1.1",
+      "D-013 desde la bitácora: una sola escritura (#42)",
+      "pm-kb solo lee: no escribe en el proyecto ni en la bitácora"
+     ],
+     "nota": "Opcional: requiere pm-kb (INSTALACION-WSL2.md §8 o INSTALACION-DOCKER.md §8). Con evidencia: pm-kb versiones business-case muestra v1.0 (27/11), v1.1 (5/3) y v1.2 (14/5) con quién aprobó y su copia congelada; pm-kb cambios business-case compara por secciones, y como el título cambió, la sección vieja figura quitada y la nueva agregada. La misma búsqueda por defecto, con --aprobado y con --historia: solo la última trae la 1.1, marcada «versión anterior», con el veredicto de la etapa 2. pm-kb ficha D-013 --historia muestra la misma escritura que registro.py historial en el paso 9b. Si la última versión de un documento estuviera en revisión, la búsqueda por defecto avisaría «hay una vX aprobada»."
     },
     {
      "tipo": "demo",
@@ -537,13 +549,7 @@
      "tipo": "imagen",
      "titulo": "31/12: B-02 adopción queda fuera de la tolerancia",
      "imagen": "docs/guias/img/g4-beneficios.png",
-     "nota": "Revisión final: B-02 llega a 83 % de la meta, por debajo del 90 % que admite la tolerancia de −10 %. B-01 (93 %) y B-03 (96 %) quedan dentro. D-029 informa a la ejecutiva y dice por dónde empezar: R-001, el dolor del primer ingreso que dejó el mapa del paso 6b."
-    },
-    {
-     "tipo": "pregunta",
-     "titulo": "¿Todo bien?",
-     "pregunta": "Al 31/12 el objetivo O-1 sale 0,91 en verde. ¿Está todo bien?",
-     "nota": "Respuesta esperada: no. El promedio esconde que B-02 adopción quedó en 0,83, fuera de la tolerancia. Por eso el criterio del plan se aplica beneficio por beneficio."
+     "nota": "Antes de mostrar la imagen, preguntá: «Al 31/12 el objetivo O-1 sale 0,91 en verde. ¿Está todo bien?». Respuesta esperada: no; el promedio esconde un beneficio fuera de tolerancia, y por eso el criterio del plan se aplica beneficio por beneficio. Revisión final: B-02 llega a 83 % de la meta, por debajo del 90 % que admite la tolerancia de −10 %. B-01 (93 %) y B-03 (96 %) quedan dentro. D-030 informa a la ejecutiva y dice por dónde empezar: R-001, el dolor del primer ingreso que dejó el mapa del paso 6b."
     },
     {
      "tipo": "contenido",
@@ -552,10 +558,10 @@
       "Cada dolor del recorrido con un id",
       "La retro propone; la lección cambia algo y se verifica",
       "Cierre por id: ningún riesgo ni Must sin dueño",
-      "Evidencia con huella: cada copia se verifica",
+      "Huella y bitácora: cada copia se verifica y se explica",
       "Rojo no es desvío; verde no es éxito"
      ],
-     "nota": "Cerrá con la idea central: lo que en la práctica se hace una vez o nunca se controla en cada sanidad o en cada revisión."
+     "nota": "Cerrá con la idea central: lo que en la práctica se hace una vez o nunca se controla en cada sanidad o en cada revisión. Y se decide con lo vigente: lo reemplazado queda en la historia, no en la mesa."
     },
     {
      "tipo": "ejercicio",
@@ -615,24 +621,20 @@
    "definicion": "Punto de decisión de la junta (autorizar-inicio, -proyecto, -etapa, -cierre) con verificación en tres capas."
   },
   {
-   "termino": "Paquete de trabajo (work package)",
-   "definicion": "Unidad de trabajo autorizada por el gestor; aquí, un sprint con sus historias y definición de terminado."
+   "termino": "Decisión vigente",
+   "definicion": "Decisión que ninguna posterior reemplaza (columna reemplaza de decisiones.csv, nivel igual o superior); decision.py vigentes las lista con su cadena (D-012 → D-018)."
   },
   {
-   "termino": "Informe de punto de control (checkpoint report)",
-   "definicion": "Informe del equipo sobre un paquete; solo cuenta como completados los productos con revisión aprobada."
+   "termino": "Paquete de trabajo (work package) e informe de punto de control (checkpoint report)",
+   "definicion": "Unidad de trabajo autorizada por el gestor; aquí, un sprint con sus historias y definición de terminado. En el informe de punto de control del equipo solo cuentan como completados los productos con revisión aprobada."
   },
   {
    "termino": "Valor ganado (EVM)",
    "definicion": "Técnica que compara lo planificado (PV), lo ganado (EV) y lo gastado (AC); da SPI, CPI y EAC."
   },
   {
-   "termino": "Presupuesto de cambio",
-   "definicion": "Monto que la junta reserva para cambios aprobados; su consumo lo informa CAM-03."
-  },
-  {
-   "termino": "Autoridad de cambio (change authority)",
-   "definicion": "Rol con autoridad delegada para aprobar cambios hasta un límite por cambio."
+   "termino": "Autoridad de cambio (change authority) y presupuesto de cambio",
+   "definicion": "Rol con autoridad delegada para aprobar cambios hasta un límite por cambio, con cargo al monto que la junta reserva para cambios aprobados (presupuesto de cambio; su consumo lo informa CAM-03)."
   },
   {
    "termino": "Registro de calidad (quality register)",
@@ -640,7 +642,7 @@
   },
   {
    "termino": "Fuera de especificación (off-specification)",
-   "definicion": "Producto que no cumple su especificación; se trata como issue."
+   "definicion": "Producto que no cumple su especificación; se trata como issue y se corrige o se concede (concesión: aceptarlo como está), según elija la autoridad de cambio; en el caso, corregir (D-022)."
   },
   {
    "termino": "Sanidad",
@@ -657,6 +659,10 @@
   {
    "termino": "Expediente de auditoría (audit pack)",
    "definicion": "ZIP que arma paquete.py auditoria desde los registros: cronología de puertas, decisiones y cambios, copias congeladas, registros y un sha256 por archivo; paquete.py verificar delata cualquier edición."
+  },
+  {
+   "termino": "Bitácora de escrituras",
+   "definicion": "Archivo .bitacora.jsonl que anotan los scripts en cada escritura de estado.json, registros y propuestas: fecha real, script, ids, --por y huellas encadenadas; registro.py historial la consulta."
   },
   {
    "termino": "Enfoque de beneficios",

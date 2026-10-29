@@ -9,7 +9,7 @@ const { applyTheme } = APPLY_THEME ? require(APPLY_THEME) : { applyTheme: async 
 const D = JSON.parse(fs.readFileSync("data.json", "utf8"));
 const X = D.x;
 const CIF = X.cifras;
-const VER = D.meta.version;                       // "v2.5"
+const VER = D.meta.version;                       // "v2.6"
 const DIR = "salida-" + VER;
 fs.mkdirSync(DIR, { recursive: true });
 const SALIDA = `${DIR}/informe-2-ecosistema-pm-method-${VER}.pptx`;
@@ -269,6 +269,7 @@ const indicador = (re) => {
 const GIMG = "docs/guias/img/";
 // ---- Capacidades para decidir y controlar de forma continua: figura real de la guía E2E + tarjetas + salida real ----
 const EV = X.ev24;
+const EV6 = X.ev26;
 const fig = img => { const f = X.guias_figuras[img]; if (!f) throw new Error("Las guías E2E no citan la figura " + img); return Object.assign({ ruta: "../../guias/img/" + img }, f); };
 const evFuente = (img, extra) => { const f = fig(img); return `Salida real: docs/guias/evidencia/salida-g${f.guia.slice(-1)}.md` + (extra ? ` (${extra})` : ""); };
 // tarjetas a la derecha (alto repartido) y, a la izquierda, la figura con su lectura o con un extracto de la salida
@@ -413,8 +414,8 @@ mark("2 · Decidir con opciones, impacto y radar");
 slideCapacidad("2 · Opciones de respuesta y plan de contingencia (riesgos.py opciones)", "g1-opciones-valor-neto.png", V.opciones);
 slideSalida("2 · Opciones de respuesta: salida real y decisión del propietario", [[
   { t: "Opciones de los riesgos altos, ordenadas por valor neto (E2E-1, paso 6a)", code: EV.opciones },
-  { t: "El propietario elige la recomendada para R-003; falta el plan de contingencia (REG-10)", code: EV.elegir }]],
-  evFuente("g1-opciones-valor-neto.png", "pasos 6a y 6b") + ". La decisión queda en decisiones.csv con las opciones consideradas; el plan de contingencia se activa en el paso 13.");
+  { t: "El propietario elige la respuesta de R-001: decisión D-003, financiada con el presupuesto de riesgo", code: EV.elegir }]],
+  evFuente("g1-opciones-valor-neto.png", "pasos 6a y 6b") + ". La decisión queda en decisiones.csv con las opciones consideradas; R-003 se decide con expediente y matriz (más adelante en esta sección) y su plan de contingencia se activa en el paso 13.");
 {
   const p7 = X.g1_presupuesto_md.split(/(?<=\.) (?=[A-Z`])/).slice(0, 2).join(" ");
   slideCapacidad("2 · Presupuesto de riesgo y reserva de gestión para lo no identificado", "g1-consumo-reserva.png", V.reserva.concat([{ t: "En la guía E2E-1, paso 7", d: p7 }]));
@@ -457,6 +458,50 @@ slideCapacidad("2 · Tres valores, reserva y capacidad del release (cpm.py · re
 slideCapacidad("2 · Expediente de auditoría verificable (paquete.py auditoria · verificar)", "g4-expediente.png",
   V.auditoria.concat([{ t: "En la guía E2E-4, paso 9b", d: fig("g4-expediente.png").lectura }]),
   { codigo: [EV.aud_ok, EV.aud_falla].join("\n") });
+mark("2 · Decidir con contexto, controlar las escrituras y buscar con evidencia");
+slideCapacidad("2 · Decisiones con contexto: expediente, matriz y pregunta tipada (decision.py)", "g1-sensibilidad-r003.png", V.decision);
+slideSalida("2 · Decisiones con contexto: la matriz de R-003 y la elección del propietario", [[
+  { t: "Matriz de R-003 (E2E-1, paso 6a; la sensibilidad, en el gráfico)", code: hasta(EV6.dec_markdown, /^Sensibilidad/).trimEnd() },
+  { t: "Elección registrada, contrastada con la RACI (D-004)", code: hasta(EV6.dec_elegir, /^RACI · informar/).trimEnd() }]],
+  evFuente("g1-sensibilidad-r003.png", "paso 6a") + ". La matriz recomienda; decide el propietario con nombre y motivo.");
+slideSalida("2 · Pregunta tipada para la junta y respuesta validada", [
+  [{ t: "decision.py pregunta C-002 (E2E-2, paso 10)", code: EV6.dec_pregunta }],
+  [{ t: "Respuesta propuesta comprobada contra la hoja y el expediente", code: EV6.dec_validar }]],
+  "Salida real: docs/guias/evidencia/salida-g2.md (paso 10). La pregunta no decide ni registra: la respuesta la valida el script y la decisión la toma la junta.");
+slideCapacidad("2 · Decidir con la autoridad que corresponde: RACI ↔ autoridad", "g3-decision-kr-b02.png", V.raci_autoridad,
+  { codigo: EV6.raci_gestor });
+{
+  const s = slide(S2); s.addText("2 · Vigencia y contradicciones de las decisiones (DEC-05 · DEC-06)", { placeholder: "title" });
+  V.vigencia.forEach((c, i) => card(s, 0.5, 1.35 + i * 1.86, 6.06, 1.76, c.t, c.d, { fill: i === 2 ? NAVY : (i === 1 ? ORTINT : BLUETINT), titleColor: i === 2 ? WHITE : (i === 1 ? ORANGE : NAVY), bodyColor: i === 2 ? WHITE : CHAR, codeColor: i === 2 ? "CFE3F3" : NAVY, maxSize: 11.5, minSize: 9.5, titleSize: 12, titleH: 0.3 }));
+  columnaSalida(s, [{ t: "Búsqueda en inglés sobre decisiones en español (E2E-1, paso 14)", code: EV6.vig_riesgo },
+    { t: "La cadena del enfoque de entrega (E2E-5)", code: EV6.vig_entrega }], 6.77, 6.06, 1.35, 5.5);
+}
+{
+  const s = slide(S2); s.addText("2 · Bitácora de escrituras y propuestas con huella", { placeholder: "title" });
+  V.bitacora.forEach((c, i) => card(s, 0.5, 1.35 + i * 1.39, 6.06, 1.3, c.t, c.d, { fill: i === 3 ? NAVY : (i === 2 ? ORTINT : BLUETINT), titleColor: i === 3 ? WHITE : (i === 2 ? ORANGE : NAVY), bodyColor: i === 3 ? WHITE : CHAR, codeColor: i === 3 ? "CFE3F3" : NAVY, maxSize: 10.5, minSize: 9, titleSize: 11.5, titleH: 0.28 }));
+  columnaSalida(s, [{ t: "Un agente propone (E2E-1, paso 14)", code: EV6.prop_proponer },
+    { t: "Una persona distinta aprueba", code: EV6.prop_aprobar },
+    { t: "Quién propuso y quién aprobó, desde la bitácora", code: EV6.historial }], 6.77, 6.06, 1.35, 5.5);
+}
+slideCapacidad("2 · Decisiones y mapas estratégicos: hacer o comprar", "g5-hacer-comprar-c2.png", V.mapas_decision, { codigo: EV6.hc_elegir });
+{
+  const s = slide(S2); s.addText("2 · pm-kb: buscar en los proyectos con evidencia citada (opcional)", { placeholder: "title" });
+  const r = imagen(s, "diagramas/repo-pm-kb-lr.png", 0.5, 1.3, 12.33, 2.55, "Fuente: docs/diagramas/pm-kb.mmd (orientación horizontal para la diapositiva; mismo contenido)");
+  const k = V.pmkb.length, gk = 0.1, wk = (12.33 - gk * (k - 1)) / k, yk = 1.3 + r.h + 0.42;
+  V.pmkb.forEach((c, i) => card(s, 0.5 + i * (wk + gk), yk, wk, 6.85 - yk, c.t, c.d, { fill: i === k - 1 ? NAVY : (i === 1 ? ORTINT : BLUETINT), titleColor: i === k - 1 ? WHITE : (i === 1 ? ORANGE : NAVY), bodyColor: i === k - 1 ? WHITE : CHAR, codeColor: i === k - 1 ? "CFE3F3" : NAVY, maxSize: 10.5, minSize: 8.5, titleSize: 11, titleH: 0.3 }));
+}
+{
+  const s = slide(S2); s.addText("2 · pm-kb: búsqueda citada, ficha con relaciones y versiones", { placeholder: "title" });
+  ["g1-kb-busqueda.png", "g1-kb-ficha.png"].forEach((img, k) => {
+    const f = fig(img);
+    const r = imagen(s, f.ruta, 0.5 + k * 6.27, 1.32, 6.06, 3.45, `${f.guia} · paso ${f.paso} · ${GIMG}${img}`);
+    tb(s, runs(f.lectura, { fontSize: fitSize(f.lectura, 6.06, 1.7, 11, 9) }), { x: 0.5 + k * 6.27, y: 1.32 + r.h + 0.4, w: 6.06, h: 6.85 - (1.32 + r.h + 0.4) });
+  });
+}
+slideSalida("2 · pm-kb: salidas reales", [
+  [{ t: "Pregunta en lenguaje natural (E2E-1, paso 16): el primer resultado", code: hasta(EV6.kb_buscar, /^\[2\]/).trimEnd() }],
+  [{ t: "Versiones del business case", code: EV6.kb_versiones }, { t: "Cambios por secciones entre versiones", code: EV6.kb_cambios }]],
+  "Salida real: docs/guias/evidencia/salida-g1.md (paso 16); fecha del indexado, puerto y token enmascarados. Referencia: docs/PM-KB.md; instalación por los dos caminos en la sección 11.");
 mark("2 · Controles permanentes");
 tablaSlides(S2, "2 · Controles permanentes: problema, control, código y dónde se ve", ["Problema habitual", "Control", "Código", "Dónde está el control", "Dónde se ve (guía · paso)"], V.controles.map((f, k) => f.concat([X.controles_donde[k]])),
   [3.05, 3.35, 1.35, 2.3, 2.28], { size: 10, top: 2.3, introRepeat: true, intro: V.controles_intro, introSize: 11,
@@ -490,7 +535,8 @@ tablaSlides(S3, "3 · Problemas de diseño que resuelve", ["Problema", "Respuest
 const S4 = "4 · Representación gráfica"; pres.addSection({ title: S4 });
 const LECT = {
   "ciclo-prince2-bmad": "En cada fase, lo que produce BMAD (brief, PRD, arquitectura, épicas, veredicto del sprint planning, avance) entra como insumo de los productos PRINCE2 de pm-method, y cada transición pasa por una puerta de la junta. `autorizar-proyecto` exige el PRD final (P-07) y su línea base; `autorizar-etapa` exige PRD y arquitectura finales y lee el gate de preparación de BMAD (FAIL bloquea, CONCERNS es condición). Las decisiones vuelven a BMAD con `bmad.py handoff`.",
-  arquitectura: "Cinco capas con dueño propio. Arriba, el gobierno PRINCE2 (orquestador, pm-director y subagentes de fase); debajo, las skills que aplican las técnicas del PMBOK. Las skills leen la especificación BMAD sin escribirla, usan las integraciones opcionales y escriben la carpeta del proyecto solo con `estado.py` y `registro.py`. Los hooks protegen la persistencia y la especificación.",
+  arquitectura: "Cinco capas con dueño propio. Arriba, el gobierno PRINCE2 (orquestador, pm-director y subagentes de fase); debajo, las skills que aplican las técnicas del PMBOK. Las skills leen la especificación BMAD sin escribirla, usan las integraciones opcionales y escriben la carpeta del proyecto solo con `estado.py` y `registro.py`; cada escritura queda en `.bitacora.jsonl`. pm-kb, opcional, lee e indexa la carpeta y el orquestador lo consulta por MCP. Los hooks protegen la persistencia, la bitácora y la especificación.",
+  "pm-kb": "La carpeta del proyecto es la única fuente: solo `estado.py` y `registro.py` escriben. pm-kb la lee e indexa en PostgreSQL (un derivado de solo lectura, con RLS por proyecto y circulación) y responde por la web, el MCP o la línea de comandos con la cita de cada dato. Las personas deciden; un agente solo propone (`registro.py proponer`) y la propuesta se aplica cuando una persona la aprueba.",
   "orquestacion-puerta": "El orquestador lee el estado (`estado.py resumen · siguiente`) y corre la sanidad: con un ERROR, la puerta se bloquea. Delega la producción en un subagente de fase, que devuelve el bloque de retorno con las decisiones humanas requeridas. El orquestador presenta la decisión; con la respuesta de la junta, solo pm-director la registra (`estado.py puerta …`).",
   "agentes-skills": "Reparto de las skills por agente: pm-director (DP), pm-inicio (SU/IP), pm-planificacion (IP/SB), pm-control (CS/MP) y pm-cierre (CP). Las transversales (puente BMAD, estado, sanidad, conocimiento, comunicación y exportación) las usa cualquier agente.",
   "ciclo-de-vida": "SU → IP con `autorizar-inicio`; IP → CS con `autorizar-proyecto` y `autorizar-etapa`; CS ↔ SB en cada límite de etapa (y por excepción, con `autorizar-plan-excepcion`); cierre planificado o prematuro hacia CP, que termina con `autorizar-cierre`.",
@@ -536,6 +582,11 @@ const LECT = {
     ["4 · Cambio", "El desvío se convierte en issue `solicitud-cambio` (C-###) y lo decide la autoridad de cambio o la junta.", "pm-issues-cambios · pm-director"],
     ["5 · Traspaso", "La decisión vuelve a BMAD como documento de traspaso; el equipo BMAD la aplica con sus flujos.", "`bmad.py handoff`"]],
     0.5 + rs.w + 0.4, 1.4, [1.6, 12.33 - rs.w - 0.4 - 1.6 - 3.0, 3.0], { size: 11.5, estilos: [{ bold: true, color: NAVY }, {}, {}] });
+}
+{
+  const s = slide(S4); s.addText("4 · pm-kb: buscar en los proyectos con evidencia citada (opcional)", { placeholder: "title" });
+  const r = imagen(s, "diagramas/repo-pm-kb-lr.png", 0.5, 1.3, 12.33, 3.9, "Fuente: docs/diagramas/pm-kb.mmd (orientación horizontal para la diapositiva; mismo contenido)");
+  card(s, 0.5, 1.3 + r.h + 0.45, 12.33, 6.85 - (1.3 + r.h + 0.45), "Cómo leerlo", LECT["pm-kb"], { fill: BLUETINT, maxSize: 12.5, minSize: 10 });
 }
 
 // ====================== 5 Arquitectura ======================
@@ -774,9 +825,10 @@ const S8 = "9 · Componentes del paquete"; pres.addSection({ title: S8 });
 {
   mark("9 · Componentes del paquete");
   const s = slide(S8); s.addText("9 · Componentes del paquete", { placeholder: "title" });
+  const nc = Math.ceil(D.componentes.length / 2), gc = 0.12, wc = (12.33 - gc * (nc - 1)) / nc;
   D.componentes.forEach((c, i) => {
-    const col = i % 4, row = Math.floor(i / 4);
-    card(s, 0.5 + col * 3.1, 1.38 + row * 2.45, 2.95, 2.35, "`" + c.t + "`", c.d, { fill: i === 6 ? ORTINT : BLUETINT, titleColor: i === 6 ? ORANGE : NAVY, maxSize: 11, minSize: 9, titleSize: 11.5 });
+    const col = i % nc, row = Math.floor(i / nc), opc = /^(docker|pm-kb)\/$/.test(c.t);
+    card(s, 0.5 + col * (wc + gc), 1.38 + row * 2.45, wc, 2.35, "`" + c.t + "`", c.d, { fill: opc ? ORTINT : BLUETINT, titleColor: opc ? ORANGE : NAVY, maxSize: 11, minSize: 8.5, titleSize: 11 });
   });
   s.addShape(pres.ShapeType.roundRect, { x: 0.5, y: 6.3, w: 12.33, h: 0.55, fill: { color: NAVY }, rectRadius: 0.08, line: { color: NAVY } });
   tb(s, runs("**Principio rector.** El núcleo funciona sin nada externo: cada integración es un contrato con respaldo interno (Mermaid, CSV, scripts propios).", { fontSize: 12, color: WHITE }), { x: 0.7, y: 6.3, w: 11.9, h: 0.55, valign: "middle" });
@@ -850,7 +902,7 @@ tablaSlides(S9, "10 · Conectores MCP opcionales", ["Conector", "Capacidad · sk
 const S10 = "11 · Instalación y configuración"; pres.addSection({ title: S10 });
 mark("11 · Guía de instalación y configuración");
 {
-  // los dos caminos de instalación (INSTALACION-DOCKER §0.1) y lo verificado en cada guía (§11 y §13)
+  // los dos caminos de instalación (INSTALACION-DOCKER §0.1) y lo verificado en cada guía (§12 y §14)
   const s = slide(S10); s.addText("11 · Instalación: WSL2 o Docker", { placeholder: "title" });
   const C = X.inst_comparacion, V = X.inst_verif, fecha = f => f.split("-").reverse().join("/");
   tablaFija(s, ["", "Sobre WSL2 / Linux · guía INSTALACION-WSL2", "Docker · guía INSTALACION-DOCKER"], C.filas.map(f => [f[0], f[1], f[2]]), 0.5, 1.36, [2.35, 4.95, 5.03],
@@ -1194,10 +1246,10 @@ mark("17 · Pruebas y calidad");
 tablaSlides(S16, "17 · Cinco niveles de prueba", X.pru_niveles.cab, T(X.pru_niveles), [2.6, 5.1, 2.2, 2.43], { size: 12,
   estilos: [{ bold: true, color: NAVY }, {}, { color: GRAY }, {}], nota: "Fuente: docs/PRUEBAS.md §1." });
 tablaSlides(S16, "17 · Regresión determinista (probar_paquete.py): " + X.pru_regresion.filas.length + " casos", X.pru_regresion.cab, T(X.pru_regresion), [2.6, 9.73], { size: 10,
-  estilos: [{ bold: true, color: NAVY }, {}], nota: X.pru_regresion_res_md });
+  estilos: [{ bold: true, color: NAVY }, {}], nota: X.pru_regresion_res_md.replace(/\(versión ([\d.]+), casos [^)]*\)/, "(versión $1)") });
 mark("17 · Integración cruzada y recorridos E2E");
-tablaSlides(S16, `17 · Integración cruzada: seis cadenas, ${CIF.integ_eslabones} eslabones`, X.pru_integ.cab, T(X.pru_integ), [2.1, 4.3, 5.93], { size: 10, top: 2.05, introRepeat: false,
-  intro: X.pru_integ_intro, introSize: 10.5, estilos: [{ bold: true, color: NAVY }, { color: GRAY }, {}], nota: X.pru_integ_res.replace(/ \(\[DOCKER §10\]\(DOCKER\.md\)\)/, " (DOCKER §10)").split(/(?<=\.) (?=Duración)/)[0] });
+tablaSlides(S16, `17 · Integración cruzada: seis cadenas sobre un mismo proyecto`, X.pru_integ.cab, T(X.pru_integ), [2.1, 4.3, 5.93], { size: 10, top: 2.05, introRepeat: false,
+  intro: X.pru_integ_intro, introSize: 10.5, estilos: [{ bold: true, color: NAVY }, { color: GRAY }, {}], nota: X.pru_integ_res.replace(/ \(\[DOCKER §10\]\(DOCKER\.md\)\)/, " (DOCKER §10)").split(/(?<=\.) (?=La bitácora|Duración)/)[0] });
 tablaSlides(S16, "17 · Recorridos E2E reproducibles (guias_e2e/correr.py)", X.pru_e2e.cab, T(X.pru_e2e).map(f => [f[0].replace(/\[(.*?)\]\(.*?\)/, "$1"), f[1], f[2]]), [1.2, 2.5, 8.63], { size: 11,
   estilos: [{ bold: true, color: NAVY }, { color: BLUE }, {}], nota: `Resultado al ${X.pru_e2e_res[0]}: ${X.pru_e2e_res[1]}, ${X.pru_e2e_res[2]}. Escribe la evidencia (docs/guias/evidencia/) y las ${CIF.imagenes_guias} imágenes de docs/guias/img/.` });
 {
@@ -1361,13 +1413,18 @@ mark("22 · Historial de versiones");
 {
   const VS = D.versiones;
   const fechaDe = f => f.split("-").reverse().join("/");
-  tablaSlides(S22, "22 · Versión " + CIF.version + ": antes y después", ["Indicador", "2.4.0", CIF.version, "Fuente"], VS.antes_despues_25,
+  tablaSlides(S22, "22 · Versión " + CIF.version + ": antes y después", ["Indicador", "2.5.1", CIF.version, "Fuente"], VS.antes_despues_26,
     [2.5, 2.6, 5.05, 2.18], { size: 9.5, top: 2.05, introRepeat: false, estilos: [{ bold: true, color: NAVY }, { color: GRAY }, { color: BLUE }, { color: GRAY }],
-    intro: "**" + CIF.version + " · " + fechaDe(X.chl25_fecha) + " — " + X.chl25_lema + ".** Cambios por área en las diapositivas siguientes; detalle completo en CHANGELOG.md.", introSize: 11 });
+    intro: "**" + CIF.version + " · " + fechaDe(X.chl26_fecha) + " — " + X.chl26_lema + ".** Cambios por área en las diapositivas siguientes; detalle completo en CHANGELOG.md.", introSize: 11 });
   // cambios de cada versión por área (CHANGELOG), en una tabla de una columna con filas de grupo
   const porArea = grupos => { const f = []; grupos.forEach(g => { f.push(["**" + g.t + "**"]); g.items.forEach(it => f.push([it])); }); return f; };
-  tablaSlides(S22, "22 · " + CIF.version + ": cambios por área (CHANGELOG)", ["Cambio"], porArea(X.chl25_grupos), [12.33], { size: 10, grupo: 0, grupoRe: /^\*\*[^*]+\*\*$/, margin: 0.05,
+  tablaSlides(S22, "22 · " + CIF.version + ": cambios por área (CHANGELOG)", ["Cambio"], porArea(X.chl26_grupos), [12.33], { size: 10, grupo: 0, grupoRe: /^\*\*[^*]+\*\*$/, margin: 0.05,
     nota: "Fuente: CHANGELOG.md, sección " + CIF.version + " (las cifras de la versión están en el resto del informe y en el HTML, sección 22)." });
+  tablaSlides(S22, "22 · Versión 2.5.0: antes y después (tal como se publicó)", ["Indicador", "2.4.0", "2.5.0", "Fuente"], VS.antes_despues_25,
+    [2.5, 2.6, 5.05, 2.18], { size: 9.5, top: 2.05, introRepeat: false, estilos: [{ bold: true, color: NAVY }, { color: GRAY }, { color: BLUE }, { color: GRAY }],
+    intro: "**2.5.0 · " + fechaDe(X.chl25_fecha) + " — " + X.chl25_lema + ".** Tabla tal como se publicó con la versión 2.5.0; las cifras vigentes están en el resto del informe.", introSize: 11 });
+  tablaSlides(S22, "22 · 2.5.0: cambios por área (CHANGELOG)", ["Cambio"], porArea(X.chl25_grupos), [12.33], { size: 10, grupo: 0, grupoRe: /^\*\*[^*]+\*\*$/, margin: 0.05,
+    nota: "Fuente: CHANGELOG.md, sección 2.5.0 (sus cifras, en el HTML, sección 22)." });
   tablaSlides(S22, "22 · Versión 2.4.0: antes y después (tal como se publicó)", ["Indicador", "2.3.0", "2.4.0", "Fuente"], VS.antes_despues_24,
     [2.5, 2.6, 5.05, 2.18], { size: 9.5, top: 2.05, introRepeat: false, estilos: [{ bold: true, color: NAVY }, { color: GRAY }, { color: BLUE }, { color: GRAY }],
     intro: "**2.4.0 · " + fechaDe(X.chl24_fecha) + " — " + X.chl24_lema + ".** Tabla tal como se publicó con la versión 2.4.0; las cifras vigentes están en el resto del informe.", introSize: 11 });

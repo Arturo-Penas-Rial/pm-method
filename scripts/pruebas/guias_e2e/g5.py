@@ -9,6 +9,12 @@ g5-tablero-mapas.png (y el recorte 16:9 g5-tablero-mapas-169.png) y g5-tablero-m
 Lecciones previas desde el índice de la red (lecciones.py, paso 1; accionadas con su control en el paso 6); personas de
 usuario y capacidad × persona en las dos variantes (interesados.py personas, pasos 10b y 16b: g5-personas-mapa.png y
 g5-personas-mapa-bmad.png); línea de radar del hook al retomar (paso 7) y radar al 2027-02-01 (estado.py radar, paso 14).
+Decisiones con contexto (decision.py, pm-direccion-decisiones): matriz de las opciones de negocio con el VAN importado de
+inversion.py, expediente y pregunta tipada (paso 4, g5-matriz-opciones.png); hacer o comprar de C2 con los criterios
+hacer-o-comprar, el contexto de los mapas en el expediente y la decisión citada en el componente (paso 5b,
+g5-hacer-comprar-c2.png); elección registrada en la aprobación del
+caso esquemático (paso 6, --decision), revisión del enfoque que reemplaza a D-003 y vigentes --tema (paso 13) y DEC-06
+de la aceptación de S-006 con vigentes --ids (paso 14).
 """
 from comun import *
 import io
@@ -303,21 +309,116 @@ Ausentismo del 18 %: {usd(perdido)} turnos perdidos por año (USD {usd(perdido *
 | {OPC[1]} | 30.000 | {usd(VD[1]['flujos'][2])} | {usd(VD[1]['van'])} | {pct(VD[1]['tir'])} % | {V.miles(VD[1]['repago'], 2)} años |
 | {OPC[2]} | 180.000 | {usd(VD[2]['flujos'][2])} | {usd(VD[2]['van'])} | {pct(VD[2]['tir'])} % | {V.miles(VD[2]['repago'], 2)} años |
 
-Recomendación: opción 2 en dos releases. El primero entrega el valor de la opción 1 (recordatorios); el segundo, turnos en
-línea, solo si {S[2]} está validado. Sensibilidad: B-02 aporta el {pct(peso_b02, 0)} % del valor de los beneficios; el VAN de la
-opción 2 llega a 0 con una adopción estable de {pct(adop_eq)} % ({pct(eq_b02)} % de lo estimado).
+Recomendación: opción 2 en dos releases. El primero entrega el valor de la opción 1 (recordatorios); el segundo, turnos en línea, solo si {S[2]} está validado.
+Sensibilidad: B-02 aporta el {pct(peso_b02, 0)} % del valor de los beneficios; el VAN de la opción 2 llega a 0 con una adopción estable de {pct(adop_eq)} % ({pct(eq_b02)} % de lo estimado).
 
 ## 5. Beneficios
-B-01 turnos recuperados (ausentismo 18 % → 13,5 %) · B-02 llamadas evitadas (adopción 40 %) · DB-01 des-beneficio:
-dos puestos del call center se reasignan a recepción.
+- B-01 turnos recuperados (ausentismo 18 % → 13,5 %)
+- B-02 llamadas evitadas (adopción 40 %)
+- DB-01 des-beneficio: dos puestos del call center se reasignan a recepción
 """
 doc(repo, "business-case-esquematico", "00-direccion/business-case-esquematico.md", BCE, version="0.1", origen="pm-caso-de-negocio, modo esquemático")
+# decisión entre las opciones (pm-direccion-decisiones, decision.py): el VAN entra sin recalcular desde el --json de
+# inversion.py; beneficios fuera del VAN, riesgo y ajuste los puntúa el modelo con su fuente y la ejecutiva confirma los
+# pesos; la matriz recomienda, mide cuánto depende de los pesos y la pregunta tipada valida la respuesta del modelo
+DEC = f"python3 {RAIZ}/skills/pm-direccion-decisiones/scripts/decision.py --proyecto {G}"
+HOJA = "opciones-negocio"; RH = f"03-control/decisiones/{HOJA}"
+run(f"{INV} {G}/00-direccion/inversion/flujos-opciones.csv --tasa 0.10 --json > {G}/00-direccion/inversion/opciones.json", repo)
+run(f'{DEC} matriz {HOJA} --proponer --tipo negocio --ids {S[1]},{S[2]},B-01,B-02 --pregunta "¿Qué opción de negocio lleva el business case esquemático a la junta?" --importar {G}/00-direccion/inversion/opciones.json', repo)
+crit_h = open(os.path.join(repo, G, RH, "criterios.csv"), encoding="utf-8").read().replace("[por confirmar]", f"{EJ} (2026-12-08)")
+escribir(repo, f"{RH}/criterios.csv", crit_h)
+escribir(repo, f"{RH}/opciones.csv", f"""opcion,descripcion,ref,van,van_fuente,beneficios,beneficios_fuente,riesgo,riesgo_fuente,ajuste_estrategico,ajuste_estrategico_fuente,notas
+O0,No hacer nada distinto,{OPC[0]},,,1,mandato.md: el call center sigue sin dar abasto,1,sin inversión ni cambio,1,mandato.md: no responde al pedido,base de comparación
+O1,Mínimo: recordatorios con confirmación,{OPC[1]},,,3,B-01: piloto de {S[1]},2,{S[5]}: normativa de los mensajes,3,mandato.md: confirmar y cancelar sin llamar,
+O2,Completo: turnos en línea con recordatorios,{OPC[2]},,,4,B-01; B-02; {S[0]} validado,4,{S[2]} sin validar; L-002; inversión −25/+75 %,5,mandato.md: sacar; confirmar y cancelar sin llamar,
+""")
+LOG.append((f"(pm-direccion-decisiones: el modelo completa la hoja con la fuente de cada puntaje; la ejecutiva confirma los pesos → gestion/{RH}/)",
+            "criterios.csv: " + " · ".join(f"{f['criterio']} {f['peso']} ({f['sentido']}, {f['escala']}{', importado de ' + f['importar'] if f['importar'] else ''})" for f in csv.DictReader(io.StringIO(crit_h)))
+            + f" · fuente de los pesos: {EJ} (2026-12-08)\nopciones.csv:\n" + "\n".join(
+                f"{f['opcion']} {f['descripcion']} · beneficios {f['beneficios']} ({f['beneficios_fuente']}) · riesgo {f['riesgo']} ({f['riesgo_fuente']}) · ajuste {f['ajuste_estrategico']} ({f['ajuste_estrategico_fuente']})"
+                for f in csv_filas(repo, f"{RH}/opciones.csv"))))
+run(f"{DEC} matriz {HOJA} --markdown", repo)
+MZ = json.loads(subprocess.run(f"{DEC} matriz {HOJA} --json", shell=True, cwd=repo, capture_output=True, text=True).stdout)
+run(f"{DEC} expediente --hoja {HOJA} --corte 2026-12-08 --max-items 4", repo, corte=200)
+escribir(repo, f"{RH}/respuesta-libre.json", '{"respuesta": "opción 2 en dos releases", "evidencia": [], "confianza": "alta", "razon": "es la de mayor VAN"}\n')
+escribir(repo, f"{RH}/respuesta.json", json.dumps({"respuesta": "O2", "evidencia": ["opciones.json", S[1], S[2], "D-001"], "confianza": "media", "faltan": [],
+                                                    "razon": f"Mayor VAN con el ausentismo del piloto ({S[1]}); su riesgo depende de {S[2]}: el segundo release espera la prueba técnica"}, ensure_ascii=False) + "\n")
+run(f"{DEC} pregunta {HOJA} --validar {G}/{RH}/respuesta-libre.json", repo, ok=(1,))
+run(f"{DEC} pregunta {HOJA} --validar {G}/{RH}/respuesta.json", repo)
+pz = {o["opcion"]: o for o in MZ["opciones"]}; sens_r = next(s for s in MZ["sensibilidad"] if s["criterio"] == "riesgo")["sube"]
+MZ_TXT = f"""Matriz multicriterio ({RH}/matriz.md; VAN 40, beneficios fuera del VAN 20, riesgo 20, ajuste 20): opción 2 {V.miles(pz['O2']['puntaje'], 1)}, opción 1 {V.miles(pz['O1']['puntaje'], 1)}, opción 0 {V.miles(pz['O0']['puntaje'], 1)}.
+Si el peso del riesgo sube de 20 a {V.miles(sens_r['peso'], 1)}, pasa la opción 1: la ventaja de la 2 depende del riesgo de {S[2]}, por eso el segundo release espera la prueba técnica.
+"""
+BCE = BCE.replace("estimado).\n\n## 5.", "estimado).\n" + MZ_TXT + "\n## 5.")
+escribir(repo, "00-direccion/business-case-esquematico.md", BCE)
+LOG.append(("(pm-caso-de-negocio agrega la matriz a §4 de gestion/00-direccion/business-case-esquematico.md)", MZ_TXT.strip()))
 V.barras_comparadas(["Opción 2 · completo", "Opción 1 · mínimo", "Opción 0 · no hacer nada"], [[VA[o]["van"] for o in (2, 1, 0)], [VD[o]["van"] for o in (2, 1, 0)]],
                     os.path.join(OUT, "g5-van-opciones.png"),
                     "El piloto bajó el VAN de las dos opciones; la 2 sigue siendo la mejor",
                     subtitulo=f"VAN a 5 años (r = 10 %): opción 2 de {usd(VA[2]['van'])} a {usd(VD[2]['van'])}; opción 1 de {usd(VA[1]['van'])} a {usd(VD[1]['van'])} · ausentismo 13,5 % en vez de 10 %",
                     fuente="inversion.py (pm-caso-de-negocio) con flujos-supuestos-iniciales.csv y flujos-opciones.csv", unidad="",
                     nombres=["Con supuestos iniciales", "Después de los experimentos"])
+
+def matriz_grafico(mz, ruta, titulo, subtitulo="", fuente="", nombres_c=None, nombres_o=None, crit_sens="riesgo", etiqueta_sens=None):
+    """Matriz de decisión (decision.py matriz --json): a la izquierda, el puntaje de cada opción como suma de los aportes
+    de cada criterio (peso normalizado × valor normalizado), en el orden de la hoja; a la derecha, la sensibilidad del
+    peso de un criterio (los demás conservan sus proporciones, como en decision.py): puntaje de cada opción de 0 a 100 y
+    el peso con el que cambia la primera. Paleta, tamaño y pie de visuales.py."""
+    import matplotlib.ticker as mt
+    cr = mz["criterios"]; ops = mz["opciones"]; rec = mz["recomendada"]
+    nombres_c = nombres_c or {}; nombres_o = nombres_o or {}
+    fig = V._fig(titulo, subtitulo)
+    ax = fig.add_axes([0.20, 0.17, 0.30, 0.58]); V._ejes(ax, grilla_x=True, grilla_y=False)
+    ys = list(range(len(ops)))[::-1]
+    for y, o in zip(ys, ops):
+        x0 = 0
+        for k, c in enumerate(cr):
+            v = c["peso_norm"] * o["normalizados"][c["criterio"]]
+            if v > 0:
+                ax.barh(y, v, left=x0, height=0.56, color=V.SERIE[k], edgecolor=V.SUP, linewidth=2)
+            x0 += v
+        ax.text(x0 + 1.5, y, V.miles(o["puntaje"], 1) + ("  ★ recomendada" if o["opcion"] == rec else ""), va="center", fontsize=12,
+                color=V.TINTA, fontweight="bold" if o["opcion"] == rec else "normal")
+    ax.set_yticks(ys); ax.set_yticklabels([nombres_o.get(o["opcion"], o["opcion"]) for o in ops], fontsize=12, color=V.TINTA)
+    ax.set_xlim(0, 100); ax.xaxis.set_major_locator(mt.MultipleLocator(20))
+    ax.set_xlabel("Puntaje (0–100): aporte de cada criterio", fontsize=12)
+    from matplotlib.patches import Patch
+    h = [Patch(facecolor=V.SERIE[k]) for k in range(len(cr))]
+    fig.legend(h, [f"{nombres_c.get(c['criterio'], c['criterio'])} ({V.miles(c['peso_norm'], 0)})" for c in cr], loc="lower left", bbox_to_anchor=(0.035, 0.785), frameon=False, fontsize=11.5, ncol=len(cr), handlelength=1.2, columnspacing=1.4)
+    # sensibilidad: puntaje(w) = w·n_c + (100 − w)·Σ_{j≠c} (p_j/Σp_{≠c})·n_j
+    c0 = next(c for c in cr if c["criterio"] == crit_sens); resto = [c for c in cr if c is not c0]; sr = sum(c["peso_norm"] for c in resto)
+    lin = lambda o, w: w * o["normalizados"][crit_sens] + (100 - w) * sum(c["peso_norm"] / sr * o["normalizados"][c["criterio"]] for c in resto)
+    ax2 = fig.add_axes([0.63, 0.17, 0.26, 0.58]); V._ejes(ax2, grilla_x=False, grilla_y=True)
+    s = next(x for x in mz["sensibilidad"] if x["criterio"] == crit_sens); cambio = s.get("sube") or s.get("baja")
+    if cambio:
+        ax2.axvspan(cambio["peso"], 100 if s.get("sube") else 0, color="#f0efec", zorder=0)
+    estilos = {rec: ("-", V.TINTA, 2.4)}
+    otros = [o["opcion"] for o in ops if o["opcion"] != rec]
+    for k, oid in enumerate(otros): estilos[oid] = (("--", ":")[k % 2], (V.TINTA2, V.MUDA)[k % 2], 2.0)
+    for o in ops:
+        ls, col, lw = estilos[o["opcion"]]
+        ax2.plot([0, 100], [lin(o, 0), lin(o, 100)], ls, color=col, linewidth=lw)
+        yf = lin(o, 100)
+        ax2.text(102, yf, nombres_o.get(o["opcion"], o["opcion"]).split(" · ")[0] + (" ★" if o["opcion"] == rec else ""), va="center", fontsize=11.5, color=V.TINTA)
+    ax2.axvline(c0["peso_norm"], color=V.EJE, linewidth=1.2)
+    ax2.text(c0["peso_norm"] + 1, 97, f"hoy {V.miles(c0['peso_norm'], 0)}", fontsize=11, color=V.TINTA2, va="top")
+    if cambio:
+        ax2.axvline(cambio["peso"], color=V.TINTA2, linewidth=1.2, linestyle="--")
+        ax2.text(cambio["peso"] + 1, 89, f"{V.miles(cambio['peso'], 1)}: pasa\n{nombres_o.get(cambio['opcion'], cambio['opcion']).split(' · ')[0]}", fontsize=11, color=V.TINTA, va="top")
+    ax2.set_xlim(0, 100); ax2.set_ylim(0, 100); ax2.xaxis.set_major_locator(mt.MultipleLocator(20)); ax2.yaxis.set_major_locator(mt.MultipleLocator(20))
+    etq_ = etiqueta_sens or crit_sens
+    ax2.set_xlabel(f"Peso del criterio {etq_} (0–100)", fontsize=12); ax2.set_ylabel("Puntaje", fontsize=12)
+    ax2.set_title(f"Sensibilidad al peso de la {etq_}" if etiqueta_sens else f"Sensibilidad al peso del {crit_sens}", fontsize=12.5, color=V.TINTA, loc="left", pad=8)
+    ax.set_title("Puntaje por opción (orden de la hoja)", fontsize=12.5, color=V.TINTA, loc="left", pad=8)
+    return V._guardar(fig, ruta, fuente)
+
+NC = {"van": "VAN", "beneficios": "Beneficios fuera del VAN", "riesgo": "Riesgo (menor es mejor)", "ajuste_estrategico": "Ajuste al mandato"}
+NO = {"O0": "Opción 0 · no hacer nada", "O1": "Opción 1 · mínimo", "O2": "Opción 2 · completo"}
+matriz_grafico(MZ, os.path.join(OUT, "g5-matriz-opciones.png"),
+               f"La opción 2 gana con {V.miles(pz['O2']['puntaje'], 1)}; la 1 solo pasa si el riesgo pesa {V.miles(sens_r['peso'], 1)} o más",
+               subtitulo=f"Matriz {HOJA}: VAN de inversion.py sin recalcular · beneficios, riesgo y ajuste de 1 a 5 con fuente · pesos de la ejecutiva",
+               fuente=f"decision.py matriz {HOJA} --json (pm-direccion-decisiones) · inversion.py con flujos-opciones.csv",
+               nombres_c=NC, nombres_o=NO)
 
 P("Paso 5 · Enfoque de entrega: nueve criterios por entregable (1 = predictivo, 3 = adaptativo)")
 CRIT = ["Certeza de requisitos", "Estabilidad del alcance", "Costo del cambio en el entregable", "Regulación / seguridad",
@@ -424,7 +525,8 @@ PASOS_R = [  # etapa, id, acción, punto de contacto, canal, emoción, fuente, d
     (2, "P6", "Se atiende en la policlínica", "Recepción", "presencial", 1, "supuesto declarado", "", "", "", "", None, [], "", "")]
 def prop_r(d_):
     d_.update({"trabajo": "Conseguir un turno que le sirva y no perderlo", "disparador": "Necesita un control con su médica de cabecera",
-               "exito": "Se atiende en la fecha elegida o libera el turno a tiempo", "fuentes": ["00-direccion/mandato.md", "supuestos.csv", "lecciones.csv"]})
+               "exito": "Se atiende en la fecha elegida o libera el turno a tiempo", "fuentes": ["00-direccion/mandato.md", "supuestos.csv", "lecciones.csv"],
+               "kpi": ["ausentismo mensual (B-01)", "% de turnos sacados en línea (B-02)"]})
     for k_, et in enumerate(d_["etapas"]): et["pasos"] = []
     for (ie, pid, acc, pc, canal, em, fu, do, ca, op, ka, ob, rf, bk, so) in PASOS_R:
         p_ = {"id": pid, "accion": acc, "punto_contacto": pc, "canal": canal, "emocion": em, "fuente_emocion": fu, "dolor": do, "tipo_causa": ca,
@@ -435,12 +537,46 @@ def prop_r(d_):
         d_["etapas"][ie]["pasos"].append(p_)
     d_.pop("insumos", None)
 dr = completar(repo, "recorrido-paciente.json", prop_r, "pm-mapas-estrategicos propone el recorrido actual con la fuente de cada emoción; Inés Ferrer confirma",
-               lambda d_: "\n".join(fila_r(et, p_) for et in d_["etapas"] for p_ in et["pasos"]))
+               lambda d_: "\n".join(fila_r(et, p_) for et in d_["etapas"] for p_ in et["pasos"]) + f"\nKPI: {'; '.join(d_['kpi'])} (business case esquemático §5)")
 run(f'{MAPAS} --proyecto {G} recorrido validar paciente', repo)
 run(f'{MAPAS} --proyecto {G} recorrido render paciente --png no', repo)
 png_mapa(repo, "recorrido", "paciente", os.path.join(OUT, "g5-recorrido.png"))
 run(E(f'estado.py --proyecto {G} artefacto mapa-recorrido-paciente --ruta 02-planificacion/visuales/recorrido-paciente.md --estado en-revision'), repo, mostrar=False); LOG.pop()
 run(f'{MAPAS} --proyecto {G} recorrido candidatos paciente', repo)
+# hacer o comprar de C2 (pm-direccion-decisiones con pm-adquisiciones): matriz con el conjunto de criterios hacer-o-comprar;
+# el expediente trae el contexto de los mapas (C2 nombrado en la hoja y el paso P4, que cita S-002); la elección queda
+# citada en el componente (mapas.py vincular)
+HC = "hacer-comprar-c2"; RHC = f"03-control/decisiones/{HC}"
+run(f'{DEC} matriz {HC} --proponer --tipo adquisicion --criterios hacer-o-comprar --ids entregables:C2,{S[1]} '
+    f'--pregunta "¿Compramos una plataforma, construimos o tercerizamos los recordatorios y la confirmación (C2)?" --fecha 2026-12-09', repo)
+crit_c2 = open(os.path.join(repo, G, RHC, "criterios.csv"), encoding="utf-8").read().replace("[por confirmar]", f"{EJ} (2026-12-09)")
+escribir(repo, f"{RHC}/criterios.csv", crit_c2)
+escribir(repo, f"{RHC}/opciones.csv", f"""opcion,descripcion,ref,diferenciacion,diferenciacion_fuente,costo_total,costo_total_fuente,tiempo_disponible,tiempo_disponible_fuente,dependencia_proveedor,dependencia_proveedor_fuente,capacidad_interna,capacidad_interna_fuente,riesgo_commodity,riesgo_commodity_fuente,notas
+O1,Comprar una plataforma de recordatorios,,2,mapa C2: producto; plantillas configurables como en cualquier plataforma,120000,business case esquemático §4 opción 1: 30.000 + 18.000 × 5 años,6,cotización de la plataforma del piloto de {S[1]} (Tomás Aguirre),3,cotización: contrato anual; exporta plantillas y datos,4,TI administró la plataforma en el piloto de {S[1]},1,mapa C2: producto con plataformas en el mercado,
+O2,Construir un módulo propio,,4,mapa C2: control total del mensaje y de la confirmación,192000,estimación de TI: 1.200 h × USD 60 + operación 24.000 × 5 años,20,estimación de TI (Tomás Aguirre),1,sin proveedor de plataforma,2,TI está en el adaptador de la agenda (C4); {L['L2']}: 4 semanas estimadas y 14 reales,5,"mapa C2: producto 0,62: lo construido repite lo que ya se compra",
+O3,Tercerizar el servicio de recordatorios y confirmación,,1,el proveedor define mensajes y flujo,140000,cotización de servicio gestionado: 28.000 × 5 años,10,cotización: incorporación del servicio y contrato,4,el proveedor opera la confirmación y los datos de contacto,3,contrato de servicio sin experiencia previa en la red,2,mapa C2: producto; el riesgo de obsolescencia queda en el proveedor,
+""")
+LOG.append((f"(pm-direccion-decisiones con pm-adquisiciones: el modelo completa la hoja con la fuente de cada puntaje; la ejecutiva confirma los pesos → gestion/{RHC}/)",
+            "criterios.csv: " + " · ".join(f"{f['criterio']} {f['peso']} ({f['sentido']}, {f['escala']})" for f in csv.DictReader(io.StringIO(crit_c2)))
+            + f" · fuente de los pesos: {EJ} (2026-12-09)\nopciones.csv:\n" + "\n".join(
+                f"{f['opcion']} {f['descripcion']} · " + " · ".join(f"{c} {f[c]} ({f[c + '_fuente']})" for c in ("diferenciacion", "costo_total", "tiempo_disponible", "dependencia_proveedor", "capacidad_interna", "riesgo_commodity"))
+                for f in csv_filas(repo, f"{RHC}/opciones.csv"))))
+run(f"{DEC} expediente --hoja {HC} --corte 2026-12-09 --max-items 3", repo, corte=200)
+run(f"{DEC} matriz {HC}", repo)
+MZ2 = json.loads(subprocess.run(f"{DEC} matriz {HC} --json", shell=True, cwd=repo, capture_output=True, text=True).stdout)
+out_c2 = run(f'{DEC} matriz {HC} --elegir {MZ2["recomendada"]} --por "{EJ}" --fecha 2026-12-09', repo)
+D_C2 = re.search(r"decisión (D-\d{3})", out_c2).group(1)
+run(f'{MAPAS} --proyecto {G} wardley render entregables --png no', repo, mostrar=False); LOG.pop()
+c2_ = next(c for c in json.load(open(RMAP(repo, "wardley-entregables.json"), encoding="utf-8"))["componentes"] if c["id"] == "C2")
+LOG.append(("(gestion/02-planificacion/mapas/wardley-entregables.json, componente C2 después de elegir)", fila_w(c2_)))
+pz2 = {o["opcion"]: o for o in MZ2["opciones"]}; sd2 = next(x for x in MZ2["sensibilidad"] if x["criterio"] == "diferenciacion")["sube"]
+NC2 = {"diferenciacion": "Diferenciación", "costo_total": "Costo total", "tiempo_disponible": "Tiempo", "dependencia_proveedor": "Dependencia",
+       "capacidad_interna": "Capacidad", "riesgo_commodity": "Commodity"}
+matriz_grafico(MZ2, os.path.join(OUT, "g5-hacer-comprar-c2.png"),
+               f"Comprar gana con {V.miles(pz2['O1']['puntaje'], 1)}: construir solo pasa con diferenciación ≥ {V.miles(sd2['peso'], 1)}",
+               subtitulo=f"C2 recordatorios (producto 0,62 en el mapa) · seis criterios con fuente · pesos de la ejecutiva · {D_C2} citada en C2",
+               fuente=f"decision.py matriz {HC} --json (pm-direccion-decisiones) · wardley-entregables.json (pm-mapas-estrategicos)",
+               nombres_c=NC2, nombres_o={"O1": "O1 · comprar", "O2": "O2 · construir", "O3": "O3 · tercerizar"}, crit_sens="diferenciacion", etiqueta_sens="diferenciación")
 sanidad(repo, "2026-12-09")
 
 P("Paso 6 · Project brief, requisitos, roadmap y canvas → puerta autorizar-inicio")
@@ -509,6 +645,12 @@ run(E(f'estado.py --proyecto {G} tolerancia --nivel proyecto "tiempo=±4 semanas
 puerta_f(repo, "autorizar-inicio", EJ, "2026-12-11", "--fin 2027-01-15")
 for c in ("project-brief", "business-case-esquematico"):
     run(E(f'estado.py --proyecto {G} aprobar {c} --por "{EJ}" --version 1.0 --fecha 2026-12-11'), repo)
+# la junta aprueba el business case esquemático con la opción 2: la elección de la matriz del paso 4 se registra en esa
+# misma decisión (--decision), sin crear otra
+D_BCE = next(f["id"] for f in csv_filas(repo, "03-control/registros/decisiones.csv") if f["decision"] == "aprobado business-case-esquematico v1.0")
+run(f'{DEC} matriz {HOJA} --elegir O2 --por "{EJ}" --decision {D_BCE} --fecha 2026-12-11', repo)
+fd = next(f for f in csv_filas(repo, "03-control/registros/decisiones.csv") if f["id"] == D_BCE)
+LOG.append((f"(gestion/03-control/registros/decisiones.csv, fila {D_BCE})", "\n".join(f"{k}={fd[k]}" for k in ("id", "fecha", "decision", "opciones_consideradas", "decidido_por", "nivel", "artefactos_afectados", "notas"))))
 run(E(f'estado.py --proyecto {G} resumen'), repo)
 
 # ------------------------------------------------------------------------------------------- clase 2
@@ -753,6 +895,12 @@ puerta_f(repo, "autorizar-proyecto", EJ, "2027-01-15")
 for c in ("business-case", "enfoque-beneficios", "pid", "presupuesto", "descripcion-producto-proyecto", "enfoque-riesgo", "enfoque-calidad", "enfoque-issues-cambios", "enfoque-comunicacion"):
     run(E(f'estado.py --proyecto {G} aprobar {c} --por "{EJ}" --version 1.0 --fecha 2027-01-15'), repo, mostrar=False)
 LOG.append(("(pm-director aprueba con estado.py aprobar … --version 1.0 --fecha 2027-01-15: business case, enfoque de beneficios, PID, presupuesto, descripción del producto y los 4 enfoques)", "9 copias congeladas en 00-direccion/historial/ (…-v1.0.md)"))
+# D-003 pide revisar el enfoque en cada puerta de etapa: la junta lo revisa con la prueba técnica hecha y la decisión
+# nueva reemplaza a la anterior (registro.py valida nivel igual o superior); decision.py vigentes muestra la cadena
+D_ENF2 = regs(repo, "decisiones", fecha="2027-01-15", decision=f"Enfoque de entrega revisado en la puerta autorizar-proyecto: se mantiene híbrido; la integración con la agenda clínica pasa a predictiva con alcance fijo ({S[2]} validado el 2027-01-14) y recordatorios y turnos en línea siguen en sprints de 14 días; la puerta de la etapa 3 queda condicionada a la adopción medida en el release 1",
+              decidido_por=EJ, nivel="junta", revisar_en="cada puerta de etapa", reemplaza=D_ENF, artefactos_afectados="00-direccion/pid.md")
+run(f'{DEC} vigentes --tema "enfoque de entrega" --corte 2027-01-15', repo)
+run(f'{DEC} vigentes --tema "delivery approach" --corte 2027-01-15', repo)    # la búsqueda normalizada (texto.py) entiende inglés
 run(E(f'estado.py --proyecto {G} resumen'), repo)
 sanidad(repo, "2027-01-15")
 
@@ -785,6 +933,7 @@ captura_seccion(os.path.join(repo, G, "02-planificacion", "visuales", "tablero-m
 # aceptar no es olvidar: al 2027-02-01, sin dictamen y sin revisar los riesgos, la sanidad lo detecta y el radar dice qué
 # decidir, escalar, desbloquear y vigilar, con responsable y siguiente paso
 sanidad(repo, "2027-02-01")
+run(f'{DEC} vigentes --ids {S[5]} --corte 2027-02-01', repo)
 run(E(f'estado.py --proyecto {G} radar --corte 2027-02-01'), repo)
 
 # ===================================================================================== variante a) con BMAD

@@ -66,14 +66,19 @@ negocio mide los beneficios el 30/6 y el 31/12/2027.
 - **Condición formal de una puerta:** lo que la junta exige para que su aprobación valga; tiene quien la verifica,
   evidencia y fecha, y bloquea la puerta siguiente hasta que alguien con rol la da por cumplida.
 - **Expediente de auditoría:** la evidencia del proyecto armada desde los registros (cronología de puertas, decisiones
-  y cambios, copias congeladas) con una huella por archivo; si alguien edita una copia, la verificación lo detecta.
+  y cambios, copias congeladas) con una huella por archivo; si alguien edita una copia, la verificación lo detecta. Con
+  la **bitácora de escrituras** (quién escribió qué fila, con qué script y cuándo) dice además si el cambio salió de los
+  scripts o se hizo a mano.
+- **Decisión vigente:** la que ninguna decisión posterior de nivel igual o superior reemplazó; la reemplazada queda en
+  la historia (en el caso, el PASS del gate reemplaza al CONCERNS).
 - **Gate de preparación de BMAD:** el control de BMAD antes de construir; responde PASS, CONCERNS o FAIL.
 - **Revisión de calidad:** la comprobación registrada de un producto o una historia contra sus criterios de aceptación;
   "terminado" sin revisión aprobada no cuenta como completado.
 - **Presupuesto de cambio y límite por cambio:** el monto total para cambios que fija la junta y el máximo que la
   autoridad de cambio puede aprobar en un solo cambio; por encima decide la junta.
 - **Rechazo tratado:** una revisión rechazada queda citada por un issue, una acción o un cambio hasta que una nueva
-  revisión la aprueba.
+  revisión la aprueba. Lo fuera de especificación se **corrige** o se **concede** (se acepta como está); elige la
+  autoridad de cambio.
 - **Mapa de recorrido del cliente:** las acciones de la persona en fila, con su emoción en cada paso (de −2 a +2) y la
   fuente que la respalda; todo **dolor** necesita un **tratamiento con id** (requisito, historia, riesgo, issue,
   cambio, decisión, supuesto o revisión de calidad) y un dueño.
@@ -110,7 +115,7 @@ negocio mide los beneficios el 30/6 y el 31/12/2027.
 
 **A3. Calidad por entrega.** Elegí tu última entrega (sprint, release o hito).
 
-| Entrega | Productos o historias terminadas | Con revisión aprobada registrada | Rechazadas | ¿Cada rechazo tiene un issue o acción que lo cite? |
+| Entrega | Productos o historias terminadas | Con revisión aprobada registrada | Rechazadas | ¿Cada rechazo tiene un issue o acción que lo cite? ¿Corregir o conceder, y quién lo eligió? |
 |---|---|---|---|---|
 | | | | | |
 
@@ -120,11 +125,14 @@ negocio mide los beneficios el 30/6 y el 31/12/2027.
 - [ ] La evidencia es un registro concreto (una revisión, una prueba, un documento), no "que esté bien".
 - [ ] La condición bloquea algo concreto (la puerta siguiente o el cierre).
 - [ ] La condición y su cumplimiento quedan en un registro fechado, con quién lo verificó, que una auditoría puede
-      revisar y comprobar que no se editó.
+      revisar y comprobar que no se editó ni quién lo escribió.
+- [ ] Cuando la condición se cumple, el resultado nuevo (el PASS, la prueba aprobada) queda marcado como el que rige y
+      el anterior pasa a la historia.
 - [ ] El cambio tiene monto y cargo; sabés cuánto queda del presupuesto.
 - [ ] Terminadas = con revisión aprobada antes de pasar la puerta (si no, ¿cuántas faltan?).
 - [ ] Distinguís aprobadas (revisión de calidad) de aceptadas (acto de la autoridad de aceptación).
-- [ ] Ningún rechazo queda sin un issue, acción o cambio que lo cite.
+- [ ] Ningún rechazo queda sin un issue, acción o cambio que lo cite, y se consideraron las dos salidas (corregir o
+      conceder) antes de que la autoridad de cambio elija.
 
 ---
 
@@ -173,6 +181,9 @@ traba, cómo lo sabés y qué lo trata.
 - ¿Qué condición de una puerta de tu proyecto se aprobó y nadie volvió a mirar? ¿Qué la habría hecho reaparecer?
 - ¿Dónde busca tu organización las lecciones de proyectos anteriores al arrancar uno nuevo? ¿Alguien las consulta?
 - Si un objetivo sale en verde pero uno de sus beneficios queda fuera de tolerancia, ¿quién lo nota en tu organización?
+- Si una auditoría te pide qué decía el business case en cada aprobación y qué cambió entre versiones, ¿de dónde lo
+  sacás y cuánto tardás? En el caso, con pm-kb (opcional), salen las tres versiones con quién las aprobó y los cambios
+  por secciones de la 1.1 a la 1.2 (guía, paso 9c).
 
 ---
 
@@ -187,9 +198,13 @@ la [guía E2E-4](../../guias/E2E-4-producto-bmad.md) de donde sale cada dato.
 |---|---|---|---|---|
 | Gate de preparación de BMAD en CONCERNS: NFR-3 sin prueba de carga planificada (26/11) (paso 2) | Laura Méndez, ejecutiva, que la da por cumplida con `cumplir-condiciones` el 5/3 (paso 7) | Q-001, prueba de carga aprobada el 2/3 (p95 2,4 s con 400 sesiones; meta menor a 3 s), y gate en PASS el 3/3 (paso 7) | 19/2, la `fecha_prevista` de Q-001; QUA-02 avisa al vencer (pasos 2 y 6) | la puerta siguiente, como condición G-01 (paso 7), y `autorizar-cierre`, que bloquea con G-01 (paso 9) |
 
-La traza queda en el expediente para la auditoría externa: la puerta condicionada (D-013, 27/11) y la condición
-cumplida (D-019, 5/3) en la cronología, con "INTEGRIDAD: OK" en la verificación. En la copia donde alguien cambió
-«condicionado» por «aprobado» en D-013, la verificación falla en `decisiones.csv` (paso 9b).
+Antes de la puerta de la etapa 3, el PASS (D-018) se marca como reemplazo del CONCERNS (D-012): `decision.py vigentes
+--tema BMAD` muestra "16 de 19 (reemplazadas: 3)" con la cadena D-012 → D-018, y la etapa 2 condicionada (D-013) sigue
+vigente junto a la condición cumplida (D-019) (paso 7). La traza queda en el expediente para la auditoría externa: D-013
+y D-019 en la cronología, con "INTEGRIDAD: OK" en la verificación y 132 escrituras en la bitácora. En la copia donde
+alguien cambió «condicionado» por «aprobado» en D-013, la verificación falla en `decisiones.csv` y explica que el
+cambio no salió de los scripts; `registro.py historial D-013` muestra una sola escritura, la de la puerta, con
+«condicionado» (paso 9b).
 
 **A2.**
 
@@ -202,11 +217,11 @@ cumplida (D-019, 5/3) en la cronología, con "INTEGRIDAD: OK" en la verificació
 
 **A3.**
 
-| Entrega | Terminadas | Con revisión aprobada | Rechazadas | ¿Rechazo tratado? |
+| Entrega | Terminadas | Con revisión aprobada | Rechazadas | ¿Rechazo tratado? ¿Corregir o conceder? |
 |---|---|---|---|---|
 | Sprint 1 (23/12) (paso 3) | 2 | 2 (Q-002 y Q-003) | 0 | — |
 | Release 1 (26/2) (paso 6) | 7 | 2; 7 después del lote del 25/2 (Q-004 a Q-008) | 0 | — |
-| Release 2 (7/5) (paso 8) | 11 | 10 (la 2.1 con Q-009 el 19/3); 11 al 12/5 (Q-013) | 1 (Q-012, historia 2-4) | sí: I-002 lo cita y Q-013 lo aprueba el 11/5 |
+| Release 2 (7/5) (paso 8) | 11 | 10 (la 2.1 con Q-009 el 19/3); 11 al 12/5 (Q-013) | 1 (Q-012, historia 2-4) | sí: I-002 lo cita; la matriz recomienda corregir (81,2) sobre conceder (63,7) y Sofía Ramírez, autoridad de cambio, elige corregir (D-022); Q-013 lo aprueba el 11/5 |
 
 El conteo no se arma a mano: el estado de productos (`estado.py productos --corte 2027-02-26 --alcance R1`, paso 6) da
 "en revisión 5 · aprobado 2 · aceptado 0" antes del lote, con una diferencia QUA-01 por historia. Aprobado no es
@@ -243,5 +258,5 @@ La tercera lección (L-001, la revisión con socios, impacto medio, descubrimien
 
 Lo que pasó: al 30/6, los tres KR van «en camino» (esperado 0,20) y no hay informe a la ejecutiva (paso 10). Al
 31/12, el objetivo sale en verde (0,91), pero B-02 llega a 0,83, fuera de la tolerancia, y B-01 a 0,93, dentro. Se
-informa a la ejecutiva con D-029, que empieza a buscar la causa por R-001: el dolor del primer ingreso que dejó el
+informa a la ejecutiva con D-030, que empieza a buscar la causa por R-001: el dolor del primer ingreso que dejó el
 recorrido (paso 11).

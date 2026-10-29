@@ -31,7 +31,7 @@ jobs:
         run: docker compose -f docker/compose.yaml build pm
 
       - name: Tamaño de la imagen
-        run: docker image ls pm-method:2.5.0
+        run: docker image ls pm-method:2.5.1
 
       - name: Pruebas dentro del contenedor (sin red)
         run: |

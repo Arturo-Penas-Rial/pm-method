@@ -1,4 +1,4 @@
-# Instalación con Docker · pm-method 2.5.0
+# Instalación con Docker · pm-method 2.6.0
 
 Guía paso a paso para usar pm-method **dentro de un contenedor Docker**: una caja Linux aislada que ya trae Claude
 Code, Python con sus paquetes, Node.js, Mermaid, el navegador para capturas y git, en las versiones con que se probó
@@ -18,14 +18,15 @@ file of the project), BMAD, updates, troubleshooting and uninstall. Technical re
 >   contenedor; se reconoce porque el indicador empieza con `pm@`) o **[Claude]** (dentro de una sesión de `claude`).
 > - Copiá y pegá los comandos. En la terminal de Ubuntu se pega con **clic derecho** o **Ctrl+Shift+V**. Las líneas que
 >   empiezan con `#` son comentarios: no hace falta escribirlas.
-> - Debajo de cada bloque está **qué deberías ver**. Si ves otra cosa, **no sigas**: buscá el síntoma en §11.
+> - Debajo de cada bloque está **qué deberías ver**. Si ves otra cosa, **no sigas**: buscá el síntoma en §12.
 > - Lo que está entre `<…>` (por ejemplo `<tu-usuario>`) lo reemplazás por tu dato, sin los signos `<` y `>`.
 > - **[verificar]** marca un dato que no se pudo comprobar en el entorno de prueba (pantallas de Windows y de Docker
 >   Desktop, instalación de Docker Engine, inicio de sesión con tu cuenta, red de tu organización). Cada uno dice cómo
 >   comprobarlo vos.
-> - Los comandos de [Ubuntu] y [Contenedor] de §4 a §10 (y los de diagnóstico de §11 y §12.1) se ejecutaron tal cual
->   están escritos aquí, como usuario sin privilegios, el 2026-10-27 (detalle en §13). Lo del lado de Windows y la
->   instalación de Docker Engine no se pudieron ejecutar en ese entorno.
+> - Los comandos de [Ubuntu] y [Contenedor] de §4 a §7 y de §9 a §11 (y los de diagnóstico de §12 y §13.1) se
+>   ejecutaron tal cual están escritos aquí, como usuario sin privilegios, el 2026-10-27; los de pm-kb (§8), el
+>   2026-10-28 (detalle en §14). Lo del lado de Windows y la instalación de Docker Engine no se pudieron ejecutar en ese
+>   entorno.
 > - Detalle técnico de la imagen (qué incluye, versiones, endurecimiento, construcción en redes cerradas):
 >   [DOCKER.md](DOCKER.md). Esta guía lo cita en lugar de repetirlo.
 
@@ -48,13 +49,14 @@ de API.
 | 5 | Construir la imagen | sí | sí | sí |
 | 6 | Verificar con las pruebas del paquete | sí | sí | sí |
 | 7 | Trabajar con un proyecto propio montado | sí | sí | sí |
-| 8 | Claude Code dentro del contenedor (inicio de sesión, plugin, primera conversación) | sí | sí | sí |
-| 9 | BMAD y git dentro del contenedor (opcional) | opcional | opcional | opcional |
-| 10 | Actualizar a una versión nueva | consulta | consulta | consulta |
-| 11 | Solución de problemas | consulta | consulta | consulta |
-| 12 | Desinstalar | consulta | consulta | consulta |
-| 13 | Qué se verificó y qué queda por comprobar | consulta | consulta | consulta |
-| 14 | Seguridad | leer | leer | leer |
+| 8 | pm-kb: búsqueda citada en tus proyectos, con su base en un contenedor aparte (web y MCP) | opcional | opcional | opcional |
+| 9 | Claude Code dentro del contenedor (inicio de sesión, plugin, primera conversación) | sí | sí | sí |
+| 10 | BMAD y git dentro del contenedor (opcional) | opcional | opcional | opcional |
+| 11 | Actualizar a una versión nueva | consulta | consulta | consulta |
+| 12 | Solución de problemas | consulta | consulta | consulta |
+| 13 | Desinstalar | consulta | consulta | consulta |
+| 14 | Qué se verificó y qué queda por comprobar | consulta | consulta | consulta |
+| 15 | Seguridad | leer | leer | leer |
 
 ---
 
@@ -85,7 +87,7 @@ advierte que tener Docker Engine dentro de una distribución de WSL y Docker Des
 | Qué es | aplicación de Windows con interfaz gráfica que corre Docker en su propia distribución de WSL2 y lo comparte con Ubuntu | el motor de Docker para Linux, instalado como servicio dentro de tu Ubuntu de WSL2 |
 | Instalación | asistente de Windows; sin permisos de administrador en el modo "por usuario" (salvo para activar WSL2 la primera vez) | comandos en Ubuntu con `sudo`; requiere systemd |
 | Licencia | **gratuita** para uso personal, educación, proyectos de código abierto no comerciales y empresas de menos de 250 empleados **y** menos de 10 millones de dólares de facturación anual; las demás empresas y las entidades de gobierno necesitan una suscripción paga | código abierto (Apache 2.0), sin costo |
-| Proxy y certificados corporativos | se configuran en la interfaz; toma los certificados del almacén de Windows | se configuran a mano en Ubuntu (§11.3) |
+| Proxy y certificados corporativos | se configuran en la interfaz; toma los certificados del almacén de Windows | se configuran a mano en Ubuntu (§12.3) |
 | Recomendada para | quien prefiere una interfaz y puede usarla según la licencia | organizaciones sin licencia de Docker Desktop, o quien ya usa Ubuntu en WSL2 |
 
 Las condiciones de licencia son las que publica Docker en "Install Docker Desktop on Windows" (consultada el
@@ -117,7 +119,7 @@ comandos de esta guía son los de Ubuntu) y seguí desde §4.
 - Con la opción 2 (Docker Engine en Ubuntu) no rigen los requisitos propios de Docker Desktop (`LanmanServer`, WSL
   2.1.5), pero sí los de WSL2.
 - El espacio: la imagen de pm-method ocupa ≈ 3 GB y su construcción deja hasta ≈ 3 GB de caché, que se puede borrar
-  (§11.4; medido en §13); el resto es margen para Docker, Ubuntu y tus proyectos.
+  (§12.4; medido en §14); el resto es margen para Docker, Ubuntu y tus proyectos.
 
 ### 1.2 WSL2 y Ubuntu 24.04 LTS
 
@@ -162,7 +164,7 @@ de Windows: `\\wsl.localhost\Ubuntu-24.04\home\<tu-usuario>` ([INSTALACION-WSL2
 ## 2. Opción 1 · Docker Desktop para Windows (backend WSL2)
 
 Si elegiste la opción 2, saltá a §3. Si ya tenías Docker Engine instalado **dentro** de Ubuntu, desinstalalo antes
-(§12.3): la documentación de Docker pide no tener los dos.
+(§13.3): la documentación de Docker pide no tener los dos.
 
 ### 2.1 Instalar · [Windows]
 
@@ -216,14 +218,14 @@ docker run --rm hello-world
 
 **Deberías ver:**
 - `docker version`: dos bloques, `Client:` y `Server:` (el segundo dice `Docker Desktop …`). Si solo aparece `Client:`
-  y un error de conexión, Docker Desktop no está abierto o falta la integración (§11.1).
+  y un error de conexión, Docker Desktop no está abierto o falta la integración (§12.1).
 - `docker compose version`: `Docker Compose version` con una versión 2 o posterior.
 - `hello-world`: un mensaje de confirmación de Docker (`Hello from Docker!`) después de descargar una imagen de prueba
   de Docker Hub.
 
 **[verificar]**: Docker Desktop no se pudo instalar en el entorno de prueba; la salida de `docker version` y `docker
-compose version` sí se comprobó con Docker Engine (§13). Con Docker Desktop los comandos se escriben sin `sudo` y no
-hace falta el paso del grupo `docker` de §3.5 **[verificar]**; si aparece `permission denied`, ver §11.1.
+compose version` sí se comprobó con Docker Engine (§14). Con Docker Desktop los comandos se escriben sin `sudo` y no
+hace falta el paso del grupo `docker` de §3.5 **[verificar]**; si aparece `permission denied`, ver §12.1.
 
 ### 2.5 Memoria y disco (opcional)
 
@@ -294,7 +296,7 @@ sudo apt update
 **Deberías ver:** si `apt install` pregunta `Do you want to continue? [Y/n]`, escribí `Y`. El bloque `tee` repite en
 pantalla el archivo creado, con `Suites: noble` y `Architectures: amd64`. El último `apt update` debe listar una línea
 `https://download.docker.com/linux/ubuntu noble InRelease` sin errores. Si `curl` falla con un error de certificado o
-`403`, tu red usa un proxy: §11.3 antes de seguir.
+`403`, tu red usa un proxy: §12.3 antes de seguir.
 
 ### 3.4 Instalar Docker Engine y Compose
 
@@ -332,7 +334,7 @@ docker run --rm hello-world
 
 **Deberías ver** `Client:` y `Server: Docker Engine - Community`, `Docker Compose version` con una versión 2 o posterior
 y el mensaje de `hello-world`, **sin** `sudo`. Si aparece `permission denied while trying to connect to the docker
-API`, el grupo todavía no se aplicó (§11.1).
+API`, el grupo todavía no se aplicó (§12.1).
 
 ---
 
@@ -346,7 +348,7 @@ git clone https://github.com/Arturo-Penas-Rial/pm-method.git ~/pm-method
 grep '"version"' ~/pm-method/.claude-plugin/plugin.json
 ```
 
-**Deberías ver** `"version": "2.5.0",` (o una versión posterior publicada). Con git, actualizar es un comando (§10).
+**Deberías ver** `"version": "2.6.0",` (o una versión posterior publicada). Con git, actualizar es un comando (§11).
 
 ### 4.2 Alternativa: descargar el ZIP
 
@@ -379,21 +381,21 @@ docker compose -f docker/compose.yaml build pm
 La primera vez tarda **10–20 minutos** según la conexión: descarga Ubuntu 26.04, los paquetes de Python y Node, Claude
 Code y el navegador, y verifica cada uno (por hash o por firma). Muestra el avance por etapas (`[base …]`,
 `[herramientas-python …]`, `[herramientas-node …]`, `[navegadores …]`, `[skills-externas …]`, `[final …]`).
-**Deberías ver** al final que la imagen `pm-method:2.5.0` quedó construida, sin `ERROR`. Si se corta por la red o un
-proxy, ver §11.3; si se corta por espacio, §11.4. Volver a ejecutar el comando retoma desde la última etapa terminada.
+**Deberías ver** al final que la imagen `pm-method:2.6.0` quedó construida, sin `ERROR`. Si se corta por la red o un
+proxy, ver §12.3; si se corta por espacio, §12.4. Volver a ejecutar el comando retoma desde la última etapa terminada.
 
 Comprobá la imagen:
 
 ```bash
 docker image ls pm-method
-docker run --rm pm-method:2.5.0 claude --version
+docker run --rm pm-method:2.6.0 claude --version
 ```
 
-**Deberías ver** una fila `pm-method:2.5.0` de unos 3 GB (columna `DISK USAGE`; con otras versiones de Docker, las
-columnas `REPOSITORY` y `TAG` muestran `pm-method` y `2.5.0`) y `2.1.304 (Claude Code)`.
+**Deberías ver** una fila `pm-method:2.6.0` de unos 3 GB (columna `DISK USAGE`; con otras versiones de Docker, las
+columnas `REPOSITORY` y `TAG` muestran `pm-method` y `2.6.0`) y `2.1.304 (Claude Code)`.
 
-- El número de la etiqueta (`2.5.0`) es la versión de pm-method; cambia con cada versión (§10).
-- Si tu usuario de Ubuntu no tiene el UID 1000 (`id -u` muestra otro número), leé §11.5 antes de construir.
+- El número de la etiqueta (`2.6.0`) es la versión de pm-method; cambia con cada versión (§11).
+- Si tu usuario de Ubuntu no tiene el UID 1000 (`id -u` muestra otro número), leé §12.5 antes de construir.
 - Opciones de construcción (`--build-arg`, construcción sin Compose, redes cerradas): [DOCKER §4](DOCKER.md#4-construir)
   y [§8](DOCKER.md#8-construir-detrás-de-un-proxy-o-sin-acceso-a-algún-registro).
 
@@ -408,10 +410,10 @@ cd ~/pm-method
 docker compose -f docker/compose.yaml run --rm pruebas python3 /opt/pm-method/scripts/validar_paquete.py
 ```
 
-**Deberías ver** `Skills: 39 (33 invocables por el modelo, listado 6957 caracteres) · Agentes: 6` y una última línea
+**Deberías ver** `Skills: 39 (33 invocables por el modelo, listado 6966 caracteres) · Agentes: 6` y una última línea
 `OK`.
 
-### 6.2 Batería completa (≈ 15 minutos, sin red y sin consumir tokens)
+### 6.2 Batería completa (≈ 25 minutos, sin red y sin consumir tokens)
 
 ```bash
 cd ~/pm-method
@@ -507,9 +509,143 @@ Es el mismo entorno pero sin red: sirve para scripts y revisión de artefactos. 
 
 ---
 
-## 8. Claude Code dentro del contenedor
+## 8. pm-kb en Docker (opcional)
 
-### 8.1 Iniciar sesión · [Contenedor] y [Claude]
+pm-kb es un componente **opcional** de pm-method: indexa las carpetas de tus proyectos y deja consultarlas con la
+evidencia citada (cada respuesta dice de qué archivo y qué líneas sale) desde el navegador, con un token por persona, y
+desde Claude Code por MCP. Nunca escribe en tus proyectos: los lee en solo lectura y el índice se rehace cuando quieras.
+Si no lo necesitás, saltá al §9. Referencia técnica: [PM-KB](PM-KB.md).
+
+### 8.1 Por qué la base va en un contenedor aparte
+
+El perfil `kb` de `docker/compose.yaml` agrega dos servicios:
+
+- **`pm-kb-db`**: el PostgreSQL del índice (imagen `pm-kb-db:2.6.0`, con PostgreSQL y pgvector de Ubuntu), en su propio
+  contenedor, con su volumen (`pm-kb-datos`) y en una red interna (`kb-interna`) **sin salida a internet ni puertos
+  publicados**: solo el servicio `pm-kb` llega a ella; el contenedor `pm` de §7 ni siquiera resuelve su nombre. Corre
+  como usuario `postgres`, con la raíz de solo lectura, sin capacidades de Linux y con un límite de 2 CPU y 1 GB. Sus
+  dos contraseñas (la del dueño del índice y la del rol de solo lectura) existen solo como **secretos de Docker**: no
+  están en la imagen, en `compose.yaml` ni en variables.
+- **`pm-kb`**: el servicio web y MCP, con la misma imagen y el mismo endurecimiento que `pm`. Lee tus proyectos en
+  **solo lectura** desde la carpeta que indiques en `PROYECTOS` y publica la web y el MCP solo en `127.0.0.1:8765`.
+
+Así, un fallo o un abuso del agente en el contenedor `pm` no alcanza la base, y la base no puede sacar nada afuera.
+
+### 8.2 Preparar las contraseñas · [Ubuntu]
+
+```bash
+cd ~/pm-method
+bash docker/kb-preparar.sh
+```
+
+**Deberías ver** `creado: docker/kb-secretos/pmkb_admin_clave`, `creado: docker/kb-secretos/pmkb_lector_clave` y una
+línea `Listo. Siguiente: …`. Genera dos contraseñas al azar en `docker/kb-secretos/` (carpeta solo para tu usuario,
+excluida de git y de la imagen). No hace falta que las leas ni las copies: Docker se las entrega al contenedor. Si lo
+volvés a ejecutar, dice `existe: … (no se modifica)`.
+
+### 8.3 Construir · [Ubuntu]
+
+```bash
+docker compose -f docker/compose.yaml --profile kb build
+docker image ls pm-kb-db
+```
+
+Construye la imagen `pm-kb-db:2.6.0` y, si hace falta, la imagen de pm-method del §5 (que ya trae pm-kb y sus
+dependencias). **Deberías ver** la construcción sin `ERROR` y una fila `pm-kb-db:2.6.0` de unos 409 MB. Detrás de un
+proxy corporativo: `pm-kb-db` usa la misma imagen base y el mismo secreto `ca_proxy` que la imagen de pm-method, así que
+se construye con el comando del §12.3, punto 2, cambiando `-f docker/Dockerfile -t pm-method:<versión>`
+por `-f docker/pm-kb-db.Dockerfile -t pm-kb-db:2.6.0` ([DOCKER §8](DOCKER.md#8-construir-detrás-de-un-proxy-o-sin-acceso-a-algún-registro)).
+
+### 8.4 Levantar el servicio · [Ubuntu]
+
+`PROYECTOS` es la carpeta que contiene tus proyectos (por ejemplo `~/proyectos`); dentro del servicio se ve como
+`/proyectos`, en solo lectura:
+
+```bash
+PROYECTOS=~/proyectos docker compose -f docker/compose.yaml --profile kb up -d pm-kb
+docker compose -f docker/compose.yaml --profile kb ps
+```
+
+**Deberías ver** que Compose arranca primero `pm-kb-db` y espera a que esté sano (`Container pm-method-pm-kb-db-1
+Healthy`) antes de arrancar `pm-kb`, y, en `ps`, los dos servicios `Up … (healthy)` (los primeros segundos, `pm-kb`
+dice `health: starting`) con `127.0.0.1:8765->8765/tcp`. Sin `PROYECTOS`, el servicio ve una carpeta vacía
+(`docker/kb-sin-proyectos`).
+
+### 8.5 Verificar, indexar y dar acceso · [Ubuntu]
+
+```bash
+docker compose -f docker/compose.yaml --profile kb exec pm-kb pm-kb verificar
+docker compose -f docker/compose.yaml --profile kb exec pm-kb pm-kb indexar --proyecto mi-proyecto --ruta /proyectos/mi-proyecto
+docker compose -f docker/compose.yaml --profile kb exec pm-kb pm-kb token crear --persona "Ana (gestora)" --proyectos mi-proyecto
+```
+
+**Deberías ver:**
+
+- en `verificar`, 14 líneas `OK` (entre ellas `PostgreSQL 16 o posterior · server_version_num 180006` y `extensión
+  vector · pgvector 0.8.1`) y `pm-kb: verificación completa sin fallos`;
+- en `indexar`, `pm-kb: mi-proyecto indexado · … unidades (… vigentes) · … documentos …` (con el proyecto del caso
+  E2E-1, `448 unidades (403 vigentes) · 65 documentos`). La ruta es la de dentro del servicio: `/proyectos/<carpeta>`;
+- en `token crear`, `Token para Ana (gestora) (mi-proyecto). Se muestra UNA sola vez; guardalo en un gestor de
+  contraseñas o en una variable de entorno:` y el token (`pmkb_…`). Copialo en tu gestor de contraseñas: no se puede
+  volver a ver.
+
+Cada persona tiene su token, con los proyectos que puede ver (`--proyectos p1,p2`, o `*` para todos) y, solo si debe
+ver los documentos de circulación restringida, `--restringida`. `… exec pm-kb pm-kb token listar` los lista y `…
+token revocar --persona "Ana (gestora)"` los anula. Volvé a indexar cuando un proyecto cambie. Aquí no hay `pm-kb db …`:
+la base la maneja Docker.
+
+### 8.6 Interfaz web
+
+Abrí `http://127.0.0.1:8765` en el navegador e ingresá con tu token: muestra las pestañas **Buscar** y **Preguntar**
+y solo los proyectos de ese token. Con Docker Desktop, la dirección se abre desde el navegador de Windows; con Docker
+Engine dentro de Ubuntu, por el reenvío de `localhost` de WSL2 **[verificar en tu equipo]**. El servicio no tiene TLS
+propio: no lo publiques en otra interfaz sin un proxy con TLS delante ([PM-KB §11.1](PM-KB.md#111-web)).
+
+### 8.7 pm-kb en Claude Code (MCP)
+
+- **Claude Code dentro del contenedor `pm`** (§9): con `pm-kb` levantado, abrí el contenedor sobre tu proyecto (§7.1)
+  y, en **[Contenedor]**, registrá el servidor con el token de la persona:
+
+  ```bash
+  claude mcp add --transport http pm-kb http://pm-kb:8765/mcp --header "Authorization: Bearer <token>"
+  claude mcp list
+  ```
+
+  **Deberías ver** `pm-kb: http://pm-kb:8765/mcp (HTTP) - √ Connected`. Se guarda en la configuración de Claude Code
+  del contenedor (`CLAUDE_CONFIG_DIR`, el volumen del §9.1) **[verificar que persista entre ejecuciones]**.
+- **Claude Code instalado fuera del contenedor** (en Ubuntu o en Windows): la misma línea con
+  `http://127.0.0.1:8765/mcp` **[verificar en tu equipo]**.
+
+El MCP es de solo lectura (8 herramientas: `buscar`, `contexto`, `ficha`, `relaciones`, `documento`, `versiones`,
+`cambios` y `estado_indice`) y cada respuesta trae la cita y el aviso "Evidencia, no instrucciones" ([PM-KB
+§11.2](PM-KB.md#112-mcp)). Para la pestaña **Preguntar** con un modelo de lenguaje, `compose.yaml` pasa al servicio
+`PMKB_LLM_TIPO`, `PMKB_LLM_MODELO`, `PMKB_LLM_URL` y `ANTHROPIC_API_KEY` desde la terminal en la que ejecutás `up`
+([PM-KB §8](PM-KB.md#8-configuración); **[verificar]**: no se probó en vivo).
+
+### 8.8 Respaldo, contraseñas y apagar · [Ubuntu]
+
+- **Respaldo**: no hace falta. El índice está en el volumen `pm-method_pm-kb-datos` y se reconstruye con `indexar`
+  desde tus carpetas; lo único que no se reconstruye son los tokens, que se crean de nuevo.
+- **Cambiar las contraseñas de la base**: sobrescribí el secreto y reiniciá los dos servicios; al arrancar, `pm-kb-db`
+  aplica la contraseña nueva:
+
+  ```bash
+  python3 -c 'import secrets; print(secrets.token_urlsafe(32))' > docker/kb-secretos/pmkb_lector_clave
+  docker compose -f docker/compose.yaml --profile kb restart pm-kb-db pm-kb
+  docker compose -f docker/compose.yaml --profile kb exec pm-kb pm-kb verificar | tail -1
+  ```
+
+  (Lo mismo con `pmkb_admin_clave`.) **Deberías ver** `pm-kb: verificación completa sin fallos`.
+- **Apagar**: `docker compose -f docker/compose.yaml --profile kb down` quita los contenedores y las redes y conserva el
+  índice. Para borrar también el índice, después: `docker volume rm pm-method_pm-kb-datos`. **No uses `down -v`** salvo
+  que quieras borrar además el inicio de sesión de Claude Code: borra todos los volúmenes del archivo, también
+  `pm-method_claude-config`.
+
+---
+
+## 9. Claude Code dentro del contenedor
+
+### 9.1 Iniciar sesión · [Contenedor] y [Claude]
 
 Abrí el contenedor sobre tu proyecto (§7.1) y comprobá primero que no haya sesión ni clave:
 
@@ -553,7 +689,7 @@ la primera vez Claude Code pregunta si usarla. Al cerrar la terminal, la clave d
 (token de larga duración, guardarla para tu usuario): [DOCKER §5.2](DOCKER.md#52-credenciales-nunca-en-la-imagen-ni-en-archivos-del-repositorio)
 e [INSTALACION §0.7](INSTALACION.md#07-claves-de-api-y-credenciales-cuáles-dónde-y-cómo).
 
-### 8.2 Usar pm-method con Claude Code · [Contenedor] y [Claude]
+### 9.2 Usar pm-method con Claude Code · [Contenedor] y [Claude]
 
 El plugin ya está en la imagen (`/opt/pm-method`, la misma versión que construiste). Se carga con `--plugin-dir`:
 
@@ -584,7 +720,7 @@ Dentro de **[Claude]**:
 **[verificar]** en tu primer uso: estos pasos consumen tu plan y no se pudieron ejecutar con una cuenta en el entorno de
 prueba. Los hooks corren con el Python del contenedor, que tiene sus paquetes; su comportamiento se comprobó con las
 pruebas de §6 (caso de los hooks de `probar_paquete.py`). Prueba de humo sin sesión interactiva, con la sesión
-iniciada o una clave cargada (§8.1), desde **[Ubuntu]**:
+iniciada o una clave cargada (§9.1), desde **[Ubuntu]**:
 
 ```bash
 PROYECTO=~/proyectos/demo docker compose -f ~/pm-method/docker/compose.yaml run --rm -T pm claude --plugin-dir /opt/pm-method -p "/pm-method:pm-ayuda" --max-turns 3
@@ -597,11 +733,11 @@ Please run /login`.
   ya está cargado y las skills aparecerían dos veces (sanidad INS-04).
 - Las skills externas y los conectores MCP se instalan como en [INSTALACION §6](INSTALACION.md); los de alcance de
   usuario quedan en el mismo volumen.
-- Claude Code no se actualiza solo dentro del contenedor (la imagen fija su versión): se actualiza con la imagen (§10).
+- Claude Code no se actualiza solo dentro del contenedor (la imagen fija su versión): se actualiza con la imagen (§11).
 
 ---
 
-## 9. BMAD y git dentro del contenedor (opcional) · [Contenedor]
+## 10. BMAD y git dentro del contenedor (opcional) · [Contenedor]
 
 pm-method lee BMAD (la capa de especificación del producto) sin modificarlo; BMAD se instala en el repositorio del
 producto, que es la carpeta que montás. Requiere red (el servicio `pm`, no `pm-sin-red`). Abrí el contenedor sobre una
@@ -619,7 +755,7 @@ python3 $PM_METHOD_DIR/skills/pm-bmad-puente/scripts/bmad.py --proyecto gestion 
 de sus propias skills; la imagen no lo trae) y puede mostrar avisos `npm warn deprecated …` de sus dependencias: no
 afectan a pm-method, que solo lee los archivos de BMAD. `npx` descarga en una carpeta temporal del contenedor: la
 próxima vez vuelve a descargar (solo hace falta para instalar o actualizar BMAD). Si `npx` termina con
-`SELF_SIGNED_CERT_IN_CHAIN`, tu red inspecciona HTTPS: salí y abrí el contenedor con el certificado (§11.3, punto 3).
+`SELF_SIGNED_CERT_IN_CHAIN`, tu red inspecciona HTTPS: salí y abrí el contenedor con el certificado (§12.3, punto 3).
 Opciones del instalador: [INSTALACION §4](INSTALACION.md#4-bmad-en-el-repositorio-del-producto-opcional).
 
 **git** funciona sobre `/trabajo`. Para hacer commits desde el contenedor, configurá tu identidad en el repositorio del
@@ -635,7 +771,7 @@ contenedor ([DOCKER §7](DOCKER.md#7-seguridad-del-contenedor)).
 
 ---
 
-## 10. Actualizar a una versión nueva · [Ubuntu]
+## 11. Actualizar a una versión nueva · [Ubuntu]
 
 ```bash
 cd ~/pm-method
@@ -667,9 +803,9 @@ Cambiar versiones fijadas dentro de la imagen (para quien mantiene el paquete): 
 
 ---
 
-## 11. Solución de problemas
+## 12. Solución de problemas
 
-### 11.1 Docker no responde
+### 12.1 Docker no responde
 
 | Síntoma | Causa probable | Qué hacer |
 |---|---|---|
@@ -679,27 +815,31 @@ Cambiar versiones fijadas dentro de la imagen (para quien mantiene el paquete): 
 | `permission denied while trying to connect to the docker API at unix:///var/run/docker.sock` (opción 2) | tu usuario no está en el grupo `docker`, o el grupo todavía no se aplicó | §3.5; `id -nG` debe incluir `docker`; si no, `wsl --shutdown` en PowerShell y abrir Ubuntu |
 | **WSL Integration** no aparece en Docker Desktop | modo de contenedores Windows | ícono de Docker → **Switch to Linux containers** |
 | Docker Desktop: `Unexpected WSL error` con `HCS_E_HYPERV_NOT_INSTALLED` o `ERROR_NOT_SUPPORTED` | virtualización deshabilitada o bloqueada (también por la "virtualización asistida por hardware" de algunos antivirus) | §1.1; documentación de Docker, "Troubleshoot topics for Docker Desktop" |
-| Docker Desktop y Docker Engine instalados a la vez: `docker` responde con un motor distinto del esperado | dos motores | dejar uno solo (§0.2 y §12) |
+| Docker Desktop y Docker Engine instalados a la vez: `docker` responde con un motor distinto del esperado | dos motores | dejar uno solo (§0.2 y §13) |
 
-### 11.2 Al construir o ejecutar
+### 12.2 Al construir o ejecutar
 
 | Síntoma | Causa probable | Qué hacer |
 |---|---|---|
-| `failed to solve: … failed to resolve source metadata for docker.io/library/ubuntu:26.04@sha256:…: failed to do request: Head "https://registry-1.docker.io/…": Forbidden` (o tiempo agotado) | Docker Hub bloqueado o red con proxy | §11.3 |
-| la construcción se corta en `apt-get`, `pip`, `npm` o `playwright install` con errores de certificado o de conexión | proxy corporativo con inspección TLS | §11.3 |
-| `no space left on device` | disco lleno | §11.4 |
-| `Permission denied` al escribir en `/trabajo` | la carpeta del proyecto es de otro usuario (por ejemplo, creada con `sudo`) o tu UID no es 1000 | §11.5 |
+| `failed to solve: … failed to resolve source metadata for docker.io/library/ubuntu:26.04@sha256:…: failed to do request: Head "https://registry-1.docker.io/…": Forbidden` (o tiempo agotado) | Docker Hub bloqueado o red con proxy | §12.3 |
+| la construcción se corta en `apt-get`, `pip`, `npm` o `playwright install` con errores de certificado o de conexión | proxy corporativo con inspección TLS | §12.3 |
+| `no space left on device` | disco lleno | §12.4 |
+| `Permission denied` al escribir en `/trabajo` | la carpeta del proyecto es de otro usuario (por ejemplo, creada con `sudo`) o tu UID no es 1000 | §12.5 |
 | `Read-only file system` al instalar algo con `pip` o `npm -g` dentro del contenedor | es intencional: la raíz del contenedor es de solo lectura | no se instala nada dentro; las herramientas vienen en la imagen ([DOCKER §11](DOCKER.md#11-solución-de-problemas)) |
-| el proceso termina con `Killed` o código `137` | memoria insuficiente | §11.6 |
-| `mmdc` o las capturas: `Failed to launch the browser process` | memoria compartida o límite de procesos | §11.7 |
-| dentro del contenedor, `npx` (BMAD) o Claude Code fallan con `SELF_SIGNED_CERT_IN_CHAIN`, `self-signed certificate in certificate chain` o `unable to get local issuer certificate` (Claude Code: `Unable to connect to Anthropic services` · `Failed to connect to api.anthropic.com: SELF_SIGNED_CERT_IN_CHAIN`) | la red inspecciona HTTPS con un certificado propio | §11.3, punto 3 |
-| Claude Code dentro del contenedor: `Failed to connect to platform.claude.com: ENOTFOUND` (u otro dominio de Anthropic) | la red o su DNS no deja llegar a ese dominio | pedir a TI que lo habilite (lista en §11.3, punto 3) |
+| el proceso termina con `Killed` o código `137` | memoria insuficiente | §12.6 |
+| `mmdc` o las capturas: `Failed to launch the browser process` | memoria compartida o límite de procesos | §12.7 |
+| dentro del contenedor, `npx` (BMAD) o Claude Code fallan con `SELF_SIGNED_CERT_IN_CHAIN`, `self-signed certificate in certificate chain` o `unable to get local issuer certificate` (Claude Code: `Unable to connect to Anthropic services` · `Failed to connect to api.anthropic.com: SELF_SIGNED_CERT_IN_CHAIN`) | la red inspecciona HTTPS con un certificado propio | §12.3, punto 3 |
+| Claude Code dentro del contenedor: `Failed to connect to platform.claude.com: ENOTFOUND` (u otro dominio de Anthropic) | la red o su DNS no deja llegar a ese dominio | pedir a TI que lo habilite (lista en §12.3, punto 3) |
 | `claude` pide iniciar sesión en cada ejecución | no se está usando el volumen `pm-method_claude-config` (por ejemplo, con `docker run` en lugar de Compose) | usar los comandos de esta guía; con `docker run`, agregar `-v pm-method_claude-config:/home/pm/.claude` |
 | el contenedor muestra los archivos de otra carpeta | `PROYECTO` sin definir y el comando se ejecutó desde otra carpeta | salir y repetir con `PROYECTO=…` (§7.1) |
 | todo anda muy lento | proyecto en `/mnt/c/…` | mover el proyecto a `~` (§1.4) |
 | `bad interpreter: /bin/sh^M` | el repositorio se descomprimió o editó con herramientas de Windows | volver a obtenerlo desde Ubuntu (§4) y reconstruir |
+| pm-kb: `up` no encuentra los archivos de `docker/kb-secretos/`, o `pm-kb-db` termina con `pm-kb-db: falta el secreto /run/secrets/…` | no se prepararon las contraseñas | `bash docker/kb-preparar.sh` (§8.2) y repetir `up` |
+| pm-kb: `pm-kb-db` no queda sano y `pm-kb` no arranca | la base no pudo iniciar | `docker compose -f docker/compose.yaml --profile kb logs pm-kb-db` ([DOCKER §11](DOCKER.md#11-solución-de-problemas)) |
+| pm-kb: el puerto `8765` ya está en uso al hacer `up` | otro `pm-kb servir` u otro programa escucha en `127.0.0.1:8765` | cerrarlo; o cambiar el primer `8765` de `ports` del servicio `pm-kb` en `compose.yaml` |
+| pm-kb: `indexar` dice `no existe la carpeta /proyectos/…` | `PROYECTOS` no apunta a la carpeta que contiene ese proyecto | repetir `up -d pm-kb` con `PROYECTOS=…` (§8.4) |
 
-### 11.3 Red corporativa: proxy y certificados
+### 12.3 Red corporativa: proxy y certificados
 
 Hay **tres** niveles, y cada uno se configura aparte:
 
@@ -720,17 +860,17 @@ Hay **tres** niveles, y cada uno se configura aparte:
      ```
 
      El último comando debe mostrar las tres variables. Si el proxy inspecciona HTTPS, instalá además su certificado en
-     Ubuntu (punto 1 del bloque de [INSTALACION-WSL2 §9.2](INSTALACION-WSL2.md#92-red-corporativa-proxy-y-certificados))
+     Ubuntu (punto 1 del bloque de [INSTALACION-WSL2 §10.2](INSTALACION-WSL2.md#102-red-corporativa-proxy-y-certificados))
      y reiniciá Docker (`sudo systemctl restart docker`) **[verificar]** en tu red. Si el proxy pide usuario y
      contraseña, no los escribas en ese archivo: pedile a TI una alternativa.
 2. **La construcción de la imagen** (lo que descargan `apt`, `pip`, `npm`, Playwright y git dentro de las etapas): el
    proxy se pasa como argumento de construcción y el certificado de la CA del proxy como **secreto**, que se usa solo
    durante la construcción y no queda en ninguna capa de la imagen. `docker compose build` no tiene opción para
-   secretos, así que se construye con `docker build` (mismo resultado: la imagen `pm-method:2.5.0` que usa Compose):
+   secretos, así que se construye con `docker build` (mismo resultado: la imagen `pm-method:2.6.0` que usa Compose):
 
    ```bash
    cd ~/pm-method
-   docker build -f docker/Dockerfile -t pm-method:2.5.0 \
+   docker build -f docker/Dockerfile -t pm-method:2.6.0 \
      --secret id=ca_proxy,src=<ruta al certificado .crt o .pem de la CA del proxy> \
      --build-arg HTTPS_PROXY=<url-del-proxy> --build-arg https_proxy=<url-del-proxy> \
      --build-arg NO_PROXY=localhost,127.0.0.1 --build-arg no_proxy=localhost,127.0.0.1 .
@@ -740,12 +880,12 @@ Hay **tres** niveles, y cada uno se configura aparte:
    línea `--secret`. Si además está bloqueado Docker Hub o la descarga del navegador de Playwright, ver [DOCKER
    §8](DOCKER.md#8-construir-detrás-de-un-proxy-o-sin-acceso-a-algún-registro) y
    [§11.1](DOCKER.md#111-construir-sin-acceso-a-los-registros-de-contenedores-ni-a-la-cdn-de-playwright) (así se
-   construyó la imagen verificada en §13). **Nunca** desactives la verificación de certificados (`--insecure`,
+   construyó la imagen verificada en §14). **Nunca** desactives la verificación de certificados (`--insecure`,
    `GIT_SSL_NO_VERIFY`, `NODE_TLS_REJECT_UNAUTHORIZED=0`): el certificado de la CA alcanza.
 3. **El uso** (Claude Code hacia `api.anthropic.com` y `npx` hacia `registry.npmjs.org`, dentro del contenedor): el
    servicio `pm` usa la red de Docker y la imagen no trae certificados de tu organización. Si la red inspecciona HTTPS,
    instalá antes el certificado en Ubuntu (punto 1 del bloque de [INSTALACION-WSL2
-   §9.2](INSTALACION-WSL2.md#92-red-corporativa-proxy-y-certificados)) y abrí el contenedor prestándole, de solo lectura,
+   §10.2](INSTALACION-WSL2.md#102-red-corporativa-proxy-y-certificados)) y abrí el contenedor prestándole, de solo lectura,
    el almacén de certificados de Ubuntu (Node.js, y con él Claude Code y `npx`, confía en lo que indique
    `NODE_EXTRA_CA_CERTS`):
 
@@ -760,7 +900,7 @@ Hay **tres** niveles, y cada uno se configura aparte:
    `github.com` (construcción) y `api.anthropic.com`, `platform.claude.com` (Claude Code 2.1.304 lo consulta al
    iniciar), `claude.ai` (uso).
 
-### 11.4 Disco
+### 12.4 Disco
 
 ```bash
 docker system df
@@ -773,9 +913,9 @@ caché de construcción (hasta ≈ 3 GB; la próxima construcción tardará más
 etiqueta; los dos preguntan antes de borrar. **No** uses `docker volume prune` si querés conservar el inicio de sesión de Claude Code. Con
 Docker Desktop, el disco de Docker está en `C:\Users\<tu-usuario>\AppData\Local\Docker\wsl` y no se achica solo al
 borrar **[verificar]**; con la opción 2, está dentro del disco de Ubuntu (ver [INSTALACION-WSL2
-§9.8](INSTALACION-WSL2.md#98-espacio-en-disco)).
+§10.8](INSTALACION-WSL2.md#108-espacio-en-disco)).
 
-### 11.5 Permisos y UID
+### 12.5 Permisos y UID
 
 El usuario del contenedor (`pm`) tiene el UID 1000, que es el del primer usuario que se crea en Ubuntu. Comprobalo:
 
@@ -791,7 +931,7 @@ id -u
   **[verificar]**: en el entorno de prueba solo se probó el UID 1000 ([DOCKER §4](DOCKER.md#4-construir)).
 - Un proyecto en `/mnt/c/…` tiene permisos emulados por Windows: movelo a `~` (§1.4).
 
-### 11.6 Memoria
+### 12.6 Memoria
 
 El contenedor puede usar hasta 4 GB y 2 procesadores (`docker/compose.yaml`). Si un proceso termina con `Killed` o
 código `137`, o Windows se pone lento:
@@ -803,7 +943,7 @@ código `137`, o Windows se pone lento:
   de WSL para devolver memoria a Windows después de construir imágenes.
 - Con 8 GB de RAM, cerrá otras aplicaciones pesadas mientras corren la construcción o las pruebas.
 
-### 11.7 Chromium (diagramas y capturas)
+### 12.7 Chromium (diagramas y capturas)
 
 El contenedor trae el navegador sin interfaz de Playwright y lo usan `mmdc` (Mermaid) y las capturas. Prueba aislada:
 
@@ -812,19 +952,19 @@ cd ~/pm-method
 docker compose -f docker/compose.yaml run --rm pruebas python3 /opt/pm-method/scripts/validar_mermaid.py --render
 ```
 
-**Deberías ver** `OK · 128 bloques Mermaid · 0 error(es)`. Si falla con `Failed to launch the browser process`, subí
+**Deberías ver** `OK · 131 bloques Mermaid · 0 error(es)`. Si falla con `Failed to launch the browser process`, subí
 `shm_size` (memoria compartida, hoy `256m`) o `pids` (hoy `1024`) en `docker/compose.yaml`. El navegador corre sin su
 *sandbox* interno; el aislamiento lo da el contenedor ([DOCKER §7](DOCKER.md#7-seguridad-del-contenedor)). Si la
-construcción falla al descargarlo: §11.3.
+construcción falla al descargarlo: §12.3.
 
 ---
 
-## 12. Desinstalar
+## 13. Desinstalar
 
-### 12.1 Quitar pm-method y su imagen · [Ubuntu]
+### 13.1 Quitar pm-method y su imagen · [Ubuntu]
 
 ```bash
-docker image rm pm-method:2.5.0
+docker image rm pm-method:2.6.0
 docker volume rm pm-method_claude-config
 docker builder prune -f
 rm -rf ~/pm-method ~/pm-pruebas-docker
@@ -834,7 +974,11 @@ Quita la imagen, la sesión guardada de Claude Code, la caché de construcción,
 **Tus proyectos** (`~/proyectos/…`) no se tocan: son Markdown, CSV y JSON legibles sin el paquete. Si creaste el atajo
 de §7.1, quitalo: `sed -i '/alias pm-docker=/d' ~/.bashrc`.
 
-### 12.2 Docker Desktop · [Windows]
+Si usaste pm-kb (§8), antes de borrar el clon: `docker compose -f ~/pm-method/docker/compose.yaml --profile kb down`,
+`docker image rm pm-kb-db:2.6.0` y `docker volume rm pm-method_pm-kb-datos` (el índice; las contraseñas de
+`docker/kb-secretos/` se van con el clon). Los dos últimos no se ejecutaron en la verificación **[verificar]**.
+
+### 13.2 Docker Desktop · [Windows]
 
 **Configuración** → **Aplicaciones** → **Aplicaciones instaladas** (o **Aplicaciones y características**) → **Docker
 Desktop** → **Desinstalar** **[verificar el rótulo en tu versión de Windows]**. Desinstalar Docker Desktop **borra todas
@@ -843,7 +987,7 @@ sus imágenes, contenedores y volúmenes**. Pueden quedar carpetas que se borran
 `C:\Users\<tu-usuario>\AppData\Roaming\Docker Desktop` y `C:\Users\<tu-usuario>\.docker` (y, en una instalación para
 todos los usuarios, `C:\ProgramData\Docker`, `C:\ProgramData\DockerDesktop` y `C:\Program Files\Docker`).
 
-### 12.3 Docker Engine · [Ubuntu]
+### 13.3 Docker Engine · [Ubuntu]
 
 Comandos de la documentación de Docker ("Uninstall Docker Engine"). Los dos `rm -rf` borran **todas** las imágenes,
 contenedores y volúmenes de Docker de esa Ubuntu (irreversible):
@@ -857,24 +1001,25 @@ sudo rm /etc/apt/keyrings/docker.asc
 sudo gpasswd -d $USER docker
 ```
 
-El último quita tu usuario del grupo `docker`. Si configuraste un proxy para Docker (§11.3):
+El último quita tu usuario del grupo `docker`. Si configuraste un proxy para Docker (§12.3):
 `sudo rm -r /etc/systemd/system/docker.service.d`. **[verificar]**: no ejecutados en el entorno de prueba.
 
 ---
 
-## 13. Qué se verificó y qué queda por comprobar
+## 14. Qué se verificó y qué queda por comprobar
 
 Verificación del 2026-10-27 en Linux x86_64 con **Docker Engine 29.8.2 y Compose 5.5.1** (el mismo motor que instala
 la opción 2), con la imagen construida como en [DOCKER
 §11.1](DOCKER.md#111-construir-sin-acceso-a-los-registros-de-contenedores-ni-a-la-cdn-de-playwright), porque la red de
 prueba bloquea Docker Hub y la descarga de Playwright, e inspecciona HTTPS con un certificado propio. Los bloques de
-comandos de [Ubuntu] y [Contenedor] de §3.1, §3.5 y §4 a §10, los de §11.3 (construcción con proxy y certificado, y
-contenedor con el certificado), §11.4, §11.5 y §11.7, el de §12.1 y el del camino Docker del README se extrajeron de
+comandos de [Ubuntu] y [Contenedor] de §3.1, §3.5, §4 a §7 y §9 a §11, los de §12.3 (construcción con proxy y certificado, y
+contenedor con el certificado), §12.4, §12.5 y §12.7, el de §13.1 y el del camino Docker del README se extrajeron de
 este documento con un script y se ejecutaron tal cual, en orden, como un usuario sin privilegios con UID 1000 (antes de
 §3.5, fuera del grupo `docker`); los comandos de [Contenedor] se escribieron en la terminal del contenedor abierta con
 el comando de la guía. Solo se reemplazaron los marcadores `<…>` y la ruta de Windows del ZIP. Los pasos que dependen
-de la imagen (§5 comprobación, §6.1, §6.3, los comandos de §7.1 a §7.3 en el contenedor, §11.4 y §11.7) se repitieron el
-mismo día con la imagen `pm-method:2.5.0`; el resto, con la imagen anterior, construida con el mismo `Dockerfile`.
+de la imagen (§5 comprobación, §6.1, §6.3, los comandos de §7.1 a §7.3 en el contenedor, §12.4 y §12.7) se repitieron el
+mismo día con la imagen `pm-method:2.5.0`; el resto, con la imagen anterior, construida con el mismo `Dockerfile`. Con la
+imagen `pm-method:2.6.0` se repitieron el 2026-10-29 la comprobación de §5, §6.1, §6.2 y §12.7 (filas de abajo).
 Resultados de la imagen: [DOCKER §10](DOCKER.md#10-verificación-registrada).
 
 **Resultado: todos los pasos como se esperaba**, salvo los que dependen de sitios bloqueados en la red de prueba
@@ -882,44 +1027,63 @@ Resultados de la imagen: [DOCKER §10](DOCKER.md#10-verificación-registrada).
 
 | Paso | Resultado |
 |---|---|
-| §11.1 antes de §3.5 | `permission denied while trying to connect to the docker API at unix:///var/run/docker.sock` |
+| §12.1 antes de §3.5 | `permission denied while trying to connect to the docker API at unix:///var/run/docker.sock` |
 | §3.1 systemd | no aplicable en el entorno de prueba (no es WSL) **[verificar]** |
 | §3.5 grupo y comprobación | `groupadd --force` y `usermod` sin errores; en una sesión nueva, `id -nG` incluye `docker`; `Client:` y `Server: Docker Engine - Community` 29.8.2; `Docker Compose version v5.5.1`; `hello-world` no se pudo descargar (Docker Hub bloqueado) **[verificar]** |
 | §4.1 clon desde GitHub | `"version": "2.4.0",` |
 | §4.2 ZIP | `unzip` y `mv` con un ZIP de la misma estructura (`pm-method-main/`) armado del clon con `git archive`; la descarga desde GitHub estaba bloqueada **[verificar]** |
-| §5 `docker compose … build pm` | llega a resolver la imagen base y se detiene con `failed to resolve source metadata for docker.io/library/ubuntu:26.04@sha256:…: … Forbidden` (Docker Hub bloqueado), el síntoma de §11.2 **[verificar]** con acceso a Docker Hub |
-| §5 comprobación | `pm-method:2.5.0`, 2,99 GB (752 MB de contenido); `2.1.304 (Claude Code)` |
-| §6.1 prueba rápida | `Skills: 39 (33 invocables por el modelo, listado 6957 caracteres) · Agentes: 6` y `OK` (4 s) |
-| §6.2 y §6.3 batería completa | `Resultado: todas las pruebas OK` (15 min con `pm-method:2.5.0`; 13 min cada una de las dos corridas con la imagen anterior); en `~/pm-pruebas-docker`, los 10 registros, `integracion.json` y las carpetas `guias`, `webinar` y `webinar-documentos` |
+| §5 `docker compose … build pm` | llega a resolver la imagen base y se detiene con `failed to resolve source metadata for docker.io/library/ubuntu:26.04@sha256:…: … Forbidden` (Docker Hub bloqueado), el síntoma de §12.2 **[verificar]** con acceso a Docker Hub |
+| §5 comprobación | `pm-method:2.6.0`, 3,31 GB (836 MB de contenido); `2.1.304 (Claude Code)` |
+| §6.1 prueba rápida | `Skills: 39 (33 invocables por el modelo, listado 6966 caracteres) · Agentes: 6` y `OK` (2 s) |
+| §6.2 batería completa | `Resultado: todas las pruebas OK` (≈ 25 min con `pm-method:2.6.0`) |
+| §6.3 conservar la evidencia | con `pm-method:2.5.0`: `Resultado: todas las pruebas OK`; en `~/pm-pruebas-docker`, los 10 registros, `integracion.json` y las carpetas `guias`, `webinar` y `webinar-documentos` |
 | §7.1 contenedor, `pwd`, `id`, atajo `pm-docker` | `/trabajo`, `uid=1000(pm) gid=1000(pm) groups=1000(pm)`, `/opt/pm-method`; el atajo monta la carpeta actual |
 | §7.2 proyecto con scripts | `Proyecto creado en gestion · …`, `Fase: pre-proyecto · Proceso: SU …`, `0 ERROR · 0 AVISO · 1 INFO`; en Ubuntu, la carpeta `gestion` y `estado.json` con el usuario de Ubuntu como dueño |
 | §7.3 sin red | solo la interfaz `lo` |
-| §8.1 antes del inicio de sesión | `"loggedIn": false`, `"configDirectory": "/home/pm/.claude"`; `docker volume ls` muestra `pm-method_claude-config` |
-| §8.1 clave de API solo en memoria | con un valor ficticio: la variable llega al contenedor y el valor no aparece en ningún archivo de la carpeta personal ni del volumen |
-| §8.2 primera sesión | en la red de prueba, `claude --plugin-dir /opt/pm-method` muestra `Unable to connect to Anthropic services` · `Failed to connect to api.anthropic.com: SELF_SIGNED_CERT_IN_CHAIN`; abierto como en §11.3, punto 3, el error de certificado desaparece y queda `Failed to connect to platform.claude.com: ENOTFOUND` (dominio no habilitado en la red de prueba) **[verificar]** con acceso a Anthropic |
-| §8.2 prueba de humo sin credenciales | `Not logged in · Please run /login` |
-| §9 BMAD | en la red de prueba, `npx` termina con `SELF_SIGNED_CERT_IN_CHAIN`; con el contenedor abierto como en §11.3, punto 3: `_bmad/`, `_bmad-output/`, `.claude/`; `detectar` → `v6`, `6.12.4`, `soportada`. `git config` deja la identidad en el repositorio del proyecto |
-| §10 actualizar | `Already up to date.`; la construcción se detiene en la imagen base como en §5; `Resultado: todas las pruebas OK`; `docker image prune -f` → `Total reclaimed space: 0B` |
-| §11.3 construcción con proxy y certificado | `docker build` acepta el secreto y los argumentos y se detiene en la imagen base, como en §5 |
-| §11.4 disco | `docker system df`: imagen 2,995 GB y caché de construcción 7 GB, de la que 2,9 GB se pueden borrar; `docker builder prune` y `docker image prune` preguntan `[y/N]` (se respondió `N`; en §12.1, `docker builder prune -f` liberó 2,9 GB) |
-| §11.5 permisos y UID | `id -u` → `1000`; la construcción con `--build-arg UID … GID …` se detiene en la imagen base, como en §5 |
-| §11.7 Chromium | `OK · 128 bloques Mermaid · 0 error(es)` (113 s) |
+| §9.1 antes del inicio de sesión | `"loggedIn": false`, `"configDirectory": "/home/pm/.claude"`; `docker volume ls` muestra `pm-method_claude-config` |
+| §9.1 clave de API solo en memoria | con un valor ficticio: la variable llega al contenedor y el valor no aparece en ningún archivo de la carpeta personal ni del volumen |
+| §9.2 primera sesión | en la red de prueba, `claude --plugin-dir /opt/pm-method` muestra `Unable to connect to Anthropic services` · `Failed to connect to api.anthropic.com: SELF_SIGNED_CERT_IN_CHAIN`; abierto como en §12.3, punto 3, el error de certificado desaparece y queda `Failed to connect to platform.claude.com: ENOTFOUND` (dominio no habilitado en la red de prueba) **[verificar]** con acceso a Anthropic |
+| §9.2 prueba de humo sin credenciales | `Not logged in · Please run /login` |
+| §10 BMAD | en la red de prueba, `npx` termina con `SELF_SIGNED_CERT_IN_CHAIN`; con el contenedor abierto como en §12.3, punto 3: `_bmad/`, `_bmad-output/`, `.claude/`; `detectar` → `v6`, `6.12.4`, `soportada`. `git config` deja la identidad en el repositorio del proyecto |
+| §11 actualizar | `Already up to date.`; la construcción se detiene en la imagen base como en §5; `Resultado: todas las pruebas OK`; `docker image prune -f` → `Total reclaimed space: 0B` |
+| §12.3 construcción con proxy y certificado | `docker build` acepta el secreto y los argumentos y se detiene en la imagen base, como en §5 |
+| §12.4 disco | `docker system df`: imagen 2,995 GB y caché de construcción 7 GB, de la que 2,9 GB se pueden borrar; `docker builder prune` y `docker image prune` preguntan `[y/N]` (se respondió `N`; en §13.1, `docker builder prune -f` liberó 2,9 GB) |
+| §12.5 permisos y UID | `id -u` → `1000`; la construcción con `--build-arg UID … GID …` se detiene en la imagen base, como en §5 |
+| §12.7 Chromium | `OK · 131 bloques Mermaid · 0 error(es)` (183 s, `pm-method:2.6.0`) |
 | README, camino Docker | el contenedor sobre `PROYECTO` y `claude` en `/opt/node-tools/node_modules/.bin/claude` |
-| §12.1 desinstalar | imagen, volumen, caché, clon, evidencia y atajo quitados; `~/proyectos` intacto |
+| §13.1 desinstalar | imagen, volumen, caché, clon, evidencia y atajo quitados; `~/proyectos` intacto |
+
+**pm-kb (§8)**, verificación del 2026-10-28 en el mismo tipo de entorno (Linux x86_64, Docker Engine), con las
+imágenes `pm-kb-db:2.6.0` y `pm-method:2.6.0` construidas sobre la base local de [DOCKER
+§11.1](DOCKER.md#111-construir-sin-acceso-a-los-registros-de-contenedores-ni-a-la-cdn-de-playwright) y el proyecto
+del caso E2E-1 en `PROYECTOS`:
+
+| Paso | Resultado |
+|---|---|
+| §8.2 `kb-preparar.sh` | los dos secretos creados; en la segunda ejecución, `existe: … (no se modifica)` |
+| §8.3 construcción | `pm-kb-db:2.6.0` (409 MB) con PostgreSQL 18.6, pgvector 0.8.1 y `tini` de Ubuntu 26.04 |
+| §8.4 `up -d pm-kb` y `ps` | `pm-kb-db` sano antes de arrancar `pm-kb`; los dos `(healthy)`, `127.0.0.1:8765->8765/tcp`; en el registro de `pm-kb`, `escuchando en 0.0.0.0:8765; ingresar con un token personal` |
+| §8.5 `verificar`, `indexar`, `token crear` | 14 `OK` y `verificación completa sin fallos`; `portal-socios indexado · 448 unidades (403 vigentes) · 65 documentos (1 con varias versiones) · 511 relaciones · 95 entradas de historia`; el token de "Ana (gestora)" |
+| §8.6 web | ingreso con el token en `http://127.0.0.1:8765`; `/salud` → `ok` |
+| §8.7 desde el contenedor `pm` | `http://pm-kb:8765/salud` responde y `pm-kb-db` no se resuelve (red interna); MCP en `http://pm-kb:8765/mcp` con `Authorization: Bearer <token>` |
+| §8.8 contraseñas y apagar | secreto del lector sobrescrito, `restart` y `verificar` sin fallos; `down` quita contenedores y redes y conserva `pm-method_pm-kb-datos`; con otro nombre de proyecto de Compose, `down -v` quitó el volumen del índice y el de `claude-config` |
+| servicio `pm-kb` | usuario `uid=1000(pm)`; `/proyectos` de solo lectura (`Read-only file system`); `pm-kb db estado` responde que no corresponde con Docker |
 
 **Queda por comprobar en tu equipo [verificar]** (cada paso dice cómo): todo lo de Windows (§1, §2, los rótulos de
 Docker Desktop, la licencia que corresponde a tu organización y la integración con Ubuntu), la instalación de Docker
 Engine dentro de Ubuntu (§3.2 a §3.4, con `download.docker.com` bloqueado en la red de prueba) y systemd en WSL (§3.1),
 `hello-world` (§2.4 y §3.5), la descarga del ZIP (§4.2), `docker compose … build pm` con acceso a Docker Hub (§5), el
-inicio de sesión y la primera conversación con una cuenta (§8), el proxy del motor de Docker y el uso con un proxy
-obligatorio (§11.3), otro UID (§11.5) y las desinstalaciones de Docker (§12.2 y §12.3).
+inicio de sesión y la primera conversación con una cuenta (§9), el proxy del motor de Docker y el uso con un proxy
+obligatorio (§12.3), otro UID (§12.5) y las desinstalaciones de Docker (§13.2 y §13.3); de pm-kb, la web y el MCP
+desde Windows o desde Ubuntu fuera del contenedor (§8.6 y §8.7), "Preguntar" con un modelo (§8.7) y el borrado de su
+imagen y su volumen (§13.1).
 
 ---
 
-## 14. Seguridad
+## 15. Seguridad
 
 - **Credenciales solo en su lugar**: el inicio de sesión de Claude Code en el volumen `pm-method_claude-config`; una
-  clave de API, en la memoria de la terminal (§8.1). Nunca en la imagen (`--build-arg`, `ENV`), en `compose.yaml`, en un
+  clave de API, en la memoria de la terminal (§9.1). Nunca en la imagen (`--build-arg`, `ENV`), en `compose.yaml`, en un
   `.env`, en la carpeta del proyecto, en el repositorio ni en commits. Si una clave se expuso, revocala en su consola y
   creá otra.
 - **Montá solo la carpeta del proyecto.** No montes `~`, `~/.ssh`, `~/.aws`, `~/.config/gcloud` ni el disco de
@@ -927,6 +1091,9 @@ obligatorio (§11.3), otro UID (§11.5) y las desinstalaciones de Docker (§12.2
 - El contenedor corre sin privilegios, con la raíz de solo lectura, sin capacidades de Linux y con límites de memoria,
   procesadores y procesos; las pruebas corren sin red. Detalle y opciones (sin red, `--dangerously-skip-permissions`):
   [DOCKER §7](DOCKER.md#7-seguridad-del-contenedor).
+- **pm-kb** (§8): su base está en un contenedor sin salida a internet ni puertos, y sus contraseñas solo en
+  `docker/kb-secretos/` (no las copies ni las subas a git); cada persona entra con su propio token, que se muestra una
+  sola vez. Modelo de amenazas y controles: [SEGURIDAD §14](SEGURIDAD.md#14-pm-kb-índice-de-conocimiento-2026-10-28).
 - El grupo `docker` (opción 2) y el acceso a Docker Desktop equivalen a privilegios de administrador sobre la máquina:
   no ejecutes imágenes ni `docker compose` de origen desconocido.
 - Revisá cualquier skill, plugin o servidor MCP externo antes de instalarlo: corre con los permisos del agente dentro del

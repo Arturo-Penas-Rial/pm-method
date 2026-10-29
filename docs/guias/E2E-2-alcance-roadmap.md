@@ -5,7 +5,9 @@ programa, se prioriza contra la capacidad del equipo y contra las personas de us
 línea base con tolerancias, una autoridad de cambio con presupuesto propio y un business case con su VAN. Después, cómo
 se gestionan tres tipos de cambio: el **intercambio** que decide el product owner, el **cambio de alcance** que decide
 la autoridad de cambio dentro de su límite y el cambio que **excede la autoridad delegada**, que se gestiona por
-excepción. Cada cambio pasa antes por un **análisis de impacto** que dice quién tiene que decidirlo.
+excepción. Cada cambio pasa antes por un **análisis de impacto** que dice quién tiene que decidirlo, y las dos
+decisiones con alternativas (qué épica va en el primer release y qué hacer con el cambio que excede la autoridad) se
+toman con su **contexto citado, pesos explícitos y la sensibilidad de esos pesos**.
 
 **Skills y agentes:** pm-orquestador · pm-planificacion → `pm-planificacion-por-productos`,
 `pm-cronograma-estimacion`, `pm-costos-presupuesto`, `pm-agil-hibrido`, `pm-enfoques-gestion`, `pm-plan-etapa-y-limites`
@@ -34,6 +36,11 @@ llevaría el presupuesto de cambio al 200 %, saca la etapa de su tolerancia y re
 aprobación **no se puede registrar**, y el análisis de impacto de ese mismo día dice por qué: supera cinco límites, así
 que decide la junta y lo que corresponde es pedir un plan de excepción.
 
+Las decisiones con alternativas sufren lo mismo: se eligen en una reunión con pesos que nadie escribe, y a los tres
+meses nadie recuerda por qué ganó una opción ni cuál de dos decisiones parecidas sigue valiendo. Acá la consola de
+operador entra en el primer release aunque deja 1 punto de holgura, y queda escrito cuánto tendría que pesar la holgura
+para que ganara la otra alternativa: 31 en lugar de 25.
+
 ## Qué vas a lograr
 
 1. Un alcance por productos con criterios de calidad medibles, trazado a requisitos e historias, y una cobertura de
@@ -46,6 +53,9 @@ que decide la junta y lo que corresponde es pedir un plan de excepción.
    autoridad y VAN, con el borrador de la solicitud de cambio y **quién decide**.
 5. Una **excepción completa**: detectada el mismo día, informada, replanificada con el business case actualizado y
    autorizada por la junta.
+6. **Decisiones con contexto** (`decision.py`): expediente con cada dato citado, matriz con pesos y puntajes con su
+   fuente, eliminatorios, dominadas y sensibilidad, pregunta cerrada para la junta y la elección registrada junto con
+   la hoja; y la lista de decisiones vigentes con su cadena de reemplazos.
 
 ## Indicadores que vas a ver
 
@@ -69,8 +79,8 @@ C-001 suma 6.163 de VAN y C-002 resta 15.000; con los dos, el VAN sigue en 30.93
 
 | Clase (90 min) | Pasos | Pregunta que responde |
 |---|---|---|
-| **1 · Del alcance a la línea base** | 1 a 5: alcance por productos, trazabilidad, tres valores y camino crítico, MoSCoW, capacidad del release y personas de usuario, presupuesto, business case, tolerancias y autoridad de cambio | ¿Contra qué vamos a medir cada cambio? |
-| **2 · El cambio bajo control** | 6 a 10: intercambio del PO, cambio con análisis de impacto, nuevas líneas base y trazabilidad, EVM guardado, excepción | ¿Quién decide cada cambio y cómo nos enteramos a tiempo? |
+| **1 · Del alcance a la línea base** | 1 a 5: alcance por productos, trazabilidad, tres valores y camino crítico, MoSCoW, capacidad del release y personas de usuario, presupuesto, business case, tolerancias y autoridad de cambio, decisión del R1 con matriz | ¿Contra qué vamos a medir cada cambio? |
+| **2 · El cambio bajo control** | 6 a 10: intercambio del PO, cambio con análisis de impacto, nuevas líneas base y trazabilidad, EVM guardado, excepción con la matriz de la junta | ¿Quién decide cada cambio y cómo nos enteramos a tiempo? |
 
 Son dos clases porque la segunda solo tiene sentido con la línea base de la primera: sin presupuesto de cambio, límite
 delegado, tolerancias y VAN registrados, no hay contra qué medir el impacto. El guion las detalla minuto a minuto.
@@ -85,6 +95,8 @@ delegado, tolerancias y VAN registrados, no hay contra qué medir el impacto. El
 | Capacidad del release | Una suma de puntos en una planilla, al planificar | `release.py capacidad` por MoSCoW contra velocidad × iteraciones en cada replanificación; la misma regla mide cada cambio en `impacto.py` (pasos 4, 7 y 10) | R1: 47 de 48 con 88 % de Must (vigilar) |
 | Detectar cambios en la especificación | Se descubren en la demo o en la UAT | `bmad.py verificar` contra la línea base en cada sincronización · ESP-10 | FR-13 detectado como desvío (paso 7) |
 | Análisis de impacto de un cambio | A ojo, o nunca si "es obligatorio" | `impacto.py analizar` antes de cada decisión: escenario de `cpm.py`, capacidad, presupuesto, autoridad, VAN, borrador de la solicitud y nivel que decide (pasos 7 y 10) | C-001: decide la autoridad de cambio · C-002: decide la junta |
+| Elegir entre alternativas | En una reunión, con pesos implícitos y sin dejar por qué | Expediente citado y matriz con pesos, eliminatorios y sensibilidad en cada decisión con alternativas; las cifras de `release.py` e `impacto.py` entran sin recalcular y la elección queda en `decisiones.csv` con la hoja (pasos 5 y 10) · DEC-01, DEC-02 | R1: A 56,2 contra B 47,5 (la B gana si la capacidad pesa 31) · C-002: rechazar eliminada, plan de excepción 30,0 |
+| Saber qué decisión vale hoy | Se busca en actas; la versión vieja y la nueva conviven sin marca | `decision.py vigentes` con la cadena de reemplazos y búsqueda en español e inglés; la línea base nueva reemplaza sola a la anterior (pasos 8 y 10) · DEC-05, DEC-06 | D-005 → D-011 y D-006 → D-012 · presupuesto de cambio: D-002 y D-015 vigentes |
 | Justificación del negocio | El VAN se calcula una vez, para aprobar el proyecto | VAN antes y después de cada cambio con `inversion.py`; la junta lo revisa en la puerta del plan de excepción (pasos 5, 7 y 10) | VAN 39.776 → 45.939 → 30.939 |
 | Consumo del presupuesto de cambio | Nadie lo suma hasta el cierre de la etapa | Al registrar cada aprobación (`registro.py` no la acepta sin saldo) y en cada corrida de sanidad · CAM-03: INFO < 80 %, AVISO ≥ 80 %, ERROR > 100 % | 75 % → 75 % (con C-002 sería 200 %) → 75 % |
 | Respetar la autoridad delegada | Se "aprueba lo razonable", sin tope escrito | Límite en `estado.json`: `registro.py` rechaza la aprobación de quien no tiene autoridad; CAM-04 vigila los datos anteriores al límite | C-002: 15.000 sobre un límite de 10.000, no registrado como aprobado |
@@ -103,13 +115,13 @@ flowchart TB
     subgraph c1["Clase 1 · del alcance a la línea base"]
         a["1 · Proyecto y<br/>enunciado de alcance"] --> b["2 · PBS, WBS, descripciones<br/>de producto y trazabilidad"]
         b --> c["3 · Tres valores, camino<br/>crítico y reserva"] --> d["4 · MoSCoW, capacidad del<br/>release y personas de usuario"]
-        d --> e["5 · Presupuesto, business case,<br/>tolerancias, autoridad y línea base"]
+        d --> e["5 · Presupuesto, business case, tolerancias,<br/>autoridad, decisión del R1 y línea base"]
     end
     subgraph c2["Clase 2 · el cambio bajo control"]
         f["6 · Intercambio del PO<br/>sin solicitud de cambio"] --> g["7 · Cambio de alcance:<br/>análisis de impacto y decisión"]
         g --> h["8 · BMAD aplica, líneas base<br/>y trazabilidad recalculada"]
         h --> i["9 · EVM ágil guardado<br/>y calidad de lo terminado"]
-        i --> j["10 · Excepción: análisis de impacto,<br/>informe, plan y puerta"]
+        i --> j["10 · Excepción: impacto, matriz<br/>de la junta, informe, plan y puerta"]
     end
     e --> f
 ```
@@ -322,20 +334,22 @@ Diego entra con el contacto verificado (FR-8) y recibe la confirmación por corr
 
 ![Capacidad de cada release por MoSCoW](img/g2-capacidad-release.png)
 El R1 entra, pero con 1 punto de holgura y 88 % de Must: casi no queda margen de Should o Could para absorber un
-cambio sin tocar un Must. Es lo que pasa en el paso 10.
+cambio sin tocar un Must. El paso 5 decide si se acepta ese costo y el paso 10 muestra lo que cuesta.
 
 **Dónde verificar:** `02-planificacion/backlog.csv` (abrilo en Excel) · `03-control/registros/personas.csv` · prompt:
 "Mostrame el backlog ordenado con MoSCoW, puntos y release, la capacidad de cada release y los Must de cada persona".
 
 ---
 
-## Paso 5 · Presupuesto, business case, tolerancias, autoridad de cambio, roadmap y línea base
+## Paso 5 · Presupuesto, business case, tolerancias, autoridad de cambio, decisión del R1, roadmap y línea base
 
 La **línea base** es la versión aprobada contra la que se mide todo cambio. La **tolerancia** (*tolerance*) es el
 desvío que cada nivel puede absorber sin escalar. La **autoridad de cambio** (*change authority*) decide cambios
 dentro de un **límite por cambio** y de un **presupuesto de cambio** (*change budget*) que fija la junta. El **business
 case** justifica la inversión; su **VAN** (valor actual neto, *net present value*) suma los flujos de cada año
-descontados a la tasa de la organización: si es positivo, el proyecto crea valor.
+descontados a la tasa de la organización: si es positivo, el proyecto crea valor. Una **matriz de decisión
+multicriterio** compara alternativas con pesos explícitos (puntaje = Σ peso × valor normalizado) y su **sensibilidad**
+dice cuánto habría que mover un peso para que gane otra.
 
 **Prompt**
 ```text
@@ -343,7 +357,9 @@ Calculá el presupuesto desde la WBS, armá el release plan y el roadmap por eta
 puertas de inicio, proyecto y etapa 2. Antes de la de proyecto: documentá las tolerancias y la autoridad delegada
 (Sofía decide cambios de hasta 10.000 cada uno, con un presupuesto de cambio de 12.000 que fija la junta), el enfoque
 de beneficios (B-01 a B-03, quién los mide y cuándo) y el business case con su VAN a 5 años. En la de proyecto fijá la
-línea base del PRD y de las épicas, y que Sofía apruebe el backlog como línea base.
+línea base del PRD y de las épicas, y que Sofía apruebe el backlog como línea base. Sofía pide que el R1 lleve las
+solicitudes del socio en lugar de la consola de operador: compará las dos alternativas con la capacidad de cada una y
+armame la matriz; decido yo.
 ```
 
 **Si te pregunta:**
@@ -360,6 +376,13 @@ línea base del PRD y de las épicas, y que Sofía apruebe el backlog como líne
 - Por las decisiones: "Laura Méndez, ejecutiva: apruebo las tolerancias, el presupuesto de cambio de 12.000 y el
   límite de 10.000 por cambio para la autoridad de cambio; aprobado, confirmo las listas de control" · "Sofía Ramírez,
   PO: apruebo el backlog v1.0".
+- Por la matriz del R1: los pesos de la plantilla (valor 35, dependencias 20, capacidad 25, riesgo 20), que Martín
+  Suárez y Sofía Ramírez confirman antes de puntuar. Los puntajes (1 a 5), cada uno con quien lo da: valor, Sofía (A 4:
+  B-01 desde el R1 con la operación lista; B 3: préstamos antes, pero B-03 recién con la consola); dependencias, Lucía
+  Benítez (A 1; B 5: la 2.1 y la 2.2 esperan la bandeja y la resolución, 3.2 y 3.3, y la consola está en el camino
+  crítico); riesgo, Martín (A 3: holgura de 1 punto y Must al 88 %; B 4: sin bandeja, las solicitudes se transcriben a
+  mano, el dolor de Lucía, PU-003). La capacidad no se puntúa: es la holgura de `release.py`. La decisión: "Martín
+  Suárez, gestor: elijo A".
 
 **Qué hace el sistema:**
 - `pm-costos-presupuesto` calcula el BAC (presupuesto a la conclusión) con `wbs.py --json`: 124.000.
@@ -367,6 +390,19 @@ línea base del PRD y de las épicas, y que Sofía apruebe el backlog como líne
   0.1` (VAN, TIR, repago y sensibilidad de ±10 %, la tolerancia de los beneficios); redacta el business case y el
   `enfoque-beneficios.md`.
 - `pm-agil-hibrido` arma el release plan; `pm-visuales`, el roadmap por etapas (`02-planificacion/visuales/roadmap.md`).
+- **Decisión del R1** (`pm-direccion-decisiones`, 25/11, antes de la puerta de proyecto):
+  1. `pm-agil-hibrido` mide cada alternativa con `release.py capacidad --json` sobre el borrador del backlog: la B con
+     sus releases **R1-B** y **R2-B** (así la hoja no confunde su R1 con el de la A) en
+     `02-planificacion/escenarios/release-b.json`, y la A, con la que queda el borrador, en `release-a.json`.
+  2. `decision.py expediente --tipo planificacion --ids E-2,E-3,PU-002,PU-003 --importar … --corte 2026-11-25` reúne el
+     contexto aplicable, cada dato con su fuente: quién decide, tolerancias y presupuestos, líneas del business case,
+     personas afectadas y las salidas de `release.py`, sin recalcular.
+  3. `decision.py matriz release-1 --proponer --tipo planificacion … --importar …` crea la hoja
+     `03-control/decisiones/release-1/` con los criterios de la plantilla y copia las dos salidas; el modelo y las
+     personas completan `criterios.csv` y `opciones.csv` con la fuente de cada peso y de cada puntaje. `matriz
+     release-1 --markdown` valida, calcula y escribe `matriz.md`, el bloque para la solicitud de decisión.
+  4. `decision.py matriz release-1 --elegir O1 --por "Gestor: Martín Suárez" --fecha 2026-11-25` registra la decisión en
+     `decisiones.csv` con la hoja, los criterios y las opciones consideradas.
 - `pm-direccion-decisiones` redacta `00-direccion/tolerancias-y-autoridad.md` (siete objetivos con tolerancia y
   prioridad, autoridad de cambio, presupuesto de cambio y escalado).
 - `pm-director`: `estado.py tolerancia --nivel proyecto …`; `estado.py presupuesto cambio=12000
@@ -384,6 +420,19 @@ línea base del PRD y de las épicas, y que Sofía apruebe el backlog como líne
 - **No aparece P-04 "sin enfoque de beneficios"**, porque el enfoque quedó registrado.
 - "Línea base bmad-prd v1.0 registrada · sha bc048f7f59a3"; "bmad-epicas v1.0 · sha 3ff846d6f8d9"; "Copia congelada …
   00-direccion/historial/backlog-v1.0.csv"; fase `entrega`, etapa 2 "Release 1".
+- Capacidad de la alternativa B: "R1-B (S1, S2, S3, S4, S5, S6): entra todo (47 de 48; Must + Should 42, holgura 6)" y
+  "R2-B (S7, S8, S9): entra todo (21 de 24; Must + Should 21, holgura 3)", con los Must al 88 % de la capacidad del
+  R2-B: la B no saca el problema de los Must, lo pasa al segundo release.
+- Expediente: "Nivel que decide: `gestor` — Gestor del proyecto: Martín Suárez (dentro de las tolerancias de etapa)";
+  las tolerancias de proyecto; "cambio 0 de 12.000; límite de la autoridad de cambio 10.000 por cambio"; B-01 a B-03
+  con su archivo y línea; PU-002 y PU-003; y en §8 "R1: capacidad 48 · Must 42 · Should 5 · holgura 1" y "R1-B:
+  capacidad 48 · Must 29 · Should 13 · holgura 6".
+- Matriz: O1 recomendada (★) con 56,2 y O2 con 47,5, ninguna dominada; sensibilidad "capacidad 25,0: si baja: estable; si sube a 31,0
+  (+6,0) pasa O2" y "dependencias 20,0: si baja a 12,3 (-7,7) pasa O2"; valor y riesgo, estables. El aviso "ninguna
+  opción parece 'no hacer nada'" se lee y se descarta: sin release plan no hay línea base contra la cual medir.
+- "release-1: elegida O1 por Gestor: Martín Suárez · decisión D-003 (nivel gestor) · recomendada O1". No pide motivo:
+  la elegida es la recomendada y el menor movimiento de un peso que cambia la primera (6,0 puntos) supera el umbral
+  de 5.
 
 > **Por qué importa.** En la práctica la autoridad de cambio "aprueba lo razonable" sin un tope escrito, nadie lleva
 > la cuenta de cuánto se comprometió y el VAN se calcula una sola vez, para aprobar el proyecto. Con el límite y el
@@ -391,10 +440,22 @@ línea base del PRD y de las épicas, y que Sofía apruebe el backlog como líne
 > y sanidad compara los cambios aprobados contra ellos de forma continua (CAM-03 y CAM-04, pasos 7 y 10); con los
 > flujos en un CSV, cada cambio recalcula el VAN en segundos.
 
+![Matriz de la decisión del R1](img/g2-decision-release.png)
+La A gana por valor y dependencias aunque la B tiene 5 puntos más de holgura. Si la capacidad pesara 31 en lugar de
+25, ganaría la B: ese es el costo que se acepta al decidir, y el paso 10 lo cobra.
+
+> **Más desarrollo: una decisión que deja escrito su costo.** La matriz no elige por el gestor: ordena lo que cada
+> persona sabe (el valor lo da la PO, las dependencias el equipo, la holgura `release.py`) y muestra cuánto depende el
+> resultado de los pesos. Con los pesos confirmados antes de puntuar se evita la trampa de acomodarlos para que gane la
+> opción preferida (PMBOK 8, análisis de decisiones multicriterio), y la decisión queda en `decisiones.csv` con la hoja
+> que la explica. Sanidad la revisa (DEC-01, DEC-02): si alguien cambia la hoja después de decidir, avisa.
+
 **Dónde verificar:** `00-direccion/tolerancias-y-autoridad.md` · `00-direccion/business-case.md` y
 `00-direccion/flujos-business-case.csv` · `00-direccion/enfoque-beneficios.md` · `00-direccion/historial/` (copias
-congeladas) · `02-planificacion/release-plan.md` · `02-planificacion/visuales/roadmap.md` · `decisiones.csv` · prompt:
-"Mostrame el resumen del proyecto" (`estado.py resumen` lista los presupuestos).
+congeladas) · `02-planificacion/release-plan.md` · `02-planificacion/visuales/roadmap.md` ·
+`02-planificacion/escenarios/release-a.json` y `release-b.json` · `03-control/decisiones/release-1/` (`decision.json`,
+`criterios.csv`, `opciones.csv`, `matriz.md`) · `decisiones.csv` (D-003) · prompts: "Mostrame el resumen del proyecto"
+(`estado.py resumen` lista los presupuestos) y "¿Por qué el R1 lleva la consola y no las solicitudes?".
 
 ---
 
@@ -412,7 +473,7 @@ Cumplimiento pide adelantar la actualización de contacto. Sofía decide: la 2.3
 sin tocar Must, fecha ni costo) → `registro.py agregar decisiones --campo nivel=product-owner` (**no** hay solicitud
 de cambio) → `bmad.py handoff` (sin `--cambio`: prioridades para el sprint planning de BMAD).
 
-**Qué deberías ver:** **D-009**; "Traspaso emitido → …/handoff-bmad-<fecha>-prioridades.md". R1 queda con 47 puntos y R2
+**Qué deberías ver:** **D-010**; "Traspaso emitido → …/handoff-bmad-<fecha>-prioridades.md". R1 queda con 47 puntos y R2
 con 21.
 
 **Dónde verificar:** `decisiones.csv` · `02-planificacion/especificacion/handoff-bmad-<fecha>-prioridades.md`.
@@ -531,7 +592,8 @@ líneas base y actualizá el roadmap.
 
 **Qué hace el sistema:** `bmad.py requisitos` · `trazabilidad` · `backlog` · `pm-agil-hibrido` completa el gobierno de
 la 2.4 · recalcula la cobertura · `pm-visuales` actualiza el roadmap · `pm-director`: `bmad.py linea-base prd|epicas
---version 1.1` · C-001 `implementado` e I-001 `cerrado` · `bmad.py verificar` · `sanidad.py --rapido --corte 2027-01-25`.
+--version 1.1` · `decision.py vigentes --tema "línea base" --corte 2027-01-25` · C-001 `implementado` e I-001
+`cerrado` · `bmad.py verificar` · `sanidad.py --rapido --corte 2027-01-25`.
 
 **Qué deberías ver:**
 - "43 identificadores"; "backlog.csv: 1 nuevas, 10 actualizadas"; "bmad-prd v1.1 · sha 089472ba0219"; "bmad-epicas v1.1 ·
@@ -542,6 +604,9 @@ la 2.4 · recalcula la cobertura · `pm-visuales` actualiza el roadmap · `pm-di
   reconstruye solo) y **TOL-03** ("Etapa de entrega sin corte de EVM guardado: el pronóstico contra tolerancias no se
   vigila"), que se corrige en el paso 9.
 - R2 pasa a 29 puntos: se agrega el sprint 10 y la capacidad sube a 32. El roadmap cambia de fin 2027-05-05 a 2027-05-20.
+- Decisiones vigentes sobre la línea base: "D-011 · 2027-01-25 · línea base bmad-prd v1.1 … · cadena D-005 → D-011" y
+  "D-012 … · cadena D-006 → D-012". `bmad.py linea-base` marca el reemplazo (columna `reemplaza`), así que la versión
+  1.0 queda como historia y deja de aparecer en los expedientes y en las búsquedas.
 
 ![Cobertura de trazabilidad tras C-001](img/g2-trazabilidad.png)
 Tras el cambio, la cobertura sigue completa. La única barra en ámbar señala que BMAD traza 12 requisitos a nivel de
@@ -619,6 +684,8 @@ etapa 2, USD 15.000, sin beneficio propio. Sofía lo aprobó el 17/2 porque es o
 19/2 (PV 75.000, EV 60.000, AC 77.000, BAC 133.000, ágil, 20 % Should/Could), corré sanidad al 19/2 y analizá el
 impacto de C-002 (refuerza NFR-1 y NFR-5; para hacerle lugar en R1 saldría la 2.3) con su efecto en el business case:
 decime quién tiene que decidirlo. Si hay excepción, prepará el informe de excepción para la junta y registrá el issue.
+Medí también la opción de diferirlo al R2 y armá la matriz de decisión para la junta: rechazar, diferir o pedir plan de
+excepción.
 ```
 **Prompt 2 (22/2, junta)**
 ```text
@@ -634,7 +701,12 @@ Confirmo la lista de control.
 
 **Si te pregunta:** las decisiones de la junta están en los prompts 2 y 3 (Laura Méndez, ejecutiva). Si al cierre te
 pide revisar R-001: "Martín Suárez, gestor: sube a probabilidad 4 (SPI 0,80 al 19/2 y un sprint más en la etapa 2);
-próxima revisión el 19/3, al fin de la etapa".
+próxima revisión el 19/3, al fin de la etapa". Por la matriz de C-002, Martín Suárez usa los pesos de la plantilla de
+cambio (impacto 40, tolerancias 35, autoridad 25) con el impacto como eliminatorio: menos de 2 es incumplir un
+requisito obligatorio. Puntajes (impacto, tolerancias, autoridad), cada uno citando su análisis: rechazar 1, 5, 5 (sin
+consentimiento el portal no puede salir a producción); diferir 2, 1, 1 (el R1 no se abre a los socios sin
+consentimiento y B-01 se demora; 2 sprints más en el R2; 15.000 sobre el límite); plan de excepción 4, 1, 1 (cumple y
+el VAN sigue positivo; la etapa sale de su tolerancia; decide la junta).
 
 **Qué hace el sistema:**
 - **Con el prompt 1 (19/2):**
@@ -657,17 +729,27 @@ próxima revisión el 19/3, al fin de la etapa".
   5. `pm-progreso-reportes` redacta el **informe de excepción X-001** (plantilla `informe-excepcion.md`, con el impacto
      en el business case) y lo registra como `informe-excepcion-X-001`; `pm-issues-cambios` registra **I-003**
      `problema-preocupacion` (severidad crítica, `escalado`) e I-002 pasa a `escalado`.
+  6. **Matriz para la junta** (`pm-direccion-decisiones`): `pm-issues-cambios` repite el análisis para la opción
+     **diferir al R2** (`--puntos 13 --release R2 --salida 03-control/reportes/2027-02-19-solicitud-cambio-C-002-diferir.md`,
+     sin pisar el primer borrador) y guarda las dos salidas `--json` (`2027-02-19-impacto-C-002-r1.json` y `-r2.json`
+     en `03-control/reportes/`). `decision.py expediente --tipo cambio --ids C-002 --importar … --corte 2027-02-19`
+     toma de ellas quién decide; `decision.py matriz C-002 --proponer --tipo cambio …` crea la hoja
+     `03-control/decisiones/C-002/` y se completa con las tres opciones; `matriz C-002 --markdown` calcula;
+     `decision.py pregunta C-002` arma la pregunta cerrada para la junta, y la recomendación que propone el modelo se
+     comprueba con `pregunta C-002 --validar -` antes de llevarla al informe.
 - **Con el prompt 2 (22/2):**
-  6. `pm-director`: `estado.py puerta decision-ad-hoc --decision aprobado --por "Ejecutiva: Laura Méndez" --fecha
+  7. `pm-director`: `estado.py puerta decision-ad-hoc --decision aprobado --por "Ejecutiva: Laura Méndez" --fecha
      2027-02-22 --condiciones "X-001: la junta pide plan de excepción …"` y `estado.py limite-etapa --excepcion X-001`
      (la etapa pasa a SB, límite de etapa). La condición queda abierta y a la vista (EST-12 en sanidad, G-01 en la
-     próxima verificación) hasta que alguien la dé por cumplida.
-  7. `pm-plan-etapa-y-limites` redacta el **plan de excepción** (plantilla `plan-excepcion.md`) y lo registra como
+     próxima verificación) hasta que alguien la dé por cumplida. Como decidió la junta, `decision.py matriz C-002
+     --elegir O3 --por "Ejecutiva: Laura Méndez" --decision D-013 --fecha 2027-02-22` deja la matriz en la fila que
+     registró `pm-director`, sin crear otra.
+  8. `pm-plan-etapa-y-limites` redacta el **plan de excepción** (plantilla `plan-excepcion.md`) y lo registra como
      `plan-excepcion-X-001`; `pm-caso-de-negocio` actualiza el business case con el escenario de C-002; `pm-director`
      cierra la condición con `estado.py cumplir-condiciones decision-ad-hoc --fecha 2027-02-24 --por "Ejecutiva: Laura
      Méndez" --nota "…"`.
 - **Con el prompt 3 (26/2):**
-  8. `pm-director`: `puertas.py verificar autorizar-plan-excepcion` → bloqueada solo por la lista de control (L-01).
+  9. `pm-director`: `puertas.py verificar autorizar-plan-excepcion` → bloqueada solo por la lista de control (L-01).
      La junta decide: primero `estado.py presupuesto cambio=32000 --por "Ejecutiva: Laura Méndez"` (queda en
      `decisiones.csv`) y después C-002 `aprobado` con `decidido_por=Junta: Laura Méndez (ejecutiva) · plan de excepción
      X-001` y `cargo=presupuesto-cambio`, que ya tiene saldo (24.000 de 32.000). Sin la ampliación, `registro.py`
@@ -675,10 +757,11 @@ próxima revisión el 19/3, al fin de la etapa".
      presupuesto. Después: `verificar`, `puertas.py lista … --fecha 2027-02-26`, `confirmar … --fecha 2027-02-26` y
      `estado.py puerta autorizar-plan-excepcion --decision aprobado --por "Ejecutiva: Laura Méndez" --fecha 2027-02-26
      --fin 2027-03-19`.
-  9. I-003 `cerrado`, I-002 `pendiente-cambio`; `wbs.py` suma el paquete **3.5**; `bmad.py handoff --cambio C-002`;
+  10. I-003 `cerrado`, I-002 `pendiente-cambio`; `wbs.py` suma el paquete **3.5**; `bmad.py handoff --cambio C-002`;
      `sanidad.py --rapido --corte 2027-02-26` → **REG-09**; `pm-riesgos` revisa R-001 con su propietario
      (`registro.py actualizar riesgos R-001 --campo probabilidad=4 --campo fecha_revision=2027-03-19 …`); sanidad otra
-     vez; `estado.py resumen`; `registro.py listar cambios`.
+     vez; `estado.py resumen`; `registro.py listar cambios`; `decision.py vigentes --tema "change budget" --corte
+     2027-02-26`.
 
 **Qué deberías ver:**
 - EVM del 19/2: SPI 0,800 · CPI 0,779 · EAC 170.683 · `alcance_no_entregable_pct 22.078` · `semaforo_alcance rojo` ·
@@ -722,6 +805,26 @@ próxima revisión el 19/3, al fin de la etapa".
 Cada barra es cuánto del límite usaría C-002: 200 % del presupuesto de cambio, 150 % del límite de la autoridad de
 cambio, 143 % de la tolerancia de tiempo de la etapa, 115 % de la capacidad del R1 y 110 % del margen de Should/Could.
 
+- Análisis de diferir al R2: capacidad del R2 de 29 pts de 32 (4 sprints) a 42 pts, "6 sprints: +2 sprint (28 días
+  corridos)", con los mismos motivos de límite y presupuesto. Diferir no evita a la junta y corre la puesta en
+  producción 28 días corridos, cuando a la tolerancia de ±3 semanas del proyecto le quedan 4 días laborables (C-001 usó
+  11 de 15).
+- Expediente de C-002: "Nivel que decide: `junta`" con los cuatro motivos "según
+  03-control/reportes/2027-02-19-impacto-C-002-r1.json (impacto.py)"; C-002, I-002 e I-003 como registros
+  relacionados; el corte de EVM del 19/2 ("excepción prevista: sí") y las dos tablas de impacto, sin recalcular.
+- Matriz: O1 "eliminada: impacto 1 < 2 (eliminatorio)", O2 con 10,0 y "dominada por O3", O3 recomendada (★) con
+  30,0; los tres pesos, estables. Los puntajes son bajos porque ninguna opción entra en las tolerancias ni en la autoridad delegada: es una
+  excepción, y la matriz lo muestra.
+- Pregunta tipada: las respuestas posibles son "O2 | O3 | pedir-informacion" (la eliminada no figura). Una respuesta
+  "O1" no pasa ("Respuesta inválida: O1" y "O1 está eliminada (impacto 1 < 2 (eliminatorio))"); la "O3" con evidencia
+  del expediente sí ("Respuesta válida: O3"). Ninguna decide: son insumo para la junta.
+- "C-002: elegida O3 por Ejecutiva: Laura Méndez · decisión D-013 (nivel junta) · recomendada O3"; la fila D-013 suma
+  "opciones_consideradas: O1 eliminada · O2 10,0 · O3 30,0★" y la hoja en `artefactos_afectados`.
+
+![Matriz de la decisión de C-002](img/g2-decision-c002.png)
+Rechazar queda fuera por el eliminatorio y diferir está dominada: tiene peor impacto y las mismas tolerancias y
+autoridad que el plan de excepción. La junta decide con la matriz, no con la urgencia.
+
 - `limite-etapa`: "Proceso: SB" y "Límite de etapa por excepción X-001: plan de excepción (reemplaza el plan vigente),
   actualizar plan de proyecto, business case y riesgos. Puerta: autorizar-plan-excepcion".
 - Primera verificación: "Puerta autorizar-plan-excepcion: 1 bloqueo(s)", solo L-01, la lista de control: como C-002 no
@@ -740,6 +843,9 @@ cambio, 143 % de la tolerancia de tiempo de la etapa, 115 % de la capacidad del 
 - `estado.py resumen`: "etapa 2 Release 1 (2026-11-27 → 2027-03-19)" · "Presupuestos: cambio=32000,
   limite_autoridad_cambio=10000" · "Última puerta: autorizar-plan-excepcion · aprobado · 2027-02-26 · Ejecutiva: Laura
   Méndez".
+- `vigentes --tema "change budget"`: la búsqueda une inglés y español y trae D-002 ("cambio=12000,
+  limite_autoridad_cambio=10000") y D-015 ("cambio=32000"). La del 26/2 fija solo el tope, así que las dos siguen
+  vigentes: el límite de 10.000 por cambio no se tocó.
 
 ![Consumo del presupuesto de cambio](img/g2-consumo-cambio.png)
 75 % tras C-001 (sanidad del 18/1); el 19/2, el 200 % que habría sumado C-002 según `registro.py` al rechazar su
@@ -759,12 +865,16 @@ el VAN llegue a 0, más que su tolerancia de −10 %.
 > pregunta que PRINCE2 hace en cada puerta, ¿sigue valiendo la pena el proyecto? Con VAN de 30.939, sí, con menos
 > margen. El fin del proyecto no se recalcula en este análisis: lo debe actualizar el plan de proyecto junto con el
 > plan de excepción, como pide `limite-etapa`. Si quedara fuera de ±3 semanas, la junta tampoco podría aprobarlo sola.
+> La matriz responde la pregunta que el análisis deja abierta, ¿por qué no diferirlo?, con el mismo análisis aplicado a
+> esa opción, y la pregunta tipada impide que una recomendación automática proponga la opción eliminada.
 
 **Dónde verificar:** `03-control/reportes/evm-2027-02-19.json` · `03-control/reportes/2027-02-19-informe-excepcion-X-001.md`
-· `03-control/reportes/2027-02-19-solicitud-cambio-C-002.md` · `02-planificacion/plan-excepcion-X-001.md` ·
+· `03-control/reportes/2027-02-19-solicitud-cambio-C-002.md` y `…-C-002-diferir.md` ·
+`03-control/decisiones/C-002/` (`matriz.md` y las dos salidas de `impacto.py`) · `02-planificacion/plan-excepcion-X-001.md` ·
 `00-direccion/business-case.md` · `02-planificacion/escenarios/flujos-C-002.csv` · `00-direccion/decisiones/2027-02-26-verificacion-autorizar-plan-excepcion.md` · `cambios.csv` (C-002:
 `decidido_por`, `notas`, `costo`, `cargo`) · `issues.csv` (I-002, I-003) · `riesgos.csv` (R-001) · `decisiones.csv` ·
-prompt: "¿Cuánto queda del presupuesto de cambio, qué decidió la junta sobre X-001 y sigue justificado el proyecto?".
+prompts: "¿Cuánto queda del presupuesto de cambio, qué decidió la junta sobre X-001 y sigue justificado el proyecto?"
+y "¿Qué decisiones vigentes hay sobre el change budget?".
 
 ---
 
@@ -775,7 +885,7 @@ prompt: "¿Cuánto queda del presupuesto de cambio, qué decidió la junta sobre
 | Tema | Línea base (27/11) | Corte 29/1 | Tras la excepción (26/2) |
 |---|---|---|---|
 | Alcance | 10 historias · 68 puntos · 12 FR · WBS 124.000 | 11 historias · 76 puntos · 13 FR (C-001) · WBS 133.000 | + C-002 regulatorio (Must, 13 puntos) aprobado por la junta · WBS 148.000; traspaso a BMAD pendiente |
-| Releases | R1 47 pts / 48 · R2 21 pts / 24 | R1 47 pts (intercambio D-009) · R2 29 pts / 32 (sprint 10 agregado) | plan de excepción X-001: C-002 en R1, sale la 2.3 |
+| Releases | R1 47 pts / 48 · R2 21 pts / 24 (D-003: la consola en el R1) | R1 47 pts (intercambio D-010) · R2 29 pts / 32 (sprint 10 agregado) | plan de excepción X-001: C-002 en R1, sale la 2.3 |
 | Cronograma | fin 2027-05-05 · reserva 2σ = 13,0 días | fin 2027-05-20 (+11 días) · reserva remanente 2,0 días (R-001, disparador activado) | fin de etapa 2: 2027-03-05 → 2027-03-19 · R-001 revisado (probabilidad 4) |
 | Avance | — | 34,2 % de puntos · SPI 0,87 · CPI 0,90 · alcance que no entra 10,3 % (ámbar) | corte 19/2: SPI 0,80 · CPI 0,78 · 22,1 % que no entra (rojo) |
 | Presupuesto de cambio | 12.000 · límite 10.000 por cambio | 9.000 usados (75 %) | 24.000 de 32.000 (75 %) tras la ampliación |
@@ -784,7 +894,8 @@ prompt: "¿Cuánto queda del presupuesto de cambio, qué decidió la junta sobre
 
 **Decisión que se pidió a la junta:** en el corte del 29/1, ninguna (ámbar en alcance, gestionable por el PO; R-001
 registrado por la reserva de cronograma y en seguimiento). El 19/2, la excepción X-001: la junta pidió un plan de
-excepción, amplió el presupuesto de cambio, verificó que el business case sigue justificado y lo autorizó el 26/2.
+excepción con la matriz de C-002 a la vista (rechazar eliminada, diferir dominada), amplió el presupuesto de cambio,
+verificó que el business case sigue justificado y lo autorizó el 26/2.
 
 ## Representaciones gráficas
 
@@ -877,7 +988,8 @@ flowchart TB
     ev["evm.py --guardar<br/>corte 19/2 · alcance rojo"] --> s1{"sanidad<br/>corte 19/2"}
     s1 -->|"TOL-01<br/>CAM-03 al 75 %"| ti
     ti --> x["Informe de excepción<br/>X-001 e issue I-003"]
-    x --> j1{"Junta 22/2<br/>decision-ad-hoc"}
+    x --> mz["decision.py C-002 · matriz<br/>rechazar eliminada · diferir dominada"]
+    mz --> j1{"Junta 22/2<br/>decision-ad-hoc · D-013"}
     j1 --> le["limite-etapa<br/>--excepcion X-001"]
     le --> pe["Plan de excepción X-001<br/>y business case actualizado"]
     pe --> v1["verificar · bloqueo<br/>lista de control L-01"]
@@ -902,13 +1014,17 @@ flowchart TB
 - [ ] Business case con flujos en CSV y VAN, TIR, repago y sensibilidad de `inversion.py`.
 - [ ] Tolerancias y autoridad delegada documentadas; presupuesto de cambio y límite de la autoridad de cambio en
       `estado.json` con la decisión en `decisiones.csv`; enfoque de beneficios registrado (sin aviso P-04).
+- [ ] Decisión del R1 con `decision.py`: alternativas medidas con `release.py capacidad --json`, expediente citado,
+      matriz con la fuente de cada peso y puntaje, sensibilidad y elección del gestor registrada en D-003
+      (`g2-decision-release.png`).
 - [ ] Línea base de PRD, épicas y backlog con copia congelada; roadmap registrado.
 - [ ] Intercambio Should/Could decidido por el PO sin solicitud de cambio, traspasado a BMAD.
 - [ ] Cambio de alcance detectado por `bmad.py verificar`, con escenarios de cronograma y de flujos, persona afectada
       y **análisis de impacto antes de decidir** (`impacto.py analizar`: tabla, borrador de la solicitud y nivel que
       decide), monto cargado al presupuesto de cambio (CAM-03 INFO), riesgo derivado, decisión de la autoridad de
       cambio, traspaso, nuevas líneas base y roadmap actualizado (`g2-roadmap-c001.png`).
-- [ ] Cobertura de trazabilidad recalculada en los pasos 2 y 8 (`g2-trazabilidad.png`).
+- [ ] Cobertura de trazabilidad recalculada en los pasos 2 y 8 (`g2-trazabilidad.png`); líneas base 1.1 que
+      reemplazan a las 1.0 (`decision.py vigentes`).
 - [ ] EVM ágil guardado por corte que separa alcance que no entra de sobrecosto (TOL-02 en ámbar) y disparador de R-001
       anotado.
 - [ ] Revisión de calidad que cubre las historias terminadas (sin QUA-01).
@@ -919,6 +1035,9 @@ flowchart TB
       apruebe C-002; `autorizar-plan-excepcion` aprobada; REG-09 resuelto con la
       revisión de R-001; sanidad final sin CAM-03 ERROR, CAM-04, TOL-01 ni REG-09 (`g2-consumo-cambio.png`,
       `g2-alcance-evm.png`, `g2-business-case.png`).
+- [ ] Matriz de C-002 para la junta con las dos salidas de `impacto.py` (rechazar eliminada, diferir dominada), pregunta
+      tipada validada y la elección citada en la fila de la junta con `--decision D-013` (`g2-decision-c002.png`);
+      decisiones vigentes del presupuesto de cambio buscadas en inglés.
 - [ ] Todas las llamadas a sanidad con `--corte` de la fecha del paso; dos corridas seguidas del driver con evidencia
       idéntica.
 

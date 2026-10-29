@@ -423,10 +423,11 @@ def armar_html(m, version, logo):
         pie = f"{pie_base} · Clase {c['numero']}"
         indice = "".join(f'<li><a href="#c{c["numero"]}-d{i:02d}">{e(d["titulo"])}</a></li>' for i, d in enumerate(c["diapositivas"], 1))
         objetivos = "".join(f'<li><span class="n">{i}</span><div>{inl(o)}</div></li>' for i, o in enumerate(c["objetivos"][:6], 1))
+        n_obj = len(c["objetivos"][:6])   # desde 4 objetivos, dos columnas: en una sola, un título o un objetivo de dos líneas llega al pie
         opciones.append(("", f"— Clase {c['numero']} —"))
         diapo(f'c{c["numero"]}', "portada-clase oscura", c["titulo"],
               f'<p class="kicker arriba">Clase {c["numero"]} · {c["duracion_min"]} minutos</p>'
-              f'<h3 class="obj-t">Objetivos de la clase</h3><ol class="filas osc">{objetivos}</ol>'
+              f'<h3 class="obj-t">Objetivos de la clase</h3><ol class="filas osc{" dos" if n_obj >= 4 else ""}" style="--filas:{(n_obj + 1) // 2}">{objetivos}</ol>'
               f'<details class="indice"><summary>Diapositivas de esta clase ({len(c["diapositivas"])})</summary><ol>{indice}</ol></details>',
               pie, f'Clase {c["numero"]} ({c["duracion_min"]} minutos): {c["titulo"]}. Objetivos: ' + "; ".join(c["objetivos"]) + ".",
               etiqueta=f'Clase {c["numero"]} · portada')
@@ -525,6 +526,8 @@ ol.filas li:nth-child(even){background:var(--soft)}
 ol.filas .n{flex:0 0 auto;width:3.8cqw;height:3.8cqw;border-radius:7px;background:var(--blue);color:#fff;font-weight:700;display:grid;place-items:center;font-size:.85em}
 ol.filas.osc li,ol.filas.osc li:nth-child(even){background:var(--dark2);color:#fff}
 ol.filas.osc .n{background:none;color:var(--sky);font-size:1.1em;width:2.4cqw}
+ol.filas.dos{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:repeat(var(--filas),minmax(0,1fr));grid-auto-flow:column;gap:1.1cqw 1.6cqw;max-height:30cqw;min-height:0}
+ol.filas.dos li{max-height:none;font-size:1.05em;line-height:1.25}
 .frase{margin:.4cqw 0;font-size:2em;font-weight:700;color:var(--title-ink);line-height:1.2}
 .tarjetas{display:grid;grid-template-columns:repeat(var(--n),minmax(0,1fr));gap:2.2cqw;flex:1}
 .card{background:var(--tint);border-radius:10px;padding:1.6cqw;display:flex;align-items:center;font-size:1.2em}
@@ -608,6 +611,7 @@ dialog.visor .cerrar{position:fixed;top:10px;right:14px;font-size:1.1rem;padding
 .conimg,.conimg.lect{grid-template-columns:1fr}
 figure.img img{max-height:none}
 ol.filas li{max-height:none}
+ol.filas.dos{display:flex;max-height:none}
 .q .qm{width:56px;height:56px;font-size:2em}.q p{font-size:1.3em}
 .frase{font-size:1.4em}.portada h1{font-size:1.8em}
 .prompt pre{padding:12px 64px 12px 12px;font-size:1em}

@@ -21,11 +21,13 @@ flowchart TB
     subgraph I["Integración opcional"]
         M["Jira · Confluence · Slack · Teams · transcripciones · Tability"]
         X["archify · diagram-design · visual-explainer · docx/xlsx/pptx"]
+        K["pm-kb (opcional)<br/>índice con búsqueda citada · web · MCP de solo lectura"]
     end
     subgraph P["Persistencia · fuente de verdad"]
         J[("estado.json")]
         R[("registros CSV")]
         A[("artefactos .md")]
+        L[(".bitacora.jsonl")]
     end
     O --> F
     O --> D
@@ -37,5 +39,8 @@ flowchart TB
     S -->|"estado.py · registro.py"| J
     S --> R
     S --> A
-    H{{"hooks: guardian.py · inicio.py · idioma.py<br/>protegen estado, registros y BMAD"}}
+    S -->|"cada escritura"| L
+    O -.->|"MCP: buscar · contexto"| K
+    K -.->|"lee e indexa"| P
+    H{{"hooks: guardian.py · inicio.py · idioma.py<br/>protegen estado, registros, bitácora y BMAD"}}
     U ~~~ H

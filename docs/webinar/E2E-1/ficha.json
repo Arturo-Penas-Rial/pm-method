@@ -10,14 +10,14 @@
   "objetivos": [
     "Explicar qué decide la junta antes del taller: apetito, tolerancia, reserva y quién la gasta",
     "Identificar riesgos con cita de origen desde la especificación, las reuniones, el tracker y los artefactos",
-    "Comparar las opciones de respuesta de un riesgo alto por su valor neto y justificar la elección por escrito",
+    "Comparar las respuestas a un riesgo alto por valor neto y, si no alcanza, con una matriz y su sensibilidad",
     "Escribir un plan de contingencia listo para activar y calcular el presupuesto de riesgo con fórmula",
     "Reconocer un registro que se dejó de revisar y ordenar con el radar qué decidir primero"
   ],
   "sistema_agentico": {
     "agente": [
       "Propone riesgos candidatos con su cita: BMAD, transcripciones, Jira y artefactos",
-      "Calcula el valor neto de cada opción de respuesta y marca la recomendada",
+      "Calcula el valor neto, arma el expediente y la matriz, y marca la recomendada",
       "Avisa qué está vencido o por decidir, y cuánto se consumió de la reserva"
     ],
     "persona": [
@@ -43,7 +43,7 @@
       "temas": [
         "Enfoque, apetito y escala de probabilidad e impacto",
         "Identificación con cita, con y sin BMAD, y evaluación",
-        "Opciones de respuesta por valor neto y plan de contingencia",
+        "Opciones por valor neto, matriz y plan de contingencia",
         "Presupuesto de riesgo, reserva de gestión y puertas"
       ]
     },
@@ -53,7 +53,7 @@
         "Revisión del sprint y un riesgo que ocurre (Jira)",
         "Reserva bien y mal usada, y escalamiento a la junta",
         "Informe de riesgos, revisión periódica y radar",
-        "Contingencia activada y límite de etapa"
+        "Contingencia activada, decisiones vigentes y límite de etapa"
       ]
     }
   ],

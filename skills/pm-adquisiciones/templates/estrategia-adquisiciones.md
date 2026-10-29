@@ -37,6 +37,7 @@ idioma: "{{idioma}}"
 | Plazo / Lead time | {{plazo_hacer}} | {{plazo_comprar}} |
 
 *Comparar opciones completas, no precio de compra contra salario interno. Cifras sin fuente: `[por confirmar]`.*
+*Con tres opciones o más (construir, comprar, tercerizar), la matriz de `pm-direccion-decisiones` (`decision.py matriz <ID> --proponer --tipo adquisicion --criterios hacer-o-comprar`) puntúa cada factor con su fuente; si el componente está en un mapa de Wardley, la hoja lo nombra `<mapa>:<id>` y el expediente trae su etapa y evidencia. Citar aquí la hoja.*
 
 **Técnica financiera aplicada y supuestos / Financial technique and assumptions:** {{tecnica_financiera}}
 *Costo-beneficio, VAN, recuperación u otra; declarar tasa, horizonte y supuestos.*

@@ -1,7 +1,7 @@
 # Entorno Docker opcional de pm-method: Linux aislado con Claude Code CLI, Python 3 y Node.js, más todas las
 # dependencias opcionales que usan los scripts, las pruebas y los generadores de diagramas y diapositivas.
 # Guía: docs/DOCKER.md.  Construir desde la raíz del repositorio:
-#   docker build -f docker/Dockerfile -t pm-method:2.5.0 .
+#   docker build -f docker/Dockerfile -t pm-method:2.6.0 .
 #
 # Nada de credenciales en la imagen: la clave de API o el inicio de sesión se pasan al ejecutar
 # (variables de entorno o volumen de configuración). Los secretos de construcción opcionales (un certificado de
@@ -44,12 +44,14 @@ RUN --mount=type=secret,id=ca_proxy,mode=0444 \
     apt-get $CA install -y --no-install-recommends python3-venv; \
     rm -rf /var/lib/apt/lists/*
 COPY docker/requirements.txt /tmp/requirements.txt
+# pm-kb (índice de conocimiento, perfil "kb" de compose.yaml): psycopg, starlette, uvicorn y markitdown, fijados por hash
+COPY pm-kb/requirements.txt /tmp/requirements-kb.txt
 RUN --mount=type=secret,id=ca_proxy,mode=0444 \
     set -eu; \
     if [ -s /run/secrets/ca_proxy ]; then export PIP_CERT=/run/secrets/ca_proxy; fi; \
     python3 -m venv /opt/venv; \
     /opt/venv/bin/pip install --no-cache-dir --disable-pip-version-check --require-hashes --only-binary=:all: \
-        -r /tmp/requirements.txt; \
+        -r /tmp/requirements.txt -r /tmp/requirements-kb.txt; \
     /opt/venv/bin/pip uninstall -y pip; \
     find /opt/venv -name '__pycache__' -type d -prune -exec rm -rf {} +
 
@@ -130,7 +132,7 @@ RUN chmod -R a+rX,go-w /opt/pm-method /opt/ms-playwright /etc/pm-method
 FROM base AS final
 ARG UID=1000
 ARG GID=1000
-ARG VERSION=2.5.0
+ARG VERSION=2.6.0
 LABEL org.opencontainers.image.title="pm-method" \
       org.opencontainers.image.description="Entorno aislado para usar y probar el plugin pm-method con Claude Code (Linux, Python 3, Node.js, Mermaid, Playwright)" \
       org.opencontainers.image.version="${VERSION}" \
@@ -157,6 +159,7 @@ COPY --from=skills-externas /opt/skills-externas /opt/skills-externas
 COPY --chmod=0755 docker/mmdc.sh /usr/local/bin/mmdc
 COPY --chmod=0755 docker/pm-pruebas.sh /usr/local/bin/pm-pruebas
 COPY --from=paquete /opt/pm-method /opt/pm-method
+RUN chmod 0755 /opt/pm-method/pm-kb/pm-kb /opt/pm-method/pm-kb/db/pg.sh && ln -s /opt/pm-method/pm-kb/pm-kb /usr/local/bin/pm-kb
 
 # Enlace estable al Chromium headless shell y comprobación de que es un ejecutable ELF sin bibliotecas faltantes.
 # (Sin chmod -R aquí: cambiar permisos en otra capa duplicaría cientos de MB.)
@@ -171,6 +174,7 @@ RUN set -eu; \
 ENV PATH=/usr/local/sbin:/usr/local/bin:/opt/venv/bin:/opt/node-tools/node_modules/.bin:/usr/sbin:/usr/bin:/sbin:/bin \
     HOME=/home/pm \
     PM_METHOD_DIR=/opt/pm-method \
+    PMKB_VENV=/opt/venv \
     PM_DIAGRAM_DESIGN=/opt/skills-externas/diagram-design/skills/diagram-design \
     NODE_PATH=/opt/node-tools/node_modules \
     PLAYWRIGHT_BROWSERS_PATH=/opt/ms-playwright \

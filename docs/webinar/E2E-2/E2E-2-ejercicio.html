@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="generator" content="pm-method 2.5.0 · scripts/webinar/documentos.py">
+<meta name="generator" content="pm-method 2.6.0 · scripts/webinar/documentos.py">
 <title>E2E-2 · Ejercicio · Ejercicio · E2E-2 · La línea base de cambio y la tabla de impacto de tu proyecto</title><style>
 :root{--navy:#002855;--blue:#00629b;--orange:#b5651d;--gray:#696969;--ink:#272425;--page:#e9edf1;--surface:#fff;--soft:#f4f6f8;
 --tint:#e9f1f8;--ortint:#fbf1e6;--line:#e2e2e6;--sky:#9fd0f0;--dark:#002855;--dark2:#173d66;--azul:#00629b;--code:#0f2238;--codefg:#e8eef5;
@@ -181,7 +181,7 @@ details.ejemplo>summary{display:none}
 <div class="marco">
 <aside class="lateral"><details class="toc" open><summary>Contenido</summary><nav aria-label="Contenido del documento"><ol><li class="n2"><a href="#cómo-funciona-este-ejercicio">Cómo funciona este ejercicio</a></li><li class="n2"><a href="#lo-que-necesitás-saber">Lo que necesitás saber</a></li><li class="n3"><a href="#el-escenario-del-caso">El escenario del caso</a></li><li class="n3"><a href="#conceptos-mínimos">Conceptos mínimos</a></li><li class="n2"><a href="#hoja-de-trabajo--parte-a--la-línea-base-de-cambio-clase-1">Hoja de trabajo · parte A · La línea base de cambio (clase 1)</a></li><li class="n3"><a href="#autoevaluación-de-la-parte-a">Autoevaluación de la parte A</a></li><li class="n2"><a href="#hoja-de-trabajo--parte-b--la-tabla-de-impacto-de-un-cambio-real-clase-2">Hoja de trabajo · parte B · La tabla de impacto de un cambio real (clase 2)</a></li><li class="n3"><a href="#autoevaluación-de-la-parte-b">Autoevaluación de la parte B</a></li><li class="n2"><a href="#para-ir-más-allá">Para ir más allá</a></li><li class="n2"><a href="#ejemplo-resuelto-escenario-del-caso">Ejemplo resuelto (escenario del caso)</a></li></ol></nav></details></aside>
 <main>
-<header class="cab"><div class="logo" aria-label="Espacio reservado para el logo de IEEE">Logo IEEE</div><p class="kicker">Webinar E2E-2 · Ejercicio · pm-method 2.5.0</p><h1>Ejercicio · E2E-2 · La línea base de cambio y la tabla de impacto de tu proyecto</h1><p class="meta"><span class="etiqueta">Ejercicio</span><span>Para: asistentes e instructor</span></p><p class="fuente-imp">Fuente: <a href="https://github.com/Arturo-Penas-Rial/pm-method/blob/main/docs/webinar/E2E-2/ejercicio.md" class="ext">docs/webinar/E2E-2/ejercicio.md</a> · pm-method 2.5.0 · Ejercicio del caso E2E-2 · generado con <code>scripts/webinar/documentos.py</code></p></header>
+<header class="cab"><div class="logo" aria-label="Espacio reservado para el logo de IEEE">Logo IEEE</div><p class="kicker">Webinar E2E-2 · Ejercicio · pm-method 2.6.0</p><h1>Ejercicio · E2E-2 · La línea base de cambio y la tabla de impacto de tu proyecto</h1><p class="meta"><span class="etiqueta">Ejercicio</span><span>Para: asistentes e instructor</span></p><p class="fuente-imp">Fuente: <a href="https://github.com/Arturo-Penas-Rial/pm-method/blob/main/docs/webinar/E2E-2/ejercicio.md" class="ext">docs/webinar/E2E-2/ejercicio.md</a> · pm-method 2.6.0 · Ejercicio del caso E2E-2 · generado con <code>scripts/webinar/documentos.py</code></p></header>
 <article class="md">
 <h2 id="cómo-funciona-este-ejercicio">Cómo funciona este ejercicio<a class="ancla" href="#cómo-funciona-este-ejercicio" aria-label="Enlace a esta sección">#</a></h2>
 <ul><li><strong>Para qué sirve:</strong> llevar el caso a un proyecto tuyo. Vas a escribir contra qué se mide cada cambio (tolerancias,
@@ -220,7 +220,9 @@ cronograma</strong> (en el caso, 2σ del camino crítico) cubre su incertidumbre
 positivo, el proyecto crea valor.</li><li><strong>Análisis de impacto:</strong> el cambio medido contra cada objetivo antes de decidir; dice además qué nivel tiene que
 decidirlo.</li><li><strong>Tres caminos para un cambio:</strong> el <strong>intercambio</strong> del product owner (no toca Must, fecha ni costo), la <strong>autoridad
 de cambio</strong> (dentro de su límite y del saldo del presupuesto) y la <strong>excepción</strong> a la junta (supera el límite, el
-presupuesto o una tolerancia).</li></ul>
+presupuesto o una tolerancia).</li><li><strong>Matriz de decisión:</strong> las alternativas comparadas con pesos explícitos (puntaje = Σ peso × valor de 0 a 1). Un
+criterio <strong>eliminatorio</strong> saca una opción que no lo cumple; una opción <strong>dominada</strong> es peor o igual que otra en todo;
+la <strong>sensibilidad</strong> dice cuánto habría que mover un peso para que gane otra. Incluí siempre rechazar o diferir.</li></ul>
 <hr>
 <h2 id="hoja-de-trabajo--parte-a--la-línea-base-de-cambio-clase-1">Hoja de trabajo · parte A · La línea base de cambio (clase 1)<a class="ancla" href="#hoja-de-trabajo--parte-a--la-línea-base-de-cambio-clase-1" aria-label="Enlace a esta sección">#</a></h2>
 <p><strong>A1. Tres números que fija la junta.</strong> Completá lo que existe hoy en tu proyecto. Si no existe, escribí "no definido".</p>
@@ -242,8 +244,12 @@ presupuesto o una tolerancia).</li></ul>
 <p><strong>B3. ¿Qué camino le correspondía?</strong> Marcá uno y justificá en una línea.</p>
 <ul class="tareas"><li class="tarea"><input type="checkbox" class="caja" aria-label="Marcar">Intercambio del product owner (no toca Must, fecha ni costo)</li><li class="tarea"><input type="checkbox" class="caja" aria-label="Marcar">Autoridad de cambio (dentro del límite por cambio y del saldo del presupuesto)</li><li class="tarea"><input type="checkbox" class="caja" aria-label="Marcar">Excepción a la junta (supera el límite, el presupuesto o una tolerancia)</li></ul>
 <blockquote><p>Justificación: ……………………………………………………………………………………………</p></blockquote>
+<p><strong>B4. Las alternativas.</strong> ¿Qué otras opciones tenía quien decidió? Escribí al menos dos, una de ellas rechazar o
+diferir.</p>
+<div class="tabla"><table><thead><tr><th>Opción</th><th>¿Algún criterio la elimina? (por ejemplo, un requisito obligatorio)</th><th>¿Por qué ganó, o por qué no?</th></tr></thead><tbody><tr><td></td><td></td><td></td></tr><tr><td></td><td></td><td></td></tr></tbody></table></div>
+<blockquote><p>¿Qué tendría que pesar más para que ganara otra opción? ……………………………………………</p></blockquote>
 <h3 id="autoevaluación-de-la-parte-b">Autoevaluación de la parte B<a class="ancla" href="#autoevaluación-de-la-parte-b" aria-label="Enlace a esta sección">#</a></h3>
-<div class="tabla"><table><thead><tr><th>Criterio</th><th>Cumple si…</th></tr></thead><tbody><tr><td>Impacto completo</td><td>Completaste al menos tiempo, costo, autoridad, capacidad y business case (no solo el costo).</td></tr><tr><td>Antes de decidir</td><td>Las cifras de "Con el cambio" se podían conocer antes de aprobarlo.</td></tr><tr><td>Camino correcto</td><td>El camino de B3 coincide con quien aprobó en B1; si no coincide, encontraste un caso de autoridad excedida.</td></tr><tr><td>Riesgo derivado</td><td>Si la reserva quedó chica, registraste (o registrarías) un riesgo con disparador.</td></tr></tbody></table></div>
+<div class="tabla"><table><thead><tr><th>Criterio</th><th>Cumple si…</th></tr></thead><tbody><tr><td>Impacto completo</td><td>Completaste al menos tiempo, costo, autoridad, capacidad y business case (no solo el costo).</td></tr><tr><td>Antes de decidir</td><td>Las cifras de "Con el cambio" se podían conocer antes de aprobarlo.</td></tr><tr><td>Camino correcto</td><td>El camino de B3 coincide con quien aprobó en B1; si no coincide, encontraste un caso de autoridad excedida.</td></tr><tr><td>Riesgo derivado</td><td>Si la reserva quedó chica, registraste (o registrarías) un riesgo con disparador.</td></tr><tr><td>Alternativas explícitas</td><td>B4 tiene al menos dos opciones, una de ellas rechazar o diferir, y escribiste qué haría ganar a otra.</td></tr></tbody></table></div>
 <hr>
 <h2 id="para-ir-más-allá">Para ir más allá<a class="ancla" href="#para-ir-más-allá" aria-label="Enlace a esta sección">#</a></h2>
 <ul><li>¿Qué cambio de tu proyecto llegó como "obligatorio" y se aprobó sin tabla de impacto? ¿Quién debió decidirlo?</li><li>Si tu margen de Should/Could es menor que lo que ya no entra según el avance, ¿qué Must peligran y quién lo sabe hoy?</li></ul>
@@ -280,8 +286,13 @@ del 19/2 deja fuera el 22,1 % del alcance, más que el 20 % de margen (sanidad: 
 VAN baja de 45.939 a 30.939, pero sigue positivo y B-01 puede caer 18 % antes de llegar a 0 (tolerancia −10 %). El
 análisis de impacto lo resume: "Decide: Junta", con cuatro motivos, y recomienda pedir un plan de excepción. La
 junta pide un plan de excepción con el business case actualizado, amplía el presupuesto a 32.000, aprueba C-002 con
-cargo a ese presupuesto y aprueba <code>autorizar-plan-excepcion</code> el 26/2; ese día, REG-09 recuerda revisar R-001.</p></div></details></article>
-<footer class="pie-doc">Fuente: <a href="https://github.com/Arturo-Penas-Rial/pm-method/blob/main/docs/webinar/E2E-2/ejercicio.md" class="ext">docs/webinar/E2E-2/ejercicio.md</a> · pm-method 2.5.0 · Ejercicio del caso E2E-2 · generado con <code>scripts/webinar/documentos.py</code></footer>
+cargo a ese presupuesto y aprueba <code>autorizar-plan-excepcion</code> el 26/2; ese día, REG-09 recuerda revisar R-001.</p>
+<p><strong>B4.</strong> Con C-002, las alternativas que recibió la junta en la matriz <code>03-control/decisiones/C-002/</code> (paso 10):</p>
+<div class="tabla"><table><thead><tr><th>Opción</th><th>¿Algún criterio la elimina?</th><th>¿Por qué ganó, o por qué no?</th></tr></thead><tbody><tr><td>Rechazar C-002</td><td>sí: impacto 1, menor que el eliminatorio 2 (es obligatorio por la Ley 18.331)</td><td>eliminada</td></tr><tr><td>Diferir C-002 al R2</td><td>no (impacto 2)</td><td>10,0 y dominada: el mismo análisis aplicado a diferir da 2 sprints más en el R2 (28 días corridos) y excede igual la autoridad y el presupuesto</td></tr><tr><td>Pedir plan de excepción</td><td>no (impacto 4)</td><td>30,0, recomendada; la junta la elige el 22/2 y queda en D-013 con la matriz</td></tr></tbody></table></div>
+<p>Ningún peso de 0 a 100 cambia la primera: la recomendación es estable. Para comparar, la decisión del R1 (paso 5) sí
+tiene un peso que la cambia: la consola gana 56,2 contra 47,5, y ganarían las solicitudes si la capacidad pesara 31 en
+lugar de 25.</p></div></details></article>
+<footer class="pie-doc">Fuente: <a href="https://github.com/Arturo-Penas-Rial/pm-method/blob/main/docs/webinar/E2E-2/ejercicio.md" class="ext">docs/webinar/E2E-2/ejercicio.md</a> · pm-method 2.6.0 · Ejercicio del caso E2E-2 · generado con <code>scripts/webinar/documentos.py</code></footer>
 </main>
 </div>
 <dialog class="visor" id="visor"><button type="button" class="cerrar">Cerrar</button><img alt=""></dialog>

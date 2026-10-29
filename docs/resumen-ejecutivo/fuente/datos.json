@@ -1,10 +1,10 @@
 {
- "generado": "2026-10-27T20:05:01",
+ "generado": "2026-10-29T01:01:29",
  "meta": {
-  "version": "2.5.0",
+  "version": "2.6.0",
   "licencia": "MIT",
-  "fecha": "2026-10-27",
-  "fecha_larga": "27 de octubre de 2026"
+  "fecha": "2026-10-29",
+  "fecha_larga": "29 de octubre de 2026"
  },
  "jerarquia": [
   {
@@ -212,7 +212,7 @@
     "CP"
    ],
    "comando": false,
-   "usar": "aprobar etapa, autorizar proyecto, junta, excepción, board decision, stage gate"
+   "usar": "aprobar etapa, autorizar proyecto, junta, pesos, board decision, stage gate"
   },
   {
    "nombre": "pm-enfoques-gestion",
@@ -840,6 +840,28 @@
     "permanente": false
    },
    {
+    "familia": "DEC",
+    "nombre": "decisiones con contexto",
+    "codigos": [
+     "DEC-01",
+     "DEC-02",
+     "DEC-03",
+     "DEC-04",
+     "DEC-05",
+     "DEC-06"
+    ],
+    "permanente": false
+   },
+   {
+    "familia": "BIT",
+    "nombre": "bitácora de escrituras",
+    "codigos": [
+     "BIT-01",
+     "BIT-02"
+    ],
+    "permanente": false
+   },
+   {
     "familia": "INT",
     "nombre": "integraciones MCP",
     "codigos": [
@@ -893,12 +915,16 @@
    "id": "E2E-1",
    "titulo_guia": "Ciclo completo de gestión de riesgos",
    "archivo": "docs/guias/E2E-1-riesgos.md",
-   "pasos": 15,
+   "pasos": 16,
    "clases": 2,
    "imagenes": {
     "g1-opciones-valor-neto.png": {
      "alt": "Valor neto de las opciones de respuesta",
      "leyenda": "Para R-001 conviene reducir; para R-003, preparar la contingencia. En los dos, evitar deja el residual más bajo pero no el mayor valor neto: cuesta más y crea un riesgo secundario."
+    },
+    "g1-sensibilidad-r003.png": {
+     "alt": "Sensibilidad de la decisión de R-003",
+     "leyenda": "Con el apetito y la factibilidad en la cuenta, la contingencia de R-003 sigue primera (82,5 frente a 55,4 de reducir). Para que gane reducir, el peso del apetito tendría que pasar de 25 a 51,4: la recomendación no depende de un peso acomodado."
     },
     "g1-mapa-inherente-residual.png": {
      "alt": "Mapa de calor inherente frente a residual",
@@ -1002,7 +1028,7 @@
    "id": "E2E-4",
    "titulo_guia": "Gestión del producto de la idea al producto con BMAD dentro de un proyecto PRINCE2",
    "archivo": "docs/guias/E2E-4-producto-bmad.md",
-   "pasos": 15,
+   "pasos": 16,
    "clases": 2,
    "imagenes": {
     "g4-calidad-entregas.png": {
@@ -1027,7 +1053,7 @@
     },
     "g4-expediente.png": {
      "alt": "Expediente de auditoría",
-     "leyenda": "El expediente para la auditoría externa: 41 eventos en la cronología y 43 archivos con su huella; una sola palabra cambiada en la copia y la verificación la delata (paso 9b)."
+     "leyenda": "El expediente para la auditoría externa: 42 eventos en la cronología, 44 archivos con su huella y 132 escrituras en la bitácora; una sola palabra cambiada en la copia, la verificación la delata y la bitácora muestra que no salió de los scripts (paso 9b)."
     },
     "g4-beneficios.png": {
      "alt": "Revisión final de beneficios",
@@ -1042,7 +1068,7 @@
    "indicadores": [
     "Historias terminadas contra historias con revisión aprobada en cada corte, según el estado de productos que deriva estado.py productos: las brechas del 26/2 y del 7/5 se cerraron antes de la puerta siguiente (pasos 6 y 8).",
     "De la retrospectiva del sprint 4 al índice de la organización: 3 lecciones con cita (1 de impacto alto), la acción de L-002 verificada en el sprint 5, L-003 cambia el plan de la etapa 3 y se verifica al cerrar el Release 2, y 3 lecciones en el índice (pasos 6c, 7, 8 y 9).",
-    "El expediente para la auditoría externa: 41 eventos en la cronología y 43 archivos con su huella; una sola palabra cambiada en la copia y la verificación la delata (paso 9b)."
+    "El expediente para la auditoría externa: 42 eventos en la cronología, 44 archivos con su huella y 132 escrituras en la bitácora; una sola palabra cambiada en la copia, la verificación la delata y la bitácora muestra que no salió de los scripts (paso 9b)."
    ]
   },
   {
@@ -1060,13 +1086,21 @@
      "alt": "VAN antes y después de los experimentos",
      "leyenda": "El piloto bajó el VAN de las dos opciones; la opción 2 sigue siendo la mejor, con una TIR de 54,3 % y un repago de 1,78 años (paso 4)."
     },
+    "g5-matriz-opciones.png": {
+     "alt": "Matriz de decisión de las opciones de negocio",
+     "leyenda": "Con el VAN, los beneficios fuera del VAN, el riesgo y el ajuste al mandato, la opción 2 suma 80,0 contra 50,6 de la 1; solo si el riesgo pesara 49,6 en lugar de 20 pasaría la 1. Por eso el segundo release espera la prueba técnica de S-003 (paso 4)."
+    },
     "g5-wardley.png": {
      "alt": "Mapa de valor de los entregables",
      "leyenda": "Lo que diferencia se construye, lo que el mercado ya ofrece se compra, y el adaptador queda atado a una agenda con inercia: el mapa confirma desde otro ángulo la lectura 23 · 18 · 12 del enfoque (paso 5b)."
     },
+    "g5-hacer-comprar-c2.png": {
+     "alt": "Hacer o comprar de C2",
+     "leyenda": "Para los recordatorios (C2, producto 0,62 en el mapa), comprar una plataforma suma 78,8 contra 52,3 de tercerizar y 28,7 de construir; construir solo pasaría si la diferenciación pesara 57,5. La decisión D-004 queda citada en C2 (paso 5b)."
+    },
     "g5-tablero-mapas-169.png": {
      "alt": "Tablero de mapas del proyecto autorizado",
-     "leyenda": "Los dos mapas del paso 5b en su tablero, con los vínculos de los pasos 6 y 9: la agenda clínica con inercia ya tiene su riesgo (R-001), cada dolor del paciente su tratamiento (S-001, S-002, REQ-003 y REQ-005) y no queda ningún aviso MAP (paso 14)."
+     "leyenda": "Los dos mapas del paso 5b en su tablero, con los vínculos de los pasos 6 y 9: la agenda clínica con inercia ya tiene su riesgo (R-001), los recordatorios su decisión de hacer o comprar (D-004), cada dolor del paciente su tratamiento (S-001, S-002, REQ-003 y REQ-005) y no queda ningún aviso MAP (paso 14)."
     },
     "g5-presupuesto.png": {
      "alt": "Presupuesto con reservas",
@@ -1078,7 +1112,7 @@
     },
     "g5-tablero.png": {
      "alt": "Tablero del proyecto diseñado",
-     "leyenda": "Al autorizarse el proyecto: VAN de USD 263.229 con el presupuesto real, 4 de 4 supuestos críticos tratados (uno de ellos aceptado por la junta con la decisión D-009) y la puerta autorizar-proyecto aprobada el 2027-01-15 (paso 14)."
+     "leyenda": "Al autorizarse el proyecto: VAN de USD 263.229 con el presupuesto real, 4 de 4 supuestos críticos tratados (uno de ellos aceptado por la junta con la decisión D-010) y la puerta autorizar-proyecto aprobada el 2027-01-15 (paso 14)."
     }
    },
    "imagen": {
@@ -1093,6 +1127,16 @@
    ]
   }
  ],
+ "decidir": {
+  "img1": {
+   "archivo": "docs/guias/img/g1-sensibilidad-r003.png",
+   "alt": "Sensibilidad de la decisión de R-003"
+  },
+  "img2": {
+   "archivo": "docs/guias/img/g1-kb-busqueda.png",
+   "alt": "Búsqueda en pm-kb: C-003 primero, con su cita"
+  }
+ },
  "ciclo": [
   {
    "codigo": "SU",
@@ -1204,7 +1248,7 @@
    "caso": "E2E-1",
    "clases": 2,
    "minutos": 180,
-   "diapositivas": 39,
+   "diapositivas": 40,
    "glosario": 25,
    "guion": true,
    "ejercicio": true
@@ -1213,7 +1257,7 @@
    "caso": "E2E-2",
    "clases": 2,
    "minutos": 180,
-   "diapositivas": 37,
+   "diapositivas": 39,
    "glosario": 25,
    "guion": true,
    "ejercicio": true
@@ -1222,7 +1266,7 @@
    "caso": "E2E-3",
    "clases": 2,
    "minutos": 180,
-   "diapositivas": 39,
+   "diapositivas": 40,
    "glosario": 25,
    "guion": true,
    "ejercicio": true
@@ -1283,7 +1327,7 @@
   },
   {
    "termino": "Gestión por excepción",
-   "definicion": "Cada nivel decide dentro de su tolerancia y escala solo cuando un pronóstico la supera (management by exception).",
+   "definicion": "Cada nivel decide dentro de su tolerancia y escala solo cuando un pronóstico la supera (management by exception): el informe de excepción avisa a la junta con opciones y recomendación y, si la junta lo pide, el plan de excepción reemplaza al vigente y se aprueba en una puerta.",
    "formas": [
     "gestión por excepción"
    ],
@@ -1307,7 +1351,7 @@
   },
   {
    "termino": "Matriz RACI",
-   "definicion": "Quién es responsable (R), aprobador (A), consultado (C) e informado (I) en cada elemento; un solo A.",
+   "definicion": "Por elemento (paquete, requisito, decisión): un solo A que rinde cuentas, quién lo hace (R), a quién se consulta antes (C) y a quién se informa después (I). Refleja la autoridad de PRINCE2; no la reemplaza.",
    "formas": [
     "RACI"
    ],
@@ -1383,7 +1427,7 @@
   },
   {
    "termino": "Tolerancia",
-   "definicion": "Margen fijado por la junta; superarlo es una excepción que decide un nivel superior.",
+   "definicion": "Desvío que un nivel de gestión puede absorber sin escalar al nivel de arriba (tolerance).",
    "formas": [
     "tolerancias",
     "tolerancia"
@@ -1467,18 +1511,13 @@
    },
    {
     "severidad": "Informativa",
-    "cantidad": "2",
+    "cantidad": "4",
     "corregidos": "—"
    }
   ]
  },
- "vivo_serie": "2.4",
+ "vivo_serie": "2.6",
  "vivo": [
-  {
-   "fecha": "2026-10-21",
-   "prueba": "suite.py enrutamiento, ids 103–104 (opciones de respuesta y plan de contingencia)",
-   "resultado": "2/2"
-  },
   {
    "fecha": "2026-10-21",
    "prueba": "suite.py enrutamiento, ids 105–107 (personas de usuario)",
@@ -1513,34 +1552,39 @@
    "fecha": "2026-10-22",
    "prueba": "suite.py enrutamiento, ids 129–130 (tres valores y capacidad del release)",
    "resultado": "2/2"
+  },
+  {
+   "fecha": "2026-10-28",
+   "prueba": "suite.py enrutamiento, ids 131–134 (matriz de decisión, expediente, proveedores ponderados, criterios no monetarios sobre el VAN) con las frases de control 11, 12, 21, 36, 73, 83 y 103",
+   "resultado": "11/11"
   }
  ],
- "frases_enrutamiento": 130,
+ "frases_enrutamiento": 134,
  "pruebas": {
-  "fecha": "2026-10-27",
+  "fecha": "2026-10-29",
   "validar": {
    "ok": true,
    "skills": 39,
    "invocables": 33,
-   "listado": 6957,
+   "listado": 6966,
    "agentes": 6
   },
   "regresion": {
-   "ok": 355,
+   "ok": 463,
    "fallo": 0,
-   "casos": 34
+   "casos": 43
   },
   "e2e": {
    "ok": 5,
    "total": 5
   },
   "mermaid": {
-   "bloques": 128,
+   "bloques": 131,
    "errores": 0
   }
  },
  "n": {
-  "version": "2.5.0",
+  "version": "2.6.0",
   "agentes": 6,
   "subagentes": 5,
   "skills": 39,
@@ -1552,35 +1596,35 @@
   "registros_base": 9,
   "registros_opc": 5,
   "puertas": 6,
-  "codigos_sanidad": 93,
-  "familias_sanidad": 12,
+  "codigos_sanidad": 101,
+  "familias_sanidad": 14,
   "codigos_puerta": 12,
-  "codigos": 105,
+  "codigos": 113,
   "casos": 5,
-  "pasos_casos": 74,
+  "pasos_casos": 76,
   "clases_webinar": 10,
-  "diapositivas_webinar": 195,
-  "pruebas_ok": 355,
+  "diapositivas_webinar": 199,
+  "pruebas_ok": 463,
   "pruebas_fallo": 0,
-  "pruebas_casos": 34,
+  "pruebas_casos": 43,
   "e2e_ok": 5,
   "e2e_total": 5,
-  "mermaid": 128,
+  "mermaid": 131,
   "mermaid_errores": 0,
-  "listado": 6957,
-  "frases": 130,
+  "listado": 6966,
+  "frases": 134,
   "familias_permanentes": 4,
   "hooks_nombres": "guardian · idioma · inicio",
   "bmad_probado": "4.x, 6.11, 6.12",
   "licencia": "MIT",
-  "serie_vivo": "2.4"
+  "serie_vivo": "2.6"
  },
  "txt": {
-  "pie": "pm-method 2.5.0 · Resumen ejecutivo",
+  "pie": "pm-method 2.6.0 · Resumen ejecutivo",
   "portada": {
-   "kicker": "Resumen ejecutivo · pm-method 2.5.0",
+   "kicker": "Resumen ejecutivo · pm-method 2.6.0",
    "titulo": "Gestión de proyectos con IA, con método, gobierno y controles permanentes",
-   "subtitulo": "Un plugin para Claude Code y Cowork. PRINCE2 7 manda, PMBOK 8 aporta las técnicas y BMAD es la especificación del producto, de solo lectura. Con opciones e impacto medidos antes de decidir, un radar de lo que hay que decidir hoy e informes verificados contra el dato.",
+   "subtitulo": "Un plugin para Claude Code y Cowork. PRINCE2 7 manda, PMBOK 8 aporta las técnicas y BMAD es la especificación del producto, de solo lectura. Decisiones con contexto y con la autoridad que corresponde, un radar de lo que hay que decidir hoy, cada escritura en una bitácora y, opcional, búsqueda citada en los proyectos.",
    "cifras": [
     [
      "6",
@@ -1595,7 +1639,7 @@
      "hooks"
     ],
     [
-     "105",
+     "113",
      "controles automáticos"
     ],
     [
@@ -1619,6 +1663,11 @@
      "La respuesta a un riesgo se elige por intuición y la contingencia se improvisa",
      "Opciones comparadas por valor neto; decide el propietario y el plan de contingencia queda listo",
      "REG-10"
+    ],
+    [
+     "Se elige entre alternativas sin evidencia ni pesos, y después nadie sabe qué decisión sigue vigente",
+     "Expediente con fuente, matriz con sensibilidad y elección de quien tiene la autoridad; la vigente, con su cadena",
+     "DEC-01 · DEC-05"
     ],
     [
      "Los cambios se aprueban uno a uno y nadie suma lo comprometido",
@@ -1679,9 +1728,9 @@
      "decisiones de la junta, verificadas antes"
     ],
     [
-     "105",
+     "113",
      "controles",
-     "93 de sanidad y 12 de puerta"
+     "101 de sanidad y 12 de puerta"
     ]
    ],
    "nota": "Bilingüe ES/EN. Licencia MIT. La fuente de verdad es una carpeta de Markdown, CSV y JSON que se versiona con git y se lee sin pm-method.",
@@ -1727,7 +1776,7 @@
    "en": "EN: every PRINCE2 transition goes through a board gate, verified before the decision."
   },
   "controles": {
-   "titulo": "105 controles automáticos vigilan lo que nadie revisa a mano",
+   "titulo": "113 controles automáticos vigilan lo que nadie revisa a mano",
    "grafico": "Códigos de control por familia de sanidad",
    "leyenda_perm": "control permanente",
    "leyenda_otro": "otras familias",
@@ -1838,11 +1887,11 @@
    "material": "Material por caso: guía paso a paso por prompts, guion del instructor minuto a minuto, ejercicio autocontenido con ejemplo resuelto y diapositivas PPTX y HTML que regenera un script.",
    "induccion": "Inducción sugerida: instalar → recorrer una guía sobre la copia del proyecto de prueba con BMAD real → dictar su clase → piloto en paralelo con un proyecto real.",
    "recorre": {
-    "E2E-1": "Riesgos desde cuatro fuentes, opciones por valor neto, plan de contingencia y reserva vigilada",
-    "E2E-2": "Alcance, tres valores, capacidad del release, impacto de cada cambio y excepción",
-    "E2E-3": "Interesados, acuerdos de reunión, radar, highlight desde el dato y envío por canales",
-    "E2E-4": "Producto con BMAD: calidad a volumen, ciclo de las lecciones, cierre por id y auditoría",
-    "E2E-5": "De la idea al proyecto: lecciones previas, supuestos, VAN, personas de usuario y mapas"
+    "E2E-1": "Riesgos desde cuatro fuentes, opciones por valor neto, matriz de la decisión, contingencia y la pregunta de la junta con pm-kb",
+    "E2E-2": "Alcance, tres valores, capacidad del release, impacto de cada cambio, pregunta tipada y excepción",
+    "E2E-3": "Interesados, decisión de la A de la RACI, acuerdos de reunión, radar, highlight desde el dato y envío por canales",
+    "E2E-4": "Producto con BMAD: calidad a volumen, ciclo de las lecciones, cierre por id, auditoría con bitácora y versiones con pm-kb",
+    "E2E-5": "De la idea al proyecto: lecciones previas, supuestos, VAN con matriz, hacer o comprar, personas de usuario y mapas"
    },
    "en": "EN: end-to-end cases, each one also a training module."
   },
@@ -1852,7 +1901,7 @@
     "problema": "El registro de riesgos nace en un taller y se congela. Las respuestas no se costean y la reserva se usa como bolsa general.",
     "muestra": [
      "Riesgos candidatos desde BMAD, transcripciones, Jira y artefactos, con cita de origen",
-     "Opciones de respuesta comparadas por valor neto; decide el propietario y el plan de contingencia queda listo",
+     "Opciones por valor neto y, para R-003, expediente y matriz con su sensibilidad; decide el propietario, contrastado con la RACI",
      "Presupuesto de riesgo vigilado y reserva de gestión de la junta para lo no identificado"
     ]
    },
@@ -1880,7 +1929,7 @@
     "muestra": [
      "El CONCERNS del gate de BMAD se vuelve una condición formal que bloquea el cierre",
      "Retrospectiva con cita y ciclo de las lecciones: acción, verificación e índice de la organización",
-     "Cierre verificado por id y expediente de auditoría con integridad comprobable"
+     "Cierre verificado por id y expediente de auditoría con la bitácora de escrituras"
     ]
    },
    "E2E-5": {
@@ -1889,7 +1938,7 @@
     "muestra": [
      "Lecciones de otros proyectos y mapa de supuestos antes de comprometer dinero",
      "Opciones comparadas con VAN y enfoque de entrega elegido con criterios",
-     "Personas de usuario ligadas a cada requisito Must, y mapas para decidir qué construir"
+     "Personas de usuario por requisito Must, y hacer o comprar con el contexto de los mapas"
     ]
    },
    "rotulos": {
@@ -1904,9 +1953,9 @@
    "titulo": "La confianza se demuestra: pruebas reproducibles, pruebas en vivo y revisión de seguridad",
    "kpis": [
     [
-     "355",
+     "463",
      "pruebas de regresión OK",
-     "0 FALLO · 34 casos"
+     "0 FALLO · 43 casos"
     ],
     [
      "5/5",
@@ -1914,17 +1963,17 @@
      "reproducen las guías con los scripts reales"
     ],
     [
-     "128",
+     "131",
      "diagramas Mermaid",
      "0 errores de lint"
     ],
     [
-     "130",
+     "134",
      "frases de enrutamiento",
      "para pruebas en vivo con Claude Code real"
     ]
    ],
-   "vivo": "Pruebas en vivo con Claude Code real (serie 2.4)",
+   "vivo": "Pruebas en vivo con Claude Code real (las más recientes)",
    "seguridad": "Revisión de seguridad",
    "docker": "Contenedor Docker endurecido",
    "nota": "Los límites conocidos están declarados en docs/RESUMEN-EJECUTIVO.md §7: el enrutamiento en lenguaje natural es probabilístico, y los conectores MCP de terceros no se probaron en vivo.",
@@ -1948,12 +1997,34 @@
     "Correr todas las pruebas sin red"
    ],
    "luego": "Luego, en una sesión",
-   "siguiente": "Siguiente paso: recorrer una guía E2E sobre la copia del proyecto de prueba (docs/guias/README.md) y planificar un piloto en paralelo (docs/PILOTO.md).",
+   "siguiente": "Siguiente paso: recorrer una guía E2E sobre la copia del proyecto de prueba (docs/guias/README.md) y planificar un piloto en paralelo (docs/PILOTO.md). Opcional, en cualquiera de los dos caminos: pm-kb para buscar en los proyectos con evidencia citada (docs/PM-KB.md).",
    "en": "EN: two ways to start: install on WSL2 or Linux, or an isolated Docker container; each has its own step-by-step guide."
   },
   "glosario": {
    "titulo": "Glosario breve",
    "en": "EN: short glossary; full terminology in docs/TERMINOLOGIA.md."
+  },
+  "decidir": {
+   "titulo": "Decidir con contexto, controlar cada escritura y encontrar la evidencia con su cita",
+   "col1": "Decidir con contexto",
+   "puntos1": [
+    "Expediente: la evidencia que aplica a la decisión, cada dato con su fuente y sin datos confidenciales",
+    "Matriz con pesos explícitos, eliminatorios y sensibilidad: qué peso cambiaría la elección",
+    "Elige la persona con la autoridad que fija PRINCE2 y refleja la RACI; si no es el A, explica por qué",
+    "Vigencia: qué decisión reemplaza a cuál, con aviso de contradicciones y revisiones vencidas",
+    "Bitácora encadenada de cada escritura y propuestas de los agentes que aprueba una persona"
+   ],
+   "img1": "g1-sensibilidad-r003.png",
+   "col2": "Buscar en los proyectos (pm-kb, opcional)",
+   "puntos2": [
+    "Índice de registros, documentos con sus versiones, actas y transcripciones de cada proyecto",
+    "Preguntas en español o inglés; cada respuesta con la cita de archivo y línea",
+    "Web con token por persona y MCP de solo lectura para Claude Code y Hermes",
+    "Sobre WSL2 con un clúster propio o con Docker en un contenedor segregado"
+   ],
+   "img2": "g1-kb-busqueda.png",
+   "codigos": "Controles: DEC-01 a DEC-06 (decisiones) · BIT-01 y BIT-02 (bitácora) · MAP-01 al elegir en un mapa",
+   "en": "EN: decide with context and the right authority, track every write, and find the evidence with its citation (optional pm-kb)."
   }
  },
  "diagramas": {

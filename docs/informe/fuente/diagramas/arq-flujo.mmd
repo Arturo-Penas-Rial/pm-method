@@ -1,27 +1,31 @@
 ---
 config:
-  sequence:
-    actorMargin: 24
-    width: 120
+  flowchart:
+    subGraphTitleMargin:
+      top: 6
+      bottom: 18
 ---
-sequenceDiagram
-    autonumber
-    actor U as Usuario
-    participant O as Orquestador
-    participant F as Subagente<br/>de fase
-    participant D as pm-director
-    participant P as Carpeta del<br/>proyecto
-    Note over O: hook SessionStart:<br/>fase, etapa y<br/>sanidad rápida
-    U->>O: petición («¿qué sigue?»,<br/>«cerrá la etapa»)
-    O->>P: estado.py<br/>ver / siguiente
-    O->>U: resumen en 3 líneas<br/>+ preguntas pendientes
-    U-->>O: datos y conformidad
-    O->>F: encargo autocontenido<br/>(objetivo, datos, límites)
-    F->>P: artefactos en revisión<br/>+ registro.py
-    F-->>O: retorno: hecho, decisiones,<br/>datos faltantes
-    O->>U: decisión: opciones,<br/>consecuencias, quién decide
-    U-->>O: decisión explícita<br/>con nombre y rol
-    O->>D: registrar la decisión
-    D->>P: estado.py puerta o aprobar<br/>+ decisiones.csv
-    D-->>O: retorno
-    O->>U: siguiente paso<br/>y próxima puerta
+flowchart TB
+    subgraph F["Carpeta del proyecto · fuente única"]
+        E[("estado.json · registros CSV<br/>artefactos · _bmad-output/")]
+        S["estado.py · registro.py<br/>únicos que escriben"]
+    end
+    subgraph K["pm-kb · derivado y de solo lectura"]
+        IX["pm-kb indexar<br/>reemplaza el índice del proyecto"]
+        DB[("PostgreSQL<br/>RLS por proyecto y circulación")]
+        Q["web · MCP · línea de comandos<br/>con la cita de cada dato"]
+    end
+    P(["Personas<br/>token propio"])
+    AG(["Agentes<br/>Claude Code · Hermes"])
+    PR["propuesta P-###<br/>registro.py proponer"]
+    E -->|lectura| IX --> DB --> Q
+    Q -->|"evidencia citada"| P
+    Q -->|"evidencia, no instrucciones"| AG
+    AG -->|propone| PR
+    PR -->|"aprobar --por"| S
+    P -->|decide| S
+    S -->|escribe| E
+    classDef kb fill:#e8f1fb,stroke:#3b6ea8,color:#111
+    classDef pm fill:#e9f6ec,stroke:#2e7d32,color:#111
+    class IX,DB,Q kb
+    class E,S,PR pm

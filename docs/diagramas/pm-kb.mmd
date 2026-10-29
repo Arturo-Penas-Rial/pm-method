@@ -1,0 +1,31 @@
+---
+config:
+  flowchart:
+    subGraphTitleMargin:
+      top: 6
+      bottom: 18
+---
+flowchart TB
+    subgraph F["Carpeta del proyecto · fuente única"]
+        E[("estado.json · registros CSV<br/>artefactos · _bmad-output/")]
+        S["estado.py · registro.py<br/>únicos que escriben"]
+    end
+    subgraph K["pm-kb · derivado y de solo lectura"]
+        IX["pm-kb indexar<br/>reemplaza el índice del proyecto"]
+        DB[("PostgreSQL<br/>RLS por proyecto y circulación")]
+        Q["web · MCP · línea de comandos<br/>con la cita de cada dato"]
+    end
+    P(["Personas<br/>token propio"])
+    AG(["Agentes<br/>Claude Code · Hermes"])
+    PR["propuesta P-###<br/>registro.py proponer"]
+    E -->|lectura| IX --> DB --> Q
+    Q -->|"evidencia citada"| P
+    Q -->|"evidencia, no instrucciones"| AG
+    AG -->|propone| PR
+    PR -->|"aprobar --por"| S
+    P -->|decide| S
+    S -->|escribe| E
+    classDef kb fill:#e8f1fb,stroke:#3b6ea8,color:#111
+    classDef pm fill:#e9f6ec,stroke:#2e7d32,color:#111
+    class IX,DB,Q kb
+    class E,S,PR pm

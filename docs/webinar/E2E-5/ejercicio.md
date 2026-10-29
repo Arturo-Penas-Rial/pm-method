@@ -3,7 +3,7 @@
 ## Cómo funciona este ejercicio
 
 - **Para qué sirve:** llevar el caso a una idea o un proyecto tuyo. Vas a separar lo que sabés de lo que suponés,
-  diseñar un experimento barato antes de invertir, separar las reservas del presupuesto, decir para quién es cada
+  diseñar un experimento barato antes de invertir, fijar los criterios y los pesos antes de comparar opciones, separar las reservas del presupuesto, decir para quién es cada
   requisito y dejar escrita la adaptación de la gestión.
 - **Cuándo se hace:** la parte A, al cierre de la clase 1, después de la demostración (10 minutos); la parte B, al
   cierre de la clase 2, después de la demostración (10 minutos). Si lo hacés por tu cuenta, calculá 20 minutos.
@@ -40,6 +40,8 @@ La clase 1 decide si vale la pena autorizar la iniciación; la clase 2 diseña e
   el ausentismo, pero nadie midió la línea base.
 - Para A5: el piloto de recordatorios en una policlínica dio 13,5 % de ausentismo (criterio: 12 % o menos). Con el 10 %
   del mandato, el VAN de la opción completa es 431.782; con el 13,5 % medido, 272.569.
+- Para A6: tres opciones (0 no hacer nada distinto; 1 mínimo, recordatorios; 2 completo, turnos en línea) con VAN 0,
+  106.468 y 272.569. La opción 2 depende de la interfaz de la agenda clínica, que todavía no se probó.
 
 **Datos de partida para la parte B:**
 
@@ -69,6 +71,9 @@ La clase 1 decide si vale la pena autorizar la iniciación; la clase 2 diseña e
   resultado.
 - **VAN (valor actual neto):** la suma de los flujos de cada año descontados a la tasa de la organización; se compara
   siempre con la opción 0, "no hacer nada distinto".
+- **Matriz de decisión:** suma de criterios con pesos explícitos (que suman 100), cada puntaje con su fuente. Recomienda;
+  no decide. La **sensibilidad de los pesos** dice cuánto tendría que moverse un peso para que gane otra opción: si
+  alcanza con poco, la recomendación es frágil.
 - **Contingencia:** cubre los riesgos identificados (su EMV, valor monetario esperado, más el costo de las respuestas);
   EMV = impacto en dinero × probabilidad (P1 10 % · P2 30 % · P3 50 % · P4 70 % · P5 90 %).
 - **BAC:** paquetes de la WBS + contingencia. **Reserva de gestión:** cubre lo no identificado y la libera solo la
@@ -79,10 +84,16 @@ La clase 1 decide si vale la pena autorizar la iniciación; la clase 2 diseña e
   documentos, no las decisiones.
 - **Aceptar un supuesto:** si un supuesto crítico no se valida antes de la puerta, la junta puede aceptarlo con una
   decisión escrita que lo cite y diga cómo se cubre; en pm-method, la puerta lo marca con P-11.
+- **Revisar una decisión:** una decisión con fecha de revisión vuelve a quien decidió en esa fecha; se confirma con una
+  fecha nueva o se registra otra que la **reemplaza** (la anterior queda como historia, no se borra).
 - **Persona de usuario:** el arquetipo de quien pide, usa o aprovecha una capacidad (no es un interesado, pero un
   interesado la representa). Un requisito Must sin persona es una señal: falta alguien o sobra la prioridad.
 - **Inercia y dolor:** en un mapa de Wardley, la inercia es algo difícil de cambiar (un sistema en uso); en un recorrido
   del cliente, el dolor es dónde sufre la persona. Los dos necesitan un tratamiento con id.
+- **Hacer o comprar:** construir, comprar o tercerizar un componente se compara con criterios explícitos
+  (diferenciación, costo total, tiempo hasta disponible, dependencia del proveedor, capacidad interna y riesgo de
+  construir algo que el mercado ya vende o va a vender). La etapa del componente en el mapa es la fuente de esos
+  puntajes, no un criterio más: es la misma para todas sus opciones.
 
 ---
 
@@ -120,6 +131,17 @@ La clase 1 decide si vale la pena autorizar la iniciación; la clase 2 diseña e
 
 > Cambia: ……………………………… · Decide: ……………………………… · Opciones: seguir / ajustar / abandonar
 
+**A6. Antes de comparar opciones**, escribí los criterios y sus pesos (suman 100), quién los fija y qué opción es "no
+hacer nada distinto". Después, una pregunta: ¿qué criterio, si pesara mucho más, haría ganar a otra opción?
+
+| Criterio | Peso | Mayor o menor es mejor | De dónde sale el puntaje |
+|---|---|---|---|
+| | | | |
+| | | | |
+| | | | |
+
+> Fija los pesos: ……………………… · Opción "no hacer nada": ……………………… · Criterio que podría dar vuelta la elección: ………………
+
 ### Autoevaluación de la parte A
 
 | Criterio | Cumple si… |
@@ -128,6 +150,7 @@ La clase 1 decide si vale la pena autorizar la iniciación; la clase 2 diseña e
 | Prioridad clara | Hay al menos un supuesto en "validar primero" y sabés por qué está ahí. |
 | Experimento bien diseñado | Es más barato que equivocarse, tiene fecha y el criterio está escrito **antes** del resultado. |
 | Resultado con destino | A5 dice qué número del caso cambia y quién decide (lo que en pm-method vigila SUP-03). |
+| Pesos antes que puntajes | A6 tiene criterios con peso, sentido y fuente, escritos antes de puntuar, una opción "no hacer nada" y quien fija los pesos. |
 
 ---
 
@@ -198,6 +221,8 @@ pide, usa o aprovecha sin usarlos.
 
 - ¿Qué número del último caso de negocio que viste aprobar descansaba en un supuesto que nadie había probado?
 - Si tu experimento sale mal, ¿la idea se ajusta o se abandona? ¿Quién lo decidió antes de ver el resultado?
+- ¿Qué parte de tu servicio construirías aunque el mercado ya la venda? ¿Cuánto tendría que pesar la diferenciación
+  para justificarlo?
 
 ---
 
@@ -235,9 +260,23 @@ iniciación, en la puerta `autorizar-inicio` del 2026-12-11 (paso 6).
 el VAN de las dos opciones baja 159.213; el de la opción 2, de 431.782 a 272.569 (paso 4). Decide la ejecutiva, Carmen
 Olivera: ajustar, el caso usa 13,5 % (D-001, paso 3). La idea sigue: la opción 2 sigue siendo la mejor (paso 4).
 
+**A6.** Matriz `opciones-negocio` del paso 4; pesos de la ejecutiva, Carmen Olivera; "no hacer nada" es la opción 0.
+
+| Criterio | Peso | Sentido | Fuente del puntaje |
+|---|---|---|---|
+| VAN | 40 | mayor es mejor | `inversion.py`, importado sin recalcular: 0 · 106.468 · 272.569 |
+| Beneficios fuera del VAN (1–5) | 20 | mayor es mejor | B-01, B-02 y S-001: 1 · 3 · 4 |
+| Riesgo de la opción (1–5) | 20 | menor es mejor | S-006 para la 1; S-003 y L-002 para la 2: 1 · 2 · 4 |
+| Ajuste al mandato (1–5) | 20 | mayor es mejor | `mandato.md`: 1 · 3 · 5 |
+
+Puntajes: opción 2 **80,0**, opción 1 50,6, opción 0 20,0. El criterio que puede dar vuelta la elección es el riesgo:
+con un peso de 49,6 en lugar de 20 gana la opción 1; ningún otro peso cambia la primera (paso 4). Por eso el segundo
+release espera la prueba técnica de S-003, y la junta registra la opción 2 al aprobar el caso esquemático (D-007, paso
+6).
+
 ### Parte B
 
-**B1.** Presupuesto del paso 9 (D-007).
+**B1.** Presupuesto del paso 9 (D-008).
 
 | Bolsa | Monto | Para qué se usa | Quién la libera | ¿Escrita y aprobada? |
 |---|---|---|---|---|
@@ -248,7 +287,8 @@ Olivera: ajustar, el caso usa 13,5 % (D-001, paso 3). La idea sigue: la opción 
 
 BAC 170.800 (paquetes 142.800 + contingencia); presupuesto autorizado 179.340 (BAC + reserva de gestión) (paso 9).
 
-**B2.** Híbrido: integración predictiva (12), recordatorios híbridos (18) y portal adaptativo (23) (paso 5). Si fuera
+**B2.** Híbrido: integración predictiva (12), recordatorios híbridos (18) y portal adaptativo (23) (paso 5); la junta lo
+revisa en la puerta del 2027-01-15 y la decisión D-021 reemplaza a D-003 (paso 13). Si fuera
 regulado, pediría 16 artefactos y siete tolerancias; si fuera interno y pequeño, 7 artefactos y dos tolerancias (paso
 12).
 
@@ -256,7 +296,7 @@ regulado, pediría 16 artefactos y siete tolerancias; si fuera interno y pequeñ
 
 | Qué se adapta | Cómo | Por qué |
 |---|---|---|
-| Enfoques de gestión | una página cada uno; datos digitales dentro de calidad | proyecto mediano, un solo equipo (D-008, paso 11) |
+| Enfoques de gestión | una página cada uno; datos digitales dentro de calidad | proyecto mediano, un solo equipo (D-009, paso 11) |
 | Roles | Inés Ferrer: usuaria sénior, product owner y autoridad de cambio | una sola voz del negocio |
 | Puerta de la etapa 3 | condicionada a la adopción medida en el release 1 | el VAN es sensible a la adopción: equilibrio en 11,6 % de adopción estable con el orden de magnitud y 12,6 % con el presupuesto (pasos 4 y 9) |
 
@@ -265,7 +305,7 @@ regulado, pediría 16 artefactos y siete tolerancias; si fuera interno y pequeñ
 | Supuesto | ¿Validar o aceptar? | Quién lo acepta | Cobertura | Fecha |
 |---|---|---|---|---|
 | S-003, interfaz de la agenda | validado el 2027-01-14 (50 de 50, 1,4 s) | — | — | — |
-| S-006, consentimiento para recordatorios | aceptado sin validar | la junta, decisión D-009 del 2027-01-15 | riesgo R-003 y su contingencia; el dictamen es condición antes del release de recordatorios | 2027-01-29; al 2027-02-01 la sanidad avisa SUP-02 y REG-09, y el radar pone S-006 primero en «decidir», a cargo de Carmen Olivera (paso 14) |
+| S-006, consentimiento para recordatorios | aceptado sin validar | la junta, decisión D-010 del 2027-01-15 | riesgo R-003 y su contingencia; el dictamen es condición antes del release de recordatorios | 2027-01-29 (`revisar_en` de D-010); al 2027-02-01 la sanidad avisa DEC-06 (la revisión de D-010 venció), SUP-02 y REG-09, y el radar pone S-006 primero en «decidir», a cargo de Carmen Olivera (paso 14) |
 
 **B5.** Tablero de mapas del proyecto autorizado (paso 14).
 
@@ -273,6 +313,9 @@ regulado, pediría 16 artefactos y siete tolerancias; si fuera interno y pequeñ
 |---|---|---|---|
 | Agenda clínica del proveedor (producto, con inercia) | el proveedor controla la interfaz y el adaptador depende de ella (paso 5b) | R-001, «La integración en tiempo real se atrasa», `en-seguimiento` (pasos 9 y 14) | Tomás Aguirre, propietario de R-001 (paso 9, en la evidencia) |
 | P5 «Intenta avisar que no va» (−2) | solo puede cancelar llamando en horario de atención (paso 5b) | REQ-003 (confirmar o cancelar y liberar el turno) y REQ-005 (reprogramar) (paso 6) | Inés Ferrer, usuaria sénior y product owner: confirmó el recorrido (paso 5b) y acepta cada release (enfoque de calidad del paso 11, en la evidencia) |
+
+En la tabla del mapa de valor, los recordatorios (C2, producto 0,62) citan D-004: la compra de una plataforma, elegida
+en la matriz de hacer o comprar con 78,8 contra 52,3 de tercerizar y 28,7 de construir (paso 5b).
 
 **B6.** Personas de usuario del 2027-01-12 (paso 10b).
 

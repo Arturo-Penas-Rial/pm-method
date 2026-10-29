@@ -28,6 +28,8 @@ Al terminar las dos clases, cada asistente puede:
    autoridad y VAN del business case) y decir con él qué nivel decide.
 5. Reconocer las señales de una excepción (aprobación rechazada por `registro.py` fuera de la autoridad, TOL-01) y recorrer su ruta: informe, plan de excepción con
    el business case y los riesgos actualizados, y puerta de la junta.
+6. Leer una matriz de decisión (pesos y puntajes con su fuente, eliminatorios, dominadas y sensibilidad) y la pregunta
+   tipada que recibe la junta, y decir con ellas por qué ganó una alternativa y qué haría ganar a otra.
 
 ## Requisitos previos
 
@@ -76,7 +78,7 @@ plegado, donde cada dato cita el paso de la guía de donde sale.
 | Minuto | Bloque | Qué pasa | Material |
 |---|---|---|---|
 | 0–10 | Gancho | La historia de C-002 contada al revés: "el 19/2 llegó aprobado de palabra un cambio que llevaba el presupuesto de cambio al 200 %". Pregunta a mano alzada (ver abajo). | Diapositiva de gancho (el gráfico `g2-consumo-cambio.png` se reserva para la clase 2) |
-| 10–25 | Concepto | Producto antes que tarea (PBS/WBS y descripción de producto); trazabilidad viva; tres valores (beta-PERT y triangular) y camino crítico; MoSCoW como margen, capacidad del release y personas de usuario; línea base, tolerancia, autoridad de cambio, presupuesto de cambio y VAN del business case. | Diapositivas de concepto |
+| 10–25 | Concepto | Producto antes que tarea (PBS/WBS y descripción de producto); trazabilidad viva; tres valores (beta-PERT y triangular) y camino crítico; MoSCoW como margen, capacidad del release y personas de usuario; línea base, tolerancia, autoridad de cambio, presupuesto de cambio y VAN del business case; matriz de decisión con sensibilidad. | Diapositivas de concepto |
 | 25–65 | Demostración | Pasos 1 a 5 (detalle abajo). | Terminal + evidencia |
 | 65–75 | Pregunta y discusión | "¿Quién aprueba un cambio de 9.000? ¿Y uno de 15.000?" | Diapositiva de pregunta |
 | 75–85 | Ejercicio | Parte A del ejercicio: la línea base de cambio de un proyecto propio; ejemplo resuelto al cerrar el bloque. | [ejercicio.md](ejercicio.md) · [cómo conducirlo](#el-ejercicio) |
@@ -87,10 +89,11 @@ plegado, donde cada dato cita el paso de la guía de donde sale.
 | Min | Paso | En vivo o con evidencia | Qué mostrar | Qué decir |
 |---|---|---|---|---|
 | 25–29 | 1 | Evidencia | "requisitos: 42 · historias: 10", tres épicas | "pm-method no reescribe la especificación: la lee de BMAD." |
-| 29–40 | 2 | **En vivo** (prompt del paso 2) | "13 elementos, 8 hojas · esfuerzo 2480 h · costo 124,000"; trazabilidad sin huecos; la cobertura (12 de 12) | Abrir `descripcion-producto-proyecto.md` y señalar CA-02 "p95 < 3 s". "Esto es lo que significa terminado." |
-| 40–50 | 3 | **En vivo** (prompt del paso 3) | "Duración total (días laborables): 112 · Fin previsto: 2027-05-05"; la línea "Tres valores · beta-PERT …"; σ = 6,51; reserva 13,0 días; fin con reserva 2027-05-24 | Mostrar `g2-gantt.png`: "cinco barras naranjas mandan; A04 tiene 3 días de holgura. La fórmula está rotulada: con la triangular serían 116 días y 16,2 de reserva, más que la tolerancia". |
-| 50–55 | 4 | Evidencia | Orden por valor/puntos; `release.py capacidad`: R1 47 de 48 con 88 % de Must ("vigilar"), R2 21 de 24 (`g2-capacidad-release.png`); tres personas propuestas desde UJ-1 a UJ-3; "Must sin persona: FR-8, FR-12" y, tras vincularlos a Diego, "ninguno" | "Should y Could son el margen del PO, no un premio consuelo: en el R1 queda 1 punto. Y un Must sin persona es una pregunta: ¿falta la persona o sobra la prioridad?" |
-| 55–65 | 5 | **En vivo** (prompt del paso 5) | `estado.py presupuesto cambio=12000 limite_autoridad_cambio=10000`; business case con VAN 39.776 y B-01 con equilibrio en 76,8 %; verificación de autorizar-proyecto "1 bloqueo(s) · 0 condición(es) · 2 aviso(s)" (L-01, P-09, P-10); líneas base con sha | "Desde acá, cada cambio aprobado se compara solo contra estos números, y cada cambio recalcula el VAN." |
+| 29–38 | 2 | **En vivo** (prompt del paso 2) | "13 elementos, 8 hojas · esfuerzo 2480 h · costo 124,000"; trazabilidad sin huecos; la cobertura (12 de 12) | Abrir `descripcion-producto-proyecto.md` y señalar CA-02 "p95 < 3 s". "Esto es lo que significa terminado." |
+| 38–47 | 3 | **En vivo** (prompt del paso 3) | "Duración total (días laborables): 112 · Fin previsto: 2027-05-05"; la línea "Tres valores · beta-PERT …"; σ = 6,51; reserva 13,0 días; fin con reserva 2027-05-24 | Mostrar `g2-gantt.png`: "cinco barras naranjas mandan; A04 tiene 3 días de holgura. La fórmula está rotulada: con la triangular serían 116 días y 16,2 de reserva, más que la tolerancia". |
+| 47–51 | 4 | Evidencia | Orden por valor/puntos; `release.py capacidad`: R1 47 de 48 con 88 % de Must ("vigilar"), R2 21 de 24 (`g2-capacidad-release.png`); tres personas propuestas desde UJ-1 a UJ-3; "Must sin persona: FR-8, FR-12" y, tras vincularlos a Diego, "ninguno" | "Should y Could son el margen del PO, no un premio consuelo: en el R1 queda 1 punto. Y un Must sin persona es una pregunta: ¿falta la persona o sobra la prioridad?" |
+| 51–60 | 5 | **En vivo** (prompt del paso 5) | `estado.py presupuesto cambio=12000 limite_autoridad_cambio=10000`; business case con VAN 39.776 y B-01 con equilibrio en 76,8 %; verificación de autorizar-proyecto "1 bloqueo(s) · 0 condición(es) · 2 aviso(s)" (L-01, P-09, P-10); líneas base con sha | "Desde acá, cada cambio aprobado se compara solo contra estos números, y cada cambio recalcula el VAN." |
+| 60–65 | 5 (decisión del R1) | Evidencia (o en vivo si el prompt del paso 5 ya la hizo) | `release.py` sobre la alternativa B: "R1-B … holgura 6" y R2-B con 88 % de Must; el expediente (quién decide, tolerancias, B-01 a B-03, PU-002 y PU-003, las salidas de `release.py`); la matriz: O1 56,2 y O2 47,5, "capacidad 25,0: … si sube a 31,0 (+6,0) pasa O2"; "decisión D-003 (nivel gestor)" | Mostrar `g2-decision-release.png`: "la consola gana por valor y dependencias; la B solo por holgura. Queda escrito cuánto tendría que pesar la holgura para que ganara la B, y ese es el costo que aceptamos". |
 
 **Prompts exactos:** los de los pasos 2, 3 y 5 de la guía, copiados tal cual. Si Claude pregunta, responder con el texto
 de "Si te pregunta" de cada paso.
@@ -102,6 +105,8 @@ de "Si te pregunta" de cada paso.
 2. La trazabilidad sirve si se **recalcula**: 12 de 12 hoy no garantiza nada mañana.
 3. La línea base de cambio son **tres números** que fija la junta: tolerancias, límite por cambio y presupuesto de cambio.
    Al lado, el VAN del business case: la vara para saber si un cambio crea o destruye valor.
+4. Una decisión con alternativas **deja escrito su costo**: pesos con fuente, puntajes con quien los dio y la
+   sensibilidad. La consola va en el R1 sabiendo que la otra alternativa ganaría si la holgura pesara 31.
 
 ### Preguntas para la audiencia
 
@@ -112,6 +117,7 @@ de "Si te pregunta" de cada paso.
 | "FR-8 y FR-12 son Must y ninguna persona los usa. ¿Qué hacés?" | Antes de bajarles la prioridad, mirar el recorrido: UJ-2 dice que Diego entra con el contacto verificado (FR-8) y recibe la confirmación por correo (FR-12). Faltaba el vínculo, no sobraba la prioridad. |
 | "¿Quién aprueba un cambio de 9.000? ¿Y uno de 15.000?" | 9.000: la autoridad de cambio, si queda saldo en el presupuesto de cambio. 15.000: supera el límite de 10.000, así que decide la junta. |
 | "¿Por qué la junta fija un presupuesto de cambio aparte de la reserva de riesgo?" | La reserva de riesgo paga respuestas a riesgos; los cambios de alcance tienen su propio presupuesto. Mezclarlos oculta cuánto se gastó en cada cosa. |
+| "La matriz recomienda la consola en el R1 (56,2 contra 47,5). ¿Qué tendría que cambiar para que ganen las solicitudes?" | Que la capacidad pese 31 en lugar de 25, o que las dependencias bajen de 20 a 12,3. No es una decisión frágil (6 puntos de margen), pero tiene un costo: el R1 queda con 1 punto de holgura, y en la clase 2 se cobra. |
 | "El VAN es 39.776. ¿Cuánto puede fallar el beneficio principal antes de que el proyecto deje de valer la pena?" | B-01 tiene su punto de equilibrio en 76,8 % de lo estimado: puede caer 23,2 %. Es más que su tolerancia de −10 %, así que el caso es robusto, pero depende sobre todo de ese beneficio. |
 
 ### Dudas frecuentes
@@ -130,11 +136,17 @@ de "Si te pregunta" de cada paso.
   sénior los representa ante la junta. El nombre de cada persona lleva su rol para no confundirla con el equipo.
 - **"¿Por qué hay avisos P-09 y P-10 en la puerta de proyecto?"** Faltan la matriz poder/interés y la RACI; se trabajan
   en E2E-3.
+- **"¿La matriz decide por el gestor?"** No: recomienda. Decide la persona con `--elegir … --por`, y si elige otra
+  opción, si hay empate o si la sensibilidad es baja, el script le pide el motivo. Los pesos se confirman antes de
+  puntuar para no acomodarlos a la opción preferida.
+- **"¿Por qué la alternativa B usa R1-B y R2-B?"** La hoja importa dos salidas de `release.py` y busca la holgura por
+  el nombre del release: con nombres distintos no confunde el R1 de una alternativa con el de la otra.
 
 ### Plan B si la demo en vivo falla
 
 Seguir con la evidencia: abrir `salida-g2.md` en el bloque del paso y leer la línea de "Qué deberías ver" de la guía.
-Mostrar `g2-gantt.png` para el paso 3 y `g2-indicadores.png` para cerrar. Nunca improvisar cifras: si una no está en
+Mostrar `g2-gantt.png` para el paso 3, `g2-decision-release.png` para la decisión del R1 y `g2-indicadores.png` para
+cerrar. Nunca improvisar cifras: si una no está en
 la evidencia, decir "lo verificamos después".
 
 ---
@@ -148,7 +160,7 @@ la evidencia, decir "lo verificamos después".
 | Minuto | Bloque | Qué pasa | Material |
 |---|---|---|---|
 | 0–10 | Gancho | Mostrar `g2-consumo-cambio.png` sin título: "una barra roja al 200 %. ¿Quién lo quiso aprobar? ¿Por qué no llegó a consumirse?" Repaso en un minuto de los tres números de la clase 1. | Diapositivas de gancho |
-| 10–25 | Concepto | Tres caminos de un cambio; análisis de impacto en todos los objetivos, incluido el VAN, que dice quién decide; EVM ágil (alcance que no entra, no sobrecosto); gestión por excepción. | Diapositivas de concepto |
+| 10–25 | Concepto | Tres caminos de un cambio; análisis de impacto en todos los objetivos, incluido el VAN, que dice quién decide; EVM ágil (alcance que no entra, no sobrecosto); gestión por excepción; la matriz y la pregunta tipada que recibe la junta. | Diapositivas de concepto |
 | 25–65 | Demostración | Pasos 6 a 10 (detalle abajo). | Terminal + evidencia |
 | 65–75 | Pregunta y discusión | "Sofía aprobó C-002 porque era obligatorio. ¿Estuvo mal?" | Diapositiva de pregunta |
 | 75–85 | Ejercicio | Parte B del ejercicio: la tabla de impacto de un cambio real; ejemplo resuelto al cerrar el bloque. | [ejercicio.md](ejercicio.md) · [cómo conducirlo](#el-ejercicio) |
@@ -158,11 +170,12 @@ la evidencia, decir "lo verificamos después".
 
 | Min | Paso | En vivo o con evidencia | Qué mostrar | Qué decir |
 |---|---|---|---|---|
-| 25–29 | 6 | Evidencia | **D-009**, nivel `product-owner`, sin solicitud de cambio | "Primer camino: lo decide el PO porque no toca Must, fecha ni costo." |
+| 25–29 | 6 | Evidencia | **D-010**, nivel `product-owner`, sin solicitud de cambio | "Primer camino: lo decide el PO porque no toca Must, fecha ni costo." |
 | 29–42 | 7 | **En vivo** (prompt del paso 7) | "agregados ['FR-13']"; escenario "123 · 2027-05-20"; VAN 39.776 → 45.939; mapa capacidad × persona (FR-13 lo usa Diego); la tabla de `impacto.py` y "Decide: Autoridad de cambio: Sofía Ramírez"; el borrador `2027-01-16-solicitud-cambio-C-001.md`; "INFO CAM-03 Presupuesto de cambio: 9.000 de 12.000 (75 %)" | Recorrer la tabla fila por fila. Mostrar `g2-roadmap-c001.png`: "el Release 1 no se mueve; la puesta en producción, 11 días; el simulador se paga solo, y el análisis dice que lo decide Sofía". |
-| 42–47 | 8 | Evidencia | "Sin desvíos"; líneas base 1.1; cobertura 13 de 13 | Mostrar `g2-trazabilidad.png`: "la matriz se rehízo sola tras el cambio". |
+| 42–47 | 8 | Evidencia | "Sin desvíos"; líneas base 1.1; cobertura 13 de 13; `vigentes`: "cadena D-005 → D-011" | Mostrar `g2-trazabilidad.png`: "la matriz se rehízo sola tras el cambio, y la línea base 1.0 quedó como historia: nadie decide con la vieja". |
 | 47–52 | 9 | Evidencia | `alcance_no_entregable_pct 10.345`, ámbar; TOL-02; SPI 0,867 activa el disparador de R-001; Q-001 sin QUA-01 | "Ámbar: el PO saca Should/Could, que es justo la respuesta prevista en R-001; nadie escala todavía." |
-| 52–65 | 10 | **En vivo** el prompt 1; evidencia para los prompts 2 y 3 | `registro.py` rechaza la aprobación de Sofía ("supera el límite de la autoridad de cambio (10.000)", "24.000 de 12.000 fijados por la junta") y C-002 queda `pendiente-decision`; sanidad "0 ERROR · 1 AVISO · 1 INFO" (TOL-01, CAM-03 al 75 %); análisis de impacto de C-002: "Decide: Junta", cuatro motivos, "recomendación: pedir plan de excepción", VAN 30.939; puerta "1 bloqueo(s)" (L-01); la junta amplía el presupuesto a 32.000 y recién entonces aprueba C-002; REG-09 de R-001 el 26/2 y su revisión; sanidad final "24.000 de 32.000 (75 %)" | Mostrar `g2-impacto-c002.png`, `g2-alcance-evm.png` y `g2-business-case.png`. "La aprobación fuera de la autoridad se frenó el mismo día, el análisis dijo por qué y quién decide, y la junta decidió sabiendo que el proyecto sigue valiendo la pena." |
+| 52–61 | 10 | **En vivo** el prompt 1; evidencia para los prompts 2 y 3 | `registro.py` rechaza la aprobación de Sofía ("supera el límite de la autoridad de cambio (10.000)", "24.000 de 12.000 fijados por la junta") y C-002 queda `pendiente-decision`; sanidad "0 ERROR · 1 AVISO · 1 INFO" (TOL-01, CAM-03 al 75 %); análisis de impacto de C-002: "Decide: Junta", cuatro motivos, "recomendación: pedir plan de excepción", VAN 30.939; puerta "1 bloqueo(s)" (L-01); la junta amplía el presupuesto a 32.000 y recién entonces aprueba C-002; REG-09 de R-001 el 26/2 y su revisión; sanidad final "24.000 de 32.000 (75 %)" | Mostrar `g2-impacto-c002.png`, `g2-alcance-evm.png` y `g2-business-case.png`. "La aprobación fuera de la autoridad se frenó el mismo día, el análisis dijo por qué y quién decide, y la junta decidió sabiendo que el proyecto sigue valiendo la pena." |
+| 61–65 | 10 (matriz de la junta) | Evidencia | Análisis de diferir: "6 sprints: +2 sprint (28 días corridos)"; matriz: rechazar "eliminada: impacto 1 < 2 (eliminatorio)", diferir 10,0 "dominada por O3", plan de excepción 30,0; pregunta tipada: "Respuesta inválida: O1" y "Respuesta válida: O3"; "decisión D-013 (nivel junta)"; `vigentes --tema "change budget"`: D-002 y D-015 | Mostrar `g2-decision-c002.png`: "diferir no salva la tolerancia, solo demora el cumplimiento; y una recomendación automática no puede proponer la opción eliminada". |
 
 **Prompts exactos:** los de los pasos 7 y 10 (prompt 1) de la guía. Los prompts 2 y 3 del paso 10 se leen en voz alta y
 se muestra su resultado en la evidencia, para no depender de dos rondas más en vivo.
@@ -176,6 +189,8 @@ se muestra su resultado en la evidencia, para no depender de dos rondas más en 
 3. "Obligatorio" responde si hay que hacerlo, no quién lo decide.
 4. La excepción no es un fracaso: es la ruta prevista, y con pm-method empieza el mismo día del desvío. Llega a la
    junta con el business case recalculado y, si un riesgo queda sin revisar, REG-09 lo recuerda.
+5. La junta decide con la **matriz**, no con la urgencia: rechazar queda eliminada por ser obligatorio y diferir,
+   dominada por el plan de excepción.
 
 ### Preguntas para la audiencia
 
@@ -185,12 +200,13 @@ se muestra su resultado en la evidencia, para no depender de dos rondas más en 
 | "Sofía aprobó C-002 porque era obligatorio. ¿Estuvo mal?" | La necesidad no se discute; la autoridad sí. 15.000 supera su límite de 10.000 y el presupuesto quedaría al 200 %: debía escalar a la junta. Por eso `registro.py` no registra su aprobación y C-002 queda `pendiente-decision`. |
 | "¿Por qué el EVM ágil habla de alcance y no de sobrecosto?" | Con costo y fecha fijos, un EAC mayor que el BAC significa que no entra todo el alcance. Si lo que no entra cabe en Should/Could (10,3 % < 20 %), decide el PO; si no (22,1 %), los Must peligran y hay excepción. |
 | "C-002 resta 15.000 de VAN y no suma beneficio. ¿Sigue valiendo la pena el proyecto?" | Sí: el VAN queda en 30.939 y B-01 puede caer 18 % antes de llegar a 0, más que su tolerancia de −10 %. Con menos margen: la junta lo sabe antes de aprobar el plan de excepción. |
+| "¿Por qué no diferir C-002 al R2, si así la etapa 2 no sale de su tolerancia?" | Porque no evita la excepción: el mismo análisis aplicado a diferir da 2 sprints más en el R2 (28 días corridos) cuando a la tolerancia del proyecto le quedan 4 días laborables, excede igual la autoridad y el presupuesto, y el R1 no se abre a los socios sin consentimiento. En la matriz queda dominada. |
 | "Tras C-002, ¿qué pasa con la fecha de fin del proyecto?" | La recalcula el plan de proyecto junto con el plan de excepción (lo pide `limite-etapa`). La guía no la recalcula. Si quedara fuera de ±3 semanas, la junta tampoco podría aprobarla sola. |
 
 ### Dudas frecuentes
 
 - **"¿El intercambio del PO no debería ser una solicitud de cambio?"** No, si cambia Should/Could equivalentes sin tocar
-  Must, fecha ni costo: queda como decisión de nivel `product-owner` (D-009) y se avisa a BMAD.
+  Must, fecha ni costo: queda como decisión de nivel `product-owner` (D-010) y se avisa a BMAD.
 - **"¿Puedo pagar un cambio con la reserva de riesgo?"** Solo si responde a un riesgo registrado; si no cita un R-###,
   sanidad avisa con CAM-02.
 - **"¿Y si la junta necesita aprobar igual una puerta con un ERROR?"** La verificación lo indica: "corregir, o decisión
@@ -198,6 +214,9 @@ se muestra su resultado en la evidencia, para no depender de dos rondas más en 
 - **"¿Por qué aparece REG-09 al final si todo se aprobó?"** `limite-etapa` pide actualizar plan, business case y
   riesgos. El business case se actualizó; R-001, con revisión prevista el 19/2, quedó sin mirar en medio de la
   excepción. Sanidad lo marca el 26/2 y el gestor lo revisa ese día (probabilidad 3 → 4, próxima revisión el 19/3).
+- **"Si la junta amplió el presupuesto, ¿qué vale del límite de 10.000?"** `decision.py vigentes --tema "change
+  budget"` lo responde (la búsqueda une inglés y español): D-002 sigue vigente con el límite y D-015 fija el tope de
+  32.000. La del 26/2 cambió solo una clave, así que no reemplaza a la otra.
 - **"¿Qué pasa si BMAD cambia el PRD sin avisar?"** `bmad.py verificar` lo detecta como desvío contra la línea base. Sin un
   issue que lo cite, sanidad lo marca como ERROR ESP-10 ("Cambio no controlado"), que bloquea las puertas; con el issue
   baja a aviso hasta la nueva línea base.
@@ -206,8 +225,8 @@ se muestra su resultado en la evidencia, para no depender de dos rondas más en 
 
 Usar la evidencia: los bloques `impacto.py … analizar C-001` y `impacto.py … analizar C-002` de `salida-g2.md` (con el
 §3 a §6 de cada borrador de solicitud), y la salida de sanidad del 19/2. Las imágenes `g2-roadmap-c001.png`,
-`g2-trazabilidad.png`, `g2-impacto-c002.png`, `g2-alcance-evm.png`, `g2-consumo-cambio.png` y `g2-business-case.png`
-cuentan la clase completa sin terminal.
+`g2-trazabilidad.png`, `g2-impacto-c002.png`, `g2-decision-c002.png`, `g2-alcance-evm.png`, `g2-consumo-cambio.png` y
+`g2-business-case.png` cuentan la clase completa sin terminal.
 
 ---
 

@@ -1,7 +1,7 @@
 ---
 name: pm-estado-proyecto
 description: "Carpeta del proyecto, estado.json y scripts compartidos (estado, registro, wbs, cpm, evm). Usar: crear proyecto, estado, etapa, tolerancias, project state. No: decidir puertas→pm-direccion-decisiones."
-version: 2.5.0
+version: 2.6.0
 author: pm-method
 license: MIT
 metadata:

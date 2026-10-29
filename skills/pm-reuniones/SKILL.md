@@ -1,7 +1,7 @@
 ---
 name: pm-reuniones
 description: "Actas desde transcripciones o notas: decisiones, compromisos A-###, riesgos, lecciones, clima. Usar: acta, minuta, transcripción, acuerdos, action items, minutes, meeting decisions. No: matriz de comunicación→pm-comunicacion-stakeholders."
-version: 2.5.0
+version: 2.6.0
 author: pm-method
 license: MIT
 metadata:

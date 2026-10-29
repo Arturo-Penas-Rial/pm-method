@@ -3,7 +3,7 @@ name: pm-estado
 description: "Estado del proyecto: fase, etapa, tolerancias, puertas pendientes, registros abiertos, avance BMAD y siguiente paso. Uso manual: /pm-estado [carpeta]. Project status."
 disable-model-invocation: true
 argument-hint: "[carpeta del proyecto / project folder]"
-version: 2.5.0
+version: 2.6.0
 author: pm-method
 license: MIT
 metadata:

@@ -1,7 +1,7 @@
 ---
 name: pm-issues-cambios
 description: "Issues, control de cambios e informe de excepción. Usar: issue, incidencia, registro de incidentes, solicitud de cambio, change request, off-spec, concesión, desvío del PRD. No: pronóstico o semáforo→pm-progreso-reportes."
-version: 2.5.0
+version: 2.6.0
 author: pm-method
 license: MIT
 metadata:
@@ -38,13 +38,13 @@ metadata:
 - Enfoque de issues y cambios (`02-planificacion/enfoques/enfoque-issues-cambios.md`): línea base, escalas, delegación por umbral, presupuesto de cambio. Si no existe, valores de referencia declarados.
 - Plan de etapa y de proyecto; descripciones de producto afectadas.
 - `03-control/registros/issues.csv`, `cambios.csv`, `riesgos.csv`, `decisiones.csv`, `acciones.csv`, `calidad.csv`; esquemas con `${CLAUDE_SKILL_DIR}/../pm-estado-proyecto/scripts/registro.py --proyecto <dir> esquema issues|cambios|decisiones`.
-- **Especificación (fuente única, SPEC §1.16)**: ids afectados e historias solo vía `python3 ${CLAUDE_SKILL_DIR}/../pm-estado-proyecto/scripts/especificacion.py --proyecto <dir> resumen|consultar <id>|listar …` (igual con o sin BMAD; nunca abrir BMAD ni `requisitos.md`); desvíos de `bmad.py verificar`. Escribe como dueña: `issues.csv`, `cambios.csv` (ids en `notas`) y el origen del traspaso. Tracker o chat: instantánea vía `pm-integraciones`.
+- **Especificación (fuente única, SPEC §1.16)**: ids afectados e historias solo vía `python3 ${CLAUDE_SKILL_DIR}/../pm-estado-proyecto/scripts/especificacion.py --proyecto <dir> resumen|consultar <id>|listar …` (con o sin BMAD; nunca abrir BMAD ni `requisitos.md`); desvíos de `bmad.py verificar`. Escribe como dueña: `issues.csv`, `cambios.csv` (ids en `notas`) y el origen del traspaso. Tracker o chat: instantánea vía `pm-integraciones`.
 
 ## Procedimiento
 1. **Situar.** Tolerancias, autoridad de cambio, umbral y presupuesto de cambio remanente.
 2. **Capturar.** Prueba de certeza (incierto → `pm-riesgos`); exactamente uno de cinco tipos; formal/informal; prioridad y severidad; alta con `registro.py agregar issues` (`references/guia.md` §1–§2). Una tarea no es un issue → `acciones.csv`. Nunca rechazar sin evaluar.
 3. **Entrada BMAD.** Cada desvío o Sprint Change Proposal de `bmad.py verificar` entra como `solicitud-cambio` citando ids y sha, salvo elaboración progresiva declarada (guía §8).
-4. **Evaluar impacto integrado** (siete objetivos y tolerancias, business case, otros productos, ruta crítica): `python3 ${CLAUDE_SKILL_DIR}/../pm-issues-cambios/scripts/impacto.py --proyecto <dir> analizar C-### [escenario]` → tabla, opciones y quién decide (borrador; guía §3.1).
+4. **Evaluar impacto integrado** (siete objetivos, tolerancias, business case, productos, ruta crítica): `python3 ${CLAUDE_SKILL_DIR}/../pm-issues-cambios/scripts/impacto.py --proyecto <dir> analizar C-### [escenario]` → tabla, opciones y quién decide (borrador; guía §3.1); su `--json` alimenta `decision.py --tipo cambio` (`pm-direccion-decisiones`).
 5. **Documentar** (rutas en la tabla de artefactos). Si requiere análisis: `templates/informe-issue.md`. Solicitud de cambio: `templates/solicitud-cambio.md` + fila en `cambios.csv` (`notas=origen I-###`, ids afectados, `costo` y `cargo`: guía §4.1); issue en `pendiente-cambio`.
 6. **Recomendar** al menos dos opciones (incluida no hacer nada), con financiación del cambio o concesión/corrección del fuera de especificación (guía §3).
 7. **PUERTA HUMANA — Autoridad.** Determinar quién decide con la tabla (guía §4). El agente nunca decide: pide la decisión al PO, gestor, autoridad de cambio o junta. Sin umbral o saldo, `registro.py` rechaza la aprobación delegada: `pendiente-decision` y subir de nivel (guía §4.1); si el pronóstico sale de tolerancia → paso 10.
@@ -107,4 +107,4 @@ metadata:
 ## EN summary
 PRINCE2 issue and change control: certainty test, five issue types, impact across seven objectives (impacto.py), two or more options, routing to the delegated authority; the agent never decides.
 Approved changes are synchronized at once; forecast breaches produce the single exception report (X-###) for pm-director.
-With BMAD, drift and Sprint Change Proposals from `bmad.py verificar` enter as change requests; approved ones go back via `bmad.py handoff --cambio C-###`, then a new baseline by pm-director.
+With BMAD, drift and Sprint Change Proposals enter as change requests; approved ones go back via `bmad.py handoff`, then a new baseline.

@@ -40,6 +40,21 @@ calidad; `abierta` en acciones); en riesgos calcula `puntuacion = probabilidad �
 P/I 1–5; acepta alias en inglés (`threat`, `high`, `open`, `change-request`…) y guarda el canónico. `--forzar` solo con
 motivo en `notas`. Mostrar el id creado y la fila resumida; marcar `[por confirmar]` lo que el usuario no dio.
 
+### 3.1 Bitácora y propuestas (2.6.0)
+Cada escritura de un script queda en `<proyecto>/.bitacora.jsonl` (solo anexado, con huellas sha256 encadenadas; SPEC
+§1.10.16): `registro.py historial R-003` (o `riesgos`, `estado`, `P-001`) muestra fecha y hora reales, script, operación,
+`--por` y los campos antes → después, y verifica la cadena. Si un registro cambió fuera de los scripts (merge de git,
+edición revisada), la sanidad avisa BIT-02 hasta que una persona lo asienta: `registro.py reconocer riesgos --por
+"<rol: nombre>" --motivo "…"`. No hay deshacer: un error se corrige con otra escritura (y una decisión, con `reemplaza`).
+Cuando un agente propone un cambio para que una persona lo revise después: `registro.py proponer <registro> [id]
+--campo … --por "agente: <nombre>" --motivo "…"` (valida como agregar/actualizar y guarda `03-control/propuestas/P-###.json`
+con la huella del registro y los valores base, sin escribir el registro); `registro.py propuestas` muestra qué pasaría
+al aprobar hoy; la persona decide con `registro.py aprobar P-### --por "<rol: nombre>"` (no puede ser quien propuso; el
+guardián pide confirmación) o `rechazar P-### --por … --motivo …`. Al aprobar: sin cambios en el registro se aplica; si
+cambiaron otras filas u otros campos de la fila, se reaplica sobre la versión actual; si cambió un campo que la propuesta
+toca, queda en `conflicto` con la base, el valor de hoy y el propuesto: volver a proponer. Las reglas de `registro.py`
+(valores, integridad, control de cambios, vigencia) se aplican al aprobar; si no pasan, la propuesta sigue pendiente.
+
 ## 4. Actualizar y cerrar
 `registro.py actualizar <registro> <id> --campo estado=.. --campo notas=".."`. Cerrar = cambiar `estado` y anotar qué se
 decidió, quién y cuándo: `decision` + `decidido_por` + `fecha_cierre` en issues; `fecha_cierre` en acciones (automática al
@@ -63,7 +78,7 @@ sincronizar en la misma operación: `cambios.csv`, `decisiones.csv`, nueva versi
 | riesgos | `fecha_revision` anterior al período; acciones vencidas; sin propietario; alto (≥15) sin respuesta | marcar revisión vencida; listar en highlight; pedir propietario |
 | issues | `responsable` vacío; `en-evaluacion` más de un período; `escalado` sin informe enlazado | asignar; pedir decisión; enlazar informe de issue |
 | cambios | `pendiente-decision` sin fecha límite; `diferido` sin fecha de reevaluación | pedir decisión a la autoridad; fijar fecha |
-| decisiones | `revisar_en` vencido; decisión de junta sin puerta en `estado.json` | reevaluar; pedir a `pm-director` que regularice |
+| decisiones | `revisar_en` vencido (DEC-06); dos vigentes del mismo asunto que se contradicen sin `reemplaza` ni `conviven` (DEC-05); decisión de junta sin puerta en `estado.json` | reevaluar con quien decidió; marcar `reemplaza` (nivel igual o superior) o `conviven`; pedir a `pm-director` que regularice |
 | supuestos | `fecha_validacion` vencida con `validado=pendiente` | validar o transferir a riesgo/issue |
 | lecciones | `responsable_seguimiento` vacío; `registrada` varios períodos | asignar; llevar al informe de fin de etapa |
 | stakeholders | compromiso actual ≠ deseado sin acción | derivar a `pm-comunicacion-stakeholders` |

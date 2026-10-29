@@ -68,6 +68,17 @@ Ruta `${CLAUDE_SKILL_DIR}/../pm-estado-proyecto/scripts/` según instalación: p
 respuesta/propietario, top 5, acciones vencidas y por responsable, issues sin responsable) · `esquema <registro>`.
 Acepta alias en inglés (`threat`, `high`, `open`, `change-request`…) y guarda el valor canónico; mensajes en el idioma
 del proyecto. `--forzar` solo con motivo en `notas`. Umbrales de riesgo propios: `estado.py umbrales-riesgo alto=.. medio=..`.
+En `decisiones`, `reemplaza` y `conviven` (D-### separados por `;`) se validan con `vigencia.py`: ids existentes, sin
+ciclos ni reemplazos dobles (`--forzar` lo omite) y autoridad, que no se omite: nivel igual o superior al de la
+reemplazada y quien decide con esa autoridad (`pm-direccion-decisiones` guía §13.10).
+**Bitácora y propuestas (2.6.0, SPEC §1.10.16):** `historial [id|registro|estado|P-###] [--desde AAAA-MM-DD] [--max N]
+[--json]` (escrituras anotadas en `<proyecto>/.bitacora.jsonl` y verificación de la cadena) · `reconocer <registro|estado>
+--por … --motivo …` (asienta un cambio hecho fuera de los scripts; cierra BIT-02) · `proponer <registro> [id] --campo …
+--por … [--motivo …]` · `propuestas [--estado pendiente|aplicada|reaplicada|conflicto|rechazada|todas] [--json]` ·
+`aprobar P-### --por …` · `rechazar P-### --por … --motivo …` (pm-registros guía §3.1). La bitácora la escribe
+`esquema.escribir_atomico` (el mecanismo común de 2.5.1), así que cubre `estado.py`, `puertas.py`, `interesados.py`,
+`envios.py`, `bmad.py` y todo lo que llama a `registro.py`, bajo el mismo bloqueo: el script no tiene que hacer nada;
+`esquema.contexto_bitacora(operacion=…, por=…)` precisa lo que no sale de la línea de comandos.
 
 ### 5.2 `evm.py`
 `--pv --ev --ac --bac` o `--csv progreso.csv` (columnas `pv|pv_acumulado`, `ev|ev_acumulado`, `ac|ac_acumulado`) ·
@@ -104,7 +115,9 @@ Mermaid como imagen si `mmdc` está instalado) · `xlsx --proyecto <dir>` (una h
 | `nuevo_proyecto.py` | pm-mandato-y-brief, pm-orquestador / `pm-nuevo` |
 | `estado.py` | todas las skills de fase; `puerta` solo pm-director (pm-direccion-decisiones); `productos`: pm-paquetes-trabajo, pm-calidad, pm-cierre-proyecto, `sanidad.py` (QUA-04) y `puertas.py` (C-07); `periodo` (datos del período → tablero y borrador del highlight, `--verificar` = cadena de reporte): pm-progreso-reportes (guía §14) y pm-visuales (guía §3) |
 | `registro.py` | pm-registros, pm-riesgos, pm-issues-cambios, pm-calidad, pm-lecciones-aprendidas, pm-paquetes-trabajo, pm-progreso-reportes, pm-comunicacion-stakeholders, pm-reuniones, pm-cierre-proyecto, pm-direccion-decisiones |
-| `esquema.py` | importado por los demás scripts; documentado en `pm-registros/templates/guia-registros.md` |
+| `esquema.py` | importado por los demás scripts; documentado en `pm-registros/templates/guia-registros.md`; bloqueo, escritura atómica y bitácora de escrituras (`anotar_bitacora`, `verificar_bitacora`, `reconocer_bitacora`: `registro.py historial`, `sanidad.py` BIT, `paquete.py auditoria --con-bitacora`) |
+| `vigencia.py` | `registro.py` (validación de `reemplaza`/`conviven`), `esquema.anotar_decision` (reemplazo automático de aprobaciones, presupuestos, enfoque y veredicto del gate de preparación de BMAD), `sanidad.py` (DEC-05, DEC-06) y `pm-direccion-decisiones/scripts/decision.py` (`vigentes`, expediente solo con vigentes) |
+| `texto.py` | normalización para buscar en español e inglés (lemas, fechas, cifras, ids): `decision.py expediente --tema` y `vigentes --tema`, `vigencia.py`; lista para el futuro indexador (SPEC §1.10.15) |
 | `evm.py` | pm-progreso-reportes, pm-agil-hibrido, pm-costos-presupuesto, pm-cierre-proyecto |
 | `cpm.py` | pm-cronograma-estimacion, pm-plan-etapa-y-limites |
 | `wbs.py` | pm-planificacion-por-productos, pm-costos-presupuesto, pm-bmad-puente (trazabilidad) |
@@ -121,6 +134,8 @@ action log · diario = daily log.
 ## 8. Reglas complementarias que los scripts hacen cumplir
 - [PRINCE2] Issues: cinco tipos exactos, con `decision` y `decidido_por` antes de cerrarse; una acción va a `acciones.csv`.
 - [PMBOK→Risk] P e I 1–5; alto ≥15, medio 6–12, bajo ≤5; EMV con 10/30/50/70/90 % (configurable con `umbrales-riesgo`).
+- Toda escritura de `estado.json`, de un registro o de una propuesta queda en la bitácora con huellas; una propuesta se
+  aplica solo con la aprobación de una persona distinta de quien propuso y sin conflicto en los campos que toca.
 
 ## 9. Radar de atención y briefing de incorporación
 `estado.py --proyecto <dir> radar [--corte AAAA-MM-DD] [--max 5] [--json | --linea]` responde, sin escribir nada, qué hay

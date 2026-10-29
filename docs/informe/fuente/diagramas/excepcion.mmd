@@ -4,7 +4,8 @@ flowchart TB
     ev["evm.py --guardar<br/>corte 19/2 · alcance rojo"] --> s1{"sanidad<br/>corte 19/2"}
     s1 -->|"TOL-01<br/>CAM-03 al 75 %"| ti
     ti --> x["Informe de excepción<br/>X-001 e issue I-003"]
-    x --> j1{"Junta 22/2<br/>decision-ad-hoc"}
+    x --> mz["decision.py C-002 · matriz<br/>rechazar eliminada · diferir dominada"]
+    mz --> j1{"Junta 22/2<br/>decision-ad-hoc · D-013"}
     j1 --> le["limite-etapa<br/>--excepcion X-001"]
     le --> pe["Plan de excepción X-001<br/>y business case actualizado"]
     pe --> v1["verificar · bloqueo<br/>lista de control L-01"]

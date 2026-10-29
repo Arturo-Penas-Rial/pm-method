@@ -2,8 +2,8 @@
 
 **Qué vas a probar:** cómo una idea llega a ser un proyecto **diseñado y autorizado**, todavía sin ejecutar, usando las
 skills propias de pm-method (derivadas de PRINCE2 7 y PMBOK 8). Vas a ver cinco cosas que casi nunca se hacen bien o se
-hacen una sola vez: **validar los supuestos antes de invertir**, **comparar opciones con números**, **elegir el enfoque
-de entrega con criterios**, **adaptar (tailoring) la gestión al contexto** y **dejar fijados los presupuestos y las
+hacen una sola vez: **validar los supuestos antes de invertir**, **comparar opciones con números y con criterios
+explícitos**, **elegir el enfoque de entrega con criterios**, **adaptar (tailoring) la gestión al contexto** y **dejar fijados los presupuestos y las
 tolerancias de la junta**. El recorrido cubre la puesta en marcha (starting up a project) y la iniciación (initiating a
 project) hasta la puerta `autorizar-proyecto`, y termina mostrando cómo se vigila lo que la junta aceptó sin validar.
 
@@ -24,7 +24,7 @@ sénior: Tomás Aguirre (jefe de TI). Aseguramiento: Valeria Santos. Jefe de equ
 `inversion.py`), `pm-acta-constitucion`, `pm-enfoques-gestion`, `pm-organizacion-roles`, `pm-interesados` (con las
 personas de usuario), `pm-mapas-estrategicos` · pm-planificacion → `pm-planificacion-por-productos`,
 `pm-costos-presupuesto`, `pm-plan-etapa-y-limites` · `pm-riesgos` (candidatos y riesgos) · `pm-bmad-puente` (variante a)
-· `pm-visuales` · `pm-director` (`pm-direccion-decisiones`) · `pm-estado-proyecto` (sanidad, puertas, contexto de sesión
+· `pm-visuales` · `pm-director` (`pm-direccion-decisiones`, con `decision.py`) · `pm-estado-proyecto` (sanidad, puertas, contexto de sesión
 y radar).
 
 **Duración:** 20 pasos (16 de la variante b, contando el 5b y el 10b, y 4 de la variante a, con el 16b), 120–150
@@ -63,10 +63,12 @@ cuando un requisito Must no tiene para quién o cuando nadie revisó un riesgo a
 2. Un **mapa de supuestos** (criticidad × certeza) con experimentos baratos, criterios fijados de antemano y resultados
    que cambian el caso de negocio, vigilados por SUP-01, SUP-02 y SUP-03.
 3. **Opciones de negocio** 0/1/2 con VAN, TIR, repago y sensibilidad calculados por `inversion.py`, recalculados con la
-   evidencia y con el presupuesto.
+   evidencia y con el presupuesto, y comparadas en una **matriz de decisión** con pesos explícitos, expediente de contexto
+   y sensibilidad de los pesos; la junta elige con la recomendación a la vista.
 4. El **enfoque de entrega** elegido con los nueve criterios y registrado como decisión (híbrido por construcción),
    contrastado con un **mapa de Wardley** de los entregables y con el **recorrido del paciente**, cuyos dolores quedan
-   tratados por requisitos y riesgos (MAP-02 y MAP-03).
+   tratados por requisitos y riesgos (MAP-02 y MAP-03); el **hacer o comprar** de los recordatorios, decidido con una
+   matriz que lee el contexto de los mapas y queda citado en el componente.
 5. Un **presupuesto con reservas sin doble conteo** y los **presupuestos de la junta** fijados en `estado.json`.
 6. **Personas de usuario** con cada requisito mapeado a quien lo pide, lo usa o lo aprovecha (ningún Must sin persona,
    STK-13), desde el recorrido del paciente (b) o desde los recorridos UJ del PRD (a).
@@ -83,14 +85,23 @@ invierte primero en aprender (paso 2).
 El piloto bajó el VAN de las dos opciones; la opción 2 sigue siendo la mejor, con una TIR de 54,3 % y un repago de
 1,78 años (paso 4).
 
+![Matriz de decisión de las opciones de negocio](img/g5-matriz-opciones.png)
+Con el VAN, los beneficios fuera del VAN, el riesgo y el ajuste al mandato, la opción 2 suma 80,0 contra 50,6 de la 1;
+solo si el riesgo pesara 49,6 en lugar de 20 pasaría la 1. Por eso el segundo release espera la prueba técnica de S-003
+(paso 4).
+
 ![Mapa de valor de los entregables](img/g5-wardley.png)
 Lo que diferencia se construye, lo que el mercado ya ofrece se compra, y el adaptador queda atado a una agenda con
 inercia: el mapa confirma desde otro ángulo la lectura 23 · 18 · 12 del enfoque (paso 5b).
 
+![Hacer o comprar de C2](img/g5-hacer-comprar-c2.png)
+Para los recordatorios (C2, producto 0,62 en el mapa), comprar una plataforma suma 78,8 contra 52,3 de tercerizar y 28,7
+de construir; construir solo pasaría si la diferenciación pesara 57,5. La decisión D-004 queda citada en C2 (paso 5b).
+
 ![Tablero de mapas del proyecto autorizado](img/g5-tablero-mapas-169.png)
 Los dos mapas del paso 5b en su tablero, con los vínculos de los pasos 6 y 9: la agenda clínica con inercia ya tiene su
-riesgo (R-001), cada dolor del paciente su tratamiento (S-001, S-002, REQ-003 y REQ-005) y no queda ningún aviso MAP
-(paso 14).
+riesgo (R-001), los recordatorios su decisión de hacer o comprar (D-004), cada dolor del paciente su tratamiento (S-001,
+S-002, REQ-003 y REQ-005) y no queda ningún aviso MAP (paso 14).
 
 ![Presupuesto con reservas](img/g5-presupuesto.png)
 La junta autoriza USD 179.340 (BAC 170.800 + reserva de gestión 8.540) y fija aparte un presupuesto de cambio de
@@ -102,14 +113,14 @@ REQ-006 se resolvió marcando al paciente como beneficiario (paso 10b).
 
 ![Tablero del proyecto diseñado](img/g5-tablero.png)
 Al autorizarse el proyecto: VAN de USD 263.229 con el presupuesto real, 4 de 4 supuestos críticos tratados (uno de ellos
-aceptado por la junta con la decisión D-009) y la puerta `autorizar-proyecto` aprobada el 2027-01-15 (paso 14).
+aceptado por la junta con la decisión D-010) y la puerta `autorizar-proyecto` aprobada el 2027-01-15 (paso 14).
 
 ## Clases
 
 | Clase (90 min) | Pasos | Pregunta que responde |
 |---|---|---|
-| **1 · ¿Vale la pena?** (puesta en marcha) | 1 a 6: mandato y lecciones, mapa de supuestos, experimentos y resultados, opciones con VAN, enfoque de entrega, mapa de valor y recorrido del paciente (5b), brief y `autorizar-inicio`; contraste con la variante a (pasos 15, 16 y 17) | ¿Qué tendría que ser cierto para que esto valga la pena, y cómo lo sabemos barato? |
-| **2 · Diseñar el proyecto** (iniciación) | 7 a 14: retomar la sesión y beneficios (P-04), producto y PBS, presupuesto y reservas, organización e interesados, personas de usuario (10b; contraste con el 16b), enfoques adaptados, bloque C (tres diseños), PID, P-11 y `autorizar-proyecto`, tablero y radar | ¿Cómo dejamos el proyecto listo para que la junta delegue con cifras? |
+| **1 · ¿Vale la pena?** (puesta en marcha) | 1 a 6: mandato y lecciones, mapa de supuestos, experimentos y resultados, opciones con VAN y matriz de decisión, enfoque de entrega, mapa de valor, recorrido del paciente y hacer o comprar de los recordatorios (5b), brief y `autorizar-inicio`; contraste con la variante a (pasos 15, 16 y 17) | ¿Qué tendría que ser cierto para que esto valga la pena, y cómo lo sabemos barato? |
+| **2 · Diseñar el proyecto** (iniciación) | 7 a 14: retomar la sesión y beneficios (P-04), producto y PBS, presupuesto y reservas, organización e interesados, personas de usuario (10b; contraste con el 16b), enfoques adaptados, bloque C (tres diseños), PID, P-11, `autorizar-proyecto` y el enfoque vigente, tablero, revisiones vencidas y radar | ¿Cómo dejamos el proyecto listo para que la junta delegue con cifras? |
 
 La clase 2 usa lo que deja la clase 1: los supuestos tratados, la opción elegida y el enfoque decidido. El guion las
 detalla minuto a minuto.
@@ -124,13 +135,16 @@ detalla minuto a minuto.
 | Seguir los experimentos | Se olvidan cuando vence la fecha | Fecha límite vigilada · SUP-02 | S-003 vencido el 2026-12-07; S-006 el 2027-02-01 |
 | Usar un resultado negativo | Se archiva y el caso no cambia | Invalidado sin decisión, riesgo, issue o cambio · SUP-03 | S-002 tratado con D-001 |
 | Comparar opciones | Una opción "ganadora" y dos de relleno, en una planilla | Opción 0 como base; `inversion.py` calcula VAN, TIR, repago, sensibilidad y equilibrio desde un CSV de flujos, con la evidencia y con el presupuesto (pasos 4 y 9) | VAN 431.782 → 272.569 → 263.229 |
+| Elegir entre las opciones | Gana la del VAN más alto o la preferida, con pesos que nadie escribió | `decision.py`: expediente con el contexto citado, matriz con pesos con fuente, sensibilidad de cada peso y pregunta tipada que valida la respuesta del modelo; la elección queda en la decisión de la junta (`--decision`) · DEC-01/02 en cada sanidad | 80,0 · 50,6 · 20,0; la 1 pasa si el riesgo pesa 49,6 |
 | Elegir el enfoque de entrega | Por costumbre | Nueve criterios por entregable; `estado.py set enfoque_entrega … --por` deja la decisión en `decisiones.csv`, revisada en cada puerta de etapa | 12 · 18 · 23 → híbrido (D-003) |
-| Decidir qué construir y qué comprar | Por preferencia del equipo, sin mirar el mercado | Mapa de Wardley con evidencia por componente; inercia sin riesgo → MAP-02; construir algo que ya es producto o commodity sin decisión → MAP-01 | MAP-02 abierto del paso 5b al 9 |
+| Saber qué decisión está vigente | Se busca el último correo o acta | Cada revisión registra una decisión que **reemplaza** a la anterior (columna `reemplaza`, nivel igual o superior); `decision.py vigentes --tema` muestra la cadena | D-003 → D-021 en la puerta `autorizar-proyecto` |
+| Revisar una decisión a tiempo | Nadie recuerda que había que revisarla | `revisar_en` de cada decisión · DEC-06 en cada sanidad mientras lo que cita siga abierto | D-010 vencida el 2027-01-29 (S-006 sin dictamen) |
+| Decidir qué construir y qué comprar | Por preferencia del equipo, sin mirar el mercado | Mapa de Wardley con evidencia por componente; inercia sin riesgo → MAP-02; construir algo que ya es producto o commodity sin decisión → MAP-01; matriz de hacer o comprar (`decision.py --criterios hacer-o-comprar`) con el contexto del mapa en el expediente y la decisión citada en el componente | MAP-02 abierto del paso 5b al 9 · C2: comprar 78,8, tercerizar 52,3, construir 28,7 (D-004) |
 | Entender dónde sufre el paciente | Anécdotas del call center | Recorrido con emoción y fuente por paso; cada dolor con tratamiento · MAP-03 en cada sanidad | MAP-03 resuelto en el paso 6 con REQ-003 y REQ-005 |
 | Criterios de éxito con dueño y fecha | Se definen al cierre, si se definen | Verificación de `autorizar-proyecto` · P-04 | P-04 resuelto con el enfoque de beneficios |
 | Presupuestos y autoridad delegada | Un monto global sin reglas | `estado.py presupuesto`; desde ahí la sanidad vigila el consumo · CAM-03, CAM-04 (en la ejecución) | Cambio 10.000 · riesgo 28.000 · gestión 8.540 · tope 3.000 |
-| Adaptar la gestión al contexto | Se copia la plantilla completa, o no se escribe nada | Formalidad decidida por enfoque (D-008) y adaptación en el PID §8; tres diseños comparados (bloque C) | 7 · 16 · 12 artefactos según el diseño |
-| Invertir sobre hipótesis | Se aprueba sin saberlo | Verificación de `autorizar-proyecto` · P-11: condición mientras el supuesto no se valide; aviso cuando la junta lo acepta con una decisión que lo cita | P-11 con S-003 y S-006 → S-003 validado, S-006 aceptado (D-009) |
+| Adaptar la gestión al contexto | Se copia la plantilla completa, o no se escribe nada | Formalidad decidida por enfoque (D-009) y adaptación en el PID §8; tres diseños comparados (bloque C) | 7 · 16 · 12 artefactos según el diseño |
+| Invertir sobre hipótesis | Se aprueba sin saberlo | Verificación de `autorizar-proyecto` · P-11: condición mientras el supuesto no se valide; aviso cuando la junta lo acepta con una decisión que lo cita | P-11 con S-003 y S-006 → S-003 validado, S-006 aceptado (D-010) |
 | Retomar el proyecto semanas después | Se reconstruye de memoria o de notas viejas | `estado.py contexto` y la línea de `estado.py radar --linea`: el hook de inicio los agrega a cada sesión; los registros mandan sobre cualquier nota de memoria | "Supuestos críticos sin validar: S-003, S-006" y "vigilar 2 (S-003)" al abrir la clase 2 |
 | Saber para quién es cada requisito | Un "usuario" genérico en todas las historias | `personas.csv` con `solicita`, `usa`, `beneficia` y el interesado que la representa; candidatas desde el recorrido o los UJ de BMAD (`interesados.py personas candidatos`) · STK-13 en cada sanidad | Must sin persona: REQ-006 → ninguno; 12 de 12 FR con persona en la variante a |
 | Revisar los riesgos a tiempo | Se revisan cuando algo explota | `fecha_revision` de cada riesgo · REG-09 en cada sanidad | R-001, R-002 y R-003 vencidos el 2027-02-01 |
@@ -143,7 +157,7 @@ pm-control la corre con la fecha de cada checkpoint y highlight.
 flowchart TB
     subgraph c1["Clase 1 · ¿Vale la pena?"]
         a["1 · Mandato y<br/>lecciones previas"] --> b["2 · Mapa de supuestos<br/>SUP-01"]
-        b --> c["3 · Experimentos y resultados<br/>SUP-02 y SUP-03"] --> d["4 · Opciones 0/1/2<br/>inversion.py"]
+        b --> c["3 · Experimentos y resultados<br/>SUP-02 y SUP-03"] --> d["4 · Opciones 0/1/2<br/>inversion.py y matriz"]
         d --> e["5 · Enfoque de entrega<br/>nueve criterios"] --> e2["5b · Mapa de valor y<br/>recorrido del paciente"]
         e2 --> f["6 · Brief, roadmap, canvas<br/>autorizar-inicio"]
     end
@@ -151,7 +165,7 @@ flowchart TB
         g["7 · Contexto y línea del radar,<br/>beneficios · P-04"] --> h["8 · Producto del proyecto<br/>y PBS/WBS"]
         h --> i["9 · Riesgos, reservas y<br/>presupuestos de la junta"] --> j["10 · Organización,<br/>interesados y RACI"]
         j --> j2["10b · Personas de usuario<br/>STK-13"] --> k["11 · Enfoques adaptados"] --> l["12 · Bloque C:<br/>tres diseños"]
-        l --> m["13 · PID, P-11 y<br/>autorizar-proyecto"] --> n["14 · Tablero y radar<br/>SUP-02 · REG-09"]
+        l --> m["13 · PID, P-11, puerta y<br/>enfoque vigente"] --> n["14 · Tablero y radar<br/>SUP-02 · REG-09 · DEC-06"]
     end
     subgraph va["Variante a · con BMAD"]
         o["15 · Supuestos y requisitos<br/>desde BMAD"] --> p["16 · Controles que<br/>detectan los vacíos"]
@@ -288,7 +302,7 @@ decisiones de Carmen van a `decisiones.csv` y la nueva fecha de S-003, al regist
 
 ---
 
-## Paso 4 · Opciones de negocio 0/1/2 con VAN, TIR, repago y sensibilidad
+## Paso 4 · Opciones de negocio 0/1/2: VAN, TIR, repago, sensibilidad y matriz de decisión
 
 PRINCE2 pide comparar siempre contra "no hacer nada distinto" (la opción 0). Cuatro medidas, en palabras simples:
 - **VAN** (valor actual neto, NPV): cada flujo anual descontado a la tasa de la organización, sumado. Mayor que 0 crea
@@ -298,6 +312,11 @@ PRINCE2 pide comparar siempre contra "no hacer nada distinto" (la opción 0). Cu
 - **Sensibilidad**: cuánto cambia el VAN si un concepto varía ±20 %, y su **punto de equilibrio**: cuánto puede caer un
   beneficio antes de que el VAN llegue a 0.
 
+El VAN no lo dice todo: una opción puede valer más y arriesgar más. Una **matriz de decisión** (análisis de decisiones
+multicriterio del PMBOK 8) suma criterios con **pesos explícitos** y mide cuánto tendría que moverse cada peso para que
+gane otra opción; así nadie acomoda los pesos para que gane la preferida. La matriz recomienda; decide la junta
+(PRINCE2: el gestor recomienda, la junta decide).
+
 **Prompt**
 ```text
 Compará tres opciones: 0 no hacer nada distinto; 1 mínimo, recordatorios con confirmación (inversión 30.000, operación
@@ -306,14 +325,33 @@ Compará tres opciones: 0 no hacer nada distinto; 1 mínimo, recordatorios con c
 adopción × 1,20, con adopción de 20 % el primer año y 40 % después. Tasa 10 % y 5 años. Calculá VAN, TIR, repago y
 sensibilidad con los supuestos iniciales y con los resultados de los experimentos. Mostrame las fórmulas.
 ```
+Y antes de llevarlo a Carmen:
+```text
+Compará las tres opciones con criterios explícitos: el VAN tal como sale de inversion.py y, de 1 a 5 con su fuente, los
+beneficios que el VAN no mide, el riesgo de cada opción y el ajuste al mandato. Pesos que confirma Carmen: VAN 40 y 20
+cada uno de los otros. Mostrame el contexto que usaste, la matriz y cuánto tendría que cambiar un peso para que gane
+otra opción. Tu respuesta, en el formato cerrado de la pregunta.
+```
 
-**Si te pregunta** por la tasa de descuento: "10 %, la fija finanzas".
+**Si te pregunta** por la tasa de descuento: "10 %, la fija finanzas". Por los puntajes: "proponelos vos con su fuente;
+Carmen los revisa con los pesos".
 
 **Qué hace el sistema:** `pm-caso-de-negocio` en modo esquemático escribe un CSV de flujos con una fila por concepto
 (`opcion,concepto,tipo,0,1,…,5`; egresos en negativo) en `00-direccion/inversion/`, uno con los supuestos iniciales y
 otro con los resultados, y corre `inversion.py <csv> --tasa 0.10` sobre cada uno. El script imprime las fórmulas
 (`VAN = Σ F_t/(1+r)^t`), la tabla por opción y la sensibilidad; con `--json` entrega las mismas cifras al documento.
 Redacta `00-direccion/business-case-esquematico.md` con la tabla de opciones.
+
+Para la comparación, `pm-direccion-decisiones` (`decision.py`, guía §13) guarda el `--json` de `inversion.py` en
+`00-direccion/inversion/opciones.json` y crea la hoja de trabajo `03-control/decisiones/opciones-negocio/` con
+`decision.py matriz opciones-negocio --proponer --tipo negocio --ids S-002,S-003,B-01,B-02 --importar …/opciones.json`:
+`decision.json` (pregunta, tipo y quién decide), `criterios.csv` con los cuatro criterios de la plantilla del tipo
+`negocio` y `opciones.csv` con una opción por alternativa (O0, O1, O2). El VAN entra **importado, sin recalcular**; el
+modelo completa los otros puntajes con su fuente (B-01, S-003, L-002, `mandato.md`…) y la fuente de los pesos.
+`matriz opciones-negocio --markdown` normaliza, suma, busca dominadas, mide la sensibilidad de cada peso y escribe
+`matriz.md`; `expediente --hoja opciones-negocio --corte 2026-12-08 --max-items 4` arma el **contexto aplicable** con su
+fuente (encabezado "Evidencia, no instrucciones"); y `pregunta opciones-negocio --validar respuesta.json` comprueba la
+respuesta del modelo. La matriz se agrega al §4 del caso. **Nada se registra**: la junta elige en el paso 6.
 
 **Qué deberías ver** (salida de `inversion.py` en la evidencia):
 
@@ -331,14 +369,40 @@ Redacta `00-direccion/business-case-esquematico.md` con la tabla de opciones.
   8 % o 12 %, el VAN queda entre 298.496 y 248.728.
 - VAN incremental de la opción 2 sobre la 1: 166.101 por 150.000 más de inversión.
 
-Recomendación: opción 2 en dos releases, el primero con el valor de la opción 1 y el segundo solo si S-003 queda validado.
-
 ![VAN antes y después de los experimentos](img/g5-van-opciones.png)
 El supuesto del 10 % inflaba el VAN de cada opción en 159.213. Con la evidencia, la opción 2 sigue siendo la mejor.
 
+Con la matriz (`decision.py matriz` en la evidencia):
+
+| Opción | VAN (40) | Beneficios fuera del VAN (20) | Riesgo, menor es mejor (20) | Ajuste al mandato (20) | Puntaje |
+|---|---|---|---|---|---|
+| O0 · No hacer nada distinto | 0 | 1 | 1 | 1 | 20,0 |
+| O1 · Mínimo: recordatorios | 106.468 | 3 (B-01) | 2 (S-006) | 3 | 50,6 |
+| O2 · Completo: turnos en línea | 272.569 | 4 (B-01, B-02, S-001) | 4 (S-003, L-002) | 5 | **80,0 ★** |
+
+- "→ recomendada O2 (80,0): propuesta, no decisión". El VAN se normaliza entre las opciones (O1 vale 0,39 del rango) y
+  los puntajes de 1 a 5, de 0 a 1; en el riesgo, menos es mejor.
+- Sensibilidad: el VAN, los beneficios y el ajuste son "estables" (ningún peso de 0 a 100 cambia la primera);
+  "riesgo 20,0: si baja: estable; si sube a **49,6** (+29,6) pasa O1".
+- El expediente cita quién decide ("`ejecutivo` — Ejecutivo: Carmen Olivera (dueño del business case, PRINCE2 §6.3.1);
+  en una puerta, la junta vía pm-director"), las líneas del caso con su `archivo:línea`, S-002 y S-003 con D-001, D-002,
+  L-002 y L-003, los supuestos críticos sin validar (S-003, S-006 y S-002), las cifras de `inversion.py` sin recalcular y
+  lo que todavía no existe: "dato no disponible: tolerancias de proyecto de tiempo y costo" (se fijan en el paso 6).
+- La pregunta tipada rechaza una respuesta libre ("'opción 2 en dos releases' no es una opción de la hoja (O0, O1, O2)
+  ni pedir-informacion" y "falta evidencia") y acepta la cerrada con evidencia: "Respuesta válida: O2".
+
+![Matriz de decisión de las opciones de negocio](img/g5-matriz-opciones.png)
+A la izquierda, el aporte de cada criterio al puntaje. A la derecha, qué pasa si el riesgo pesa más: con 49,6 la opción
+1 alcanza a la 2. La ventaja de la opción 2 depende del riesgo de S-003 (la agenda clínica), y eso respalda la
+recomendación.
+
+Recomendación: opción 2 en dos releases, el primero con el valor de la opción 1 y el segundo solo si S-003 queda validado.
+
 **Dónde verificar:** `00-direccion/inversion/flujos-supuestos-iniciales.csv` y `flujos-opciones.csv` ·
-`00-direccion/business-case-esquematico.md` · [salida-g5.md](evidencia/salida-g5.md), paso 4 · prompt: "¿Cuánto puede
-caer la adopción antes de que la opción 2 deje de convenir?".
+`00-direccion/business-case-esquematico.md` (§4 con la matriz) · `03-control/decisiones/opciones-negocio/`
+(`criterios.csv`, `opciones.csv`, `matriz.md`) · [salida-g5.md](evidencia/salida-g5.md), paso 4 · prompts: "¿Cuánto puede
+caer la adopción antes de que la opción 2 deje de convenir?" y "¿Cuánto tendría que pesar el riesgo para que gane la
+opción 1?".
 
 ---
 
@@ -400,9 +464,17 @@ agenda, la agenda clínica del proveedor y el hosting. Ubicá cada uno con evide
 Después armá el recorrido actual de un paciente que saca un turno por teléfono, lo olvida o intenta cancelarlo, con la
 fuente de cada emoción. Corré la sanidad al 2026-12-09.
 ```
+Y con el mapa a la vista, el hacer o comprar de los recordatorios:
+```text
+Para C2, recordatorios y confirmación, compará comprar una plataforma, construir un módulo propio y tercerizar el
+servicio con los criterios de hacer o comprar. Puntuá cada opción con su fuente (el mapa, el caso esquemático, las
+cotizaciones y la estimación de TI); los pesos los confirma Carmen. Mostrame el contexto de los mapas que usaste, la
+matriz y cuánto tendría que pesar un criterio para que gane otra opción. Si Carmen elige, registralo con fecha 2026-12-09.
+```
 
 **Si te pregunta:** "Pablo Rinaldi y Tomás Aguirre confirman el mapa; Inés Ferrer, el recorrido. La agenda clínica del
-proveedor no se reemplaza".
+proveedor no se reemplaza". Por los pesos del hacer o comprar: "los de la plantilla; Carmen los confirma". Por quién
+decide: "Carmen Olivera, ejecutiva".
 
 **Qué hace el sistema:** pm-inicio → `pm-mapas-estrategicos`: `mapas.py wardley semilla` con los seis componentes;
 propone posición, decisión y evidencia de cada uno citando S-001, S-002, S-003, S-007, L-002 y L-003; `validar` y
@@ -410,6 +482,17 @@ propone posición, decisión y evidencia de cada uno citando S-001, S-002, S-003
 OnlineWardleyMaps). Luego `recorrido semilla` con las tres etapas, el recorrido de seis pasos, `validar`, `render` (HTML
 con carriles y curva de emoción) y `recorrido candidatos`. Registra `mapa-wardley-entregables` y
 `mapa-recorrido-paciente` en revisión y corre `sanidad.py --corte 2026-12-09`.
+
+Para el hacer o comprar, `pm-direccion-decisiones` (`decision.py`, guía §13.11) crea la hoja con el conjunto de criterios
+de hacer o comprar y nombra el componente con `<mapa>:<id>`: `decision.py matriz hacer-comprar-c2 --proponer --tipo
+adquisicion --criterios hacer-o-comprar --ids entregables:C2,S-002 --pregunta "…" --fecha 2026-12-09`. Los seis
+criterios son diferenciación, costo total, tiempo hasta disponible, dependencia del proveedor, capacidad interna y riesgo
+de construir algo que va a volverse commodity; el modelo completa los puntajes con su fuente y Carmen confirma los
+pesos. `expediente --hoja hacer-comprar-c2` suma, en su sección 10, el contexto de los mapas tal como está en ellos: C2
+(nombrado en la hoja) y el paso P4 del recorrido (cita S-002). La evolución del mapa no es un criterio (no distingue
+entre opciones del mismo componente): es la fuente del puntaje de riesgo commodity. `matriz hacer-comprar-c2` calcula y
+`--elegir O1 --por "Ejecutiva: Carmen Olivera" --fecha 2026-12-09` registra la decisión (nivel `ejecutivo`, el del
+tipo `adquisicion`) y la cita en C2 con `mapas.py vincular`.
 
 **Qué deberías ver:**
 
@@ -425,6 +508,26 @@ con carriles y curva de emoción) y `recorrido candidatos`. Registra `mapa-wardl
 - Recorrido de seis pasos en tres etapas; los dos peores momentos son "Olvida el turno" (−2, por el ausentismo del 18 %)
   e "Intenta avisar que no va" (−2). `candidatos` propone un requisito para P5: "Cancelar desde el recordatorio y liberar
   el turno".
+- Expediente de la hoja, sección 10 "Mapas estratégicos (contexto, no criterio)": "`…/wardley-entregables.json#C2`
+  Recordatorios y confirmación (nombrado en la decisión; cita S-002): etapa producto (evolución 0,62, visibilidad 0,70) ·
+  decisión del mapa: comprar · inercia: no · evidencia: … · dependen de él: A1 Paciente · movimiento previsto: —" y
+  "`…/recorrido-paciente.json#P4` «Olvida el turno» … emoción -2 … dolor: Nadie le recuerda el turno (proceso interno) ·
+  oportunidad: Recordatorio 48 h antes con confirmación (Kano: obligatorio) · KPI: ausentismo mensual (B-01), % de
+  turnos sacados en línea (B-02) · persona: Paciente que agenda por teléfono".
+- La matriz de hacer o comprar (pesos de la plantilla, confirmados por Carmen):
+
+| Opción | Diferenciación (15) | Costo total a 5 años (25) | Semanas hasta disponible (20) | Dependencia (15) | Capacidad interna (10) | Riesgo commodity (15) | Puntaje |
+|---|---|---|---|---|---|---|---|
+| O1 · Comprar una plataforma | 2 | 120.000 (caso esquemático, opción 1) | 6 | 3 | 4 | 1 | **78,8 ★** |
+| O2 · Construir un módulo propio | 4 | 192.000 (estimación de TI) | 20 | 1 | 2 | 5 | 28,7 |
+| O3 · Tercerizar el servicio | 1 | 140.000 (cotización) | 10 | 4 | 3 | 2 | 52,3 |
+
+- "→ recomendada O1 (78,8)"; O3 queda "dominada por O1". Sensibilidad: "diferenciacion 15,0: … si sube a **57,5**
+  (+42,5) pasa O2" y lo mismo con la dependencia; los otros cuatro pesos son "estables". El aviso "ninguna opción parece
+  'no hacer nada'" es esperable: no tener recordatorios es la opción 0 del caso, ya comparada en el paso 4.
+- "hacer-comprar-c2: elegida O1 por Ejecutiva: Carmen Olivera · decisión **D-004** (nivel ejecutivo) · recomendada O1",
+  "Mapa · wardley-entregables.json C2: refs = S-002, L-003, D-004 (mapas.py vincular)" y "decisión del componente en el
+  mapa: comprar". C2 ya decía comprar, así que no hay que corregir el mapa.
 - Sanidad al 2026-12-09: **2 AVISO**. **MAP-02**: la agenda del proveedor tiene inercia y no hay riesgo registrado.
   **MAP-03**: el dolor de P5 (cancelar solo llamando en horario de atención) no tiene tratamiento. Se resuelven en los
   pasos 6 y 9.
@@ -439,9 +542,14 @@ bloque Mermaid queda en `wardley-entregables.md`.
 La curva cae a −2 en dos pasos. La línea punteada es la emoción esperada con las oportunidades. P5 todavía aparece "sin
 tratamiento". Los dos mapas terminan, ya tratados, en el tablero de mapas del paso 14.
 
+![Hacer o comprar de C2](img/g5-hacer-comprar-c2.png)
+Comprar gana con 78,8. Construir solo pasaría si la diferenciación pesara 57,5 en lugar de 15: los recordatorios no son
+lo que distingue a la red (eso es el portal, C1). La decisión D-004 queda citada en C2.
+
 **Dónde verificar:** `02-planificacion/mapas/wardley-entregables.json` y `recorrido-paciente.json` (fuente) ·
-`02-planificacion/visuales/wardley-entregables.md` y `.owm`, `recorrido-paciente.md` y `.html` · prompt: "¿Qué dolores
-del paciente no tienen tratamiento?".
+`02-planificacion/visuales/wardley-entregables.md` y `.owm`, `recorrido-paciente.md` y `.html` ·
+`03-control/decisiones/hacer-comprar-c2/` (`decision.json` con `eleccion.mapas`) · `decisiones.csv` (D-004) · prompts:
+"¿Qué dolores del paciente no tienen tratamiento?" y "¿Qué decisión respalda que C2 se compre?".
 
 ---
 
@@ -459,7 +567,8 @@ el 2027-01-15). Tolerancias que fija Carmen: tiempo ±4 semanas, costo ±10 %, a
 beneficios -15 % y riesgo "ningún riesgo alto sin respuesta". Prepará la puerta autorizar-inicio para el 2026-12-11.
 ```
 
-**Si te pregunta:** "Carmen Olivera, ejecutiva, confirma la lista de control y aprueba el brief y el caso esquemático".
+**Si te pregunta:** "Carmen Olivera, ejecutiva, confirma la lista de control y aprueba el brief y el caso esquemático,
+con la opción 2 de la matriz del paso 4".
 
 **Qué hace el sistema:** sin BMAD, pm-method es la fuente de la especificación: `02-planificacion/requisitos.md`, leído
 por la fachada (`especificacion.py fuente|resumen`). Con los requisitos cargados, `pm-mapas-estrategicos` vincula el
@@ -470,16 +579,23 @@ fechas, línea base medida en el piloto de S-002), `pm-lecciones-aprendidas` las
 `registro.py actualizar lecciones L-00n --campo estado=accionada-proyecto --campo "notas=incorporada: …"`. `pm-director`:
 `estado.py tolerancia --nivel proyecto …`, `puertas.py verificar|lista|confirmar autorizar-inicio --fecha 2026-12-11`,
 `estado.py puerta autorizar-inicio --decision aprobado --fin 2027-01-15` y
-`estado.py aprobar project-brief|business-case-esquematico --version 1.0`.
+`estado.py aprobar project-brief|business-case-esquematico --version 1.0`. La aprobación del caso es la decisión de la
+junta sobre la opción, así que `pm-director` le suma la elección de la matriz sin crear otra decisión:
+`decision.py matriz opciones-negocio --elegir O2 --por "Ejecutiva: Carmen Olivera" --decision D-007 --fecha 2026-12-11`
+(elige la recomendada, así que no hace falta `--motivo`).
 
 **Qué deberías ver:** "Proveedor de especificación: pm-method"; "requisitos: 7"; `mapas.py controles` con un solo aviso
 (MAP-02: MAP-03 quedó resuelto); L-001, L-002 y L-003 en `accionada-proyecto`, cada una con su artefacto; la verificación de la puerta con su único bloqueo, **L-01** (falta la lista de control,
-que se arma en la junta); la puerta registrada (**D-004**) y "Fase: inicio · Proceso: IP · Etapa 1: Iniciación ·
-Enfoque: hibrido"; aprobaciones **D-005** y **D-006**; en el resumen, "Artefactos: 9 (2 aprobados)" (incluye los dos
+que se arma en la junta); la puerta registrada (**D-005**) y "Fase: inicio · Proceso: IP · Etapa 1: Iniciación ·
+Enfoque: hibrido"; aprobaciones **D-006** y **D-007**; "opciones-negocio: elegida O2 por Ejecutiva: Carmen Olivera ·
+decisión D-007 … · recomendada O2", y en `decisiones.csv` la fila D-007 con "O0 20,0 · O1 50,6 · O2 80,0★" en
+`opciones_consideradas`, la hoja y S-002, S-003, B-01 y B-02 en `artefactos_afectados` y los criterios con su peso en
+`notas`; en el resumen, "Artefactos: 9 (2 aprobados)" (incluye los dos
 mapas).
 
 **Dónde verificar:** `01-inicio/project-brief.md`, `roadmap.md`, `canvas-arranque.md` ·
-`00-direccion/decisiones/2026-12-11-verificacion-autorizar-inicio.md` · prompt: `/pm-method:pm-estado`.
+`00-direccion/decisiones/2026-12-11-verificacion-autorizar-inicio.md` · `decisiones.csv` (D-007) ·
+`03-control/decisiones/opciones-negocio/decision.json` (`eleccion`) · prompt: `/pm-method:pm-estado`.
 
 ---
 
@@ -599,7 +715,7 @@ controles`: "0 aviso(s) de la familia MAP" (la inercia de la agenda queda cubier
 | Presupuesto de cambio (aparte; tope 3.000 por cambio) | 10.000 |
 
 El orden de magnitud del brief (180.000, −25/+75 % = 135.000–315.000) contiene a 189.340 (autorizado + cambio). Decisión
-**D-007**. Con esa inversión, `inversion.py` da para la opción 2: VAN **263.229** (−9.340 frente al orden de magnitud),
+**D-008**. Con esa inversión, `inversion.py` da para la opción 2: VAN **263.229** (−9.340 frente al orden de magnitud),
 TIR **51,1 %**, repago **1,85 años**; la adopción estable de equilibrio sube de 11,6 % a 12,6 %.
 
 ![Presupuesto con reservas](img/g5-presupuesto.png)
@@ -697,11 +813,11 @@ dentro del caso de negocio. Usá las cifras del presupuesto y de la autoridad de
 
 **Si te pregunta** quién confirma el nivel: "Pablo Rinaldi, gestor; los enfoques los aprueba Carmen con el PID".
 
-**Qué hace el sistema:** `pm-enfoques-gestion` (procedimiento, paso 2, puerta humana 1): decisión **D-008** en
+**Qué hace el sistema:** `pm-enfoques-gestion` (procedimiento, paso 2, puerta humana 1): decisión **D-009** en
 `decisiones.csv` y los cuatro enfoques de una página en `02-planificacion/enfoques/`, con las mismas cifras del
 presupuesto (contingencia 28.000, reserva 8.540, tope de cambio 3.000).
 
-**Qué deberías ver:** D-008 y los artefactos `enfoque-riesgo`, `enfoque-calidad`, `enfoque-issues-cambios` y
+**Qué deberías ver:** D-009 y los artefactos `enfoque-riesgo`, `enfoque-calidad`, `enfoque-issues-cambios` y
 `enfoque-comunicacion` en revisión (v0.9).
 
 **Dónde verificar:** `02-planificacion/enfoques/` · `decisiones.csv`.
@@ -763,6 +879,13 @@ La prueba técnica de S-003 dio 50 de 50 reservas y cancelaciones, con 1,4 s de 
 llega el 2027-01-29: Carmen acepta invertir igual, cubre el efecto con el riesgo R-003 y su contingencia, y el dictamen
 es condición antes del release de recordatorios. Registralo y prepará la puerta para el 2027-01-15.
 ```
+Y, aprobada la puerta:
+```text
+D-003 pide revisar el enfoque de entrega en cada puerta. Carmen lo revisó con la junta: sigue híbrido, pero la
+integración con la agenda pasa a predictiva con alcance fijo, porque la prueba técnica ya la validó; recordatorios y
+turnos en línea siguen en sprints de 14 días y la puerta de la etapa 3 depende de la adopción del release 1. Registralo
+de modo que deje sin efecto a D-003 y mostrame qué decisión de enfoque está vigente.
+```
 
 **Si te pregunta:** "Carmen Olivera, ejecutiva, decide por la junta, confirma la lista, aprueba la puerta y aprueba la
 versión 1.0 del caso, el enfoque de beneficios, el PID, el presupuesto, la descripción del producto y los cuatro
@@ -773,25 +896,32 @@ enfoques".
 `registro.py actualizar supuestos S-003 --campo validado=si …`; `pm-director` registra la decisión de nivel junta
 "La junta acepta S-006 sin validar: …" y anota en S-006 qué decisión lo aceptó (el supuesto queda `abierto`). Luego
 `verificar`, `lista`, `confirmar`, `estado.py puerta autorizar-proyecto --decision aprobado --fecha 2027-01-15` y las
-aprobaciones.
+aprobaciones. Con la revisión del enfoque, `pm-director` registra la decisión de nivel junta con la columna
+`reemplaza=D-003` (`registro.py agregar decisiones … --campo reemplaza=D-003`, que exige nivel igual o superior al de la
+reemplazada) y `decision.py vigentes --tema "enfoque de entrega" --corte 2027-01-15` muestra la vigente con su cadena.
+D-003 no se borra: queda como historia, y el expediente de cualquier decisión posterior solo trae la vigente.
 
 **Qué deberías ver:**
 - Sanidad al 2027-01-14: **0 ERROR · 0 AVISO · 0 INFO**.
 - Verificación: "1 bloqueo(s) · 1 condición(es) · 0 aviso(s)": **L-01** (la lista de control, que se arma en la junta) y
   "condición P-11 supuestos críticos sin validar: S-003, S-006".
-- Tras la resolución: S-003 validado, decisión **D-009**, y la verificación "1 bloqueo(s) · 0 condición(es) · 1
-  aviso(s)" con "aviso P-11 supuestos críticos sin validar aceptados por decisión de la junta: S-006 (D-009)".
-- Puerta registrada (**D-010**) con el mismo aviso, aprobaciones **D-011** a **D-019** (9 copias congeladas en
+- Tras la resolución: S-003 validado, decisión **D-010**, y la verificación "1 bloqueo(s) · 0 condición(es) · 1
+  aviso(s)" con "aviso P-11 supuestos críticos sin validar aceptados por decisión de la junta: S-006 (D-010)".
+- Puerta registrada (**D-011**) con el mismo aviso, aprobaciones **D-012** a **D-020** (9 copias congeladas en
   `00-direccion/historial/`) y en el resumen "Autorizado: sí", "Presupuestos: cambio=10000, riesgo=28000, gestion=8540,
   limite_autoridad_cambio=3000", "Artefactos: 21 (11 aprobados)". Sanidad al 2027-01-15: 0 AVISO.
+- La revisión del enfoque: **D-021** (nivel junta) y "Decisiones vigentes: 20 de 21 (reemplazadas: 1) · corte
+  2027-01-15 · tema: enfoque de entrega" con una sola línea, "D-021 · 2027-01-15 · Enfoque de entrega revisado en la
+  puerta autorizar-proyecto: … · **cadena D-003 → D-021** · revisar en cada puerta de etapa". La búsqueda entiende
+  español e inglés (`texto.py`): `--tema "delivery approach"` devuelve la misma línea.
 
 > P-11 es una **condición**, no un bloqueo: la junta podía aprobar igual y quedaba como observación de la puerta. Lo
 > que el control evita es que se invierta sobre una hipótesis **sin saberlo**. Para que la aceptación cuente, la decisión
 > tiene que ser de nivel junta, ejecutivo o capa de negocio, citar el id del supuesto y usar el verbo "aceptar"
 > (`docs/PUERTAS.md`).
 
-**Dónde verificar:** `00-direccion/pid.md` · `supuestos.csv` (S-006 sigue `abierto`, con la nota de D-009) ·
-`decisiones.csv` · `00-direccion/decisiones/2027-01-15-verificacion-autorizar-proyecto.md`.
+**Dónde verificar:** `00-direccion/pid.md` · `supuestos.csv` (S-006 sigue `abierto`, con la nota de D-010) ·
+`decisiones.csv` (columna `reemplaza` de D-021) · prompt: "¿Qué decisión de enfoque está vigente y a cuál reemplazó?" · `00-direccion/decisiones/2027-01-15-verificacion-autorizar-proyecto.md`.
 
 ---
 
@@ -808,14 +938,16 @@ valor y el recorrido del paciente, con lo que trata cada dolor y cada inercia.
 ```
 Y el 2027-02-01, sin novedades del dictamen:
 ```text
-Corré la sanidad al 2027-02-01. ¿Qué tengo que decidir, escalar y desbloquear hoy?
+Corré la sanidad al 2027-02-01. ¿Qué tengo que decidir, escalar y desbloquear hoy? ¿Qué decisiones sobre S-006 siguen
+vigentes?
 ```
 
 **Qué hace el sistema:** `pm-visuales` arma las tarjetas con `supuestos.csv`, `estado.json`, el resultado de
 `inversion.py` y `puertas.py verificar autorizar-proyecto --json`, cuya lista `hallazgos` trae el código de cada control
-(de ahí sale "P-11 en aviso: S-006 aceptado (D-009)"); `pm-mapas-estrategicos`: `mapas.py tablero`, que dibuja los dos
+(de ahí sale "P-11 en aviso: S-006 aceptado (D-010)"); `pm-mapas-estrategicos`: `mapas.py tablero`, que dibuja los dos
 mapas en SVG propio (sin `mmdc`) con los avisos MAP vigentes y los vínculos en
-`02-planificacion/visuales/tablero-mapas.html`. El 2027-02-01: `sanidad.py --corte 2027-02-01` y, para la pregunta,
+`02-planificacion/visuales/tablero-mapas.html`. El 2027-02-01: `sanidad.py --corte 2027-02-01`,
+`decision.py vigentes --ids S-006 --corte 2027-02-01` (las decisiones vigentes que citan el supuesto) y, para la pregunta,
 `pm-orquestador` corre `estado.py radar --corte 2027-02-01` (solo lectura): los controles de la sanidad, los
 presupuestos y tolerancias de `estado.json` y la verificación de la próxima puerta, agrupados en decidir, escalar,
 desbloquear y vigilar, cada ítem con su regla, responsable y siguiente paso.
@@ -824,33 +956,40 @@ desbloquear y vigilar, cada ítem con su regla, responsable y siguiente paso.
 
 ![Tablero del proyecto diseñado](img/g5-tablero.png)
 VAN USD 263.229 (TIR 51,1 %, repago 1,85 años con una inversión de 189.340) · 4 de 4 supuestos críticos tratados (2
-validados, 1 ajustado, 1 aceptado con D-009) · presupuesto autorizado USD 179.340 · enfoque híbrido (12 · 18 · 23) ·
+validados, 1 ajustado, 1 aceptado con D-010) · presupuesto autorizado USD 179.340 · enfoque híbrido (12 · 18 · 23) ·
 tolerancia de costo ±10 % · puerta `autorizar-proyecto` aprobada el 2027-01-15 con P-11 en aviso.
 
-"Tablero de mapas: 2 mapa(s) dibujado(s) (wardley-entregables.json, recorrido-paciente.json) · 0 aviso(s) MAP · 9
+"Tablero de mapas: 2 mapa(s) dibujado(s) (wardley-entregables.json, recorrido-paciente.json) · 0 aviso(s) MAP · 10
 vínculo(s) citado(s)":
 
 ![Tablero de mapas del proyecto autorizado](img/g5-tablero-mapas.png)
 "Avisos MAP vigentes: 0". En el mapa de valor, los componentes llevan el color de su decisión (construir, comprar,
-tercerizar) y la agenda clínica del proveedor, sin decisión propia, muestra su barra de inercia con "inercia → R-001".
+tercerizar) y la agenda clínica del proveedor, sin decisión propia, muestra su barra de inercia con "inercia → R-001";
+en la tabla, C2 cita D-004, la decisión de hacer o comprar del paso 5b.
 En el recorrido, debajo de cada dolor está su tratamiento: P1 → S-001, P4 → S-002 y P5 → REQ-003 y REQ-005 (los
 requisitos del paso 6); la línea punteada es la emoción esperada. Los ids son enlaces a «Vínculos citados», con
 descripción, estado y responsable de cada uno (S-002 `invalidado`, R-001 `en-seguimiento`). Para una diapositiva, el
 recorte 16:9 [g5-tablero-mapas-169](img/g5-tablero-mapas-169.png).
 
-Al 2027-02-01, la sanidad da **4 AVISO**: **REG-09** para R-001, R-002 y R-003 ("abierto con la revisión vencida
-(2027-01-29; propietario: …)") y **SUP-02** "Supuesto S-006 con fecha límite 2027-01-29 vencida y sin validar". El
-radar lo ordena: "**1 decidir · 0 escalar · 0 desbloquear · 4 vigilar**" y "Hoy: decidir S-006".
+Al 2027-02-01, la sanidad da **5 AVISO**: **DEC-06** "Decisión D-010 con la revisión vencida (revisar_en 2027-01-29;
+Ejecutiva: Carmen Olivera, nivel junta): La junta acepta S-006 sin validar: …", con el arreglo "confirmarla … o
+registrar la decisión nueva con reemplaza=D-###"; **REG-09** para R-001, R-002 y R-003 ("abierto con la revisión
+vencida (2027-01-29; propietario: …)") y **SUP-02** "Supuesto S-006 con fecha límite 2027-01-29 vencida y sin validar".
+DEC-06 y SUP-02 cuentan lo mismo desde dos lados: el dictamen no llegó y la aceptación de la junta pedía revisarse ese
+día. `vigentes --ids S-006` lo confirma: "D-010 · 2027-01-15 · La junta acepta S-006 sin validar: … · revisar en
+2027-01-29 (VENCIDA: DEC-06)". El radar lo ordena: "**1 decidir · 0 escalar · 0 desbloquear · 4 vigilar**" y "Hoy:
+decidir S-006".
 - **Decidir** (prioridad 1): S-006, de Carmen Olivera: "fecha límite vencida sin resultado: seguir, cambiar o detener";
-  la junta decide si lo sigue aceptando sin validar.
+  la junta decide si lo sigue aceptando sin validar: confirma D-010 con una fecha de revisión nueva o registra una
+  decisión que la reemplace.
 - **Vigilar** (prioridad 3): las revisiones vencidas de R-001 (Tomás Aguirre), R-002 (Inés Ferrer) y R-003 (Carmen
   Olivera), y **RAD-07**: la próxima puerta, `autorizar-etapa`, tiene 2 bloqueos (E-02 y L-01).
 - "Escalar una excepción no corresponde: ningún pronóstico fuera de tolerancia ni presupuesto agotado"; la opción es
   generar el highlight del período.
 
 **Dónde verificar:** [salida-g5.md](evidencia/salida-g5.md), paso 14 · `02-planificacion/visuales/tablero-mapas.html`
-(abrilo en el navegador) · `estado.py radar --json` (los mismos ítems, para un tablero) · prompt: "¿Qué riesgos tienen
-la revisión vencida?".
+(abrilo en el navegador) · `estado.py radar --json` (los mismos ítems, para un tablero) · prompts: "¿Qué riesgos tienen
+la revisión vencida?" y "¿Qué decisiones tienen la revisión vencida?".
 
 ---
 
@@ -1004,10 +1143,16 @@ los cuatro ids de gestión con su estado y responsable.
       un invalidado sin tratar, ambos corregidos con decisiones registradas.
 - [ ] Opciones 0/1/2 con `inversion.py` (VAN, TIR, repago simple y descontado, sensibilidad y punto de equilibrio),
       antes y después de los experimentos (`g5-van-opciones.png`), y recalculadas con el presupuesto.
+- [ ] Matriz de decisión de las opciones (`decision.py`): VAN importado sin recalcular, puntajes y pesos con fuente,
+      expediente con su contexto citado, sensibilidad de los pesos, pregunta tipada que rechaza una respuesta libre y
+      elección registrada en la aprobación del caso (D-007, `--decision`) (`g5-matriz-opciones.png`).
 - [ ] Enfoque de entrega por entregable con los nueve criterios y `estado.py set enfoque_entrega=hibrido --por …`, que
       anota la decisión D-003 (`g5-enfoque-entrega.png`).
 - [ ] Mapa de Wardley de los entregables con evidencia por componente y recorrido del paciente con la fuente de cada
       emoción (`g5-wardley.png`, `g5-recorrido.png`); MAP-02 y MAP-03 vistos y resueltos con R-001 y REQ-003/REQ-005.
+- [ ] Hacer o comprar de C2 con `decision.py matriz --criterios hacer-o-comprar` (`entregables:C2` en los ids): expediente
+      con el contexto de los mapas (sección 10), recomendada O1 y D-004 citada en C2 con `mapas.py vincular`
+      (`g5-hacer-comprar-c2.png`).
 - [ ] Brief, requisitos, roadmap, canvas y plan de la etapa 1; tolerancias de proyecto; `autorizar-inicio` con lista de
       control confirmada.
 - [ ] Contexto de sesión (`estado.py contexto`) y línea del radar (`estado.py radar --linea`) al retomar la iniciación.
@@ -1018,12 +1163,15 @@ los cuatro ids de gestión con su estado y responsable.
 - [ ] Junta completa, interesados en la matriz y RACI válida.
 - [ ] Personas de usuario con su fuente y representante; STK-13 visto y resuelto; capacidad × persona y priorización
       por persona (`g5-personas-mapa.png`).
-- [ ] Formalidad de los enfoques decidida (D-008), enfoques de una página y adaptación en el PID §8.
+- [ ] Formalidad de los enfoques decidida (D-009), enfoques de una página y adaptación en el PID §8.
 - [ ] Bloque C: tres diseños con su `estado.json`, tabla y gráfico `g5-tres-disenos.png`.
 - [ ] P-11 visto con su código y resuelto antes de `autorizar-proyecto`: un supuesto validado y otro aceptado por la
       junta (P-11 en aviso); aprobaciones v1.0 con copia congelada.
-- [ ] Tablero de una página `g5-tablero.png` (con `puertas.py verificar --json`) y seguimiento al 2027-02-01: REG-09 y
-      SUP-02 sobre lo que quedó abierto, ordenados por el radar (decidir S-006, vigilar el resto).
+- [ ] Enfoque revisado en la puerta con una decisión que reemplaza a D-003 (`reemplaza`, nivel junta) y la cadena
+      D-003 → D-021 en `decision.py vigentes --tema`, en español y en inglés.
+- [ ] Tablero de una página `g5-tablero.png` (con `puertas.py verificar --json`) y seguimiento al 2027-02-01: DEC-06
+      (D-010 sin revisar), REG-09 y SUP-02 sobre lo que quedó abierto, ordenados por el radar (decidir S-006, vigilar el
+      resto).
 - [ ] Tablero de mapas `g5-tablero-mapas.png` (`mapas.py tablero`): los dos mapas dibujados, 0 avisos MAP, la inercia
       con su riesgo y cada dolor con su tratamiento enlazado.
 - [ ] Variante a: requisitos y supuestos leídos de BMAD con su cita, sin escribir en BMAD; SUP-01 y P-11 sobre ellos.

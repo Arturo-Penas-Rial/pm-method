@@ -3,9 +3,9 @@
   "archivo": "pm-method-ieee-resumen-light",
   "titulo_doc": "pm-method · Resumen light para IEEE",
   "descripcion": "Resumen light de pm-method para miembros de IEEE: qué resuelve, cómo trabaja, ventajas y una propuesta de formación a ritmo tranquilo con su ruta de entrada.",
-  "pie": "pm-method 2.5.0 · Resumen light para IEEE · propuesta ajustable",
+  "pie": "pm-method 2.6.0 · Resumen light para IEEE · propuesta ajustable",
   "portada_linea": "propuesta ajustable",
-  "version": "2.5.0"
+  "version": "2.6.0"
  },
  "programa": {
   "minutos_sesion": 90,
@@ -162,10 +162,14 @@
     [
      "Controles que se hacen a mano, tarde o nunca",
      "Controles automáticos en cada sesión que avisan antes de que el problema llegue a la reunión"
+    ],
+    [
+     "Se decide a ojo y después nadie encuentra en qué se basó la decisión",
+     "Cada decisión, con su evidencia y sus opciones comparadas; y búsqueda en el proyecto con la fuente citada"
     ]
    ],
    "lema": "El asistente prepara, la persona decide, el sistema verifica y registra.",
-   "nota": "Hoy cualquiera puede pedirle a una IA un plan de proyecto, pero ese plan queda suelto: no se sabe si alguien lo aprobó ni si sigue vigente. pm-method agrega lo que falta: etapas, decisiones explícitas de una persona y controles que corren solos. Conviene leer cada fila de izquierda a derecha: problema y respuesta."
+   "nota": "Hoy cualquiera puede pedirle a una IA un plan de proyecto, pero ese plan queda suelto: no se sabe si alguien lo aprobó ni si sigue vigente. pm-method agrega lo que falta: etapas, decisiones explícitas de una persona y controles que corren solos. Conviene leer cada fila de izquierda a derecha: problema y respuesta. La última fila trata las decisiones: antes de elegir entre alternativas, el sistema reúne la evidencia y compara las opciones con criterios explícitos; y, si se instala el buscador opcional, cualquier pregunta sobre el proyecto se responde citando el documento de donde sale."
   },
   {
    "tipo": "flujo_siglas",
@@ -254,7 +258,7 @@
  "siglas_titulo": "¿Qué significan las siglas?",
  "siglas_nota": "PRINCE2® y PMBOK® son marcas de sus titulares.",
  "valores": {
-  "version": "2.5.0",
+  "version": "2.6.0",
   "minutos_sesion": 90,
   "sesiones_total": 14,
   "min_total_txt": "1.260",
@@ -265,9 +269,9 @@
   "nuevas_horas": "6",
   "piloto_min": 4,
   "piloto_max": 6,
-  "regresion_ok": "355",
+  "regresion_ok": "463",
   "e2e_ok": "5",
-  "evidencia_fecha": "2026-10-27",
+  "evidencia_fecha": "2026-10-29",
   "talleres_n": 5,
   "calculo_sesiones": "2 + 5 × 2 + 2 = 14"
  },

@@ -13,7 +13,7 @@ Claude Code decide qué skill activar leyendo solo el `name` y la `description` 
 - "No:" es la pista de alcance (scope clue): nombra la colisión más probable y a qué skill corresponde.
 - Los seis comandos (`pm-ayuda`, `pm-nuevo`, `pm-estado`, `pm-reporte`, `pm-puerta`, `pm-sync`) llevan `disable-model-invocation: true`: no compiten en el enrutamiento ni consumen presupuesto, y no tienen pista "No:".
 
-**Presupuesto medido.** Las 33 descripciones invocables suman 6.957 caracteres (`validar_paquete.py`; el límite del paquete es 7.500, SPEC §3). Si conviven muchos plugins y el listado se recorta, se puede subir la fracción con `"skillListingBudgetFraction": 0.02` en `settings.json`. `skillOverrides` (`on | name-only | user-invocable-only | off`) no se aplica a skills de plugins.
+**Presupuesto medido.** Las 33 descripciones invocables suman 6.966 caracteres (`validar_paquete.py`; el límite del paquete es 7.500, SPEC §3). Si conviven muchos plugins y el listado se recorta, se puede subir la fracción con `"skillListingBudgetFraction": 0.02` en `settings.json`. `skillOverrides` (`on | name-only | user-invocable-only | off`) no se aplica a skills de plugins.
 
 ## 2. Matriz de dueños
 
@@ -23,6 +23,7 @@ Una fila por tema con su skill dueña (incluidas pm-bmad-puente, pm-integracione
 |---|---|---|
 | Estado del proyecto, registro mecánico de puertas, scripts compartidos | pm-estado-proyecto (ejecuta) / pm-direccion-decisiones (prepara la decisión) | decidir una puerta → pm-direccion-decisiones |
 | Decisiones de la junta: puertas, tolerancias, excepciones | pm-direccion-decisiones | anotar riesgos o issues → pm-registros |
+| Expediente de una decisión, matriz multicriterio con pesos, sensibilidad de pesos y pregunta tipada (`decision.py`, cualquier tipo de decisión) | pm-direccion-decisiones | valor neto de las respuestas a un riesgo → pm-riesgos (`riesgos.py opciones`); VAN, TIR y repago → pm-caso-de-negocio (`inversion.py`); impacto de un C-### → pm-issues-cambios (`impacto.py`); criterios de selección congelados antes de las ofertas → pm-adquisiciones |
 | Registros genéricos (supuestos, decisiones operativas, acciones, diario) y clasificación | pm-registros | riesgos → pm-riesgos; issues y cambios → pm-issues-cambios |
 | Riesgos | pm-riesgos | issue ya ocurrido → pm-issues-cambios |
 | Issues, cambios, concesiones e informe de excepción (plantilla única) | pm-issues-cambios | pronóstico o semáforo → pm-progreso-reportes |
@@ -73,7 +74,7 @@ Una fila por tema con su skill dueña (incluidas pm-bmad-puente, pm-integracione
 | pm-comunicacion-stakeholders | plan de comunicación, comunicado, status email, enviar a interesados | actas→pm-reuniones; mapa, RACI o preferencias→pm-interesados | "Acá está la transcripción del comité de hoy; sacame el acta y las acciones" → pm-reuniones |
 | pm-costos-presupuesto | costear, presupuesto, BAC, contingencia, reserva de gestión, budget, cost baseline | business case→pm-caso-de-negocio | "Actualizá el ROI y el payback del caso de negocio" → pm-caso-de-negocio |
 | pm-cronograma-estimacion | estimar, cronograma, camino crítico, Gantt, schedule, critical path | presupuesto→pm-costos-presupuesto | "¿Cuánto cuesta la etapa 2 con reservas?" → pm-costos-presupuesto |
-| pm-direccion-decisiones | aprobar etapa, autorizar proyecto, junta, excepción, board decision, stage gate | riesgos→pm-riesgos; issues→pm-issues-cambios | "Anotá este riesgo del proveedor" → pm-riesgos (dueña del registro de riesgos; pm-registros solo para supuestos, decisiones, acciones y diario) |
+| pm-direccion-decisiones | aprobar etapa, autorizar proyecto, junta, pesos, board decision, stage gate (objeto: puertas, tolerancias, excepciones, matriz de decisión) | riesgos→pm-riesgos; issues→pm-issues-cambios | "Anotá este riesgo del proveedor" → pm-riesgos (dueña del registro de riesgos; pm-registros solo para supuestos, decisiones, acciones y diario) |
 | pm-enfoques-gestion | enfoque de riesgos, control de cambios, enfoque de calidad, management approach, subsidiary plan | PID ensamblado→pm-acta-constitucion | "Ensamblá el PID y revisá la consistencia" → pm-acta-constitucion |
 | pm-estado-proyecto | crear proyecto, estado, etapa, tolerancias, project state | decidir puertas→pm-direccion-decisiones | "¿Apruebo la etapa 3 o pido más información?" → pm-direccion-decisiones |
 | pm-exportar | exportar a Word, Excel, PowerPoint, paquete de puerta, gate package | tablero→pm-visuales; informe→pm-progreso-reportes | "Armá el tablero de avance con semáforos" → pm-visuales |
@@ -115,6 +116,7 @@ Una fila por tema con su skill dueña (incluidas pm-bmad-puente, pm-integracione
 | pm-integraciones · pm-bmad-puente · pm-reuniones | BMAD no es un MCP: es la capa de especificación (pm-bmad-puente). Una transcripción, venga de archivo o de una herramienta conectada, la procesa pm-reuniones; pm-integraciones solo la trae. |
 | pm-sanidad · pm-calidad | La sanidad audita la información del proyecto (estado, puertas, registros, ids, líneas base); la calidad audita productos contra sus criterios. |
 | pm-estado-proyecto · pm-direccion-decisiones | La segunda prepara la decisión de la junta; la primera solo registra mecánicamente lo que una persona ya decidió (y lo ejecuta pm-director). |
+| pm-direccion-decisiones · pm-riesgos · pm-caso-de-negocio · pm-issues-cambios · pm-adquisiciones | Cada dueña calcula su cifra (valor neto, VAN, impacto) y prepara sus criterios; cuando la pregunta pide pesos, eliminatorios, sensibilidad o el expediente para quien decide, la matriz es de pm-direccion-decisiones (`decision.py`), que importa esas cifras sin recalcularlas. Comparar respuestas de riesgo solo por valor neto sigue en pm-riesgos (frase 103). |
 | pm-knowledge · pm-orquestador | Preguntar ("¿qué es…?", "¿quién aprueba…?") → pm-knowledge; hacer algo → pm-orquestador, que enruta a la skill de fase. |
 
 ### 4.1 Interesados, roles, comunicación y canales

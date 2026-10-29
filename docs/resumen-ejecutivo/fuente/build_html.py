@@ -154,7 +154,15 @@ diapositiva("Producto", P["titulo"], f"""<div class="dos-col ctrl"><div><p class
 <p class="destaca">{glos(P['puerta'])}</p></div>
 <div><p class="rot azul">{e(P['ejemplos_titulo'])}</p><div class="pila">{ejemplos}</div></div></div>""", P["en"])
 
-# ====================== 9 · Integraciones
+# ====================== 9 · Decidir con contexto y buscar con evidencia
+P = T["decidir"]
+cols = []
+for k, (t, pts, im) in enumerate([(P["col1"], P["puntos1"], D["decidir"]["img1"]), (P["col2"], P["puntos2"], D["decidir"]["img2"])]):
+    cols.append(f"""<article class="card {'tinta' if k else 'gris'}"><p class="rot {'azul' if k else 'marino'}">{e(t)}</p><ul class="vin">{''.join(f'<li>{glos(x)}</li>' for x in pts)}</ul>
+<figure class="foto"><img src="{data_uri(RAIZ / im['archivo'])}" alt="{e(im['alt'])}"><figcaption>{e(im['alt'])}</figcaption></figure></article>""")
+diapositiva("Producto", P["titulo"], f'<div class="grid2">{"".join(cols)}</div><p class="lema chico">{e(P["codigos"])}</p>', P["en"])
+
+# ====================== 10 · Integraciones
 P = T["integraciones"]
 nodos = "".join(f'<article class="card {"calida" if i % 3 == 0 else "tinta"}"><h3>{e(z["nombre"])}</h3><p class="vals">{e(z["valores"])}</p><p>{glos(z["texto"])}</p></article>' for i, z in enumerate(P["nodos"]))
 mitad = (len(P["nodos"]) + 1) // 2
@@ -162,10 +170,11 @@ diapositiva("Producto", P["titulo"], f"""<div class="hub"><div class="hub-col">{
 <div class="centro"><b>{e(P['centro'])}</b><span>{e(P['centro_sub'])}</span></div>
 <div class="hub-col">{''.join(re.findall(r'<article.*?</article>', nodos, flags=re.S)[mitad:])}</div></div><p class="nota">{glos(P['nota'])}</p>""", P["en"])
 
-# ====================== 10 · Catálogo E2E y webinar
+# ====================== 11 · Catálogo E2E y webinar
 P = T["catalogo"]
 web = {w["caso"]: w for w in D["webinar"]}
-filas = "".join(f"<tr><td><a href='#d-{11 + i}'><b>{e(c['id'])}</b></a></td><td>{glos(P['recorre'].get(c['id'], c['titulo_guia']))}</td><td class='n'>{c['pasos']}</td>"
+primer_caso = len(SLIDES) + 2   # el catálogo es la diapositiva siguiente y los casos van después
+filas = "".join(f"<tr><td><a href='#d-{primer_caso + i}'><b>{e(c['id'])}</b></a></td><td>{glos(P['recorre'].get(c['id'], c['titulo_guia']))}</td><td class='n'>{c['pasos']}</td>"
                 f"<td class='n'>{web.get(c['id'], {}).get('clases', '—')}</td><td class='n'>{web.get(c['id'], {}).get('minutos', '—')}</td>"
                 f"<td class='n'>{web.get(c['id'], {}).get('diapositivas', '—')}</td><td class='n'>{web.get(c['id'], {}).get('glosario', '—')}</td></tr>" for i, c in enumerate(D["casos"]))
 cab = "".join(f"<th>{e(h)}</th>" for h in P["cab"])
@@ -175,7 +184,7 @@ diapositiva("Casos E2E", P["titulo"], f"""<div class="scroll"><table class="cat"
 <div class="grid2"><article class="card tinta"><p class="rot azul">Material por caso</p><p>{material}</p></article>
 <article class="card calida"><p class="rot">Inducción</p><p>{induccion}</p></article></div>""", P["en"])
 
-# ====================== 11–15 · Casos
+# ====================== 12–16 · Casos
 R = T["casos"]["rotulos"]
 for c in D["casos"]:
     C = T["casos"][c["id"]]
@@ -188,7 +197,7 @@ for c in D["casos"]:
 <div><figure class="foto"><img src="{data_uri(RAIZ / c['imagen']['archivo'])}" alt="{e(c['imagen']['alt'])}"><figcaption>{e(c['imagen']['alt'])}</figcaption></figure>
 <p class="ficha">{e(ficha)}</p></div></div>""", T["casos"]["en"] + " · " + c["archivo"])
 
-# ====================== 16 · Calidad
+# ====================== 17 · Calidad
 P = T["calidad"]
 kp = "".join(f'<div class="kpi oscuro"><b>{e(v)}</b><span>{e(t)}</span><p>{e(d)}</p></div>' for v, t, d in P["kpis"])
 
@@ -212,7 +221,7 @@ diapositiva("Confianza y adopción", P["titulo"], f"""<div class="kpis4">{kp}</d
 <article class="card gris"><p class="rot marino">{e(P['docker'])}</p><ul class="vin">{dk}</ul></article></div>
 <p class="nota">{glos(P['nota'])}</p>""", P["en"])
 
-# ====================== 17 · Cómo empezar
+# ====================== 18 · Cómo empezar
 P, E = T["empezar"], D["empezar"]
 dsteps = "".join(f"<h4>{i + 1} · {e(P['docker_pasos'][i] if i < len(P['docker_pasos']) else '')}</h4><pre>{e(c)}</pre>" for i, c in enumerate(E["docker"]))
 diapositiva("Confianza y adopción", P["titulo"], f"""<div class="grid2"><article class="card tinta"><p class="rot marino">{e(P['manual'])}</p><pre>{e(chr(10).join(E['manual']))}</pre>
@@ -220,7 +229,7 @@ diapositiva("Confianza y adopción", P["titulo"], f"""<div class="grid2"><articl
 <article class="card gris"><p class="rot marino">{e(P['docker'])}</p>{dsteps}</article></div>
 <p class="lema chico">{glos(P['siguiente'])}</p>""", P["en"])
 
-# ====================== 18 · Glosario
+# ====================== 19 · Glosario
 P = T["glosario"]
 letras = []
 filas = []

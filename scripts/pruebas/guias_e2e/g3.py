@@ -16,7 +16,7 @@ def guardian(cmds):
         r = subprocess.run(["python3", f"{RAIZ}/hooks/guardian.py"], input=json.dumps({"tool_name": "Bash", "tool_input": {"command": cmd}, "agent_type": agente}),
                            capture_output=True, text=True)
         d = json.loads(r.stdout)["hookSpecificOutput"] if r.stdout.strip() else None
-        vis = cmd.replace(EV, "$EV").replace(repo, "<repo>")
+        vis = cmd.replace(EV, "$EV").replace(EST, "$EST").replace(repo, "<repo>")
         out.append(f"[{agente or 'hilo principal'}] {vis}\n   → " + (f"{d['permissionDecision']}: {d['permissionDecisionReason']}" if d else "sin decisión del hook (corre sin pedido de permiso adicional)"))
     LOG.append(("(hook guardian.py: decisión ante cada comando, tal como la recibe Claude Code)", "\n".join(out)))
 
@@ -242,6 +242,60 @@ run(I("raci --elemento E-3"), repo)
 run(I("integridad"), repo)
 hasta_etapa2_f(repo)
 
+P("Paso 7b · Alternativas para el KR de B-02: expediente, matriz multicriterio, RACI y decisión de la ejecutiva")
+# pm-direccion-decisiones (decision.py): la ejecutiva decide qué KR complementa a B-02 antes de que los OKR entren en el ciclo.
+DC = f"python3 {RAIZ}/skills/pm-direccion-decisiones/scripts/decision.py --proyecto {G}"
+FD, HJ = "2026-11-27", "kr-b02"
+PREG = "¿Qué KR complementa a B-02 (adopción)?"
+run(f'{DC} expediente --tipo okr --ids KR-1.1,B-02 --pregunta "{PREG}" --corte {FD}', repo, corte=160)
+run(f'{DC} matriz {HJ} --proponer --tipo okr --ids KR-1.1,B-02 --pregunta "{PREG}"', repo)
+# La hoja la completan el modelo y la persona (el script no inventa cifras): criterios de la plantilla de OKR y, porque O-1 es
+# aspiracional por diseño, un criterio de ambición fijado ANTES de puntuar, cada peso y cada puntaje con su fuente.
+HOJA = f"03-control/decisiones/{HJ}"
+FPESO = "Ejecutiva: Laura Méndez (criterios fijados antes de puntuar)"
+escribir(repo, f"{HOJA}/criterios.csv", "criterio,descripcion,peso,sentido,escala,eliminatorio,importar,fuente_peso,notas\n"
+         f"alineacion_beneficios,Alineación con los beneficios B-n y las métricas SM-n (1 = ninguna; 5 = directa),30,mayor,1-5,2,,{FPESO},1 = sin vínculo con un beneficio: la alternativa se elimina\n"
+         f"medibilidad,Métrica con línea base y fuente de medición disponibles (1 = no; 5 = sí),30,mayor,1-5,2,,{FPESO},\n"
+         f"esfuerzo,Esfuerzo para medir y alcanzar la meta (1 = bajo; 5 = alto),20,menor,1-5,,,{FPESO},\n"
+         f"ambicion,Margen de la meta sobre el compromiso del beneficio en un objetivo aspiracional (1 = ninguno; 5 = amplio),20,mayor,1-5,,,{FPESO},O-1 es aspiracional (okr.csv); el compromiso queda en B-02\n")
+escribir(repo, f"{HOJA}/opciones.csv", "opcion,descripcion,ref,alineacion_beneficios,alineacion_beneficios_fuente,medibilidad,medibilidad_fuente,esfuerzo,esfuerzo_fuente,ambicion,ambicion_fuente,notas\n"
+         "O1,KR-1.1: 30 % de socios activos registrados (aspiracional),,5,B-02 y SM-1 (business-case.md),5,SM-1 del PRD y padrón (enfoque-beneficios.md),3,Jefa de equipo: Lucía Benítez,4,okr.csv O-1 (aspiracional) y B-02 25 %,\n"
+         "O2,KR al 25 % de socios activos registrados (igual a B-02; comprometido),,5,B-02 y SM-1 (business-case.md),5,SM-1 del PRD y padrón (enfoque-beneficios.md),2,Jefa de equipo: Lucía Benítez,1,igual a la meta de B-02,\n"
+         "O3,No fijar KR para B-02: seguir solo el beneficio,,1,enfoque-beneficios.md (B-02 sin KR que lo complemente),5,B-02 en enfoque-beneficios.md,1,Jefa de equipo: Lucía Benítez,1,sin meta de ciclo,\n")
+run(f'{DC} matriz {HJ} --markdown', repo)
+MZ = json.loads(subprocess.run(f'{DC} matriz {HJ} --json', shell=True, cwd=repo, capture_output=True, text=True, check=True).stdout)
+# El gestor no es el A de KR-1.1 ni una autoridad superior: sin --motivo no se registra nada.
+run(f'{DC} matriz {HJ} --elegir O1 --por "Gestor: Martín Suárez" --fecha {FD}', repo, ok=(1,))
+EL = run(f'{DC} matriz {HJ} --elegir O1 --por "Ejecutiva: Laura Méndez" --fecha {FD}', repo)
+D7 = re.search(r"\bD-\d{3}\b", EL).group(0)
+# El script recuerda a los C de la RACI: el gestor deja constancia de la consulta previa al panel y fija cuándo se revisa la meta.
+act(repo, "decisiones", D7, revisar_en="2027-03-12",
+    notas=f"C de KR-1.1 consultado antes de decidir: {ST['Socios usuarios piloto']} Socios usuarios piloto (panel del 2026-11-25). Revisar la meta con la primera medición de adopción tras la Release 1")
+DJ = json.load(open(os.path.join(repo, G, HOJA, "decision.json"), encoding="utf-8"))
+AV = DJ["eleccion"]["raci"]["aviso"]
+run(V(f"estado {G}/{AV}"), repo)
+MAV = sorted(glob.glob(os.path.join(repo, G, AV, "mensaje-*.md")))[0]
+LOG.append((f"(borrador del aviso a los I → gestion/{AV}/{os.path.basename(MAV)}: frontmatter y contenido base)", open(MAV, encoding="utf-8").read().strip()))
+# Gráfico: puntaje de cada alternativa, la eliminada con su motivo, lo que dice la sensibilidad y la alineación con la RACI.
+OP = {o["opcion"]: o for o in MZ["opciones"]}
+SEN = {x["criterio"]: x for x in MZ["sensibilidad"]}
+amb = SEN["ambicion"]["baja"]
+ele, rec = DJ["eleccion"]["opcion"], MZ["recomendada"]
+assert ele == rec == "O1" and OP["O3"]["estado"] == "eliminada" and amb["opcion"] == "O2", "el gráfico de la decisión ya no describe los datos"
+nI = len(glob.glob(os.path.join(repo, G, AV, "mensaje-*.md")))
+VIS.tarjetas([(VIS.miles(OP["O1"]["puntaje"], 1), "O1 · KR-1.1 al 30 %", f"★ recomendada y elegida ({D7}); meta aspiracional", None),
+              (VIS.miles(OP["O2"]["puntaje"], 1), "O2 · KR al 25 % (= B-02)", f"pasa a 1.ª si la ambición pesa {VIS.miles(amb['peso'], 1)} o menos (hoy {VIS.miles(SEN['ambicion']['peso'])})", None),
+              ("—", "O3 · sin KR para B-02", "✖ eliminada: alineación 1 < 2 (eliminatorio)", None),
+              ("A", "Decide Laura Méndez", "es la A de KR-1.1 en la RACI; C: panel de socios, consultado antes", None),
+              ("✖", "El gestor, sin motivo", "no es el A ni autoridad superior: no se registra nada", None),
+              (str(nI), "Aviso a los I (borrador)", "Consejo directivo; nada sale sin aprobación", None)],
+             os.path.join(OUT, "g3-decision-kr-b02.png"),
+             f"La ejecutiva elige el 30 % aspiracional para B-02: {VIS.miles(OP['O1']['puntaje'], 1)} contra {VIS.miles(OP['O2']['puntaje'], 1)}",
+             "Matriz multicriterio con la ambición fijada antes de puntuar; decide la A de KR-1.1 en la RACI.",
+             f"decision.py matriz {HJ} --json y --elegir (03-control/decisiones/{HJ}/ · raci.csv)")
+FD7 = next(f for f in reg_json(repo, "listar", "decisiones") if f["id"] == D7)
+LOG.append((f"(fila {D7} de decisiones.csv)", "\n".join(f"{k}: {FD7[k]}" for k in ("fecha", "decision", "nivel", "decidido_por", "contexto", "opciones_consideradas", "artefactos_afectados", "revisar_en", "notas") if k in FD7)))
+
 P("Paso 8 · Taller con interesados → acta, decisiones, acciones y preferencias declaradas")
 vtt = """WEBVTT
 
@@ -298,7 +352,16 @@ VIS.tarjetas([(c["id"], ROT8[c["clase"]](c), det8(c), None) for c in CAND], os.p
              "Cada candidato cita la frase y su hora; solo se registra lo que confirma quien presidió (Martín Suárez).",
              "extraccion.py candidatos y registrar (2026-11-19-taller-bandeja-candidatos.json)")
 act(repo, "acciones", A["taller"], estado="completada", fecha_cierre="2026-11-19")
-act(repo, "stakeholders", ST["Sindicato de operadores"], nivel_compromiso_actual="neutral", notas="taller 2026-11-19: acuerdo sobre métricas de equipo")
+# Tras la reunión, el agente propone el cambio de compromiso del sindicato (propuesta con huella); lo aprueba una persona.
+PRS = run(E(f'registro.py --proyecto {G} proponer stakeholders {ST["Sindicato de operadores"]} --campo nivel_compromiso_actual=neutral '
+            f'--campo "notas=taller 2026-11-19: acuerdo sobre métricas de equipo ({D8})" --por "agente: pm-reuniones" '
+            f'--motivo "acta del taller 2026-11-19: el delegado acepta métricas de equipo ({D8})"'), repo)
+PID = re.search(r"\bP-\d{3}\b", PRS).group(0)
+run(E(f'registro.py --proyecto {G} propuestas'), repo)
+LOG[-1] = (LOG[-1][0], re.sub(r"(propuso [^·]+· )\d{4}-\d{2}-\d{2}", r"\1<fecha de la corrida>", LOG[-1][1]))   # fecha real de la propuesta
+run(E(f'registro.py --proyecto {G} aprobar {PID} --por "agente: pm-reuniones"'), repo, ok=(1, 2))   # quien propone no aprueba
+guardian([(E(f'registro.py --proyecto {G} aprobar {PID} --por "Gestor: Martín Suárez"'), "")])
+run(E(f'registro.py --proyecto {G} aprobar {PID} --por "Gestor: Martín Suárez"'), repo)
 run(I(f'proponer --transcripcion {G}/03-control/reuniones/2026-11-19-taller-bandeja-transcripcion.md --mapa "Delegado sindical={ST["Sindicato de operadores"]}" --fecha 2026-11-19 --registrar'), repo)
 props = [f for f in csv.DictReader(open(os.path.join(repo, G, "03-control/registros/preferencias.csv"), encoding="utf-8")) if f["estado"] == "propuesta"]
 run(I(f'confirmar {" ".join(f["id"] for f in props)} --por "Gestor: Martín Suárez"'), repo)
@@ -408,6 +471,8 @@ run(E(f'estado.py --proyecto {G} briefing --para {ST["Ana Pereira"]} --corte 202
 BR = f"03-control/reportes/2027-01-08-briefing-incorporacion-{ST['Ana Pereira']}.md"
 BRT = open(os.path.join(repo, G, BR), encoding="utf-8").read()
 LOG.append((f"(briefing de incorporación → gestion/{BR}: {len(BRT)} caracteres)", BRT.split("-->", 1)[1].strip() if "-->" in BRT else BRT.strip()))
+# Ana pregunta qué quedó decidido sobre la medición de los operadores: búsqueda normalizada (singular frente a plural) en las vigentes.
+run(f'{DC} vigentes --tema "métrica individual de los operadores" --corte 2027-01-08', repo)
 
 P("Paso 10b · Highlight report con puertas, OKR al corte (salud y check-ins), sincronización con Tability y tablero por actor")
 run(f'python3 {OKR} {po} --corte 2027-01-08 --markdown {G}/03-control/reportes/2027-01-08-okr.md', repo)

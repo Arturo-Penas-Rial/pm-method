@@ -1,7 +1,7 @@
 ---
 name: pm-orquestador
 description: "Orquestador en el hilo principal: lee el estado, delega en agentes de fase y presenta puertas. Usar: qué sigue, cómo venimos, qué decido hoy, radar, next step, how are we doing, gestionar el proyecto. No: producto concreto→su skill."
-version: 2.5.0
+version: 2.6.0
 author: pm-method
 license: MIT
 metadata:

@@ -3,13 +3,19 @@
 #   PROYECTO=/ruta/al/proyecto docker compose -f docker/compose.yaml run --rm pm          # shell en el proyecto
 #   docker compose -f docker/compose.yaml run --rm pruebas                                # pruebas, sin red
 #   PROYECTO=/ruta/al/proyecto docker compose -f docker/compose.yaml run --rm pm-sin-red  # shell sin red
+# pm-kb (índice de conocimiento: búsqueda citada, web y MCP), perfil "kb" (docs/INSTALACION-DOCKER.md §8):
+#   bash docker/kb-preparar.sh                                                             # secretos (una vez)
+#   docker compose -f docker/compose.yaml --profile kb build                               # imágenes pm-kb-db y pm-method
+#   PROYECTOS=/ruta/a/proyectos docker compose -f docker/compose.yaml --profile kb up -d pm-kb   # base segregada + servicio
+#   docker compose -f docker/compose.yaml --profile kb exec pm-kb \
+#       pm-kb indexar --proyecto mi-proyecto --ruta /proyectos/mi-proyecto
 # Credenciales: solo por variables de entorno del host (ANTHROPIC_API_KEY o CLAUDE_CODE_OAUTH_TOKEN) o con
 # /login dentro del contenedor (queda en el volumen claude-config). Nunca se escriben en este archivo.
 name: pm-method
 
 # Endurecimiento común: raíz de solo lectura, sin capacidades, sin escalar privilegios y con límites de recursos.
 x-endurecido: &endurecido
-  image: pm-method:2.5.0
+  image: pm-method:2.6.0
   read_only: true
   cap_drop: [ALL]
   security_opt:
@@ -61,5 +67,87 @@ services:
     profiles: [pruebas]
     pull_policy: never
 
+  # ---- pm-kb (perfil kb) ------------------------------------------------------------------------------------
+  # Base de datos segregada: su propio contenedor, volumen y red interna (sin salida a Internet ni puertos publicados).
+  pm-kb-db:
+    image: pm-kb-db:2.6.0
+    build:
+      context: ..
+      dockerfile: docker/pm-kb-db.Dockerfile
+    profiles: [kb]
+    read_only: true
+    cap_drop: [ALL]
+    security_opt:
+      - no-new-privileges:true
+    shm_size: 128m
+    deploy:
+      resources:
+        limits:
+          cpus: "2"
+          memory: 1g
+          pids: 256
+    tmpfs:
+      - /tmp:size=64m,mode=1777
+      - /run/postgresql:size=1m,uid=0,mode=1777
+    volumes:
+      - pm-kb-datos:/var/lib/postgresql/data
+    secrets: [pmkb_admin_clave, pmkb_lector_clave]
+    networks: [kb-interna]
+    restart: unless-stopped
+
+  # Servicio pm-kb: interfaz web y MCP por HTTP en http://127.0.0.1:8765 (y http://pm-kb:8765/mcp desde "pm").
+  # Lee las carpetas a indexar en solo lectura desde ${PROYECTOS}; nunca escribe en ellas.
+  pm-kb:
+    <<: *endurecido
+    profiles: [kb]
+    pull_policy: never
+    depends_on:
+      pm-kb-db:
+        condition: service_healthy
+    command: ["bash", "-c", "pm-kb base crear && exec pm-kb servir --host 0.0.0.0 --puerto 8765"]
+    working_dir: /home/pm
+    environment:
+      PMKB_DSN: "host=pm-kb-db dbname=pmkb user=pmkb"
+      PMKB_CLAVE_ARCHIVO: /run/secrets/pmkb_admin_clave
+      PMKB_DSN_LECTOR: "host=pm-kb-db dbname=pmkb user=pmkb_lector"
+      PMKB_CLAVE_LECTOR_ARCHIVO: /run/secrets/pmkb_lector_clave
+      PMKB_ORIGENES: "http://localhost:8765,http://127.0.0.1:8765"
+      # Modelos opcionales (docs/PM-KB.md §8): PMKB_EMBED_URL, PMKB_RERANK_URL, PMKB_LLM_TIPO, PMKB_LLM_MODELO; la clave
+      # del modelo solo como variable del host (se pasa por nombre, sin valor aquí):
+      PMKB_EMBED_URL: ${PMKB_EMBED_URL:-}
+      PMKB_EMBED_TIPO: ${PMKB_EMBED_TIPO:-tei}
+      PMKB_EMBED_MODELO: ${PMKB_EMBED_MODELO:-}
+      PMKB_RERANK_URL: ${PMKB_RERANK_URL:-}
+      PMKB_LLM_TIPO: ${PMKB_LLM_TIPO:-}
+      PMKB_LLM_URL: ${PMKB_LLM_URL:-}
+      PMKB_LLM_MODELO: ${PMKB_LLM_MODELO:-}
+      PMKB_LLM_CLAVE_VAR: ${PMKB_LLM_CLAVE_VAR:-}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+    volumes:
+      - ${PROYECTOS:-./kb-sin-proyectos}:/proyectos:ro
+    secrets: [pmkb_admin_clave, pmkb_lector_clave]
+    networks: [default, kb-interna]
+    ports:
+      - "127.0.0.1:8765:8765"
+    healthcheck:
+      test: ["CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8765/salud', timeout=3)"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    restart: unless-stopped
+
+networks:
+  kb-interna:
+    internal: true
+
+secrets:
+  pmkb_admin_clave:
+    file: ./kb-secretos/pmkb_admin_clave
+  pmkb_lector_clave:
+    file: ./kb-secretos/pmkb_lector_clave
+
 volumes:
   claude-config:
+  pm-kb-datos:

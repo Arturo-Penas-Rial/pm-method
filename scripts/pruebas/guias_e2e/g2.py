@@ -30,14 +30,21 @@ IMP = f"{RAIZ}/skills/pm-issues-cambios/scripts/impacto.py"
 REL = f"{RAIZ}/skills/pm-agil-hibrido/scripts/release.py"
 
 
-def impacto(repo, cid, args, fecha):
+def impacto(repo, cid, args, fecha, guardar=None, borrador=True):
     """Análisis de impacto ANTES de decidir (pm-issues-cambios: impacto.py analizar). El texto y la sección 3 a 6 del borrador
-    de la solicitud de cambio quedan en la evidencia; devuelve el --json para las cifras de la guía y los gráficos."""
+    de la solicitud de cambio quedan en la evidencia; devuelve el --json para las cifras de la guía y los gráficos.
+    guardar: ruta (relativa a gestion/) donde queda la salida --json tal cual, para importarla en una hoja de decision.py."""
     cmd = f'python3 {IMP} --proyecto {G} analizar {cid} {args} --fecha {fecha}'
     run(cmd, repo)
-    r = json.loads(subprocess.run(cmd + " --json", shell=True, cwd=repo, capture_output=True, text=True, check=True).stdout)
-    md = open(os.path.join(repo, r["salida"]), encoding="utf-8").read()
-    LOG.append((f"(borrador {r['salida']}: §3 análisis de impacto a §6 autoridad y decisión)", md[md.index("## 3."):md.index("**Disposición")].strip()))
+    out = subprocess.run(cmd + " --json", shell=True, cwd=repo, capture_output=True, text=True, check=True).stdout
+    r = json.loads(out)
+    if guardar:
+        open(os.path.join(repo, G, guardar), "w", encoding="utf-8").write(out)
+        LOG.append((f"python3 $PLUGIN/skills/pm-issues-cambios/scripts/impacto.py --proyecto {G} analizar {cid} … --json > {G}/{guardar}",
+                    f"(la misma salida en JSON: nivel {r['nivel']} · excepción {'sí' if r['excepcion'] else 'no'} · {len(r['filas'])} filas de impacto)"))
+    if borrador:
+        md = open(os.path.join(repo, r["salida"]), encoding="utf-8").read()
+        LOG.append((f"(borrador {r['salida']}: §3 análisis de impacto a §6 autoridad y decisión)", md[md.index("## 3."):md.index("**Disposición")].strip()))
     return r
 
 
@@ -430,6 +437,7 @@ pz = run(f'python3 {IN} --proyecto {G} personas priorizacion', repo)
 if "Must sin persona: FR-8, FR-12" in pz:
     act(repo, "personas", PU["UJ-2"], usa="FR-6;FR-7;FR-8;FR-12", notas="confirmada por Sofía Ramírez (usuaria sénior) el 2026-11-20 · UJ-2: entra con contacto verificado (FR-8) y recibe la confirmación por correo (FR-12)")
     run(f'python3 {IN} --proyecto {G} personas priorizacion', repo)
+
 art(repo, "backlog", "02-planificacion/backlog.csv"); art(repo, "release-plan", "02-planificacion/release-plan.md")
 
 P("Paso 5 · Presupuesto desde la WBS, tolerancias y autoridad de cambio, línea base de alcance y puertas")
@@ -448,9 +456,110 @@ run(E(f'estado.py --proyecto {G} tolerancia --nivel proyecto "tiempo=±3 semanas
 art(repo, "tolerancias-y-autoridad", "00-direccion/tolerancias-y-autoridad.md", texto=TOLAUT)
 run(E(f'estado.py --proyecto {G} presupuesto cambio=12000 limite_autoridad_cambio=10000 --por "Ejecutiva: Laura Méndez" --fecha 2026-11-27'), repo)
 art(repo, "enfoque-beneficios", "00-direccion/enfoque-beneficios.md", texto=ENFBEN)
+# Decisión de planificación (pm-direccion-decisiones · decision.py): qué épica acompaña al acceso y la consulta en el R1.
+# Sofía (PO) pidió primero las solicitudes del socio; Lucía (equipo) advierte que sin la consola nadie las resuelve. Cada
+# alternativa se mide con release.py sobre el borrador del backlog (la B con sus releases R1-B y R2-B, para que la hoja no
+# confunda su R1 con el de la A) y la hoja importa las dos salidas --json sin recalcular la holgura.
+DC = f"python3 {RAIZ}/skills/pm-direccion-decisiones/scripts/decision.py --proyecto {G}"
+HJ1, FD1 = "release-1", "2026-11-25"
+PREG1 = "¿Qué épica acompaña al acceso y la consulta en el Release 1: la consola de operador (E-3) o las solicitudes del socio (E-2)?"
+os.makedirs(os.path.join(repo, G, "02-planificacion", "escenarios"), exist_ok=True)
+
+
+def release_json(nombre):
+    """release.py capacidad --json > 02-planificacion/escenarios/<nombre> (la salida tal cual, para importarla en la hoja)."""
+    out = subprocess.run(f'python3 {REL} --proyecto {G} capacidad --json', shell=True, cwd=repo, capture_output=True, text=True, check=True).stdout
+    open(os.path.join(repo, G, "02-planificacion", "escenarios", nombre), "w", encoding="utf-8").write(out)
+    LOG.append((f"python3 $PLUGIN/skills/pm-agil-hibrido/scripts/release.py --proyecto {G} capacidad --json > {G}/02-planificacion/escenarios/{nombre}",
+                "\n".join(f"{r['release']}: capacidad {num(r['capacidad'])} · Must {num(r['must'])} · Should {num(r['should'])} · Could {num(r['could'])} · "
+                          f"holgura {num(r['holgura'])} · Must {num(r['pct_must'], 1)} % · {r['lectura']}" for r in json.loads(out)["releases"])))
+    return json.loads(out)
+
+
+borrador = open(pb, "rb").read()          # el borrador con la alternativa A (la que quedó arriba)
+PLAN_B = {"1-1": "S1", "1-3": "S2", "1-2": "S3", "2-1": "S4", "2-2": "S5", "1-4": "S6", "2-3": "S6", "3-1": "S7", "3-2": "S8", "3-3": "S9"}
+filas = list(csv.DictReader(open(pb, encoding="utf-8")))
+for f in filas:
+    it = PLAN_B[f["id"][:3]]; f.update(iteracion=it, release="R1-B" if int(it[1:]) <= 6 else "R2-B")
+escribir_csv(pb, cab, filas)
+run(f'python3 {REL} --proyecto {G} capacidad', repo)
+CAPB = release_json("release-b.json")
+open(pb, "wb").write(borrador)            # vuelve la alternativa A: el borrador queda como estaba
+CAPA = release_json("release-a.json")
+run(f'{DC} expediente --tipo planificacion --ids E-2,E-3,PU-002,PU-003 --pregunta "{PREG1}" '
+    f'--importar 02-planificacion/escenarios/release-a.json --importar 02-planificacion/escenarios/release-b.json --corte {FD1}', repo, corte=100)
+run(f'{DC} matriz {HJ1} --proponer --tipo planificacion --ids E-2,E-3,PU-002,PU-003 --pregunta "{PREG1}" '
+    f'--importar 02-planificacion/escenarios/release-a.json --importar 02-planificacion/escenarios/release-b.json', repo)
+# La hoja la completan el modelo y las personas (el script no inventa cifras): criterios y pesos de la plantilla de
+# planificación, confirmados por el gestor y la PO antes de puntuar; cada puntaje con su fuente. La capacidad no se
+# puntúa: se importa la holgura de release.py (R1 de la alternativa A, R1-B de la B).
+HOJA1 = f"03-control/decisiones/{HJ1}"
+FP1 = "Gestor y PO: Martín Suárez y Sofía Ramírez (pesos de la plantilla confirmados antes de puntuar)"
+escribir(repo, f"{HOJA1}/criterios.csv", "criterio,descripcion,peso,sentido,escala,eliminatorio,importar,fuente_peso,notas\n"
+         f"valor,Valor para el negocio o beneficios que habilita (1 = bajo; 5 = alto),35,mayor,1-5,,,{FP1},\n"
+         f"dependencias,Dependencias abiertas que condicionan la opción (1 = ninguna; 5 = muchas o en el camino crítico),20,menor,1-5,,,{FP1},cpm.py y epics.md\n"
+         f"capacidad,Holgura de capacidad del release en puntos (capacidad − Must − Should),25,mayor,num,,holgura,{FP1},de release.py capacidad --json (se importa sin recalcular)\n"
+         f"riesgo,Riesgo de la opción (1 = bajo; 5 = alto),20,menor,1-5,,,{FP1},\n")
+escribir(repo, f"{HOJA1}/opciones.csv", "opcion,descripcion,ref,valor,valor_fuente,dependencias,dependencias_fuente,capacidad,capacidad_fuente,riesgo,riesgo_fuente,notas\n"
+         "O1,A · R1 con acceso consulta y consola de operador (E-1 y E-3); solicitudes del socio en el R2,R1,4,"
+         "PO: Sofía Ramírez (B-01 desde el R1 con la operación lista; business-case.md),1,Jefa de equipo: Lucía Benítez (las solicitudes llegan con la consola en producción),,,"
+         "3,Gestor: Martín Suárez (holgura de 1 punto y Must al 88 % en el R1),\n"
+         "O2,B · R1 con acceso consulta y solicitudes del socio (E-1 y E-2); consola de operador en el R2,R1-B,3,"
+         "PO: Sofía Ramírez (préstamos antes; B-03 recién con la consola),5,Jefa de equipo: Lucía Benítez (2-1 y 2-2 esperan 3-2 y 3-3; la consola está en el camino crítico de cpm.py),,,"
+         "4,Gestor: Martín Suárez (solicitudes sin bandeja: se transcriben a mano como hoy; dolor de PU-003),\n")
+run(f'{DC} matriz {HJ1} --markdown', repo)
+MZ1 = json.loads(subprocess.run(f'{DC} matriz {HJ1} --json', shell=True, cwd=repo, capture_output=True, text=True, check=True).stdout)
+EL1 = run(f'{DC} matriz {HJ1} --elegir O1 --por "Gestor: Martín Suárez" --fecha {FD1}', repo)
+D_PLAN = re.search(r"\bD-\d{3}\b", EL1).group(0)
+FD_P = next(f for f in reg_json(repo, "listar", "decisiones") if f["id"] == D_PLAN)
+LOG.append((f"(fila {D_PLAN} de decisiones.csv)", "\n".join(f"{k}: {FD_P[k]}" for k in ("fecha", "decision", "nivel", "decidido_por", "contexto", "opciones_consideradas", "artefactos_afectados") if k in FD_P)))
+
+
+def matriz_png(mz, ruta, nombres, cortos, titulo, subtitulo, fuente, nota=None):
+    """Puntaje de cada opción como barras apiladas: el aporte de cada criterio (peso × valor normalizado) de decision.py
+    matriz --json; las eliminadas, con su motivo. La recomendada lleva ★; a la derecha, la sensibilidad (o `nota`)."""
+    if not V.OK: return None
+    import textwrap
+    from matplotlib.patches import Patch
+    crits = mz["criterios"]; ops = mz["opciones"]
+    fig = V._fig(titulo, subtitulo)
+    ax = fig.add_axes([0.25, 0.16, 0.50, 0.62]); V._ejes(ax, grilla_x=True, grilla_y=False)
+    ys = list(range(len(ops)))[::-1]
+    for y, o in zip(ys, ops):
+        if o["estado"] != "evaluada":
+            ax.text(1, y, f"✖ {o['estado']}: {o['motivo']}", va="center", fontsize=12.5, color=V.ESTADO["critico"])
+            continue
+        x0 = 0
+        for k, c in enumerate(crits):
+            v = c["peso_norm"] * o["normalizados"][c["criterio"]]
+            if v > 0:
+                ax.barh(y, v, left=x0, height=0.5, color=V.SERIE[k])
+                if v >= 4: ax.text(x0 + v / 2, y, num(v, 1), va="center", ha="center", fontsize=11, color="white", fontweight="bold")
+            x0 += v
+        ax.text(x0 + 1.5, y, f"{num(o['puntaje'], 1)}" + (" ★" if o["opcion"] == mz["recomendada"] else "")
+                + (f" · dominada por {cortos[o['dominada_por']]}" if o.get("dominada_por") else ""), va="center", fontsize=14, fontweight="bold", color=V.TINTA)
+    ax.set_yticks(ys); ax.set_yticklabels([nombres[o["opcion"]] for o in ops], fontsize=12.5, color=V.TINTA)
+    ax.set_xlim(0, 100); ax.set_ylim(-0.6, len(ops) - 0.4)
+    fig.legend([Patch(color=V.SERIE[k]) for k in range(len(crits))], [f"{c['criterio']} ({num(c['peso_norm'])})" for c in crits],
+               loc="lower left", bbox_to_anchor=(0.25, 0.79), frameon=False, fontsize=11.5, ncol=len(crits))
+    sm = mz.get("sensibilidad_minima")
+    if nota is None:
+        nota = (f"Sensibilidad: gana {cortos[sm['opcion']]} si el peso de {sm['criterio']} pasa de {num(sm['peso'] - sm['delta'], 1)} a {num(sm['peso'], 1)}"
+                if sm else "Sensibilidad: ningún peso de 0 a 100 cambia la primera")
+    fig.text(0.78, 0.47, "\n".join(textwrap.wrap(nota, 26)), fontsize=12, color=V.TINTA2, va="center")
+    fig.text(0.96, 0.08, "Barras = aporte de cada criterio (peso × valor normalizado); la suma es el puntaje (0–100)", fontsize=10.5, color=V.MUDA, ha="right")
+    return V._guardar(fig, ruta, fuente)
+
+
+OP1 = {o["opcion"]: o for o in MZ1["opciones"]}
+assert MZ1["recomendada"] == "O1" and OP1["O1"]["valores"]["capacidad"] < OP1["O2"]["valores"]["capacidad"], "el gráfico de la decisión del R1 ya no describe los datos"
+matriz_png(MZ1, png("decision-release"), {"O1": "A · R1 con la consola\n(E-1 y E-3)", "O2": "B · R1 con las solicitudes\n(E-1 y E-2)"}, {"O1": "A", "O2": "B"},
+           f"El R1 lleva la consola: {num(OP1['O1']['puntaje'], 1)} contra {num(OP1['O2']['puntaje'], 1)}, aun con menos holgura",
+           f"Holgura importada de release.py: {num(OP1['O1']['valores']['capacidad'])} punto en la A y {num(OP1['O2']['valores']['capacidad'])} en la B · decide el gestor ({D_PLAN})",
+           f"decision.py matriz {HJ1} --json (03-control/decisiones/{HJ1}/ · release-a.json y release-b.json)")
 puerta(repo, "autorizar-proyecto", "Ejecutivo: Laura Méndez", "2026-11-27")
-run(f'python3 {BMAD} --proyecto {G} linea-base prd --version 1.0 --por "Ejecutivo: Laura Méndez"', repo)
-run(f'python3 {BMAD} --proyecto {G} linea-base epicas --version 1.0 --por "Ejecutivo: Laura Méndez"', repo)
+run(f'python3 {BMAD} --proyecto {G} linea-base prd --version 1.0 --por "Ejecutivo: Laura Méndez" --fecha 2026-11-27', repo)
+run(f'python3 {BMAD} --proyecto {G} linea-base epicas --version 1.0 --por "Ejecutivo: Laura Méndez" --fecha 2026-11-27', repo)
 run(E(f'estado.py --proyecto {G} aprobar backlog --por "Product owner: Sofía Ramírez" --nivel product-owner --version 1.0 --fecha 2026-11-27'), repo)
 art(repo, "roadmap", "02-planificacion/visuales/roadmap.md", texto="# Roadmap por etapas con puertas\n\n" + ROAD("Roadmap · línea base (antes de C-001)", R2_BASE))
 run(E(f'puertas.py --proyecto {G} preparacion-bmad --resultado PASS --por "Arquitecto: Diego Ferreira" --fecha 2026-11-26'), repo, mostrar=False)
@@ -529,8 +638,10 @@ V.estados([(e, 100 * a / n, "bien" if a == n else "atencion", f"{a} de {n} · " 
           subtitulo="Cobertura recalculada en cada sincronización con BMAD (no una matriz que se arma una vez) · corte 2027-01-25",
           fuente="bmad.py trazabilidad → matriz-trazabilidad-bmad.csv · backlog.csv · descripciones de producto", maximo=100, decimales=0, sufijo=" %")
 art(repo, "roadmap", "02-planificacion/visuales/roadmap.md", texto="# Roadmap por etapas con puertas\n\n" + ROAD("Roadmap · línea base (antes de C-001)", R2_BASE) + "\n" + ROAD(f"Roadmap · con {C1} (simulador de préstamo)", R2_C001))
-run(f'python3 {BMAD} --proyecto {G} linea-base prd --version 1.1 --por "Ejecutivo: Laura Méndez"', repo)
-run(f'python3 {BMAD} --proyecto {G} linea-base epicas --version 1.1 --por "Ejecutivo: Laura Méndez"', repo)
+run(f'python3 {BMAD} --proyecto {G} linea-base prd --version 1.1 --por "Ejecutivo: Laura Méndez" --fecha 2027-01-25', repo)
+run(f'python3 {BMAD} --proyecto {G} linea-base epicas --version 1.1 --por "Ejecutivo: Laura Méndez" --fecha 2027-01-25', repo)
+# la línea base nueva reemplaza a la anterior (columna reemplaza, la escribe bmad.py): el expediente y la búsqueda solo traen la vigente
+run(f'{DC} vigentes --tema "línea base" --corte 2027-01-25', repo)
 act(repo, "cambios", C1, estado="implementado"); act(repo, "issues", I1, estado="cerrado", fecha_cierre="2027-01-25")
 run(f'python3 {BMAD} --proyecto {G} verificar', repo, ok=(0, 1, 2))
 run(E(f'sanidad.py --proyecto {G} --rapido --corte 2027-01-25'), repo, ok=(0, 1, 2))
@@ -566,13 +677,53 @@ escribir(repo, "02-planificacion/escenarios/flujos-C-002.csv", flujos_csv([("Lí
 INV2 = inversion(repo, "02-planificacion/escenarios/flujos-C-002.csv", base="Con C-001")["Con C-001 y C-002"]
 # 13 pts Must en R1; sale la 2-3 (Could) para liberar capacidad; el R1 cierra la etapa 2; corte de EVM del 19/2
 IM2 = impacto(repo, C2, '--refs NFR-1,NFR-5 --paquetes 3.5 --flujos 02-planificacion/escenarios/flujos-C-002.csv --opcion "Con C-001 y C-002" --base "Con C-001" --tasa 0.10 '
-              '--puntos 13 --release R1 --liberar 2-3 --etapa --evm 03-control/reportes/evm-2027-02-19.json', "2027-02-19")
+              '--puntos 13 --release R1 --liberar 2-3 --etapa --evm 03-control/reportes/evm-2027-02-19.json', "2027-02-19",
+              guardar="03-control/reportes/2027-02-19-impacto-C-002-r1.json")
 art(repo, "informe-excepcion-X-001", "03-control/reportes/2027-02-19-informe-excepcion-X-001.md",
     texto=INFEXC.replace("{BC}", f"VAN a {ANIOS} años: {num(INV1['van'])} con {C1} → {num(INV2['van'])} con {C2} (inversion.py, escenarios/flujos-C-002.csv). "
                                  f"Sigue positivo; B-01 puede caer {num(margen_b01(INV2), 1)} % antes de que el VAN llegue a 0 (tolerancia de beneficios −{100 * VARIACION:.0f} %)."))
 I3 = reg(repo, "issues", fecha="2027-02-19", autor="Martín Suárez", tipo="problema-preocupacion", titulo="Excepción X-001: cambio fuera de la autoridad delegada y pronóstico fuera de tolerancia de alcance", descripcion=f"{C2} supera el límite de la autoridad de cambio y el saldo del presupuesto de cambio (pendiente-decision); EVM del 2027-02-19 con excepcion_prevista", prioridad="urgente", severidad="critica", responsable="Martín Suárez", estado="escalado", notas="informe 03-control/reportes/2027-02-19-informe-excepcion-X-001.md")
 act(repo, "issues", I2, estado="escalado", decision=f"{C2} escalado a la junta (excepción X-001)")
+# Decisión del cambio para la junta (pm-direccion-decisiones · decision.py). La opción "diferir al R2" se mide con el mismo
+# análisis (otro borrador, sin tocar el primero); la hoja importa las dos salidas --json y los puntajes citan sus filas.
+IM2d = impacto(repo, C2, '--refs NFR-1,NFR-5 --paquetes 3.5 --flujos 02-planificacion/escenarios/flujos-C-002.csv --opcion "Con C-001 y C-002" --base "Con C-001" --tasa 0.10 '
+               f'--puntos 13 --release R2 --salida {G}/03-control/reportes/2027-02-19-solicitud-cambio-C-002-diferir.md', "2027-02-19",
+               guardar="03-control/reportes/2027-02-19-impacto-C-002-r2.json", borrador=False)
+HJ2, FD2 = C2, "2027-02-19"
+PREG2 = f"¿Qué hacemos con {C2} (consentimiento y registro de accesos, 15.000, obligatorio por la Ley 18.331)?"
+IMPS = "--importar 03-control/reportes/2027-02-19-impacto-C-002-r1.json --importar 03-control/reportes/2027-02-19-impacto-C-002-r2.json"
+run(f'{DC} expediente --tipo cambio --ids {C2} --pregunta "{PREG2}" {IMPS} --corte {FD2}', repo, corte=90)
+run(f'{DC} matriz {HJ2} --proponer --tipo cambio --ids {C2} --pregunta "{PREG2}" {IMPS}', repo)
+HOJA2 = f"03-control/decisiones/{HJ2}"
+FP2 = "Gestor: Martín Suárez (plantilla de cambio; impacto eliminatorio por ser obligatorio por la Ley 18.331)"
+escribir(repo, f"{HOJA2}/criterios.csv", "criterio,descripcion,peso,sentido,escala,eliminatorio,importar,fuente_peso,notas\n"
+         f"impacto,Impacto neto sobre los siete objetivos y el business case (1 = muy negativo; 5 = muy positivo),40,mayor,1-5,2,,{FP2},1 = incumple un requisito obligatorio: la opción se elimina\n"
+         f"tolerancias,Margen dentro de las tolerancias de etapa y de proyecto (1 = fuera: excepción; 5 = holgado),35,mayor,1-5,,,{FP2},impacto.py y evm.py\n"
+         f"autoridad,Dentro de la autoridad y del presupuesto de cambio (1 = no; 5 = sí con saldo),25,mayor,1-5,,,{FP2},registro.py (motivos_autoridad) y CAM-03\n")
+R1J, R2J = "2027-02-19-impacto-C-002-r1.json", "2027-02-19-impacto-C-002-r2.json"
+escribir(repo, f"{HOJA2}/opciones.csv", "opcion,descripcion,ref,impacto,impacto_fuente,tolerancias,tolerancias_fuente,autoridad,autoridad_fuente,notas\n"
+         f"O1,Rechazar {C2},,1,{I2} y NFR-1 (Ley 18.331: sin consentimiento el portal no puede salir a producción),5,sin cambio en tolerancias,5,rechazar está dentro de la autoridad de cambio,\n"
+         f"O2,Diferir {C2} al Release 2 (sin plan de excepción),,2,{R2J} (el R1 no se abre a los socios sin consentimiento: B-01 se demora),1,{R2J} (Capacidad del R2),1,{R2J} (Autoridad y Presupuesto de cambio),\n"
+         f"O3,Pedir plan de excepción: {C2} como Must en el R1 (+1 sprint; sale la 2-3) y presupuesto de cambio ampliado,,4,{R1J} (Beneficios: VAN sigue positivo),1,{R1J} (Tiempo de la etapa y Alcance),1,{R1J} (Autoridad y Presupuesto de cambio),\n")
+run(f'{DC} matriz {HJ2} --markdown', repo)
+MZ2 = json.loads(subprocess.run(f'{DC} matriz {HJ2} --json', shell=True, cwd=repo, capture_output=True, text=True, check=True).stdout)
+# Pregunta tipada para la junta (y para el modelo que prepara la recomendación): solo opciones evaluadas, con evidencia.
+# (la evidencia muestra la pregunta, las opciones, el formato y la matriz; el expediente que sigue ya está arriba y su
+# encabezado lleva la fecha del día de la corrida)
+pq = subprocess.run(f'{DC} pregunta {HJ2}', shell=True, cwd=repo, capture_output=True, text=True, check=True).stdout.split("\n")
+run(f'{DC} pregunta {HJ2}', repo, corte=next(i for i, l in enumerate(pq) if l.startswith("## Expediente de decisión")))
+resp = lambda d: "echo '" + json.dumps(d, ensure_ascii=False) + "' | "
+run(resp({"respuesta": "O1", "evidencia": [C2], "confianza": "media", "faltan": [], "razon": "excede la autoridad y el presupuesto de cambio"})
+    + f'{DC} pregunta {HJ2} --validar -', repo, ok=(1,))
+run(resp({"respuesta": "O3", "evidencia": [C2, R1J, R2J], "confianza": "alta", "faltan": [],
+          "razon": "obligatorio por la Ley 18.331; diferir no evita la excepción y demora B-01; con el plan de excepción el VAN sigue positivo"})
+    + f'{DC} pregunta {HJ2} --validar -', repo)
 run(E(f'estado.py --proyecto {G} puerta decision-ad-hoc --decision aprobado --por "Ejecutiva: Laura Méndez" --fecha 2027-02-22 --condiciones "X-001: la junta pide plan de excepción para la etapa 2; {C2} queda sujeto a ese plan"'), repo)
+D_JUNTA = next(f["id"] for f in reversed(reg_json(repo, "listar", "decisiones")) if f["decision"].startswith("decision-ad-hoc"))
+# La junta decidió (pm-director registró la fila): la hoja se cita con --decision y la matriz queda en esa misma fila.
+run(f'{DC} matriz {HJ2} --elegir O3 --por "Ejecutiva: Laura Méndez" --decision {D_JUNTA} --fecha 2027-02-22', repo)
+FD_J = next(f for f in reg_json(repo, "listar", "decisiones") if f["id"] == D_JUNTA)
+LOG.append((f"(fila {D_JUNTA} de decisiones.csv tras --decision)", "\n".join(f"{k}: {FD_J[k]}" for k in ("fecha", "decision", "nivel", "decidido_por", "opciones_consideradas", "artefactos_afectados", "notas") if k in FD_J)))
 run(E(f'estado.py --proyecto {G} limite-etapa --excepcion X-001'), repo)
 art(repo, "plan-excepcion-X-001", "02-planificacion/plan-excepcion-X-001.md",
     texto=PLANEXC.replace("{BC0}", f"VAN {num(INV1['van'])}").replace("{BC1}", f"VAN {num(INV2['van'])} (sigue positivo)"))
@@ -599,6 +750,9 @@ if "REG-09" in s26a:     # revisión vencida de R-001: pm-riesgos la revisa con 
 s26 = run(E(f'sanidad.py --proyecto {G} --rapido --corte 2027-02-26'), repo, ok=(0, 1, 2))
 run(E(f'estado.py --proyecto {G} resumen'), repo)
 run(E(f'registro.py --proyecto {G} listar cambios'), repo)
+# ¿Qué vale hoy del presupuesto de cambio? La búsqueda normaliza español e inglés (texto.py): "change budget" encuentra las
+# decisiones de la junta sobre el presupuesto de cambio; la del 26/2 solo fija una clave, así que convive con la del 27/11.
+run(f'{DC} vigentes --tema "change budget" --corte 2027-02-26', repo)
 
 # ---------------------------------------------------------------- gráficos del cierre del recorrido (datos de esta corrida)
 c18, c19, c26 = cam03(s18), cam03(s19), cam03(s26)
@@ -640,6 +794,17 @@ V.tarjetas([(num(INV2["van"]), "VAN del business case", f"inversión {num(BAC0 +
             (f"{cob1[0][1]} de {cob1[0][2]}", "Requisitos funcionales trazados", "con historia y paquete de la WBS tras cada cambio", "bien")], png("indicadores"),
            titulo="Al 26/2 cada cambio quedó medido; la reserva casi se agotó",
            subtitulo="Indicadores de la corrida de referencia de la guía E2E-2", fuente="inversion.py · cpm.py · sanidad CAM-03 · evm.py · bmad.py trazabilidad")
+OP2 = {o["opcion"]: o for o in MZ2["opciones"]}
+assert MZ2["recomendada"] == "O3" and OP2["O1"]["estado"] == "eliminada", "el gráfico de la decisión de C-002 ya no describe los datos"
+cero = [c["criterio"] for c in MZ2["criterios"] if all(o["normalizados"][c["criterio"]] == 0 for o in MZ2["opciones"] if o["estado"] == "evaluada")]
+assert cero == ["tolerancias", "autoridad"] and OP2["O2"]["dominada_por"] == "O3", "la nota del gráfico de C-002 ya no describe los datos"
+matriz_png(MZ2, png("decision-c002"), {"O1": f"Rechazar {C2}", "O2": f"Diferir {C2}\nal Release 2", "O3": "Plan de excepción:\nMust en el R1"},
+           {"O1": "rechazar", "O2": "diferir", "O3": "el plan de excepción"},
+           f"La junta pide el plan de excepción: {num(OP2['O3']['puntaje'], 1)} contra {num(OP2['O2']['puntaje'], 1)} de diferir",
+           f"Rechazar queda eliminada (obligatorio por la Ley 18.331) · diferir también sale de tolerancia y demora B-01 · registrada en {D_JUNTA}",
+           f"decision.py matriz {HJ2} --json (03-control/decisiones/{HJ2}/ · impacto.py --json del R1 y del R2)",
+           nota=f"{' y '.join(cero).capitalize()} aportan 0 a las dos opciones: ninguna entra en las tolerancias ni en la autoridad delegada. "
+                + ("Ningún peso de 0 a 100 cambia la primera." if not MZ2.get("sensibilidad_minima") else ""))
 
 with open(sys.argv[1] if len(sys.argv) > 1 else "salida-g2.md", "w", encoding="utf-8") as f:
     for c, o in LOG:

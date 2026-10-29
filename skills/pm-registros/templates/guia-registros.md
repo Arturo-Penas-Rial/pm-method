@@ -125,10 +125,12 @@ celdas como texto) o importar el CSV con todas las columnas como texto.
 | decidido_por | Quién decidió | Decided by | nombre o rol |
 | nivel | Nivel de autoridad | Authority level | `equipo`, `product-owner`, `gestor`, `autoridad-cambio`, `junta`, `capa-negocio` |
 | artefactos_afectados | Qué se actualiza | Affected artifacts | rutas o ids (`C-###`, `02-planificacion/plan-etapa-2.md`) |
-| revisar_en | Cuándo reevaluar | Review on | ISO o hito |
+| revisar_en | Cuándo reevaluar | Review on | ISO (la sanidad avisa si vence: DEC-06) o hito |
 | notas | Condiciones, puerta asociada | Notes | texto; `puerta: autorizar-etapa` cuando aplica |
+| reemplaza | Decisiones que esta deja sin efecto | Supersedes | `D-###` separados por `;`; nivel igual o superior al de la reemplazada (lo valida `registro.py`) |
+| conviven | Decisiones que siguen vigentes a la vez aunque parezcan contradecirse | Stands with | `D-###` separados por `;` (decisión de la persona; la sanidad deja de avisar DEC-05) |
 
-*Filas automáticas / Automatic rows:* `estado.py puerta` escribe por sí mismo la fila de cada decisión de puerta (nivel `junta`, `notas=puerta: <tipo>`) y `estado.py aprobar` la de cada aprobación de documento; no duplicarlas a mano. `nivel=product-owner` se usa para intercambios de ítems del backlog dentro de la tolerancia de alcance de la etapa (ágil/híbrido).
+*Filas automáticas / Automatic rows:* `estado.py puerta` escribe por sí mismo la fila de cada decisión de puerta (nivel `junta`, `notas=puerta: <tipo>`) y `estado.py aprobar` la de cada aprobación de documento (con `reemplaza` = la aprobación anterior del mismo artefacto); no duplicarlas a mano. Una decisión reabierta no se borra ni se edita: la fila nueva la reemplaza (`decision.py vigentes` muestra las vigentes; `pm-direccion-decisiones` guía §13.10). `nivel=product-owner` se usa para intercambios de ítems del backlog dentro de la tolerancia de alcance de la etapa (ágil/híbrido).
 
 ## 5. supuestos.csv · Assumption log
 
@@ -351,6 +353,24 @@ Tabla Markdown con columnas `fecha`, `entrada`, `responsable`, `seguimiento`. Gu
 | cambio | aprobado | línea base | `decision=aprobado`, `estado=implementado` | `estado.json.artefactos.<x>.version` |
 | cambio aprobado | genera incertidumbre | riesgo | — | `notas=origen C-###` |
 | cualquier registro | período de informe | highlight report | — | nuevos, cerrados y críticos con ids |
+
+## 12. Bitácora y propuestas · Write log and proposals (2.6.0)
+
+- **Bitácora** `<proyecto>/.bitacora.jsonl` (no es un registro: sin id propio, solo anexado por los scripts, no se edita):
+  una línea JSON por escritura de `estado.json`, de un registro o de una propuesta con `n`, `fecha` (real), `script`,
+  `operacion`, `archivo`, `registro`, `ids`, `altas`, `bajas`, `cambios` (`{id: {campo: [antes, después]}}`; de
+  stakeholders, estereotipos, preferencias, envíos, personas y filas `confidencial=si`, solo los nombres de los campos),
+  `claves` (estado.json), `por`, `propuesta`, `propuesto_por`, `motivo` (en `reconocer`), `antes`, `despues` y `previa`
+  (sha256). Consultar: `registro.py historial [id|registro|estado|P-###]`. Cambio hecho fuera de los scripts:
+  `registro.py reconocer <registro|estado> --por … --motivo …`.
+- **Propuesta** `03-control/propuestas/P-###.json`: `id`, `fecha`, `estado` (`pendiente`, `aplicada`, `reaplicada`,
+  `conflicto`, `rechazada`), `registro`, `operacion` (`agregar`|`actualizar`), `objetivo` (id; vacío en un alta),
+  `campos`, `propuesto_por`, `motivo`, `base` (`huella_registro`, `huella_fila`, `valores` de los campos tocados) y, al
+  resolverse, `resolucion` (`fecha`, `por`, `resultado`, `id`, `detalle`, `motivo`). Comandos: `registro.py proponer`,
+  `propuestas`, `aprobar`, `rechazar`.
+- EN: every script write is appended to `.bitacora.jsonl` with SHA-256 hashes chained line to line; an agent proposes a
+  row change (`proponer`) and a person approves it (`aprobar --por`): applied, reapplied on the newer version when the
+  touched fields did not change, or closed as a conflict.
 
 ## Lista de verificación / Checklist
 - [ ] Todas las columnas usadas existen en el CSV real creado por `nuevo_proyecto.py` (el script rechaza columnas desconocidas).

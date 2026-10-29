@@ -489,9 +489,14 @@ def elegir(a, e, r, u):
         sys.exit(t(f"La recomendada es {rec} y se eligió {o['opcion']}: indicar --motivo (p. ej. justificación no económica, regulatoria o de plazo)." if rec else
                    f"Sin recomendación (menos de dos opciones evaluadas): indicar --motivo para elegir {o['opcion']}.",
                    f"{rec} is recommended and {o['opcion']} was chosen: pass --motivo." if rec else "No recommendation (fewer than two evaluated options): pass --motivo."))
-    if a.decision:
+    nivel = a.nivel or "gestor"
+    if a.decision:        # decisión ya registrada (p. ej. de la junta, por pm-director): su nivel es el de la fila citada
         pd = E.ruta_registro(a.proyecto, "decisiones")
-        if a.decision not in {f.get("id") for f in (E.leer_csv(pd)[1] if os.path.exists(pd) else [])}: sys.exit(t(f"{a.decision} no existe en decisiones.csv.", f"{a.decision} not found."))
+        fila_d = next((f for f in (E.leer_csv(pd)[1] if os.path.exists(pd) else []) if f.get("id") == a.decision), None)
+        if fila_d is None: sys.exit(t(f"{a.decision} no existe en decisiones.csv.", f"{a.decision} not found."))
+        nivel = fila_d.get("nivel") or nivel
+        if a.nivel and a.nivel != nivel:
+            print(t(f"Aviso: --nivel {a.nivel} no se usa: {a.decision} está registrada con nivel {nivel}.", f"Warning: --nivel {a.nivel} is ignored: {a.decision} is recorded at level {nivel}."), file=sys.stderr)
     prop = (r.get("propietario") or "").strip()
     if prop and norm_txt(prop) not in norm_txt(a.por):
         print(t(f"Aviso: decide '{a.por}' y el propietario de {r['id']} es {prop}: confirmar que tiene esa autoridad (enfoque de riesgo).",
@@ -503,7 +508,7 @@ def elegir(a, e, r, u):
         "--campo", "decision=" + t(f"Respuesta de {r['id']}: {o['estrategia']} ({o['opcion']}) · {o['descripcion']}", f"Response to {r['id']}: {o['estrategia']} ({o['opcion']}) · {o['descripcion']}"),
         "--campo", "contexto=" + t(f"{r['id']} P×I {puntos(r):g}, EMV {miles(o['emv_inherente'])} → residual {miles(o['emv_residual'])}, costo {miles(o['costo'])}, valor neto {miles(o['valor_neto'])}; "
                                    f"recomendada {rec}; respuesta previa {previa}", f"{r['id']} P×I {puntos(r):g}, EMV {miles(o['emv_inherente'])} → {miles(o['emv_residual'])}; recommended {rec}"),
-        "--campo", f"opciones_consideradas={consideradas}", "--campo", f"decidido_por={a.por}", "--campo", f"nivel={a.nivel}",
+        "--campo", f"opciones_consideradas={consideradas}", "--campo", f"decidido_por={a.por}", "--campo", f"nivel={nivel}",
         "--campo", f"artefactos_afectados=riesgos.csv {r['id']}; {arch}", "--campo", f"notas={a.motivo or ''}").splitlines()[-1]
     acciones = (f"{o['descripcion']} · {t('costo', 'cost')} {miles(o['costo'])} · ΔEMV {miles(o['delta_emv'])} · {t('valor neto', 'net value')} {miles(o['valor_neto'])}"
                 + (f" · {t('contingencia', 'contingency')} {miles(o['monto_contingencia'])}" if o["monto_contingencia"] else "") + f" · {o['opcion']} ({arch}) · {dec}")
@@ -512,7 +517,7 @@ def elegir(a, e, r, u):
     if r.get("estado") == "abierto": campos.append("estado=en-seguimiento")
     if a.revision: campos.append(f"fecha_revision={a.revision}")
     _registro(a.proyecto, "actualizar", "riesgos", r["id"], *sum((["--campo", c] for c in campos), []))
-    print(t(f"{r['id']}: respuesta {o['estrategia']} ({o['opcion']}) registrada en riesgos.csv · decisión {dec} ({a.por}, nivel {a.nivel}).",
+    print(t(f"{r['id']}: respuesta {o['estrategia']} ({o['opcion']}) registrada en riesgos.csv · decisión {dec} ({a.por}, nivel {nivel}).",
             f"{r['id']}: response {o['estrategia']} ({o['opcion']}) recorded · decision {dec}."))
     if o["estrategia"] in ("aceptar", "contingencia") and puntos(r) >= u and not tiene_plan(a.proyecto, r):
         print(t(f"Falta el plan de contingencia: templates/plan-contingencia.md → 03-control/registros/{r['id']}-plan-contingencia.md (sanidad REG-10).",
@@ -534,8 +539,8 @@ def main():
     o.add_argument("--elegir", metavar="O#", help="registra la opción que decidió la persona (requiere --riesgo y --por)")
     o.add_argument("--por", help="quién decide: \"<rol: nombre>\" (PUERTA HUMANA)")
     o.add_argument("--motivo", help="justificación; obligatoria si la elegida no es la recomendada")
-    o.add_argument("--nivel", default="gestor", choices=[x for x in E.REGISTROS["decisiones"]["valores"]["nivel"] if x not in ("junta", "capa-negocio")],
-                   help="nivel de la decisión en decisiones.csv (defecto gestor; las de la junta las registra pm-director)")
+    o.add_argument("--nivel", choices=[x for x in E.REGISTROS["decisiones"]["valores"]["nivel"] if x not in ("junta", "capa-negocio")],
+                   help="nivel de la decisión en decisiones.csv (defecto gestor; con --decision, el de esa fila; las de la junta las registra pm-director)")
     o.add_argument("--decision", metavar="D-###", help="cita una decisión ya registrada en lugar de crear otra")
     o.add_argument("--revision", metavar="AAAA-MM-DD", help="próxima revisión del riesgo (fecha_revision)")
     o.add_argument("--fecha", help="fecha de la decisión (defecto: hoy)")

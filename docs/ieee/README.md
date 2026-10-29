@@ -7,8 +7,8 @@ diapositiva por página; navegación con ◀ ▶ y las flechas; tecla N o botón
 
 | Archivo | Diapositivas | Contenido |
 |---|---|---|
-| `pm-method-ieee-resumen-light.pptx` / `.html` | 5 | qué resuelve, cómo trabaja y sus ventajas, programa de formación propuesto y ruta de entrada (piloto) |
-| `pm-method-ieee-informe-light.pptx` / `.html` | 9 | resumen del [Informe 2](../informe/README.md): problema, capas del método, quién hace qué, puertas, controles permanentes, radar y seguridad de la IA agéntica, ventajas, límites y cómo seguir |
+| `pm-method-ieee-resumen-light.pptx` / `.html` | 5 | qué resuelve (incluido decidir con la evidencia y buscar en el proyecto con la fuente citada), cómo trabaja y sus ventajas, programa de formación propuesto y ruta de entrada (piloto) |
+| `pm-method-ieee-informe-light.pptx` / `.html` | 10 | resumen del [Informe 2](../informe/README.md): problema, capas del método, quién hace qué, puertas, controles permanentes, radar y seguridad de la IA agéntica, decidir con evidencia y buscar con la fuente citada, ventajas, límites y cómo seguir |
 
 **Programa de formación propuesto** (ajustable, no es un dato): introducción (2 sesiones) + 5 talleres de casos × 2
 sesiones + taller integrador (2) = 14 sesiones de 90 min = 1.260 min = 21 h; 14 semanas a una sesión por semana o 7 a

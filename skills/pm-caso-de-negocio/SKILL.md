@@ -1,7 +1,7 @@
 ---
 name: pm-caso-de-negocio
 description: "Business case PRINCE2 y enfoques de beneficios y sostenibilidad. Usar: caso de negocio, business case, ROI, VAN/NPV, payback, beneficios. No: OKR→pm-okr; presupuesto→pm-costos-presupuesto."
-version: 2.5.0
+version: 2.6.0
 author: pm-method
 license: MIT
 metadata:
@@ -45,7 +45,7 @@ metadata:
 3. **Cadena de valor**: salida → capacidad → resultado → beneficio → objetivo de negocio, con habilitadores y des-beneficios. Beneficio no medible → reformular o excluir de la evaluación.
 4. **Vincular métricas sin duplicar** (si existen): cada beneficio `B-##` cita en la columna "Refs SM / KR" los `SM-n` del PRD y los KR de `okr.csv` que lo miden; meta, línea base, dueño y tolerancia siguen siendo del business case. Reglas y casos en `references/guia.md` §4.
 5. **Opciones de negocio**: "no hacer nada distinto" (base), "hacer lo mínimo", "hacer más"; tabla de ventajas, desventajas, costo y riesgo; recomendación razonada.
-6. **Evaluar la inversión** con la técnica que pide la pregunta (`references/guia.md` §2); VAN, TIR, repago, sensibilidad y equilibrio por opción: `python3 ${CLAUDE_SKILL_DIR}/scripts/inversion.py flujos.csv --tasa 0.10` (formato y fórmulas: `--help`); supuestos y fórmulas en el documento; sensibilidad si un beneficio sostiene > 50 % del valor.
+6. **Evaluar la inversión** con la técnica que pide la pregunta (`references/guia.md` §2); VAN, TIR, repago, sensibilidad y equilibrio por opción: `python3 ${CLAUDE_SKILL_DIR}/scripts/inversion.py flujos.csv --tasa 0.10` (formato y fórmulas: `--help`); supuestos y fórmulas en el documento; sensibilidad si un beneficio sostiene > 50 % del valor. Criterios no monetarios con pesos: `--json` → `decision.py matriz <ID> --tipo negocio --importar` (`pm-direccion-decisiones`).
 7. **Tolerancias** de beneficios y sostenibilidad: proponerlas; tras confirmación de la capa de negocio, `python3 ${CLAUDE_SKILL_DIR}/../pm-estado-proyecto/scripts/estado.py --proyecto <dir> tolerancia --nivel proyecto beneficios="-10 %" sostenibilidad="..."`. Las de etapa las fija la junta vía `pm-director`.
 8. **Redactar el business case** → `templates/business-case.md` en `00-direccion/business-case.md` (esquemático: secciones marcadas; resto `[en inicio]`). Perfil ágil mínimo: versión de una página (`references/guia.md` §3).
 9. **Enfoque de beneficios** (completo) → `templates/enfoque-beneficios.md` en `00-direccion/enfoque-beneficios.md`: dueño, medida, línea base, fecha, método, revisiones intermedias, financiación post-cierre, Refs SM / KR.
@@ -109,4 +109,4 @@ Más reglas: `references/guia.md` §5.
 - No activa: "Definí los OKR del trimestre y sus resultados clave" → `pm-okr`.
 
 ## EN summary
-PRINCE2 business case as a living product: outline (SU), full (IP), check at every gate, maintain at stage boundaries, confirm at closure. Builds the value chain, compares options starting with "do nothing different", picks the appraisal technique by the question and writes assumptions. Benefits are measurable with baseline, owner, date and tolerance; they may cite PRD success metrics (SM-n) and OKR key results (pm-okr) as measures without duplicating them. pm-director records the approval gate.
+PRINCE2 business case as a living product: outline (SU), full (IP), check at every gate, maintain at stage boundaries, confirm at closure. Builds the value chain, compares options starting with "do nothing different", picks the appraisal technique by the question and writes assumptions. Benefits are measurable with baseline, owner, date and tolerance; they may cite PRD success metrics (SM-n) and OKR key results as measures without duplicating them. pm-director records the approval gate.

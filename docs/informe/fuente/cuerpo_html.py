@@ -64,6 +64,7 @@ def fig_guia(it, ancho="1000px"):
 
 
 EV = X["ev24"]
+EV6 = X["ev26"]
 
 
 def fig24(img, ancho="1000px"):
@@ -134,8 +135,25 @@ s2 = sec("capacidades", "2", "Capacidades de gestión",
          + salida("Salidas reales en la guía E2E-2, pasos 3 y 4", EV["cpm"], EV["capacidad"])
          + "<h3>¶Expediente de auditoría verificable (<code>paquete.py auditoria · verificar</code>)</h3>" + layers(V["auditoria"]) + fig24("g4-expediente.png")
          + salida("Salida real en la guía E2E-4, paso 9b", EV["auditoria"], EV["aud_ok"], EV["aud_falla"])
+         + "<h3 id='decisiones-contexto'>¶Decisiones con contexto: expediente, matriz y pregunta tipada (<code>decision.py</code>)</h3>" + layers(V["decision"]) + fig24("g1-sensibilidad-r003.png")
+         + salida("Salida real en la guía E2E-1, paso 6a: la matriz de R-003 y la elección del propietario", EV6["dec_markdown"], EV6["dec_elegir"])
+         + "<details><summary>Expediente completo de R-003 (E2E-1, paso 6a)</summary>" + pre(EV6["dec_expediente"]) + "</details>"
+         + salida("Pregunta tipada para la junta y respuesta validada (guía E2E-2, paso 10)", EV6["dec_pregunta"], EV6["dec_validar"])
+         + "<h3>¶Decidir con la autoridad que corresponde: RACI ↔ autoridad</h3>" + layers(V["raci_autoridad"]) + fig24("g3-decision-kr-b02.png")
+         + salida("Salida real en la guía E2E-3, paso 7b: el gestor sin motivo no registra; la ejecutiva, A de la RACI, sí", EV6["raci_gestor"], EV6["raci_ejecutiva"])
+         + "<h3>¶Vigencia y contradicciones de las decisiones (<code>decision.py vigentes</code>, DEC-05, DEC-06)</h3>" + layers(V["vigencia"])
+         + salida("Salidas reales: búsqueda en inglés sobre decisiones en español (guías E2E-1 y E2E-5)", EV6["vig_riesgo"], EV6["vig_entrega"])
+         + "<h3>¶Bitácora de escrituras y propuestas con huella</h3>" + layers(V["bitacora"])
+         + salida("Salida real en la guía E2E-1, paso 14: propuesta de un agente, aprobación de una persona e historial", EV6["prop_proponer"], EV6["prop_lista"], EV6["prop_aprobar"], EV6["historial"])
+         + salida("Historia de una decisión desde la bitácora (guía E2E-4, paso 9b)", EV6["historial_d013"])
+         + "<h3>¶Decisiones y mapas estratégicos: hacer o comprar</h3>" + layers(V["mapas_decision"]) + fig24("g5-hacer-comprar-c2.png")
+         + salida("Salida real en la guía E2E-5, paso 5b", EV6["hc_matriz"], EV6["hc_elegir"])
+         + "<h3 id='pm-kb'>¶Buscar en los proyectos con evidencia citada (pm-kb, opcional)</h3>" + layers(V["pmkb"]) + diag("repo-pm-kb")
+         + "<div class='two'>" + fig24("g1-kb-busqueda.png", "100%") + fig24("g1-kb-ficha.png", "100%") + "</div>" + fig24("g1-kb-versiones.png")
+         + salida("Salidas reales en la guía E2E-1, paso 16, y E2E-4, paso 9c", EV6["kb_buscar"], EV6["kb_versiones"], EV6["kb_cambios"], EV6["kb_aprobado"])
+         + "<p class='src'>Referencia: <code>docs/PM-KB.md</code>; instalación: INSTALACION-WSL2 §8 e INSTALACION-DOCKER §8 (sección 11).</p>"
          + f"<h3 id='controles-permanentes'>¶Controles permanentes</h3><p class='intro'>{inl(V['controles_intro'])}</p>" + controles_tab
-         + "<p class='src'>Fuentes: SANIDAD §2.1, PUERTAS §3, las tablas «Del uso único al control continuo» de docs/guias/E2E-1…E2E-5 y <code>skills/pm-estado-proyecto/scripts/sanidad.py</code>, <code>puertas.py</code>, <code>estado.py</code>, <code>evm.py</code>, <code>skills/pm-interesados/scripts/interesados.py</code> y <code>skills/pm-mapas-estrategicos/scripts/mapas.py</code>, <code>skills/pm-riesgos/scripts/riesgos.py</code> y <code>skills/pm-lecciones-aprendidas/scripts/lecciones.py</code>. Presupuestos: <code>estado.py presupuesto cambio|riesgo|gestion|limite_autoridad_cambio=&lt;monto&gt; --por …</code>, reservado a pm-director por el hook. <code>sanidad.py --corte AAAA-MM-DD</code> hace reproducibles los controles con vencimiento.</p>"
+         + "<p class='src'>Fuentes: SANIDAD §2.1, PUERTAS §3, las tablas «Del uso único al control continuo» de docs/guias/E2E-1…E2E-5 y <code>skills/pm-estado-proyecto/scripts/sanidad.py</code>, <code>puertas.py</code>, <code>estado.py</code>, <code>evm.py</code>, <code>skills/pm-interesados/scripts/interesados.py</code> y <code>skills/pm-mapas-estrategicos/scripts/mapas.py</code>, <code>skills/pm-riesgos/scripts/riesgos.py</code> y <code>skills/pm-lecciones-aprendidas/scripts/lecciones.py</code>, <code>skills/pm-direccion-decisiones/scripts/decision.py</code> y <code>skills/pm-estado-proyecto/scripts/vigencia.py</code> y <code>registro.py</code>. Presupuestos: <code>estado.py presupuesto cambio|riesgo|gestion|limite_autoridad_cambio=&lt;monto&gt; --por …</code>, reservado a pm-director por el hook. <code>sanidad.py --corte AAAA-MM-DD</code> hace reproducibles los controles con vencimiento.</p>"
          + "<h4>Ejemplos reales de la evidencia</h4>" + ejemplos
          + "<details><summary>Diagrama: gestión por excepción en la guía E2E-2 (paso 10)</summary>" + diag("excepcion").replace('<div class="diag-in">', '<div class="diag-in" style="max-width:520px;margin:0 auto">') + "</details>",
          "todas las audiencias")
@@ -152,7 +170,8 @@ s3 = sec("justificacion", "3", "Justificación de la propuesta",
 
 # ---------- 4 · Representación gráfica ----------
 LECTURA_DIAG = {
-    "arquitectura": "Cinco capas con dueño propio. Arriba, el gobierno PRINCE2 (orquestador, pm-director y subagentes de fase); debajo, las skills que aplican las técnicas del PMBOK. Las skills leen la especificación BMAD sin escribirla, usan las integraciones opcionales y escriben la carpeta del proyecto solo con `estado.py` y `registro.py`. Los hooks protegen la persistencia y la especificación.",
+    "arquitectura": "Cinco capas con dueño propio. Arriba, el gobierno PRINCE2 (orquestador, pm-director y subagentes de fase); debajo, las skills que aplican las técnicas del PMBOK. Las skills leen la especificación BMAD sin escribirla, usan las integraciones opcionales y escriben la carpeta del proyecto solo con `estado.py` y `registro.py`; cada escritura queda en `.bitacora.jsonl`. pm-kb, opcional, lee e indexa la carpeta y el orquestador lo consulta por MCP. Los hooks protegen la persistencia, la bitácora y la especificación.",
+    "pm-kb": "La carpeta del proyecto es la única fuente: solo `estado.py` y `registro.py` escriben. pm-kb la lee e indexa en PostgreSQL (un derivado de solo lectura, con RLS por proyecto y circulación) y responde por la web, el MCP o la línea de comandos con la cita de cada dato. Las personas deciden; un agente solo propone (`registro.py proponer`) y la propuesta se aplica cuando una persona la aprueba.",
     "orquestacion-puerta": "Secuencia de una puerta: el orquestador lee el estado (`estado.py resumen · siguiente`) y corre la sanidad; si hay un ERROR, la puerta se bloquea. Delega la producción en un subagente de fase, que devuelve el bloque de retorno con las decisiones humanas requeridas. El orquestador presenta la decisión; con la respuesta de la junta, pm-director la registra con `estado.py puerta …`.",
     "agentes-skills": "Reparto de las skills por agente: pm-director (DP), pm-inicio (SU/IP), pm-planificacion (IP/SB), pm-control (CS/MP) y pm-cierre (CP); las transversales (puente BMAD, estado, sanidad, conocimiento, comunicación, exportación) las usa cualquier agente.",
     "ciclo-de-vida": "Ciclo de vida PRINCE2 con las puertas de la junta: SU → IP con `autorizar-inicio`; IP → CS con `autorizar-proyecto` y `autorizar-etapa`; CS ↔ SB en cada límite de etapa o excepción; cierre (planificado o prematuro) hacia CP y `autorizar-cierre`.",
@@ -164,7 +183,8 @@ s4 = sec("graficos", "4", "Representación gráfica del ecosistema",
          + "".join(f"<h3>¶{e(t)}</h3><p>{inl(LECTURA_DIAG[c])}</p>" + diag("repo-" + c) for c, t in [
              ("arquitectura", "Arquitectura por capas"), ("orquestacion-puerta", "Orquestación de una puerta (secuencia)"),
              ("agentes-skills", "Agentes y skills"), ("ciclo-de-vida", "Ciclo de vida PRINCE2 y puertas"),
-             ("ciclo-prince2-bmad", "Ciclo de vida integrado: PRINCE2, BMAD y puertas"), ("sincronizacion-bmad", "Sincronización con BMAD")]),
+             ("ciclo-prince2-bmad", "Ciclo de vida integrado: PRINCE2, BMAD y puertas"), ("sincronizacion-bmad", "Sincronización con BMAD"),
+             ("pm-kb", "pm-kb: buscar en los proyectos con evidencia citada (opcional)")]),
          "todas las audiencias")
 
 # ---------- 5 · Arquitectura ----------
@@ -535,15 +555,19 @@ s19 = sec("evolucionar", "21", "Cómo seguir evolucionando el ecosistema",
 # ---------- 22 · Historial de versiones ----------
 # Único lugar del informe que describe cambios entre versiones; el resto describe el ecosistema tal como es.
 VS = D["versiones"]
-grupos25 = "".join(f"<details{' open' if i == 0 else ''}><summary>{e(g['t'])} ({len(g['items'])})</summary>{vin(g['items'])}</details>" for i, g in enumerate(X["chl25_grupos"]))
+grupos26 = "".join(f"<details{' open' if i == 0 else ''}><summary>{e(g['t'])} ({len(g['items'])})</summary>{vin(g['items'])}</details>" for i, g in enumerate(X["chl26_grupos"]))
+grupos25 = "".join(f"<details><summary>{e(g['t'])} ({len(g['items'])})</summary>{vin(g['items'])}</details>" for i, g in enumerate(X["chl25_grupos"]))
 grupos24 = "".join(f"<details><summary>{e(g['t'])} ({len(g['items'])})</summary>{vin(g['items'])}</details>" for i, g in enumerate(X["chl24_grupos"]))
 grupos23 = "".join(f"<details><summary>{e(g['t'])} ({len(g['items'])})</summary>{vin(g['items'])}</details>" for i, g in enumerate(X["chl23_grupos"]))
 grupos22 = "".join(f"<details><summary>{e(g['t'])} ({len(g['items'])})</summary>{('<p>' + inl(g['intro']) + '</p>') if g['intro'] else ''}{vin(g['items'])}</details>" for g in X["chl22_grupos"])
 grupos21 = "".join(f"<details><summary>{e(g['t'])} ({len(g['items'])})</summary>{vin(g['items'])}</details>" for g in X["chl_grupos"])
 s22 = sec("versiones", "22", "Historial de versiones",
           "<p class='intro'>Esta sección es el único lugar del informe que describe cambios entre versiones; el resto describe el ecosistema tal como es en la versión " + e(CIF["version"]) + ". Detalle completo: <code>CHANGELOG.md</code>.</p>"
-          + f"<h3>¶{e(CIF['version'])} · {e('/'.join(reversed(X['chl25_fecha'].split('-'))))} — {e(X['chl25_lema'])}</h3><p>{inl(X['chl25_intro'])}</p><p class='src'>{inl(X['chl25_cifras'])}</p>"
-          + tabla_html(["Indicador", "2.4.0", CIF["version"], "Fuente"], VS["antes_despues_25"], "", ["22%", "22%", "36%", ""])
+          + f"<h3>¶{e(CIF['version'])} · {e('/'.join(reversed(X['chl26_fecha'].split('-'))))} — {e(X['chl26_lema'])}</h3><p>{inl(X['chl26_intro'])}</p><p class='src'>{inl(X['chl26_cifras'])}</p>"
+          + tabla_html(["Indicador", "2.5.1", CIF["version"], "Fuente"], VS["antes_despues_26"], "", ["22%", "22%", "36%", ""])
+          + "<h4>Cambios por área</h4>" + grupos26
+          + f"<h3>¶2.5.0 · {e('/'.join(reversed(X['chl25_fecha'].split('-'))))} — {e(X['chl25_lema'])}</h3><p>{inl(X['chl25_intro'])}</p><p class='src'>{inl(X['chl25_cifras'])} Tabla tal como se publicó con la versión 2.5.0.</p>"
+          + tabla_html(["Indicador", "2.4.0", "2.5.0", "Fuente"], VS["antes_despues_25"], "", ["22%", "22%", "36%", ""])
           + "<h4>Cambios por área</h4>" + grupos25
           + f"<h3>¶2.4.0 · {e('/'.join(reversed(X['chl24_fecha'].split('-'))))} — {e(X['chl24_lema'])}</h3><p>{inl(X['chl24_intro'])}</p><p class='src'>{inl(X['chl24_cifras'])} Tabla tal como se publicó con la versión 2.4.0.</p>"
           + tabla_html(["Indicador", "2.3.0", "2.4.0", "Fuente"], VS["antes_despues_24"], "", ["22%", "22%", "36%", ""])

@@ -102,17 +102,19 @@ def leer(proyecto, reg):
     return E.leer_csv(p)[1] if os.path.exists(p) else []
 
 def guardar(proyecto, reg, filas):
-    p = E.asegurar_registro(proyecto, reg); cols, _ = E.leer_csv(p)
-    E.escribir_csv(p, cols, filas)
+    with E.bloqueo(proyecto):            # quien leyó `filas` debería tener ya el bloqueo (reentrante)
+        p = E.asegurar_registro(proyecto, reg); cols, _ = E.leer_csv(p)
+        E.escribir_csv(p, cols, filas)
 
 def agregar(proyecto, reg, fila):
-    p = E.asegurar_registro(proyecto, reg); cols, filas = E.leer_csv(p)
-    f = {c: "" for c in cols}; f.update({k: v for k, v in fila.items() if k in cols})
-    f["id"] = f.get("id") or E.siguiente_id(reg, filas)
-    if "estado" in cols and not f.get("estado") and E.REGISTROS[reg].get("estado_inicial"): f["estado"] = E.REGISTROS[reg]["estado_inicial"]
-    errores = validar_valores(reg, f)
-    if errores: sys.exit(t("Validación: ", "Validation: ") + "; ".join(errores))
-    filas.append(f); E.escribir_csv(p, cols, filas); return f["id"]
+    with E.bloqueo(proyecto):            # id siguiente sobre el archivo releído bajo el bloqueo del proyecto
+        p = E.asegurar_registro(proyecto, reg); cols, filas = E.leer_csv(p)
+        f = {c: "" for c in cols}; f.update({k: v for k, v in fila.items() if k in cols})
+        f["id"] = f.get("id") or E.siguiente_id(reg, filas)
+        if "estado" in cols and not f.get("estado") and E.REGISTROS[reg].get("estado_inicial"): f["estado"] = E.REGISTROS[reg]["estado_inicial"]
+        errores = validar_valores(reg, f)
+        if errores: sys.exit(t("Validación: ", "Validation: ") + "; ".join(errores))
+        filas.append(f); E.escribir_csv(p, cols, filas); return f["id"]
 
 def validar_valores(reg, f):
     out = []
@@ -1140,11 +1142,12 @@ def main():
         return
     if a.cmd == "estereotipos":
         if a.semilla:
-            if leer(a.proyecto, "estereotipos"): sys.exit(t("estereotipos.csv ya tiene filas: la semilla solo se carga en un catálogo vacío.", "estereotipos.csv is not empty."))
-            for (nom, desc, q, canal, fmt, niv, frec, reg, est) in SEMILLA:
-                agregar(a.proyecto, "estereotipos", {"nombre": nom, "descripcion": desc, "cuadrante": q, "canal": canal, "formato": fmt, "nivel_detalle": niv,
-                                                      "frecuencia": frec, "registro": reg, "estilo_decision": est, "notas": t("semilla: guía de pm-comunicacion-stakeholders §1", "seed")})
-            print(t(f"{len(SEMILLA)} estereotipos semilla creados (ET-001…ET-{len(SEMILLA):03d}); ajustarlos con registro.py actualizar estereotipos …", f"{len(SEMILLA)} seed stereotypes created"))
+            with E.bloqueo(a.proyecto):        # comprobación de catálogo vacío y altas en una sola operación
+                if leer(a.proyecto, "estereotipos"): sys.exit(t("estereotipos.csv ya tiene filas: la semilla solo se carga en un catálogo vacío.", "estereotipos.csv is not empty."))
+                for (nom, desc, q, canal, fmt, niv, frec, reg, est) in SEMILLA:
+                    agregar(a.proyecto, "estereotipos", {"nombre": nom, "descripcion": desc, "cuadrante": q, "canal": canal, "formato": fmt, "nivel_detalle": niv,
+                                                          "frecuencia": frec, "registro": reg, "estilo_decision": est, "notas": t("semilla: guía de pm-comunicacion-stakeholders §1", "seed")})
+                print(t(f"{len(SEMILLA)} estereotipos semilla creados (ET-001…ET-{len(SEMILLA):03d}); ajustarlos con registro.py actualizar estereotipos …", f"{len(SEMILLA)} seed stereotypes created"))
         if a.sugerir:
             nuevos, asignar = sugerir_estereotipos(a.proyecto, None, a.medio)
             if a.json: J({"nuevos": nuevos, "asignaciones": asignar}); return
@@ -1171,19 +1174,20 @@ def main():
         print(t("Estado: propuesta. Nada se aplica hasta que el gestor confirme con la persona: interesados.py confirmar PF-… --por \"Rol: Nombre\".", "Status: proposed. Nothing applies until confirmed."))
         return
     if a.cmd in ("confirmar", "rechazar"):
-        p = E.asegurar_registro(a.proyecto, "preferencias"); cols, filas = E.leer_csv(p); hechos = []
-        for f in filas:
-            if f["id"] in a.ids:
-                if a.cmd == "confirmar":
-                    f["estado"] = "confirmada"; f["confirmado_por"] = a.por
-                    if a.vigencia_hasta: f["vigencia_hasta"] = a.vigencia_hasta
-                    elif not f.get("vigencia_hasta"): f["vigencia_hasta"] = (datetime.date.today() + datetime.timedelta(days=180)).isoformat()
-                else:
-                    f["estado"] = "rechazada"; f["confirmado_por"] = a.por; f["notas"] = (f.get("notas", "") + " " + a.motivo).strip()
-                hechos.append(f["id"])
-        falt = [x for x in a.ids if x not in hechos]
-        if falt: sys.exit(t(f"No existen: {', '.join(falt)} (no se modificó nada)", f"Not found: {', '.join(falt)} (nothing changed)"))
-        E.escribir_csv(p, cols, filas); print(f"{a.cmd}: {', '.join(hechos)}"); return
+        with E.bloqueo(a.proyecto):            # lectura y reescritura de preferencias.csv sin pisar a otro proceso
+            p = E.asegurar_registro(a.proyecto, "preferencias"); cols, filas = E.leer_csv(p); hechos = []
+            for f in filas:
+                if f["id"] in a.ids:
+                    if a.cmd == "confirmar":
+                        f["estado"] = "confirmada"; f["confirmado_por"] = a.por
+                        if a.vigencia_hasta: f["vigencia_hasta"] = a.vigencia_hasta
+                        elif not f.get("vigencia_hasta"): f["vigencia_hasta"] = (datetime.date.today() + datetime.timedelta(days=180)).isoformat()
+                    else:
+                        f["estado"] = "rechazada"; f["confirmado_por"] = a.por; f["notas"] = (f.get("notas", "") + " " + a.motivo).strip()
+                    hechos.append(f["id"])
+            falt = [x for x in a.ids if x not in hechos]
+            if falt: sys.exit(t(f"No existen: {', '.join(falt)} (no se modificó nada)", f"Not found: {', '.join(falt)} (nothing changed)"))
+            E.escribir_csv(p, cols, filas); print(f"{a.cmd}: {', '.join(hechos)}"); return
     if a.cmd == "perfil":
         sts = leer(a.proyecto, "stakeholders"); sel = sts if a.id in ("todos", "all") else [resolver_st(a.proyecto, a.id, sts)]
         if not sel or sel[0] is None: sys.exit(t(f"No existe {a.id}", f"{a.id} not found"))

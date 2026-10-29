@@ -10,13 +10,14 @@ Uso / Usage:
   python3 paquete.py --proyecto ./p cierre [--salida ...] [--extra ruta ...]
   python3 paquete.py --proyecto ./p listar puerta autorizar-proyecto     # muestra obligatorios/opcionales y qué falta, sin crear ZIP
   python3 paquete.py --proyecto ./p auditoria [--desde AAAA-MM-DD] [--hasta AAAA-MM-DD] [--proposito "auditoría interna"]
-                     [--externo] [--salida exportados/<hoy>-expediente-auditoria.zip] [--extra ruta ...]
+                     [--externo] [--con-bitacora] [--salida exportados/<hoy>-expediente-auditoria.zip] [--extra ruta ...]
   python3 paquete.py --proyecto ./p verificar exportados/<hoy>-expediente-auditoria.zip   # rehash contra SHA256SUMS (código 1 si no coincide)
 Expediente de auditoría (PMO, auditoría interna, due diligence o entrega al cliente): INDICE.md e INDICE.html (escapado)
 navegables, cronologia.csv (puertas, decisiones, aprobaciones, cambios decididos, riesgos aceptados, productos aceptados y
 envíos), estado.json, líneas base congeladas de 00-direccion/historial/, registros (con período: filas fechadas en él y sin
 fecha), evidencia de puertas (00-direccion/decisiones/), actas, informes, cortes de EVM y comunicaciones, hallazgos de
-sanidad al corte (--hasta o hoy), MANIFIESTO.md y SHA256SUMS con la huella de cada archivo. Los paquetes de puerta ya
+sanidad al corte (--hasta o hoy), MANIFIESTO.md y SHA256SUMS con la huella de cada archivo; con --con-bitacora, también la
+bitácora de escrituras completa (bitacora.jsonl), que `verificar` usa para explicar un registro alterado. Los paquetes de puerta ya
 generados se citan con su huella y no se reincluyen. Con período, los archivos fechados en su nombre fuera de él se omiten.
 --externo (cliente, proveedor, due diligence): sin el registro de interesados ni sus valoraciones (stakeholders,
 estereotipos, preferencias) y sin el destino (correo o canal) de los envíos.
@@ -169,6 +170,7 @@ PERSONALES = {"envios": ("destino",)}
 VALORACIONES = ("stakeholders", "estereotipos", "preferencias")   # regla 12 de pm-exportar: nunca a un destinatario externo
 ARCHIVO_SUMAS = "SHA256SUMS"
 TOPE_PANTALLA = 15
+ARCHIVO_BITACORA_ZIP = "bitacora.jsonl"   # copia de <proyecto>/.bitacora.jsonl en el expediente (auditoria --con-bitacora)
 
 def _t(e, es, en): return en if (e or {}).get("idioma") == "en" else es
 
@@ -306,6 +308,11 @@ def expediente(a, estado):
         if fuera_del_proyecto(p, e_) and not a.permitir_externos: externos.append(e_); continue
         rel = os.path.relpath(e_, p).replace(os.sep, "/") if not fuera_del_proyecto(p, e_) else "extra/" + os.path.basename(e_)
         agregar(rel, open(e_, "rb").read(), "extra")
+    # bitácora de escrituras (2.6.0), solo con --con-bitacora: entera (es una cadena), aunque haya período
+    bit = os.path.join(p, ".bitacora.jsonl"); n_bit = 0
+    if getattr(a, "con_bitacora", False) and os.path.isfile(bit):
+        datos_bit = open(bit, "rb").read(); n_bit = datos_bit.count(b"\n")
+        agregar(ARCHIVO_BITACORA_ZIP, datos_bit, "bitacora", T("bitácora de escrituras completa (cadena de huellas)", "complete write log (hash chain)"))
     # hallazgos de sanidad al corte (solo lectura)
     san = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "pm-estado-proyecto", "scripts", "sanidad.py")
     r = subprocess.run([sys.executable, os.path.normpath(san), "--proyecto", p, "--json", "--corte", corte], capture_output=True, text=True)
@@ -343,6 +350,8 @@ def expediente(a, estado):
                                                       ("tabla", [T("Archivo", "File"), "sha256"], [[z, h] for z, h in zips], None)]),
         (T("Comunicaciones, informes y aceptaciones", "Communications, reports and acceptances"), [("tabla", [T("Archivo", "File"), "Bytes", "sha256", T("Nota", "Note")],
                                                                                                   por_sec("comunicaciones") + por_sec("aceptaciones") + por_sec("extra"), 0)]),
+        *([(T("Bitácora de escrituras", "Write log"), [("p", T(f"{ARCHIVO_BITACORA_ZIP}: {n_bit} escrituras de estado.json, registros y propuestas anotadas por los scripts, completa aunque el expediente tenga período (es una cadena: cada línea lleva la huella de la anterior). Cada línea: fecha real, script, operación, ids y campos cambiados (sin valores de interesados ni confidenciales), --por y huellas sha256 antes y después. Su verificación son los hallazgos BIT de la sanidad; `paquete.py verificar` la usa para explicar un archivo alterado.",
+                                                                                f"{ARCHIVO_BITACORA_ZIP}: {n_bit} logged writes; complete even with a period (hash chain). Checked by the BIT health findings; `paquete.py verificar` uses it to explain an altered file."))])] if n_bit else []),
         (T("Hallazgos de sanidad al corte", "Health findings at the cut-off"), [("p", f"ERROR {cuenta.get('ERROR', 0)} · AVISO {cuenta.get('AVISO', 0)} · INFO {cuenta.get('INFO', 0)} · sanidad-{corte}.json"),
                                                                                 ("tabla", [T("Severidad", "Severity"), T("Código", "Code"), T("Mensaje", "Message")],
                                                                                  [[h.get("severidad"), h.get("codigo"), h.get("mensaje", "")[:200]] for h in sj.get("hallazgos", []) if h.get("severidad") in ("ERROR", "AVISO")], None)]),
@@ -370,6 +379,28 @@ def expediente(a, estado):
     if externos: print(T("Excluidos por estar fuera del proyecto: ", "Excluded (outside the project): ") + "; ".join(externos[:TOPE_PANTALLA]) + (f" … y {len(externos) - TOPE_PANTALLA} más" if len(externos) > TOPE_PANTALLA else ""))
     print(T(f"Integridad: paquete.py --proyecto {p} verificar {salida}", f"Integrity: paquete.py --proyecto {p} verificar {salida}"))
 
+def _explicar_con_bitacora(z, esperado, alterados, T):
+    """Con bitacora.jsonl en el expediente: para cada estado.json o registro alterado, la última escritura que anotaron
+    los scripts y si la huella del expediente era la que dejó esa escritura."""
+    if ARCHIVO_BITACORA_ZIP not in z.namelist(): return []
+    ultima = {}
+    for raw in z.read(ARCHIVO_BITACORA_ZIP).splitlines():
+        try: d = json.loads(raw.decode("utf-8"))
+        except ValueError: continue
+        if isinstance(d, dict) and d.get("archivo"): ultima[d["archivo"]] = d
+    out = []
+    for n in alterados:
+        d = ultima.get(n)
+        if not d: continue
+        cuando = f"#{d.get('n')} {(d.get('fecha') or '')[:16].replace('T', ' ')} · {d.get('script', '')} {d.get('operacion', '')}" + (f" · --por {d['por']}" if d.get("por") else "") + (f" · {' '.join(d.get('ids') or [])}" if d.get("ids") else "")
+        if d.get("despues") == esperado.get(n):
+            out.append(T(f"{n}: la última escritura anotada en la bitácora ({cuando}) dejó exactamente la versión del expediente; la copia recibida es otra: el cambio no salió de los scripts.",
+                         f"{n}: the last logged write ({cuando}) left exactly the packaged version; the received copy differs: the change did not come from the scripts."))
+        else:
+            out.append(T(f"{n}: la versión del expediente ya no era la de la última escritura anotada ({cuando}): hubo un cambio fuera de los scripts antes de armarlo (sanidad BIT-02).",
+                         f"{n}: the packaged version was not the one the last logged write left ({cuando}): changed outside the scripts before packaging (health BIT-02)."))
+    return out
+
 def verificar(ruta_zip, estado):
     """Rehash de cada archivo del ZIP contra SHA256SUMS: alterados, faltantes y agregados. Código 1 si algo no coincide."""
     T = lambda es, en: _t(estado, es, en)
@@ -389,6 +420,7 @@ def verificar(ruta_zip, estado):
     if problemas:
         print(T(f"INTEGRIDAD: FALLA · {len(problemas)} problema(s) en {ruta_zip}", f"INTEGRITY: FAILED · {len(problemas)} problem(s) in {ruta_zip}"))
         for x in problemas[:TOPE_PANTALLA]: print("  " + x)
+        for x in _explicar_con_bitacora(z, esperado, alterados, T): print("  " + x)
         if len(problemas) > TOPE_PANTALLA: print(T(f"  … y {len(problemas) - TOPE_PANTALLA} más", f"  … and {len(problemas) - TOPE_PANTALLA} more"))
         sys.exit(1)
     print(T(f"INTEGRIDAD: OK · {len(esperado)} archivos coinciden con {ARCHIVO_SUMAS}", f"INTEGRITY: OK · {len(esperado)} files match {ARCHIVO_SUMAS}"))
@@ -403,6 +435,7 @@ def main():
     au.add_argument("--desde"); au.add_argument("--hasta"); au.add_argument("--proposito", help="PMO, auditoría interna, due diligence, entrega al cliente…")
     au.add_argument("--externo", action="store_true", help="para un destinatario externo (cliente, proveedor, due diligence): sin stakeholders, estereotipos ni preferencias y sin el destino de los envíos")
     au.add_argument("--salida"); au.add_argument("--extra", nargs="*", default=[])
+    au.add_argument("--con-bitacora", action="store_true", help="incluir la bitácora de escrituras (.bitacora.jsonl) completa como bitacora.jsonl")
     for x in (p, c, au): x.add_argument("--permitir-externos", action="store_true", help="incluir también archivos fuera de la carpeta del proyecto")
     v = sub.add_parser("verificar", help="rehash de un expediente contra su SHA256SUMS"); v.add_argument("zip")
     l = sub.add_parser("listar"); l.add_argument("clase", choices=["puerta", "cierre"]); l.add_argument("tipo", nargs="?")

@@ -4,7 +4,7 @@ puertas y transiciones. Lo importan nuevo_proyecto.py, registro.py y estado.py.
 Canonical schema shared by the scripts. The register guide (pm-registros/templates/guia-registros.md)
 documents exactly these columns and values; change both together.
 """
-import os, json, csv, datetime
+import os, json, csv, datetime, contextlib, errno, io, random, re, stat, sys, threading, time, unicodedata, uuid
 
 # ---------------------------------------------------------------- carpetas
 CARPETAS = [
@@ -60,7 +60,9 @@ REGISTROS = {
     "decisiones": {
         "prefijo": "D", "estado_inicial": None,
         "columnas": ["id", "fecha", "decision", "contexto", "opciones_consideradas", "decidido_por", "nivel",
-                     "artefactos_afectados", "revisar_en", "notas"],
+                     "artefactos_afectados", "revisar_en", "notas", "reemplaza", "conviven"],
+        # reemplaza: D-### que esta decisión deja sin efecto (nivel igual o superior; registro.py lo valida); conviven: D-###
+        # que la persona decidió mantener vigentes a la vez. "Reemplazada por" se deriva (vigencia.py; sanidad DEC-05/DEC-06).
         "valores": {"nivel": ["equipo", "product-owner", "gestor", "autoridad-cambio", "ejecutivo", "junta", "capa-negocio"]},
     },
     "supuestos": {
@@ -217,7 +219,7 @@ UMBRAL_RIESGO_ALTO = 15   # 15–25 alto
 UMBRAL_RIESGO_MEDIO = 6   # 6–12 medio; 1–5 bajo
 
 # ---------------------------------------------------------------- estado.json
-VERSION_PAQUETE = "2.5.0"          # debe coincidir con .claude-plugin/plugin.json y compatibilidad.json
+VERSION_PAQUETE = "2.6.0"          # debe coincidir con .claude-plugin/plugin.json y compatibilidad.json
 FASES = ["pre-proyecto", "inicio", "entrega", "cierre", "cerrado"]
 PROCESOS = ["SU", "IP", "CS", "SB", "CP"]          # DP y MP son continuos (junta y equipos), no "estado actual"
 DIMENSIONES_TOLERANCIA = ["tiempo", "costo", "alcance", "calidad", "beneficios", "riesgo", "sostenibilidad"]
@@ -244,6 +246,44 @@ def es_junta(e, quien):
     del ejecutivo de `estado.json.roles` (criterio común de sanidad CAM-04/CAM-05 y de registro.py)."""
     q = (quien or "").lower(); ej = (e.get("roles", {}).get("ejecutivo") or "").lower()
     return any(x in q for x in ("ejecutiv", "junta", "board", "executive")) or (bool(ej) and ej in q)
+
+
+# Nivel de autoridad de una persona (PRINCE2 manda; la RACI debe reflejarlo). Primero los roles de estado.json por nombre;
+# después las palabras del rol escrito ("Gestor: Ana", rol_proyecto del maestro). Se toma el más alto que coincida. La
+# junta es un órgano colectivo: ejecutivo, usuarios sénior y proveedores sénior tienen autoridad de nivel junta.
+NIVEL_DE_ROL = {"ejecutivo": "junta", "usuario_senior": "junta", "proveedor_senior": "junta", "autoridad_cambio": "autoridad-cambio",
+                "gestor_proyecto": "gestor", "product_owner": "product-owner", "jefes_equipo": "equipo", "aseguramiento": "equipo",
+                "soporte": "equipo"}
+PALABRAS_NIVEL = [                     # sobre el texto en minúsculas y sin acentos
+    ("capa-negocio", r"capa de negocio|capa-negocio|corporativ|corporate|business layer"),
+    ("junta", r"ejecutiv|executive|junta|board|usuari[oa] senior|senior user|proveedor(?:a)? senior|senior supplier"),
+    ("autoridad-cambio", r"autoridad de cambio|change authority"),
+    ("gestor", r"\bgestor(?:a)?\b|jef[ea] de proyecto|gerente de proyecto|director(?:a)? de proyecto|project manager"),
+    ("product-owner", r"product owner|duen[oa] (?:del? )?producto"),
+    ("equipo", r"jef[ea] de equipo|team manager|team lead|\bequipo\b|\bteam\b|desarrollador|developer|analista|aseguramiento|assurance|soporte"),
+]
+NIVELES_DECISION = REGISTROS["decisiones"]["valores"]["nivel"]   # orden de menor a mayor autoridad
+
+
+def _plano(x):
+    return unicodedata.normalize("NFKD", str(x or "")).encode("ascii", "ignore").decode().lower().strip()
+
+
+def nivel_autoridad(e, texto, nombre=""):
+    """(nivel, fuente) de quien firma `texto` ("<rol: nombre>" o el rol de un interesado) y se llama `nombre`; (None, "")
+    si no se puede determinar. Fuente: 'estado.json.roles.<rol>' o 'texto del rol'."""
+    plano, nom = _plano(texto), _plano(nombre)
+    esta = lambda a, b: re.search(r"(?<![a-z0-9])" + re.escape(a) + r"(?![a-z0-9])", b)
+    hall = []
+    for rol, nivel in NIVEL_DE_ROL.items():
+        v = (e.get("roles") or {}).get(rol)
+        for n in (v if isinstance(v, list) else re.split(r"[;,]", v or "")):
+            n = _plano(n)
+            if len(n) >= 3 and (esta(n, plano) or (len(nom) >= 3 and esta(nom, n))): hall.append((nivel, f"estado.json.roles.{rol}"))
+    for nivel, rx in PALABRAS_NIVEL:
+        if re.search(rx, plano): hall.append((nivel, "texto del rol")); break
+    if not hall: return None, ""
+    return max(hall, key=lambda x: NIVELES_DECISION.index(x[0]))
 
 
 def cambio_vigente(f):
@@ -331,8 +371,11 @@ def leer_csv(p):
 
 
 def escribir_csv(p, cols, filas):
-    with open(p, "w", newline="", encoding="utf-8") as f:
-        w = csv.DictWriter(f, fieldnames=cols, extrasaction="ignore"); w.writeheader(); w.writerows(filas)
+    """Reescribe el CSV entero de forma atómica (mismo formato que csv.DictWriter: UTF-8, CRLF, columnas en orden).
+    El llamador que lee, modifica y escribe debe hacerlo dentro de `bloqueo(proyecto)`."""
+    buf = io.StringIO(newline="")
+    w = csv.DictWriter(buf, fieldnames=cols, extrasaction="ignore"); w.writeheader(); w.writerows(filas)
+    escribir_atomico(p, buf.getvalue(), newline="")
 
 
 def siguiente_id(reg, filas):
@@ -346,27 +389,185 @@ def siguiente_id(reg, filas):
 
 
 def asegurar_registro(proyecto, reg):
-    """Crea el CSV si falta y agrega columnas nuevas del esquema al final (migración no destructiva)."""
+    """Crea el CSV si falta y agrega columnas nuevas del esquema al final (migración no destructiva).
+    Solo toma el bloqueo del proyecto cuando hay que escribir (crear o migrar); la lectura no espera."""
     p = ruta_registro(proyecto, reg)
     esperado = REGISTROS[reg]["columnas"]
-    if not os.path.exists(p):
-        os.makedirs(os.path.dirname(p), exist_ok=True)
-        escribir_csv(p, esperado, []); return p
-    cols, filas = leer_csv(p)
-    faltan = [c for c in esperado if c not in cols]
-    if faltan: escribir_csv(p, cols + faltan, filas)
+    if os.path.exists(p) and not [c for c in esperado if c not in leer_csv(p)[0]]: return p
+    with bloqueo(proyecto):
+        if not os.path.exists(p):
+            os.makedirs(os.path.dirname(p), exist_ok=True)
+            escribir_csv(p, esperado, []); return p
+        cols, filas = leer_csv(p)
+        faltan = [c for c in esperado if c not in cols]
+        if faltan: escribir_csv(p, cols + faltan, filas)
     return p
 
 
 def anotar_decision(proyecto, decision, decidido_por, nivel="junta", contexto="", artefactos="", notas="", fecha=None):
-    p = asegurar_registro(proyecto, "decisiones")
-    cols, filas = leer_csv(p)
-    fila = {c: "" for c in cols}
-    fila.update({"id": siguiente_id("decisiones", filas), "fecha": fecha or datetime.date.today().isoformat(),
-                 "decision": decision, "contexto": contexto, "decidido_por": decidido_por, "nivel": nivel,
-                 "artefactos_afectados": artefactos, "notas": notas})
-    filas.append(fila); escribir_csv(p, cols, filas)
+    with bloqueo(proyecto):    # reentrante: estado.py, puertas.py y bmad.py la llaman con el bloqueo ya tomado
+        p = asegurar_registro(proyecto, "decisiones")
+        cols, filas = leer_csv(p)
+        fila = {c: "" for c in cols}
+        fila.update({"id": siguiente_id("decisiones", filas), "fecha": fecha or datetime.date.today().isoformat(),
+                     "decision": decision, "contexto": contexto, "decidido_por": decidido_por, "nivel": nivel,
+                     "artefactos_afectados": artefactos, "notas": notas})
+        if "reemplaza" in cols:    # versión nueva de un artefacto aprobado: reemplaza a la aprobación anterior (vigencia.py)
+            import vigencia
+            fila["reemplaza"] = vigencia.reemplazo_automatico(filas, decision, nivel, artefactos, fila["fecha"])
+        filas.append(fila); escribir_csv(p, cols, filas)
     return fila["id"]
+
+
+# ---------------------------------------------------------------- escrituras concurrentes (2.5.1)
+# Un bloqueo por proyecto serializa toda lectura-modificación-escritura de estado.json, de los registros CSV y de los
+# demás archivos de gobierno que se reescriben enteros; cada escritura es atómica (temporal en la misma carpeta +
+# fsync + os.replace). Biblioteca estándar: fcntl.flock en POSIX y msvcrt.locking en Windows. docs/ARQUITECTURA.md §10.
+DIR_BLOQUEO = ".pm-bloqueo"               # dentro de la carpeta del proyecto; su .gitignore ("*") la deja fuera de git
+ARCHIVO_BLOQUEO = "bloqueo"
+VAR_ESPERA = "PM_BLOQUEO_ESPERA"          # segundos de espera máxima (defecto ESPERA_BLOQUEO; 0 = un solo intento)
+VAR_HEREDADO = "PM_BLOQUEO_HEREDADO"      # proyectos cuyo bloqueo tiene el proceso padre (subprocesos que este espera)
+ESPERA_BLOQUEO = 30.0
+_TOMADOS = {}                             # (carpeta real, hilo) → [archivo, profundidad]: reentrante en el mismo hilo
+_SIN_SOPORTE = {getattr(errno, x) for x in ("ENOLCK", "EOPNOTSUPP", "ENOTSUP", "ENOSYS") if hasattr(errno, x)}
+
+try:
+    import fcntl
+except ImportError:                       # Windows nativo
+    fcntl = None
+    import msvcrt
+
+
+def espera_bloqueo():
+    v = os.environ.get(VAR_ESPERA, "").strip()
+    try: return max(0.0, float(v)) if v else ESPERA_BLOQUEO
+    except ValueError: return ESPERA_BLOQUEO
+
+
+def _intentar(fh):
+    """Un intento sin espera; True si se obtuvo el bloqueo."""
+    try:
+        if fcntl: fcntl.flock(fh.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+        else: fh.seek(0); msvcrt.locking(fh.fileno(), msvcrt.LK_NBLCK, 1)
+        return True
+    except OSError as x:
+        if x.errno in _SIN_SOPORTE: raise
+        return False
+
+
+def _soltar(fh):
+    if fh is None: return
+    try:
+        if fcntl: fcntl.flock(fh.fileno(), fcntl.LOCK_UN)
+        else: fh.seek(0); msvcrt.locking(fh.fileno(), msvcrt.LK_UNLCK, 1)
+    except OSError:
+        pass
+    finally:
+        fh.close()
+
+
+def _heredados():
+    try: return set(json.loads(os.environ.get(VAR_HEREDADO) or "[]"))
+    except ValueError: return set()
+
+
+@contextlib.contextmanager
+def bloqueo(proyecto, espera=None, nuevo=False):
+    """Bloqueo exclusivo de escritura del proyecto, con espera máxima (PM_BLOQUEO_ESPERA, 30 s por defecto).
+    Reentrante en el mismo hilo y heredado por los subprocesos que el titular lanza y espera (p. ej. sanidad.py desde
+    puertas.py). Sin estado.json (carpeta que no es un proyecto) no bloquea, salvo `nuevo=True` (nuevo_proyecto.py).
+    Si no se obtiene a tiempo: SystemExit con mensaje bilingüe y nada modificado. Exclusive per-project write lock."""
+    d = os.path.realpath(proyecto)
+    clave = (d, threading.get_ident())
+    if clave in _TOMADOS:
+        _TOMADOS[clave][1] += 1
+        try: yield
+        finally: _TOMADOS[clave][1] -= 1
+        return
+    if d in _heredados() or not os.path.isdir(d) or not (nuevo or os.path.isfile(os.path.join(d, "estado.json"))):
+        yield; return
+    carpeta = os.path.join(d, DIR_BLOQUEO); ruta = os.path.join(carpeta, ARCHIVO_BLOQUEO)
+    try:
+        os.makedirs(carpeta, exist_ok=True)
+        if not os.path.exists(os.path.join(carpeta, ".gitignore")):
+            try:
+                with open(os.path.join(carpeta, ".gitignore"), "x", encoding="utf-8") as g:
+                    g.write("# pm-method: bloqueo de escrituras concurrentes (no versionar) / write lock (do not commit)\n*\n")
+            except FileExistsError: pass
+        fh = open(ruta, "a+b")
+    except OSError as x:
+        raise SystemExit(f"No se pudo crear el archivo de bloqueo {ruta}: {x}. Comprobar los permisos de escritura de la carpeta del proyecto.\n"
+                         f"Could not create the lock file {ruta}: {x}. Check write permissions on the project folder.")
+    limite = espera_bloqueo() if espera is None else max(0.0, float(espera))
+    fin = time.monotonic() + limite
+    try:
+        while not _intentar(fh):
+            resta = fin - time.monotonic()
+            if resta <= 0:
+                fh.close()
+                raise SystemExit(f"Otro proceso está modificando el proyecto {proyecto} y no liberó el bloqueo en {limite:g} s ({ruta}); "
+                                 f"no se modificó nada. Reintentar en unos segundos: el sistema operativo libera el bloqueo cuando ese "
+                                 f"proceso termina (no hace falta borrar el archivo). Espera ajustable con {VAR_ESPERA}=<segundos>.\n"
+                                 f"Another process is modifying project {proyecto} and did not release the lock within {limite:g} s ({ruta}); "
+                                 f"nothing was changed. Retry in a few seconds: the operating system releases the lock when that process "
+                                 f"ends (no need to delete the file). Adjust the wait with {VAR_ESPERA}=<seconds>.")
+            time.sleep(min(resta, 0.02 + random.random() * 0.06))
+    except OSError as x:                  # sistema de archivos sin bloqueos (algunos montajes de red): sigue sin bloqueo
+        fh.close(); fh = None
+        print(f"AVISO: el sistema de archivos de {d} no admite bloqueos ({x}); la escritura sigue siendo atómica, pero sin "
+              f"exclusión entre procesos. / WARNING: no file locking on this file system; writes stay atomic but are not serialized.",
+              file=sys.stderr)
+    _TOMADOS[clave] = [fh, 1]
+    previo = os.environ.get(VAR_HEREDADO)
+    os.environ[VAR_HEREDADO] = json.dumps(sorted(_heredados() | {d}))
+    try:
+        yield
+    finally:
+        del _TOMADOS[clave]
+        if previo is None: os.environ.pop(VAR_HEREDADO, None)
+        else: os.environ[VAR_HEREDADO] = previo
+        _soltar(fh)
+
+
+def escribir_atomico(ruta, texto, newline=None, encoding="utf-8"):
+    """Escribe `texto` en `ruta` de forma atómica: temporal oculto en la misma carpeta, flush + fsync y os.replace.
+    `newline` y `encoding` se aplican igual que en open(ruta, "w", ...), así los bytes son los de antes; conserva los
+    permisos del archivo existente. Si el proceso se interrumpe, el archivo anterior queda intacto."""
+    destino = os.path.realpath(ruta)
+    carpeta = os.path.dirname(destino)
+    gobernado = _gobernado(ruta)          # estado.json, registro o propuesta: la escritura se anota en la bitácora (2.6.0)
+    previo = _leer_bytes(destino) if gobernado else None
+    try: modo = stat.S_IMODE(os.stat(destino).st_mode)
+    except FileNotFoundError: modo = None
+    tmp = os.path.join(carpeta, f".{os.path.basename(destino)}.{os.getpid()}.{uuid.uuid4().hex[:8]}.tmp")
+    fd = os.open(tmp, os.O_WRONLY | os.O_CREAT | os.O_EXCL | getattr(os, "O_BINARY", 0), 0o666)
+    try:
+        with open(fd, "w", encoding=encoding, newline=newline) as f:
+            f.write(texto); f.flush(); os.fsync(f.fileno())
+        if modo is not None:
+            try: os.chmod(tmp, modo)
+            except OSError: pass
+        for intento in range(40):
+            try: os.replace(tmp, destino); break
+            except PermissionError:       # Windows: un lector tiene el archivo abierto; reintentar
+                if os.name != "nt" or intento == 39: raise
+                time.sleep(0.05)
+    except BaseException:
+        try: os.unlink(tmp)
+        except OSError: pass
+        raise
+    if os.name != "nt":
+        try:
+            dfd = os.open(carpeta, os.O_RDONLY)
+            try: os.fsync(dfd)
+            finally: os.close(dfd)
+        except OSError: pass
+    if gobernado: anotar_bitacora(gobernado[0], gobernado[1], previo, _leer_bytes(destino))
+
+
+def escribir_json(ruta, datos):
+    """JSON con el formato de siempre (ensure_ascii=False, indent=2, sin salto final), escrito de forma atómica."""
+    escribir_atomico(ruta, json.dumps(datos, ensure_ascii=False, indent=2))
 
 
 def t(idioma, es, en):
@@ -384,3 +585,236 @@ def cargar_estado(proyecto):
 def idioma_de(proyecto):
     try: return json.load(open(os.path.join(proyecto, "estado.json"), encoding="utf-8")).get("idioma", "es")
     except Exception: return "es"
+
+
+# ---------------------------------------------------------------- bitácora de escrituras (2.6.0)
+# Toda escritura de estado.json, de un registro CSV o de una propuesta (03-control/propuestas/P-###.json) que pasa por
+# escribir_atomico (escribir_csv, escribir_json, anotar_decision: estado.py, registro.py, puertas.py, interesados.py…)
+# agrega una línea JSON a <proyecto>/.bitacora.jsonl, solo anexado y bajo el bloqueo del proyecto: número, fecha y hora,
+# script, operación, archivo, ids y campos cambiados (antes → después, sin valores de interesados ni de filas
+# confidencial=si), --por si lo hay, huellas sha256 del archivo antes y después, y huella de la línea anterior (cadena).
+# Una reescritura sin cambios no se anota. Sin deshacer: una decisión se corrige con una fila nueva (SPEC §1.10.16).
+import hashlib as _hashlib
+ARCHIVO_BITACORA = ".bitacora.jsonl"
+DIR_PROPUESTAS = os.path.join("03-control", "propuestas")
+BITACORA_SIN_VALORES = ("stakeholders", "estereotipos", "preferencias", "envios", "personas")   # solo nombres de campo
+TOPE_VALOR_BITACORA = 160
+_CONTEXTO_BITACORA = {}
+
+
+def contexto_bitacora(**kw):
+    """Datos de la escritura en curso que el script conoce mejor que sys.argv (operacion, por, propuesta, propuesto_por).
+    Un valor None los quita."""
+    for k, v in kw.items():
+        if v is None: _CONTEXTO_BITACORA.pop(k, None)
+        else: _CONTEXTO_BITACORA[k] = v
+
+
+def _contexto_argv(argv=None):
+    """script = nombre del archivo; operacion = primer argumento posicional (subcomando); por = valor de --por."""
+    argv = list(sys.argv if argv is None else argv)
+    script = os.path.basename(argv[0]) if argv else ""
+    op = por = ""; i = 1
+    while i < len(argv):
+        x = argv[i]
+        if x.startswith("--"):
+            k, igual, v = x.partition("=")
+            if not igual and k in ("--proyecto", "--ruta", "--por") and i + 1 < len(argv): v = argv[i + 1]; i += 1
+            if k == "--por": por = v
+        elif not op and not x.startswith("-"): op = x
+        i += 1
+    return {"script": script, "operacion": op, "por": por}
+
+
+def _sha(b): return _hashlib.sha256(b).hexdigest()
+
+
+def _leer_bytes(p):
+    try:
+        with open(p, "rb") as fh: return fh.read()
+    except (FileNotFoundError, IsADirectoryError, NotADirectoryError): return None
+
+
+def _gobernado(ruta):
+    """(carpeta del proyecto, ruta relativa) si `ruta` es estado.json, un registro o una propuesta de un proyecto."""
+    r = os.path.abspath(ruta); base = os.path.basename(r); d = os.path.dirname(r)
+    if base == "estado.json": return d, base
+    padre, abuelo = os.path.basename(d), os.path.dirname(d)
+    if os.path.basename(abuelo) != "03-control": return None
+    if not ((padre == "registros" and base.endswith(".csv") and base[:-4] in REGISTROS)
+            or (padre == "propuestas" and re.fullmatch(r"P-\d+\.json", base))): return None
+    raiz = os.path.dirname(abuelo)
+    return (raiz, f"03-control/{padre}/{base}") if os.path.isfile(os.path.join(raiz, "estado.json")) else None
+
+
+def _corto_b(v):
+    v = " ".join(str(v or "").split())
+    return v if len(v) <= TOPE_VALOR_BITACORA else v[:TOPE_VALOR_BITACORA - 1] + "…"
+
+
+def _cambios_csv(reg, antes, despues):
+    def filas(b):
+        if not b: return [], {}
+        rd = csv.DictReader(io.StringIO(b.decode("utf-8-sig", errors="replace"), newline=""))
+        fs = list(rd)
+        return list(rd.fieldnames or []), {(f.get("id") or f"#{i}"): f for i, f in enumerate(fs, 1)}
+    ca, fa = filas(antes); cd, fd = filas(despues)
+    oculto = lambda f: reg in BITACORA_SIN_VALORES or (f.get("confidencial") or "").strip().lower() == "si"
+    out = {"registro": reg}; cambios = {}
+    for k, f in fd.items():
+        a = fa.get(k, {})
+        dif = [c for c in cd if c != "id" and (f.get(c) or "") != (a.get(c) or "")]
+        if dif: cambios[k] = dif if oculto(f) or oculto(a) else {c: [_corto_b(a.get(c)), _corto_b(f.get(c))] for c in dif}
+    altas = [k for k in fd if k not in fa]; bajas = [k for k in fa if k not in fd]
+    out["ids"] = [k for k in fd if k in cambios or k in altas] + bajas
+    if altas: out["altas"] = altas
+    if bajas: out["bajas"] = bajas
+    if cambios: out["cambios"] = cambios
+    if antes is None: out["creado"] = True
+    elif [c for c in cd if c not in ca]: out["columnas_nuevas"] = [c for c in cd if c not in ca]
+    return out
+
+
+def _claves_json(antes, despues):
+    def carga(b):
+        try: d = json.loads(b.decode("utf-8")) if b else {}
+        except ValueError: d = {}
+        return d if isinstance(d, dict) else {}
+    a, d = carga(antes), carga(despues); claves = []
+    for k in list(d) + [k for k in a if k not in d]:
+        va, vd = a.get(k), d.get(k)
+        if va == vd: continue
+        if isinstance(va, dict) and isinstance(vd, dict):
+            claves += [f"{k}.{s}" for s in list(vd) + [s for s in va if s not in vd] if va.get(s) != vd.get(s)]
+        else: claves.append(k)
+    return claves
+
+
+def _ultima_linea(ruta):
+    """Última línea de la bitácora (bytes, sin el salto) leyendo desde el final; None si no hay."""
+    try:
+        with open(ruta, "rb") as fh:
+            fh.seek(0, 2); pos = fh.tell(); bloque = b""
+            while pos > 0:
+                paso = min(65536, pos); pos -= paso; fh.seek(pos); bloque = fh.read(paso) + bloque
+                cuerpo = bloque.rstrip(b"\n")
+                if b"\n" in cuerpo: return cuerpo.rsplit(b"\n", 1)[1]
+            return bloque.rstrip(b"\n") or None
+    except FileNotFoundError:
+        return None
+
+
+def anotar_bitacora(proyecto, rel, antes, despues):
+    """Agrega la línea de una escritura ya hecha (bytes antes y después). No falla la escritura: si no puede anotar,
+    avisa por stderr (el hueco lo detecta después la sanidad, BIT-02)."""
+    if despues is None or antes == despues: return
+    try:
+        ctx = _contexto_argv(); ctx.update(_CONTEXTO_BITACORA)
+        linea = {"n": 0, "fecha": datetime.datetime.now().astimezone().isoformat(timespec="seconds"),
+                 "script": ctx.get("script", ""), "operacion": ctx.get("operacion", ""), "archivo": rel}
+        if rel.startswith("03-control/registros/"): linea.update(_cambios_csv(os.path.basename(rel)[:-4], antes, despues))
+        elif rel == "estado.json": linea["claves"] = _claves_json(antes, despues)
+        else:
+            try: pr = json.loads(despues.decode("utf-8"))
+            except ValueError: pr = {}
+            linea.update({"propuesta_estado": pr.get("estado", ""), "registro": pr.get("registro", ""), "ids": [x for x in [pr.get("objetivo") or (pr.get("resolucion") or {}).get("id")] if x]})
+        for k in ("por", "propuesta", "propuesto_por"):
+            if ctx.get(k): linea[k] = ctx[k]
+        linea["antes"] = _sha(antes) if antes is not None else ""
+        linea["despues"] = _sha(despues)
+        _anexar_linea(proyecto, linea)
+    except Exception as x:
+        print(f"AVISO: no se pudo anotar la escritura de {rel} en {ARCHIVO_BITACORA} ({x}); la sanidad lo mostrará como BIT-02. / "
+              f"WARNING: could not append this write to the write log.", file=sys.stderr)
+
+
+def _anexar_linea(proyecto, linea):
+    """Numera, encadena (huella de la línea anterior) y agrega `linea` bajo el bloqueo del proyecto."""
+    with bloqueo(proyecto):
+        ruta = os.path.join(proyecto, ARCHIVO_BITACORA)
+        ultima = _ultima_linea(ruta)
+        try: linea["n"] = int(json.loads(ultima.decode("utf-8")).get("n")) + 1 if ultima else 1
+        except (ValueError, TypeError, AttributeError):
+            linea["n"] = (_leer_bytes(ruta) or b"").count(b"\n") + 1
+        linea["previa"] = _sha(ultima) if ultima else ""
+        with open(ruta, "ab") as fh:
+            fh.write((json.dumps(linea, ensure_ascii=False, separators=(",", ":")) + "\n").encode("utf-8"))
+            fh.flush(); os.fsync(fh.fileno())
+    return linea["n"]
+
+
+def reconocer_bitacora(proyecto, rel, por, motivo):
+    """Anota que una persona revisó un cambio hecho fuera de los scripts en `rel` (merge de git, corrección manual):
+    la línea `reconocer` lleva la huella anotada antes y la actual, y cierra los avisos BIT-02 anteriores de ese archivo.
+    No restaura ni deshace nada. Devuelve el número de línea, o None si el archivo ya coincide con la bitácora."""
+    lineas = [d for d in (_json_o_none(x) for x in leer_bitacora(proyecto)) if d and d.get("archivo") == rel]
+    actual = _leer_bytes(os.path.join(proyecto, rel))
+    previo = lineas[-1].get("despues", "") if lineas else ""
+    hoy = _sha(actual) if actual is not None else ""
+    if hoy == previo and not _pendientes_bitacora(proyecto, rel): return None
+    linea = {"n": 0, "fecha": datetime.datetime.now().astimezone().isoformat(timespec="seconds"), "script": _contexto_argv()["script"],
+             "operacion": "reconocer", "archivo": rel, "por": por, "motivo": motivo, "antes": previo, "despues": hoy}
+    return _anexar_linea(proyecto, linea)
+
+
+def _json_o_none(raw):
+    try:
+        d = json.loads(raw.decode("utf-8"))
+        return d if isinstance(d, dict) else None
+    except ValueError:
+        return None
+
+
+def _pendientes_bitacora(proyecto, rel):
+    return [m for c, m in verificar_bitacora(proyecto)[1] if c == "BIT-02" and m.startswith(rel + " ")]
+
+
+def leer_bitacora(proyecto):
+    """Líneas crudas de la bitácora (bytes, sin el salto final), en orden."""
+    crudo = _leer_bytes(os.path.join(proyecto, ARCHIVO_BITACORA)) or b""
+    partes = crudo.split(b"\n")
+    if partes and partes[-1] == b"": partes.pop()
+    return partes
+
+
+def verificar_bitacora(proyecto, idioma="es"):
+    """Comprueba la cadena (BIT-01: línea ilegible, número fuera de orden o huella de la anterior distinta) y la
+    continuidad de cada archivo (BIT-02: la escritura siguiente partió de otra versión, o el archivo actual no es el
+    que dejó la última escritura anotada = cambio fuera de los scripts). Devuelve (lineas, [(codigo, mensaje)])."""
+    T = lambda es, en: t(idioma, es, en)
+    crudo = _leer_bytes(os.path.join(proyecto, ARCHIVO_BITACORA))
+    if crudo is None: return [], []
+    partes = leer_bitacora(proyecto); lineas, problemas = [], []; previa = None
+    if crudo and not crudo.endswith(b"\n"):
+        problemas.append(("BIT-01", T(f"{ARCHIVO_BITACORA}: la última línea está incompleta (escritura interrumpida o edición manual).",
+                                      f"{ARCHIVO_BITACORA}: the last line is incomplete.")))
+    for i, raw in enumerate(partes, 1):
+        try:
+            d = json.loads(raw.decode("utf-8"))
+            if not isinstance(d, dict): raise ValueError
+        except ValueError:
+            problemas.append(("BIT-01", T(f"{ARCHIVO_BITACORA} línea {i}: ilegible.", f"{ARCHIVO_BITACORA} line {i}: unreadable.")))
+            previa = raw; continue
+        if d.get("previa", "") != (_sha(previa) if previa is not None else ""):
+            problemas.append(("BIT-01", T(f"{ARCHIVO_BITACORA} línea {i}: la huella de la línea anterior no coincide (se editó, borró o insertó una línea antes).",
+                                          f"{ARCHIVO_BITACORA} line {i}: the previous-line hash does not match (a line was edited, removed or inserted).")))
+        if d.get("n") != i:
+            problemas.append(("BIT-01", T(f"{ARCHIVO_BITACORA} línea {i}: número {d.get('n')} fuera de orden.", f"{ARCHIVO_BITACORA} line {i}: number {d.get('n')} out of sequence.")))
+        lineas.append(d); previa = raw
+    ultima = {}; huecos = {}                 # archivo → avisos de huecos aún no reconocidos
+    for d in lineas:
+        a = d.get("archivo") or ""
+        if d.get("operacion") == "reconocer": huecos.pop(a, None)
+        elif a in ultima and d.get("antes", "") != ultima[a][1]:
+            huecos.setdefault(a, []).append(("BIT-02", T(f"{a} cambió fuera de los scripts entre las líneas {ultima[a][0]} y {d.get('n')} de la bitácora (la escritura {d.get('n')} partió de otra versión).",
+                                                         f"{a} changed outside the scripts between write-log lines {ultima[a][0]} and {d.get('n')}.")))
+        ultima[a] = (d.get("n"), d.get("despues", ""))
+    for a in sorted(huecos): problemas += huecos[a]
+    for a, (n, h) in sorted(ultima.items()):
+        actual = _leer_bytes(os.path.join(proyecto, a))
+        if actual is None:
+            if h: problemas.append(("BIT-02", T(f"{a} ya no existe; la última escritura anotada es la línea {n} de la bitácora.", f"{a} no longer exists; last logged write is line {n}.")))
+        elif _sha(actual) != h:
+            problemas.append(("BIT-02", T(f"{a} se modificó fuera de los scripts después de la línea {n} de la bitácora (su huella actual no es la que dejó la última escritura anotada).",
+                                          f"{a} was modified outside the scripts after write-log line {n} (its current hash is not the one the last logged write left).")))
+    return lineas, problemas

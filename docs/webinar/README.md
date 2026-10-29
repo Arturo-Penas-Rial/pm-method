@@ -155,12 +155,12 @@ Con errores no se genera nada. Los avisos no detienen la generación.
 
 | Caso | Tema | Guía | Clases (90 min cada una) | Diapositivas de contenido | Glosario |
 |---|---|---|---|---|---|
-| E2E-1 | riesgos | [E2E-1-riesgos](../guias/E2E-1-riesgos.md) | 1 · Del taller al plan de respuesta · 2 · El control continuo | 39 (19 + 20) | 25 términos |
-| E2E-2 | alcance, cambio, esfuerzo, priorización y mapa de ruta | [E2E-2-alcance-roadmap](../guias/E2E-2-alcance-roadmap.md) | 1 · Del alcance a la línea base · 2 · El cambio bajo control | 37 (17 + 20) | 25 términos |
-| E2E-3 | interesados, comunicaciones, OKR y avance | [E2E-3-interesados-okr-avance](../guias/E2E-3-interesados-okr-avance.md) | 1 · Del mapa de interesados al plan de compromiso · 2 · Del dato al reporte y al compromiso sostenido | 39 (19 + 20) | 25 términos |
+| E2E-1 | riesgos | [E2E-1-riesgos](../guias/E2E-1-riesgos.md) | 1 · Del taller al plan de respuesta · 2 · El control continuo | 40 (20 + 20) | 25 términos |
+| E2E-2 | alcance, cambio, esfuerzo, priorización y mapa de ruta | [E2E-2-alcance-roadmap](../guias/E2E-2-alcance-roadmap.md) | 1 · Del alcance a la línea base · 2 · El cambio bajo control | 39 (19 + 20) | 25 términos |
+| E2E-3 | interesados, comunicaciones, OKR y avance | [E2E-3-interesados-okr-avance](../guias/E2E-3-interesados-okr-avance.md) | 1 · Del mapa de interesados al plan de compromiso · 2 · Del dato al reporte y al compromiso sostenido | 40 (20 + 20) | 25 términos |
 | E2E-4 | producto de la idea al producto con BMAD | [E2E-4-producto-bmad](../guias/E2E-4-producto-bmad.md) | 1 · Gobernar la construcción con BMAD · 2 · Recorrido, lecciones, cierre y beneficios | 40 (20 + 20) | 25 términos |
 | E2E-5 | de la idea al proyecto diseñado | [E2E-5-idea-a-proyecto](../guias/E2E-5-idea-a-proyecto.md) | 1 · ¿Vale la pena? · 2 · Diseñar el proyecto | 40 (20 + 20) | 25 términos |
-| **Total** | | | **10 clases** | **195** | **125 términos** |
+| **Total** | | | **10 clases** | **199** | **125 términos** |
 
 Las cifras de la tabla salen de `python3 scripts/webinar/generar.py --todos --validar` (línea «válido: …» de cada caso: 5/5 sin errores ni avisos). A las diapositivas de contenido el generador suma la portada del caso, la de cada clase y el glosario.
 

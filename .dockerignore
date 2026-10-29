@@ -23,3 +23,6 @@ docs/informe/fuente/qa-html*
 **/.claude/settings.local.json
 **/.npmrc
 **/.pypirc
+
+# secretos de pm-kb (contraseñas de la base del perfil kb): nunca entran en la imagen
+docker/kb-secretos

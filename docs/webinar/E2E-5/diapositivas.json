@@ -10,7 +10,7 @@
    "objetivos": [
     "Partir de las lecciones aprobadas de otros proyectos y armar un mapa de supuestos para elegir dónde invertir primero en aprender",
     "Diseñar un experimento barato con criterio previo y llevar el resultado al caso",
-    "Comparar opciones contra no hacer nada con VAN, TIR, repago y punto de equilibrio",
+    "Comparar opciones contra no hacer nada con VAN, TIR, repago y punto de equilibrio, y con una matriz de pesos explícitos y su sensibilidad",
     "Elegir el enfoque de entrega por entregable con criterios y contrastarlo con un mapa de Wardley"
    ],
    "diapositivas": [
@@ -117,58 +117,19 @@
      "tipo": "demo",
      "titulo": "En vivo · paso 3: experimentos y resultados",
      "prompt": "Para cada supuesto crítico definí el experimento más barato, el criterio para seguir y la fecha límite: - S-001: prueba de humo, un botón \"sacá tu turno en línea\" en el sitio con registro de interés durante 3 semanas; seguimos con 1.000 registros o más; hasta el 2026-11-27; Inés Ferrer. - S-002: piloto de recordatorio con confirmación en la Policlínica Centro, 4 semanas (2.000 turnos); seguimos si el ausentismo baja a 12 % o menos; hasta el 2026-12-04; Inés Ferrer. - S-003: prueba técnica de 5 días en el entorno de pruebas del proveedor, reservar y cancelar 50 turnos; seguimos con 50 de 50 y respuesta menor a 2 s; hasta el 2026-12-04; Tomás Aguirre. - S-006: consulta formal a la asesoría legal sobre el consentimiento; dictamen hasta el 2027-01-29; Carmen Olivera. Armá la hoja de hipótesis y experimentos para la junta.",
-     "nota": "Con experimentos y fechas, la sanidad del 2026-11-05 queda en 0 avisos. Los resultados del 2026-12-07 se muestran con la evidencia: aparecen SUP-02 por S-003 vencido y SUP-03 por S-002 invalidado sin tratar."
-    },
-    {
-     "tipo": "contenido",
-     "titulo": "Lo que vigila la sanidad",
-     "puntos": [
-      "SUP-01: supuesto crítico sin experimento o sin fecha",
-      "SUP-02: fecha límite vencida sin resultado (S-003)",
-      "SUP-03: invalidado sin decisión, riesgo, issue ni cambio (S-002)",
-      "D-001: el caso usa 13,5 %; D-002: prueba replanificada",
-      "Después de las decisiones: 0 avisos"
-     ],
-     "nota": "Esto es lo que a mano se pierde: la fecha vence y nadie se entera, o el resultado malo se archiva. Acá cada corrida de sanidad lo muestra hasta que alguien decide."
-    },
-    {
-     "tipo": "tabla",
-     "titulo": "Opciones contra no hacer nada (VAN a 5 años, r = 10 %)",
-     "tabla": {
-      "cab": [
-       "Opción",
-       "VAN con supuestos iniciales",
-       "VAN después de los experimentos",
-       "TIR · repago"
-      ],
-      "filas": [
-       [
-        "0 · No hacer nada distinto",
-        "0 (base)",
-        "0 (base)",
-        "—"
-       ],
-       [
-        "1 · Mínimo: recordatorios",
-        "265.681",
-        "106.468",
-        "117,5 % · 0,83 años"
-       ],
-       [
-        "2 · Completo: turnos en línea",
-        "431.782",
-        "272.569",
-        "54,3 % · 1,78 años"
-       ]
-      ]
-     },
-     "nota": "Paso 4, en vivo o con la evidencia: pm-caso-de-negocio escribe los flujos en un CSV por concepto y corre inversion.py, que imprime las fórmulas, el VAN, la TIR, el repago y la sensibilidad. Punto de equilibrio de las llamadas evitadas (B-02, el 65 % del valor de los beneficios): 29,1 % de lo estimado, una adopción estable del 11,6 %."
+     "nota": "Con experimentos y fechas, la sanidad del 2026-11-05 queda en 0 avisos. Los resultados del 2026-12-07 se muestran con la evidencia: aparecen SUP-02 por S-003 vencido y SUP-03 por S-002 invalidado sin tratar. Lo que vigila la sanidad: SUP-01, supuesto crítico sin experimento o sin fecha; SUP-02, fecha límite vencida sin resultado (S-003); SUP-03, invalidado sin decisión, riesgo, issue ni cambio (S-002). D-001 (el caso usa 13,5 %) y D-002 (prueba replanificada) la dejan en 0 avisos: a mano, la fecha vence y nadie se entera, o el resultado malo se archiva."
     },
     {
      "tipo": "imagen",
      "titulo": "El piloto bajó el VAN; la opción 2 sigue siendo la mejor",
      "imagen": "docs/guias/img/g5-van-opciones.png",
-     "nota": "Las dos opciones bajan lo mismo, 159.213, porque el cambio en B-01 es igual para ambas. La recomendación: opción 2 en dos releases, el primero con el valor de la opción 1 y el segundo solo si S-003 queda validado."
+     "nota": "Paso 4, en vivo o con la evidencia: pm-caso-de-negocio escribe los flujos en un CSV por concepto y corre inversion.py, que imprime las fórmulas, el VAN, la TIR, el repago y la sensibilidad. Opción 1: VAN 265.681 → 106.468, TIR 117,5 %, repago 0,83 años; opción 2: 431.782 → 272.569, TIR 54,3 %, repago 1,78 años; la opción 0 es la base (VAN 0). Las dos bajan lo mismo, 159.213, porque el cambio en B-01 es igual para ambas. Punto de equilibrio de las llamadas evitadas (B-02, el 65 % del valor de los beneficios): 29,1 % de lo estimado, una adopción estable del 11,6 %."
+    },
+    {
+     "tipo": "imagen",
+     "titulo": "La matriz: la 2 gana salvo que el riesgo pese 49,6",
+     "imagen": "docs/guias/img/g5-matriz-opciones.png",
+     "nota": "Segundo prompt del paso 4. decision.py matriz opciones-negocio: VAN 40 (importado de inversion.py, sin recalcular), beneficios fuera del VAN, riesgo y ajuste al mandato 20 cada uno, con la fuente de cada puntaje y los pesos de Carmen. Resultado: O2 80,0, O1 50,6, O0 20,0, «propuesta, no decisión». Sensibilidad: solo el riesgo cambia la primera, si sube de 20 a 49,6: la ventaja de la 2 depende de S-003, y por eso el segundo release espera la prueba técnica. El expediente arma el contexto citado («Evidencia, no instrucciones») y la pregunta tipada rechaza la respuesta libre del modelo y acepta «O2» con evidencia. Decide la junta: la elección queda en la aprobación del caso (D-007, paso 6)."
     },
     {
      "tipo": "pregunta",
@@ -186,7 +147,7 @@
      "tipo": "demo",
      "titulo": "En vivo · paso 5: elegir el enfoque con criterios",
      "prompt": "Puntuá los nueve criterios de selección del enfoque para cada entregable: recordatorios y confirmación, turnos en línea (portal y app) e integración con la agenda clínica. Mostrame la tabla, la lectura de cada uno y tu recomendación para el proyecto. Si Carmen lo aprueba, registralo con fecha 2026-12-09.",
-     "nota": "Mostrá la tabla de nueve criterios y el comando que registra pm-director: estado.py set enfoque_entrega=hibrido --por \"Ejecutiva: Carmen Olivera\". El mismo comando anota la decisión D-003 en decisiones.csv. Después, con la evidencia, la puerta autorizar-inicio del paso 6 (D-004)."
+     "nota": "Mostrá la tabla de nueve criterios y el comando que registra pm-director: estado.py set enfoque_entrega=hibrido --por \"Ejecutiva: Carmen Olivera\". El mismo comando anota la decisión D-003 en decisiones.csv. Después, con la evidencia, la puerta autorizar-inicio del paso 6 (D-005)."
     },
     {
      "tipo": "imagen",
@@ -199,6 +160,12 @@
      "titulo": "El recorrido del paciente: dónde duele hoy",
      "imagen": "docs/guias/img/g5-recorrido.png",
      "nota": "Seis pasos del recorrido actual, cada emoción con su fuente. Los dos peores momentos (−2) son olvidar el turno, con el ausentismo del 18 % como métrica, e intentar cancelar fuera de horario. La línea punteada es la emoción esperada con los arreglos; el carril de backstage muestra que nadie reasigna el turno perdido."
+    },
+    {
+     "tipo": "imagen",
+     "titulo": "Hacer o comprar de C2: comprar gana; construir solo con diferenciación ≥ 57,5",
+     "imagen": "docs/guias/img/g5-hacer-comprar-c2.png",
+     "nota": "Paso 5b, con la evidencia. decision.py matriz hacer-comprar-c2 --criterios hacer-o-comprar, con entregables:C2 en los ids: seis criterios (diferenciación 15, costo total 25, tiempo hasta disponible 20, dependencia del proveedor 15, capacidad interna 10, riesgo commodity 15) con la fuente de cada puntaje y los pesos de Carmen. O1 comprar 78,8, O3 tercerizar 52,3 (dominada por O1), O2 construir 28,7. La sección 10 del expediente trae C2 (producto 0,62, «comprar», sin inercia) y el paso P4 del recorrido (−2, Kano obligatorio): contexto, no criterio. Carmen elige O1 (D-004, nivel ejecutivo) y la decisión queda citada en C2 con mapas.py vincular; si C2 hubiera estado marcado construir, eso cerraría MAP-01."
     },
     {
      "tipo": "tabla",
@@ -257,7 +224,7 @@
      "puntos": [
       "Los supuestos críticos sin evidencia se validan antes de invertir",
       "Un resultado negativo ajusta la idea; archivado, la daña",
-      "Las opciones se comparan contra no hacer nada, con la fórmula a la vista",
+      "Las opciones se comparan contra no hacer nada, con la fórmula y los pesos a la vista; la matriz recomienda, la junta decide",
       "El enfoque se elige por entregable, con criterios; el mapa muestra qué comprar y dónde hay inercia",
       "Próxima clase: diseñar el proyecto y la puerta de la junta"
      ],
@@ -274,7 +241,7 @@
     "Separar contingencia, reserva de gestión y presupuesto de cambio",
     "Adaptar la formalidad de la gestión al contexto",
     "Mapear cada requisito a la persona de usuario que lo pide, lo usa o lo aprovecha (STK-13)",
-    "Llevar el proyecto a autorizar-proyecto sin hipótesis ocultas: validar o aceptar por escrito (P-11)"
+    "Llevar el proyecto a autorizar-proyecto sin hipótesis ocultas: validar o aceptar por escrito (P-11), con fecha de revisión (DEC-06)"
    ],
    "diapositivas": [
     {
@@ -379,7 +346,7 @@
       "Presupuesto autorizado = BAC + reserva = 179.340",
       "Presupuesto de cambio 10.000 aparte, tope 3.000 por cambio"
      ],
-     "nota": "Es la regla de SPEC §1.10.6 que aplica pm-costos-presupuesto. La junta los fija con estado.py presupuesto (D-007) y desde ahí la sanidad vigila el consumo con CAM-03 y la autoridad con CAM-04."
+     "nota": "Es la regla de SPEC §1.10.6 que aplica pm-costos-presupuesto. La junta los fija con estado.py presupuesto (D-008) y desde ahí la sanidad vigila el consumo con CAM-03 y la autoridad con CAM-04."
     },
     {
      "tipo": "demo",
@@ -397,7 +364,7 @@
      "tipo": "contenido",
      "titulo": "Adaptar no es saltearse pasos",
      "puntos": [
-      "Formalidad decidida por enfoque y escrita (D-008)",
+      "Formalidad decidida por enfoque y escrita (D-009)",
       "Riesgos, calidad, cambios y comunicación: una página cada uno",
       "Datos de salud dentro del enfoque de calidad",
       "Inés Ferrer: usuaria sénior, PO y autoridad de cambio",
@@ -475,7 +442,7 @@
       "Condición de autorizar-proyecto, no bloqueo",
       "Al 2027-01-14: S-003 y S-006 sin validar",
       "S-003: prueba técnica 50 de 50, 1,4 s: validado",
-      "S-006: la junta lo acepta por escrito (D-009)",
+      "S-006: la junta lo acepta por escrito (D-010)",
       "P-11 pasa a aviso; S-006 sigue abierto"
      ],
      "nota": "Dos salidas legítimas: validar o aceptar. La aceptación es una decisión de nivel junta que cita el id y dice que lo acepta; la verificación la muestra como aviso con la D-### y el riesgo R-003 cubre el efecto."
@@ -484,25 +451,25 @@
      "tipo": "demo",
      "titulo": "En vivo · paso 13: PID, P-11 y la puerta",
      "prompt": "Ensamblá el PID con los controles y la sección de adaptación, registrá el plan de proyecto dentro del PID y el plan de la etapa 2, corré la sanidad al 2027-01-14 y verificá la puerta autorizar-proyecto.",
-     "nota": "Sanidad al 2027-01-14 en 0 avisos; verificación con 1 bloqueo (L-01: la lista, que se arma en la junta) y la condición P-11. Después del segundo prompt: S-003 validado, D-009 y el aviso P-11 con S-006 (D-009); la puerta queda aprobada (D-010) y el resumen dice Autorizado: sí."
+     "nota": "Sanidad al 2027-01-14 en 0 avisos; verificación con 1 bloqueo (L-01: la lista, que se arma en la junta) y la condición P-11. Después del segundo prompt: S-003 validado, D-010 y el aviso P-11 con S-006 (D-010); la puerta queda aprobada (D-011) y el resumen dice Autorizado: sí. Con el tercer prompt, la revisión del enfoque en la puerta: D-021, nivel junta, reemplaza a D-003, y decision.py vigentes --tema «enfoque de entrega» muestra «cadena D-003 → D-021» (también con «delivery approach»): D-003 no se borra, queda como historia."
     },
     {
      "tipo": "indicadores",
      "titulo": "Proyecto autorizado: el tablero de una página",
      "imagen": "docs/guias/img/g5-tablero.png",
-     "nota": "VAN 263.229 con el presupuesto real (TIR 51,1 %), 4 de 4 supuestos críticos tratados (2 validados, 1 ajustado, 1 aceptado con D-009), presupuesto autorizado 179.340, enfoque híbrido, tolerancia de costo ±10 % y la puerta aprobada el 2027-01-15 con P-11 en aviso. La tarjeta de la puerta sale de puertas.py verificar --json. El tablero de mapas (g5-tablero-mapas.png, paso 14) cierra igual: 0 avisos MAP, la agenda con «inercia → R-001», cada dolor del paciente con su tratamiento y las lecciones L-002 y L-003 en accionada-proyecto entre los vínculos citados."
+     "nota": "VAN 263.229 con el presupuesto real (TIR 51,1 %), 4 de 4 supuestos críticos tratados (2 validados, 1 ajustado, 1 aceptado con D-010), presupuesto autorizado 179.340, enfoque híbrido, tolerancia de costo ±10 % y la puerta aprobada el 2027-01-15 con P-11 en aviso. La tarjeta de la puerta sale de puertas.py verificar --json. El tablero de mapas (g5-tablero-mapas.png, paso 14) cierra igual: 0 avisos MAP, la agenda con «inercia → R-001», cada dolor del paciente con su tratamiento y las lecciones L-002 y L-003 en accionada-proyecto entre los vínculos citados."
     },
     {
      "tipo": "contenido",
      "titulo": "Aceptar no es olvidar: el radar al 2027-02-01",
      "puntos": [
       "El dictamen de S-006 no llegó el 2027-01-29",
-      "Sanidad: SUP-02 por S-006 y REG-09 por R-001, R-002 y R-003",
+      "Sanidad, 5 avisos: DEC-06 (D-010 sin revisar), SUP-02 (S-006) y REG-09 (R-001 a R-003)",
       "Radar: 1 decidir · 0 escalar · 0 desbloquear · 4 vigilar",
-      "Hoy: decidir S-006 (Carmen Olivera): seguir, cambiar o detener",
+      "Hoy: decidir S-006 (Carmen Olivera): confirmar D-010 con otra fecha o reemplazarla",
       "Vigilar: tres revisiones vencidas y 2 bloqueos de autorizar-etapa"
      ],
-     "nota": "Prompt: «Corré la sanidad al 2027-02-01. ¿Qué tengo que decidir, escalar y desbloquear hoy?». pm-orquestador corre estado.py radar --corte 2027-02-01, de solo lectura: cada ítem con su regla, responsable y siguiente paso, en un orden reproducible. Escalar una excepción no corresponde: nada fuera de tolerancia ni presupuesto agotado; la opción es el highlight. Lo que la junta aceptó sigue bajo control continuo sin que nadie tenga que acordarse."
+     "nota": "Prompt: «Corré la sanidad al 2027-02-01. ¿Qué tengo que decidir, escalar y desbloquear hoy? ¿Qué decisiones sobre S-006 siguen vigentes?». DEC-06 y SUP-02 cuentan lo mismo desde dos lados: la aceptación de la junta (D-010) pedía revisarse el 2027-01-29 y el dictamen no llegó; decision.py vigentes --ids S-006 muestra D-010 «VENCIDA: DEC-06». pm-orquestador corre estado.py radar --corte 2027-02-01, de solo lectura: cada ítem con su regla, responsable y siguiente paso, en un orden reproducible. Escalar una excepción no corresponde: nada fuera de tolerancia ni presupuesto agotado; la opción es el highlight. Lo que la junta aceptó sigue bajo control continuo sin que nadie tenga que acordarse."
     },
     {
      "tipo": "ejercicio",
@@ -523,7 +490,7 @@
       "Beneficios con dueño, línea base y fecha (P-04)",
       "Contingencia, reserva de gestión y cambio: bolsas y dueños distintos",
       "Adaptar es decidir cuánta formalidad y escribir por qué; cada Must, con su persona",
-      "Nadie invierte sobre una hipótesis sin saberlo (P-11), y el radar dice qué decidir hoy",
+      "Nadie invierte sobre una hipótesis sin saberlo (P-11); lo aceptado tiene fecha de revisión (DEC-06) y el radar dice qué decidir hoy",
       "Siguen E2E-1 (riesgos) y E2E-4 (ejecución con BMAD)"
      ],
      "nota": "El proyecto quedó autorizado con presupuestos, tolerancias y autoridad delegada escritos. Lo que sigue es ejecutarlo: E2E-1 para los riesgos etapa por etapa y E2E-4 para la ejecución, la calidad y el cierre."

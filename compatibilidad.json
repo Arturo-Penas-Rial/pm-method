@@ -1,6 +1,6 @@
 {
   "paquete": "pm-method",
-  "version": "2.5.0",
+  "version": "2.6.0",
   "spec": "SPEC.md v2 (§0, §1.10–§1.17)",
   "esquemas": {
     "estado.json": "v2 (migración automática desde v1)",

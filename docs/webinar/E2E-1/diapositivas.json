@@ -10,7 +10,8 @@
    "objetivos": [
     "Explicar qué decide la junta antes del taller: apetito, tolerancia, reserva y cadencia",
     "Identificar riesgos con cita de origen, con y sin BMAD",
-    "Comparar opciones de respuesta por valor neto y decidir con el propietario",
+    "Comparar opciones de respuesta por valor neto y, cuando no alcanza, con una matriz multicriterio y su sensibilidad",
+    "Registrar la decisión de quien corresponde según PRINCE2 y la RACI, y avisar a los informados",
     "Escribir un plan de contingencia listo para activar",
     "Calcular un presupuesto de riesgo con fórmula"
    ],
@@ -23,7 +24,7 @@
       "Cinco opciones: evitar, reducir, transferir, contingencia y aceptar",
       "El SLA con penalidad, la respuesta habitual: valor neto 700, el menor de las cuatro",
       "La recomendada: una contingencia que hoy no cuesta nada (valor neto 2.500)",
-      "¿Cómo se elige entre opciones sin hacer la cuenta a mano?"
+      "¿Cómo se elige sin hacer la cuenta a mano y sin perder de vista el apetito?"
      ],
      "nota": "Contar el resultado antes del método. No mostrar todavía el gráfico: llega con el paso 6a. El SLA baja la probabilidad, pero la penalidad (tope de USD 2.000 por mes) no cubre el atraso. Después, la pregunta a mano alzada."
     },
@@ -46,43 +47,43 @@
       "filas": [
        [
         "Responder los altos",
-        "la primera respuesta que surge",
+        "la primera que surge",
         "opciones por valor neto (REG-06, REG-10)",
-        "altos sin respuesta u opciones"
+        "altos sin respuesta"
+       ],
+       [
+        "Decidir más allá del dinero",
+        "pesos implícitos",
+        "expediente, matriz y RACI (DEC-01 a 03)",
+        "peso que cambia la elección"
        ],
        [
         "Tener lista la contingencia",
-        "una palabra en el registro",
+        "una palabra",
         "plan escrito (REG-10) y radar",
-        "contingencias sin plan o por activar"
+        "planes por escribir o activar"
        ],
        [
-        "Cerrar acciones",
+        "Acciones y revisión",
         "vencen sin aviso",
-        "cada sanidad (REG-07)",
-        "acciones vencidas"
-       ],
-       [
-        "Revisar el registro",
-        "taller y nunca más",
-        "cada sanidad (REG-09)",
-        "revisiones vencidas"
+        "cada sanidad (REG-07, REG-09)",
+        "vencidas"
        ],
        [
         "Reserva de riesgo",
-        "bolsa que se mira al cierre",
+        "se mira al cierre",
         "cada sanidad (CAM-02, CAM-03)",
-        "cargos sin R-### y % consumido"
+        "cargos sin R-### y % usado"
        ],
        [
         "Condiciones de la junta",
-        "se olvidan en el acta",
+        "se olvidan",
         "cada sanidad (EST-12)",
         "condiciones abiertas"
        ]
       ]
      },
-     "nota": "Esta tabla es el mapa de las dos clases. Hoy cubrimos las dos primeras filas y preparamos la reserva; la clase 2 recorre el resto. Cada fila tiene su control: no depende de que alguien se acuerde."
+     "nota": "Esta tabla es el mapa de las dos clases. Hoy cubrimos las tres primeras filas y preparamos la reserva; la clase 2 recorre el resto. Cada fila tiene su control: no depende de que alguien se acuerde."
     },
     {
      "tipo": "seccion",
@@ -180,20 +181,26 @@
     {
      "tipo": "seccion",
      "titulo": "Elegir y preparar",
-     "subtitulo": "Opciones por valor neto y plan de contingencia",
+     "subtitulo": "Opciones por valor neto, matriz con sensibilidad y plan de contingencia",
      "nota": "Pasos 6a, 6b y 7."
     },
     {
      "tipo": "demo",
-     "titulo": "Demo · Paso 6a: opciones de R-001 y R-003",
-     "prompt": "Antes de elegir respuestas para R-001 y R-003, armá sus opciones con estos datos (evitar, reducir, transferir,\ncontingencia y aceptar), compará el valor neto de cada una y decime cuál conviene en cada riesgo.",
-     "nota": "En vivo. Pegar la tabla de datos de la guía debajo del prompt. Primero riesgos.py opciones --proponer crea las plantillas sin registrar nada; después la tabla con la recomendada marcada (★). Respuesta del propietario: Diego elige la recomendada en cada uno (D-003 y D-004). Al elegir la contingencia de R-003, el script y la sanidad avisan REG-10: falta el plan."
+     "titulo": "Demo · Paso 6a: opciones, expediente y matriz de R-003",
+     "prompt": "Antes de elegir respuestas para R-001 y R-003, armá sus opciones con estos datos (evitar, reducir, transferir,\ncontingencia y aceptar), compará el valor neto de cada una y decime cuál conviene en cada riesgo. R-003 toca el acceso\nde los socios: armá además el expediente de esa decisión y una matriz con los criterios de riesgo y estos puntajes, y\nmostrame cuánto depende la recomendación de los pesos.",
+     "nota": "En vivo. Pegar debajo del prompt las dos tablas de la guía: datos de las opciones y puntajes de la matriz de R-003. Primero riesgos.py opciones (★ O2 para R-001, ★ O4 para R-003); R-001 se decide ahí (D-003). Para R-003: el expediente (quién decide, apetito citado, RACI de 3.1, cifras sin recalcular), la hoja con el valor neto importado y la matriz: O4 82,5, O2 55,4, O1 y O3 dominadas, aceptar eliminada por el apetito. Diego elige O4 (D-004): es el A de 3.1, el script recuerda a los C y deja dos borradores de aviso (Laura y el sindicato), sin enviar nada. REG-10: falta el plan."
     },
     {
      "tipo": "imagen",
      "titulo": "R-001: reducir. R-003: preparar la contingencia",
      "imagen": "docs/guias/img/g1-opciones-valor-neto.png",
      "nota": "Valor neto = EMV inherente − EMV residual − EMV del secundario − costo. Evitar deja el menor residual en los dos riesgos, pero cuesta más y crea un secundario. El SLA de R-003 queda en 700. La contingencia de R-003 entra con sus 12.000 ponderados al 50 % y aun así gana. La recomendada es una propuesta: decide el propietario."
+    },
+    {
+     "tipo": "imagen",
+     "titulo": "La contingencia gana hasta que el apetito pesa 51,4",
+     "imagen": "docs/guias/img/g1-sensibilidad-r003.png",
+     "nota": "Cada línea es una respuesta a R-003; el eje horizontal, el peso del apetito (acordado: 25). Las líneas de O4 y O2 se cruzan en 51,4: habría que duplicar el peso para cambiar la recomendación, así que no depende de un peso acomodado. Evitar y transferir no ganan con ningún peso (dominadas). Los pesos se fijan antes de puntuar; moverlos después de ver el resultado es la trampa que la sensibilidad deja a la vista."
     },
     {
      "tipo": "demo",
@@ -230,7 +237,7 @@
      "titulo": "Ejercicio · Parte A: opciones, contingencia y presupuesto",
      "puntos": [
       "A1: apetito, tolerancia, autoridad sobre la reserva y cadencia",
-      "A2: opciones de tu riesgo más alto y su valor neto",
+      "A2: opciones de tu riesgo más alto, su valor neto y, si no alcanza, apetito y RACI",
       "A3: el plan de contingencia en una fila",
       "A4: presupuesto = respuestas + residual; provisión aparte",
       "10 minutos; A4 puede quedar para después"
@@ -243,6 +250,7 @@
      "puntos": [
       "El enfoque de riesgo se aprueba antes del taller",
       "La respuesta se elige entre opciones, por valor neto; decide el propietario",
+      "Si el dinero no alcanza: expediente, matriz con sensibilidad y RACI para avisar",
       "Una contingencia es un plan: disparador, monto, fuente y quién la autoriza",
       "El presupuesto de riesgo sale de una fórmula y lo fija la junta"
      ],
@@ -257,10 +265,10 @@
    "objetivos": [
     "Reconocer un registro que se dejó de revisar",
     "Gestionar un riesgo que ocurre: issue y contingencia",
-    "Elegir otra opción que la recomendada, con el motivo escrito",
+    "Decidir en la junta con expediente y matriz, y dejar escrito el motivo cuando se aparta de la recomendada",
     "Ordenar el día con el radar y activar un plan de contingencia",
     "Leer el consumo de la reserva y decidir al cruzar el 80 %",
-    "Seguir las condiciones de la junta hasta cumplirlas"
+    "Seguir las condiciones de la junta y las decisiones que vencen, y aprobar las propuestas del agente"
    ],
    "diapositivas": [
     {
@@ -318,16 +326,10 @@
      "nota": "Ninguna revisión por monto frenaría las licencias: están dentro de los USD 5.000 del gestor. Lo que falla es el propósito. Lo ocurrido ya no es riesgo: es un issue."
     },
     {
-     "tipo": "contenido",
-     "titulo": "Pasos 10 y 11 · La junta elige otra opción, por escrito",
-     "puntos": [
-      "R-007, norma de biometría: P3 × I5 = 15, EMV 20.000",
-      "Recomendada por valor neto: O3 contingencia (3.000)",
-      "La junta elige O2 reducir (−2.000) por apetito bajo en cumplimiento",
-      "Sin --motivo, --elegir no registra nada; con el motivo, D-016",
-      "Business case v1.1; reserva al 64 %; EST-12 y cuatro REG-09"
-     ],
-     "nota": "La recomendación es una propuesta: la junta puede elegir otra, y el sistema le pide que deje el motivo escrito. La hoja de riesgo muestra las opciones y la justificación regulatoria. La condición de la junta queda vigilada por la sanidad hasta que la ejecutiva la da por cumplida. Señalar los REG-09: la revisión del 29/12 no se hizo."
+     "tipo": "imagen",
+     "titulo": "Paso 10 · La junta elige reducir y deja escrito por qué",
+     "imagen": "docs/guias/img/g1-decision-r007.png",
+     "nota": "R-007, norma de biometría: P3 × I5 = 15, EMV 20.000. El valor neto recomienda esperar la norma (O3, 3.000); la matriz, con los mismos pesos que R-003, la elimina por el apetito junto con aceptar y recomienda evitar (O1 75,0 frente a O2 50,0). La decisión es de la junta: pm-director la registra (D-015) y la matriz solo la cita con --decision. Sin motivo no se registra; con el motivo de Laura, reducir queda en D-015. Su motivo equivale a pesar el apetito el doble (con 50 gana O2), y quedó escrito en lugar de tocar el peso en la hoja. Después: business case v1.1 (D-016), reserva al 64 %, EST-12 y cuatro REG-09: la revisión del 29/12 no se hizo."
     },
     {
      "tipo": "seccion",
@@ -399,12 +401,6 @@
      "nota": "En vivo. estado.py radar, de solo lectura: «Hoy: decidir R-003». P1 RAD-03: contingencia por activar (inminente), propietario Diego, siguiente paso en pm-riesgos. P2: la condición de la junta. Vigilar: bloqueos de la próxima puerta y el EVM. El radar no decide: ordena lo que pide una decisión."
     },
     {
-     "tipo": "imagen",
-     "titulo": "La exposición rozó la tolerancia en febrero",
-     "imagen": "docs/guias/img/g1-exposicion-tendencia.png",
-     "nota": "Azul: exposición actual. Naranja: hasta dónde baja si las respuestas funcionan. La distancia entre las dos es trabajo de respuesta pendiente. En febrero la azul llega a 54.600 contra 60.000."
-    },
-    {
      "tipo": "seccion",
      "titulo": "El plan de contingencia en acción",
      "subtitulo": "Activación y alerta al 80 %",
@@ -414,7 +410,7 @@
      "tipo": "demo",
      "titulo": "Demo · Paso 13: activar el plan de R-003",
      "prompt": "Activá el plan de contingencia de R-003: el disparador se alcanzó. Supera mi autoridad, así que llevalo a Laura como\ndice el plan. Después decime cómo queda la reserva contra lo que todavía puede pasar.",
-     "nota": "En vivo. Se sigue la sección «Activación» del plan: C-005 por 12.000, D-018 (activar, con las opciones consideradas) y A-005 (conmutación, Lucía). La decisión de Laura: aprobado contra la reserva; mantiene 39.800, concentra la autoridad hasta el límite de etapa y lleva a la junta lo que supere el remanente (D-019). Mostrar el AVISO de CAM-03 al 94 %."
+     "nota": "En vivo. Se sigue la sección «Activación» del plan: C-005 por 12.000, D-017 (activar, con las opciones consideradas) y A-005 (conmutación, Lucía). La decisión de Laura: aprobado contra la reserva; mantiene 39.800, concentra la autoridad hasta el límite de etapa y lleva a la junta lo que supere el remanente (D-018). Mostrar el AVISO de CAM-03 al 94 %."
     },
     {
      "tipo": "imagen",
@@ -430,9 +426,28 @@
     },
     {
      "tipo": "indicadores",
-     "titulo": "Fin de la etapa 2: solo la reserva queda en atención",
+     "titulo": "Paso 14 · Fin de la etapa 2: solo la reserva queda en atención",
      "imagen": "docs/guias/img/g1-tarjetas-etapa.png",
-     "nota": "Paso 14 con evidencia. Exposición 27.600, cero altos abiertos, cero acciones y revisiones vencidas, condición cumplida (D-020). Solo la reserva queda en atención, y se recalcula con el plan de la etapa 3. Lecciones L-001 y L-002."
+     "puntos": [
+      "P-001: el agente propone retirar R-005; Diego lo aprueba",
+      "«risk budget» encuentra D-008, D-015 y D-018",
+      "D-020 reemplaza a D-018: DEC-06 de 2 a 0",
+      "Exposición 27.600; condición cumplida (D-019)"
+     ],
+     "nota": "Con evidencia. El agente propone retirar R-005 (P-001) sin tocar el registro; Diego, propietario, lo aprueba: quien propone no aprueba, y la bitácora guarda las dos firmas. decision.py vigentes encuentra en español lo que se pide en inglés y muestra solo lo vigente: D-017 y D-018 vencen hoy (mañana serían DEC-06); Laura confirma D-017 y reemplaza D-018 con D-020, que deja la anterior como historia. Las tarjetas: exposición 27.600, cero altos abiertos, cero acciones y revisiones vencidas, condición cumplida (D-019); solo la reserva queda en atención y se recalcula con el plan de la etapa 3. Lecciones L-001 y L-002."
+    },
+    {
+     "tipo": "imagen",
+     "titulo": "Paso 16 · La pregunta de la junta, respondida con cita",
+     "imagen": "docs/guias/img/g1-kb-busqueda.png",
+     "puntos": [
+      "«¿Por qué no se aprobó la compra de licencias de diseño?»",
+      "C-003 primero: rechazado por Sofía, con el motivo",
+      "Cita: proyecto, commit (sin-git), archivo y línea",
+      "Ficha de R-003 con sus relaciones y versiones del business case",
+      "pm-kb solo lee: la fuente sigue siendo la carpeta"
+     ],
+     "nota": "Opcional: requiere pm-kb (INSTALACION-WSL2.md §8 o INSTALACION-DOCKER.md §8). En la terminal, pm-kb indexar --proyecto portal-socios --ruta . y pm-kb servir; en Claude Code, con el MCP registrado, el prompt del paso 16. C-003 aparece primero con «no responde a ningún riesgo: la reserva de riesgo no es una bolsa general». Si hay tiempo, la ficha de R-003 con el grafo (g1-kb-ficha.png) y la comparación v1.0 → v1.1 del business case, con la sección agregada por R-007 (g1-kb-versiones.png). La cita dice sin-git porque la carpeta del caso no es un repositorio git; con git, lleva el commit."
     },
     {
      "tipo": "ejercicio",
@@ -452,7 +467,7 @@
       "Un registro vale lo que su última revisión: REG-09 avisa cuando vence",
       "Con el plan escrito, el disparador es una decisión de minutos; el radar la pone primera",
       "La reserva es un presupuesto vivo: propósito (CAM-02) y alerta (CAM-03)",
-      "Lo que no cierra por números lo decide la junta, con el motivo escrito; EST-12 lo sigue",
+      "Lo que no cierra por números lo decide la junta, con expediente, matriz y motivo; EST-12 y DEC-06 lo siguen",
       "Siguiente: E2E-2, el cambio y su presupuesto"
      ],
      "nota": "Puente a E2E-2: las licencias no eran un riesgo, eran un cambio. En el próximo caso vemos quién decide cada cambio, contra qué presupuesto se cobra y qué pasa cuando excede la autoridad delegada."
@@ -462,12 +477,8 @@
  ],
  "glosario": [
   {
-   "termino": "Amenaza",
-   "definicion": "Riesgo con efecto negativo sobre un objetivo del proyecto."
-  },
-  {
-   "termino": "Oportunidad",
-   "definicion": "Riesgo con efecto positivo; sus respuestas buscan aumentar su probabilidad o su impacto (explotar, mejorar)."
+   "termino": "Amenaza y oportunidad",
+   "definicion": "Riesgo con efecto negativo (amenaza) o positivo (oportunidad) sobre un objetivo; las respuestas a una oportunidad buscan aumentar su probabilidad o su impacto (explotar, mejorar)."
   },
   {
    "termino": "Registro de riesgos (risk register)",
@@ -478,32 +489,20 @@
    "definicion": "Puntuación de 1 a 25 que ubica un riesgo en el mapa de calor; en el caso, alto ≥ 15, medio 6–12, bajo ≤ 5."
   },
   {
-   "termino": "Valor monetario esperado (EMV)",
-   "definicion": "Impacto en dinero por la probabilidad convertida a porcentaje (P1 10 % … P5 90 %)."
+   "termino": "Valor monetario esperado (EMV) y exposición",
+   "definicion": "EMV: impacto en dinero por la probabilidad convertida a porcentaje (P1 10 % … P5 90 %). Exposición: suma del EMV de las amenazas abiertas, que se compara con la tolerancia."
   },
   {
-   "termino": "Exposición",
-   "definicion": "Suma del EMV de las amenazas abiertas; se compara con la tolerancia de riesgo."
-  },
-  {
-   "termino": "Apetito de riesgo (risk appetite)",
-   "definicion": "Cuánto riesgo está dispuesta a aceptar la organización en cada tipo de objetivo."
-  },
-  {
-   "termino": "Tolerancia",
-   "definicion": "Margen fijado por la junta; superarlo es una excepción que decide un nivel superior."
+   "termino": "Apetito y tolerancia",
+   "definicion": "Apetito (risk appetite): cuánto riesgo acepta la organización en cada tipo de objetivo. Tolerancia: margen fijado por la junta; superarlo es una excepción que decide un nivel superior."
   },
   {
    "termino": "Enfoque de gestión de riesgos (risk management approach)",
    "definicion": "Documento que fija procedimiento, escalas, apetito, tolerancia, presupuesto, roles y cadencia de revisión."
   },
   {
-   "termino": "Respuesta",
-   "definicion": "Acción elegida frente a un riesgo: evitar, reducir, transferir, compartir, preparar una contingencia, aceptar o escalar; explotar o mejorar para una oportunidad."
-  },
-  {
-   "termino": "Riesgo residual",
-   "definicion": "Probabilidad e impacto que se esperan después de aplicar la respuesta."
+   "termino": "Respuesta y riesgo residual",
+   "definicion": "Respuesta: acción elegida frente a un riesgo (evitar, reducir, transferir, compartir, preparar una contingencia, aceptar o escalar; explotar o mejorar para una oportunidad). Riesgo residual: probabilidad e impacto esperados después de aplicarla."
   },
   {
    "termino": "Valor neto de una opción",
@@ -514,12 +513,8 @@
    "definicion": "Riesgo nuevo que crea una respuesta; su EMV se descuenta del valor neto de la opción. En el caso, la penalidad del SLA de R-003 no cubre el atraso."
   },
   {
-   "termino": "Disparador (trigger)",
-   "definicion": "Señal observable que indica que el riesgo está por ocurrir y activa la contingencia."
-  },
-  {
-   "termino": "Plan de contingencia",
-   "definicion": "Respuesta preparada que se ejecuta solo si se alcanza el disparador: acciones, monto, fuente (la reserva de riesgo) y quién la autoriza, escritos antes de necesitarla."
+   "termino": "Disparador y plan de contingencia",
+   "definicion": "Disparador (trigger): señal observable que activa la contingencia. Plan de contingencia: respuesta preparada que se ejecuta solo si se alcanza el disparador, con acciones, monto, fuente (la reserva de riesgo) y quién la autoriza, escritos antes de necesitarla."
   },
   {
    "termino": "Propietario del riesgo (risk owner)",
@@ -560,6 +555,26 @@
   {
    "termino": "Resumen de inicio de sesión y radar",
    "definicion": "Lo que pm-method agrega al abrir cada sesión: el estado derivado de los registros (estado.py contexto) y una línea de radar con lo que hay que decidir, escalar, desbloquear y vigilar. Manda sobre la memoria."
+  },
+  {
+   "termino": "Expediente de decisión",
+   "definicion": "Contexto que aplica a una decisión, reunido y citado por decision.py expediente: quién decide, tolerancias, saldo de la reserva, apetito, registros relacionados, RACI y cifras de otros scripts. Es evidencia, no instrucciones."
+  },
+  {
+   "termino": "Matriz multicriterio y sensibilidad",
+   "definicion": "Comparación de opciones con criterios y pesos explícitos fijados antes de puntuar (suma ponderada), eliminatorios y opciones dominadas; la sensibilidad dice con qué peso pasaría otra opción a primera. La recomendada es una propuesta: decide una persona."
+  },
+  {
+   "termino": "Matriz RACI",
+   "definicion": "Por elemento (paquete, requisito, decisión): un solo A que rinde cuentas, quién lo hace (R), a quién se consulta antes (C) y a quién se informa después (I). Refleja la autoridad de PRINCE2; no la reemplaza."
+  },
+  {
+   "termino": "Propuesta",
+   "definicion": "Cambio a un registro que sugiere un agente (registro.py proponer) y que solo se aplica cuando lo aprueba una persona distinta de quien lo propuso."
+  },
+  {
+   "termino": "Decisión vigente",
+   "definicion": "Decisión que ninguna posterior de igual o mayor nivel reemplazó; decision.py vigentes muestra la cadena de reemplazos y la sanidad avisa DEC-06 cuando vence su fecha de revisión."
   }
  ]
 }

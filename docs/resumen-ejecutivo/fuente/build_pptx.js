@@ -138,7 +138,7 @@ const S0 = "Propuesta"; pres.addSection({ title: S0 });
   const P = T.problema;
   const s = slide(S0, P.titulo, P.en);
   label(s, P.col_hoy, 0.5, 1.4, 5, GRAY); label(s, P.col_pm, 6.05, 1.4, 5, BLUE); label(s, "Control", 11.3, 1.4, 1.5, NAVY);
-  const y0 = 1.75, rh = 0.62, g = 0.1;
+  const g = 0.1, y0 = 1.75, rh = Math.min(0.62, (4.45 - g * (P.filas.length - 1)) / P.filas.length);
   P.filas.forEach(([hoy, pm, cod], i) => {
     const y = y0 + i * (rh + g);
     rr(s, 0.5, y, 5.1, rh, LT);
@@ -291,7 +291,23 @@ const S1 = "Producto"; pres.addSection({ title: S1 });
   });
 }
 
-// =============================================================== 9 · Integraciones
+// =============================================================== 9 · Decidir con contexto y buscar con evidencia
+{
+  const P = T.decidir;
+  const s = slide(S1, P.titulo, P.en);
+  [[P.col1, P.puntos1, D.decidir.img1, NAVY], [P.col2, P.puntos2, D.decidir.img2, BLUE]].forEach(([t, pts, im, col], k) => {
+    const x = 0.5 + k * 6.27, w = 6.06;
+    rr(s, x, 1.38, w, 5.0, k ? BLUETINT : LT);
+    label(s, t, x + 0.2, 1.5, w - 0.4, col);
+    bullets(s, pts, x + 0.2, 1.84, w - 0.4, 1.95, 12.5, 10.5, { gap: 4 });
+    const r = imagen(s, path.join(RAIZ, im.archivo), x + 0.2, 3.86, w - 0.4, 2.15);
+    tb(s, im.alt, { x: x + 0.2, y: 3.86 + r.h + 0.04, w: w - 0.4, h: 0.26, fontSize: 9.5, italic: true, color: GRAY, align: "center" });
+  });
+  rr(s, 0.5, 6.48, 12.33, 0.36, NAVY);
+  tb(s, P.codigos, { x: 0.7, y: 6.48, w: 12, h: 0.36, fontSize: 11, bold: true, color: WHITE, valign: "middle" });
+}
+
+// =============================================================== 10 · Integraciones
 {
   const P = T.integraciones;
   const s = slide(S1, P.titulo, P.en);
@@ -312,7 +328,7 @@ const S1 = "Producto"; pres.addSection({ title: S1 });
   fit(s, P.nota, 0.5, 6.42, 12.33, 0.42, 11, 10, { color: GRAY });
 }
 
-// =============================================================== 10 · Catálogo E2E y webinar
+// =============================================================== 11 · Catálogo E2E y webinar
 const S2 = "Casos E2E"; pres.addSection({ title: S2 });
 {
   const P = T.catalogo;
@@ -336,7 +352,7 @@ const S2 = "Casos E2E"; pres.addSection({ title: S2 });
   });
 }
 
-// =============================================================== 11–15 · Casos
+// =============================================================== 12–16 · Casos
 {
   const R = T.casos.rotulos;
   D.casos.forEach(c => {
@@ -366,7 +382,7 @@ const S2 = "Casos E2E"; pres.addSection({ title: S2 });
   });
 }
 
-// =============================================================== 16 · Calidad y confianza
+// =============================================================== 17 · Calidad y confianza
 const S3 = "Confianza y adopción"; pres.addSection({ title: S3 });
 {
   const P = T.calidad;
@@ -402,7 +418,7 @@ const S3 = "Confianza y adopción"; pres.addSection({ title: S3 });
   fit(s, P.nota, 0.5, 6.45, 12.33, 0.4, 10.5, 9.5, { color: GRAY });
 }
 
-// =============================================================== 17 · Cómo empezar
+// =============================================================== 18 · Cómo empezar
 {
   const P = T.empezar, E = D.empezar;
   const s = slide(S3, P.titulo, P.en);
@@ -422,7 +438,7 @@ const S3 = "Confianza y adopción"; pres.addSection({ title: S3 });
   });
 }
 
-// =============================================================== 18 · Glosario
+// =============================================================== 19 · Glosario
 {
   const P = T.glosario;
   const s = slide(S3, P.titulo, P.en);

@@ -1,7 +1,7 @@
 ---
 name: pm-adquisiciones
 description: "Adquisiciones y contratos: make-or-buy, estrategia, selección, contratistas, cierre. Usar: proveedor, licitación, RFP, contrato, procurement, vendor. No: costo del plan→pm-costos-presupuesto."
-version: 2.5.0
+version: 2.6.0
 author: pm-method
 license: MIT
 metadata:
@@ -43,7 +43,7 @@ metadata:
 ### A. Planificar
 1. **Hacer o comprar** (IP para todo el plan; SB para la etapa siguiente) con costo total y riesgos de ambas opciones (`references/guia.md` §2); decisión registrada por quien corresponde; paquetes comprados marcados como proveedor externo.
 2. **Estrategia** con `templates/estrategia-adquisiciones.md` → `02-planificacion/adquisiciones/estrategia-adquisiciones.md` (o `<id>-estrategia-adquisiciones.md`): contenido en §3, tipo de contrato según §4. Alertar ante precio fijo con alcance indefinido o reembolsable sin controles. Riesgos a `pm-riesgos`, hitos a `pm-cronograma-estimacion`, monto a `pm-costos-presupuesto`.
-3. **Método y criterios** con `templates/criterios-seleccion.md` → `<id>-criterios-seleccion.md`: método fijado antes de licitar, pesos 100 %, descriptores, eliminatorios (§5).
+3. **Método y criterios** con `templates/criterios-seleccion.md` → `<id>-criterios-seleccion.md`: método fijado antes de licitar, pesos 100 %, descriptores, eliminatorios (§5); la matriz ponderada se calcula con `decision.py matriz <ID> --tipo adquisicion` de `pm-direccion-decisiones` (sensibilidad de pesos, eliminatorios).
 4. **Documento de licitación** (RFI/RFP/RFQ según la pregunta) → `02-planificacion/adquisiciones/<id>-rfp.md` con el esqueleto de §5.
 5. **PUERTA HUMANA — estrategia y criterios**: se aprueban con el plan (`autorizar-proyecto` / `autorizar-etapa`); si la política exige aprobación propia, tras la decisión humana `estado.py --proyecto <dir> aprobar estrategia-adquisiciones --por "<rol: nombre>"`. La planilla de criterios se congela antes de recibir ofertas.
 

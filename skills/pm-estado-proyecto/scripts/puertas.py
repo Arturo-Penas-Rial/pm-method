@@ -325,7 +325,7 @@ def crear_lista(a, e):
           "## 3. Lista de control de la junta · Board checklist", "",
           "La confirma una persona con rol en la junta (`puertas.py confirmar … --por \"Rol: Nombre\"`). `[x]` cumple · `[!]` no cumple · `N/A` con motivo.", ""]
     L += [f"- [ ] V-{k:02d} {txt}" for k, txt in enumerate(LISTAS[a.tipo], 1)]
-    open(p, "w", encoding="utf-8").write("\n".join(L) + "\n")
+    E.escribir_atomico(p, "\n".join(L) + "\n")
     print(f"Lista creada: {os.path.relpath(p, a.proyecto)} ({len(cs)} hallazgos automáticos, {len(LISTAS[a.tipo])} ítems para la junta)")
 
 def confirmar(a, e):
@@ -349,7 +349,7 @@ def confirmar(a, e):
     t = re.sub(r'(?m)^confirmada_por:.*$', f'confirmada_por: "{a.por}"', t, count=1)
     t = re.sub(r"(?m)^estado:.*$", f"estado: {'con-incumplimientos' if no else 'confirmada'}", t, count=1)
     t = t.rstrip("\n") + f"\n\nConfirmada por {a.por} el {a.fecha or datetime.date.today().isoformat()}.\n"
-    open(p, "w", encoding="utf-8").write(t)
+    E.escribir_atomico(p, t)
     print(f"Lista {os.path.relpath(p, a.proyecto)} confirmada por {a.por}" + (f"; no cumple: {', '.join(no)}" if no else ""))
 
 def proxima_puerta(e):
@@ -408,6 +408,11 @@ def main():
     pb = sub.add_parser("preparacion-bmad"); pb.add_argument("--resultado", required=True, choices=["PASS", "CONCERNS", "FAIL"])
     pb.add_argument("--por", required=True); pb.add_argument("--fecha"); pb.add_argument("--nota", default="")
     a = ap.parse_args()
+    if a.cmd in ("verificar", "estado"): return ejecutar(a)
+    with E.bloqueo(a.proyecto):          # lista, confirmar y preparacion-bmad reescriben archivos de gobierno
+        ejecutar(a)
+
+def ejecutar(a):
     e = E.cargar_estado(a.proyecto)
     if a.cmd == "verificar":
         hs, li = evaluar_detalle(a.proyecto, e, a.tipo)
@@ -430,7 +435,7 @@ def main():
             "resultado": a.resultado, "fecha": a.fecha or datetime.date.today().isoformat(), "por": a.por, "nota": a.nota,
             "registrado": datetime.datetime.now().isoformat(timespec="seconds")}
         e["actualizado"] = datetime.date.today().isoformat(); e["version_estado"] = e.get("version_estado", 0) + 1
-        json.dump(e, open(os.path.join(a.proyecto, "estado.json"), "w", encoding="utf-8"), ensure_ascii=False, indent=2)
+        E.escribir_json(os.path.join(a.proyecto, "estado.json"), e)
         E.anotar_decision(a.proyecto, f"gate de preparación de BMAD: {a.resultado}" + (f" — {a.nota}" if a.nota else ""), a.por, nivel="gestor",
                           contexto=f"{e['fase']}/{e['proceso_actual']}", notas="bmad-sprint-planning readiness", fecha=a.fecha)
         print(f"Preparación BMAD registrada: {a.resultado}")

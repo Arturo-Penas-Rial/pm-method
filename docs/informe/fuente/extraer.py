@@ -233,13 +233,13 @@ IDK = leer("docs/INSTALACION-DOCKER.md")
 IWS = leer("docs/INSTALACION-WSL2.md")
 X["inst_caminos"] = tabla(INST, r"^1\. Requisitos previos")
 X["inst_comparacion"] = tabla(IDK, r"^0\.1 ")
-_ws = seccion(IWS, r"^11\. Qué se verificó")
+_ws = seccion(IWS, r"^12\. Qué se verificó")
 _wr = re.search(r"Verificación del (\d{4}-\d{2}-\d{2}) en una \*\*(.+?)\*\*", _ws.replace("\n", " "))
 _wn = re.search(r"\*\*Resultado: (\d+) de (\d+) comprobaciones", _ws)
-_ds = seccion(IDK, r"^13\. Qué se verificó")
+_ds = seccion(IDK, r"^14\. Qué se verificó")
 _dr = re.search(r"Verificación del (\d{4}-\d{2}-\d{2}) en (.+?) con \*\*(.+?)\*\*", _ds.replace("\n", " "))
 _dn = re.search(r"\*\*Resultado: (.+?)\*\*", _ds)
-assert _wr and _wn and _dr and _dn, "INSTALACION-WSL2 §11 o INSTALACION-DOCKER §13 sin el resultado esperado"
+assert _wr and _wn and _dr and _dn, "INSTALACION-WSL2 §12 o INSTALACION-DOCKER §14 sin el resultado esperado"
 X["inst_verif"] = {"wsl2_fecha": _wr.group(1), "wsl2_entorno": _wr.group(2), "wsl2_ok": int(_wn.group(1)), "wsl2_total": int(_wn.group(2)),
                    "docker_fecha": _dr.group(1), "docker_entorno": _dr.group(2) + " con " + _dr.group(3), "docker_resultado": _dn.group(1).rstrip(","),
                    "wsl2_pendiente": re.sub(r"\s+", " ", _ws.split("**Queda por comprobar en tu equipo [verificar]**")[1]).strip(),
@@ -411,10 +411,13 @@ X["guias_pasos"] = {}
 for g, ruta in GUIAS_E2E.items():
     txt = leer(ruta)
     X["guias_controles"][g] = tabla(txt, r"^Del uso único al control continuo")
-    # un paso partido en «6a» y «6b» (sin «6») cuenta una vez; «6b» junto a un «6» cuenta aparte (criterio de guias/README)
+    # un paso partido en «6a» y «6b» (sin «6») cuenta una vez; «6b» junto a un «6» cuenta aparte, salvo que docs/guias/README.md
+    # diga que ese paso va partido («el 7 en 7 y 7b»): el mismo criterio de la tabla de casos de guias/README
     _ps = re.findall(r"^#{2,3} Paso (\d+)([a-z]?) · ", txt, re.M)
     _base = {n for n, l in _ps if not l}
-    X["guias_pasos"][g] = len({n for n, l in _ps}) + sum(1 for n, l in _ps if l and n in _base)
+    _fila = re.search(r"\| \[" + g + r" · [^\n]*?\| (\d+ pasos[^|]*)\|", leer("docs/guias/README.md"))
+    _partidos = set(re.findall(r"el (\d+) en ", _fila.group(1))) if _fila else set()
+    X["guias_pasos"][g] = len({n for n, l in _ps}) + sum(1 for n, l in _ps if l and n in _base and n not in _partidos)
 X["g1_fuentes"] = tabla(leer(GUIAS_E2E["E2E-1"]), r"^Cobertura de fuentes")
 
 # Guías E2E: indicadores (imagen + lectura), clases y pasos con los códigos que muestran
@@ -503,6 +506,18 @@ for m in re.finditer(r"^### (.+)$", s25, re.M):
     X["chl25_grupos"].append({"t": m.group(1), "items": [re.sub(r"^- ", "", x).replace("\n  ", " ").strip() for x in re.split(r"\n(?=- )", b) if x.startswith("- ")]})
 assert X["chl25_cifras"].startswith("En cifras"), X["chl25_cifras"][:60]
 
+# CHANGELOG 2.6.0: lema, introducción, grupos y resultados (último ítem de «Pruebas»)
+s26 = seccion(CHL, r"^2\.6\.0")
+X["chl26_lema"] = re.search(r"2\.6\.0 · (\S+) — (.+)", CHL).group(2)
+X["chl26_fecha"] = re.search(r"2\.6\.0 · (\S+) — ", CHL).group(1)
+X["chl26_intro"] = s26.strip().split("\n\n")[0].replace("\n", " ")
+X["chl26_grupos"] = []
+for m in re.finditer(r"^### (.+)$", s26, re.M):
+    b = seccion(s26, "^" + re.escape(m.group(1)) + "$").strip()
+    X["chl26_grupos"].append({"t": m.group(1), "items": [re.sub(r"^- ", "", x).replace("\n  ", " ").strip() for x in re.split(r"\n(?=- )", b) if x.startswith("- ")]})
+X["chl26_cifras"] = [g for g in X["chl26_grupos"] if g["t"] == "Pruebas"][0]["items"][-1]
+assert X["chl26_cifras"].startswith("Resultados del"), X["chl26_cifras"][:60]
+
 # diagram-design y ShowAI: decisión (INTEGRACIONES §2), contrato (guía de pm-visuales §1.2) y reverificación (INTEGRACIONES §3.1)
 _dec = {f[0].split(" (")[0]: f for f in tabla(INTG, r"^2\. Decisiones de integración")["filas"]}
 _gv = leer("skills/pm-visuales/references/guia.md")
@@ -541,7 +556,7 @@ def _ev(g, patron, k=0):
     return _corto(hs[k])
 EV = {
     "opciones": _ev("E2E-1", r"riesgos\.py --proyecto gestion opciones$"),
-    "elegir": _ev("E2E-1", r"opciones --riesgo R-003 --elegir O4"),
+    "elegir": _ev("E2E-1", r"opciones --riesgo R-001 --elegir O2"),
     "radar_linea": _ev("E2E-3", r"radar --corte 2027-01-08 --linea"),
     "radar": _ev("E2E-3", r"radar --corte 2027-01-08$"),
     "radar_json": _ev("E2E-3", r"radar --corte 2027-01-08 --json"),
@@ -566,6 +581,32 @@ EV = {
 }
 assert "INTEGRIDAD: OK" in EV["aud_ok"] and "INTEGRIDAD: FALLA" in EV["aud_falla"] and "DIFIERE" in EV["verificar"], "evidencia 2.4: bloques inesperados"
 X["ev24"] = EV
+# Salidas reales de la evidencia para las capacidades de 2.6: decisiones, RACI ↔ autoridad, vigencia, bitácora y propuestas,
+# decisiones ↔ mapas y pm-kb (los bloques de pm-kb están en la evidencia solo si la corrida de referencia tenía pm-kb)
+EV26 = {
+    "dec_markdown": _ev("E2E-1", r"matriz R-003 --markdown$"),
+    "dec_elegir": _ev("E2E-1", r"matriz R-003 --elegir O4"),
+    "dec_expediente": _ev("E2E-1", r"expediente --tipo riesgo --ids R-003 "),
+    "dec_pregunta": _ev("E2E-2", r"pregunta C-002$"),
+    "dec_validar": _ev("E2E-2", r'^\$ echo .\{"respuesta": "O3"'),
+    "raci_gestor": _ev("E2E-3", r'matriz kr-b02 --elegir O1 --por "Gestor'),
+    "raci_ejecutiva": _ev("E2E-3", r'matriz kr-b02 --elegir O1 --por "Ejecutiva'),
+    "vig_riesgo": _ev("E2E-1", r'vigentes --tema "risk budget"'),
+    "vig_entrega": _ev("E2E-5", r'vigentes --tema "delivery approach"'),
+    "prop_proponer": _ev("E2E-1", r"proponer riesgos R-005"),
+    "prop_lista": _ev("E2E-1", r"registro\.py --proyecto gestion propuestas$"),
+    "prop_aprobar": _ev("E2E-1", r"aprobar P-001"),
+    "historial": _ev("E2E-1", r"historial R-005"),
+    "historial_d013": _ev("E2E-4", r"historial D-013"),
+    "hc_matriz": _ev("E2E-5", r"matriz hacer-comprar-c2$"),
+    "hc_elegir": _ev("E2E-5", r"matriz hacer-comprar-c2 --elegir"),
+    "kb_buscar": _ev("E2E-1", r'pm-kb buscar "¿qué pasó con el proveedor de SMS\?"'),
+    "kb_versiones": _ev("E2E-1", r"pm-kb versiones business-case"),
+    "kb_cambios": _ev("E2E-1", r"pm-kb cambios business-case"),
+    "kb_aprobado": _ev("E2E-4", r"pm-kb buscar .* --aprobado"),
+}
+assert "O4" in EV26["dec_elegir"] and "P-001" in EV26["prop_aprobar"], "evidencia 2.6: bloques inesperados"
+X["ev26"] = EV26
 # E2E-1, paso 7: presupuesto de riesgo y reserva de gestión («Qué hace el sistema», tal cual)
 _p7 = seccion(leer(GUIAS_E2E["E2E-1"]), r"^Paso 7 · ")
 X["g1_presupuesto_md"] = re.search(r"\*\*Qué hace el sistema:\*\* (.*?)(?=\n\n)", _p7, re.S).group(1).replace("\n", " ")
@@ -592,7 +633,7 @@ for sev in ("Media", "Baja", "Informativa"):
 X["seg_bien"] = [re.sub(r"^- ", "", b).replace("\n  ", " ").strip() for b in re.split(r"\n(?=- )", seccion(SEG, r"^7\. Lo que ya está bien").strip())]
 X["seg_practicas"] = [re.sub(r"^\d+\.\s*", "", b).replace("\n   ", " ").strip() for b in re.split(r"\n(?=\d+\. )", seccion(SEG, r"^8\. Buenas prácticas").strip())]
 X["seg_repetir"] = re.search(r"```bash\n(.*?)```", seccion(SEG, r"^10\. Cómo repetir"), re.S).group(1).rstrip()
-assert len(X["seg_hallazgos"]) == 17, len(X["seg_hallazgos"])
+assert len(X["seg_hallazgos"]) == 19, len(X["seg_hallazgos"])
 
 # Docker (docs/DOCKER.md)
 DOC = leer("docs/DOCKER.md")
@@ -679,7 +720,7 @@ assert CIF["validar_skills"] == CIF["skills"] and CIF["validar_invocables"] == C
 assert CIF["guias_evidencia"] if False else int(X["guias_evidencia"][1]) == CIF["imagenes_guias"], ("guías: README dice", X["guias_evidencia"], "las guías citan", CIF["imagenes_guias"])
 _rr = re.search(r"Resultado al (\d{4}-\d{2}-\d{2}) \(versión ([\d.]+), casos ([^)]+)\): \*\*(\d+) OK · 0 FALLO\*\* con Python ([\d.]+); con Python 3\.9, \*\*(\d+) OK · 0 FALLO\*\*", X["pru_regresion_res_md"])
 _ri = re.search(r"\*\*(\d+) OK · 0 FALLO en (\d+) eslabones\*\*", X["pru_integ_res"])
-_rm = re.search(r"`validar_mermaid\.py --render`:\s+(?:\*\*)?(\d+)(?:\*\*)? bloques, 0 errores", s25)
+_rm = re.search(r"(\d+) bloques Mermaid sin\s+errores", s26)
 # pasos por guía: el conteo de encabezados coincide con la tabla de docs/guias/README.md («15 pasos (el 6 en 6a y 6b)»)
 _pr = {re.search(r"E2E-\d", f[0]).group(): int(re.match(r"(\d+) pasos", f[4]).group(1)) for f in X["guias"]["filas"]}
 assert _pr == X["guias_pasos"], ("pasos: guias/README.md dice", _pr, "los encabezados de las guías dan", X["guias_pasos"])
@@ -901,6 +942,7 @@ diagramas_repo = [
     ("sincronizacion-bmad", "Sincronización con BMAD: lectura, línea base, verificación, cambio y traspaso"),
     ("ciclo-prince2-bmad", "Ciclo de vida integrado: PRINCE2 (gobierno), BMAD (especificación) y puertas de la junta"),
     ("verificacion-puertas", "Verificación de una puerta en tres capas y registro de la decisión"),
+    ("pm-kb", "pm-kb: indexador, base PostgreSQL, búsqueda citada, web y MCP de solo lectura, en los dos despliegues (WSL2 y Docker)"),
 ]
 for clave, titulo in diagramas_repo:
     origen_svg = BASE / "docs/diagramas" / f"{clave}.svg"
@@ -919,6 +961,16 @@ if not (DG / "repo-ciclo-prince2-bmad-lr.mmd").exists() or (DG / "repo-ciclo-pri
 _png = DG / "repo-ciclo-prince2-bmad-lr.png"
 if not _png.exists() or _png.stat().st_mtime < (DG / "repo-ciclo-prince2-bmad-lr.mmd").stat().st_mtime:
     subprocess.run([MMDC] + (["-p", PUPPETEER] if PUPPETEER else []) + ["-i", str(DG / "repo-ciclo-prince2-bmad-lr.mmd"), "-o", str(_png), "-w", "2400", "-b", "white"], check=True, capture_output=True)
+# Variante horizontal del diagrama de pm-kb para diapositivas 16:9 (mismo contenido; solo cambia la orientación). La fuente
+# se escribe en una carpeta temporal para no sumar un bloque Mermaid al repositorio; queda solo el PNG (excluido por git).
+import tempfile
+_kbsrc = BASE / "docs/diagramas/pm-kb.mmd"
+_png = DG / "repo-pm-kb-lr.png"
+if not _png.exists() or _png.stat().st_mtime < _kbsrc.stat().st_mtime:
+    with tempfile.TemporaryDirectory() as _tmp:
+        _mmd = pathlib.Path(_tmp) / "pm-kb-lr.mmd"
+        _mmd.write_text(_kbsrc.read_text(encoding="utf-8").replace("flowchart TB", "flowchart LR", 1), encoding="utf-8")
+        subprocess.run([MMDC] + (["-p", PUPPETEER] if PUPPETEER else []) + ["-i", str(_mmd), "-o", str(_png), "-w", "2400", "-b", "white"], check=True, capture_output=True)
 import columna
 columna.generar(DG)
 diagramas.append({"id": "col-vertebral", "titulo": "Columna vertebral: leer, fijar, detectar y traspasar (síntesis del informe)", "origen": "sincronizacion.md §2–§8"})

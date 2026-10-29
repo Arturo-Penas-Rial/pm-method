@@ -43,10 +43,11 @@
         ["Documentos sueltos: un plan por acá, un informe por allá, sin etapas", "Un recorrido claro por etapas, y cada etapa termina en una decisión explícita"],
         ["La IA «aprueba» cosas que le corresponden a una persona", "Solo una persona aprueba; el sistema lo hace cumplir y anota quién, cuándo y por qué"],
         ["Los requisitos del producto y el plan del proyecto se desincronizan", "Los requisitos se leen de una sola fuente, sin copiarlos; cada cambio queda a la vista"],
-        ["Controles que se hacen a mano, tarde o nunca", "Controles automáticos en cada sesión que avisan antes de que el problema llegue a la reunión"]
+        ["Controles que se hacen a mano, tarde o nunca", "Controles automáticos en cada sesión que avisan antes de que el problema llegue a la reunión"],
+        ["Se decide a ojo y después nadie encuentra en qué se basó la decisión", "Cada decisión, con su evidencia y sus opciones comparadas; y búsqueda en el proyecto con la fuente citada"]
       ],
       "lema": "El asistente prepara, la persona decide, el sistema verifica y registra.",
-      "nota": "Hoy cualquiera puede pedirle a una IA un plan de proyecto, pero ese plan queda suelto: no se sabe si alguien lo aprobó ni si sigue vigente. pm-method agrega lo que falta: etapas, decisiones explícitas de una persona y controles que corren solos. Conviene leer cada fila de izquierda a derecha: problema y respuesta."
+      "nota": "Hoy cualquiera puede pedirle a una IA un plan de proyecto, pero ese plan queda suelto: no se sabe si alguien lo aprobó ni si sigue vigente. pm-method agrega lo que falta: etapas, decisiones explícitas de una persona y controles que corren solos. Conviene leer cada fila de izquierda a derecha: problema y respuesta. La última fila trata las decisiones: antes de elegir entre alternativas, el sistema reúne la evidencia y compara las opciones con criterios explícitos; y, si se instala el buscador opcional, cualquier pregunta sobre el proyecto se responde citando el documento de donde sale."
     },
     {
       "tipo": "flujo_siglas",

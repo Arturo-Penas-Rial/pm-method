@@ -17,15 +17,15 @@
   "sistema_agentico": {
     "agente": [
       "Recalcula la trazabilidad requisito → historia → paquete en cada sincronización",
-      "Calcula camino crítico, reserva, capacidad del release e impacto de cada cambio",
+      "Calcula camino crítico, capacidad e impacto, y la matriz de cada decisión",
       "Rechaza registrar una aprobación de quien no tiene autoridad para darla"
     ],
     "persona": [
       "El product owner decide los intercambios dentro del release",
       "La autoridad de cambio decide dentro de su límite; lo que lo excede va a la junta",
-      "La junta aprueba el plan de excepción"
+      "La junta elige entre rechazar, diferir o pedir un plan de excepción"
     ],
-    "control": "El agente mide e informa quién tiene que decidir; no aprueba cambios. Cada decisión queda registrada con su autor y su motivo."
+    "control": "El agente mide, compara e informa quién decide; no aprueba cambios. Cada decisión queda registrada con su autor, su motivo y su matriz."
   },
   "beneficios": {
     "para_vos": [
@@ -44,7 +44,7 @@
         "Alcance por productos, WBS y trazabilidad a BMAD",
         "Tres valores, camino crítico y reserva de cronograma",
         "MoSCoW, capacidad del release y personas de usuario",
-        "Presupuesto, business case, tolerancias y autoridad"
+        "Presupuesto, business case, autoridad y decisión del R1"
       ]
     },
     {
@@ -53,7 +53,7 @@
         "Intercambio del product owner sin solicitud de cambio",
         "Cambio de alcance con análisis de impacto y decisión",
         "Nuevas líneas base, trazabilidad y valor ganado ágil",
-        "Excepción: informe, plan y puerta de la junta"
+        "Excepción: matriz para la junta, informe, plan y puerta"
       ]
     }
   ],

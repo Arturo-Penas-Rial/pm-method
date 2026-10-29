@@ -11,8 +11,9 @@ flowchart LR
     B[("BMAD<br/>especificación<br/>solo lectura")]
     M["MCP y capa de canales<br/>trackers · transcripciones<br/>correo · Slack · Teams · OKR"]
     P[("Carpeta del proyecto<br/>estado.json · 14 registros CSV<br/>artefactos Markdown")]
+    K["pm-kb (opcional)<br/>búsqueda citada · web<br/>MCP de solo lectura"]
     H["3 hooks<br/>guardian · idioma · inicio"]
-    C["sanidad.py<br/>93 controles"]
+    C["sanidad.py<br/>101 controles"]
     U <--> O
     O --> D
     O --> F
@@ -23,9 +24,11 @@ flowchart LR
     S -->|"estado.py · registro.py"| P
     H -.->|"bloquea ediciones directas"| P
     C -.->|"verifica en cada sesión y puerta"| P
+    K -.->|"lee e indexa"| P
+    O -.->|"MCP"| K
     classDef gente fill:#FBF1E6,stroke:#B5651D,color:#272425
     classDef dato fill:#E9F1F8,stroke:#002855,color:#272425
     classDef guarda fill:#F4F6F8,stroke:#696969,color:#272425,stroke-dasharray:4 3
     class U gente
     class P,B dato
-    class H,C guarda
+    class H,C,K guarda

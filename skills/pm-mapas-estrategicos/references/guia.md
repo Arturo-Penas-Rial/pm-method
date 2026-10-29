@@ -65,13 +65,24 @@ Construir algo que el mercado ya ofrece como producto o commodity exige una deci
 | Lectura | Qué buscar | A dónde va |
 |---|---|---|
 | Enfoque de entrega | génesis y a medida → adaptativo; producto → híbrido; commodity → predictivo o compra; lo que depende de un componente con inercia → predictivo con hitos de validación | contraste con los nueve criterios (`pm-mandato-y-brief`); la decisión se toma con los criterios y se registra |
-| Hacer o comprar | componentes en producto o commodity marcados construir; componentes a medida que podrían comprarse | `pm-adquisiciones` (análisis con costos totales y riesgos) |
+| Hacer o comprar | componentes en producto o commodity marcados construir; componentes a medida que podrían comprarse | `pm-adquisiciones` (análisis con costos totales y riesgos); para comparar construir, comprar y tercerizar, la matriz de `pm-direccion-decisiones` con `--criterios hacer-o-comprar` |
 | Riesgos | inercias, dependencias de un único proveedor, componentes en génesis con contrato a precio fijo o enfoque predictivo | `pm-riesgos` (causa → evento → efecto, propietario) |
 | Opciones del business case | qué cambia entre opciones: qué se construye en cada una y qué se compra | `pm-caso-de-negocio` (opciones 0/1/2, VAN) |
 | Requisitos de calidad | componentes muy visibles para el usuario: expectativas de calidad del cliente | descripción del producto del proyecto (`pm-planificacion-por-productos`) |
 
 `mapas.py render` agrega una columna "Lectura sugerida" con esta heurística; es un punto de partida para la conversación,
 no una regla de PRINCE2 ni un sustituto de los criterios del enfoque.
+
+**Decisiones que leen el mapa** (`pm-direccion-decisiones`, guía §13.11 de esa skill). Una hoja de decisión nombra un
+componente o un paso como `<mapa>:<id>` (`entregables:C2`): `decision.py expediente` trae, con su cita `archivo#id`, lo
+que el mapa dice de él (etapa, evolución, decisión, inercia, evidencia, lo que depende de él y el movimiento previsto;
+o emoción con su fuente, dolor, clase Kano, KPI y persona), y también los componentes y pasos que citan en `refs` un id
+de la decisión. Es contexto, no criterio: la evolución describe el componente, no las opciones. Para el hacer o comprar,
+`decision.py matriz <ID> --proponer --tipo adquisicion --criterios hacer-o-comprar` usa seis criterios (diferenciación,
+costo total, tiempo hasta disponible, dependencia del proveedor, capacidad interna y riesgo de construir algo que va a
+volverse commodity). Al elegir (`matriz <ID> --elegir … --por …`), la decisión registrada queda citada en el elemento
+nombrado con `mapas.py vincular` (cierra MAP-01 o, en un paso, MAP-03); la columna `decision` del componente no cambia:
+si la elección la contradice, se corrige en el JSON con la persona y se regenera la vista.
 
 ## §4. Recorrido del cliente (customer journey map)
 Describe cómo una persona concreta intenta lograr algo, paso a paso, y qué siente en cada paso.
@@ -144,7 +155,7 @@ superpuestos (distancia < 0,06), dolor con emoción positiva.
 | Código | Qué detecta | Cómo se corrige |
 |---|---|---|
 | MAP-00 | mapa ilegible o con errores de validación | `mapas.py … validar` |
-| MAP-01 | componente en producto o commodity marcado `construir` sin decisión `D-…` citada | registrar la decisión o cambiar a comprar o tercerizar |
+| MAP-01 | componente en producto o commodity marcado `construir` sin decisión `D-…` citada | registrar la decisión (con la matriz de hacer o comprar queda citada al elegir) o cambiar a comprar o tercerizar |
 | MAP-02 | componente con inercia sin riesgo abierto `R-…` citado | registrar el riesgo (pm-riesgos) y vincularlo |
 | MAP-03 | dolor sin tratamiento | requisito, historia, riesgo, issue, cambio, decisión, supuesto o revisión de calidad, y `vincular` |
 | MAP-04 | posición o emoción sin evidencia | agregar la fuente o declararla como supuesto |

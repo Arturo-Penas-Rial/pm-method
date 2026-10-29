@@ -111,7 +111,7 @@ def obtener(p, forzar=False):
         if idx.get("esquema") == ESQUEMA and idx.get("_huella") == h: return idx, False
     idx = bmad_mod().construir_indice(p, e) if e.get("integraciones", {}).get("especificacion") == "bmad" else indice_nativo(p)
     idx["_huella"] = h
-    os.makedirs(os.path.dirname(ri), exist_ok=True); json.dump(idx, open(ri, "w", encoding="utf-8"), ensure_ascii=False, indent=2)
+    os.makedirs(os.path.dirname(ri), exist_ok=True); E.escribir_json(ri, idx)   # atómica: otra consulta simultánea no lee un índice a medias
     return idx, True
 
 def mostrar(x, como_json):

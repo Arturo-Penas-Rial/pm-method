@@ -1,7 +1,7 @@
 ---
 name: pm-okr
 description: "OKR del proyecto ligados a beneficios (B-n) y métricas (SM-n): tipos de KR, check-ins, salud, cascada, Tability o Perdoo. Usar: OKR, key results, check-in, puntuar OKR. No: beneficios o business case→pm-caso-de-negocio."
-version: 2.5.0
+version: 2.6.0
 author: pm-method
 license: MIT
 metadata:
@@ -50,7 +50,7 @@ Script: `python3 ${CLAUDE_SKILL_DIR}/../pm-okr/scripts/okr.py <dir>/00-direccion
 5. **No duplicar**: medida, línea base y fecha del beneficio viven en el business case; si el KR replica el mismo indicador, cópiese solo el valor de referencia y anótese la fuente en `notas` (§3).
 6. **Narrativa**: completar `templates/okr.md` → `00-direccion/okr.md` (contexto, cadena OBJ→O→KR→B/SM, cadencia de revisión) y registrar `estado.py artefacto okr --ruta 00-direccion/okr.md --estado en-revision`.
 7. **Check-in** periódico del responsable: `okr.py <csv> --checkin KR-n.m --valor <v> --confianza <1–10> --nota …` (solo se agrega; el historial alimenta la tendencia).
-8. **Puntuar** en cada corte: `okr.py <csv> [--umbrales 0.7,0.4] [--corte AAAA-MM-DD] --markdown <dir>/03-control/reportes/<fecha>-okr.md`. Umbrales 0,7/0,4 (aspiracional) y 1,0/0,7 (comprometido): convención de la práctica OKR, **no** de PRINCE2 ni del PMBOK; declararlos. La **salud** compara la puntuación con el avance esperado entre `fecha_inicio` y `fecha_meta` (§4).
+8. **Puntuar** en cada corte: `okr.py <csv> [--umbrales 0.7,0.4] [--corte AAAA-MM-DD] --markdown <dir>/03-control/reportes/<fecha>-okr.md`. Umbrales 0,7/0,4 (aspiracional) y 1,0/0,7 (comprometido): convención de la práctica OKR, **no** de PRINCE2 ni del PMBOK; declararlos. Elegir entre alternativas de OKR: `decision.py --tipo okr` de `pm-direccion-decisiones`. La **salud** compara la puntuación con el avance esperado entre `fecha_inicio` y `fecha_meta` (§4).
 9. **Corregir avisos** del script (KR sin vínculo o sin línea base, verbo de actividad, responsable fuera del maestro, vencidos, más de cinco KR, todo en 1,0 al cierre): se resuelven con el responsable, no se ocultan.
 10. **Revisar en los límites de etapa** (SB) y en las revisiones de beneficios posteriores al cierre (§5): la tabla puntuada se adjunta al informe de fin de etapa o al plan de revisión de beneficios. Un KR rojo que amenaza un beneficio se traslada como riesgo o issue y, si supera la tolerancia de beneficios, como excepción.
 11. **Tability o Perdoo (opcional)**: `ref_externa` en cada KR; `okr.py <csv> --propuesta-sync tability|perdoo` lista los check-ins sin publicar con la herramienta MCP; publicar solo tras vista previa y confirmación y marcar con `--marcar-publicado KR@fecha --destino … --ref …`. Lectura: instantánea en `03-control/fuentes/` → check-in con `--fuente` (§6). Comunicar el resultado a los interesados con `envios.py nuevo --proposito okr`.

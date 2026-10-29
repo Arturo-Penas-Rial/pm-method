@@ -8,7 +8,7 @@ X = D["x"]
 Mt = D["meta"]
 e = html.escape
 LOGO = ("data:image/png;base64," + base64.b64encode(open("logo.png", "rb").read()).decode()) if os.path.exists("logo.png") else ""
-VER = Mt["version"]                                   # "v2.5"
+VER = Mt["version"]                                   # "v2.6"
 SALIDA = f"salida-{VER}/informe-2-ecosistema-pm-method-{VER}.html"
 pathlib.Path(f"salida-{VER}").mkdir(exist_ok=True)
 
@@ -217,6 +217,7 @@ pre{font-family:"Courier New",monospace;font-size:.82rem;background:var(--cod);c
 .logo-ieee.pie{width:120px;height:44px;margin:0}
 .cover .tag{display:inline-block;background:#00629b;padding:.3em .8em;border-radius:8px;font-weight:500;font-size:.85rem;margin:0 0 18px}
 .cover p{max-width:900px;font-size:1.05rem;opacity:.92} .cover .meta{font-size:.9rem;opacity:.85;margin-top:24px;display:flex;gap:28px;flex-wrap:wrap}
+.cover .meta a{color:inherit;text-decoration:underline;text-underline-offset:3px}
 main{max-width:1200px;margin:0 auto;padding:36px 7vw 60px} section{margin:48px 0}
 .aud{margin:0 0 1em;font-size:.85rem;color:var(--orange);font-weight:600;text-transform:uppercase;letter-spacing:.04em}
 .intro{font-size:1.02rem;max-width:980px} .lema{font-size:1.25rem;font-weight:600;color:var(--head);margin:.2em 0 .8em}
@@ -285,7 +286,7 @@ page = f"""<!DOCTYPE html>
   <div><span class="tag">{e(Mt['tag'])} · {e(Mt['version'])}</span></div>
   <h1>{title_html}</h1>
   <p>{e(Mt['subtitulo'])}</p>
-  <div class="meta"><span>{e(Mt['autor'])}</span><span>{e(Mt['fecha'])}</span></div>
+  <div class="meta"><span>{('<a href="' + e(Mt['autor_url']) + '" target="_blank" rel="noopener">' + e(Mt['autor']) + '</a>') if Mt.get('autor_url') else e(Mt['autor'])}</span><span>{e(Mt['fecha'])}</span></div>
 </header>
 <main>
 <nav class="toc">{toc}</nav>

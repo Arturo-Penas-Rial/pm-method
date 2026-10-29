@@ -3,8 +3,9 @@
 ## Cómo funciona este ejercicio
 
 - **Para qué sirve:** llevar el caso a un proyecto tuyo. Vas a escribir las reglas de riesgo que fija la junta,
-  comparar las opciones de respuesta de tu riesgo más alto, escribir su plan de contingencia, calcular un presupuesto de
-  riesgo y revisar si tu registro sigue vivo.
+  comparar las opciones de respuesta de tu riesgo más alto (por dinero y, si no alcanza, por los otros criterios), decir
+  quién decide y a quién avisar, escribir su plan de contingencia, calcular un presupuesto de riesgo y revisar si tu
+  registro sigue vivo.
 - **Cuándo se hace:** la parte A, al cierre de la clase 1, después de la demostración (10 minutos); la parte B, al
   cierre de la clase 2, después de la demostración (10 minutos). Si lo hacés por tu cuenta, calculá 25 minutos. En la
   clase, A1 a A3 son el núcleo; si no llegás, A4 se completa después.
@@ -45,6 +46,9 @@ lleva semanas sin hacerse y un disparador ya se alcanzó.
 | contingencia | acuerdo marco con un proveedor alternativo; activarlo si hay dos caídas en un mes | 0 | 3 × 3 | 8.000 | 12.000 | — |
 | aceptar | sin acciones | 0 | 3 × 5 | 25.000 | — | — |
 
+- Para A2b: los otros criterios de R-003 (1 a 5): apetito, evitar 3, reducir 5, transferir 2, contingencia 3, aceptar
+  1; factibilidad, 3, 3, 4, 4 y 5. RACI del paquete 3.1 Acceso seguro: A Diego Ferreira, R Lucía Benítez, C Unidad de
+  cumplimiento y Área de TI, I Laura Méndez y Sindicato de operadores.
 - Para A4: respuestas elegidas con costo USD 7.300 en total; EMV residual de las amenazas USD 32.500 (con la
   contingencia de R-003 ponderada); provisión para riesgos no identificados: 5 % del costo de la WBS (124.000), que va
   a la reserva de gestión.
@@ -88,6 +92,11 @@ lleva semanas sin hacerse y un disparador ya se alcanzó.
 - **Presupuesto de riesgo:** costo de las respuestas + EMV residual de las amenazas identificadas. Lo fija la
   ejecutiva. La provisión para riesgos no identificados va a la **reserva de gestión**, que solo libera la junta; el
   presupuesto de riesgo financia las respuestas y contingencias de los riesgos identificados.
+- **Matriz multicriterio:** cada opción se puntúa en varios criterios con pesos fijados **antes** de puntuar; un
+  criterio eliminatorio (en el caso, apetito 1) saca la opción. La **sensibilidad** dice cuánto tendría que cambiar un
+  peso para que gane otra: si alcanza con poco, la recomendación es frágil y elegir exige motivo.
+- **RACI:** por elemento, un solo A (rinde cuentas), R (lo hace), C (se consulta antes) e I (se informa después). Refleja
+  quién decide según la junta; no lo reemplaza.
 - **Fecha de próxima revisión:** cuándo se vuelve a mirar cada riesgo; en pm-method, la sanidad avisa REG-09 cuando un
   riesgo abierto la pasa y CAM-03 cuando la reserva consumida llega al 80 %. El **radar** ordena lo pendiente en
   decidir, escalar, desbloquear y vigilar.
@@ -117,6 +126,16 @@ Al menos tres opciones además de aceptar. Valor neto = EMV antes − EMV residu
 
 Elegida: ……… ¿Es la de mayor valor neto? Si no, motivo: ………………………………………………
 
+**A2b. Si el valor neto no alcanza** (si te queda tiempo). Para las dos mejores opciones de A2:
+
+| Opción | Valor neto | Apetito (1–5; 1 la elimina) | Factibilidad (1–5) | ¿Cambia la elección? ¿Por qué criterio? |
+|---|---|---|---|---|
+| | | | | |
+| | | | | |
+
+Decide: ……………… ¿Es el A del elemento afectado en tu RACI, o una autoridad superior? ……… Consultar antes (C): ………………
+Informar después (I): ………………
+
 **A3. Plan de contingencia** (de la opción contingencia de A2, aunque no la elijas).
 
 | Disparador medible | Alerta temprana y quién la vigila | Acciones al disparo (quién, plazo) | Monto y fuente | Quién lo autoriza | Si falla |
@@ -136,6 +155,7 @@ Elegida: ……… ¿Es la de mayor valor neto? Si no, motivo: ……………�
 | Reglas antes del taller | Los cuatro elementos de A1 tienen valor y alguien con autoridad los aprobó. |
 | Opciones comparadas | A2 tiene al menos tres opciones además de aceptar, cada una con costo y residual, y el riesgo secundario descontado donde existe. |
 | Elección justificada | La elegida es la de mayor valor neto bajo la línea, o tiene un motivo escrito. |
+| Decisión con dueño | Quien decide coincide con el A de la RACI o con una autoridad superior, y figuran a quién consultar y a quién informar (A2b). |
 | Contingencia activable | A3 tiene un disparador que se puede observar (no "si las cosas empeoran"), un monto con fuente y una persona que la autoriza. |
 | Presupuesto con fórmula | A4 suma los tres componentes; no es un porcentaje a ojo. |
 
@@ -182,8 +202,12 @@ dirige ………………, empezamos por ……………………, y avisamos a 
   presupuesto de riesgo, concentrar la autoridad en la ejecutiva o pedir un plan de excepción? En el caso la ejecutiva
   eligió la segunda y dejó intacta la reserva de gestión, que es de la junta (guía, paso 13).
 - En el caso, la junta eligió para R-007 una opción con valor neto negativo por el apetito bajo en cumplimiento (guía,
-  paso 10). ¿En qué riesgo de tu proyecto pesaría más el apetito que el valor neto?
+  paso 10); la matriz habría recomendado evitar, y reducir ganaba recién con el apetito al doble. ¿En qué riesgo de tu
+  proyecto pesaría más el apetito que el valor neto, y lo escribirías como peso antes de puntuar o como motivo después?
 - ¿Qué urgencia de tu proyecto desplazaría hoy la revisión de riesgos, y quién se daría cuenta?
+- Si la junta preguntara hoy por qué no se aprobó un gasto de hace seis meses, ¿cuánto tardarías en encontrar la fila,
+  quién lo decidió y con qué motivo? En el caso, con pm-kb (opcional), la respuesta sale del proyecto con su cita: C-003,
+  rechazado por la autoridad de cambio porque no responde a ningún riesgo (guía, paso 16).
 
 ---
 
@@ -217,6 +241,18 @@ Elegida: contingencia, la recomendada; la registra Diego Ferreira, propietario, 
 La respuesta más habitual para un proveedor que falla, el SLA con penalidad, es la de menor valor neto de las cuatro:
 la penalidad no cubre el atraso.
 
+**A2b.** Matriz de R-003 con los pesos de la plantilla, confirmados por la ejecutiva antes de puntuar (paso 6a):
+
+| Opción | Valor neto | Apetito | Factibilidad | Puntaje de la matriz |
+|---|---|---|---|---|
+| contingencia ★ | 2.500 | 3 | 4 | 82,5 |
+| reducir | 1.000 | 5 | 3 | 55,4 |
+
+No cambia la elección: reducir gana recién si el peso del apetito pasa de 25 a 51,4. Evitar y transferir quedan
+dominadas y aceptar, eliminada por el apetito. Decide Diego Ferreira, que es el A del paquete 3.1; se consultó a
+cumplimiento y a TI (C) el 3/11 y quedan dos borradores de aviso para Laura Méndez y el sindicato (I), sin enviar (paso
+6a).
+
 **A3.** Plan de contingencia de R-003, aprobado por su propietario el 2026-11-04 (paso 6b):
 
 | Disparador | Alerta temprana | Acciones | Monto y fuente | Autoriza | Si falla |
@@ -248,7 +284,8 @@ riesgo; aparte, 6.200 de provisión (5 % de 124.000) como reserva de gestión. L
 Consumido = 7.300 + 8.000 + 10.000 + 12.000 (C-001, C-002, C-004 y C-005; pasos 7, 9, 10 y 13). La activación del plan
 de R-003 lleva la reserva al 94 %; la sanidad pasa CAM-03 a aviso y la ejecutiva decide mantener el presupuesto,
 suspender la delegación de USD 5.000 al gestor hasta el límite de etapa y llevar a la junta lo que supere el remanente
-(D-019, paso 13). La reserva de gestión (6.200) sigue sin uso: la libera solo la junta.
+(D-018, paso 13). La reserva de gestión (6.200) sigue sin uso: la libera solo la junta. En el límite de etapa esa
+decisión vence y la ejecutiva la reemplaza: desde la etapa 3 se restituye la delegación al gestor (D-020, paso 14).
 
 **B3.** "Revisamos el registro cada 14 días en la revisión del sprint, lo dirige el gestor, Martín Suárez, empezamos por
 los REG-09 de la sanidad y el radar del día, y avisamos a la junta cuando la reserva llega al 80 %" (pasos 1, 3, 12 y

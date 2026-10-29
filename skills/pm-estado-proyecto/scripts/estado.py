@@ -40,7 +40,7 @@ def guardar(p, e):
     e["actualizado"] = datetime.date.today().isoformat(); e["version_estado"] = e.get("version_estado", 0) + 1
     if e.get("version_paquete") != E.VERSION_PAQUETE:     # el estado ya quedó migrado al esquema vigente al leerse
         e["version_paquete_anterior"] = e.get("version_paquete", ""); e["version_paquete"] = E.VERSION_PAQUETE
-    json.dump(e, open(os.path.join(p, "estado.json"), "w", encoding="utf-8"), ensure_ascii=False, indent=2)
+    E.escribir_json(os.path.join(p, "estado.json"), e)    # atómica; el llamador tiene el bloqueo del proyecto
 
 def kv(lst):
     d = {}
@@ -1365,7 +1365,15 @@ def main():
     cc.add_argument("--fecha"); cc.add_argument("--por", default="", help="quién verificó el cumplimiento (Rol: Nombre)"); cc.add_argument("--nota", default="")
     le = sub.add_parser("limite-etapa"); le.add_argument("--excepcion", default="")
     ci = sub.add_parser("cierre"); ci.add_argument("--prematuro", action="store_true")
-    a = ap.parse_args(); e = E.cargar_estado(a.proyecto); L = e.get("idioma", "es"); t = lambda es, en: E.t(L, es, en)
+    a = ap.parse_args()
+    if a.cmd in SOLO_LECTURA or (a.cmd == "periodo" and a.tablero is None): return ejecutar(a)
+    with E.bloqueo(a.proyecto):          # lectura, cambio y escritura de estado.json (y decisiones.csv) sin pisar a otro proceso
+        ejecutar(a)
+
+SOLO_LECTURA = ("ver", "siguiente", "contexto", "radar", "briefing", "productos", "resumen")
+
+def ejecutar(a):
+    e = E.cargar_estado(a.proyecto); L = e.get("idioma", "es"); t = lambda es, en: E.t(L, es, en)
 
     if a.cmd == "ver": print(json.dumps(e, ensure_ascii=False, indent=2)); return
     if a.cmd == "siguiente": print(siguiente(e)); return

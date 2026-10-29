@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>pm-kb · ingresar</title>
+<link rel="stylesheet" href="/estatico/estilo.css">
+</head>
+<body class="ingreso">
+<main class="tarjeta-ingreso">
+  <h1>pm-kb</h1>
+  <p>Conocimiento de los proyectos con la evidencia citada. Ingresá con tu token personal.</p>
+  <form method="post" action="/ingresar">
+    <label for="token">Token</label>
+    <input id="token" name="token" type="password" autocomplete="current-password" required placeholder="pmkb_…">
+    <button type="submit">Ingresar</button>
+  </form>
+  <p class="nota">¿No tenés token? Lo crea quien administra el índice con <code>pm-kb token crear --persona "…" --proyectos …</code>.
+     En una instalación personal, <code>pm-kb servir</code> muestra un enlace de ingreso.</p>
+</main>
+</body>
+</html>

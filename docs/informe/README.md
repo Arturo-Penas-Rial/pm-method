@@ -1,22 +1,25 @@
-# Informe 2 · Documentación del ecosistema pm-method (v2.5)
+# Informe 2 · Documentación del ecosistema pm-method (v2.6)
 
-- `informe-2-ecosistema-pm-method-v2.5.html` y `.pptx`: el informe (mismo contenido; 314 diapositivas), generado
-  desde la documentación de este repositorio (versión 2.5.0). Describe el ecosistema tal como es: resumen ejecutivo,
+- `informe-2-ecosistema-pm-method-v2.6.html` y `.pptx`: el informe (mismo contenido; 346 diapositivas), generado
+  desde la documentación de este repositorio (versión 2.6.0). Describe el ecosistema tal como es: resumen ejecutivo,
   capacidades de gestión (validar antes de invertir, evaluación de inversiones con `inversion.py`, mapas de Wardley y de
   recorrido, contexto de sesión acotado, maestro de interesados y personas de usuario, capa de canales, OKR, riesgos
   desde cuatro fuentes, opciones de respuesta y plan de contingencia, presupuesto de riesgo y reserva de gestión, radar
   de atención y briefing de incorporación, highlight y tablero desde `estado.py periodo` con la cadena de reporte
   verificada, estado de productos y cierre por id, acuerdos de reunión con cita, ciclo de las lecciones, análisis de
-  impacto, tres valores y capacidad del release, expediente de auditoría y controles permanentes, cada una con la
-  figura y la salida real de su guía E2E), diagramas, arquitectura, columna vertebral BMAD ↔ PRINCE2, sanidad (93
-  códigos en 12 familias), guardarraíles y seguridad, puertas de la junta (con P-11, E-11, C-03 y C-07 y los códigos
-  de control de `verificar`), componentes (con las decisiones de integración: diagram-design verificado y ShowAI evaluado),
-  dependencias con URL de origen, instalación y configuración (incluido el
-  entorno Docker y los dos caminos de instalación, sobre WSL2 o con Docker), catálogo, RACI, casos de uso por skill (con la parte 7, casos 50 a 59) y por repositorio
-  integrado, caso maestro, guías E2E con sus indicadores y material de formación, pruebas (regresión, integración
-  cruzada, recorridos E2E, Python 3.9 y pruebas en vivo de la versión 2.4.0 del 21 y el 22/10/2026), piloto, índice,
-  mantenimiento, cómo seguir evolucionando, historial de versiones (sección 22, el único lugar que describe cambios
-  entre versiones), glosario, fuentes y estructura de carpetas.
+  impacto, tres valores y capacidad del release, expediente de auditoría, decisiones con contexto con `decision.py`
+  —expediente, matriz multicriterio, pregunta tipada, RACI ↔ autoridad, vigencia y contradicciones, hacer o comprar con
+  los mapas—, bitácora de escrituras y propuestas con huella, pm-kb (búsqueda citada en los proyectos, opcional, con su
+  arquitectura y los dos caminos de instalación) y controles permanentes, cada una con la figura y la salida real de su
+  guía E2E), diagramas (incluido el de pm-kb), arquitectura, columna vertebral BMAD ↔ PRINCE2, sanidad (101 códigos en
+  14 familias), guardarraíles y seguridad, puertas de la junta (con P-11, E-11, C-03 y C-07 y los códigos de control de
+  `verificar`), componentes (con las decisiones de integración: diagram-design verificado y ShowAI evaluado),
+  dependencias con URL de origen, instalación y configuración (incluido el entorno Docker y los dos caminos de
+  instalación, sobre WSL2 o con Docker, con pm-kb en cada uno), catálogo, RACI, casos de uso por skill (con la parte 7,
+  casos 50 a 59) y por repositorio integrado, caso maestro, guías E2E con sus indicadores y material de formación,
+  pruebas (regresión, integración cruzada, recorridos E2E, Python 3.9 y pruebas en vivo de la versión 2.6.0 del
+  28/10/2026), piloto, índice, mantenimiento, cómo seguir evolucionando, historial de versiones (sección 22, el único
+  lugar que describe cambios entre versiones), glosario, fuentes y estructura de carpetas.
 - `fuente/`: el generador. Regenerar después de cambiar la documentación (también cuando cambian las imágenes de
   `docs/guias/img/`, que el informe toma de las guías: la sección «Indicadores que vas a ver» y las figuras de los
   pasos) o la evidencia de `docs/guias/evidencia/` (las salidas reales de la sección 2):
@@ -25,9 +28,9 @@
 cd docs/informe/fuente
 npm install pptxgenjs                      # una vez (o tenerlo global y usar NODE_PATH=$(npm root -g))
 python3 extraer.py                         # lee README, CHANGELOG, SPEC, docs/ (guías, webinar, seguridad, Docker) y compatibilidad.json → data.json y diagramas
-python3 build_html.py                      # → salida-v2.5/informe-2-ecosistema-pm-method-v2.5.html
-node build_pptx.js                         # → salida-v2.5/informe-2-ecosistema-pm-method-v2.5.pptx
-cp salida-v2.5/informe-2-ecosistema-pm-method-v2.5.* ..
+python3 build_html.py                      # → salida-v2.6/informe-2-ecosistema-pm-method-v2.6.html
+node build_pptx.js                         # → salida-v2.6/informe-2-ecosistema-pm-method-v2.6.pptx
+cp salida-v2.6/informe-2-ecosistema-pm-method-v2.6.* ..
 ```
 
 Requiere Python 3.9+ con Pillow (recortes de las capturas del reporte de interesados), Node.js y `mmdc`

@@ -2,7 +2,7 @@
 
 El paso 1 (de la idea al proyecto autorizado) se ejecuta completo para que el recorrido funcione, aunque la guía lo
 resume y remite a E2E-5. Gráficos (visuales.py) con los datos reales de la corrida: g4-calidad-entregas.png,
-g4-burnup.png, g4-lecciones-ciclo.png, g4-cierre.png, g4-expediente.png y g4-beneficios.png; capturas del tablero con su sección de mapas estratégicos
+g4-burnup.png, g4-lecciones-ciclo.png, g4-cierre.png, g4-expediente.png (con la bitácora de escrituras) y g4-beneficios.png; capturas del tablero con su sección de mapas estratégicos
 (g4-tablero.png y el recorte 16:9 g4-tablero-mapas-169.png) y del mapa de recorrido de UJ-1 (g4-recorrido.png).
 """
 from comun import *
@@ -364,11 +364,15 @@ run(f'{LECC} listar --proyecto {G} --corte 2027-02-26', repo)
 sanidad("2027-02-26")
 run(f'{LECC} accionar {L_DOD} --proyecto {G} --accion "{A_DOD}; definición de terminado del sprint 5" --verificar-en 2027-03-19 {CLAS}', repo)
 
-P("Paso 7 · Fin de la etapa 2 (Release 1): prueba de carga NFR-3, condición cumplida, lecciones en el plan de la etapa 3, business case 1.1 y puerta autorizar-etapa (Release 2)")
+P("Paso 7 · Fin de la etapa 2 (Release 1): prueba de carga NFR-3, gate en PASS que reemplaza al CONCERNS, condición cumplida, lecciones en el plan de la etapa 3, business case 1.1 y puerta autorizar-etapa (Release 2)")
 act(repo, "acciones", A_DOD, estado="completada", fecha_cierre="2027-03-03", notas="definición de terminado actualizada: ninguna historia pasa a done sin su revisión registrada en calidad.csv")
 act(repo, "acciones", A_SCP, estado="completada", fecha_cierre="2027-03-03", notas="plantilla del issue para toda Sprint Change Proposal (antes de tocar el PRD)")
 act(repo, "calidad", qc, resultado="aprobado", estado="completada", fecha_real="2027-03-02", notas="p95 2,4 s con 400 sesiones concurrentes (meta menor a 3 s)")
 run(E(f'puertas.py --proyecto {G} preparacion-bmad --resultado PASS --por "Arquitecto: Diego Ferreira" --fecha 2027-03-03'), repo)
+# vigencia: el PASS reemplaza solo al CONCERNS del 26/11 (puertas.py completa reemplaza: mismo nivel, gestor, y fecha
+# posterior), como las líneas base 1.1 a las 1.0
+D_GATE = {f["decision"].split(" — ")[0]: f for f in csv.DictReader(open(os.path.join(repo, G, "03-control/registros/decisiones.csv"), encoding="utf-8")) if f["decision"].startswith("gate de preparación de BMAD")}
+assert D_GATE["gate de preparación de BMAD: PASS"]["reemplaza"] == D_GATE["gate de preparación de BMAD: CONCERNS"]["id"], "el PASS del gate no reemplazó al CONCERNS"
 run(f'python3 {BMAD} --proyecto {G} avance --corte 2027-03-05', repo)
 run(E(f'estado.py --proyecto {G} limite-etapa'), repo)
 run(E(f'evm.py --pv 82000 --ev 80000 --ac 83500 --bac 130000 --proyecto {G} --guardar --corte 2027-03-05'), repo)
@@ -397,6 +401,8 @@ run(f'{LECC} informe --proyecto {G} --etapa 2 --corte 2027-03-05', repo)
 run(E(f'estado.py --proyecto {G} artefacto informe-lecciones-etapa-2 --ruta 03-control/reportes/2027-03-05-informe-lecciones-etapa-2.md --estado en-revision'), repo, mostrar=False)
 run(E(f'estado.py --proyecto {G} cumplir-condiciones autorizar-etapa --fecha 2027-03-05 --por "Ejecutivo: Laura Méndez" --nota "{qc} prueba de carga NFR-3 aprobada el 2027-03-02 (p95 2,4 s); gate de preparación de BMAD en PASS el 2027-03-03"'), repo)
 sanidad("2027-03-05")
+# antes de la puerta, la junta ve solo las decisiones vigentes sobre BMAD, cada una con su cadena de reemplazos
+s_vig = run(f'python3 {RAIZ}/skills/pm-direccion-decisiones/scripts/decision.py --proyecto {G} vigentes --tema BMAD --corte 2027-03-05', repo)
 av = [f for f in csv.DictReader(open(os.path.join(repo, G, "03-control/reportes/avance-bmad.csv"), encoding="utf-8")) if f["fecha"] in ("2026-12-23", "2027-03-05")]
 it = [{"fecha": f["fecha"], "nombre": f["fecha"], "planificado": 16 if i == 0 else 34} for i, f in enumerate(av)]   # cierre de cada etapa: nombre y plan, del gestor
 obj4 = [   # tiempo, costo, calidad y riesgo: semáforo por regla (estado.py periodo); aquí solo el juicio y las notas del gestor
@@ -415,7 +421,7 @@ tablero(repo, "2027-03-05", "2027-02-19", "2027-03-05", "2027-03-19", obj4,
 puerta4("autorizar-etapa", "Ejecutivo: Laura Méndez", "2027-03-05", '--etapa-nombre "Release 2" --fin 2027-05-14 --tol "tiempo=±10 %" "costo=±10 %"')
 run(E(f'estado.py --proyecto {G} aprobar business-case --por "Ejecutivo: Laura Méndez" --version 1.1 --fecha 2027-03-05'), repo)
 
-P("Paso 8 · Release 2: la acción de la retro se verifica en el sprint 5 (REG-12), revisiones con un rechazo tratado (QUA-01 y QUA-03), la lección de impacto alto verificada y valor ganado final")
+P("Paso 8 · Release 2: la acción de la retro se verifica en el sprint 5 (REG-12), revisiones con un rechazo tratado: corregir o conceder con la matriz (QUA-01 y QUA-03), la lección de impacto alto verificada y valor ganado final")
 PLANIF = """WEBVTT
 
 00:00:05.000 --> 00:00:25.000
@@ -448,7 +454,26 @@ q_rech = revision("2-4", "Release 2", "2027-05-06", resultado="rechazado", notas
 sanidad("2027-05-07")
 foto_calidad("7/5 · Release 2, un rechazo", "2027-05-07")
 i2 = reg(repo, "issues", fecha="2027-05-07", tipo="fuera-especificacion", titulo=f"Historia 2-4 rechazada en {q_rech}: falta la notificación del débito", descripcion=f"La revisión {q_rech} rechazó la historia 2-4 (FR-13): el débito se hace pero el socio no recibe la notificación", prioridad="alta", severidad="mayor", responsable="Lucía Benítez")
-act(repo, "issues", i2, estado="en-accion", decision="corregir dentro del Release 2, sin costo ni cambio de alcance", decidido_por="Autoridad de cambio: Sofía Ramírez")
+# fuera de especificación: PRINCE2 admite corregir o conceder; pm-direccion-decisiones compara las dos en una hoja con pesos
+# y puntajes con fuente (los redacta el modelo con la autoridad de cambio; el script calcula) y Sofía elige
+DEC = f"python3 {RAIZ}/skills/pm-direccion-decisiones/scripts/decision.py --proyecto {G}"
+run(f'{DEC} matriz {i2} --proponer --tipo cambio --ids {i2},{q_rech} --pregunta "¿Corregir la historia 2-4 dentro del Release 2 o concederla sin la notificación?"', repo)
+HOJA = f"03-control/decisiones/{i2}"
+CRIT = """criterio,descripcion,peso,sentido,escala,eliminatorio,importar,fuente_peso,notas
+impacto,Efecto sobre FR-13 y los beneficios B-01 y B-02 (1 = muy negativo; 5 = muy positivo),40,mayor,1-5,,,pesos de la plantilla de tipo cambio confirmados por la autoridad de cambio,
+tolerancias,Margen dentro de las tolerancias de la etapa 3 (1 = fuera: excepción; 5 = holgado),35,mayor,1-5,,,pesos de la plantilla de tipo cambio confirmados por la autoridad de cambio,
+autoridad,Dentro de la autoridad de cambio y sin costo (1 = no; 5 = sí),25,mayor,1-5,,,pesos de la plantilla de tipo cambio confirmados por la autoridad de cambio,
+"""
+OPC = f"""opcion,descripcion,ref,impacto,impacto_fuente,tolerancias,tolerancias_fuente,autoridad,autoridad_fuente,notas
+O1,Corregir dentro del Release 2 y volver a revisar la historia,,4,{q_rech}: falta solo la notificación; FR-13 completo al salir a producción,4,4 días de los 7 que quedan hasta el fin de la etapa (14/5),5,sin costo ni cambio de alcance (PID §8),
+O2,Conceder: aceptar la historia 2-4 sin la notificación y actualizar su descripción de producto,,2,el socio no sabe que se debitó su cuenta: reclamos en contra de B-01 y B-02,5,sin trabajo adicional en la etapa,4,concesión dentro de la autoridad de cambio (PID §8),
+"""
+escribir(repo, f"{HOJA}/criterios.csv", CRIT); escribir(repo, f"{HOJA}/opciones.csv", OPC)
+LOG.append((f"(pm-direccion-decisiones completa la hoja con Sofía Ramírez, autoridad de cambio → gestion/{HOJA}/criterios.csv y opciones.csv)", CRIT.strip() + "\n\n" + OPC.strip()))
+run(f'{DEC} matriz {i2}', repo)
+out_d = run(f'{DEC} matriz {i2} --elegir O1 --por "Autoridad de cambio: Sofía Ramírez" --fecha 2027-05-07', repo)
+d_off = re.search(r"decisión (D-\d+)", out_d).group(1)
+act(repo, "issues", i2, estado="en-accion", decision=f"{d_off}: corregir dentro del Release 2, sin costo ni cambio de alcance (concesión descartada)", decidido_por="Autoridad de cambio: Sofía Ramírez")
 q_re = revision("2-4", "Release 2", "2027-05-11", notas=f"nueva revisión después de corregir lo observado en {q_rech} ({i2}): notificación verificada")
 act(repo, "issues", i2, estado="cerrado", fecha_cierre="2027-05-11", notas=f"corregido; {q_re} aprobada")
 run(f'python3 {BMAD} --proyecto {G} avance --corte 2027-05-12', repo)
@@ -524,19 +549,27 @@ LOG.append(("(MANIFIESTO.md dentro del ZIP: estado del paquete, filas de --extra
 run(E(f'exportar.py xlsx --proyecto {G}'), repo, ok=(0, 1))
 run(E(f'estado.py --proyecto {G} resumen'), repo)
 
-P("Paso 9b · Expediente de auditoría para la auditoría externa y verificación de integridad")
+P("Paso 9b · Expediente de auditoría para la auditoría externa, verificación de integridad y bitácora de escrituras")
 import io
 # HOME vacío solo en este comando: la sanidad completa que el expediente incluye no suma avisos de instalación (INS) que
 # dependen de las skills de usuario del equipo donde corre el driver (las demás sanidades del recorrido usan --rapido)
-s_aud = run(f'HOME="$(mktemp -d)" python3 {PAQ} --proyecto {G} auditoria --hasta 2027-05-14 --proposito "auditoría externa" --externo', repo)
+def sin_hora(texto):
+    """La bitácora anota la fecha y hora reales de cada escritura y huellas sha256 que dependen de ellas: en la evidencia se
+    enmascaran para que dos corridas den lo mismo (el número de línea, el script, la operación, --por y los cambios quedan)."""
+    texto = re.sub(r"#(\d+) \d{4}-\d{2}-\d{2} \d{2}:\d{2}", r"#\1 <fecha y hora de la escritura>", texto)
+    return re.sub(r"sha256 (?:[0-9a-f]{12}|—) → [0-9a-f]{12}", "sha256 <antes> → <después>", texto)
+def run_bit(cmd, **kw):
+    out = run(cmd, repo, **kw); c_, o_ = LOG[-1]; LOG[-1] = (c_, sin_hora(o_)); return out
+s_aud = run(f'HOME="$(mktemp -d)" python3 {PAQ} --proyecto {G} auditoria --hasta 2027-05-14 --proposito "auditoría externa" --externo --con-bitacora', repo)
 za = _g.glob(os.path.join(repo, G, "exportados", "*-expediente-auditoria-*.zip"))[0]; za_rel = os.path.relpath(za, repo)
 s_ver = run(f'python3 {PAQ} --proyecto {G} verificar {za_rel}', repo)
 zz = zipfile.ZipFile(za)
+n_bit = zz.read("bitacora.jsonl").count(b"\n")
 crono = list(csv.DictReader(io.StringIO(zz.read("cronologia.csv").decode("utf-8"))))
 indice = zz.read("INDICE.md").decode("utf-8")
 LOG.append(("(INDICE.md dentro del ZIP: propósito, conteo de la cronología, registros omitidos por destinatario externo y hallazgos de sanidad al corte)",
             re.sub(r"generado: \d{4}-\d{2}-\d{2}", "generado: <fecha de la corrida>",
-                   "\n".join(l for l in indice.splitlines() if l.startswith(("Proyecto:", "Copia de los registros", "ERROR ", "| ERROR", "| AVISO", "| INFO")) or " eventos (también" in l))))
+                   "\n".join(l for l in indice.splitlines() if l.startswith(("Proyecto:", "Copia de los registros", "bitacora.jsonl:", "ERROR ", "| ERROR", "| AVISO", "| INFO")) or " eventos (también" in l))))
 # la copia que recibe la auditoría: alguien cambia «condicionado» por «aprobado» en la fila de la puerta D-013
 COPIA = os.path.join(repo, "copia-auditoria", "expediente-recibido.zip"); os.makedirs(os.path.dirname(COPIA), exist_ok=True)
 with zipfile.ZipFile(COPIA, "w", zipfile.ZIP_DEFLATED) as zc:
@@ -547,7 +580,10 @@ with zipfile.ZipFile(COPIA, "w", zipfile.ZIP_DEFLATED) as zc:
         zc.writestr(n_, b_)
 LOG.append(("(copia del expediente que llega a la auditoría: una sola edición en decisiones.csv; el resto, idéntico)",
             "03-control/registros/decisiones.csv, fila D-013: «autorizar-etapa: condicionado — condiciones: …» → «autorizar-etapa: aprobado — condiciones: …»"))
-s_alt = run(f'python3 {PAQ} --proyecto {G} verificar copia-auditoria/expediente-recibido.zip', repo, ok=(1,))
+s_alt = run_bit(f'python3 {PAQ} --proyecto {G} verificar copia-auditoria/expediente-recibido.zip', ok=(1,))
+# ¿la fila D-013 dijo alguna vez «aprobado»? Aseguramiento consulta en el proyecto qué escribieron los scripts sobre D-013
+s_his = run_bit(E(f'registro.py --proyecto {G} historial D-013'))
+n_d013 = len(re.findall(r"^#\d+ ", s_his, re.M))
 
 # ---------------------------------------------------------------- gráficos de ejecución y cierre (datos reales de la corrida)
 MES = {"01": "ene", "02": "feb", "03": "mar", "04": "abr", "05": "may", "06": "jun", "07": "jul", "08": "ago", "09": "sep", "10": "oct", "11": "nov", "12": "dic"}
@@ -601,12 +637,27 @@ for e_ in crono: tipos[e_["tipo"]] = tipos.get(e_["tipo"], 0) + 1
 V.tarjetas([(m_aud.group(2), "eventos en la cronología", f"{tipos.get('puerta', 0)} puertas · {tipos.get('cambio', 0)} cambio · {tipos.get('aceptacion-producto', 0)} productos aceptados · {tipos.get('decision', 0) + tipos.get('aprobacion', 0)} decisiones", None),
             (m_lb.group(1), "copias congeladas (líneas base)", "PRD y épicas 1.0 y 1.1, business case, PID, enfoques, WP-001 y cierre", None),
             (m_aud.group(3), "registros copiados", "sin stakeholders.csv: destinatario externo (--externo)", None),
-            (m_ok.group(1), "archivos con su sha256", "MANIFIESTO.md y SHA256SUMS dentro del ZIP", None),
+            (str(n_bit), "escrituras en la bitácora", f"cadena íntegra; D-013: {n_d013} escritura{'s' if n_d013 != 1 else ''}, «condicionado»", None),
             ("OK", "integridad del expediente", f"los {m_ok.group(1)} archivos coinciden con SHA256SUMS", "bien"),
-            (m_alt.group(1), f"archivo alterado: {alterado.split('/')[-1]}", "la puerta D-013 dice «aprobado», no «condicionado»", "critico")],
-           os.path.join(OUT, "g4-expediente.png"), "Una sola edición en el expediente y la verificación la delata",
-           "Expediente de auditoría al 14/5/2027 para la auditoría externa (paquete.py auditoria --externo) y su verificación",
-           "cronologia.csv, MANIFIESTO.md y SHA256SUMS del expediente · paquete.py verificar")
+            (m_alt.group(1), f"archivo alterado: {alterado.split('/')[-1]}", "D-013 dice «aprobado»; no salió de los scripts", "critico")],
+           os.path.join(OUT, "g4-expediente.png"), "Una edición en la copia: la verificación la delata y la bitácora la explica",
+           "Expediente de auditoría al 14/5/2027 para la auditoría externa (paquete.py auditoria --externo --con-bitacora) y su verificación",
+           "cronologia.csv, SHA256SUMS y bitacora.jsonl del expediente · paquete.py verificar · registro.py historial D-013")
+
+P("Paso 9c · Versiones y auditoría con pm-kb: qué cambió en el business case y la historia de una fila")
+# pm-kb es opcional: sin el lanzador o sin su base, el paso se omite y el recorrido sigue. Solo lee la carpeta: no
+# escribe en el proyecto ni en la bitácora.
+if not kb_disponible():
+    kb_omitido("paso 9c (versiones del business case e historia de D-013)")
+else:
+    KP = "--proyecto producto-bmad"
+    kb(f'indexar {KP} --ruta .', repo)
+    kb(f'versiones business-case {KP}', repo)
+    kb(f'cambios business-case {KP}', repo)
+    for filtro in ("", " --aprobado", " --historia"):    # la vigente, la última aprobada y todas las versiones
+        kb(f'buscar "veredicto del business case al fin de la etapa 2" {KP}{filtro} --k 2', repo)
+    kb(f'ficha D-013 --historia {KP}', repo)
+    kb(f'quitar {KP}', repo)
 
 P("Paso 10 · Después del proyecto: primera revisión de beneficios del negocio (30/6/2027)")
 CK = f'python3 {OKR} {G}/00-direccion/okr.csv --checkin'

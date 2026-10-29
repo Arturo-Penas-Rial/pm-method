@@ -118,7 +118,7 @@ R.portada = d => {
 R.antes_despues = d => {
   const s = slide(d);
   label(s, d.col_hoy, 0.5, 1.42, 5.5, GRAY); label(s, d.col_con, 6.75, 1.42, 6, BLUE);
-  const y0 = 1.78, rh = 0.86, g = 0.14;
+  const k = d.filas.length, y0 = 1.78, rh = k > 4 ? 0.74 : 0.86, g = k > 4 ? 0.1 : 0.14;
   d.filas.forEach(([hoy, con], i) => {
     const y = y0 + i * (rh + g);
     rr(s, 0.5, y, 5.6, rh, LT);

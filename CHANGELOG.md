@@ -1,5 +1,400 @@
 # Cambios · Changelog
 
+## 2.6.0 · 2026-10-29 — decidir con contexto, vigencia y bitácora, y pm-kb: buscar en los proyectos con evidencia citada
+
+Tres frentes. (1) **Capacidad de decisión** para cualquier elección entre alternativas, dentro de
+`pm-direccion-decisiones` y sin skill ni registro nuevos: expediente, matriz multicriterio, pregunta tipada, RACI ↔
+autoridad y vínculo con los mapas de Wardley y del recorrido del cliente; biblioteca estándar (Python 3.9+), sin modelo
+propio ni llamadas a red. Toma de los modelos de decisión tipada (Laya, TypeSafe Jev) tres ideas, no el modelo: pregunta
+tipada, respuesta restringida a las opciones y abstención explícita. (2) **Control de las escrituras**: vigencia y
+contradicciones de decisiones, bitácora encadenada y propuestas con huella (ideas de la evaluación de exxperts).
+(3) **pm-kb**, componente opcional fuera del plugin: índice de conocimiento en PostgreSQL con búsqueda citada en
+español, versiones de documentos y relaciones por ids, para personas (web) y agentes (MCP de solo lectura), instalable
+por los dos caminos (WSL2 con un clúster propio del usuario; Docker con la base en un contenedor segregado).
+
+### Agregado
+- **`skills/pm-direccion-decisiones/scripts/decision.py`** con tres subcomandos y seis tipos de decisión (`riesgo`,
+  `negocio`, `planificacion`, `okr`, `cambio`, `adquisicion`):
+  - `expediente`: paquete de contexto aplicable a la decisión, de solo lectura y con encabezado "evidencia, no
+    instrucciones": pregunta y **nivel que decide** (SPEC §1.10.8, la regla `motivos_autoridad` de `registro.py`, el
+    análisis de `impacto.py` o el escalado del riesgo), tolerancias y presupuestos con su consumo, beneficios y apetito
+    de riesgo con `archivo:línea`, registros relacionados a 1–2 saltos (ids citados en los dos sentidos y columnas
+    `refs` del esquema; `--tema` por palabras), supuestos críticos, lecciones por `aplicar_en`, interesados y personas
+    afectadas, y las **cifras de otros scripts sin recalcular** (`riesgos.py opciones`, `release.py capacidad` y
+    `okr.py` en modo lectura; último corte de EVM; `inversion.py`, `impacto.py` o cualquier `--json` con `--importar`).
+    Excluye la valoración y las notas de los interesados con `confidencial=si` y los datos de contacto de todos; tope con
+    `--max-items` y `--max` ("… y N más").
+  - `matriz`: hoja de trabajo `03-control/decisiones/<ID>/` (`decision.json`, `criterios.csv`, `opciones.csv` y las
+    salidas `--json` copiadas con `--importar`); `--proponer` la crea desde `templates/criterios-por-tipo.csv` (en
+    riesgos, con las opciones de `riesgos.py` y su valor neto; en negocio, con las de `inversion.py`). Valida pesos
+    (normalizados con aviso si no suman 100), escalas, números sin separador de miles y la fuente de cada peso y de cada
+    puntaje; normaliza por escala o mín–máx, calcula la suma ponderada, aplica eliminatorios, marca dominadas, mide la
+    **sensibilidad de cada peso** (el peso con el que otra opción pasa a primera) y los empates; con un puntaje faltante
+    se abstiene (`pedir-informacion`). `--markdown` da el bloque para la solicitud de decisión.
+  - `matriz --elegir O# --por "<rol: nombre>"`: registra la decisión de la persona con `registro.py` en
+    `decisiones.csv` (opciones con su puntaje, criterios y pesos, recomendada, hoja); `--motivo` obligatorio si difiere
+    de la recomendada, con empate, con sensibilidad baja o si la matriz se abstuvo; respeta el nivel de la hoja; las de
+    la junta las registra pm-director y se citan con `--decision D-###`; en riesgos (`ref` `R-###/O#`) llama a
+    `riesgos.py opciones --elegir`, sin duplicar la decisión; un segundo `--elegir` se rechaza.
+  - `pregunta`: pregunta cerrada para el modelo y la junta (una opción O#, un nivel de la escala o sí/no, o
+    `pedir-informacion`) con la matriz y el expediente; `--validar` comprueba una respuesta propuesta (opción existente
+    y no eliminada, evidencia citada que esté en el expediente, abstención con lo que falta cuando la hoja tiene huecos).
+    No decide ni registra.
+- **`templates/criterios-por-tipo.csv`**: criterios, pesos, sentido, escala, eliminatorios e importación por tipo.
+- **Sanidad DEC-01 y DEC-02** (avisos, solo hojas ya decididas): elegida distinta de la que hoy recomienda la matriz sin
+  motivo (también si la hoja cambió después de decidir) o D-### inexistente; pesos o puntajes sin fuente.
+- **Capacidad de decisión alineada con la matriz RACI** (`raci.csv`, sin reglas duplicadas): PRINCE2 define la autoridad
+  (niveles de decisión, tolerancias, `motivos_autoridad`, límite de la autoridad de cambio) y la RACI debe reflejarla.
+  - `esquema.nivel_autoridad(e, texto, nombre)`: nivel de decisión de una persona, el mismo criterio para `--por`, para
+    el A de la RACI y para `decidido_por`: roles de `estado.json` por nombre (ejecutivo, usuario y proveedor sénior →
+    `junta`; autoridad de cambio; gestor; product owner; jefes de equipo, aseguramiento y soporte → `equipo`) y, si no,
+    palabras del rol escrito; si no, no determinado.
+  - `decision.py expediente`: dentro de §7, la RACI de los elementos afectados (ids de partida y relaciones a 1 salto):
+    A, C (consultar antes) e I (informar después) con nombre y rol de `stakeholders.csv`, sin valoraciones ni contacto
+    (también con `confidencial=si`), y si el A tiene la autoridad del nivel requerido; `--json` con `raci`.
+  - `decision.py matriz --elegir`: `--motivo` obligatorio si quien decide no es el A de un elemento afectado ni una
+    autoridad superior (alcanza el nivel requerido y supera el del A; en la junta basta igualarlo); aviso de
+    **incoherencia RACI ↔ autoridad** si el A no alcanza el nivel requerido, sin elegir cuál vale; recordatorio de los C;
+    borrador del aviso a los I con `interesados.py plan-envio` (base `<hoja>/aviso-D-###.md`, mensajes en estado
+    `borrador`; nada se envía, `envios.py` sigue con confirmación humana). `--sin-aviso` solo muestra el comando.
+    `decision.json` → `eleccion.raci`.
+  - **Sanidad DEC-03** (decidió quien no es el A ni una autoridad superior, sin motivo) y **DEC-04** (el A no tiene la
+    autoridad del nivel requerido, solo si su nivel se puede determinar), sobre las hojas y sobre las decisiones D-###
+    que son elementos de la RACI.
+- **Vigencia y contradicciones de decisiones** (idea 1 de la evaluación de exxperts; regla 12 de
+  `pm-direccion-decisiones`, "una decisión reabierta se marca reemplazada", con soporte en los datos):
+  - `decisiones.csv` agrega al final `reemplaza` (D-### que la decisión deja sin efecto) y `conviven` (D-### que la
+    persona decidió mantener vigentes a la vez); migración transparente al primer uso. "Reemplazada por" se deriva.
+  - `registro.py agregar|actualizar decisiones`: ids existentes, sin reemplazos dobles ni ciclos ni reemplazo de una
+    posterior (se omite con `--forzar`) y **autoridad**, que no se omite: nivel igual o superior al de la reemplazada y
+    quien decide con esa autoridad (`esquema.nivel_autoridad`). Corrige la regla "la fecha más nueva decide" de exxperts:
+    una decisión posterior de nivel inferior no deja sin efecto la de la junta.
+  - `esquema.anotar_decision` completa `reemplaza` al aprobar una versión nueva del mismo artefacto (`estado.py
+    aprobar`, `bmad.py linea-base`), al volver a fijar todas las claves de los presupuestos o al cambiar el enfoque de
+    entrega (si la anterior no tiene nivel mayor ni fecha posterior).
+  - Módulo nuevo `skills/pm-estado-proyecto/scripts/vigencia.py` (funciones puras; `vigencia.py --proyecto <dir>`):
+    vigentes, cadenas, asunto por ids citados (luego artefactos, luego texto), contradicciones probables y revisiones
+    vencidas.
+  - `decision.py vigentes [--tema] [--ids] [--historia] [--corte] [--max] [--json]`: decisiones vigentes con su cadena
+    (D-010 → D-017), `conviven`, `revisar_en` vencido y contradicciones probables. `expediente` trae solo vigentes y
+    menciona las reemplazadas como historia (`--historia` las deja en la tabla); `resumen_fila` muestra `reemplaza`.
+    `matriz --elegir … --reemplaza D-###` (o `reemplaza` en `decision.json`, hoja reabierta) valida la autoridad antes
+    de registrar y escribe la columna (fila nueva, `--decision` o vía `riesgos.py`).
+  - **Sanidad DEC-05** (dos vigentes del mismo asunto, texto parecido y valor distinto —versión, cifra normalizada,
+    fecha, negación es/en o una palabra cambiada— sin `reemplaza` ni `conviven`; agrupa por ids citados antes de
+    comparar, así "residual de R-005" y "… de R-004" no se comparan) y **DEC-06** (`revisar_en` vencido sin decisión
+    posterior del mismo asunto y con lo que cita todavía abierto). Solo avisos; corren siempre que haya decisiones.
+- **Búsqueda que entiende español e inglés** (idea 4): módulo nuevo `skills/pm-estado-proyecto/scripts/texto.py`
+  (biblioteca estándar, determinista; `texto.py "<texto>"`): minúsculas sin tildes, palabras vacías es/en, lematizador
+  ligero documentado (plurales, género y vocal final, participios, gerundios, -ción: normativa = normativo =
+  normative), glosario corto inglés → español de gestión, fechas y meses ("enero 2027" ↔ 2027-01, "15 de marzo de 2027"
+  = "March 15, 2027" = 15/03/2027, T1/Q1; una fecha de la fila vale también por su mes, año y trimestre), cifras con
+  separadores (39.800 = 39,800 = "39,8 mil"), versiones e ids (R-3 = R-003). Lo usan `decision.py expediente --tema`
+  (antes, subcadenas de 4 letras; ahora términos normalizados, de más a menos coincidencias), `vigentes --tema` y
+  DEC-05; queda listo para el futuro indexador.
+- **Bitácora de escrituras** (idea 2 de la evaluación de exxperts; SPEC §1.10.16): toda escritura de `estado.json`, de
+  un registro o de una propuesta por el mecanismo común de 2.5.1 (`esquema.escribir_atomico`, es decir `registro.py`,
+  `estado.py`, `puertas.py`, `interesados.py`, `envios.py`, `bmad.py` y lo que llama a `registro.py`) agrega bajo el
+  mismo bloqueo una línea a `<proyecto>/.bitacora.jsonl` (solo anexado): número, fecha y hora reales, script,
+  operación, archivo, ids, altas, bajas, campos cambiados antes → después (sin valores de interesados ni de filas
+  `confidencial=si`), claves de `estado.json`, `--por`, sha256 del archivo antes y después y de la línea anterior
+  (cadena). Una reescritura sin cambios no se anota; sin deshacer (una decisión se corrige con `reemplaza`).
+  - `registro.py historial [ID|registro|estado|P-###] [--desde] [--max] [--json]`: qué escribió cada script y la
+    verificación de la cadena y de la continuidad de cada archivo.
+  - `registro.py reconocer <registro|estado> --por … --motivo …`: una persona deja asentado un cambio hecho fuera de
+    los scripts (merge de git, corrección revisada), sin restaurar nada.
+  - **Sanidad BIT-01** (cadena rota) y **BIT-02** (cambio fuera de los scripts no reconocido), solo avisos; familia
+    nueva BIT.
+  - `paquete.py auditoria --con-bitacora` incluye la bitácora entera (`bitacora.jsonl`) y `paquete.py verificar` la usa
+    para explicar un registro alterado ("la última escritura anotada dejó la versión del expediente: el cambio no salió
+    de los scripts"). Sin la opción, el expediente no cambia.
+- **Propuestas con huella y reaplicación al aprobar** (idea 3; SPEC §1.10.16), primitiva de la escritura por propuesta
+  de una base compartida: `registro.py proponer <registro> [ID] --campo … --por "<agente>" [--motivo]` valida como
+  `agregar`/`actualizar` y guarda `03-control/propuestas/P-###.json` con la huella del registro, la de la fila y los
+  valores base de los campos tocados, sin tocar el registro; `aprobar P-### --por "<rol: nombre>"` (una persona
+  distinta de quien propuso) aplica con las reglas de `registro.py` si nada cambió, **reaplica** sobre la versión
+  actual si cambiaron otras filas u otros campos (un alta toma el id siguiente) o deja la propuesta en **conflicto**
+  con la explicación (campo, base, hoy, propuesto); si no pasa las validaciones (por ejemplo, el control de cambios),
+  sigue pendiente. `rechazar` y `propuestas [--estado …]` (qué pasaría al aprobar hoy). Todo queda en la bitácora
+  (`propuesta`, `propuesto_por`, `por`).
+- `hooks/guardian.py`: niega escribir `.bitacora.jsonl` y `03-control/propuestas/P-###.json` con Write/Edit o Bash y
+  pide confirmación de una persona ("ask") para `registro.py aprobar` y `registro.py reconocer`.
+- **pm-kb** (`pm-kb/`, referencia `docs/PM-KB.md`), componente opcional (no es skill ni agente):
+  - Indexador (`pmkb/fuentes.py`, `versiones.py`, `relaciones.py`, `indexador.py`): unidades citables (fila de registro
+    con su id, sección de Markdown, diapositiva, hoja, ventana de transcripción, objeto JSON con `id`) desde Markdown,
+    CSV, JSON, YAML, TXT, SRT/VTT, EML, HTML y, con MarkItDown, DOCX/PPTX/XLSX/PDF; exclusiones al construir
+    (`preferencias`, `envios`, `03-control/comunicaciones/`, contacto de interesados y valoración con `confidencial=si`,
+    `.bitacora.jsonl`, `_bmad/`, `.pmkbignore`, `--excluir`), circulación `restringida` (front matter o `--restringir`) y
+    confianza `externo` para transcripciones y correos. **Versiones de documentos**: documento lógico → versiones desde
+    `estado.json.artefactos`, las copias de `historial/`, `decisiones.csv` (quién aprobó y con qué D-###), el front
+    matter y el nombre normalizado (una fecha en el nombre es una serie, no una versión); vigente = la última (con aviso
+    si hay una aprobada anterior), aprobada = la última aprobada; duplicados exactos una sola vez; cambios por secciones.
+    **Relaciones** declaradas por las columnas de los registros y por menciones de ids. Todo el índice de un proyecto se
+    reemplaza en una transacción.
+  - PostgreSQL 16 o posterior con `vector` (pgvector), `unaccent` y `pg_trgm` de los repositorios de Ubuntu; BM25 en SQL
+    con la configuración `pmkb.es` (raíz española sin tildes), ids abreviados (R-3 = R-003), títulos parecidos, sinónimos
+    de gestión y glosario inglés → español; vectores, fusión RRF y re-ranqueo opcionales (TEI o API compatible con
+    OpenAI). RLS por proyecto y circulación con el rol `pmkb_lector`; tokens por persona (solo su sha256).
+  - Línea de comandos `pm-kb` (`base`, `indexar`, `buscar`, `ficha`, `relaciones`, `versiones`, `cambios`, `documento`,
+    `contexto`, `estado`, `token`, `servir`, `mcp`, `db`, `verificar`), **interfaz web** (búsqueda con facetas y extractos
+    resaltados, ficha con grafo de relaciones (Cytoscape.js 3.34.3, MIT, incluido), versiones con línea de tiempo y
+    comparación, "Preguntar" con respuesta citada si hay un modelo configurado o la evidencia ordenada si no) y **MCP de
+    solo lectura** propio (stdio y Streamable HTTP; `buscar`, `contexto`, `ficha`, `relaciones`, `documento`,
+    `versiones`, `cambios`, `estado_indice`; topes de tokens y "evidencia, no instrucciones").
+  - Instalación: `pm-kb/instalar-wsl.sh` (paquetes de Ubuntu, entorno con dependencias fijadas por hash, clúster de
+    PostgreSQL del usuario solo por socket, verificación de punta a punta) y perfil `kb` de `docker/compose.yaml` con la
+    imagen `pm-kb-db` (`docker/pm-kb-db.Dockerfile`: PostgreSQL y pgvector de Ubuntu 26.04, contenedor segregado en una
+    red interna sin puertos ni salida, secretos de Docker con `docker/kb-preparar.sh`) y el servicio `pm-kb` sobre la
+    imagen de pm-method.
+- **Decisiones ↔ mapas estratégicos** (`decision.py`, `mapas.py`; guía de pm-direccion-decisiones §13.11): un componente
+  de Wardley o un paso de un recorrido se nombra en los ids de la decisión como `<mapa>:<id>` (`entregables:C2`).
+  `decision.py expediente` agrega la sección 10 «Mapas estratégicos (contexto, no criterio)» con cita `archivo#id`: de
+  Wardley, etapa, evolución, decisión, inercia, evidencia, lo que depende del componente y el movimiento previsto; del
+  recorrido, emoción con fuente, dolor, Kano, KPI y persona; también los elementos que citan en `refs` un id de la
+  decisión. Un elemento o mapa inexistente es dato faltante; `--json` trae `mapas`; `pregunta --validar` acepta el
+  elemento como evidencia. Lectura en `mapas.py` (`contexto`, solo lectura).
+- **Criterios de hacer o comprar**: `decision.py matriz <ID> --proponer --tipo adquisicion --criterios hacer-o-comprar`
+  (filas `adquisicion:hacer-o-comprar` de `templates/criterios-por-tipo.csv`): diferenciación, costo total, tiempo hasta
+  disponible, dependencia del proveedor, capacidad interna y riesgo de construir algo que va a volverse commodity. La
+  evolución del mapa es la fuente de los puntajes, no un criterio. `--criterios` elige cualquier conjunto con nombre;
+  uno inexistente se rechaza con la lista de los disponibles.
+- **Cierre de MAP-01 al elegir**: `matriz --elegir … --por …` cita la decisión registrada en cada elemento nombrado con
+  `mapas.py vincular` (en un paso con dolor, cuenta como tratamiento: MAP-03) y lo anota en `eleccion.mapas`; la
+  columna `decision` del componente no se cambia (se avisa en la salida).
+- Guía de pm-direccion-decisiones §13.12: cómo puntuar opciones de tratamiento de un dolor del recorrido (sin matriz
+  propia: MoSCoW y `release.py`, con el contexto del expediente).
+- **Casos E2E**: E2E-1 paso 16 «La pregunta de la junta» (pm-kb: indexar, búsqueda citada con C-003 y su motivo, ficha
+  de R-003 con relaciones por ids, versiones y cambios del business case v1.0 → v1.1, `--aprobado`, contexto para
+  agentes y registro del MCP en Claude Code y Hermes; capturas `g1-kb-busqueda`, `g1-kb-ficha` y `g1-kb-versiones`);
+  E2E-4 paso 9c (tres versiones del business case, cambios 1.1 → 1.2, búsqueda vigente, aprobada y con historia, y
+  `ficha D-013 --historia` desde la bitácora); E2E-5 paso 5b con hacer o comprar de C2 (comprar 78,8 · tercerizar 52,3 ·
+  construir 28,7), el expediente con el contexto de los mapas, D-004 citada en C2 e imagen `g5-hacer-comprar-c2.png`, y
+  KPI en el recorrido del paciente. Webinar de los tres casos actualizado (20 diapositivas por clase). pm-kb es opcional
+  en los recorridos (`comun.kb_disponible`): sin él, «OMITIDO pm-kb» y el recorrido termina OK; con él, evidencia
+  reproducible (fecha del indexado, puerto, token y fechas de la bitácora enmascarados).
+
+### Cambiado
+- Agente `pm-orquestador`: si está conectado el MCP de pm-kb, usa `buscar` o `contexto` para ubicar la evidencia citada
+  antes de abrir archivos completos (la carpeta sigue siendo la fuente de verdad y toda escritura pasa por los scripts).
+- Imagen Docker `pm-method:2.6.0`: incluye las dependencias de pm-kb (`pip install -r docker/requirements.txt -r
+  pm-kb/requirements.txt`, por hash) y el comando `pm-kb`; `compose.yaml` suma el perfil `kb` (servicios `pm-kb-db` y
+  `pm-kb`, red `kb-interna`, volumen `pm-kb-datos`, secretos `pmkb_admin_clave` y `pmkb_lector_clave`); `.gitignore` y
+  `.dockerignore` excluyen `docker/kb-secretos/`. El resto de los servicios no cambia.
+- Descripción de `pm-direccion-decisiones`: suma "matriz de decisión" y "pesos" y se acorta en lo demás (196
+  caracteres; listado de descripciones: 6.966 de 7.500), para que el total de las skills visibles siga bajo el umbral
+  de INS-05 (≈ 8.000) en los recorridos E2E. SKILL.md condensado (12.425 bytes) con el paso 5 "Opciones con contexto".
+- Una línea que remite a `decision.py` en `pm-riesgos`, `pm-issues-cambios`, `pm-caso-de-negocio`, `pm-agil-hibrido`,
+  `pm-okr` y `pm-adquisiciones` (y `pm-sanidad` con la familia DEC); plantillas `solicitud-puerta.md` y
+  `evaluacion-excepcion.md` con el bloque de la matriz.
+- `hooks/guardian.py` pide confirmación de una persona ("ask") ante `decision.py matriz … --elegir` y
+  `riesgos.py opciones … --elegir` (también abreviado y desde pm-director), como con `registro.py aprobar`: los dos
+  registran en `decisiones.csv` la decisión de quien figura en `--por`.
+- `puertas.py preparacion-bmad`: un veredicto nuevo del gate de preparación de BMAD completa `reemplaza` con el
+  anterior (`vigencia.reemplazo_automatico`, prefijo "gate de preparación de BMAD:"), como el enfoque de entrega: el
+  `estado.json` guarda un solo veredicto y el anterior queda como historia. El recorrido E2E-4 deja de marcarlo a mano.
+- `decision.py`: `matriz --proponer --fecha AAAA-MM-DD` fija `creada` (recorridos reproducibles); `pregunta --corte`
+  con la misma semántica que en `expediente`; `matriz --elegir --revision AAAA-MM-DD` pasa la próxima revisión a
+  `riesgos.py opciones --revision` en una hoja de riesgo (en otra hoja se rechaza y remite a `revisar_en`); `--fecha`,
+  `--corte` y `--revision` se validan como AAAA-MM-DD. El recorrido E2E-1 usa `--revision` en lugar de actualizar
+  `fecha_revision` aparte.
+- `decision.py` con varias salidas importadas, regla determinista: la `ref` de la opción (`archivo.json:ref`) o el
+  criterio (`archivo.json:campo`) nombran el archivo; una ref sin calificar que aparece en más de un archivo u objeto es
+  un error que dice dónde está (no se toma ni la primera ni la última); dos `--importar` con el mismo nombre de archivo
+  en una llamada son un error (antes, la segunda pisaba a la primera en la hoja).
+- Portada de clase del HTML del webinar (`scripts/webinar/generar.py`): desde cuatro objetivos, en dos columnas; con
+  cinco objetivos (E2E-3) o con un título u objetivos de dos líneas (E2E-5, clase 1) la lista llegaba al pie. El PPTX
+  ya ajustaba el alto de cada fila y no cambia.
+
+### Corregido
+- `decision.py expediente --ids`: solo se tomaban los ids con fila en los registros y separados por coma, en
+  mayúsculas; con `KR-1.1,B-02`, `r-001` o `R-001;R-002` mostraba "ids de partida: —", dejaba vacía la sección 4 y
+  pedía "ids o tema". Los ids se separan por coma, punto y coma o espacios, el prefijo pasa a mayúsculas, un id sin
+  fila propia (B-02, KR-1.1, E-3) es id de partida y trae a salto 1 las filas que lo citan, y un id de registro que no
+  existe se informa como dato faltante.
+- `decision.py expediente`, sección 4: el "Ninguno: indicar ids…" dependía de la historia de decisiones reemplazadas y
+  no de la tabla, así que aparecía debajo de una tabla con filas y faltaba cuando no había ninguna. La sección muestra
+  la tabla, o "Ninguno" (con el motivo según haya ids o tema), y la historia aparte.
+- `decision.py vigentes --ids` no encontraba las decisiones vinculadas solo por `artefactos_afectados` (un KR, un
+  paquete 3.1, la hoja `03-control/decisiones/<ID>/`) ni ids que no fueran de registro: compara cada elemento de esa
+  columna (id, ruta o final de ruta) y los ids de forma X-n citados en el texto, con límites de palabra.
+- `mapas.py vincular` acepta el nombre del archivo del mapa (`wardley-x.json`) aunque no esté en la carpeta actual, y
+  escribe el JSON de forma atómica bajo el bloqueo del proyecto (`esquema.escribir_atomico`, `esquema.bloqueo`).
+- `decision.py matriz --elegir --decision D-###` informaba el nivel por defecto (`gestor`, o el de `--nivel`) aunque la
+  decisión citada fuera de la junta: el nivel sale de la fila citada (con aviso si `--nivel` difiere) y no puede ser
+  menor que el de la hoja; en una hoja de riesgo, `riesgos.py opciones --elegir --decision` informa y registra el nivel
+  de esa fila.
+
+### Documentación
+- Guía de `pm-direccion-decisiones` §13 (tipos y quién decide, expediente, hoja, cálculo con un ejemplo a mano,
+  elegir, pregunta tipada, sanidad, recetas por tipo; PRINCE2 7 `### 6.10` y `## 8.`, PMBOK 8 `### 3.2`, `### 3.4` y
+  `### 5.3`). `SPEC.md` §1.5 (carpeta `03-control/decisiones/`) y §1.10.15 (hojas de decisión). `docs/CATALOGO.md`,
+  `docs/TERMINOLOGIA.md` (análisis de decisiones multicriterio, matriz de decisión, sensibilidad de los pesos,
+  expediente y pregunta tipada), `docs/SANIDAD.md`, `docs/colisiones.md`, `docs/ARQUITECTURA.md`, `docs/INDICE.md`,
+  `docs/PRUEBAS.md`, `docs/SEGURIDAD.md` §12, `CLAUDE.md`, `AGENTS.md` y `README.md`.
+- RACI y autoridad: guía de `pm-direccion-decisiones` §13.9 (precedencia, elementos afectados, nivel de una persona,
+  reglas al elegir, ejemplo) y menciones en §13.2, §13.5 y §13.7; guía de `pm-interesados` §2 (la RACI refleja la
+  autoridad; uso en decisiones); `SPEC.md` §1.10.10 y §1.10.15; `docs/SANIDAD.md` (DEC-03, DEC-04, caso DR) y guía de
+  `pm-sanidad`; `docs/CATALOGO.md`, `docs/TERMINOLOGIA.md` (nivel de autoridad, incoherencia RACI ↔ autoridad),
+  `docs/PRUEBAS.md` y `CLAUDE.md`. SKILL.md de `pm-direccion-decisiones` (12.498 bytes) con una línea en el paso 8 y en
+  Calidad; sin cambios en las descripciones de las skills.
+- Vigencia y búsqueda: guía de `pm-direccion-decisiones` §13.10 (nueva) y menciones en §9 regla 12, §10, §13.2, §13.5
+  y §13.7; SKILL.md (regla 13 y paso 5; 12.494 bytes); `SPEC.md` §1.10.8 (columnas, validación, reemplazo automático)
+  y §1.10.15 (vigencia, asunto, DEC-05/06, búsqueda); guía de `pm-estado-proyecto` §5.1 y §6 (`vigencia.py`,
+  `texto.py`); `pm-registros` (guía §6 y `guia-registros.md` §4 con las columnas); `pm-exportar/references/formatos.md`;
+  guía de `pm-sanidad`; `docs/SANIDAD.md` (DEC-05, DEC-06, casos BU y VG), `docs/CATALOGO.md`, `docs/TERMINOLOGIA.md`
+  (vigencia de decisiones) y `CLAUDE.md`.
+- Bitácora y propuestas: `SPEC.md` §1.5 (`.bitacora.jsonl`, `03-control/propuestas/`), §1.10.16 (nuevo) y §1.17;
+  guía de `pm-estado-proyecto` (bitácora), guía de `pm-registros` y `guia-registros.md` (historial, reconocer y
+  propuestas), guía de `pm-direccion-decisiones` (regla 12: sin deshacer), guía de `pm-exportar`
+  (`--con-bitacora`), guía de `pm-sanidad`; `docs/SANIDAD.md` (familia BIT, guardián, casos BT y PR),
+  `docs/SEGURIDAD.md`, `docs/CATALOGO.md`, `docs/TERMINOLOGIA.md` (bitácora de escrituras, propuesta con huella,
+  reaplicación), `docs/ARQUITECTURA.md`, `docs/DEPENDENCIAS.md` (atribución de las ideas de exxperts), `docs/PRUEBAS.md`
+  y `CLAUDE.md`.
+- Correcciones de `decision.py`: guía de `pm-direccion-decisiones` §13.2 (ids de partida), §13.3 (regla con varias salidas
+  importadas y `--fecha`), §13.5 (`--decision` con el nivel de su fila, `--revision`), §13.6 (`--corte`) y §13.10
+  (`vigentes --ids` por `artefactos_afectados`; gate de BMAD en el reemplazo automático); SKILL.md (12.487 bytes); guía
+  de `pm-riesgos` (nivel con `--decision`); `SPEC.md` §1.10.8; `docs/SEGURIDAD.md` §12; `docs/CATALOGO.md`;
+  `docs/guias/README.md` (tabla de casos con los pasos, skills y gráficos actuales, incluidas matriz, vigencia,
+  bitácora y propuestas) y el total de imágenes (61) en `correr.py`, `docs/PRUEBAS.md`, `docs/INDICE.md`,
+  `docs/CATALOGO.md` y `docs/RESUMEN-EJECUTIVO.md`.
+- **`docs/PM-KB.md`** (nueva): referencia técnica de pm-kb (qué es, arquitectura con los dos despliegues, qué se indexa y
+  qué no, versiones, relaciones por ids, PostgreSQL con extensiones elegidas y descartadas, RLS y roles, instalación,
+  configuración y credenciales, búsqueda, línea de comandos, web, MCP para Claude Code y Hermes, "Preguntar", pruebas y
+  medición, seguridad, operación y limitaciones); diagrama `docs/diagramas/pm-kb.mmd`.
+- **Guías de instalación con pm-kb**: `INSTALACION-WSL2` §8 (instalador, verificación, indexar, web, MCP en Claude Code y
+  Hermes, modelos opcionales y proxy para pip en §8.9) e `INSTALACION-DOCKER` §8 (base segregada `pm-kb-db`, secretos,
+  `up -d pm-kb`, tokens, web, MCP desde el contenedor `pm`, rotación de contraseñas, `down` y aviso sobre `down -v`);
+  secciones siguientes renumeradas (WSL2 §9–§13, Docker §9–§15) y referencias corregidas en INSTALACION, DOCKER, INDICE,
+  CLAUDE.md y el generador del Informe 2.
+- pm-kb en el resto del paquete: DOCKER (perfil `kb`, imagen `pm-kb-db`, actualizar, seguridad, verificación y
+  problemas), INSTALACION (credenciales de pm-kb), SEGURIDAD §14 con SEG-18 (estadísticas de BM25 que incluyen lo
+  restringido) y SEG-19 (revocación con hasta 60 s de demora), DEPENDENCIAS §3.1 y §7.6 (licencias verificadas en PyPI y
+  en los paquetes de Ubuntu), ARQUITECTURA §9.3, TERMINOLOGIA (BM25, RRF, RLS, unidad citada, versión vigente y aprobada,
+  circulación, MCP), CATALOGO §5.4, PRUEBAS §7, INDICE, README, CLAUDE.md y AGENTS.md.
+- Decisiones ↔ mapas: guías y SKILL.md de `pm-direccion-decisiones` (§13.1–13.3, 13.5, 13.8, 13.11 y 13.12) y de
+  `pm-mapas-estrategicos`, guía y plantilla de estrategia de `pm-adquisiciones`, `SPEC.md` §1.10.15, `docs/SANIDAD.md`
+  (MAP-01, caso MD), CATALOGO y TERMINOLOGIA (hacer o comprar).
+- Frases de enrutamiento 131–134 y su prueba en vivo
+  (`docs/evaluacion/resultados/2026-10-28-decisiones-v2.6.md`).
+
+### Pruebas
+- **Caso DC de `probar_paquete.py`** (16 comprobaciones): cálculo a mano (85/80/30, dominada), sensibilidad exacta de
+  cada peso, umbral y margen, eliminatorio, errores de formato, abstención, pregunta tipada y respuestas inválidas o sin
+  evidencia, `--elegir` con y sin motivo, nivel menor rechazado, sin duplicados, nivel de junta con `--decision`,
+  expediente sin confidenciales y con tope, matriz de riesgo con el valor neto importado y `--elegir` vía `riesgos.py`,
+  DEC-01 y DEC-02 y forma `nivel`. Caso Y: 37 scripts y 18 entradas faltantes.
+- **Eslabón 4.7 de la integración cruzada**: riesgo decidido en 2.6, `inversion.py` de 4.3 e `impacto.py` de 4.5 →
+  `decision.py expediente` con las cifras sin recalcular y el nivel de `impacto.py` → matriz con el VAN importado →
+  `--elegir` de la ejecutiva → `decisiones.csv`, sanidad sin DEC.
+- **Caso DR de `probar_paquete.py`** (9 comprobaciones): nivel de autoridad por roles y por palabras, RACI del
+  expediente (1 salto, límites de palabra, confidencial sin valoración), `--motivo` exigido a quien no es el A ni
+  autoridad superior, el A sin motivo, borrador del aviso a los I y `--sin-aviso`, incoherencia avisada, DEC-03 y DEC-04
+  (hojas y D-###).
+- **Eslabón 4.8 de la integración cruzada**: RACI de la cadena 3 → expediente con A, I y nivel → `--elegir` del gestor
+  con `--motivo` → borrador del aviso a la I (`envios.py estado`, sin envíos) → sanidad sin DEC-03/DEC-04.
+- **Caso BU de `probar_paquete.py`** (6 comprobaciones): lematizador, fechas y meses, cifras, ids, glosario inglés →
+  español y las consultas de la prueba del informe exxperts ("enero 2027", "2027-01", "normativa", "39800",
+  "delegaciones suspendidas", "business case").
+- **Caso VG de `probar_paquete.py`** (12 comprobaciones): migración de columnas, `reemplaza` automático al aprobar
+  v1.1, DEC-05 en las cinco reversiones del informe y sin sus falsos positivos, DEC-06 al corte (no con el asunto cerrado), autoridad (ni con
+  `--forzar`), reemplazo doble, ciclo e id inexistente, `conviven`, `decision.py vigentes`, expediente con historia y
+  `matriz --elegir --reemplaza`.
+- **Eslabón 4.9 de la integración cruzada**: la decisión de negocio de 4.7 se reabre en una hoja nueva → el gestor no
+  puede reemplazarla (rechazado antes de registrar) → la ejecutiva elige con `--reemplaza` → `decision.py vigentes` con
+  la cadena → `expediente --tema` en inglés sobre filas en español trae la vigente y la otra como historia → sanidad sin
+  DEC-05 ni DEC-06.
+- **Caso BT de `probar_paquete.py`** (12 comprobaciones): líneas de `registro.py` y `estado.py` con altas, antes →
+  después, claves y `--por`; stakeholders sin valores; cadena y continuidad; reescritura sin cambios; `historial`;
+  BIT-02 (cambio fuera de los scripts y hueco entre líneas) y `reconocer`; 15 altas simultáneas encadenadas; BIT-01
+  con una línea editada; `auditoria --con-bitacora` y `verificar` que explica el archivo alterado; guardián.
+- **Caso PR de `probar_paquete.py`** (11 comprobaciones): proponer (huella, valores base, alias resuelto, registro
+  intacto), propuesta inválida, autoaprobación rechazada, aplicar, listar con lo que pasaría hoy, reaplicar con la fila
+  cambiada en otro campo, conflicto en un campo tocado, alta reaplicada con el id de hoy, rechazar, control de cambios
+  que deja la propuesta pendiente e `historial P-###`.
+- **Eslabón 5.10 de la integración cruzada**: bitácora de todas las escrituras de las cadenas 1–5 íntegra y sin cambios
+  fuera de los scripts → el alta de cada decisión en `historial` → propuesta de un agente sobre un riesgo de 2.3
+  reaplicada tras un cambio de la persona en la misma fila → `auditoria --con-bitacora` → `verificar`.
+- **Caso DK de `probar_paquete.py`** (12 comprobaciones): ids del expediente en minúsculas, con punto y coma, sin fila
+  propia e inexistentes; sección 4 con tabla, historia o "Ninguno"; `vigentes --ids` por `artefactos_afectados`;
+  `--proponer --fecha` y fecha inválida; `pregunta --corte`; `--elegir --decision` de la junta con nivel junta en
+  `riesgos.py` y en la hoja, `--revision` en `riesgos.csv`; `--decision` de nivel menor y `--revision` fuera de una hoja
+  de riesgo rechazados; importados con nombre repetido, ref ambigua, ref calificada y criterio en conflicto; "ask" del
+  guardián; gate de BMAD que reemplaza al anterior.
+- **Caso MD de `probar_paquete.py`** (7 comprobaciones): ids `<mapa>:<id>`, sección 10 del expediente con Wardley y
+  recorrido, faltantes, conjunto de criterios con nombre, `--criterios` inválido y cierre de MAP-01 y MAP-03 al elegir.
+  **Eslabón 4.10 de la integración cruzada**: mapa con un componente "construir" en producto (MAP-01) → hoja de hacer o
+  comprar → `--elegir` → la decisión queda citada y la sanidad sin MAP-01.
+- **pm-kb**: `pm-kb/pruebas/probar_kb.py` (19 comprobaciones del núcleo sin base, con Python 3.9 o posterior, también
+  como caso KB de `probar_paquete.py`; 46 con `--con-base`: BM25 en español, ids abreviados, vigente con aviso de la
+  aprobada, `--aprobado`, historia, versiones y cambios, ficha con bitácora, tope de tokens, RLS por proyecto y
+  circulación, tokens, MCP JSON-RPC y servicio web con CSP, origen y "Preguntar" sin modelo), `consultas_oro.py` (15
+  consultas sobre el proyecto de E2E-1: 14/15 aciertos@5, MRR@5 0,75) y `conformidad_mcp.py` (SDK oficial `mcp` 2.3.0, el
+  que fija Hermes Agent: protocolo 2025-11-25 por stdio y por HTTP). `pm-kb verificar` (14 comprobaciones de punta a
+  punta) pasa en un Ubuntu 24.04 limpio con el instalador (PostgreSQL 16, pgvector 0.6.0; dos ejecuciones idénticas) y en
+  el perfil `kb` de Docker (PostgreSQL 18.6, pgvector 0.8.1). Sesiones reales de Claude Code con el MCP por stdio y por
+  HTTP responden con la cita correcta.
+- Resultados del 2026-10-29 (`docs/PRUEBAS.md`): `probar_paquete.py` 463 OK · 0 FALLO con Python 3.13 y 462 OK con 3.9;
+  integración cruzada 118 OK en 38 eslabones; los cinco recorridos E2E 5/5 OK (76 pasos, 61 imágenes) y deterministas
+  en dos corridas con pm-kb (salvo la fecha del día en los nombres de los archivos exportados); 131 bloques Mermaid sin
+  errores; `claude plugin validate .` sin errores.
+
+## 2.5.1 · 2026-10-28 — escrituras concurrentes seguras
+
+Versión de corrección: varias sesiones que escriben a la vez sobre la misma carpeta de proyecto (dos personas, un
+gateway de Hermes con varios usuarios, un agente y un hook) ya no pierden filas ni repiten ids. No cambia formatos de
+archivo, comandos, opciones ni salidas; sin dependencias nuevas (biblioteca estándar, Python 3.9+). Retrocompatible: un
+proyecto creado con 2.5.0 se usa sin migración (la carpeta `.pm-bloqueo/` se crea en la primera escritura).
+
+### Corregido
+- **Pérdida de datos con escrituras simultáneas.** `registro.py agregar` leía el CSV, calculaba el siguiente id y
+  reescribía el archivo entero sin coordinación ni reemplazo atómico (lo mismo `estado.json` con `estado.py`). Prueba de
+  concepto del informe de base de conocimiento compartida, repetida antes del cambio: con **20 altas simultáneas** de
+  `registro.py` sobre un proyecto nuevo, 17 a 20 procesos informaron éxito, solo 4 o 5 ids distintos, hasta 3 fallaron leyendo
+  un archivo truncado y el CSV quedó con **2 o 3 filas**; con 3 altas simultáneas, una de tres corridas perdió una fila.
+  Después: 20 de 20 (tres corridas), 3 de 3 (tres corridas) y 50 de 50, con ids únicos y consecutivos.
+  - **Bloqueo por proyecto** (`esquema.bloqueo`): exclusivo, sobre `<proyecto>/.pm-bloqueo/bloqueo`, con `fcntl.flock`
+    en POSIX (Linux, WSL2, Docker, macOS) y `msvcrt.locking` en Windows nativo; la carpeta lleva un `.gitignore` con `*`.
+    Espera como máximo `PM_BLOQUEO_ESPERA` segundos (30 por defecto) y, si no lo obtiene, termina con código 1, un
+    mensaje en español e inglés y nada modificado. Reentrante en el mismo proceso y heredado por los subprocesos que el
+    titular espera (`puertas.py` → `sanidad.py`).
+  - **Id dentro del bloqueo**: el registro se relee ya bloqueado antes de calcular el siguiente id.
+  - **Escritura atómica** (`esquema.escribir_atomico`, `escribir_csv`, `escribir_json`): temporal oculto en la misma
+    carpeta, `flush` + `fsync` y `os.replace`; mismos bytes que antes (codificación, CRLF de los CSV, `indent=2` sin
+    salto final, orden de columnas) y mismos permisos. Si el proceso se interrumpe, el archivo anterior queda intacto.
+  - Pasan por el mecanismo común todos los scripts que reescribían archivos de gobierno por su cuenta: `registro.py`
+    (`agregar`, `actualizar`), `estado.py` (todo comando que modifica), `nuevo_proyecto.py`, `puertas.py` (`lista`,
+    `confirmar` y `preparacion-bmad`, que escribía `estado.json` directamente), `bmad.py` (`estado.json`, `backlog.csv`,
+    `avance-bmad.csv` y derivados de `especificacion/`), `interesados.py` (altas, `estereotipos --semilla`,
+    `confirmar`, `rechazar`), `envios.py` (registro de envíos), `esquema.asegurar_registro` y `anotar_decision`;
+    `especificacion.py` regenera `spec-index.json` de forma atómica. `lecciones.py`, `riesgos.py` y `extraccion.py` ya
+    escribían a través de `registro.py`. El guardián no cambia: no protege ni confunde `.pm-bloqueo/` ni los temporales.
+  - Qué no garantiza (`docs/ARQUITECTURA.md` §9.1): dos ramas o clones de git pueden seguir generando el mismo id;
+    montajes de red sin `flock` coherente (aviso y escritura atómica sin exclusión); ediciones fuera de los scripts.
+
+### Documentación
+- `docs/ARQUITECTURA.md` §9.1 (nueva): escrituras concurrentes, scripts cubiertos, qué garantiza y qué no. `SPEC.md`
+  §1.5 (carpeta `.pm-bloqueo/`) y §1.6 (regla de escritura para scripts nuevos). `docs/PRUEBAS.md`: caso CC y eslabón 5.9.
+- Versión 2.5.1 en `plugin.json`, `compatibilidad.json`, `esquema.py`, las skills, `docker/`, el flujo de CI, el README y
+  la documentación que cita la versión vigente. Los registros fechados (imagen Docker, pruebas en vivo, verificaciones de
+  las guías de instalación) y el material generado (informe, resumen ejecutivo, webinar, `docs/ieee/`) conservan la
+  versión con la que se hicieron.
+
+### Pruebas
+- **Caso CC de `probar_paquete.py`** (16 comprobaciones): 20 y 50 altas simultáneas en procesos separados, 30
+  actualizaciones simultáneas de filas distintas, 12 escrituras simultáneas de `estado.json` (`presupuesto`, `set`,
+  `tolerancia`, `rol`, `agil`, `integracion`, `umbrales-riesgo`), tiempo de espera agotado, interrupción entre el
+  temporal y el reemplazo, reentrada, permisos, herencia hacia `sanidad.py`, `.pm-bloqueo/` fuera de git y guardián.
+  Contra el código de 2.5.0, 10 de las 16 fallan.
+- **Eslabón 5.9 de la integración cruzada**: 12 altas de riesgos, 6 de decisiones, `estado.py presupuesto` y `set` y
+  `bmad.py avance` a la vez sobre una copia del proyecto integrado; ids únicos, `estado.json` sin pérdidas, sanidad sin
+  ERROR nuevos.
+- Resultados (2026-10-28): `probar_paquete.py` **372 OK · 0 FALLO** con Python 3.13 y **371 OK · 0 FALLO** con 3.9.25 (sin
+  `matplotlib`); integración cruzada **105 OK · 0 FALLO en 35 eslabones** (100 en 33 con `--sin-e2e`); guías E2E 5/5 con
+  evidencia idéntica a `docs/guias/evidencia/` salvo la fecha del día en los nombres de los archivos exportados y de
+  traspaso, y 51 de 51 imágenes idénticas byte a byte; `validar_paquete.py` OK (también con el intérprete 3.9);
+  `claude plugin validate .` pasa (avisos esperados sobre `CLAUDE.md` y el ícono). Las pruebas en vivo no se repitieron
+  (no cambian descripciones, agentes ni hooks).
+
 ## 2.5.0 · 2026-10-27 — dos caminos de instalación (WSL2 y Docker) y diagram-design como motor opcional verificado
 
 Versión que ordena cómo se instala y se verifica pm-method: dos caminos independientes, cada uno con su guía paso a paso

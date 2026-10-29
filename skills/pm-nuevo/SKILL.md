@@ -3,7 +3,7 @@ name: pm-nuevo
 description: "Crea la carpeta de un proyecto pm-method (estado.json, registros) y detecta BMAD si existe. Uso manual: /pm-nuevo \"Nombre\" [carpeta]. New project scaffold."
 disable-model-invocation: true
 argument-hint: "\"Nombre del proyecto\" [carpeta] [es|en] [predictivo|agil|hibrido]"
-version: 2.5.0
+version: 2.6.0
 author: pm-method
 license: MIT
 metadata:

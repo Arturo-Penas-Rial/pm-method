@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>pm-kb</title>
+<link rel="stylesheet" href="/estatico/estilo.css">
+<script src="/estatico/cytoscape.min.js" defer></script>
+<script src="/estatico/app.js" defer></script>
+</head>
+<body>
+<header class="barra">
+  <div class="marca">pm-kb <span class="sub">conocimiento del proyecto</span></div>
+  <nav class="pestanas" role="tablist" aria-label="Modo">
+    <button type="button" role="tab" id="tab-buscar" data-pestana="buscar" aria-selected="true">Buscar</button>
+    <button type="button" role="tab" id="tab-preguntar" data-pestana="preguntar" aria-selected="false">Preguntar</button>
+  </nav>
+  <div class="cuenta">
+    <span id="persona" class="persona"></span>
+    <form method="post" action="/salir"><button type="submit" class="enlace">Salir</button></form>
+  </div>
+</header>
+
+<main>
+  <section id="panel-buscar" class="panel" role="tabpanel" aria-labelledby="tab-buscar">
+    <form id="f-buscar" class="consulta">
+      <input id="q" type="search" autocomplete="off" required aria-label="Consulta"
+             placeholder="Preguntá o escribí palabras clave: ¿por qué se rechazó la compra de licencias?, R-003, caso de negocio…">
+      <select id="proyecto" aria-label="Proyecto"><option value="">Todos los proyectos</option></select>
+      <button type="submit">Buscar</button>
+      <fieldset class="modo">
+        <legend class="oculto">Versiones</legend>
+        <label title="La última versión de cada documento, con aviso si hay una aprobada anterior"><input type="radio" name="modo" value="vigente" checked> Vigente</label>
+        <label title="Solo la última versión aprobada (consultas de gobierno)"><input type="radio" name="modo" value="aprobado"> Aprobado</label>
+        <label title="Todas las versiones, marcadas"><input type="radio" name="modo" value="historia"> Con historia</label>
+      </fieldset>
+    </form>
+    <div id="resumen" class="resumen" aria-live="polite"></div>
+    <div class="cuerpo">
+      <aside id="facetas" class="facetas" aria-label="Filtros"></aside>
+      <ol id="resultados" class="resultados"></ol>
+    </div>
+  </section>
+
+  <section id="panel-preguntar" class="panel" role="tabpanel" aria-labelledby="tab-preguntar" hidden>
+    <div id="conversacion" class="conversacion" aria-live="polite"></div>
+    <form id="f-preguntar" class="consulta">
+      <input id="pregunta" type="text" autocomplete="off" required aria-label="Pregunta"
+             placeholder="¿Quién aprobó el caso de negocio y qué cambió en la última versión?">
+      <label class="chico"><input type="checkbox" id="solo-aprobado"> solo aprobado</label>
+      <button type="submit">Preguntar</button>
+    </form>
+    <p id="nota-modelo" class="nota"></p>
+  </section>
+</main>
+
+<aside id="ficha" class="ficha" hidden aria-label="Ficha">
+  <button type="button" id="cerrar-ficha" class="cerrar" aria-label="Cerrar ficha">×</button>
+  <div id="ficha-cuerpo"></div>
+</aside>
+
+<footer id="pie" class="pie"></footer>
+</body>
+</html>

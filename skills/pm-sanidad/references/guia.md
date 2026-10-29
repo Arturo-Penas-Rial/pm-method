@@ -46,6 +46,10 @@
 | STK-12 | AVISO | interesado de gestionar de cerca, mantener satisfecho o mantener informado cuyo último envío `enviado` supera 1,5 × su frecuencia (diaria 1, semanal 7, quincenal 14, mensual 31, trimestral 92 días) | con muchos interesados, la cadencia prometida se pierde | contactarlo (`envios.py`, o reunión o llamada como envío manual) o revisar la frecuencia |
 | STK-13…16 | AVISO | personas de usuario (`personas.csv`): Must sin persona (13), persona sin capacidades (14), sin fuente o evidencia (15), recorrido con una persona no registrada (16) | requisitos priorizados sin saber para quién; personas inventadas o sin uso | mapear o registrar la persona (`interesados.py personas mapa`, `candidatos`) |
 | MAP-00…05 | AVISO | mapas de Wardley y de recorrido (`02-planificacion/mapas/`): mapa inválido, producto o commodity marcado construir sin decisión, inercia sin riesgo, dolor sin tratamiento, posición o emoción sin evidencia, id roto | el mapa se dibuja una vez y nadie vuelve a contrastarlo con los registros | pm-mapas-estrategicos (`mapas.py … vincular`), pm-adquisiciones, pm-riesgos |
+| DEC-01/02 | AVISO | hojas de decisión ya decididas (`03-control/decisiones/<ID>/`): elegida distinta de la que hoy recomienda la matriz sin motivo (también si la hoja cambió después de decidir) o D-### inexistente (01); pesos o puntajes sin fuente (02) | la matriz se retoca después de decidir o se decide con cifras sin respaldo | pm-direccion-decisiones (`decision.py`, guía §13) |
+| DEC-03/04 | AVISO | con `raci.csv`, hojas de decisión y decisiones D-### que son elementos de la RACI: decidió quien no es el A ni una autoridad superior, sin motivo (03); el A no tiene la autoridad del nivel requerido (04, solo si su nivel se puede determinar) | la RACI se armó sin mirar los niveles de decisión de PRINCE2, o cambió después de decidir | pm-direccion-decisiones (motivo, guía §13.9); pm-interesados (corregir la RACI) |
+| DEC-05/06 | AVISO | `decisiones.csv`: dos decisiones vigentes del mismo asunto (ids citados, artefacto o texto parecido) con valor distinto (versión, cifra, fecha, negación o una palabra) sin `reemplaza` ni `conviven` (05); `revisar_en` vencido sin decisión posterior del mismo asunto y con lo que cita todavía abierto (06) | una decisión reabierta se registró como fila nueva sin marcar a cuál reemplaza; nadie volvió a mirar una decisión con fecha de revisión | pm-direccion-decisiones (`registro.py … --campo reemplaza=` o `conviven=`, `decision.py vigentes`, guía §13.10) |
+| BIT-01/02 | AVISO | bitácora de escrituras (`.bitacora.jsonl`, 2.6.0): cadena rota (línea ilegible, número fuera de orden, huella de la anterior distinta) o `estado.json`, un registro o una propuesta cambiados fuera de los scripts sin un `reconocer` posterior | edición manual, merge de git, script ajeno | pm-registros (`registro.py historial` y `reconocer`) |
 | INT-01…04 | AVISO | valores de integración conocidos, instantáneas fechadas y recientes | tracker sin leer | pm-integraciones |
 
 ## 2. Dueño de cada familia
@@ -59,6 +63,8 @@
 | TOL | pm-progreso-reportes; excepción → pm-director |
 | STK | pm-interesados (STK-07 → pm-integraciones; STK-08 → pm-okr) |
 | MAP | pm-mapas-estrategicos (MAP-01 → pm-adquisiciones; MAP-02 → pm-riesgos) |
+| DEC | pm-direccion-decisiones |
+| BIT | la persona que revisa el cambio (`registro.py reconocer`, pm-registros); restaurar desde git si no corresponde |
 | ESP | pm-bmad-puente, pm-planificacion-por-productos, pm-issues-cambios |
 | INT | pm-integraciones |
 

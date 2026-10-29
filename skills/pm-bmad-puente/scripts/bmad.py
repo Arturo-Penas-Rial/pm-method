@@ -25,7 +25,7 @@ Uso / Usage (--raiz <repo con BMAD> va ANTES del subcomando: bmad.py --proyecto 
   bmad.py --proyecto ./gestion indice                   # contrato pm-spec-index/1 (lo usa especificacion.py; normalmente no hace falta llamarlo)
   bmad.py --proyecto ./gestion handoff [--cambio C-001] # sentido inverso: decisión de gobierno → documento de traspaso al equipo BMAD
 """
-import argparse, csv, datetime, glob, hashlib, json, os, re, shutil, sys
+import argparse, contextlib, csv, datetime, glob, hashlib, io, json, os, re, shutil, sys
 
 try:
     import yaml
@@ -109,7 +109,18 @@ def cargar_estado(proyecto):
 
 def guardar_estado(proyecto, e):
     e["actualizado"] = hoy(); e["version_estado"] = e.get("version_estado", 0) + 1
-    json.dump(e, open(os.path.join(proyecto, "estado.json"), "w", encoding="utf-8"), ensure_ascii=False, indent=2)
+    escribir_texto(os.path.join(proyecto, "estado.json"), json.dumps(e, ensure_ascii=False, indent=2))
+
+def escribir_texto(ruta, texto, newline=None):
+    """Escritura atómica con esquema.py (temporal + os.replace); los bytes son los de open(ruta, "w", newline=…)."""
+    if E: E.escribir_atomico(ruta, texto, newline=newline)
+    else: open(ruta, "w", encoding="utf-8", newline=newline).write(texto)
+
+def escribir_filas(ruta, cols, filas, **kw):
+    """CSV con csv.DictWriter (mismas opciones que antes), escrito de forma atómica."""
+    buf = io.StringIO(newline="")
+    w = csv.DictWriter(buf, fieldnames=cols, **kw); w.writeheader(); w.writerows(filas)
+    escribir_texto(ruta, buf.getvalue(), newline="")
 
 def salida(proyecto, *partes):
     p = os.path.join(proyecto, *partes); os.makedirs(os.path.dirname(p), exist_ok=True); return p
@@ -529,7 +540,7 @@ def cmd_inventario(a, e):
     datos = {"generado": hoy(), "layout": b["layout"], "soporte": b["soporte"],
              "artefactos": {k: {**v, "rutas": [os.path.relpath(r, b["raiz"]) for r in v["rutas"]],
                                 "previas": [os.path.relpath(r, b["raiz"]) for r in v["previas"]]} for k, v in arts.items()}}
-    json.dump(datos, open(out, "w", encoding="utf-8"), ensure_ascii=False, indent=2)
+    escribir_texto(out, json.dumps(datos, ensure_ascii=False, indent=2))
     if a.json: print(json.dumps(datos, ensure_ascii=False, indent=2)); return
     print(f"BMAD {b['layout']} ({b['soporte']}) en {b['raiz']}")
     for k, v in arts.items():
@@ -542,8 +553,7 @@ def cmd_inventario(a, e):
 def cmd_requisitos(a, e):
     b = detectar_bmad(a.proyecto, a.raiz, e); arts = inventario(b); filas = requisitos(b, arts)
     out = salida(a.proyecto, "02-planificacion", "especificacion", "requisitos-bmad.csv"); proteger(out, b)
-    with open(out, "w", newline="", encoding="utf-8") as f:
-        w = csv.DictWriter(f, fieldnames=["id", "tipo", "titulo", "fuente", "linea"]); w.writeheader(); w.writerows(filas)
+    escribir_filas(out, ["id", "tipo", "titulo", "fuente", "linea"], filas)
     cuenta = {}
     for f in filas: cuenta[f["tipo"]] = cuenta.get(f["tipo"], 0) + 1
     print(f"{len(filas)} identificadores · {cuenta} → {os.path.relpath(out)} (derivado: no editar)")
@@ -569,8 +579,7 @@ def cmd_trazabilidad(a, e):
                       "cubierto": "si" if hh else ("na" if q["tipo"] == "NFR" else "no"),
                       "terminado": "si" if hh and all(s == "done" for s in estados) else "no"})
     out = salida(a.proyecto, "02-planificacion", "especificacion", "matriz-trazabilidad-bmad.csv"); proteger(out, b)
-    with open(out, "w", newline="", encoding="utf-8") as f:
-        w = csv.DictWriter(f, fieldnames=list(filas[0].keys()) if filas else ["requisito"]); w.writeheader(); w.writerows(filas)
+    escribir_filas(out, list(filas[0].keys()) if filas else ["requisito"], filas)
     ids_validos = {q["id"] for q in reqs}
     sin_hist = [f["requisito"] for f in filas if f["cubierto"] == "no"]
     hist_sin_req = [k for k, h in hs.items() if not ((h["refs"] | h.get("refs_epica", set())) & ids_validos)]
@@ -615,8 +624,7 @@ def cmd_backlog(a, e):
     retiradas = [f["id"] for f in filas if f.get("origen") == "bmad" and f["id"] not in hs]
     for f in filas:
         if f["id"] in retiradas: f["estado"] = "retirada-en-bmad"
-    with open(p, "w", newline="", encoding="utf-8") as f:
-        w = csv.DictWriter(f, fieldnames=cols, extrasaction="ignore"); w.writeheader(); w.writerows(filas)
+    escribir_filas(p, cols, filas, extrasaction="ignore")
     print(f"backlog.csv: {nuevos} nuevas, {actualizados} actualizadas, {len(retiradas)} retiradas en BMAD. "
           f"Columnas derivadas ({', '.join(sorted(DERIVADAS))}) se sobrescriben; las de gobierno (prioridad, moscow, estimacion, iteracion, release, producto_pbs) no se tocan.")
 
@@ -643,8 +651,7 @@ def cmd_avance(a, e):
     previas = []
     if os.path.exists(out):
         with open(out, newline="", encoding="utf-8") as f: previas = [r for r in csv.DictReader(f) if r.get("fecha") != fila["fecha"]]
-    with open(out, "w", newline="", encoding="utf-8") as f:   # una fila por fecha de corte (re-ejecutar no duplica)
-        w = csv.DictWriter(f, fieldnames=list(fila.keys()), extrasaction="ignore"); w.writeheader(); w.writerows(previas + [fila])
+    escribir_filas(out, list(fila.keys()), previas + [fila], extrasaction="ignore")   # una fila por fecha de corte (re-ejecutar no duplica)
     if a.json: print(json.dumps(fila, ensure_ascii=False, indent=2))
     else: print(f"Historias {len(hs)} · " + " · ".join(f"{s} {cuenta.get(s,0)}" for s in estados) + f" · épicas terminadas {ep_done}/{len(epicas)} · {fila['pct_terminado']} % ({fila['base_pct']}) → {os.path.relpath(out)}")
 
@@ -771,7 +778,7 @@ def huella_actual(proyecto, e=None, raiz=None):
 def cmd_indice(a, e):
     idx = construir_indice(a.proyecto, e, a.raiz)
     out = salida(a.proyecto, "02-planificacion", "especificacion", "spec-index.json")
-    json.dump(idx, open(out, "w", encoding="utf-8"), ensure_ascii=False, indent=2)
+    escribir_texto(out, json.dumps(idx, ensure_ascii=False, indent=2))
     r = idx["resumen"]; print(f"Índice de especificación (BMAD {idx['fuente']['layout']}): {r['requisitos']} ids, {r['historias']} historias, sin cobertura {r['sin_cobertura'] or 'ninguno'} → {os.path.relpath(out)}")
 
 # ------------------------------------------------------------------ sentido inverso: decisiones de gobierno → BMAD
@@ -875,6 +882,11 @@ def main():
         try: datetime.date.fromisoformat(a.fecha)
         except ValueError: sys.exit(f"--fecha {a.fecha}: formato AAAA-MM-DD")
     if not yaml: print("AVISO: falta PyYAML (pip install pyyaml); sin él no se leen config.yaml ni sprint-status.yaml.", file=sys.stderr)
+    escribe = a.cmd not in ("recorridos", "capacidades") and not (a.cmd == "verificar" and not a.marcar_vistas)
+    with (E.bloqueo(a.proyecto) if E and escribe else contextlib.nullcontext()):   # estado.json, backlog y derivados
+        ejecutar(a)
+
+def ejecutar(a):
     e = cargar_estado(a.proyecto)
     {"detectar": cmd_detectar, "inventario": cmd_inventario, "requisitos": cmd_requisitos, "trazabilidad": cmd_trazabilidad,
      "backlog": cmd_backlog, "avance": cmd_avance, "linea-base": cmd_linea_base, "verificar": cmd_verificar,

@@ -1,7 +1,7 @@
 ---
 name: pm-riesgos
 description: "Registro y respuestas de riesgo PRINCE2. Usar: riesgo, risk register, matriz P×I, EMV, respuesta al riesgo, plan de contingencia, oportunidad, informe o auditoría. No: issue ya ocurrido→pm-issues-cambios."
-version: 2.5.0
+version: 2.6.0
 author: pm-method
 license: MIT
 metadata:
@@ -44,10 +44,10 @@ metadata:
 ## Procedimiento
 1. **Objetivos.** Listar los siete objetivos en riesgo con unidades y tolerancias. Sin objetivos acordados no se registra ningún riesgo.
 2. **Escala. PUERTA HUMANA.** Sin enfoque aprobado, redactar `templates/evaluacion-probabilidad-impacto.md` (1–5; alto ≥ 15, medio 6–12, bajo ≤ 5; P → 10/30/50/70/90 %); el ejecutivo la aprueba y se registra con `estado.py aprobar` (`references/guia.md` §1). Hasta entonces, puntuaciones como propuesta.
-3. **Identificar** desde las fuentes, no de memoria: `python3 ${CLAUDE_SKILL_DIR}/../pm-riesgos/scripts/riesgos.py --proyecto <dir> candidatos` destila candidatos citados de BMAD (vía pm-bmad-puente), transcripciones, tracker y artefactos; guía §2. En el taller, formular causa → evento → efecto y registrar con `registro.py agregar riesgos … --campo notas="origen: …"`; lo ocurrido va a `pm-issues-cambios`.
+3. **Identificar** desde las fuentes, no de memoria: `python3 ${CLAUDE_SKILL_DIR}/../pm-riesgos/scripts/riesgos.py --proyecto <dir> candidatos` destila candidatos citados de BMAD, transcripciones, tracker y artefactos (guía §2). En el taller, causa → evento → efecto y registrar con `registro.py agregar riesgos … --campo notas="origen: …"`; lo ocurrido va a `pm-issues-cambios`.
 4. **Evaluar** P, I (en unidades del objetivo), proximidad e impacto monetario con `registro.py actualizar riesgos` (recalcula P×I y EMV; guía §3). Altos sin respuesta o propietario → lista de escalado.
 5. **Perfil agregado** con `registro.py resumen --json`; comparar exposición con `tolerancias.*.riesgo`. Si se supera → paso 10.
-6. **Planificar respuestas:** `python3 ${CLAUDE_SKILL_DIR}/../pm-riesgos/scripts/riesgos.py --proyecto <dir> opciones [--proponer]` compara las opciones de los riesgos sobre el umbral (evitar, reducir, transferir, contingencia; guía §4) por valor neto y marca la recomendada; si se acepta, `templates/plan-contingencia.md` con disparador medible; `templates/hoja-riesgo.md` sobre la línea. **PUERTA HUMANA:** decide el propietario (`opciones --riesgo R-### --elegir O# --por …` registra riesgo y decisión) y el ejecutor acepta sus acciones; si no, `[por confirmar]`.
+6. **Planificar respuestas:** `python3 ${CLAUDE_SKILL_DIR}/../pm-riesgos/scripts/riesgos.py --proyecto <dir> opciones [--proponer]` compara por valor neto las opciones de los riesgos sobre el umbral (guía §4) y marca la recomendada; con más criterios (apetito, factibilidad, plazo), `decision.py matriz` de `pm-direccion-decisiones`; si se acepta, `templates/plan-contingencia.md` con disparador medible; `templates/hoja-riesgo.md` sobre la línea. **PUERTA HUMANA:** decide el propietario (`opciones --riesgo R-### --elegir O# --por …` registra riesgo y decisión) y el ejecutor acepta sus acciones; si no, `[por confirmar]`.
 7. **Incorporar al plan.** Acción, responsable y fecha en el plan de etapa o paquete; costo al presupuesto de riesgo; cada acción en `acciones.csv` (`--campo origen=R-###`). Si cambia una línea base → `pm-issues-cambios`.
 8. **Monitorear** cada período: acciones vencidas, reevaluación, movimientos, disparadores. Materializado → `estado=ocurrido` + issue en `pm-issues-cambios`; retirado con nota (guía §5).
 9. **Presupuesto de riesgo** = respuestas + EMV residual (guía §5): total, comprometido, usado, remanente, cobertura; su uso lo autoriza quien diga el enfoque (por defecto el ejecutivo), nunca el agente.
@@ -111,5 +111,5 @@ Columnas de `riesgos.csv`: `references/guia.md` §7.
 
 ## EN summary
 PRINCE2 five-step risk procedure on `riesgos.csv`: cause → event → effect, P×I on an executive-approved scale, EMV, residual and trigger.
-Response options ranked by net value (`riesgos.py opciones`); the owner chooses; accepted risks get a funded contingency plan.
-Each period: overdue actions, triggers, materialized risks → issues, highlight; breaches → pm-director.
+Response options ranked by net value (`riesgos.py opciones`); the owner chooses; accepted risks get a contingency plan.
+Each period: actions, triggers, materialized risks → issues; breaches → pm-director.

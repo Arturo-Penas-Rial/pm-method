@@ -2194,6 +2194,372 @@ def caso_estado_productos(tmp):
     check("--markdown: borrador del product status account (plantilla de pm-paquetes-trabajo) con el total, el detalle y WP-001 completado (D-###)",
           "tipo: product-status-account" in t_ and "| **Total** | **3** |" in t_ and "| 1-2 |" in t_ and "WP-001 (1-1, 1-2)" in t_ and "completado (D-" in t_, r.stdout[-300:])
 
+# ------------------------------------------------------------------ caso DC: decisiones con contexto (pm-direccion-decisiones/scripts/decision.py)
+def _csv_escribir(ruta, texto):
+    with open(ruta, "w", encoding="utf-8", newline="") as f: f.write(texto)
+
+def caso_decisiones(tmp):
+    print("Caso DC · decisiones con contexto: expediente, matriz multicriterio, pregunta tipada y elección registrada (decision.py)")
+    DC = os.path.join(RAIZ, "skills", "pm-direccion-decisiones", "scripts", "decision.py"); RG = os.path.join(S, "registro.py")
+    d = os.path.join(tmp, "dec"); os.makedirs(d); g = "g"
+    run([os.path.join(S, "nuevo_proyecto.py"), "--ruta", g, "--nombre", "Decisiones", "--ejecutivo", "Laura Méndez", "--gestor", "Martín Suárez"], d)
+    ES = lambda *a: run([os.path.join(S, "estado.py"), "--proyecto", g] + list(a), d)
+    X = lambda *a, esperar=0, entrada=None: run([DC, "--proyecto", g] + list(a), d, esperar=esperar, entrada=entrada)
+    XJ = lambda *a, esperar=0: json.loads(X(*a, "--json", esperar=esperar).stdout or "{}")
+    H = lambda hid, *p: os.path.join(d, g, "03-control", "decisiones", hid, *p)
+    RC = os.path.join(d, g, "03-control", "registros")
+    filas = lambda reg: list(csv.DictReader(open(os.path.join(RC, f"{reg}.csv"), encoding="utf-8")))
+    ES("tolerancia", "--nivel", "proyecto", "tiempo=±3 semanas", "costo=±10 %"); ES("presupuesto", "riesgo=20000", "--por", "Ejecutiva: Laura Méndez")
+    # --- cálculo a mano: costo (num, menor) 4, calidad (1-5, mayor) 4, riesgo (1-5, menor) 2 → pesos 40/40/20
+    X("matriz", "prov", "--proponer", "--tipo", "adquisicion", "--pregunta", "¿A qué proveedor adjudicamos el soporte?")
+    crit = ("criterio,descripcion,peso,sentido,escala,eliminatorio,importar,fuente_peso,notas\n"
+            "costo,Costo del ciclo de vida,4,menor,num,,,estrategia de adquisiciones §3,\ncalidad,Calidad técnica,4,mayor,1-5,{elim},,estrategia de adquisiciones §3,\n"
+            "riesgo,Riesgo del proveedor,2,menor,1-5,,,estrategia de adquisiciones §3,\n")
+    ops = ("opcion,descripcion,ref,costo,costo_fuente,calidad,calidad_fuente,riesgo,riesgo_fuente,notas\n"
+           "O1,Proveedor A,,100,oferta A,4,evaluación del comité,2,due diligence,\nO2,Proveedor B,,150,oferta B,5,evaluación del comité,1,due diligence,\n"
+           "O3,Proveedor C,,200,oferta C,3,evaluación del comité,3,due diligence,\n")
+    _csv_escribir(H("prov", "criterios.csv"), crit.format(elim="")); _csv_escribir(H("prov", "opciones.csv"), ops)
+    m = XJ("matriz", "prov"); o = {x["opcion"]: x for x in m.get("opciones", [])}; s = {f["criterio"]: f for f in m.get("sensibilidad", [])}
+    check("matriz a mano: pesos 4/4/2 normalizados con aviso; costo min–max, escalas (x−1)/4 y sentido menor → O1 85, O2 80, O3 30; recomendada O1; O3 dominada por O1",
+          round(o["O1"]["puntaje"], 6) == 85 and round(o["O2"]["puntaje"], 6) == 80 and round(o["O3"]["puntaje"], 6) == 30 and m["recomendada"] == "O1"
+          and o["O3"]["dominada_por"] == "O1" and not o["O2"]["dominada_por"] and any("suman 10" in a for a in m["avisos"]) and any("no hacer nada" in a for a in m["avisos"]), str(m)[:600])
+    check("sensibilidad exacta: costo baja de 40 a 33,3 → O2; calidad sube a 50 → O2; riesgo sube a 33,3 → O2; mínima 6,7 puntos: no es baja con el umbral 5, sí con 10",
+          abs(s["costo"]["baja"]["peso"] - 100 / 3) < 1e-6 and s["costo"]["baja"]["opcion"] == "O2" and s["costo"]["sube"] is None and abs(s["calidad"]["sube"]["peso"] - 50) < 1e-6
+          and abs(s["riesgo"]["sube"]["peso"] - 100 / 3) < 1e-6 and abs(m["sensibilidad_minima"]["delta"] + 20 / 3) < 1e-6 and not m["sensibilidad_baja"]
+          and XJ("matriz", "prov", "--umbral-sensibilidad", "10")["sensibilidad_baja"] and XJ("matriz", "prov", "--margen", "6")["empates"] == ["O2"] and m["empates"] == [], str(s)[:500])
+    _csv_escribir(H("prov", "criterios.csv"), crit.format(elim="4"))
+    m2 = XJ("matriz", "prov"); o2 = {x["opcion"]: x for x in m2["opciones"]}
+    check("eliminatorio calidad ≥ 4: O3 eliminada y fuera de la normalización (costo 100–150) → O1 85, O2 60",
+          o2["O3"]["estado"] == "eliminada" and "calidad 3 < 4" in o2["O3"]["motivo"] and round(o2["O1"]["puntaje"], 6) == 85 and round(o2["O2"]["puntaje"], 6) == 60, str(o2)[:400])
+    _csv_escribir(H("prov", "opciones.csv"), ops + "O4,Proveedor D,,2.500,oferta D,7,evaluación,2,dd,\n")
+    m3 = XJ("matriz", "prov", esperar=1)
+    _csv_escribir(H("prov", "opciones.csv"), ops + "O4,No contratar: seguir con el equipo interno,,,,4,evaluación,2,dd,\n")
+    m4 = XJ("matriz", "prov")
+    check("validación: separador de miles (2.500) y calidad 7 fuera de 1-5 → error y código 1; puntaje faltante → por confirmar y abstención (pedir-informacion, sin recomendada)",
+          m3.get("accion") == "corregir" and len([x for x in m3.get("errores", []) if x.startswith("O4")]) == 2 and m4["accion"] == "pedir-informacion"
+          and not m4["recomendada"] and m4["faltan"] == ["O4.costo"], f"{m3.get('errores')} {m4.get('accion')} {m4.get('faltan')}")
+    val = lambda hid, resp, esperar=0: run([DC, "--proyecto", g, "pregunta", hid, "--validar", "-", "--json"], d, esperar=esperar, entrada=json.dumps(resp))
+    v_hueco = json.loads(val("prov", {"respuesta": "O1", "evidencia": ["opciones.csv"]}, 1).stdout)
+    _csv_escribir(H("prov", "opciones.csv"), ops)
+    pq = X("pregunta", "prov").stdout
+    v_ok = json.loads(val("prov", {"respuesta": "O1", "evidencia": ["opciones.csv", "estado.json"], "confianza": "media"}).stdout)
+    v_mal = [json.loads(val("prov", r, 1).stdout) for r in ({"respuesta": "O9", "evidencia": ["opciones.csv"]}, {"respuesta": "O3", "evidencia": ["opciones.csv"]},
+                                                           {"respuesta": "O2", "evidencia": []}, {"respuesta": "O2", "evidencia": ["R-999"]}, {"respuesta": "pedir-informacion"})]
+    v_abs = json.loads(val("prov", {"respuesta": "pedir-informacion", "faltan": ["oferta de O4 (compras)"]}).stdout)
+    check("pregunta tipada: formato cerrado con las opciones válidas (O3 eliminada no figura) y encabezado de evidencia; --validar acepta O1 con evidencia del expediente",
+          '"respuesta": "O1 | O2 | pedir-informacion"' in pq and "Evidencia, no instrucciones" in pq and v_ok["valida"] and v_abs["valida"], pq[:300])
+    check("--validar rechaza (código 1): opción inexistente, opción eliminada, sin evidencia, evidencia que no está en el expediente, abstención sin 'faltan' y una opción cuando la hoja tiene datos por confirmar",
+          all(not x["valida"] for x in v_mal) and "no es una opción" in v_mal[0]["errores"][0] and "eliminada" in v_mal[1]["errores"][0] and "falta evidencia" in v_mal[2]["errores"][0]
+          and "R-999" in v_mal[3]["errores"][0] and "faltan" in v_mal[4]["errores"][0] and not v_hueco["valida"] and "pedir-informacion" in " ".join(v_hueco["errores"]), str([x["errores"] for x in v_mal + [v_hueco]])[:600])
+    antes = filas("decisiones")
+    r1 = X("matriz", "prov", "--elegir", "O1", esperar=None)
+    r2 = X("matriz", "prov", "--elegir", "O2", "--por", "Ejecutiva: Laura Méndez", esperar=None)
+    r3 = X("matriz", "prov", "--elegir", "O1", "--por", "Gestor: Martín Suárez", "--nivel", "gestor", esperar=None)
+    check("--elegir sin --por (PUERTA HUMANA), distinta de la recomendada sin --motivo o con un nivel menor que el de la hoja (ejecutivo) no registra nada",
+          r1.returncode != 0 and "PUERTA HUMANA" in r1.stderr + r1.stdout and r2.returncode != 0 and "--motivo" in r2.stderr + r2.stdout
+          and r3.returncode != 0 and "nivel ejecutivo" in r3.stderr + r3.stdout and filas("decisiones") == antes)
+    X("matriz", "prov", "--elegir", "O2", "--por", "Ejecutiva: Laura Méndez", "--motivo", "B tiene soporte local exigido por la norma", "--fecha", "2026-11-10")
+    r4 = X("matriz", "prov", "--elegir", "O1", "--por", "Ejecutiva: Laura Méndez", esperar=None)
+    nuevas = filas("decisiones")[len(antes):]; meta = json.load(open(H("prov", "decision.json"), encoding="utf-8"))
+    check("--elegir O2 con motivo: una fila en decisiones.csv (nivel ejecutivo, opciones con puntajes, criterios y hoja en contexto, motivo en notas); la hoja guarda la elección; un segundo --elegir no duplica",
+          len(nuevas) == 1 and nuevas[0]["nivel"] == "ejecutivo" and "O1 85,0★" in nuevas[0]["opciones_consideradas"] and "costo 40,0" in nuevas[0]["contexto"]
+          and "03-control/decisiones/prov/" in nuevas[0]["artefactos_afectados"] and nuevas[0]["notas"].startswith("B tiene soporte") and meta["eleccion"]["decision_id"] == nuevas[0]["id"]
+          and meta["eleccion"]["recomendada"] == "O1" and r4.returncode != 0 and "ya tiene una decisión" in r4.stderr + r4.stdout and len(filas("decisiones")) == len(antes) + 1, str(nuevas)[:500])
+    # --- nivel de junta: la registra pm-director (estado.py puerta decision-ad-hoc) y la matriz se cita con --decision
+    X("matriz", "junta1", "--proponer", "--tipo", "negocio", "--pregunta", "¿Seguimos con la opción completa?")
+    mj = json.load(open(H("junta1", "decision.json"), encoding="utf-8")); mj["nivel"] = "junta"; json.dump(mj, open(H("junta1", "decision.json"), "w", encoding="utf-8"))
+    _csv_escribir(H("junta1", "criterios.csv"), "criterio,descripcion,peso,sentido,escala,eliminatorio,importar,fuente_peso,notas\nvalor,Valor,60,mayor,1-5,,,junta,\nriesgo,Riesgo,40,menor,1-5,,,junta,\n")
+    _csv_escribir(H("junta1", "opciones.csv"), "opcion,descripcion,ref,valor,valor_fuente,riesgo,riesgo_fuente,notas\nO1,No hacer nada distinto,,1,bc,1,riesgos.csv,\nO2,Opción completa,,5,bc,3,riesgos.csv,\n")
+    rj = X("matriz", "junta1", "--elegir", "O2", "--por", "Ejecutiva: Laura Méndez", esperar=None)
+    ES("puerta", "decision-ad-hoc", "--decision", "aprobado", "--por", "Ejecutiva: Laura Méndez", "--condiciones", "opción completa (O2)")
+    dj = filas("decisiones")[-1]["id"]; n0 = len(filas("decisiones"))
+    X("matriz", "junta1", "--elegir", "O2", "--por", "Ejecutiva: Laura Méndez", "--decision", dj)
+    fj = next(f for f in filas("decisiones") if f["id"] == dj)
+    check("nivel junta: sin --decision la remite a pm-director (estado.py puerta decision-ad-hoc); con --decision completa esa fila con la matriz, sin fila nueva",
+          rj.returncode != 0 and "pm-director" in rj.stderr + rj.stdout and len(filas("decisiones")) == n0 and "O2" in fj["opciones_consideradas"]
+          and "03-control/decisiones/junta1/" in fj["artefactos_afectados"] and fj["nivel"] == "junta", str(fj))
+    # --- riesgos: expediente con confidenciales y tope; matriz con valor neto importado; --elegir llama a riesgos.py
+    for ev, p_, i_, m_ in (("La integración se prueba tarde", 4, 4, 30000), ("El proveedor de SMS no cumple", 3, 5, 25000)):
+        run([RG, "--proyecto", g, "agregar", "riesgos", "--campo", "causa=c", "--campo", f"evento={ev}", "--campo", "efecto=e", "--campo", "tipo=amenaza", "--campo", f"probabilidad={p_}",
+             "--campo", f"impacto={i_}", "--campo", f"impacto_monetario={m_}", "--campo", "propietario=Diego Ferreira", "--campo", "notas=afecta a ST-002 y al beneficio B-01"], d)
+    run([RG, "--proyecto", g, "agregar", "stakeholders", "--campo", "nombre=Diego Ferreira", "--campo", "rol_proyecto=proveedor sénior", "--campo", "poder=alto", "--campo", "interes=alto",
+         "--campo", "correo=diego@ejemplo.org"], d)
+    run([RG, "--proyecto", g, "agregar", "stakeholders", "--campo", "nombre=Ana Ríos", "--campo", "rol_proyecto=jefa de sucursal", "--campo", "confidencial=si", "--campo", "actitud=resistente",
+         "--campo", "expectativas=EXPECTATIVA-OCULTA", "--campo", "notas=SECRETO-NOTA cita R-002"], d)
+    run([RG, "--proyecto", g, "agregar", "supuestos", "--campo", "supuesto_o_restriccion=El padrón tiene datos de prueba", "--campo", "tipo=supuesto", "--campo", "criticidad=alta", "--campo", "validado=pendiente"], d)
+    run([RG, "--proyecto", g, "agregar", "lecciones", "--campo", "situacion=La integración tardía costó un sprint", "--campo", "recomendacion=Probar la integración en el sprint 1",
+         "--campo", "impacto=alto", "--campo", "aplicar_en=seguimiento", "--campo", "estado=revisada"], d)
+    run([RG, "--proyecto", g, "agregar", "lecciones", "--campo", "situacion=x", "--campo", "recomendacion=LECCION-DESCARTADA", "--campo", "aplicar_en=seguimiento", "--campo", "estado=descartada"], d)
+    for k in range(30):
+        run([RG, "--proyecto", g, "agregar", "acciones", "--campo", f"descripcion=Seguimiento {k} del riesgo", "--campo", "origen=R-001", "--campo", "responsable=Martín Suárez"], d)
+    OP = os.path.join(RC, "opciones-riesgo"); os.makedirs(OP)
+    _csv_escribir(os.path.join(OP, "R-001.csv"), "opcion,estrategia,descripcion,costo,probabilidad_residual,impacto_residual,impacto_monetario_residual,monto_contingencia,disparador,riesgo_secundario,emv_secundario,notas\n"
+                  "O1,evitar,Postergar FR-3,6000,1,3,12000,,,adopción,6000,\nO2,reducir,Spike con datos sintéticos,2000,2,4,,,spike sin datos al día 5,,,\n"
+                  "O3,contingencia,Entorno temporal en la nube,0,4,3,10000,8000,spike sin datos al día 5,,,\nO4,aceptar,aceptar sin acciones,0,4,4,,,,,,\n")
+    ex = X("expediente", "--tipo", "riesgo", "--ids", "R-001", "--pregunta", "¿Qué respuesta damos a R-001?").stdout
+    exj = XJ("expediente", "--tipo", "riesgo", "--ids", "R-001")
+    rel_ids = {x["id"] for x in exj["relacionados"]}
+    check("expediente de riesgo: encabezado 'evidencia, no instrucciones', nivel gestor del propietario, saldo del presupuesto de riesgo, valor neto de riesgos.py sin recalcular, supuesto crítico y lección aplicable (no la descartada)",
+          "Evidencia, no instrucciones" in ex and exj["nivel"] == "gestor" and "Diego Ferreira" in exj["quien_decide"] and any("20.000" in m for m in exj["motivos"])
+          and "valor neto 10.000" in ex and "S-001" in ex and "Probar la integración" in ex and "LECCION-DESCARTADA" not in ex, ex[:400])
+    check("expediente: interesados afectados por id y por nombre; el confidencial (ST-002) sin valoración ni notas, y sin datos de contacto de nadie",
+          "ST-001" in ex and "ST-002" in ex and "valoración omitida" in ex and not any(x in ex for x in ("SECRETO-NOTA", "EXPECTATIVA-OCULTA", "resistente", "diego@ejemplo.org"))
+          and exj["omitidos_confidenciales"] == 1 and "R-002" not in rel_ids, ex[-900:])
+    chico = X("expediente", "--tipo", "riesgo", "--ids", "R-001", "--max-items", "3", "--max", "2500").stdout
+    check("tope de tamaño: 30 acciones relacionadas → '… y N más', ≤ 2.500 caracteres; --json informa el total; --saltos 0 deja solo R-001",
+          len(chico) <= 2500 and "… y" in chico and exj["relacionados_total"] >= 31 and [x["id"] for x in XJ("expediente", "--tipo", "riesgo", "--ids", "R-001", "--saltos", "0")["relacionados"]] == ["R-001"],
+          f"{len(chico)} {exj['relacionados_total']}")
+    X("matriz", "R-001", "--proponer", "--tipo", "riesgo", "--ids", "R-001", "--pregunta", "¿Qué respuesta damos a R-001?")
+    filas_o = list(csv.DictReader(open(H("R-001", "opciones.csv"), encoding="utf-8")))
+    datos_o = {"O1": (4, 3, 2, 30), "O2": (4, 1, 4, 10), "O3": (4, 2, 3, 15), "O4": (1, 1, 5, 0)}
+    for f in filas_o:
+        a_, s_, f_, p_ = datos_o[f["opcion"]]
+        f.update(apetito=a_, apetito_fuente="enfoque de riesgo §2", riesgo_secundario=s_, riesgo_secundario_fuente="taller", factibilidad=f_, factibilidad_fuente="taller", plazo_para_actuar=p_, plazo_para_actuar_fuente="plan de etapa")
+    with open(H("R-001", "opciones.csv"), "w", encoding="utf-8", newline="") as fh: w = csv.DictWriter(fh, fieldnames=list(filas_o[0].keys())); w.writeheader(); w.writerows(filas_o)
+    cr = list(csv.DictReader(open(H("R-001", "criterios.csv"), encoding="utf-8")))
+    for f in cr: f["fuente_peso"] = "junta 2026-11-03"
+    with open(H("R-001", "criterios.csv"), "w", encoding="utf-8", newline="") as fh: w = csv.DictWriter(fh, fieldnames=list(cr[0].keys())); w.writeheader(); w.writerows(cr)
+    mr = XJ("matriz", "R-001"); orr = {x["opcion"]: x for x in mr["opciones"]}
+    jr = json.loads(run([os.path.join(RAIZ, "skills", "pm-riesgos", "scripts", "riesgos.py"), "--proyecto", g, "opciones", "--riesgo", "R-001", "--json"], d).stdout)["riesgos"][0]
+    netos = {o["opcion"]: o["valor_neto"] for o in jr["opciones"]}
+    check("matriz de riesgo propuesta desde riesgos.py: misma numeración, valor neto importado sin recalcular (con su fuente), apetito 1 elimina 'aceptar'; recomendada O2",
+          [x["ref"] for x in mr["opciones"]] == ["R-001/O1", "R-001/O2", "R-001/O3", "R-001/O4"] and all(orr[k]["valores"]["valor_neto"] == netos[k] for k in ("O1", "O2", "O3"))
+          and "riesgos-opciones-R-001.json" in orr["O2"]["fuentes"]["valor_neto"] and orr["O4"]["estado"] == "eliminada" and mr["recomendada"] == "O2", str(mr)[:400])
+    n0 = len(filas("decisiones"))
+    X("matriz", "R-001", "--elegir", "O2", "--por", "Proveedor sénior: Diego Ferreira", "--fecha", "2026-11-04")
+    fr = next(f for f in filas("riesgos") if f["id"] == "R-001"); dr = filas("decisiones")[-1]
+    check("--elegir en una hoja de riesgo llama a riesgos.py opciones --elegir: respuesta y residual en riesgos.csv, una sola decisión (nivel gestor) con la matriz en notas",
+          fr["respuesta"] == "reducir" and fr["estado"] == "en-seguimiento" and dr["id"] in fr["acciones"] and len(filas("decisiones")) == n0 + 1 and dr["nivel"] == "gestor"
+          and "matriz: O1" in dr["notas"] and "03-control/decisiones/R-001/" in dr["artefactos_afectados"], f"{fr} {dr}")
+    dec_codes = lambda: [h for h in sanidad(g, d)["hallazgos"] if h["codigo"].startswith("DEC-")]
+    h0 = dec_codes()
+    filas_o = list(csv.DictReader(open(H("R-001", "opciones.csv"), encoding="utf-8")))
+    for f in filas_o:
+        if f["opcion"] == "O3": f.update(factibilidad="5", apetito="5", riesgo_secundario="1", plazo_para_actuar="5", plazo_para_actuar_fuente="")
+    with open(H("R-001", "opciones.csv"), "w", encoding="utf-8", newline="") as fh: w = csv.DictWriter(fh, fieldnames=list(filas_o[0].keys())); w.writeheader(); w.writerows(filas_o)
+    cr = list(csv.DictReader(open(H("R-001", "criterios.csv"), encoding="utf-8")))
+    for f in cr:
+        if f["criterio"] == "valor_neto": f["peso"] = "5"
+    with open(H("R-001", "criterios.csv"), "w", encoding="utf-8", newline="") as fh: w = csv.DictWriter(fh, fieldnames=list(cr[0].keys())); w.writeheader(); w.writerows(cr)
+    h1 = dec_codes()
+    check("sanidad DEC: nada con la decisión coherente y con fuentes; si la hoja cambia y la matriz recomienda otra sin motivo → DEC-01; puntaje sin fuente → DEC-02",
+          h0 == [] and any(h["codigo"] == "DEC-01" and "cambió después de decidir" in h["mensaje"] for h in h1) and any(h["codigo"] == "DEC-02" and "O3.plazo_para_actuar" in h["mensaje"] for h in h1),
+          f"{h0} {h1}")
+    X("matriz", "prio", "--proponer", "--tipo", "riesgo", "--forma", "nivel", "--escala", "1-5", "--ids", "R-002", "--pregunta", "¿Qué prioridad tiene R-002 en la revisión?")
+    vp = [json.loads(val("prio", {"respuesta": r, "evidencia": ["R-002"]}, esperar=None).stdout)["valida"] for r in ("4", "7")]
+    rp = X("matriz", "prio", "--elegir", "7", "--por", "Gestor: Martín Suárez", esperar=None)
+    X("matriz", "prio", "--elegir", "4", "--por", "Gestor: Martín Suárez")
+    check("forma nivel (prioridad 1-5): la pregunta acepta 4 con evidencia R-002 y rechaza 7; --elegir 7 falla y --elegir 4 registra la decisión",
+          vp == [True, False] and rp.returncode != 0 and filas("decisiones")[-1]["decision"].endswith(": 4"), str(vp))
+
+def caso_decisiones_raci(tmp):
+    print("Caso DR · decisiones y RACI: PRINCE2 define la autoridad y la RACI la refleja (expediente, --elegir, aviso a los I, DEC-03/DEC-04)")
+    DC = os.path.join(RAIZ, "skills", "pm-direccion-decisiones", "scripts", "decision.py"); RG = os.path.join(S, "registro.py")
+    d = os.path.join(tmp, "dr"); os.makedirs(d); g = "g"
+    run([os.path.join(S, "nuevo_proyecto.py"), "--ruta", g, "--nombre", "Decisiones RACI", "--ejecutivo", "Laura Méndez", "--gestor", "Martín Suárez"], d)
+    run([os.path.join(S, "estado.py"), "--proyecto", g, "rol", "usuario_senior=Sofía Ramírez", "jefes_equipo=Lucía Benítez"], d)
+    X = lambda *a, esperar=0: run([DC, "--proyecto", g] + list(a), d, esperar=esperar)
+    XJ = lambda *a: json.loads(X(*a, "--json").stdout or "{}")
+    A = lambda reg, **c: run([RG, "--proyecto", g, "agregar", reg] + [y for k, v in c.items() for y in ("--campo", f"{k}={v}")], d).stdout.strip().splitlines()[-1]
+    H = lambda hid, *p: os.path.join(d, g, "03-control", "decisiones", hid, *p)
+    RC = os.path.join(d, g, "03-control", "registros")
+    filas = lambda reg: list(csv.DictReader(open(os.path.join(RC, f"{reg}.csv"), encoding="utf-8"))) if os.path.exists(os.path.join(RC, f"{reg}.csv")) else []
+    # mapeo persona → nivel (esquema.nivel_autoridad): roles de estado.json por nombre y, si no, palabras del rol
+    sys.path.insert(0, S); import esquema as EQ
+    e = json.load(open(os.path.join(d, g, "estado.json"), encoding="utf-8"))
+    niv = {x: EQ.nivel_autoridad(e, x)[0] for x in ("Ejecutiva: Laura Méndez", "Gestor: Martín Suárez", "sofia ramirez", "Equipo: Lucía Benítez", "Gestora: Ana",
+                                                    "Product owner: Pía", "Dirección médica", "Mariana Laura", "Junta: comité", "Capa corporativa: CFO")}
+    check("nivel de autoridad: ejecutiva y usuaria sénior = junta, gestor, equipo (roles de estado.json por nombre, sin acentos); 'Gestora', 'Product owner' y 'Junta' por palabra; sin rol ni nombre → no determinado (un nombre parcial no cuenta)",
+          niv == {"Ejecutiva: Laura Méndez": "junta", "Gestor: Martín Suárez": "gestor", "sofia ramirez": "junta", "Equipo: Lucía Benítez": "equipo", "Gestora: Ana": "gestor",
+                  "Product owner: Pía": "product-owner", "Dirección médica": None, "Mariana Laura": None, "Junta: comité": "junta", "Capa corporativa: CFO": "capa-negocio"}, str(niv))
+    st = {n: A("stakeholders", nombre=n, rol_proyecto=r, poder="alto", interes="alto", **extra) for n, r, extra in (
+        ("Laura Méndez", "Ejecutiva", {"correo": "laura@ejemplo.org"}), ("Martín Suárez", "Gestor del proyecto", {}), ("Sofía Ramírez", "Usuaria sénior", {}),
+        ("Lucía Benítez", "Jefa de equipo", {}), ("Ana Ríos", "Jefa de sucursal", {"confidencial": "si", "actitud": "resistente", "notas": "SECRETO-RACI", "correo": "ana@ejemplo.org"}),
+        ("Comité de usuarios", "Representa a los socios", {"correo": "comite@ejemplo.org"}))}
+    for el, filas_r in (("E-1", (("Sofía Ramírez", "A"), ("Lucía Benítez", "R"), ("Ana Ríos", "C"), ("Comité de usuarios", "I"), ("Laura Méndez", "I"))),
+                        ("KR-1.1", (("Lucía Benítez", "A"), ("Sofía Ramírez", "R"))), ("3.1", (("Martín Suárez", "A"), ("Lucía Benítez", "R"))),
+                        ("NFR-9", (("Sofía Ramírez", "A"),)), ("3.2", (("Martín Suárez", "A"),))):
+        for n, rol in filas_r: A("raci", elemento=el, stakeholder_id=st[n], rol=rol)
+    r1 = A("riesgos", causa="c", evento="La integración de E-1 se prueba tarde", efecto="atraso", tipo="amenaza", probabilidad="4", impacto="4", propietario="Martín Suárez", notas="WBS 3.1")
+    c1 = A("cambios", titulo="Mover KR-1.1 al Release 2", descripcion=f"respuesta a {r1}; ver el anexo 13.2")
+    A("acciones", descripcion=f"Seguimiento de {c1}: revisar NFR-9", responsable="Martín Suárez")
+    ex = X("expediente", "--tipo", "planificacion", "--ids", r1, "--pregunta", f"¿Cómo replanificamos por {r1}?").stdout
+    exj = XJ("expediente", "--tipo", "planificacion", "--ids", r1)
+    rj = {x["elemento"]: x for x in exj.get("raci", [])}
+    check("expediente: RACI de los elementos afectados (E-1 y 3.1 en el texto de R-001; KR-1.1 a 1 salto por C-001); NFR-9 está a 2 saltos y no entra; '3.2' no se confunde con '13.2'",
+          set(rj) == {"E-1", "3.1", "KR-1.1"} and "RACI de los elementos afectados" in ex and "nivel requerido `gestor`" in ex, str(sorted(rj)))
+    check("expediente: A, C (consultar antes) e I (informar después) con nombre y rol; la confidencial (C) sin valoración, notas ni correo; nivel del A y coherencia con el requerido",
+          "C, consultar antes: ST-005 Ana Ríos (Jefa de sucursal)" in ex and "I, informar después: ST-006 Comité de usuarios" in ex and "ST-001 Laura Méndez (Ejecutiva)" in ex
+          and not any(x in ex for x in ("SECRETO-RACI", "resistente", "ana@ejemplo.org", "laura@ejemplo.org")) and rj["E-1"]["nivel_a"] == "junta" and rj["E-1"]["coherente"]
+          and rj["KR-1.1"]["nivel_a"] == "equipo" and rj["KR-1.1"]["coherente"] is False and "incoherencia RACI ↔ autoridad en KR-1.1" in ex, ex[ex.find("## 7"):ex.find("## 8")][:900])
+    # hoja de planificación (nivel gestor) sobre E-1: el A es la usuaria sénior
+    crit = "criterio,descripcion,peso,sentido,escala,eliminatorio,importar,fuente_peso,notas\nvalor,Valor,60,mayor,1-5,,,taller,\nriesgo,Riesgo,40,menor,1-5,,,taller,\n"
+    ops = "opcion,descripcion,ref,valor,valor_fuente,riesgo,riesgo_fuente,notas\nO1,No hacer nada distinto,,1,bc,1,riesgos.csv,\nO2,Partir E-1 en dos iteraciones,,5,bc,2,riesgos.csv,\n"
+    for hid in ("plan1", "plan2"):
+        X("matriz", hid, "--proponer", "--tipo", "planificacion", "--ids", "E-1", "--pregunta", "¿Partimos E-1 en dos iteraciones?")
+        _csv_escribir(H(hid, "criterios.csv"), crit); _csv_escribir(H(hid, "opciones.csv"), ops)
+    n0 = len(filas("decisiones"))
+    ra = X("matriz", "plan1", "--elegir", "O2", "--por", "Equipo: Lucía Benítez", esperar=None)
+    rb = X("matriz", "plan1", "--elegir", "O2", "--por", "Gestor: Martín Suárez", esperar=None)
+    check("--elegir (recomendada O2) sin --motivo, por quien no es el A de E-1 ni autoridad superior (equipo < gestor requerido; gestor < junta del A): rechazado, mensaje claro y nada registrado",
+          ra.returncode != 0 and rb.returncode != 0 and "no es el A de E-1" in rb.stderr and "ni una autoridad superior para el nivel gestor" in rb.stderr and "PRINCE2 define la autoridad" in rb.stderr
+          and len(filas("decisiones")) == n0, rb.stderr[-400:])
+    rc_ = X("matriz", "plan1", "--elegir", "O2", "--por", "Gestor: Martín Suárez", "--motivo", "la usuaria sénior delegó la replanificación en el gestor (acta del 2026-11-05)", "--fecha", "2026-11-06")
+    meta = json.load(open(H("plan1", "decision.json"), encoding="utf-8")); dn = filas("decisiones")[-1]
+    com = glob.glob(os.path.join(d, g, "03-control", "comunicaciones", "2026-11-06-*", "plan-envio.csv"))
+    pe = list(csv.DictReader(open(com[0], encoding="utf-8"))) if com else []
+    msgs = glob.glob(os.path.join(os.path.dirname(com[0]), "mensaje-*.md")) if com else []
+    check("con --motivo registra (nivel gestor, motivo en notas); recuerda a los C y prepara el BORRADOR del aviso a los I (plan-envio de interesados.py: Comité y ejecutiva), sin enviar nada",
+          len(filas("decisiones")) == n0 + 1 and dn["nivel"] == "gestor" and dn["notas"].startswith("la usuaria sénior delegó") and "consultados (C)" in rc_.stdout and "NADA ENVIADO" in rc_.stdout
+          and sorted(x["stakeholder_id"] for x in pe) == sorted([st["Comité de usuarios"], st["Laura Méndez"]]) and msgs and all("estado: borrador" in open(m, encoding="utf-8").read() for m in msgs)
+          and not filas("envios") and meta["eleccion"]["raci"]["sin_ser_a"] and meta["eleccion"]["raci"]["aviso"].startswith("03-control/comunicaciones/")
+          and os.path.exists(H("plan1", f"aviso-{dn['id']}.md")), rc_.stdout[-500:])
+    rd = X("matriz", "plan2", "--elegir", "O2", "--por", "Usuaria sénior: Sofía Ramírez", "--sin-aviso", "--fecha", "2026-11-07")
+    check("el A de E-1 (usuaria sénior) elige la recomendada sin --motivo; con --sin-aviso solo propone el comando plan-envio (raci:E-1:I) y no crea borrador",
+          rd.returncode == 0 and "plan-envio" in rd.stdout and "raci:E-1:I" in rd.stdout and not glob.glob(os.path.join(d, g, "03-control", "comunicaciones", "2026-11-07-*")), rd.stdout[-400:])
+    # OKR (nivel ejecutivo) sobre KR-1.1, cuyo A es una jefa de equipo: incoherencia RACI ↔ autoridad avisada, sin elegir cuál vale
+    X("matriz", "okr1", "--proponer", "--tipo", "okr", "--forma", "si-no", "--ids", "KR-1.1", "--pregunta", "¿Bajamos la meta de KR-1.1 a 25 %?")
+    rx = X("matriz", "okr1", "--elegir", "si", "--por", "Gestor: Martín Suárez", esperar=None)
+    ry = X("matriz", "okr1", "--elegir", "si", "--por", "Ejecutiva: Laura Méndez", "--fecha", "2026-11-08")
+    check("forma si-no: el gestor (no es el A ni alcanza el nivel ejecutivo) necesita --motivo; la ejecutiva decide sin él; en ambos, aviso de incoherencia RACI ↔ autoridad en KR-1.1 (A de nivel equipo, se requiere ejecutivo)",
+          rx.returncode != 0 and "--motivo" in rx.stderr and ry.returncode == 0 and "incoherencia RACI ↔ autoridad en KR-1.1" in ry.stderr and "nivel equipo" in ry.stderr
+          and "requiere nivel ejecutivo" in ry.stderr, ry.stderr[-400:])
+    # plan3 sobre el paquete 3.1: decide su A (gestor) sin motivo; después la RACI cambia de A → DEC-03
+    X("matriz", "plan3", "--proponer", "--tipo", "planificacion", "--forma", "si-no", "--ids", "3.1", "--pregunta", "¿Adelantamos el paquete 3.1?")
+    X("matriz", "plan3", "--elegir", "si", "--por", "Gestor: Martín Suárez", "--fecha", "2026-11-09")
+    dec_codes = lambda: [h for h in sanidad(g, d)["hallazgos"] if h["codigo"].startswith("DEC-")]
+    h0 = dec_codes()
+    rc31 = next(f["id"] for f in filas("raci") if f["elemento"] == "3.1" and f["rol"] == "A")
+    run([RG, "--proyecto", g, "actualizar", "raci", rc31, "--campo", "rol=R"], d); A("raci", elemento="3.1", stakeholder_id=st["Sofía Ramírez"], rol="A")
+    da = A("decisiones", fecha="2026-11-10", decision="Fijar la ventana de despliegue", decidido_por="Gestor: Martín Suárez", nivel="gestor")
+    db = A("decisiones", fecha="2026-11-10", decision="Aprobar el plan de excepción", decidido_por="Junta: Laura Méndez", nivel="junta", notas="acta de junta")
+    A("raci", elemento=da, tipo_elemento="decision", stakeholder_id=st["Sofía Ramírez"], rol="A"); A("raci", elemento=db, tipo_elemento="decision", stakeholder_id=st["Lucía Benítez"], rol="A")
+    h1 = dec_codes()
+    m03 = [h["mensaje"] for h in h1 if h["codigo"] == "DEC-03"]; m04 = [h["mensaje"] for h in h1 if h["codigo"] == "DEC-04"]
+    check("sanidad: DEC-04 por la hoja okr1 (KR-1.1) y nada más mientras la RACI refleja la autoridad; las hojas decididas con motivo o por el A no dan DEC-03",
+          [h["codigo"] for h in h0] == ["DEC-04"] and "okr1" in h0[0]["mensaje"] and "KR-1.1" in h0[0]["mensaje"], str(h0))
+    check(f"sanidad: DEC-03 si la RACI de 3.1 cambia de A después de decidir (plan3) y para {da} (decidida por el gestor sin notas; A la usuaria sénior); DEC-04 para {db} (junta, A de nivel equipo)",
+          any("plan3" in m and "no es el A de 3.1" in m for m in m03) and any(m.startswith(f"Decisión {da}") for m in m03) and not any(db in m for m in m03)
+          and any(m.startswith(f"Decisión {db}") and "requiere nivel junta" in m for m in m04) and len(m03) == 2, str(m03 + m04))
+
+# ------------------------------------------------------------------ caso CC: escrituras concurrentes (bloqueo por proyecto, id bajo el bloqueo, escritura atómica)
+def _simultaneos(cmds, cwd, env=None):
+    """Lanza todos los comandos a la vez (procesos separados) y devuelve [(código, stdout, stderr)]."""
+    ps = [subprocess.Popen([sys.executable] + c, cwd=cwd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, env=env) for c in cmds]
+    res = []
+    for p in ps:
+        o, e = p.communicate(); res.append((p.returncode, o, e))
+    return res
+
+def _csv_valido(ruta):
+    """(cabecera, filas) si el CSV se lee entero con el mismo número de campos por fila; None si no."""
+    try:
+        with open(ruta, newline="", encoding="utf-8") as f: xs = list(csv.reader(f))
+        return (xs[0], xs[1:]) if xs and all(len(x) == len(xs[0]) for x in xs) else None
+    except Exception: return None
+
+def caso_concurrencia(tmp):
+    print("Caso CC · escrituras concurrentes: altas y actualizaciones simultáneas, estado.json, tiempo de espera, interrupción y reentrada")
+    d = os.path.join(tmp, "concurrencia"); os.makedirs(d); g = "g"; RE_ = os.path.join(S, "registro.py"); ES = os.path.join(S, "estado.py")
+    run([os.path.join(S, "nuevo_proyecto.py"), "--ruta", g, "--nombre", "Concurrencia", "--ejecutivo", "Ejecutiva", "--gestor", "Gestor"], d)
+    rr = os.path.join(d, g, "03-control", "registros", "riesgos.csv"); ej = os.path.join(d, g, "estado.json")
+    for n in (20, 50):
+        antes = len(_csv_valido(rr)[1])
+        rs = _simultaneos([[RE_, "--proyecto", g, "agregar", "riesgos", "--campo", f"evento=evento {n}-{i}", "--campo", "probabilidad=2", "--campo", "impacto=3"] for i in range(n)], d)
+        cab, filas = _csv_valido(rr) or (None, [])
+        ids = [f[0] for f in filas[antes:]]; impresos = [o.strip() for c, o, e in rs if c == 0]
+        esperados = [f"R-{k:03d}" for k in range(antes + 1, antes + n + 1)]
+        check(f"{n} altas simultáneas (procesos separados): {n} éxitos, {n} filas nuevas, ids únicos y consecutivos ({esperados[0]}…{esperados[-1]}), CSV válido",
+              cab is not None and len(impresos) == n and sorted(ids) == esperados and sorted(impresos) == esperados and len(filas) == antes + n,
+              f"éxitos {len(impresos)}, filas {len(filas)}, ids {sorted(ids)[:6]}…, errores {[e[-160:] for c, o, e in rs if c][:2]}")
+    if S not in sys.path: sys.path.insert(0, S)
+    import esquema as ESQ
+    crudo = open(rr, "rb").read()
+    check("el CSV conserva el formato de csv.DictWriter: UTF-8 sin BOM, CRLF y columnas en el orden del esquema",
+          crudo.split(b"\r\n", 1)[0].decode("utf-8") == ",".join(ESQ.REGISTROS["riesgos"]["columnas"]) and crudo.endswith(b"\r\n") and crudo.count(b"\r\n") == crudo.count(b"\n"))
+    # actualizaciones simultáneas de filas distintas
+    rs = _simultaneos([[RE_, "--proyecto", g, "actualizar", "riesgos", f"R-{k:03d}", "--campo", f"notas=nota {k}", "--campo", "estado=en-seguimiento"] for k in range(1, 31)], d)
+    fs = {f["id"]: f for f in csv.DictReader(open(rr, encoding="utf-8"))}
+    check("30 actualizaciones simultáneas de filas distintas: ninguna se pierde y las demás filas quedan como estaban",
+          all(c == 0 for c, _, _ in rs) and all(fs[f"R-{k:03d}"]["notas"] == f"nota {k}" and fs[f"R-{k:03d}"]["estado"] == "en-seguimiento" for k in range(1, 31))
+          and len(fs) == 70 and all(fs[f"R-{k:03d}"]["estado"] == "abierto" for k in range(31, 71)), [e[-160:] for c, o, e in rs if c][:2])
+    # estado.json: comandos simultáneos que tocan claves distintas (presupuesto, set, tolerancia, rol, agil, integracion)
+    v0 = json.load(open(ej, encoding="utf-8"))["version_estado"]
+    cmds = [[ES, "--proyecto", g, "presupuesto", "cambio=15000"], [ES, "--proyecto", g, "presupuesto", "riesgo=20000"],
+            [ES, "--proyecto", g, "presupuesto", "gestion=10000"], [ES, "--proyecto", g, "presupuesto", "limite_autoridad_cambio=5000"],
+            [ES, "--proyecto", g, "set", "proyecto=Concurrencia SA"], [ES, "--proyecto", g, "set", "enfoque_entrega=hibrido", "--por", "Ejecutiva: E. Ruiz"],
+            [ES, "--proyecto", g, "tolerancia", "--nivel", "proyecto", "costo=±10 %"], [ES, "--proyecto", g, "tolerancia", "--nivel", "etapa", "tiempo=±1 semana"],
+            [ES, "--proyecto", g, "rol", "product_owner=Luis"], [ES, "--proyecto", g, "agil", "cadencia_iteracion_dias=14"],
+            [ES, "--proyecto", g, "integracion", "tracker=jira"], [ES, "--proyecto", g, "umbrales-riesgo", "alto=16"]]
+    rs = _simultaneos(cmds, d)
+    try: e = json.load(open(ej, encoding="utf-8"))
+    except ValueError: e = {}
+    pr = e.get("presupuestos", {})
+    check(f"{len(cmds)} escrituras simultáneas de estado.json (presupuesto, set, tolerancia, rol, agil, integracion, umbrales): ninguna clave perdida y version_estado +{len(cmds)}",
+          all(c == 0 for c, _, _ in rs) and pr.get("cambio") == "15000" and pr.get("riesgo") == "20000" and pr.get("gestion") == "10000" and pr.get("limite_autoridad_cambio") == "5000"
+          and e.get("proyecto") == "Concurrencia SA" and e.get("enfoque_entrega") == "hibrido" and e["tolerancias"]["proyecto"]["costo"] == "±10 %"
+          and e["tolerancias"]["etapa"]["tiempo"] == "±1 semana" and e["roles"]["product_owner"] == "Luis" and e["agil"]["cadencia_iteracion_dias"] == 14
+          and e["integraciones"]["tracker"] == "jira" and e["umbrales_riesgo"]["alto"] == 16.0 and e.get("version_estado") == v0 + len(cmds),
+          ([x[2][-160:] for x in rs if x[0]][:2], e.get("version_estado"), v0))
+    check("estado.json conserva el formato (indent=2, ensure_ascii=False, sin salto final) y la decisión de set --por queda en decisiones.csv",
+          open(ej, encoding="utf-8").read() == json.dumps(e, ensure_ascii=False, indent=2)
+          and any("hibrido" in f["decision"] for f in csv.DictReader(open(os.path.join(d, g, "03-control", "registros", "decisiones.csv"), encoding="utf-8"))))
+    # tiempo de espera agotado: otro proceso tiene el bloqueo → error claro y bilingüe, nada modificado
+    tomar = ("import sys, time; sys.path.insert(0, sys.argv[1]); import esquema as E\n"
+             "with E.bloqueo(sys.argv[2]):\n    print('tomado', flush=True); time.sleep(float(sys.argv[3]))\n")
+    h0, e0 = open(rr, "rb").read(), open(ej, "rb").read()
+    titular = subprocess.Popen([sys.executable, "-c", tomar, S, g, "6"], cwd=d, stdout=subprocess.PIPE, text=True)
+    titular.stdout.readline()
+    env = dict(os.environ, PM_BLOQUEO_ESPERA="0.5"); t0 = time.time()
+    r1 = subprocess.run([sys.executable, RE_, "--proyecto", g, "agregar", "riesgos", "--campo", "evento=no entra"], cwd=d, capture_output=True, text=True, env=env)
+    r2 = subprocess.run([sys.executable, ES, "--proyecto", g, "presupuesto", "cambio=99"], cwd=d, capture_output=True, text=True, env=env)
+    dt = time.time() - t0
+    check("con el bloqueo tomado por otro proceso y PM_BLOQUEO_ESPERA=0,5: registro.py y estado.py terminan con código 1, mensaje en español e inglés, sin traza, y los archivos quedan intactos",
+          r1.returncode == 1 and r2.returncode == 1 and dt < 6 and all("no liberó el bloqueo en 0.5 s" in r.stderr and "did not release the lock within 0.5 s" in r.stderr
+          and "Traceback" not in r.stderr and "PM_BLOQUEO_ESPERA" in r.stderr for r in (r1, r2)) and open(rr, "rb").read() == h0 and open(ej, "rb").read() == e0,
+          (r1.returncode, r1.stderr[-300:], round(dt, 1)))
+    r3 = subprocess.run([sys.executable, RE_, "--proyecto", g, "agregar", "riesgos", "--campo", "evento=espera y entra"], cwd=d, capture_output=True, text=True,
+                        env=dict(os.environ, PM_BLOQUEO_ESPERA="30"))
+    titular.wait()
+    check("con la espera por defecto, el alta espera a que el otro proceso libere el bloqueo y entra con el id siguiente (R-071)", r3.returncode == 0 and r3.stdout.strip() == "R-071", r3.stderr[-300:])
+    # interrupción a mitad de escritura (el proceso muere antes del reemplazo): el archivo anterior queda intacto
+    morir = ("import os, sys; sys.path.insert(0, sys.argv[1]); import esquema as E\n"
+             "os.replace = lambda *a, **k: os._exit(9)\n"
+             "sys.argv = [sys.argv[2]] + sys.argv[3:]; import runpy; runpy.run_path(sys.argv[0], run_name='__main__')\n")
+    h1, e1 = open(rr, "rb").read(), open(ej, "rb").read()
+    k1 = subprocess.run([sys.executable, "-c", morir, S, RE_, "--proyecto", g, "agregar", "riesgos", "--campo", "evento=interrumpido"], cwd=d, capture_output=True, text=True)
+    k2 = subprocess.run([sys.executable, "-c", morir, S, ES, "--proyecto", g, "presupuesto", "cambio=1"], cwd=d, capture_output=True, text=True)
+    restos = glob.glob(os.path.join(d, g, "03-control", "registros", ".riesgos.csv.*.tmp")) + glob.glob(os.path.join(d, g, ".estado.json.*.tmp"))
+    check("proceso interrumpido después de escribir el temporal y antes de reemplazar: riesgos.csv y estado.json byte a byte iguales; el temporal queda oculto y fuera de *.csv",
+          k1.returncode == 9 and k2.returncode == 9 and open(rr, "rb").read() == h1 and open(ej, "rb").read() == e1 and len(restos) == 2
+          and not [x for x in glob.glob(os.path.join(d, g, "03-control", "registros", "*.csv")) if ".tmp" in x], (k1.returncode, k2.returncode, restos))
+    r4 = run([RE_, "--proyecto", g, "agregar", "riesgos", "--campo", "evento=después de la interrupción"], d)
+    check("después de la interrupción el proyecto sigue operativo: el alta siguiente toma R-072 y el CSV sigue válido",
+          r4.stdout.strip() == "R-072" and len((_csv_valido(rr) or (0, []))[1]) == 72)
+    for x in restos: os.remove(x)
+    # reentrada en el mismo proceso, permisos y herencia hacia un subproceso que el titular espera
+    reent = ("import sys, os; sys.path.insert(0, sys.argv[1]); import esquema as E\n"
+             "with E.bloqueo(sys.argv[2]):\n    with E.bloqueo(sys.argv[2]):\n        print(E.anotar_decision(sys.argv[2], 'reentrada', 'Gestor', nivel='gestor'))\n")
+    r5 = subprocess.run([sys.executable, "-c", reent, S, g], cwd=d, capture_output=True, text=True, env=dict(os.environ, PM_BLOQUEO_ESPERA="2"))
+    check("reentrante en el mismo proceso: bloqueo anidado + anotar_decision (que también lo toma) sin esperar", r5.returncode == 0 and r5.stdout.strip().startswith("D-"), r5.stderr[-300:])
+    if os.name == "posix":
+        os.chmod(rr, 0o640); run([RE_, "--proyecto", g, "agregar", "riesgos", "--campo", "evento=permisos"], d)
+        check("la escritura atómica conserva los permisos del archivo (0640)", (os.stat(rr).st_mode & 0o777) == 0o640, oct(os.stat(rr).st_mode))
+    os.remove(os.path.join(d, g, "03-control", "registros", "calidad.csv"))
+    t0 = time.time(); r6 = run([PU, "--proyecto", g, "lista", "autorizar-inicio"], d)
+    check("puertas.py lista (con el bloqueo) lanza sanidad.py, que recrea un registro faltante: el subproceso hereda el bloqueo y no espera",
+          r6.returncode == 0 and os.path.exists(os.path.join(d, g, "03-control", "registros", "calidad.csv")) and time.time() - t0 < 20, round(time.time() - t0, 1))
+    bl = os.path.join(d, g, ".pm-bloqueo")
+    check("el archivo de bloqueo vive en <proyecto>/.pm-bloqueo/ con un .gitignore que lo excluye de git",
+          os.path.isfile(os.path.join(bl, "bloqueo")) and open(os.path.join(bl, ".gitignore"), encoding="utf-8").read().splitlines()[-1] == "*")
+    if shutil.which("git"):
+        subprocess.run(["git", "init", "-q"], cwd=d, capture_output=True)
+        st = subprocess.run(["git", "status", "--porcelain", "--untracked-files=all"], cwd=d, capture_output=True, text=True).stdout
+        check("git status no muestra .pm-bloqueo/ (sí estado.json y los registros)", ".pm-bloqueo" not in st and "g/estado.json" in st, st[:300])
+    gd = subprocess.run([sys.executable, os.path.join(RAIZ, "hooks", "guardian.py")], input=json.dumps({"tool_name": "Bash", "tool_input": {"command":
+                        f"PM_BLOQUEO_ESPERA=60 python3 {RE_} --proyecto {g} agregar riesgos --campo evento=x"}}), capture_output=True, text=True)
+    check("el guardián no bloquea registro.py con PM_BLOQUEO_ESPERA delante", gd.returncode == 0 and not gd.stdout.strip(), gd.stdout[:200])
+
 # ------------------------------------------------------------------ caso DD: contrato con diagram-design (pm-visuales guía §1.2 y §1.4)
 DD_IMPORTABLES = {"flowchart", "graph", "sequenceDiagram", "stateDiagram-v2", "erDiagram"}   # su references/import-mermaid.md
 
@@ -2276,12 +2642,526 @@ def caso_ayuda(tmp):
                  [sk("pm-okr", "scripts", "okr.py"), "no.csv"], [os.path.join(S, "sanidad.py"), "--proyecto", "no"], [os.path.join(S, "estado.py"), "--proyecto", "no", "ver"],
                  [os.path.join(S, "registro.py"), "--proyecto", "no", "listar", "riesgos"], [B, "--proyecto", "no", "detectar"], [sk("pm-riesgos", "scripts", "riesgos.py"), "--proyecto", "no", "candidatos"],
                  [sk("pm-interesados", "scripts", "interesados.py"), "--proyecto", "no", "matriz"], [sk("pm-integraciones", "scripts", "envios.py"), "--proyecto", "no", "historial"],
-                 [sk("pm-mapas-estrategicos", "scripts", "mapas.py"), "--proyecto", "no", "listar"], [sk("pm-exportar", "scripts", "paquete.py"), "--proyecto", "no", "listar", "puerta", "autorizar-inicio"]]
+                 [sk("pm-mapas-estrategicos", "scripts", "mapas.py"), "--proyecto", "no", "listar"], [sk("pm-exportar", "scripts", "paquete.py"), "--proyecto", "no", "listar", "puerta", "autorizar-inicio"],
+                 [sk("pm-direccion-decisiones", "scripts", "decision.py"), "--proyecto", "no", "matriz", "x"]]
     malos = []
     for c in faltantes:
         r = subprocess.run([sys.executable] + c, capture_output=True, text=True, cwd=tmp, stdin=subprocess.DEVNULL)
         if r.returncode == 0 or "Traceback" in r.stderr or not (r.stdout + r.stderr).strip(): malos.append(f"{os.path.basename(c[0])} {' '.join(c[1:])}: código {r.returncode} {(r.stderr or r.stdout)[-160:]}")
     check(f"entradas faltantes ({len(faltantes)} casos): código distinto de 0 y mensaje claro, sin traza de Python", not malos, malos)
+
+# ------------------------------------------------------------------ caso BU: búsqueda en español e inglés (pm-estado-proyecto/scripts/texto.py)
+def caso_busqueda(tmp):
+    print("Caso BU · búsqueda en español e inglés: lemas, meses y fechas, cifras con separadores e ids (texto.py)")
+    sys.path.insert(0, S); import texto as T
+    q = lambda x: T.terminos(x, expandir=False)
+    hay = lambda consulta, fila: len(T.coincidencias(q(consulta), T.terminos(fila))) >= T.minimo_coincidencias(len(q(consulta)))
+    check("lematizador ligero: normativa = normativo = normative; delegaciones suspendidas ~ se suspende la delegación; aprobado/aprobadas/aprobación/approved; decisiones → decision",
+          len(set(q("normativa normativo normative"))) == 1 and hay("delegaciones suspendidas", "se suspende la delegación de USD 5.000")
+          and len({T.lema(T.plano(x)) for x in ("aprobado", "aprobadas", "aprobación", "approved", "aprobar")}) == 1 and T.lema("decisiones") == T.lema("decision"),
+          f"{q('normativa normativo normative')} {[T.lema(T.plano(x)) for x in ('aprobado', 'aprobadas', 'aprobación', 'approved')]}")
+    check("fechas: 'enero 2027' = '2027-01' = 'January 2027' y coinciden con la fecha 2027-01-12 de la fila; '15 de marzo de 2027' = 'March 15, 2027' = 15/03/2027; T1 2027 y Q1 2027 ⊃ 2027-02-10; 'enero' solo = mes",
+          q("enero 2027") == q("2027-01") == q("January 2027") == ["2027-01"] and hay("enero 2027", "2027-01-12 decision-ad-hoc")
+          and q("15 de marzo de 2027") == q("March 15, 2027") == q("15/03/2027") == ["2027-03-15"] and hay("T1 2027", "2027-02-10") and hay("Q1 2027", "2027-02-10")
+          and hay("enero", "fecha 2028-01-03") and not hay("enero 2027", "2027-02-01"), f"{q('enero 2027')} {q('15 de marzo de 2027')} {q('March 15, 2027')}")
+    check("cifras: 39.800 = 39,800 = 39800 = '39,8 mil' = 39.8k; decimales 13,5 y 1.5; 'USD 10.000' encuentra 10000; versiones v1.0 ≠ v1.1",
+          q("39.800") == q("39,800") == q("39800") == q("39,8 mil") == q("39.8k") == ["39800"] and q("13,5") == ["13.5"] and q("1.5") == ["1.5"]
+          and hay("10000", "usar USD 10.000 del presupuesto") and q("v1.0") != q("v1.1"), f"{q('39,8 mil')} {q('13,5')}")
+    check("ids: R-3 = R-003 (prefijos de registros, ceros a 3); B-01 = B-1; FR-12 y AD-5 se conservan; 'R-003' no coincide con 'R-030'",
+          q("R-3") == q("r-003") == ["r-003"] and q("B-01") == q("B-1") and q("FR-12 AD-5") == ["fr-12", "ad-5"] and not hay("R-003", "residual de R-030"), str(q("R-3 B-01 FR-12")))
+    check("inglés ↔ español por el glosario corto: 'risk budget' ~ 'presupuesto de riesgo'; 'board gate' ~ 'puerta de la junta'; palabras vacías es/en fuera",
+          hay("risk budget", "Presupuesto de riesgo de la etapa 2") and hay("board gate", "puerta aprobada por la junta") and q("de la the of") == [], f"{q('risk budget')} {q('board gate')}")
+    docs = {"D-008": "2026-11-27 presupuestos de la junta: riesgo=39800, gestion=6200", "D-009": "2026-10-30 autorizar-inicio: aprobado puerta: autorizar-inicio junta",
+            "D-010": "2026-11-27 aprobado business-case v1.0 junta", "D-015": "2027-01-12 decision-ad-hoc: aprobado — condiciones: usar USD 10.000 del presupuesto de riesgo para un análisis normativo; revisar R-007",
+            "D-016": "2027-01-12 Respuesta de R-007: reducir (O2) · Análisis normativo con asesoría externa", "D-017": "2027-01-12 aprobado business-case v1.1 junta",
+            "D-019": "2027-02-15 Mantener el presupuesto de riesgo en 39.800; se suspende la delegación de USD 5.000 al gestor", "D-020": "2027-03-01 condiciones cumplidas — análisis normativo entregado (C-004)"}
+    b = lambda x: sorted(k for k, _ in T.buscar(x, docs))
+    check("consultas de la prueba del informe exxperts (§5) sobre decisiones: 'enero 2027' y '2027-01' → D-015, D-016, D-017; 'normativa' → D-015, D-016, D-020; "
+          "'39800' → D-008 y D-019 (39.800); 'delegaciones suspendidas' → D-019; 'business case' → D-010, D-017",
+          b("enero 2027") == b("2027-01") == ["D-015", "D-016", "D-017"] and b("normativa") == ["D-015", "D-016", "D-020"] and b("39800") == ["D-008", "D-019"]
+          and b("delegaciones suspendidas") == ["D-019"] and b("business case") == ["D-010", "D-017"], f"{b('enero 2027')} {b('normativa')} {b('39800')}")
+
+# ------------------------------------------------------------------ caso VG: vigencia y contradicciones de decisiones (vigencia.py, registro.py, sanidad DEC-05/06, decision.py vigentes)
+def caso_vigencia(tmp):
+    print("Caso VG · vigencia de decisiones: reemplaza y conviven con autoridad, contradicciones probables (DEC-05), revisión vencida (DEC-06), vigentes y expediente")
+    DC = os.path.join(RAIZ, "skills", "pm-direccion-decisiones", "scripts", "decision.py"); RG = os.path.join(S, "registro.py")
+    d = os.path.join(tmp, "vig"); os.makedirs(d); g = "g"
+    run([os.path.join(S, "nuevo_proyecto.py"), "--ruta", g, "--nombre", "Vigencia", "--ejecutivo", "Laura Méndez", "--gestor", "Martín Suárez"], d)
+    RC = os.path.join(d, g, "03-control", "registros", "decisiones.csv")
+    filas = lambda: {f["id"]: f for f in csv.DictReader(open(RC, encoding="utf-8"))}
+    J, GE = "Ejecutiva: Laura Méndez", "Gestor: Martín Suárez"
+    def dec(fecha, texto, por=J, nivel="junta", **kw):
+        campos = ["--campo", f"fecha={fecha}", "--campo", f"decision={texto}", "--campo", f"decidido_por={por}", "--campo", f"nivel={nivel}"] + [x for k, v in kw.items() for x in ("--campo", f"{k}={v}")]
+        return run([RG, "--proyecto", g, "agregar", "decisiones"] + campos, d).stdout.strip()
+    # migración transparente: un decisiones.csv de 2.5 (sin las columnas) gana reemplaza y conviven al final sin perder datos
+    viejo = "id,fecha,decision,contexto,opciones_consideradas,decidido_por,nivel,artefactos_afectados,revisar_en,notas\r\nD-001,2026-11-02,\"Enfoque de entrega del proyecto: predictivo, revisado en cada puerta de etapa\",,,Ejecutiva: Laura Méndez,junta,,,\r\n"
+    open(RC, "w", encoding="utf-8", newline="").write(viejo)
+    run([RG, "--proyecto", g, "listar", "decisiones"], d)
+    cab = open(RC, encoding="utf-8").readline().strip()
+    check("migración: decisiones.csv sin reemplaza ni conviven las gana al final al primer uso, sin perder filas",
+          cab.endswith("revisar_en,notas,reemplaza,conviven") and filas()["D-001"]["decision"].startswith("Enfoque de entrega"), cab)
+    ids = {"X1": "D-001"}
+    for k, (f, txt) in {"X2": ("2027-01-20", "Enfoque de entrega del proyecto: híbrido, revisado en cada puerta de etapa"),
+                        "X3": ("2026-11-10", "La junta aprueba ampliar el alcance del release 2 con la consulta de saldos"), "X4": ("2027-02-01", "La junta no aprueba ampliar el alcance del release 2 con la consulta de saldos"),
+                        "X5": ("2026-11-10", "El lanzamiento del portal queda fijado para el 15 de marzo de 2027"), "X6": ("2027-02-01", "El lanzamiento del portal queda fijado para el 30 de abril de 2027"),
+                        "X7": ("2026-11-10", "Se contrata el proveedor de SMS alternativo con acuerdo marco"), "X8": ("2027-02-01", "Nunca se contrata el proveedor de SMS alternativo con acuerdo marco"),
+                        "X9": ("2026-11-10", "Presupuesto de riesgo de la etapa 2: 39.800"), "X10": ("2027-02-01", "Presupuesto de riesgo de la etapa 2: 45.000")}.items():
+        ids[k] = dec(f, txt)
+    for k, r in (("A5", "R-005"), ("A6", "R-002, R-006"), ("A7", "R-004")):
+        ids[k] = dec("2026-11-04", f"La persona propietaria acepta la respuesta, su costo y el residual de {r}", por=GE, nivel="gestor")
+    ids["R3a"] = dec("2026-11-04", "Respuesta de R-003: contingencia (O4) · acuerdo marco sin costo fijo con un proveedor de SMS alternativo", por=GE, nivel="gestor")
+    ids["R3b"] = dec("2027-02-15", "Activar el plan de contingencia de R-003 (C-005)", nivel="ejecutivo", revisar_en="2027-03-01")
+    ES = lambda *a: run([os.path.join(S, "estado.py"), "--proyecto", g] + list(a), d)
+    os.makedirs(os.path.join(d, g, "00-direccion"), exist_ok=True); open(os.path.join(d, g, "00-direccion", "business-case.md"), "w", encoding="utf-8").write("# BC\n")
+    ES("artefacto", "business-case", "--ruta", "00-direccion/business-case.md", "--estado", "en-revision")
+    ES("aprobar", "business-case", "--por", J, "--version", "1.0", "--fecha", "2026-11-27"); ES("aprobar", "business-case", "--por", J, "--version", "1.1", "--fecha", "2027-01-12")
+    F = filas(); bc = [i for i, f in F.items() if f["decision"].startswith("aprobado business-case")]
+    check("aprobar una versión nueva del mismo artefacto (estado.py aprobar → esquema.anotar_decision) completa reemplaza con la aprobación anterior (v1.1 reemplaza a v1.0)",
+          len(bc) == 2 and F[bc[1]]["reemplaza"] == bc[0] and not F[bc[0]]["reemplaza"], str([(i, F[i]["reemplaza"]) for i in bc]))
+    s = sanidad_corte(g, d, "2027-03-15"); dec05 = [h["mensaje"] for h in s.get("hallazgos", []) if h["codigo"] == "DEC-05"]
+    par = lambda a, b: any(m.startswith(f"{ids[a]} (") and f" y {ids[b]} (" in m for m in dec05)
+    check("DEC-05 detecta las 5 reversiones del informe (§5) sin marca: enfoque predictivo → híbrido (palabra), 'aprueba' / 'no aprueba', fecha 15/03 → 30/04, 'se contrata' / 'nunca se contrata', cifra 39.800 → 45.000",
+          all(par(a, b) for a, b in (("X1", "X2"), ("X3", "X4"), ("X5", "X6"), ("X7", "X8"), ("X9", "X10"))), "\n".join(dec05))
+    check("DEC-05 sin falsos positivos: 'residual de R-005' / 'de R-002, R-006' / 'de R-004' son asuntos distintos (ids distintos); R-003 contingencia → activar el plan no se contradice; business case ya marcado",
+          len(dec05) == 5 and not any(ids[k] in m for k in ("A5", "A6", "A7", "R3a", "R3b") for m in dec05) and not any(bc[0] in m for m in dec05), "\n".join(dec05))
+    dec06 = [h["mensaje"] for h in s.get("hallazgos", []) if h["codigo"] == "DEC-06"]
+    check("DEC-06: revisar_en 2027-03-01 vencido al corte 2027-03-15 sin decisión posterior del mismo asunto (R-003, C-005); al corte 2027-02-20 no avisa",
+          len(dec06) == 1 and ids["R3b"] in dec06[0] and not [h for h in sanidad_corte(g, d, "2027-02-20").get("hallazgos", []) if h["codigo"] == "DEC-06"], "\n".join(dec06))
+    sid = run([RG, "--proyecto", g, "agregar", "supuestos", "--campo", "supuesto_o_restriccion=El proveedor entrega las credenciales de prueba", "--campo", "estado=validado", "--campo", "validado=si"], d).stdout.strip()
+    ids["S"] = dec("2027-01-05", f"Replanificar la prueba técnica de {sid} al 2027-01-14", nivel="ejecutivo", revisar_en="2027-01-14")
+    cerrado = [h for h in sanidad_corte(g, d, "2027-03-15").get("hallazgos", []) if h["codigo"] == "DEC-06" and ids["S"] in h["mensaje"]]
+    run([RG, "--proyecto", g, "actualizar", "supuestos", sid, "--campo", "estado=abierto", "--campo", "validado=pendiente"], d)
+    abierto = [h for h in sanidad_corte(g, d, "2027-03-15").get("hallazgos", []) if h["codigo"] == "DEC-06" and ids["S"] in h["mensaje"]]
+    check("DEC-06 no pide revisar una decisión cuyo asunto citado ya está cerrado (supuesto validado); sí cuando sigue abierto", not cerrado and len(abierto) == 1, f"{cerrado} {abierto}")
+    r = run([RG, "--proyecto", g, "actualizar", "decisiones", ids["X10"], "--campo", f"reemplaza={ids['X9']}", "--campo", "nivel=gestor", "--campo", f"decidido_por={GE}", "--forzar"], d, esperar=1)
+    r2 = run([RG, "--proyecto", g, "actualizar", "decisiones", ids["X10"], "--campo", f"reemplaza={ids['X9']}", "--campo", f"decidido_por={GE}"], d, esperar=1)
+    check("autoridad: el gestor no reemplaza una decisión de la junta (nivel menor, ni con --forzar) ni firmando una fila de nivel junta (esquema.nivel_autoridad: gestor_proyecto); nada se escribe",
+          r.returncode == 1 and "nivel igual o superior" in r.stderr + r.stdout and "--forzar" in r.stderr + r.stdout and r2.returncode == 1 and "autoridad gestor" in r2.stderr + r2.stdout
+          and not filas()[ids["X10"]]["reemplaza"] and filas()[ids["X10"]]["nivel"] == "junta", (r.stderr + r.stdout + r2.stderr + r2.stdout)[-500:])
+    ok = run([RG, "--proyecto", g, "actualizar", "decisiones", ids["X10"], "--campo", f"reemplaza={ids['X9'].lower()}"], d)
+    ok2 = run([RG, "--proyecto", g, "actualizar", "decisiones", ids["X8"], "--campo", f"conviven={ids['X7']}"], d)
+    dob = run([RG, "--proyecto", g, "actualizar", "decisiones", ids["X6"], "--campo", f"reemplaza={ids['X9']}"], d, esperar=1)
+    cic = run([RG, "--proyecto", g, "actualizar", "decisiones", ids["X9"], "--campo", f"reemplaza={ids['X10']}"], d, esperar=1)
+    ine = run([RG, "--proyecto", g, "actualizar", "decisiones", ids["X6"], "--campo", "conviven=D-099"], d, esperar=1)
+    check("reemplaza con nivel igual (junta → junta) se guarda en forma canónica D-###; conviven se guarda; se rechazan el reemplazo doble, el ciclo (que además reemplazaría a una posterior) y un id inexistente",
+          ok.returncode == 0 and filas()[ids["X10"]]["reemplaza"] == ids["X9"] and ok2.returncode == 0 and filas()[ids["X8"]]["conviven"] == ids["X7"]
+          and dob.returncode == 1 and "ya está reemplazada por" in dob.stdout + dob.stderr and cic.returncode == 1 and "ciclo" in cic.stdout + cic.stderr
+          and ine.returncode == 1 and "no existe" in ine.stdout + ine.stderr, (dob.stdout + dob.stderr + cic.stdout + cic.stderr + ine.stdout + ine.stderr)[-600:])
+    dec05b = [h["mensaje"] for h in sanidad_corte(g, d, "2027-03-15").get("hallazgos", []) if h["codigo"] == "DEC-05"]
+    check("tras marcar reemplaza (39.800 → 45.000) y conviven (contrata / nunca contrata), DEC-05 queda en las otras 3", len(dec05b) == 3 and not any(ids["X9"] in m or ids["X7"] in m for m in dec05b), "\n".join(dec05b))
+    v = json.loads(run([DC, "--proyecto", g, "vigentes", "--corte", "2027-03-15", "--json"], d).stdout or "{}")
+    vt = json.loads(run([DC, "--proyecto", g, "vigentes", "--tema", "risk budget", "--historia", "--json"], d).stdout or "{}")
+    txt = run([DC, "--proyecto", g, "vigentes", "--ids", "R-003", "--corte", "2027-03-15"], d).stdout
+    check("decision.py vigentes: sin las reemplazadas (v1.0 y 39.800), cadena v1.0 → v1.1, revisión vencida marcada; --tema en inglés 'risk budget' con --historia muestra 39.800 reemplazada por 45.000; --ids R-003 filtra",
+          v.get("reemplazadas_total") == 2 and bc[0] not in [x["id"] for x in v["decisiones"]] and next(x for x in v["decisiones"] if x["id"] == bc[1])["cadena"] == bc
+          and next(x for x in v["decisiones"] if x["id"] == ids["R3b"])["revision_vencida"] and len(v["contradicciones"]) == 3
+          and [(x["id"], x["vigente"], x["reemplazada_por"]) for x in vt["decisiones"]] == [(ids["X9"], False, ids["X10"]), (ids["X10"], True, "")]
+          and ids["R3a"] in txt and ids["R3b"] in txt and "VENCIDA" in txt and ids["X1"] not in txt, str(vt)[:400] + txt[-400:])
+    ex = json.loads(run([DC, "--proyecto", g, "expediente", "--tipo", "negocio", "--ids", bc[0], "--saltos", "0", "--json"], d).stdout or "{}")
+    exh = json.loads(run([DC, "--proyecto", g, "expediente", "--tipo", "negocio", "--ids", bc[0], "--saltos", "0", "--historia", "--json"], d).stdout or "{}")
+    md = run([DC, "--proyecto", g, "expediente", "--tipo", "negocio", "--tema", "presupuesto de riesgo"], d).stdout
+    check("expediente: una decisión reemplazada pedida por id sale como historia y entra la vigente (v1.1); --historia la deja en la tabla; --tema muestra 45.000 y menciona 39.800 como reemplazada",
+          [x["id"] for x in ex.get("relacionados", [])] == [bc[1]] and ex["historia"][0]["id"] == bc[0] and ex["historia"][0]["reemplazada_por"] == bc[1]
+          and sorted(x["id"] for x in exh.get("relacionados", [])) == sorted(bc) and f"| {ids['X10']} |" in md and f"| {ids['X9']} |" not in md
+          and f"{ids['X9']} (2026-11-10) → reemplazada por {ids['X10']}" in md, md[-900:])
+    # hoja reabierta (regla 12): matriz --elegir --reemplaza valida la autoridad antes de registrar
+    run([DC, "--proyecto", g, "matriz", "enf", "--proponer", "--tipo", "planificacion", "--pregunta", "¿Se mantiene el enfoque híbrido?", "--forma", "si-no"], d)
+    hj = os.path.join(d, g, "03-control", "decisiones", "enf", "decision.json"); m = json.load(open(hj, encoding="utf-8")); m["nivel"] = "gestor"; json.dump(m, open(hj, "w", encoding="utf-8"))
+    antes = len(filas())
+    no = run([DC, "--proyecto", g, "matriz", "enf", "--elegir", "si", "--por", GE, "--reemplaza", ids["X2"], "--sin-aviso", "--fecha", "2027-03-20"], d, esperar=1)
+    tras_no = len(filas())
+    gid = dec("2026-12-01", "El equipo trabaja con tablero kanban", por=GE, nivel="gestor")
+    si = run([DC, "--proyecto", g, "matriz", "enf", "--elegir", "si", "--por", GE, "--reemplaza", gid, "--sin-aviso", "--fecha", "2027-03-20"], d)
+    nuevo = [f for i, f in filas().items() if f["decision"].startswith("¿Se mantiene el enfoque híbrido?")]
+    check("matriz --elegir --reemplaza: rechaza reemplazar una decisión de la junta desde una hoja de nivel gestor sin registrar nada; con una de nivel gestor registra la fila con reemplaza y lo anota en decision.json",
+          no.returncode == 1 and "nivel igual o superior" in no.stdout + no.stderr and tras_no == antes and si.returncode == 0 and len(nuevo) == 1 and nuevo[0]["reemplaza"] == gid
+          and json.load(open(hj, encoding="utf-8"))["eleccion"]["reemplaza"] == gid, (no.stdout + no.stderr + si.stdout + si.stderr)[-500:])
+
+
+def _bitacora(p):
+    """Líneas de <p>/.bitacora.jsonl como dicts (las ilegibles se omiten)."""
+    out = []
+    for x in (open(os.path.join(p, ".bitacora.jsonl"), encoding="utf-8").read().splitlines() if os.path.exists(os.path.join(p, ".bitacora.jsonl")) else []):
+        try: out.append(json.loads(x))
+        except ValueError: pass
+    return out
+
+def caso_bitacora(tmp):
+    print("Caso BT · bitácora de escrituras: líneas por script, cadena de huellas, sin valores confidenciales, historial, cambios fuera de los scripts (BIT-01/BIT-02), reconocer, concurrencia y expediente")
+    import zipfile
+    d = os.path.join(tmp, "bitacora"); os.makedirs(d); g = "g"; RG = os.path.join(S, "registro.py"); ES = os.path.join(S, "estado.py")
+    PQ = os.path.join(RAIZ, "skills", "pm-exportar", "scripts", "paquete.py"); P = os.path.join(d, g)
+    run([os.path.join(S, "nuevo_proyecto.py"), "--ruta", g, "--nombre", "Bitácora", "--ejecutivo", "Laura Méndez", "--gestor", "Martín Suárez"], d)
+    run([RG, "--proyecto", g, "agregar", "riesgos", "--campo", "evento=Caída del proveedor de SMS", "--campo", "probabilidad=3", "--campo", "impacto=4", "--campo", "propietario=Ana"], d)
+    run([RG, "--proyecto", g, "actualizar", "riesgos", "R-001", "--campo", "estado=cerrado"], d)
+    run([ES, "--proyecto", g, "presupuesto", "cambio=15000"], d)
+    run([ES, "--proyecto", g, "set", "enfoque_entrega=hibrido", "--por", "Ejecutiva: Laura Méndez"], d)
+    run([RG, "--proyecto", g, "agregar", "stakeholders", "--campo", "nombre=Persona Reservada", "--campo", "confidencial=si", "--campo", "notas=dato sensible XYZ"], d)
+    B = _bitacora(P); por_op = {(x.get("script"), x.get("operacion"), x.get("archivo")): x for x in B}
+    alta = por_op.get(("registro.py", "agregar", "03-control/registros/riesgos.csv"), {}); act = por_op.get(("registro.py", "actualizar", "03-control/registros/riesgos.csv"), {})
+    pres = por_op.get(("estado.py", "presupuesto", "estado.json"), {}); st = por_op.get(("registro.py", "agregar", "03-control/registros/stakeholders.csv"), {})
+    enf = por_op.get(("estado.py", "set", "estado.json"), {})
+    check("cada escritura de registro.py y estado.py deja una línea: alta con sus campos, cambio antes → después, claves de estado.json y --por",
+          alta.get("altas") == ["R-001"] and alta["cambios"]["R-001"]["evento"] == ["", "Caída del proveedor de SMS"] and act.get("cambios") == {"R-001": {"estado": ["abierto", "cerrado"]}}
+          and "presupuestos.cambio" in pres.get("claves", []) and enf.get("por") == "Ejecutiva: Laura Méndez" and "enfoque_entrega" in enf.get("claves", []),
+          json.dumps(B, ensure_ascii=False)[-600:])
+    crudo = open(os.path.join(P, ".bitacora.jsonl"), encoding="utf-8").read()
+    check("stakeholders: solo los nombres de los campos cambiados, sin valores (tampoco los de una fila confidencial=si)",
+          isinstance((st.get("cambios") or {}).get("ST-001"), list) and "nombre" in st["cambios"]["ST-001"] and "Persona Reservada" not in crudo and "XYZ" not in crudo, str(st)[:300])
+    if S not in sys.path: sys.path.insert(0, S)
+    import esquema as ESQ
+    lin, prob = ESQ.verificar_bitacora(P)
+    ultimo = {}; continua = True
+    for x in lin:
+        if x["archivo"] in ultimo and x["antes"] != ultimo[x["archivo"]]: continua = False
+        ultimo[x["archivo"]] = x["despues"]
+    check("cadena íntegra: números consecutivos, cada línea con la huella de la anterior y la huella 'antes' de cada archivo = 'después' de su escritura anterior",
+          not prob and [x["n"] for x in lin] == list(range(1, len(lin) + 1)) and continua and lin[0]["previa"] == "", prob)
+    n0 = len(_bitacora(P))
+    run([RG, "--proyecto", g, "actualizar", "riesgos", "R-001", "--campo", "estado=cerrado"], d)
+    check("una reescritura sin cambios no agrega línea", len(_bitacora(P)) == n0)
+    h = run([RG, "--proyecto", g, "historial", "R-001"], d)
+    hj = json.loads(run([RG, "--proyecto", g, "historial", "riesgos", "--json"], d).stdout)
+    check("historial R-001 muestra el alta y el cambio de estado; historial riesgos --json con total y sin problemas",
+          h.returncode == 0 and "R-001 alta" in h.stdout and "estado: «abierto» → «cerrado»" in h.stdout and "cadena íntegra" in h.stdout
+          and hj["total"] == 2 and hj["problemas"] == [], h.stdout[-500:])
+    # cambio fuera de los scripts
+    rr = os.path.join(P, "03-control", "registros", "riesgos.csv")
+    open(rr, "w", encoding="utf-8", newline="").write(open(rr, encoding="utf-8", newline="").read().replace("Caída del proveedor", "Caida del proveedor"))
+    s1 = sanidad(g, d)
+    msj = [x["mensaje"] for x in s1["hallazgos"] if x["codigo"] == "BIT-02"]
+    check("BIT-02 (AVISO): riesgos.csv modificado fuera de los scripts después de su última escritura anotada",
+          len(msj) == 1 and "riesgos.csv se modificó fuera de los scripts" in msj[0] and "BIT-02" in codigos(s1, "AVISO"), msj)
+    run([RG, "--proyecto", g, "agregar", "riesgos", "--campo", "evento=Otro", "--campo", "probabilidad=1", "--campo", "impacto=1"], d)
+    msj = [x["mensaje"] for x in sanidad(g, d)["hallazgos"] if x["codigo"] == "BIT-02"]
+    check("después de otra escritura, BIT-02 señala el hueco entre las dos líneas de la bitácora", len(msj) == 1 and "entre las líneas" in msj[0], msj)
+    rc = run([RG, "--proyecto", g, "reconocer", "riesgos", "--por", "Gestor: Martín Suárez", "--motivo", "corrección de tilde revisada"], d)
+    ult = _bitacora(P)[-1]
+    check("reconocer: una persona deja constancia (línea 'reconocer' con --por y motivo) y BIT-02 desaparece",
+          rc.returncode == 0 and ult["operacion"] == "reconocer" and ult["por"] == "Gestor: Martín Suárez" and "BIT-02" not in codigos(sanidad(g, d), "AVISO"), rc.stdout + rc.stderr)
+    # concurrencia: 15 altas simultáneas → 15 líneas, cadena íntegra
+    n0 = len(_bitacora(P))
+    rs = _simultaneos([[RG, "--proyecto", g, "agregar", "acciones", "--campo", f"descripcion=acción {i}", "--campo", "responsable=Ana"] for i in range(15)], d)
+    lin, prob = ESQ.verificar_bitacora(P)
+    check("15 altas simultáneas: 15 líneas nuevas, numeradas y encadenadas, sin problemas de verificación",
+          all(c == 0 for c, _, _ in rs) and len(lin) == n0 + 15 and not prob, (prob, [e[-200:] for c, _, e in rs if c][:2]))
+    # bitácora alterada
+    bp = os.path.join(P, ".bitacora.jsonl"); orig = open(bp, encoding="utf-8").read()
+    open(bp, "w", encoding="utf-8").write(orig.replace("Caída del proveedor de SMS", "Caída del proveedor de correo", 1))
+    s2 = sanidad(g, d)
+    check("BIT-01 (AVISO): una línea editada rompe la cadena (la siguiente no tiene su huella)", "BIT-01" in codigos(s2, "AVISO"),
+          [x["mensaje"] for x in s2["hallazgos"] if x["codigo"].startswith("BIT")])
+    open(bp, "w", encoding="utf-8").write(orig)
+    # expediente de auditoría: solo con --con-bitacora; verificar explica el archivo alterado
+    run([PQ, "--proyecto", g, "auditoria", "--salida", os.path.join(d, "sin.zip")], d)
+    run([PQ, "--proyecto", g, "auditoria", "--con-bitacora", "--salida", os.path.join(d, "con.zip")], d)
+    sin = zipfile.ZipFile(os.path.join(d, "sin.zip")).namelist(); con = zipfile.ZipFile(os.path.join(d, "con.zip"))
+    alterado = os.path.join(d, "alterado.zip")
+    with zipfile.ZipFile(alterado, "w") as z:
+        for n in con.namelist():
+            datos = con.read(n)
+            if n == "03-control/registros/acciones.csv": datos = datos.replace(b"acci\xc3\xb3n 3", b"acci\xc3\xb3n 33")
+            z.writestr(n, datos)
+    v = run([PQ, "--proyecto", g, "verificar", alterado], d, esperar=1)
+    check("auditoria --con-bitacora agrega bitacora.jsonl (sin la opción, no) y verificar explica el registro alterado con la última escritura anotada",
+          "bitacora.jsonl" not in sin and "bitacora.jsonl" in con.namelist() and v.returncode == 1 and "el cambio no salió de los scripts" in v.stdout and "acciones.csv" in v.stdout, v.stdout[-500:])
+    # hook
+    gd = os.path.join(RAIZ, "hooks", "guardian.py")
+    def hook(tool, ti): return run([gd], d, esperar=None, entrada=json.dumps({"tool_name": tool, "tool_input": ti})).stdout
+    check("guardian: niega escribir .bitacora.jsonl o una propuesta a mano y pide confirmación para registro.py aprobar y reconocer",
+          '"deny"' in hook("Bash", {"command": f"echo x >> {g}/.bitacora.jsonl"}) and '"deny"' in hook("Write", {"file_path": f"{g}/03-control/propuestas/P-001.json"})
+          and '"ask"' in hook("Bash", {"command": f'python3 x/registro.py --proyecto {g} aprobar P-001 --por "Gestor: M"'})
+          and '"ask"' in hook("Bash", {"command": f'python3 x/registro.py --proyecto {g} reconocer riesgos --por "Gestor: M" --motivo m'})
+          and hook("Bash", {"command": f'python3 x/registro.py --proyecto {g} proponer riesgos --campo evento=x --por "agente: a"'}) == "")
+
+def caso_propuestas(tmp):
+    print("Caso PR · propuestas con huella: proponer, aprobar por una persona, reaplicar si la fuente cambió sin conflicto, conflicto en campos tocados, rechazar y autoridad")
+    d = os.path.join(tmp, "propuestas"); os.makedirs(d); g = "g"; RG = os.path.join(S, "registro.py"); P = os.path.join(d, g)
+    run([os.path.join(S, "nuevo_proyecto.py"), "--ruta", g, "--nombre", "Propuestas", "--ejecutivo", "Laura Méndez", "--gestor", "Martín Suárez"], d)
+    for ev, pr in (("Caída del proveedor", "Bea"), ("Rotación del equipo", "Bea")):
+        run([RG, "--proyecto", g, "agregar", "riesgos", "--campo", f"evento={ev}", "--campo", "probabilidad=3", "--campo", "impacto=3", "--campo", f"propietario={pr}"], d)
+    rr = os.path.join(P, "03-control", "registros", "riesgos.csv")
+    fila = lambda i: {f["id"]: f for f in csv.DictReader(open(rr, encoding="utf-8"))}[i]
+    prop = lambda pid: json.load(open(os.path.join(P, "03-control", "propuestas", f"{pid}.json"), encoding="utf-8"))
+    AG, GE = "agente: pm-riesgos", "Gestor: Martín Suárez"
+    antes = open(rr, "rb").read()
+    p1 = run([RG, "--proyecto", g, "proponer", "riesgos", "R-001", "--campo", "estado=closed", "--campo", "notas=sin ocurrencias en 3 meses", "--por", AG, "--motivo", "revisión mensual"], d)
+    x = prop("P-001")
+    check("proponer: P-001 pendiente con la huella del registro y los valores base de los campos tocados; el registro no cambia; alias en inglés resuelto",
+          p1.stdout.strip() == "P-001" and x["estado"] == "pendiente" and x["campos"]["estado"] == "cerrado" and x["base"]["valores"] == {"estado": "abierto", "notas": ""}
+          and len(x["base"]["huella_registro"]) == 64 and open(rr, "rb").read() == antes, p1.stdout + p1.stderr)
+    malo = run([RG, "--proyecto", g, "proponer", "riesgos", "R-001", "--campo", "probabilidad=9", "--por", AG], d, esperar=1)
+    check("una propuesta inválida se rechaza al proponer (mismas validaciones que actualizar) y no crea archivo",
+          malo.returncode == 1 and not os.path.exists(os.path.join(P, "03-control", "propuestas", "P-002.json")), malo.stderr[-300:])
+    mismo = run([RG, "--proyecto", g, "aprobar", "P-001", "--por", AG], d, esperar=1)
+    check("quien propuso no puede aprobar su propia propuesta", mismo.returncode == 1 and "distinta de quien propuso" in mismo.stderr + mismo.stdout)
+    ok = run([RG, "--proyecto", g, "aprobar", "P-001", "--por", GE], d)
+    ult = [b for b in _bitacora(P) if b["archivo"].endswith("riesgos.csv")][-1]
+    check("aprobar sin cambios en la fuente: se aplica tal cual, P-001 'aplicada' y la bitácora anota aprobar con --por, la propuesta y quién la propuso",
+          ok.returncode == 0 and fila("R-001")["estado"] == "cerrado" and prop("P-001")["estado"] == "aplicada" and prop("P-001")["resolucion"]["por"] == GE
+          and ult["operacion"] == "aprobar" and ult["por"] == GE and ult["propuesta"] == "P-001" and ult["propuesto_por"] == AG, ok.stdout + ok.stderr)
+    # rebase: la fila cambió en otro campo
+    run([RG, "--proyecto", g, "proponer", "riesgos", "R-002", "--campo", "notas=plan de sucesión", "--por", AG], d)
+    run([RG, "--proyecto", g, "proponer", "riesgos", "R-002", "--campo", "propietario=Carla", "--por", AG], d)
+    run([RG, "--proyecto", g, "proponer", "riesgos", "--campo", "evento=Cambio regulatorio", "--campo", "probabilidad=2", "--campo", "impacto=4", "--por", AG], d)
+    run([RG, "--proyecto", g, "actualizar", "riesgos", "R-002", "--campo", "propietario=Darío"], d)
+    lista = run([RG, "--proyecto", g, "propuestas"], d).stdout
+    check("propuestas: lista las pendientes con lo que pasaría al aprobarlas hoy (se reaplica / conflicto)",
+          "P-002" in lista and "al aprobar hoy: se reaplica" in lista and "P-003" in lista and "al aprobar hoy: conflicto" in lista and "P-001" not in lista, lista[-600:])
+    r2 = run([RG, "--proyecto", g, "aprobar", "P-002", "--por", GE], d)
+    check("la fuente cambió en otro campo de la fila: se reaplica sobre la versión nueva y se conservan ambos cambios",
+          r2.returncode == 0 and prop("P-002")["estado"] == "reaplicada" and fila("R-002")["notas"] == "plan de sucesión" and fila("R-002")["propietario"] == "Darío", r2.stderr[-300:])
+    r3 = run([RG, "--proyecto", g, "aprobar", "P-003", "--por", GE], d, esperar=1)
+    check("conflicto en un campo tocado (propietario: base Bea, hoy Darío, propuesto Carla): no se aplica, queda 'conflicto' con la explicación",
+          r3.returncode == 1 and prop("P-003")["estado"] == "conflicto" and fila("R-002")["propietario"] == "Darío" and "base «Bea», hoy «Darío», propuesto «Carla»" in r3.stdout + r3.stderr,
+          r3.stdout + r3.stderr)
+    r4 = run([RG, "--proyecto", g, "aprobar", "P-004", "--por", GE], d)
+    check("alta propuesta con el registro cambiado: se reaplica con el id siguiente de hoy (R-003)",
+          r4.returncode == 0 and r4.stdout.strip() == "R-003" and prop("P-004")["estado"] == "reaplicada" and prop("P-004")["resolucion"]["id"] == "R-003", r4.stdout + r4.stderr)
+    run([RG, "--proyecto", g, "proponer", "riesgos", "R-003", "--campo", "impacto=5", "--por", AG], d)
+    rj = run([RG, "--proyecto", g, "rechazar", "P-005", "--por", GE, "--motivo", "impacto sobrestimado"], d)
+    otra = run([RG, "--proyecto", g, "aprobar", "P-005", "--por", GE], d, esperar=1)
+    check("rechazar deja 'rechazada' con motivo y ya no se puede aprobar; R-003 sin cambios",
+          rj.returncode == 0 and prop("P-005")["estado"] == "rechazada" and prop("P-005")["resolucion"]["motivo"] == "impacto sobrestimado"
+          and otra.returncode == 1 and fila("R-003")["impacto"] == "4")
+    # autoridad: la aprobación pasa por las reglas de registro.py (control de cambios); si no pasan, sigue pendiente
+    run([os.path.join(S, "estado.py"), "--proyecto", g, "presupuesto", "limite_autoridad_cambio=1000"], d)
+    run([RG, "--proyecto", g, "proponer", "cambios", "--campo", "titulo=Pago en cuotas", "--campo", "costo=5000", "--campo", "decision=aprobado",
+         "--campo", "decidido_por=Gestor: Martín Suárez", "--campo", "cargo=sin-costo", "--por", AG], d)
+    r6 = run([RG, "--proyecto", g, "aprobar", "P-006", "--por", GE], d, esperar=1)
+    cc = os.path.join(P, "03-control", "registros", "cambios.csv")
+    check("aprobar aplica las mismas reglas que registro.py: un cambio sobre el límite de la autoridad de cambio no se registra y la propuesta sigue pendiente",
+          r6.returncode == 1 and "límite de la autoridad de cambio" in r6.stderr + r6.stdout and prop("P-006")["estado"] == "pendiente"
+          and not list(csv.DictReader(open(cc, encoding="utf-8"))), (r6.stdout + r6.stderr)[-400:])
+    h = run([RG, "--proyecto", g, "historial", "P-002"], d).stdout
+    check("historial P-002: proponer, la escritura aprobada en riesgos.csv y la resolución de la propuesta",
+          "proponer" in h and "aprobar" in h and "riesgos.csv" in h and "propuesta → reaplicada" in h and "cadena íntegra" in h, h[-600:])
+
+
+# ------------------------------------------------------------------ caso DK: correcciones de decision.py, riesgos.py, guardian.py y puertas.py (2.6.0)
+def caso_correcciones_decision(tmp):
+    print("Caso DK · correcciones de decisiones: ids del expediente, vigentes por artefactos, nivel con --decision, --revision, --fecha, --corte, importados, guardián y gate de BMAD")
+    DC = os.path.join(RAIZ, "skills", "pm-direccion-decisiones", "scripts", "decision.py"); RG = os.path.join(S, "registro.py")
+    d = os.path.join(tmp, "dk"); os.makedirs(d); g = "g"
+    run([os.path.join(S, "nuevo_proyecto.py"), "--ruta", g, "--nombre", "Correcciones", "--ejecutivo", "Laura Méndez", "--gestor", "Martín Suárez"], d)
+    ES = lambda *a, esperar=0: run([os.path.join(S, "estado.py"), "--proyecto", g] + list(a), d, esperar=esperar)
+    X = lambda *a, esperar=0: run([DC, "--proyecto", g] + list(a), d, esperar=esperar)
+    XJ = lambda *a, esperar=0: json.loads(X(*a, "--json", esperar=esperar).stdout or "{}")
+    H = lambda hid, *p: os.path.join(d, g, "03-control", "decisiones", hid, *p)
+    RC = os.path.join(d, g, "03-control", "registros")
+    filas = lambda reg: list(csv.DictReader(open(os.path.join(RC, f"{reg}.csv"), encoding="utf-8")))
+    run([RG, "--proyecto", g, "agregar", "riesgos", "--campo", "causa=c", "--campo", "evento=El proveedor de SMS no cumple", "--campo", "efecto=e", "--campo", "tipo=amenaza",
+         "--campo", "probabilidad=4", "--campo", "impacto=4", "--campo", "impacto_monetario=30000", "--campo", "propietario=Diego Ferreira", "--campo", "notas=afecta al beneficio B-02 y al KR-1.1"], d)
+    run([RG, "--proyecto", g, "agregar", "acciones", "--campo", "descripcion=Seguir la disponibilidad del proveedor", "--campo", "origen=R-001", "--campo", "responsable=Martín Suárez"], d)
+    run([RG, "--proyecto", g, "agregar", "decisiones", "--campo", "fecha=2026-10-01", "--campo", "decision=Mantener un solo proveedor de SMS", "--campo", "decidido_por=Gestor: Martín Suárez",
+         "--campo", "nivel=gestor", "--campo", "artefactos_afectados=KR-1.1; 03-control/decisiones/prov/; 3.1"], d)
+    # 1 · expediente: ids con otros separadores y en minúsculas, ids sin fila propia, id inexistente; sección 4 sin el "Ninguno" mal asociado
+    e1 = XJ("expediente", "--tipo", "riesgo", "--ids", "r-001", "--corte", "2026-11-01")
+    e2 = XJ("expediente", "--tipo", "riesgo", "--ids", "R-001; A-001", "--corte", "2026-11-01")
+    t1 = X("expediente", "--tipo", "riesgo", "--ids", "r-001", "--corte", "2026-11-01").stdout
+    check("expediente: --ids en minúsculas (r-001) y con punto y coma o espacios encuentra las filas; ids de partida R-001; la sección 4 trae la tabla sin 'Ninguno'",
+          e1["semillas"] == ["R-001"] and e1["ids_partida"] == ["R-001"] and e2["semillas"] == ["R-001", "A-001"] and "**ids de partida:** R-001\n" in t1
+          and "| A-001 | acciones | 1 |" in t1 and "Ninguno" not in t1.split("## 4.")[1].split("## 5.")[0], t1[:900])
+    eb = XJ("expediente", "--tipo", "okr", "--ids", "KR-1.1,B-02", "--corte", "2026-11-01"); tb = X("expediente", "--tipo", "okr", "--ids", "KR-1.1,B-02", "--corte", "2026-11-01").stdout
+    rel_b = {x["id"]: x["salto"] for x in eb["relacionados"]}
+    check("expediente: ids sin fila propia (KR-1.1, B-02) son ids de partida y traen a salto 1 las filas que los citan (R-001, D-001); sin 'faltan ids'; --saltos 0 no las trae",
+          eb["ids_partida"] == ["KR-1.1", "B-02"] and rel_b.get("R-001") == 1 and rel_b.get("D-001") == 1 and "**ids de partida:** KR-1.1, B-02" in tb
+          and not any("ids o tema" in f for f in eb["faltan"]) and XJ("expediente", "--tipo", "okr", "--ids", "KR-1.1,B-02", "--saltos", "0")["relacionados"] == [], str(eb["relacionados"])[:500])
+    e9 = XJ("expediente", "--tipo", "riesgo", "--ids", "R-009", "--corte", "2026-11-01"); t9 = X("expediente", "--tipo", "riesgo", "--ids", "R-009", "--corte", "2026-11-01").stdout
+    t0 = X("expediente", "--tipo", "riesgo", "--corte", "2026-11-01").stdout
+    check("expediente: un id de registro que no existe se informa como dato faltante y la sección 4 dice que ninguna fila lo es ni lo cita; sin ids ni tema, pide --ids o --tema",
+          e9["sin_fila"] == ["R-009"] and any("R-009" in f for f in e9["faltan"]) and "ninguna fila de los registros es uno de esos ids" in t9
+          and "indicar ids con `--ids`" in t0.split("## 4.")[1].split("## 5.")[0], t9[-700:])
+    # historia y tabla juntas: la decisión reemplazada sale en la historia y la vigente en la tabla, sin "Ninguno"
+    run([RG, "--proyecto", g, "agregar", "decisiones", "--campo", "fecha=2026-10-20", "--campo", "decision=Contratar un segundo proveedor de SMS para R-001", "--campo", "decidido_por=Gestor: Martín Suárez",
+         "--campo", "nivel=gestor", "--campo", "artefactos_afectados=R-001", "--campo", "reemplaza=D-001"], d)
+    th = X("expediente", "--tipo", "riesgo", "--ids", "R-001,D-001", "--corte", "2026-11-01").stdout; s4 = th.split("## 4.")[1].split("## 5.")[0]
+    check("expediente: con tabla e historia (D-001 reemplazada por D-002) la sección 4 muestra las dos y ningún 'Ninguno'",
+          "| D-002 |" in s4 and "D-001 (2026-10-01) → reemplazada por D-002" in s4 and "Ninguno" not in s4, s4)
+    # 2 · vigentes --ids por artefactos_afectados (id, paquete, hoja), con límites de palabra
+    vig = lambda i: [x["id"] for x in XJ("vigentes", "--ids", i, "--historia", "--corte", "2026-11-01")["decisiones"]]
+    check("vigentes --ids encuentra una decisión vinculada solo por artefactos_afectados (KR-1.1, kr-1.1, el paquete 3.1, la hoja prov) y no por 3.12 ni B-02",
+          vig("KR-1.1") == ["D-001"] and vig("kr-1.1") == ["D-001"] and vig("3.1") == ["D-001"] and vig("prov") == ["D-001"] and vig("3.12") == [] and vig("B-02") == [] and vig("R-001") == ["D-002"],
+          str([vig(i) for i in ("KR-1.1", "3.1", "prov", "3.12", "R-001")]))
+    # 3 · hoja de riesgo: --proponer --fecha, pregunta --corte, --decision toma el nivel de la fila (junta) y --revision llega a riesgos.py
+    OP = os.path.join(RC, "opciones-riesgo"); os.makedirs(OP)
+    _csv_escribir(os.path.join(OP, "R-001.csv"), "opcion,estrategia,descripcion,costo,probabilidad_residual,impacto_residual,impacto_monetario_residual,monto_contingencia,disparador,riesgo_secundario,emv_secundario,notas\n"
+                  "O1,reducir,Dos proveedores con conmutación,4000,1,4,,,,,,\nO2,transferir,SLA con penalidad,1000,3,4,,,,,,\nO3,aceptar,aceptar sin acciones,0,4,4,,,,,,\n")
+    malf = X("matriz", "R-001", "--proponer", "--tipo", "riesgo", "--ids", "R-001", "--fecha", "2026-13-40", esperar=None)
+    X("matriz", "R-001", "--proponer", "--tipo", "riesgo", "--ids", "R-001", "--pregunta", "¿Qué respuesta damos a R-001?", "--fecha", "2026-11-02")
+    mj = json.load(open(H("R-001", "decision.json"), encoding="utf-8"))
+    check("matriz --proponer --fecha fija 'creada' (reproducible); una fecha inválida se rechaza sin crear la hoja",
+          mj["creada"] == "2026-11-02" and malf.returncode != 0 and "AAAA-MM-DD" in malf.stderr + malf.stdout, str(mj)[:300])
+    fo = list(csv.DictReader(open(H("R-001", "opciones.csv"), encoding="utf-8")))
+    for f in fo:
+        f.update({k: v for k, v in zip(("apetito", "riesgo_secundario", "factibilidad", "plazo_para_actuar"), {"O1": (5, 1, 4, 20), "O2": (3, 2, 4, 10), "O3": (1, 1, 5, 0)}[f["opcion"]])})
+        f.update(apetito_fuente="enfoque §6", riesgo_secundario_fuente="taller", factibilidad_fuente="taller", plazo_para_actuar_fuente="plan")
+    with open(H("R-001", "opciones.csv"), "w", encoding="utf-8", newline="") as fh: w = csv.DictWriter(fh, fieldnames=list(fo[0].keys())); w.writeheader(); w.writerows(fo)
+    cr = list(csv.DictReader(open(H("R-001", "criterios.csv"), encoding="utf-8")))
+    for f in cr: f["fuente_peso"] = "junta 2026-11-02"
+    with open(H("R-001", "criterios.csv"), "w", encoding="utf-8", newline="") as fh: w = csv.DictWriter(fh, fieldnames=list(cr[0].keys())); w.writeheader(); w.writerows(cr)
+    pq = XJ("pregunta", "R-001", "--corte", "2026-11-03")
+    check("pregunta --corte: el expediente incluido usa esa fecha de corte", "Expediente de decisión · riesgo · 2026-11-03" in pq.get("texto", ""), pq.get("texto", "")[:300])
+    rec = XJ("matriz", "R-001")["recomendada"]
+    ES("puerta", "decision-ad-hoc", "--decision", "aprobado", "--por", "Ejecutiva: Laura Méndez", "--condiciones", f"respuesta {rec} de R-001", "--fecha", "2026-11-04")
+    dj = filas("decisiones")[-1]["id"]; n0 = len(filas("decisiones"))
+    el = X("matriz", "R-001", "--elegir", rec, "--por", "Ejecutiva: Laura Méndez", "--decision", dj, "--nivel", "ejecutivo", "--fecha", "2026-11-04", "--revision", "2026-12-15")
+    fr = next(f for f in filas("riesgos") if f["id"] == "R-001"); me = json.load(open(H("R-001", "decision.json"), encoding="utf-8"))["eleccion"]
+    check(f"--elegir --decision {dj} (junta): riesgos.py y decision.py informan nivel junta (no el --nivel ejecutivo, con aviso), sin fila nueva; --revision llega a fecha_revision de R-001",
+          f"decisión {dj} (Ejecutiva: Laura Méndez, nivel junta)" in el.stdout and f"(nivel junta)" in el.stdout.splitlines()[-1] + el.stdout and "nivel ejecutivo" not in el.stdout
+          and "--nivel ejecutivo no se usa" in el.stderr and me["nivel"] == "junta" and len(filas("decisiones")) == n0 and fr["fecha_revision"] == "2026-12-15" and fr["respuesta"] == "reducir",
+          el.stdout[-600:] + el.stderr[-300:])
+    # --decision de nivel menor que el de la hoja, y --revision en una hoja que no es de riesgo: no registran nada
+    X("matriz", "neg", "--proponer", "--tipo", "negocio", "--pregunta", "¿Seguimos?", "--fecha", "2026-11-05")
+    mn = json.load(open(H("neg", "decision.json"), encoding="utf-8")); mn["nivel"] = "junta"; json.dump(mn, open(H("neg", "decision.json"), "w", encoding="utf-8"))
+    _csv_escribir(H("neg", "criterios.csv"), "criterio,descripcion,peso,sentido,escala,eliminatorio,importar,fuente_peso,notas\nvalor,Valor,60,mayor,1-5,,,junta,\nriesgo,Riesgo,40,menor,1-5,,,junta,\n")
+    _csv_escribir(H("neg", "opciones.csv"), "opcion,descripcion,ref,valor,valor_fuente,riesgo,riesgo_fuente,notas\nO1,No hacer nada distinto,,1,bc,1,riesgos.csv,\nO2,Opción completa,,5,bc,3,riesgos.csv,\n")
+    dg = run([RG, "--proyecto", g, "agregar", "decisiones", "--campo", "fecha=2026-11-05", "--campo", "decision=Seguir con la opción completa", "--campo", "decidido_por=Gestor: Martín Suárez",
+              "--campo", "nivel=gestor"], d).stdout.strip().splitlines()[-1]
+    n1 = len(filas("decisiones"))
+    rb = X("matriz", "neg", "--elegir", "O2", "--por", "Gestor: Martín Suárez", "--decision", dg, esperar=None)
+    mn["nivel"] = "ejecutivo"; json.dump(mn, open(H("neg", "decision.json"), "w", encoding="utf-8"))
+    rr = X("matriz", "neg", "--elegir", "O2", "--por", "Ejecutiva: Laura Méndez", "--revision", "2026-12-01", esperar=None)
+    check(f"--decision {dg} de nivel gestor en una hoja de nivel junta se rechaza; --revision en una hoja que no es de riesgo se rechaza (revisar_en); nada registrado",
+          rb.returncode != 0 and "nivel gestor" in rb.stderr + rb.stdout and rr.returncode != 0 and "revisar_en" in rr.stderr + rr.stdout
+          and len(filas("decisiones")) == n1 and "eleccion" not in json.load(open(H("neg", "decision.json"), encoding="utf-8")), (rb.stderr + rr.stderr)[-500:])
+    # 4 · varias salidas importadas: regla determinista (la ref o el criterio nombran el archivo; si no, error; nombres repetidos, error)
+    esc = os.path.join(d, g, "02-planificacion", "escenarios"); os.makedirs(os.path.join(esc, "b"), exist_ok=True)
+    for nombre, holg in (("release-a.json", 3), ("release-b.json", -2), ("b/release-a.json", 7)):
+        json.dump({"releases": [{"release": "R1", "capacidad": 40, "must": 30, "should": 7 - holg, "holgura": holg, "lectura": "ok"}]}, open(os.path.join(esc, nombre), "w", encoding="utf-8"))
+    X("matriz", "rel", "--proponer", "--tipo", "planificacion", "--pregunta", "¿Qué alternativa de release?", "--fecha", "2026-11-05")
+    rep = X("matriz", "rel", "--importar", "02-planificacion/escenarios/release-a.json", "--importar", "02-planificacion/escenarios/b/release-a.json", esperar=None)
+    X("matriz", "rel", "--importar", "02-planificacion/escenarios/release-a.json", "--importar", "02-planificacion/escenarios/release-b.json", esperar=None)
+    _csv_escribir(H("rel", "criterios.csv"), "criterio,descripcion,peso,sentido,escala,eliminatorio,importar,fuente_peso,notas\nvalor,Valor,50,mayor,1-5,,,PO,\ncapacidad,Holgura,50,mayor,num,,holgura,PO,\n")
+    ops = "opcion,descripcion,ref,valor,valor_fuente,capacidad,capacidad_fuente,notas\nO1,No hacer nada distinto: alternativa A,{a},3,PO,,,\nO2,Alternativa B,{b},4,PO,,,\n"
+    _csv_escribir(H("rel", "opciones.csv"), ops.format(a="R1", b="R1"))
+    amb = XJ("matriz", "rel", esperar=1)
+    _csv_escribir(H("rel", "opciones.csv"), ops.format(a="release-a.json:R1", b="release-b.json:R1"))
+    ok = XJ("matriz", "rel"); oo = {o["opcion"]: o for o in ok.get("opciones", [])}
+    _csv_escribir(H("rel", "criterios.csv"), "criterio,descripcion,peso,sentido,escala,eliminatorio,importar,fuente_peso,notas\nvalor,Valor,50,mayor,1-5,,,PO,\ncapacidad,Holgura,50,mayor,num,,release-a.json:holgura,PO,\n")
+    cho = XJ("matriz", "rel", esperar=1)
+    check("importados: dos --importar con el mismo nombre en una llamada → error; ref sin calificar en dos archivos → error 'ambiguo' con ambos archivos (no gana ninguno); "
+          "'archivo.json:ref' toma la cifra de ese archivo; criterio y ref que nombran archivos distintos → error",
+          rep.returncode != 0 and "mismo nombre" in rep.stderr + rep.stdout and amb.get("accion") == "corregir" and any("ambiguo" in x and "release-a.json" in x and "release-b.json" in x for x in amb.get("errores", []))
+          and oo["O1"]["valores"].get("capacidad") == 3 and oo["O2"]["valores"].get("capacidad") == -2 and "release-b.json" in oo["O2"]["fuentes"]["capacidad"]
+          and cho.get("accion") == "corregir" and any("nombra release-b.json" in x for x in cho.get("errores", [])), f"{rep.stderr[-200:]} {amb.get('errores')} {cho.get('errores')}")
+    # 5 · guardián: --elegir pide confirmación ("ask"), como registro.py aprobar; sin --elegir no
+    G_ = os.path.join(RAIZ, "hooks", "guardian.py")
+    hook = lambda cmd, ag=None: subprocess.run(["sh", os.path.join(RAIZ, "hooks", "py.sh"), G_], input=json.dumps({"tool_name": "Bash", "tool_input": {"command": cmd}, **({"agent_type": ag} if ag else {})}),
+                                              capture_output=True, text=True).stdout
+    check("guardian: 'ask' para decision.py matriz … --elegir (también abreviado --ele y desde pm-director) y riesgos.py opciones … --elegir; sin --elegir, sin pedido",
+          '"ask"' in hook(f'python3 x/decision.py --proyecto {g} matriz R-001 --elegir O1 --por "Gestor: M"') and '"ask"' in hook(f'python3 x/decision.py --proyecto {g} matriz R-001 --ele O1 --por x', "pm-method:pm-director")
+          and '"ask"' in hook(f'python3 x/riesgos.py --proyecto {g} opciones --riesgo R-001 --elegir O1 --por x') and hook(f'python3 x/decision.py --proyecto {g} matriz R-001 --json') == ""
+          and hook(f'python3 x/decision.py --proyecto {g} expediente --tipo riesgo --ids R-001') == "")
+    # 6 · gate de preparación de BMAD: un veredicto nuevo reemplaza al anterior
+    PU_ = os.path.join(S, "puertas.py")
+    run([PU_, "--proyecto", g, "preparacion-bmad", "--resultado", "CONCERNS", "--por", "Arquitecto: Ana Pérez", "--fecha", "2026-11-06", "--nota", "NFR-3 sin prueba de carga"], d)
+    run([PU_, "--proyecto", g, "preparacion-bmad", "--resultado", "PASS", "--por", "Arquitecto: Ana Pérez", "--fecha", "2026-11-10"], d)
+    gb = [f for f in filas("decisiones") if f["decision"].startswith("gate de preparación de BMAD")]
+    vg = [x["id"] for x in XJ("vigentes", "--tema", "gate preparación BMAD", "--corte", "2026-11-10")["decisiones"]]
+    check("puertas.py preparacion-bmad: el veredicto PASS reemplaza al CONCERNS anterior (reemplaza completada sola) y vigentes trae solo el nuevo",
+          len(gb) == 2 and gb[1]["reemplaza"] == gb[0]["id"] and vg == [gb[1]["id"]], f"{gb} {vg}")
+
+
+# ------------------------------------------------------------------ caso MD: decisiones ↔ mapas de Wardley y de recorrido (decision.py, mapas.py)
+def caso_mapas_decisiones(tmp):
+    print("Caso MD · decisiones y mapas: expediente con el contexto de los mapas, criterios de hacer o comprar y elección citada en el componente (MAP-01)")
+    DC = os.path.join(RAIZ, "skills", "pm-direccion-decisiones", "scripts", "decision.py"); MP = os.path.join(RAIZ, "skills", "pm-mapas-estrategicos", "scripts", "mapas.py")
+    d = os.path.join(tmp, "md"); os.makedirs(d); g = "g"
+    run([os.path.join(S, "nuevo_proyecto.py"), "--ruta", g, "--nombre", "Turnos", "--ejecutivo", "Carmen Olivera", "--gestor", "Pablo Rinaldi"], d)
+    reg = lambda *a: run([os.path.join(S, "registro.py"), "--proyecto", g] + list(a), d).stdout.strip().splitlines()[-1]
+    X = lambda *a, esperar=0: run([DC, "--proyecto", g] + list(a), d, esperar=esperar)
+    H = lambda *p: os.path.join(d, g, "03-control", "decisiones", "c2", *p)
+    MD_ = os.path.join(d, g, "02-planificacion", "mapas")
+    s1 = reg("agregar", "supuestos", "--campo", "supuesto_o_restriccion=Un recordatorio con confirmación baja el ausentismo", "--campo", "criticidad=alta", "--campo", "certeza=baja")
+    os.makedirs(MD_)
+    W = {"esquema": "pm-mapa-wardley/1", "titulo": "Entregables", "pregunta_estrategica": "¿Qué construimos y qué compramos?", "fecha_corte": "2026-12-09",
+         "anclas": [{"id": "A1", "nombre": "Paciente", "visibilidad": 0.95, "evolucion": 0.55}],
+         "componentes": [{"id": "C1", "nombre": "Turnos en línea", "visibilidad": 0.8, "evolucion": 0.35, "etapa": "a-medida", "evidencia": "prueba de humo", "refs": [], "decision": "construir"},
+                         {"id": "C2", "nombre": "Recordatorios", "visibilidad": 0.7, "evolucion": 0.62, "etapa": "producto", "evidencia": "hay plataformas en el mercado",
+                          "refs": [s1], "decision": "construir"}],
+         "enlaces": [{"de": "A1", "a": "C1"}, {"de": "A1", "a": "C2"}, {"de": "C1", "a": "C2"}], "movimientos": [{"componente": "C2", "hacia": 0.8, "motivo": "se vuelve servicio"}]}
+    R = {"esquema": "pm-recorrido/1", "titulo": "Paciente hoy", "persona": "Paciente que agenda por teléfono", "escenario": "actual", "kpi": ["ausentismo mensual (B-01)"],
+         "etapas": [{"id": "E1", "nombre": "Esperar el día", "pasos": [
+             {"id": "P1", "accion": "Olvida el turno", "emocion": -2, "fuente_emocion": "métrica: ausentismo 18 %", "dolor": "Nadie le recuerda el turno",
+              "tipo_causa": "proceso-interno", "oportunidad": "Recordatorio 48 h antes", "kano": "obligatorio", "refs": [s1]},
+             {"id": "P2", "accion": "Se atiende", "emocion": 1, "fuente_emocion": "supuesto declarado", "refs": []}]}]}
+    json.dump(W, open(os.path.join(MD_, "wardley-entregables.json"), "w", encoding="utf-8"), ensure_ascii=False)
+    json.dump(R, open(os.path.join(MD_, "recorrido-paciente.json"), "w", encoding="utf-8"), ensure_ascii=False)
+    m01 = lambda: [h for h in json.loads(run([MP, "--proyecto", g, "controles", "--json"], d).stdout or "[]") if h["codigo"] == "MAP-01"]
+    antes = m01()
+    # 1 · expediente: por id citado (S-001 → C2 y P1) y por elemento nombrado (entregables:C1); uno inexistente es dato faltante
+    ej = json.loads(X("expediente", "--tipo", "adquisicion", "--ids", f"{s1},entregables:C1,paciente:P9,otro:C3", "--json").stdout or "{}")
+    et = X("expediente", "--tipo", "adquisicion", "--ids", f"{s1},entregables:C1", "--pregunta", "¿Compramos o construimos los recordatorios?").stdout
+    mp = {x["elemento"]: x for x in ej.get("mapas", [])}; s10 = et.split("## 10.")[-1]
+    check("MD-01 expediente: trae C2 y P1 (citan S-001) y C1 (nombrado entregables:C1) con cita archivo#id; de Wardley etapa, evolución, decisión, inercia, evidencia, "
+          "lo que depende y el movimiento; del recorrido emoción con fuente, dolor, Kano, KPI y persona; no son 'otros ids'",
+          set(mp) == {"C1", "C2", "P1"} and mp["C2"]["cita"] == "02-planificacion/mapas/wardley-entregables.json#C2" and mp["C2"]["cita_ids"] == [s1] and mp["C1"]["nombrado"] == "entregables:C1"
+          and mp["C2"]["etapa"] == "producto" and mp["C2"]["dependen"] == ["A1 Paciente", "C1 Turnos en línea"] and mp["C2"]["movimiento"]["hacia"] == 0.8
+          and mp["P1"]["emocion"] == -2 and mp["P1"]["kano"] == "obligatorio" and mp["P1"]["kpi"] == ["ausentismo mensual (B-01)"] and mp["P1"]["persona"].startswith("Paciente")
+          and "## 10. Mapas estratégicos (contexto, no criterio)" in et and "etapa producto (evolución 0,62, visibilidad 0,70)" in s10 and "decisión del mapa: construir" in s10
+          and "dependen de él: A1 Paciente, C1 Turnos en línea" in s10 and "movimiento previsto: hacia 0,80 (se vuelve servicio)" in s10
+          and "emoción -2 (fuente: métrica: ausentismo 18 %)" in s10 and "(Kano: obligatorio)" in s10 and "KPI: ausentismo mensual (B-01)" in s10
+          and "entregables:C1" not in ej.get("otros_ids", []), s10[:900])
+    check("MD-02 expediente: un elemento nombrado que no existe (paciente:P9) o de un mapa que no existe (otro:C3) es dato faltante; sin mapas citados no hay sección 10",
+          any("paciente:P9" in f for f in ej.get("faltan", [])) and any("otro:C3" in f and "no hay un mapa" in f for f in ej.get("faltan", []))
+          and "## 10." not in X("expediente", "--tipo", "adquisicion", "--ids", "R-001").stdout, str(ej.get("faltan")))
+    # 2 · criterios de hacer o comprar con --criterios
+    bad = X("matriz", "c2", "--proponer", "--tipo", "adquisicion", "--criterios", "inexistente", esperar=None)
+    sin = X("matriz", "otra", "--criterios", "hacer-o-comprar", esperar=None)
+    X("matriz", "c2", "--proponer", "--tipo", "adquisicion", "--criterios", "hacer-o-comprar", "--ids", f"entregables:C2,{s1}", "--pregunta", "¿Compramos, construimos o tercerizamos C2?", "--fecha", "2026-12-09")
+    crit = list(csv.DictReader(open(H("criterios.csv"), encoding="utf-8"))); meta = json.load(open(H("decision.json"), encoding="utf-8"))
+    check("MD-03 matriz --proponer --criterios hacer-o-comprar: seis criterios (diferenciación, costo total, tiempo hasta disponible, dependencia del proveedor, capacidad interna, "
+          "riesgo de construir algo que va a volverse commodity) que suman 100; un conjunto inexistente lista los disponibles y no crea la hoja; --criterios sin --proponer se rechaza",
+          [c["criterio"] for c in crit] == ["diferenciacion", "costo_total", "tiempo_disponible", "dependencia_proveedor", "capacidad_interna", "riesgo_commodity"]
+          and sum(int(c["peso"]) for c in crit) == 100 and meta.get("criterios") == "hacer-o-comprar" and meta["ids"] == ["entregables:C2", s1]
+          and bad.returncode != 0 and "hacer-o-comprar" in bad.stderr + bad.stdout and sin.returncode != 0 and "--proponer" in sin.stderr + sin.stdout
+          and not os.path.exists(os.path.join(d, g, "03-control", "decisiones", "otra")), str([c["criterio"] for c in crit]))
+    for c in crit: c["fuente_peso"] = "Ejecutiva: Carmen Olivera"
+    with open(H("criterios.csv"), "w", encoding="utf-8", newline="") as fh: w = csv.DictWriter(fh, fieldnames=list(crit[0].keys())); w.writeheader(); w.writerows(crit)
+    _csv_escribir(H("opciones.csv"), "opcion,descripcion,ref,diferenciacion,diferenciacion_fuente,costo_total,costo_total_fuente,tiempo_disponible,tiempo_disponible_fuente,"
+                  "dependencia_proveedor,dependencia_proveedor_fuente,capacidad_interna,capacidad_interna_fuente,riesgo_commodity,riesgo_commodity_fuente,notas\n"
+                  "O1,Comprar plataforma,,2,mapa C2,120000,cotización,6,cotización,3,contrato,4,TI,1,mapa C2 producto,\n"
+                  "O2,Construir,,4,mapa C2,192000,estimación TI,20,estimación TI,1,—,2,TI,5,mapa C2 producto,\n"
+                  "O3,Tercerizar,,1,mapa C2,140000,cotización,10,cotización,4,contrato,3,TI,2,mapa C2 producto,\n")
+    mz = json.loads(X("matriz", "c2", "--json").stdout or "{}"); pz = {o["opcion"]: o["puntaje"] for o in mz.get("opciones", [])}
+    check("MD-04 matriz de hacer o comprar a mano: pesos 15/25/20/15/10/15 → O1 78,75, O2 28,75, O3 52,3 (dominada por O1); recomendada O1",
+          abs(pz.get("O1", 0) - 78.75) < 1e-6 and abs(pz.get("O2", 0) - 28.75) < 1e-6 and abs(pz.get("O3", 0) - (25 * (1 - 20 / 72) + 20 * (1 - 4 / 14) + 15 * 0.25 + 10 * 0.5 + 15 * 0.75)) < 1e-6
+          and mz["recomendada"] == "O1" and next(o for o in mz["opciones"] if o["opcion"] == "O3")["dominada_por"] == "O1", str(pz))
+    # 3 · elegir: la decisión queda citada en C2 y MAP-01 se cierra; la columna decision del mapa no cambia; P1 (solo citado, no nombrado) no se toca
+    el = X("matriz", "c2", "--elegir", "O1", "--por", "Ejecutiva: Carmen Olivera", "--fecha", "2026-12-10")
+    dec = json.load(open(H("decision.json"), encoding="utf-8"))["eleccion"]
+    w2 = json.load(open(os.path.join(MD_, "wardley-entregables.json"), encoding="utf-8")); c2 = next(c for c in w2["componentes"] if c["id"] == "C2")
+    r2 = json.load(open(os.path.join(MD_, "recorrido-paciente.json"), encoding="utf-8"))
+    check("MD-05 --elegir con entregables:C2 en la hoja: C2 en producto marcado construir daba MAP-01 y tras elegir cita la decisión (mapas.py vincular) y MAP-01 se cierra; "
+          "eleccion.mapas lo registra; decision del componente sin cambios (aviso en la salida); el paso P1 no se modifica",
+          [h for h in antes if "C2" in h["mensaje"]] and not m01() and c2["refs"] == [s1, dec["decision_id"]] and c2["decision"] == "construir"
+          and dec.get("mapas") == ["02-planificacion/mapas/wardley-entregables.json#C2"] and f"refs = {s1}, {dec['decision_id']}" in el.stdout
+          and "decisión del componente en el mapa: construir" in el.stdout and r2["etapas"][0]["pasos"][0]["refs"] == [s1], el.stdout[-700:])
+    # 4 · pregunta tipada: la evidencia puede citar el elemento del mapa o su archivo
+    X("matriz", "c2b", "--proponer", "--tipo", "adquisicion", "--criterios", "hacer-o-comprar", "--ids", "entregables:C1,paciente:P1", "--pregunta", "¿C1?", "--fecha", "2026-12-09")
+    _csv_escribir(os.path.join(d, g, "03-control", "decisiones", "c2b", "opciones.csv"), open(H("opciones.csv"), encoding="utf-8").read())
+    v = run([DC, "--proyecto", g, "pregunta", "c2b", "--validar", "-", "--json"], d, entrada=json.dumps({"respuesta": "O1", "evidencia": ["wardley-entregables.json#C1", "entregables:C1"]}))
+    check("MD-06 pregunta --validar acepta como evidencia el elemento del mapa del expediente (entregables:C1 o wardley-entregables.json#C1)",
+          json.loads(v.stdout or "{}").get("valida") is True, v.stdout[-400:])
+    X("matriz", "c2b", "--elegir", "O1", "--por", "Ejecutiva: Carmen Olivera", "--fecha", "2026-12-10")
+    d2 = json.load(open(os.path.join(d, g, "03-control", "decisiones", "c2b", "decision.json"), encoding="utf-8"))["eleccion"]["decision_id"]
+    w3 = json.load(open(os.path.join(MD_, "wardley-entregables.json"), encoding="utf-8")); r3 = json.load(open(os.path.join(MD_, "recorrido-paciente.json"), encoding="utf-8"))
+    check("MD-07 --elegir con un componente y un paso nombrados (entregables:C1, paciente:P1): la decisión queda citada en los dos (en el paso, como tratamiento del dolor)",
+          d2 in next(c for c in w3["componentes"] if c["id"] == "C1")["refs"] and r3["etapas"][0]["pasos"][0]["refs"] == [s1, d2], (d2, r3["etapas"][0]["pasos"][0]["refs"]))
+
+
+def caso_pm_kb(tmp):
+    """KB: núcleo de pm-kb sin base de datos (lectura, exclusiones, versiones, relaciones; docs/PM-KB.md §12). La parte
+    con PostgreSQL corre con `pm-kb/pruebas/probar_kb.py --con-base` en una instalación de pm-kb."""
+    print("\n== KB · pm-kb (núcleo del indexador, sin base)")
+    r = subprocess.run([sys.executable, os.path.join(RAIZ, "pm-kb", "pruebas", "probar_kb.py")], capture_output=True, text=True,
+                       env={**os.environ, "TMPDIR": tmp})
+    ok = [l for l in r.stdout.splitlines() if l.startswith("OK ")]
+    fallos = [l for l in r.stdout.splitlines() if l.startswith("FALLO")]
+    check(f"KB-01 núcleo de pm-kb: {len(ok)} comprobaciones OK y ninguna en FALLO (fixture con versiones, exclusiones y relaciones)",
+          r.returncode == 0 and len(ok) >= 19 and not fallos, (r.stdout + r.stderr)[-800:])
+
 
 def main():
     if "-h" in sys.argv or "--help" in sys.argv:
@@ -2293,6 +3173,14 @@ def main():
         caso_radar(tmp); caso_lecciones_entre_proyectos(tmp); caso_ciclo_lecciones(tmp)
         caso_periodo(tmp)
         caso_estado_productos(tmp)
+        caso_decisiones(tmp)
+        caso_decisiones_raci(tmp)
+        caso_correcciones_decision(tmp)
+        caso_mapas_decisiones(tmp)
+        caso_busqueda(tmp); caso_vigencia(tmp)
+        caso_bitacora(tmp); caso_propuestas(tmp)
+        caso_concurrencia(tmp)
+        caso_pm_kb(tmp)
         caso_diagram_design(tmp)
         caso_ayuda(tmp)
         if "--sin-integracion" not in sys.argv: caso_integracion(tmp)

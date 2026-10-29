@@ -207,10 +207,12 @@ for p in sorted(glob.glob(str(BASE / "docs/guias/E2E-*.md"))):
     cid = re.match(r"E2E-\d+", pathlib.Path(p).name).group(0)
     titulo = re.match(r"#\s+Guía E2E-\d+\s+·\s+(.*)", t).group(1).strip()
     # como en docs/guias/README.md: un paso partido en «6a» y «6b» (sin «6») cuenta una vez; «6b» junto a un «6», aparte
+    # salvo que docs/guias/README.md diga que ese paso va partido («el 7 en 7 y 7b»): entonces cuenta una vez
     _ps = re.findall(r"^#{2,3} Paso (\d+)([a-z]?) · ", t, flags=re.M)
     _base = {n_ for n_, l_ in _ps if not l_}
-    pasos = sorted({n_ for n_, l_ in _ps} | {n_ + l_ for n_, l_ in _ps if l_ and n_ in _base})
-    _readme = re.search(r"\| \[" + cid + r" · [^\n]*?\| (\d+) pasos", leer("docs/guias/README.md"))
+    _readme = re.search(r"\| \[" + cid + r" · [^\n]*?\| (\d+) pasos([^|]*)\|", leer("docs/guias/README.md"))
+    _partidos = set(re.findall(r"el (\d+) en ", _readme.group(2))) if _readme else set()
+    pasos = sorted({n_ for n_, l_ in _ps} | {n_ + l_ for n_, l_ in _ps if l_ and n_ in _base and n_ not in _partidos})
     exige(_readme and int(_readme.group(1)) == len(pasos), f"{cid}: {len(pasos)} pasos en la guía y {_readme.group(1) if _readme else '?'} en docs/guias/README.md")
     clases = len(tablas(seccion(t, r"^Clases$"))[0]["filas"])
     ind = seccion(t, r"^Indicadores que vas a ver")
@@ -243,6 +245,15 @@ for ej in N["textos"]["controles"]["ejemplos"]:
     ejemplos.append({"codigo": ej["codigo"], "caso": ej["caso"], "texto": im["leyenda"]})
 exige(len(ejemplos) >= 2, "menos de dos ejemplos de controles con su leyenda")
 D["controles"]["ejemplos"] = ejemplos
+
+# ---------------------------------------------------------------- decidir con contexto y pm-kb: imágenes reales de las guías
+guias_txt = "\n".join(pathlib.Path(p).read_text(encoding="utf-8") for p in sorted(glob.glob(str(BASE / "docs/guias/E2E-*.md"))))
+D["decidir"] = {}
+for k in ("img1", "img2"):
+    im = N["textos"]["decidir"][k]
+    m = re.search(r"!\[([^\]]*)\]\(img/" + re.escape(im) + r"\)", guias_txt)
+    exige(m and (BASE / "docs/guias/img" / im).exists(), f"decidir: {im} no está en docs/guias/img o ninguna guía la cita")
+    D["decidir"][k] = {"archivo": "docs/guias/img/" + im, "alt": m.group(1)}
 
 # ---------------------------------------------------------------- ciclo de vida: skills por proceso (metadata de SKILL.md)
 ciclo = []
@@ -330,8 +341,7 @@ D["seguridad"] = {"fecha": re.search(r"revisión del (\d{4}-\d{2}-\d{2})", seg).
                             for r in tablas(seccion(seg, r"Resultado en una tabla"))[0]["filas"]]}
 pru = leer("docs/PRUEBAS.md")
 vivo = []
-# Pruebas en vivo de la serie más reciente que las registró (la 2.5.0 no cambia descripciones, agentes ni hooks
-# respecto de la 2.4.0, así que valen las de la serie 2.4).
+# Pruebas en vivo: las más recientes registradas (por fecha), de la serie que sea; vivo_serie es la más reciente.
 filas_vivo = tablas(seccion(pru, r"^3\.1 Resultados registrados"))[0]["filas"] + \
     sum((t["filas"] for t in tablas(seccion(pru, r"^3\.1 Resultados registrados"))[1:]), [])
 series = [tuple(int(x) for x in r[1].split(".")[:2]) for r in filas_vivo
@@ -339,10 +349,11 @@ series = [tuple(int(x) for x in r[1].split(".")[:2]) for r in filas_vivo
 serie = ("%d.%d." % max(series)) if series else ""
 D["vivo_serie"] = serie.rstrip(".")
 for r in filas_vivo:
-    if len(r) >= 4 and serie and r[1].startswith(serie):
+    if len(r) >= 4 and re.match(r"\d{4}-\d{2}-\d{2}$", r[0]) and re.match(r"\d+\.\d+\.", r[1]):
         fr = re.findall(r"\b\d+/\d+\b", r[3])
         if fr:
             vivo.append({"fecha": r[0], "prueba": plano(r[2]), "resultado": " · ".join(fr)})
+vivo = sorted(vivo, key=lambda v: v["fecha"])[-8:]
 D["vivo"] = vivo
 D["frases_enrutamiento"] = sum(1 for l in leer("docs/evaluacion/frases-enrutamiento.tsv").splitlines() if l.strip() and not l.startswith("#"))
 

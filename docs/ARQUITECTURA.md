@@ -1,4 +1,4 @@
-# Arquitectura · pm-method 2.5.0
+# Arquitectura · pm-method 2.6.0
 
 Este documento explica cómo está construido pm-method y por qué: las capas y su precedencia, el reparto entre agente
 orquestador y subagentes, las herramientas que usan las skills, los comandos, la carga progresiva del contexto y el
@@ -194,7 +194,7 @@ entrada, valida valores y deja traza; el modelo redacta, el script calcula y reg
 | `registro.py` | pm-estado-proyecto | alta, actualización, listado y resumen de registros con validación; regla de autoridad y presupuesto de cambio (`motivos_autoridad`) |
 | `puertas.py` | pm-estado-proyecto | verificación de cada puerta con códigos de control (`verificar`, `estado`), lista de control de la junta (`lista`, `confirmar`) y veredicto de preparación de BMAD |
 | `especificacion.py` | pm-estado-proyecto | fachada única de lectura de la especificación (contrato `pm-spec-index/1`) |
-| `sanidad.py` | pm-estado-proyecto | comprobaciones INS, EST, ART, REG, CAM, QUA, TOL, SUP, ESP, INT, STK (maestro de interesados y personas, vía `interesados.py integridad`) y MAP (vía `mapas.py`); `--corte` para los controles con vencimiento |
+| `sanidad.py` | pm-estado-proyecto | comprobaciones INS, EST, ART, REG, CAM, QUA, TOL, SUP, ESP, INT, STK (maestro de interesados y personas, vía `interesados.py integridad`), MAP (vía `mapas.py`) y DEC (vía `decision.py`); `--corte` para los controles con vencimiento |
 | `wbs.py` | pm-estado-proyecto | PBS/WBS y su diagrama |
 | `cpm.py` | pm-estado-proyecto | camino crítico, Gantt Mermaid y exportación MSPDI (`--mspdi`, validada leyendo con MPXJ); tres valores con distribución declarada, σ del camino crítico y reserva k·σ (`--estimacion`) |
 | `evm.py` | pm-estado-proyecto | valor ganado con semáforo contra tolerancias; modo ágil; `--guardar` deja el corte que vigila sanidad (TOL) |
@@ -209,6 +209,7 @@ entrada, valida valores y deja traza; el modelo redacta, el script calcula y reg
 | `impacto.py` | pm-issues-cambios | `analizar`: impacto de un C-### y borrador de la solicitud con quién decide |
 | `release.py` | pm-agil-hibrido | `capacidad` del release por MoSCoW |
 | `inversion.py` | pm-caso-de-negocio | VAN, TIR, repago, sensibilidad y punto de equilibrio por opción |
+| `decision.py` | pm-direccion-decisiones | `expediente` (contexto aplicable a una decisión, solo lectura), `matriz` (hoja `03-control/decisiones/<ID>/`: suma ponderada, eliminatorios, dominadas, sensibilidad de pesos; `--elegir … --por` registra) y `pregunta` (pregunta tipada y `--validar`) |
 | `mapas.py` | pm-mapas-estrategicos | mapas de Wardley y de recorrido: semilla, validación, vistas, vínculos, controles MAP y tablero de mapas |
 | `lecciones.py` | pm-lecciones-aprendidas | `buscar`, `incorporar`, `listar`, `clasificar`, `accionar`, `verificar`, `descartar`, `informe` |
 | `paquete.py` | pm-exportar | ZIP de puerta o de cierre con manifiesto; `auditoria` (expediente) y `verificar` (sha256) |
@@ -247,8 +248,8 @@ El paquete no usa la carpeta `commands/` (formato heredado): los comandos son sk
 | 2 | cuerpo de `SKILL.md` | al activarse la skill | ≤ 12.000 caracteres y ≤ 200 líneas (≈3,5 k tokens) |
 | 3 | `references/`, `templates/`, `scripts/` | solo cuando un paso lo pide | sin límite fijo; se consultan por sección |
 
-Cifras medidas con `scripts/validar_paquete.py` y sobre los archivos (2026-10-27):
-- Listado del nivel 1: **6.957 caracteres** para las 33 skills invocables por el modelo (las 6 skills-comando no
+Cifras medidas con `scripts/validar_paquete.py` y sobre los archivos (2026-10-29):
+- Listado del nivel 1: **6.966 caracteres** para las 33 skills invocables por el modelo (las 6 skills-comando no
   cuentan).
 - El presupuesto del listado de skills en Claude Code es **≈1 % de la ventana de contexto**; si se instalan BMAD u otros
   repos, puede ampliarse con `"skillListingBudgetFraction": 0.02` en `settings.json`. `skillOverrides` no aplica a skills
@@ -329,7 +330,7 @@ la descripción local u ocultar la externa con `skillOverrides`.
   sesión, un resumen derivado de esos archivos (no guardado: se calcula cada vez). Ver `docs/INSTALACION.md` §9.1.
 - **Sincronización con la especificación:** fuente única + fachada de lectura (`especificacion.py`) + traspaso de
   decisiones (`bmad.py handoff`). Ver `docs/sincronizacion.md`.
-- **Controles permanentes:** `sanidad.py` (93 códigos en 12 familias, incluidas STK, con la cadencia de contacto y las
+- **Controles permanentes:** `sanidad.py` (101 códigos en 14 familias, incluidas STK, DEC (decisiones) y BIT (bitácora de escrituras), con la cadencia de contacto y las
   personas de usuario, CAM de cambios contra presupuestos, QUA de calidad a volumen, TOL de pronóstico contra
   tolerancias, SUP de supuestos críticos y MAP de mapas estratégicos, más REG-09 de revisión de riesgos vencida, REG-10
   de opciones y plan de contingencia y REG-11 y REG-12 del ciclo de las lecciones), el radar de atención (`estado.py
@@ -337,6 +338,143 @@ la descripción local u ocultar la externa con `skillOverrides`.
   puerta en `pm-puerta` y `pm-director` (avisos P-09 y P-10 sobre interesados y RACI y P-11 sobre supuestos críticos en
   `autorizar-proyecto`; E-11 sobre lecciones en `autorizar-etapa`; C-03 y C-07 por id en `autorizar-cierre`; condiciones
   formales con seguimiento por EST-12 y G-01 hasta `cumplir-condiciones`), esquemas versionados, `validar_paquete.py` y `probar_paquete.py`. Ver `docs/SANIDAD.md`.
+
+### 9.1 Escrituras concurrentes
+
+Varias sesiones (dos personas, un gateway de Hermes con varios usuarios, un agente y un hook) pueden ejecutar los scripts
+sobre la misma carpeta de proyecto a la vez. Hasta 2.5.0 cada alta leía el CSV, calculaba el siguiente id y reescribía el
+archivo entero sin coordinación: con 20 altas simultáneas de `registro.py`, 18 informaban éxito y el CSV quedaba con 2
+filas (ids repetidos y lectores que veían el archivo truncado). Desde 2.5.1:
+
+- **Bloqueo por proyecto** (`esquema.bloqueo(proyecto)`): exclusivo, sobre `<proyecto>/.pm-bloqueo/bloqueo`, con la
+  biblioteca estándar (`fcntl.flock` en Linux, WSL2, Docker y macOS; `msvcrt.locking` en Windows nativo). Lo libera el
+  sistema operativo cuando el proceso termina, también si se corta: no hace falta borrar el archivo. La carpeta trae un
+  `.gitignore` con `*`, así que git no la ve. Espera como máximo `PM_BLOQUEO_ESPERA` segundos (30 por defecto; `0` = un
+  solo intento); si no lo obtiene, el script termina con código 1 y un mensaje en español e inglés, sin modificar nada.
+  Es **reentrante** en el mismo proceso (una función que lo tiene llama a otra que también lo pide, como
+  `estado.py puerta` → `anotar_decision`) y lo **heredan** los subprocesos que el titular lanza y espera (variable
+  `PM_BLOQUEO_HEREDADO`, que pone el propio script: `puertas.py` lanza `sanidad.py`, que puede recrear un registro).
+  Sin `estado.json` (carpeta que no es un proyecto) no se bloquea.
+- **Id dentro del bloqueo**: el archivo se relee ya bloqueado y el siguiente id se calcula sobre esa lectura.
+- **Escritura atómica** (`esquema.escribir_atomico`, y sobre ella `escribir_csv` y `escribir_json`): temporal oculto en la
+  misma carpeta (`.<archivo>.<pid>.<azar>.tmp`), `flush` + `fsync`, `os.replace` y `fsync` de la carpeta en POSIX. Mismos
+  bytes que antes (UTF-8, CRLF de `csv` en los CSV, `indent=2` sin salto final en `estado.json`, columnas en el mismo
+  orden) y mismos permisos del archivo existente. Un lector ve el archivo anterior o el nuevo, nunca uno a medias; si el
+  proceso muere antes del reemplazo, el archivo anterior queda intacto y puede quedar el temporal oculto, que ningún
+  script lee (no termina en `.csv` ni `.json`) y se puede borrar.
+
+| Script | Qué hace bajo el bloqueo |
+|---|---|
+| `registro.py agregar`, `actualizar` | relectura, id, validación e integridad, escritura del registro |
+| `estado.py` (comandos que modifican: `set`, `tolerancia`, `rol`, `agil`, `umbrales-riesgo`, `integracion`, `etapa`, `artefacto`, `aprobar`, `puerta`, `presupuesto`, `cumplir-condiciones`, `limite-etapa`, `cierre`, `periodo --tablero`) | carga, cambio y escritura de `estado.json` y la fila de `decisiones.csv` |
+| `nuevo_proyecto.py` | creación de registros y `estado.json` (dos creaciones a la vez en la misma ruta: la segunda no pisa a la primera) |
+| `puertas.py lista`, `confirmar`, `preparacion-bmad` | lista de verificación de la puerta, `estado.json` y `decisiones.csv` |
+| `bmad.py` (todos salvo `recorridos`, `capacidades` y `verificar` sin `--marcar-vistas`) | `estado.json`, `backlog.csv`, `avance-bmad.csv` y derivados de `02-planificacion/especificacion/` |
+| `interesados.py` (`estereotipos --semilla`, `proponer --registrar`, `confirmar`, `rechazar`) y `envios.py` (registro de envíos) | `estereotipos`, `preferencias` y `envios` |
+| `esquema.asegurar_registro` y `anotar_decision` (los usan `sanidad.py --reparar`, `estado.py`, `puertas.py`, `bmad.py`) | creación o migración de columnas de un registro; fila de `decisiones.csv` |
+
+`especificacion.py` regenera `spec-index.json` (caché derivada) con escritura atómica, sin bloqueo. `lecciones.py`,
+`riesgos.py` y `extraccion.py` escriben registros llamando a `registro.py`, que bloquea. Las consultas (`listar`,
+`resumen`, `ver`, `contexto`, `radar`, `briefing`, `sanidad.py` sin `--reparar`) no toman el bloqueo, salvo para crear un
+registro base que falta.
+
+**Qué no garantiza.**
+- **Dos copias del proyecto** (dos ramas o clones de git, dos carpetas sincronizadas) no comparten el bloqueo: cada una
+  puede generar el mismo id (`R-002` en las dos ramas) y la fusión da conflicto en el CSV. El bloqueo serializa procesos
+  sobre **una** carpeta; con varias personas, conviene una sola carpeta compartida (un servidor) o asignar los ids al
+  integrar.
+- Sistemas de archivos de red o montajes que no implementan `flock` de forma coherente entre máquinas (SMB/CIFS, algunos
+  NFS, carpetas de Windows montadas en WSL2 o en Docker Desktop) [verificar en cada montaje]: si el sistema informa que
+  no admite bloqueos, el script avisa por stderr y sigue con la escritura atómica, sin exclusión.
+- Ediciones fuera de los scripts (un editor, una planilla, `git checkout`) no pasan por el bloqueo; el guardián ya impide
+  que el modelo edite `estado.json` y los registros con Write/Edit o Bash.
+- Archivos que no son de gobierno o que no se reescriben con lectura previa quedan como antes: mapas JSON de
+  `mapas.py`, check-ins de `okr.py`, hojas de opciones de `riesgos.py`, cortes `evm-<corte>.json`, mensajes y
+  `diario.md` (se agrega al final), informes y vistas, y el índice de lecciones de la organización (`lecciones.py
+  informe|buscar --exportar`, fuera de la carpeta del proyecto; su escritura es atómica pero sin bloqueo).
+- Borrar `.pm-bloqueo/` mientras un proceso lo tiene rompe la exclusión para los que llegan después: no borrarlo.
+
+EN: since 2.5.1 every read-modify-write of `estado.json`, the CSV registers and other governance files rewritten whole
+runs under a per-project lock (`<project>/.pm-bloqueo/`, `fcntl.flock` / `msvcrt.locking`, `PM_BLOQUEO_ESPERA` seconds,
+default 30, bilingual error on timeout, re-entrant and inherited by waited-for subprocesses); ids are computed under the
+lock and files are replaced atomically with identical bytes. Two git branches or clones can still generate the same id.
+
+### 9.2 Bitácora de escrituras y propuestas con huella
+
+- **Bitácora** (`<proyecto>/.bitacora.jsonl`, SPEC §1.10.16): `esquema.escribir_atomico`, el punto común de 2.5.1,
+  reconoce si escribe `estado.json`, un registro o una propuesta, lee los bytes anteriores y, después del reemplazo
+  atómico, agrega una línea bajo el mismo bloqueo (reentrante): qué script y subcomando, ids y campos antes → después
+  (sin valores de interesados ni confidenciales), `--por`, sha256 antes y después y sha256 de la línea anterior. Ningún
+  script tiene que cambiar para quedar anotado; los que conocen más (aprobar una propuesta) lo precisan con
+  `esquema.contexto_bitacora`. Una escritura que no cambia nada no se anota.
+- **Verificación**: la cadena y la continuidad de cada archivo (la huella "antes" de una escritura = la "después" de la
+  anterior; el archivo actual = la última "después") dan BIT-01 y BIT-02 en `sanidad.py`; con dos ramas de git que se
+  fusionan, el merge aparece como cambio fuera de los scripts hasta que una persona lo asienta con `registro.py
+  reconocer`. Las dos ramas generan bitácoras divergentes (líneas con el mismo número): conviene fusionar con
+  `git merge` aceptando una de ellas y reconocer el resultado [verificar el flujo en un repositorio real].
+- **Propuestas** (`03-control/propuestas/P-###.json`): control optimista por campo. La propuesta guarda la huella del
+  registro y los valores base de los campos que toca; al aprobar, dentro del bloqueo, se aplica tal cual, se reaplica
+  sobre la versión actual (otros campos u otras filas cambiaron) o se rechaza por conflicto. Es la primitiva de la
+  escritura por propuesta de una base compartida (un agente propone, una persona aprueba, solo el script escribe), no
+  la base compartida.
+
+EN: since 2.6.0 every script write of `estado.json`, a register or a proposal appends a hash-chained line to
+`.bitacora.jsonl` under the same lock; `registro.py historial` shows it and `sanidad.py` BIT-01/02 checks it. Agents can
+propose register changes (`registro.py proponer`) that a person approves; approval reapplies on top of newer versions
+when the touched fields did not change and otherwise reports a conflict.
+
+### 9.3 Índice de conocimiento (pm-kb, opcional)
+
+pm-kb ([PM-KB](PM-KB.md)) es un componente aparte del plugin, no una skill ni un agente, que respeta las dos reglas de
+la persistencia:
+
+- **Derivado de la fuente única.** Lee la carpeta del proyecto (`estado.json`, registros, artefactos y, de solo
+  lectura, `_bmad-output/`) y arma un índice en PostgreSQL que se reconstruye con `pm-kb indexar`; ante una diferencia
+  manda la carpeta. Las versiones salen de `estado.json.artefactos`, las copias de `historial/` y `decisiones.csv`; las
+  relaciones, de los ids de los registros; la historia, de la bitácora (ya sin valores sensibles). Nunca se indexan los
+  datos de contacto ni las valoraciones confidenciales de los interesados.
+- **Solo lectura.** La web, el MCP (`buscar`, `contexto`, `ficha`, `relaciones`, `documento`, `versiones`, `cambios`,
+  `estado_indice`) y la línea de comandos solo consultan, con RLS por proyecto y circulación y la cita de cada dato. Un
+  agente que encuentra algo para cambiar no escribe: propone con `registro.py proponer` y una persona aprueba con
+  `aprobar --por` (§9.2); los scripts escriben, la bitácora lo anota y el próximo `indexar` lo refleja. Para el agente,
+  lo que devuelve pm-kb es evidencia, no instrucciones.
+
+```mermaid
+---
+config:
+  flowchart:
+    subGraphTitleMargin:
+      top: 6
+      bottom: 18
+---
+flowchart TB
+    subgraph F["Carpeta del proyecto · fuente única"]
+        E[("estado.json · registros CSV<br/>artefactos · _bmad-output/")]
+        S["estado.py · registro.py<br/>únicos que escriben"]
+    end
+    subgraph K["pm-kb · derivado y de solo lectura"]
+        IX["pm-kb indexar<br/>reemplaza el índice del proyecto"]
+        DB[("PostgreSQL<br/>RLS por proyecto y circulación")]
+        Q["web · MCP · línea de comandos<br/>con la cita de cada dato"]
+    end
+    P(["Personas<br/>token propio"])
+    AG(["Agentes<br/>Claude Code · Hermes"])
+    PR["propuesta P-###<br/>registro.py proponer"]
+    E -->|lectura| IX --> DB --> Q
+    Q -->|"evidencia citada"| P
+    Q -->|"evidencia, no instrucciones"| AG
+    AG -->|propone| PR
+    PR -->|"aprobar --por"| S
+    P -->|decide| S
+    S -->|escribe| E
+    classDef kb fill:#e8f1fb,stroke:#3b6ea8,color:#111
+    classDef pm fill:#e9f6ec,stroke:#2e7d32,color:#111
+    class IX,DB,Q kb
+    class E,S,PR pm
+```
+
+Fuente y SVG: `docs/diagramas/pm-kb.mmd` · `pm-kb.svg`. EN: *pm-kb is an optional, derived and read-only index of the
+project folder; agents read cited evidence through MCP and propose changes that a person approves through the scripts.*
 
 ---
 

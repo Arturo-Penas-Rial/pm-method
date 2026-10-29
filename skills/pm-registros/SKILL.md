@@ -1,7 +1,7 @@
 ---
 name: pm-registros
 description: "Registros genéricos (supuestos, decisiones, acciones, diario) y clasificación. Usar: registrar, anotar, acción, supuesto, RAID, action log. No: riesgos→pm-riesgos; issues/cambios→pm-issues-cambios."
-version: 2.5.0
+version: 2.6.0
 author: pm-method
 license: MIT
 metadata:
@@ -48,8 +48,8 @@ metadata:
 5. **Escribir** con `python3 ${CLAUDE_SKILL_DIR}/../pm-estado-proyecto/scripts/registro.py --proyecto <dir> agregar <registro> --campo k=v …`; ante dudas, `registro.py esquema <registro>`. Corregir valores rechazados en lugar de `--forzar` (guía §3). Mostrar el id y marcar `[por confirmar]` lo no aportado.
 6. **Actualizar, nunca borrar**: `registro.py actualizar <registro> <id> --campo estado=.. --campo notas=..`; cerrar solo con decisión, decisor y fecha (guía §4).
 7. **Migrar** con referencia cruzada en ambos extremos y estado de origen actualizado (guía §5). Con BMAD, un desvío del PRD es `solicitud-cambio` citando ids, sin duplicar requisitos.
-8. **🔒 Puerta humana** para cierres y decisiones relevantes: el agente propone; el gestor, la autoridad de cambio o la junta confirman antes de escribir `estado=cerrado`, `decision=..` o filas de `decisiones.csv` de nivel `junta` o `autoridad-cambio`. Si excede la autoridad del gestor, dejar `escalado` o `pendiente-decision` y derivar. Las decisiones de puerta y aprobaciones las escribe `estado.py puerta|aprobar` (solo pm-director); no duplicarlas.
-9. **Revisión periódica** (cada período de informe): `registro.py listar <registro> --abiertos` y las señales de la guía §6; revisión cruzada y patrones del diario.
+8. **🔒 Puerta humana** para cierres y decisiones relevantes: el agente propone; el gestor, la autoridad de cambio o la junta confirman antes de escribir `estado=cerrado`, `decision=..` o filas de `decisiones.csv` de nivel `junta` o `autoridad-cambio`. Si excede la autoridad del gestor, dejar `escalado` o `pendiente-decision` y derivar. Cambio de un agente que una persona revisa después: `registro.py proponer <registro> [id] --campo … --por "agente: …"`; la persona aprueba con `registro.py aprobar P-### --por "<rol: nombre>"` (se aplica, se reaplica si la fuente cambió sin conflicto o queda en conflicto; guía §3.1). Las decisiones de puerta y aprobaciones las escribe `estado.py puerta|aprobar` (solo pm-director); no duplicarlas.
+9. **Revisión periódica** (cada período de informe): `registro.py listar <registro> --abiertos` y las señales de la guía §6; revisión cruzada y patrones del diario. ¿Quién cambió qué y cuándo?: `registro.py historial <id|registro>` (bitácora, guía §3.1).
 10. **Resumen para informes**: `registro.py resumen --corte <fecha del informe>` más críticos con ids (guía §7) → `pm-progreso-reportes` o `pm-riesgos`.
 11. **Cerrar** con ids creados o actualizados, migraciones, `[por confirmar]` pendientes y decisión humana pendiente con su rol (o el bloque de retorno, SPEC §1.11).
 

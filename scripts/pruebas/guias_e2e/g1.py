@@ -1,11 +1,13 @@
 """Guía E2E-1 · Ciclo completo de gestión de riesgos (producto, WBS, interesados) con scripts reales."""
 from comun import *
+import glob
 repo = proyecto("portal-socios"); print("REPO", repo)
 P = lambda t: print(f"\n######## {t}\n") or LOG.append((f"## {t}", ""))
 WBS = open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "wbs.csv"), encoding="utf-8").read()
 EJ = "Ejecutiva: Laura Méndez"
 PCT = {1: 0.1, 2: 0.3, 3: 0.5, 4: 0.7, 5: 0.9}          # conversión de la escala aprobada (paso 3)
 usd = lambda n: f"{n:,.0f}".replace(",", ".")
+usd_d = lambda n: f"{n:,.1f}".replace(",", "§").replace(".", ",").replace("§", ".")   # un decimal con coma (puntajes y pesos)
 def sanidad(repo, corte, etiqueta=None):
     out = run(E(f'sanidad.py --proyecto {G} --rapido --corte {corte}'), repo, ok=(0, 1, 2))
     if "REG-09" in out: REG09.append(corte)        # cortes en los que la sanidad avisa riesgos con la revisión vencida
@@ -68,8 +70,18 @@ st = {}
 for nombre, rol, pod, inte, act_, des in (("Laura Méndez", "Ejecutiva", "alto", "alto", "lider", "lider"),
                                          ("Sindicato de operadores", "Representación de operadores de sucursal", "medio", "alto", "resistente", "neutral"),
                                          ("Área de TI del núcleo operativo", "Dueña del core y del padrón", "alto", "medio", "neutral", "partidario"),
-                                         ("Unidad de cumplimiento", "Protección de datos (Ley 18.331)", "alto", "medio", "neutral", "partidario")):
+                                         ("Unidad de cumplimiento", "Protección de datos (Ley 18.331)", "alto", "medio", "neutral", "partidario"),
+                                         ("Diego Ferreira", "Proveedor sénior", "alto", "alto", "partidario", "partidario"),
+                                         ("Lucía Benítez", "Jefa de equipo", "medio", "alto", "partidario", "partidario")):
     st[nombre] = reg(repo, "stakeholders", nombre=nombre, rol_organizacion=rol, poder=pod, interes=inte, actitud=act_, nivel_compromiso_actual=act_, nivel_compromiso_deseado=des, confidencial="no")
+# RACI mínima del paquete con más riesgo de seguridad (3.1 Acceso seguro): un solo A, quién lo hace, a quién consultar
+# (cumplimiento, y TI porque los teléfonos del segundo factor salen del padrón) y a quién informar (el sindicato, porque un
+# socio que no puede ingresar termina en la sucursal). Es la vista de responsabilidades que decision.py contrasta con la
+# autoridad de PRINCE2 al registrar una decisión.
+for nombre, rol in (("Diego Ferreira", "A"), ("Lucía Benítez", "R"), ("Unidad de cumplimiento", "C"), ("Área de TI del núcleo operativo", "C"),
+                    ("Laura Méndez", "I"), ("Sindicato de operadores", "I")):
+    reg(repo, "raci", elemento="3.1", tipo_elemento="paquete", descripcion="Acceso seguro (FR-1, FR-2, FR-11)", stakeholder_id=st[nombre], rol=rol)
+run(f'python3 {IN} --proyecto {G} raci --elemento 3.1', repo)
 run(E(f'especificacion.py --proyecto {G} listar requisitos --limite 8'), repo)
 run(E(f'especificacion.py --proyecto {G} consultar AD-5'), repo)
 
@@ -218,9 +230,70 @@ LOG.append(("(gráfico del paso 6a → g1-opciones-valor-neto.png; datos de ries
 ELIGE = {R["R1"]: "O2", R["R3"]: "O4"}           # lo que decide el propietario (si no fuera la recomendada, --elegir exigiría --motivo)
 ELEG = {}
 for rid, op in ELIGE.items():
-    run(f'{RK} opciones --riesgo {rid} --elegir {op} --por "Proveedor sénior: Diego Ferreira" --revision 2026-12-15 --fecha 2026-11-04', repo)
     o = next(o for x in dj["riesgos"] if x["id"] == rid for o in x["opciones"] if o["opcion"] == op)
     ELEG[rid] = o; OPC[rid] = (o["impacto_monetario_residual"], o["monto_contingencia"])
+# R-001: la recomendada por valor neto le saca 1.600 a la segunda y no hay otro criterio en juego → decide el propietario.
+run(f'{RK} opciones --riesgo {R["R1"]} --elegir {ELIGE[R["R1"]]} --por "Proveedor sénior: Diego Ferreira" --revision 2026-12-15 --fecha 2026-11-04', repo)
+# R-003: el apetito es bajo en seguridad del acceso y la recomendada deja el riesgo en zona media hasta el disparo →
+# expediente (contexto citado), matriz multicriterio con el valor neto importado sin recalcular, sensibilidad y decisión
+# del propietario contrastada con la RACI del paquete 3.1 (pm-direccion-decisiones, decision.py).
+DC = f"python3 {RAIZ}/skills/pm-direccion-decisiones/scripts/decision.py --proyecto {G}"
+H3 = R["R3"]; HOJA3 = f"03-control/decisiones/{H3}"
+PREG3 = f"¿Qué respuesta damos a {H3}, la disponibilidad del proveedor de SMS del segundo factor?"
+run(f'{DC} expediente --tipo riesgo --ids {H3} --pregunta "{PREG3}" --corte 2026-11-04', repo, corte=200)
+run(f'{DC} matriz {H3} --proponer --tipo riesgo --ids {H3} --pregunta "{PREG3}"', repo)
+FPESO = "Ejecutiva: Laura Méndez (pesos de la plantilla confirmados antes de puntuar)"
+CRIT = ("criterio,descripcion,peso,sentido,escala,eliminatorio,importar,fuente_peso,notas\n"
+        f"valor_neto,Valor neto de la respuesta: EMV inherente − EMV residual − EMV secundario − costo,35,mayor,num,,valor_neto,{FPESO},de riesgos.py opciones --json (se importa sin recalcular)\n"
+        f"apetito,Ajuste al apetito de riesgo del objetivo afectado (1 = lo contradice; 5 = dentro del apetito),25,mayor,1-5,2,,{FPESO},enfoque de riesgo §6: 1 = fuera del apetito y la opción se elimina\n"
+        f"riesgo_secundario,Riesgo secundario o efecto colateral que crea la respuesta (1 = ninguno; 5 = grave),10,menor,1-5,,,{FPESO},\n"
+        f"factibilidad,Capacidad y autoridad para implementarla a tiempo (1 = baja; 5 = alta),20,mayor,1-5,,,{FPESO},\n"
+        f"plazo_para_actuar,Días hasta que la respuesta surte efecto frente a la proximidad del riesgo,10,menor,num,,,{FPESO},\n")
+COLS_M = "opcion,descripcion,ref,valor_neto,valor_neto_fuente,apetito,apetito_fuente,riesgo_secundario,riesgo_secundario_fuente,factibilidad,factibilidad_fuente,plazo_para_actuar,plazo_para_actuar_fuente,notas\n"
+def hoja_matriz(hoja, filas):
+    """La hoja la completan el modelo y la persona con fuente por puntaje (el script no inventa cifras); el valor neto queda
+    vacío: lo importa la matriz de riesgos-opciones-R-###.json (riesgos.py opciones --json) sin recalcularlo."""
+    import io
+    b = io.StringIO(); _c.writer(b, lineterminator="\n").writerows(filas)
+    escribir(repo, f"{hoja}/criterios.csv", CRIT)
+    escribir(repo, f"{hoja}/opciones.csv", COLS_M + b.getvalue())
+    LOG.append((f"(pm-direccion-decisiones completa la hoja con los datos de quien decide, cada puntaje con su fuente → gestion/{hoja}/criterios.csv y opciones.csv)",
+                CRIT.strip() + "\n\n" + (COLS_M + b.getvalue()).strip()))
+ENF6, PL = "enfoque-riesgo.md §6", f"plan de la etapa 2 y Diego Ferreira"
+hoja_matriz(HOJA3, [
+    ["O1", "evitar: app autenticadora (TOTP) en lugar de SMS", f"{H3}/O1", "", "", "3", f"{ENF6}: seguridad del acceso dentro del apetito; B-02 (adopción) resignada", "4", "socios sin teléfono inteligente dejan el portal (B-02)", "3", "AD-5: cambiar el segundo factor reabre la arquitectura", "30", PL, ""],
+    ["O2", "reducir: dos proveedores de SMS activos con conmutación", f"{H3}/O2", "", "", "5", f"{ENF6}: residual P1 × I4, dentro del apetito", "1", "sin secundario identificado", "3", "integrar dos proveedores antes del Release 1", "20", PL, ""],
+    ["O3", "transferir: SLA de 99,9 % con penalidad", f"{H3}/O3", "", "", "2", f"{ENF6}: la penalidad no protege el acceso de los socios", "2", "la penalidad no cubre el atraso (EMV 1.800)", "4", "cláusula en el contrato vigente", "10", PL, ""],
+    ["O4", "contingencia: acuerdo marco con un proveedor alternativo y activación ante dos caídas en un mes", f"{H3}/O4", "", "", "3", f"{ENF6}: residual P3 × I3 aceptado hasta el disparo, con plan", "1", "sin secundario identificado", "4", "acuerdo marco antes del 25/11 y plan de contingencia", "8", "plan de contingencia: 8 días hábiles desde el disparo", ""],
+    ["O5", "aceptar sin acciones: no hacer nada distinto (referencia)", f"{H3}/O5", "", "", "1", f"{ENF6} y tolerancia: ningún riesgo alto sin respuesta", "1", "sin secundario", "5", "no requiere acciones", "0", "sin acciones", ""]])
+run(f'{DC} matriz {H3} --markdown', repo)
+MZ3 = json.loads(run(f'{DC} matriz {H3} --json', repo, mostrar=False)); LOG.pop()
+# Gráfico de sensibilidad: puntaje de cada opción evaluada según el peso del apetito (los demás conservan sus proporciones,
+# la regla de decision.py); se lee del --json de la matriz (pesos, valores normalizados y umbral de cambio de la primera).
+def sens_puntajes(mz, criterio, pesos):
+    w0 = next(c["peso_norm"] for c in mz["criterios"] if c["criterio"] == criterio) / 100
+    ev = [o for o in mz["opciones"] if o["estado"] == "evaluada"]
+    return {o["opcion"]: [100 * (w * o["normalizados"][criterio] + (1 - w) * (o["puntaje"] / 100 - w0 * o["normalizados"][criterio]) / (1 - w0)) for w in pesos] for o in ev}
+SEN3 = {x["criterio"]: x for x in MZ3["sensibilidad"]}; OP3 = {o["opcion"]: o for o in MZ3["opciones"]}
+corte_ap = SEN3["apetito"]["sube"]; rec3 = MZ3["recomendada"]
+PESOS = list(range(0, 80, 5)); curvas = sens_puntajes(MZ3, "apetito", [w / 100 for w in PESOS])
+orden3 = [rec3, corte_ap["opcion"]] + [o for o in curvas if o not in (rec3, corte_ap["opcion"])]
+nom3 = {o: f"{o} {OP3[o]['descripcion'].split(':')[0]}" + (" (dominada)" if OP3[o]["dominada_por"] else "") for o in curvas}
+ELIM3 = [o["opcion"] for o in MZ3["opciones"] if o["estado"] == "eliminada"]
+V.lineas([str(w) for w in PESOS], [curvas[o] for o in orden3],
+         os.path.join(OUT, "g1-sensibilidad-r003.png"),
+         f"{nom3[rec3].split(' ', 1)[1].capitalize()} ({rec3}) gana hasta que el apetito pesa {usd_d(corte_ap['peso'])}",
+         f"Puntaje (0–100) de cada respuesta a {H3} según el peso del apetito, acordado en {SEN3['apetito']['peso']:.0f} · {', '.join(ELIM3)} aceptar: eliminada por el apetito",
+         f"decision.py matriz {H3} --json (03-control/decisiones/{H3}/) · peso del apetito en el eje horizontal", nombres=[nom3[o] for o in orden3])
+LOG.append((f"(gráfico del paso 6a → g1-sensibilidad-r003.png; datos de decision.py matriz {H3} --json)",
+            "\n".join(f"{o['opcion']:3s} {o['estado']:10s} puntaje {usd_d(o['puntaje']) if o['puntaje'] is not None else '—':>5}" + (f" · dominada por {o['dominada_por']}" if o['dominada_por'] else "") + (f" · {o['motivo']}" if o['motivo'] else "") for o in MZ3["opciones"])
+            + "\n" + "\n".join(f"peso del apetito {w:>2}: " + " · ".join(f"{o} {usd_d(curvas[o][i])}" for o in orden3) for i, w in enumerate(PESOS))))
+# --revision llega a riesgos.py opciones --elegir: la próxima revisión de R-003 queda en el mismo registro de la respuesta
+EL3 = run(f'{DC} matriz {H3} --elegir {ELIGE[H3]} --por "Proveedor sénior: Diego Ferreira" --fecha 2026-11-04 --revision 2026-12-15 --motivo "consultadas la Unidad de cumplimiento y el Área de TI (C del paquete 3.1) el 2026-11-03: sin objeciones"', repo)
+DJ3 = json.load(open(os.path.join(repo, G, HOJA3, "decision.json"), encoding="utf-8"))
+AV3 = DJ3["eleccion"]["raci"]["aviso"]
+MAV3 = sorted(glob.glob(os.path.join(repo, G, AV3, "mensaje-*.md")))
+LOG.append((f"(borrador del aviso a los I de la RACI → gestion/{AV3}/: {len(MAV3)} mensaje(s), estado borrador; el primero)", open(MAV3[0], encoding="utf-8").read().strip()))
 sanidad(repo, "2026-11-04")                       # REG-10: R-003 con respuesta contingencia y sin plan de contingencia
 
 P("Paso 6b · Plan de contingencia de R-003 y respuestas de los demás riesgos (costo justificado, residual, disparadores y acciones)")
@@ -437,6 +510,20 @@ run(f'{RK} opciones --riesgo {RN}', repo)
 xn = json.loads(run(f'{RK} opciones --riesgo {RN} --json', repo, mostrar=False))["riesgos"][0]; LOG.pop()
 recN = next(o for o in xn["opciones"] if o["recomendada"]); oN = next(o for o in xn["opciones"] if o["opcion"] == "O2")   # O2: la que propone el gestor
 OPC[RN] = (oN["impacto_monetario_residual"], oN["monto_contingencia"])
+# Expediente y matriz de la decisión de la junta: los mismos criterios y pesos que en el paso 6a (fijados antes de puntuar).
+HN = RN; HOJAN = f"03-control/decisiones/{HN}"
+PREGN = f"¿Qué respuesta damos a {HN}, la norma de biometría para operaciones de préstamo?"
+run(f'{DC} expediente --tipo riesgo --ids {HN} --pregunta "{PREGN}" --corte 2027-01-12', repo, corte=200)
+run(f'{DC} matriz {HN} --proponer --tipo riesgo --ids {HN} --pregunta "{PREGN}"', repo)
+hoja_matriz(HOJAN, [
+    ["O1", "evitar: sacar las operaciones de préstamo (FR-6) del Release 2 hasta que se publique la norma", f"{HN}/O1", "", "", "3", f"{ENF6}: cumplimiento a salvo; resigna la adopción temprana de B-02", "4", "B-02: la adopción se demora un trimestre (EMV 16.000)", "4", "replanificar el Release 2", "5", "Martín Suárez (replanificación)", ""],
+    ["O2", "reducir: análisis normativo con asesoría externa y autenticación reforzada detrás de IdentityPort (AD-5)", f"{HN}/O2", "", "", "5", f"{ENF6}: se anticipa a la norma; cumplimiento dentro del apetito", "1", "sin secundario identificado", "4", "asesoría disponible; USD 10.000 dentro del saldo de la reserva", "24", "entrega del análisis a la junta el 2027-02-05", ""],
+    ["O3", "contingencia: esperar la publicación y recién entonces implementar la biometría", f"{HN}/O3", "", "", "1", f"{ENF6}: esperar deja el acceso expuesto a una norma de cumplimiento (apetito bajo)", "1", "sin secundario identificado", "3", "depende de la fecha de publicación", "60", "Diego Ferreira (implementación después de la publicación)", ""],
+    ["O4", "aceptar sin acciones: no hacer nada distinto (referencia)", f"{HN}/O4", "", "", "1", f"{ENF6} y tolerancia: ningún riesgo alto sin respuesta", "1", "sin secundario", "5", "no requiere acciones", "0", "sin acciones", ""]])
+run(f'{DC} matriz {HN} --markdown', repo)
+MZN = json.loads(run(f'{DC} matriz {HN} --json', repo, mostrar=False)); LOG.pop()
+OPN = {o["opcion"]: o for o in MZN["opciones"]}; SENN = {x["criterio"]: x for x in MZN["sensibilidad"]}
+recM = MZN["recomendada"]; elimN = [o for o in MZN["opciones"] if o["estado"] == "eliminada"]
 tablaN = "\n".join(f"| {o['opcion']}{' ★' if o['recomendada'] else ''} | {o['estrategia']} | {usd(o['costo'])} | {o['probabilidad_residual']}×{o['impacto_residual']} | {usd(o['emv_residual'])} | {usd(o['valor_neto'])} |"
                    for o in xn["opciones"] if o["estado"] == "evaluada")
 HOJA = f"""---
@@ -468,12 +555,18 @@ P3 × I5 = 15 (alto, sobre la línea) · impacto monetario USD 40.000 · EMV = 5
 
 Transferir no aplica: una norma no se transfiere a un tercero. Recomendada por valor neto: {recN['opcion']} ({recN['estrategia']}).
 
+## Matriz multicriterio (03-control/decisiones/{HN}/, decision.py; mismos criterios y pesos que la decisión de R-003)
+{' y '.join(o['opcion'] for o in elimN)} eliminadas por el apetito (puntaje 1, eliminatorio < 2): esperar o no hacer nada deja el acceso expuesto a una norma de cumplimiento.
+Entre las que quedan: {' · '.join(f"{o['opcion']} {usd_d(o['puntaje'])}" for o in MZN['opciones'] if o['estado'] == 'evaluada')} → recomendada {recM} ({OPN[recM]['descripcion'].split(':')[0]}).
+Sensibilidad: {oN['opcion']} pasa a primera si el apetito pesa {usd_d(SENN['apetito']['sube']['peso'])} (acordado {usd_d(SENN['apetito']['peso'])}) o si el valor neto baja a {usd_d(SENN['valor_neto']['baja']['peso'])} (acordado {usd_d(SENN['valor_neto']['peso'])}).
+
 ## Respuesta propuesta y justificación
 {oN['opcion']} {oN['estrategia']}: {oN['descripcion'][0].lower() + oN['descripcion'][1:]}.
 Costo de la respuesta: USD {usd(oN['costo'])} (reserva de riesgo; supera la autoridad del gestor: decide la ejecutiva).
 Residual P{oN['probabilidad_residual']} × I{oN['impacto_residual']} = {oN['puntuacion_residual']} · EMV residual USD {usd(oN['emv_residual'])} · reducción de EMV USD {usd(oN['delta_emv'])} · valor neto USD {usd(oN['valor_neto'])}.
-No es la recomendada y **no se justifica solo por EMV**: esperar la publicación ({recN['opcion']}) deja el acceso expuesto a una
+No es la recomendada ni por valor neto ni por la matriz, y **no se justifica solo por EMV**: esperar la publicación ({recN['opcion']}) deja el acceso expuesto a una
 norma de cumplimiento, donde el apetito es bajo (enfoque de riesgo §6). Justificación no económica: cumplimiento regulatorio.
+Frente a {recM} ({OPN[recM]['descripcion'].split(':')[0]}), mantiene los préstamos en el Release 2: sacarlos demora la adopción de B-02 un trimestre.
 Por eso decide la junta. Riesgos secundarios: ninguno identificado. Residual aceptado: P{oN['probabilidad_residual']} × I{oN['impacto_residual']}, revisión en la próxima junta.
 
 ## Alerta temprana y contingencia
@@ -488,10 +581,35 @@ C4 = reg(repo, "cambios", fecha="2027-01-12", solicitante="Martín Suárez", tit
          descripcion="asesoría externa sobre la norma de autenticación y diseño de autenticación reforzada detrás de IdentityPort (AD-5)",
          justificacion=f"hoja de riesgo de {RN}: justificación regulatoria (costo {usd(oN['costo'])} mayor que la reducción de EMV {usd(oN['delta_emv'])})", impacto_costo=usd(oN["costo"]), impacto_riesgo=f"responde a {RN}",
          decision="aprobado", decidido_por=EJ, fecha_decision="2027-01-12", estado="aprobado", costo=int(oN["costo"]), cargo="reserva-riesgo", notas="decision-ad-hoc de la junta del 2027-01-12")
-ELIGE_N = f'{RK} opciones --riesgo {RN} --elegir {oN["opcion"]} --por "{EJ}" --nivel ejecutivo --revision 2027-01-26 --fecha 2027-01-12'
-run(ELIGE_N, repo, ok=(1,))                       # PUERTA HUMANA: no es la recomendada y falta el motivo → no registra nada
-run(ELIGE_N + ' --motivo "apetito bajo en cumplimiento (enfoque de riesgo §6): la junta no espera la publicación de la norma y acepta el valor neto negativo"', repo)
-act(repo, "riesgos", RN, estado="en-seguimiento",
+D15 = next(f["id"] for f in _c.DictReader(open(os.path.join(repo, G, "03-control/registros/decisiones.csv"), encoding="utf-8")) if f["decision"].startswith("decision-ad-hoc"))   # la registró pm-director
+ELIGE_N = f'{DC} matriz {HN} --elegir {oN["opcion"]} --por "{EJ}" --fecha 2027-01-12'   # con --decision, el nivel sale de esa fila (junta)
+run(ELIGE_N, repo, ok=(1,))                       # nivel junta: la registra pm-director (decision-ad-hoc), aquí solo se cita
+run(ELIGE_N + f' --decision {D15}', repo, ok=(1,))  # PUERTA HUMANA: no es la recomendada por la matriz y falta el motivo → no registra nada
+MOT_N = ("apetito bajo en cumplimiento (enfoque de riesgo §6): la junta no espera la publicación de la norma (O3 eliminada) y prefiere anticipar el análisis "
+         "a sacar los préstamos del Release 2 (O1), que demora B-02 un trimestre; para la junta el apetito pesa más que en la plantilla y acepta el valor neto negativo")
+run(ELIGE_N + f' --decision {D15} --motivo "{MOT_N}"', repo)
+DJN = json.load(open(os.path.join(repo, G, HOJAN, "decision.json"), encoding="utf-8"))
+nIN = len(glob.glob(os.path.join(repo, G, DJN["eleccion"]["raci"]["aviso"], "mensaje-*.md")))
+assert DJN["eleccion"]["opcion"] == oN["opcion"] and recM != oN["opcion"] and recN["opcion"] in [o["opcion"] for o in elimN], "el gráfico de la decisión de R-007 ya no describe los datos"
+ap_n = SENN["apetito"]["sube"]
+saldoN = (CAM[-1][2] - CAM[-1][1], CAM[-1][2])          # saldo de la reserva antes de C-004 (el que muestra el expediente)
+V.tarjetas([(recN["opcion"], "Recomendada por valor neto", f"riesgos.py: {recN['estrategia']}, {usd(recN['valor_neto'])}", None),
+            (" · ".join(o["opcion"] for o in elimN), "Eliminadas por el apetito", "esperar la norma o no hacer nada: apetito 1 < 2", None),
+            (f"{usd_d(OPN[recM]['puntaje'])} · {usd_d(OPN[oN['opcion']]['puntaje'])}", f"Matriz: {recM} {OPN[recM]['descripcion'].split(':')[0]} · {oN['opcion']} {OPN[oN['opcion']]['descripcion'].split(':')[0]}",
+             f"{ap_n['opcion']} gana si el apetito pesa {usd_d(ap_n['peso'])} (acordado {SENN['apetito']['peso']:.0f})", None),
+            (usd(saldoN[0]), "Saldo de la reserva (expediente)", f"de {usd(saldoN[1])}; {oN['opcion']} cuesta {usd(oN['costo'])}", None),
+            (oN["opcion"], f"Elegida por la junta ({D15})", "el motivo queda en la decisión", None),
+            (f"{nIN} borrador", "Aviso a los I de la RACI (3.1)", "nada se envía sin aprobación", None)],
+           os.path.join(OUT, "g1-decision-r007.png"),
+           f"La junta elige {oN['estrategia']} ({oN['opcion']}) para {RN} y deja escrito por qué",
+           f"Valor neto, matriz multicriterio con el apetito como eliminatorio y decisión de la junta del 12/01",
+           f"riesgos.py opciones --json · decision.py matriz {HN} --json y --elegir --decision {D15} (03-control/decisiones/{HN}/)")
+LOG.append((f"(gráfico del paso 10 → g1-decision-r007.png; datos de riesgos.py opciones y decision.py matriz {HN} --json)",
+            f"recomendada por valor neto: {recN['opcion']} ({usd(recN['valor_neto'])}) · eliminadas por el apetito: {', '.join(o['opcion'] for o in elimN)}\n"
+            + "\n".join(f"{o['opcion']} {o['estado']:9s} puntaje {usd_d(o['puntaje']) if o['puntaje'] is not None else '—'}" for o in MZN["opciones"])
+            + f"\nsensibilidad: apetito {usd_d(SENN['apetito']['peso'])} → {usd_d(ap_n['peso'])} pasa {ap_n['opcion']} · valor neto {usd_d(SENN['valor_neto']['peso'])} → {usd_d(SENN['valor_neto']['baja']['peso'])} pasa {SENN['valor_neto']['baja']['opcion']}"
+            + f"\nelegida por la junta: {oN['opcion']} ({D15}) · aviso a los I: {nIN} borrador(es)"))
+act(repo, "riesgos", RN, estado="en-seguimiento", fecha_revision="2027-01-26",
     notas=f"WBS 3.1 y 3.3 · interesado {st['Unidad de cumplimiento']} · hoja: 03-control/registros/{RN}-hoja-riesgo.md · decisión de la junta del 2027-01-12 ({C4})")
 A4 = reg(repo, "acciones", fecha="2027-01-12", origen=RN, descripcion="Entregar a la junta el análisis normativo de la asesoría externa", responsable="Martín Suárez", fecha_compromiso="2027-02-05", prioridad="alta")
 art(repo, "business-case", "00-direccion/business-case.md", version="1.1", texto=f"""# Business case
@@ -574,7 +692,20 @@ P("Paso 14 · Límite de etapa: auditoría de riesgos, lecciones y cierre de rie
 run(E(f'estado.py --proyecto {G} limite-etapa'), repo)
 act(repo, "acciones", A4, estado="completada", fecha_cierre="2027-02-26")
 act(repo, "acciones", A5, estado="completada", fecha_cierre="2027-02-24")
-act(repo, "riesgos", R["R5"], estado="retirado", notas="WBS 1.1 · equipo estable durante la etapa", fecha_revision="2027-03-01")
+# R-005: el agente propone retirarlo y la persona propietaria decide (quien propone no aprueba; nada se escribe hasta aprobar).
+RG = E(f'registro.py --proyecto {G}')
+def sin_fecha_real(txt):
+    """La bitácora y las propuestas guardan la fecha y la hora reales de la escritura (y huellas que dependen de ellas):
+    se enmascaran para que dos corridas den la misma evidencia."""
+    txt = re.sub(r"\b\d{4}-\d{2}-\d{2} \d{2}:\d{2}\b", "<fecha y hora reales>", txt)
+    txt = re.sub(r"(propuso [^·\n]+ · |Diego Ferreira · )\d{4}-\d{2}-\d{2}", r"\1<fecha real>", txt)
+    return re.sub(r"\n\s*sha256 [0-9a-f—]+ → [0-9a-f]+", "", txt)
+run(f'{RG} proponer riesgos {R["R5"]} --campo estado=retirado --campo "notas=WBS 1.1 · equipo estable durante la etapa: ninguna salida de desarrolladores" --campo fecha_revision=2027-03-01 '
+    f'--por "agente: pm-riesgos" --motivo "en la etapa 2 no se dio el evento y la cláusula de permanencia (respuesta) está vigente"', repo)
+LOG[-1] = (LOG[-1][0], sin_fecha_real(LOG[-1][1]))
+run(f'{RG} propuestas', repo); LOG[-1] = (LOG[-1][0], sin_fecha_real(LOG[-1][1]))
+run(f'{RG} aprobar P-001 --por "Proveedor sénior: Diego Ferreira"', repo)
+run(f'{RG} historial {R["R5"]} --max 2', repo); LOG[-1] = (LOG[-1][0], sin_fecha_real(LOG[-1][1]))
 act(repo, "riesgos", R["R3"], probabilidad=2, fecha_revision="2027-03-15")
 act(repo, "riesgos", RN, probabilidad=2, fecha_revision="2027-03-15", notas=f"WBS 3.1 y 3.3 · interesado {st['Unidad de cumplimiento']} · hoja: 03-control/registros/{RN}-hoja-riesgo.md · decisión de la junta del 2027-01-12 ({C4}) · análisis normativo ({A4}): la biometría se exigiría desde 2028, después del Release 2")
 for k in ("R2", "R4"):
@@ -584,6 +715,22 @@ reg(repo, "lecciones", fecha="2027-03-01", etapa="2", categoria="riesgo", situac
 art(repo, "auditoria-riesgos-2027-03-01", "03-control/reportes/2027-03-01-auditoria-riesgos.md")
 run(E(f'registro.py --proyecto {G} resumen --corte 2027-03-01'), repo)
 run(E(f'estado.py --proyecto {G} cumplir-condiciones decision-ad-hoc --fecha 2027-03-01 --por "{EJ}" --nota "{RN} revisado en la junta; análisis normativo entregado ({C4})"'), repo)
+# Vigencia: las decisiones de la ejecutiva sobre la reserva vencen hoy (revisar_en). Búsqueda en inglés sobre registros en español.
+run(f'{DC} vigentes --tema "risk budget" --corte 2027-03-01', repo)
+dec14 = list(_c.DictReader(open(os.path.join(repo, G, "03-control/registros/decisiones.csv"), encoding="utf-8")))
+D_ACT = next(f["id"] for f in dec14 if f["decision"].startswith(f"Activar el plan de contingencia de {R['R3']}"))
+D_RES = next(f["id"] for f in dec14 if f["decision"].startswith("Mantener el presupuesto de riesgo"))
+dec06 = lambda: [h["mensaje"][:150] for h in hallazgos("2027-03-02", "DEC-06")]
+antes06 = dec06()
+LOG.append(("(sanidad.py --rapido --json --corte 2027-03-02: lo que avisaría DEC-06 al día siguiente si nadie revisa esas decisiones)", f"DEC-06: {len(antes06)}\n" + "\n".join(antes06)))
+act(repo, "decisiones", D_ACT, revisar_en="2027-03-15", notas=f"confirmada en el límite de etapa (2027-03-01): conmutación verificada ({A5}); se revisa con {R['R3']} el 2027-03-15")
+D_NUEVA = reg(repo, "decisiones", fecha="2027-03-01", decision="Desde la etapa 3 se restituye la delegación de USD 5.000 por respuesta al gestor; el presupuesto de riesgo de la etapa 3 se fija con su plan (E-01)",
+              contexto=f"límite de la etapa 2: contingencia de {R['R3']} verificada ({A5}); reserva de la etapa 2 al {100 * usado13 / tope13:.0f} %",
+              opciones_consideradas="restituir la delegación · mantener la concentración en la ejecutiva",
+              decidido_por=EJ, nivel="ejecutivo", reemplaza=D_RES, artefactos_afectados="02-planificacion/enfoques/enfoque-riesgo.md §7")
+run(f'{DC} vigentes --ids {D_NUEVA} --corte 2027-03-01', repo)
+despues06 = dec06()
+LOG.append(("(sanidad.py --rapido --json --corte 2027-03-02 después de la revisión de la ejecutiva)", f"DEC-06: {len(despues06)}"))
 run(E(f'puertas.py --proyecto {G} verificar autorizar-etapa'), repo, ok=(0, 1, 2))
 run(E(f'exportar.py xlsx --proyecto {G}'), repo, ok=(0, 1))
 fin = sanidad(repo, "2027-03-01", "01-mar · fin de etapa")
@@ -630,6 +777,44 @@ reg(base2, "riesgos", fecha_identificacion="2026-10-28", autor="Martín Suárez"
     evento="La API de lectura no está disponible en marzo", efecto="Atraso de la consulta de saldos (REQ-001) y del lanzamiento", tipo="amenaza", probabilidad=3, impacto=4, impacto_monetario=20000,
     propietario="Laura Méndez", ejecutor="Martín Suárez", notas="origen: mandato.md (restricciones y lecciones), requisitos.md (supuestos) y supuestos.csv S-001")
 run(E(f'registro.py --proyecto {G} listar riesgos'), base2)
+
+P("Paso 16 · La pregunta de la junta: buscar en el proyecto con pm-kb")
+# pm-kb es opcional: sin el lanzador o sin su base, el paso se omite y el recorrido sigue. Indexa la carpeta del
+# proyecto principal (no la variante sin BMAD) con un nombre fijo y lo borra al terminar.
+if not kb_disponible():
+    kb_omitido("paso 16 (búsqueda citada, versiones e interfaz web)")
+else:
+    KP = "--proyecto portal-socios"
+    kb(f'indexar {KP} --ruta .', repo)
+    kb(f'buscar "¿por qué no se aprobó la compra de licencias de diseño?" {KP} --k 3', repo)
+    kb(f'buscar "¿qué pasó con el proveedor de SMS?" {KP} --k 3', repo)
+    kb(f'ficha R-003 {KP}', repo)
+    kb(f'versiones business-case {KP}', repo)
+    kb(f'cambios business-case {KP}', repo)
+    kb(f'buscar "revisión del business case por R-007" {KP} --aprobado --k 2', repo)
+    kb(f'contexto "¿por qué no se aprobó la compra de licencias de diseño?" {KP}', repo, corte=40)
+    def _pie(pg):
+        """El pie muestra la fecha y hora del indexado: se enmascara como en la evidencia."""
+        pg.locator("#pie", has_text="indexado").wait_for()   # sin wait_for_function: la CSP de pm-kb no admite eval
+        pg.evaluate("const p = document.querySelector('#pie'); p.textContent = p.textContent.replace(/indexado [0-9-]+ [0-9:]+/g, 'indexado <fecha y hora>')")
+    def _busqueda(pg, url):
+        _pie(pg); pg.select_option("#proyecto", "portal-socios")
+        pg.fill("#q", "¿por qué no se aprobó la compra de licencias de diseño?"); pg.press("#q", "Enter")
+        pg.wait_for_selector(".resultado"); pg.wait_for_timeout(300)
+    def _ficha(pg, url):
+        pg.goto(f"{url}/?q=R-003"); _pie(pg); pg.wait_for_selector(".resultado")
+        pg.locator(".resultado h2 button", has_text="R-003").first.click()
+        pg.wait_for_selector("#grafo canvas", timeout=10000); pg.wait_for_timeout(800)
+        pg.evaluate("document.querySelector('#grafo').scrollIntoView({block: 'center'})"); pg.wait_for_timeout(300)
+    def _versiones(pg, url):
+        pg.click("#cerrar-ficha"); pg.goto(f"{url}/?q=caso%20de%20negocio%20revisi%C3%B3n"); _pie(pg); pg.wait_for_selector(".resultado")
+        pg.locator(".resultado h2 button", has_text="Business case").first.click()
+        pg.wait_for_selector("text=Comparar la vigente con la anterior", timeout=10000)
+        pg.click("text=Comparar la vigente con la anterior"); pg.wait_for_selector(".cambio")
+        pg.locator("#ficha h3", has_text="Versiones de").evaluate("e => e.scrollIntoView({block: 'start'})"); pg.wait_for_timeout(300)
+    kb_capturas("portal-socios", [(os.path.join(OUT, "g1-kb-busqueda.png"), _busqueda), (os.path.join(OUT, "g1-kb-ficha.png"), _ficha),
+                                  (os.path.join(OUT, "g1-kb-versiones.png"), _versiones)])
+    kb(f'quitar {KP}', repo)
 
 with open(sys.argv[1] if len(sys.argv) > 1 else "salida-g1.md", "w", encoding="utf-8") as f:
     for c, o in LOG:

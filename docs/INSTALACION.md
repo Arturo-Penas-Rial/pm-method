@@ -1,4 +1,4 @@
-# Instalación y configuración · pm-method 2.5.0
+# Instalación y configuración · pm-method 2.6.0
 
 Guía para instalar, configurar, verificar, actualizar y desinstalar el paquete de agentes y skills **pm-method** en
 Claude Code, Cowork y Hermes Agent, y para instalar y conectar de punta a punta sus dependencias: Python y sus paquetes,
@@ -53,7 +53,7 @@ actualizaciones con dos comandos.
 ### 0.2 Publicar el repositorio (lo hace el responsable del paquete)
 ```bash
 # en la carpeta del paquete
-git init && git add . && git commit -m "pm-method 2.5.0"
+git init && git add . && git commit -m "pm-method 2.6.0"
 gh auth login                       # inicia sesión en el navegador
 gh repo create <usuario>/pm-method --public --source . --push
 ```
@@ -66,7 +66,7 @@ que muestra `claude plugin list` y la que usa `claude plugin update` para decidi
 ```bash
 claude plugin marketplace add Arturo-Penas-Rial/pm-method   # acepta owner/repo de GitHub; necesita git
 claude plugin install pm-method@pm-method                   # alcance por defecto: user
-claude plugin list                                          # pm-method@pm-method · Version: 2.5.0 · Status: enabled
+claude plugin list                                          # pm-method@pm-method · Version: 2.6.0 · Status: enabled
 ```
 - Dentro de una sesión: `/plugin marketplace add Arturo-Penas-Rial/pm-method` y `/plugin install pm-method@pm-method`.
 - Alcances: `claude plugin marketplace add … --scope user|project|local` (por defecto `user`) y
@@ -103,13 +103,15 @@ Seguir §8.
 
 ### 0.7 Claves de API y credenciales: cuáles, dónde y cómo
 
-**pm-method no necesita ninguna clave propia.** Sus scripts son Python local y no llaman a servicios externos, con una
-sola excepción opcional: la **capa de canales** (`envios.py`), que envía comunicaciones aprobadas por correo SMTP
-o por webhooks de Slack o Teams **solo si definís sus variables de entorno** (ver "Capa de canales" más abajo); sin
-ellas, genera archivos `.eml` o deja el envío a un conector MCP. Las credenciales las necesitan solo cuatro cosas: el
-**cliente** que ejecuta el modelo (Claude Code o Hermes), los **servidores MCP** de la organización (Jira, Slack,
-Tability, Perdoo, etc.), la **capa de canales** si se usa y, si se usa, **Orca** (§0.8), que reutiliza el inicio de
-sesión de cada agente. BMAD se instala con `npx` y tampoco pide claves.
+**pm-method no necesita ninguna clave propia.** Sus scripts son Python local y no llaman a servicios externos, con dos
+excepciones opcionales: la **capa de canales** (`envios.py`), que envía comunicaciones aprobadas por correo SMTP
+o por webhooks de Slack o Teams **solo si definís sus variables de entorno** (ver "Capa de canales" más abajo; sin
+ellas, genera archivos `.eml` o deja el envío a un conector MCP), y los modelos opcionales de **pm-kb**, si los
+configurás. Las credenciales las necesitan solo cinco cosas: el **cliente** que ejecuta el modelo (Claude Code o
+Hermes), los **servidores MCP** de la organización (Jira, Slack, Tability, Perdoo, etc.), la **capa de canales** si se
+usa, **pm-kb** si se instala (§1: tokens por persona, contraseñas de su base en Docker y, opcional, la clave de un
+modelo) y, si se usa, **Orca** (§0.8), que reutiliza el inicio de sesión de cada agente. BMAD se instala con `npx` y
+tampoco pide claves.
 
 | Qué | Credencial | Dónde se guarda | Cómo se configura |
 |---|---|---|---|
@@ -127,6 +129,9 @@ sesión de cada agente. BMAD se instala con `npx` y tampoco pide claves.
 | Capa de canales: Slack (`--modo slack-webhook`) | `PM_SLACK_WEBHOOK_URL` (la URL del webhook entrante es en sí la credencial) | ídem | ver "Capa de canales" |
 | Capa de canales: Teams (`--modo teams-webhook`) | `PM_TEAMS_WEBHOOK_URL` (URL del flujo de Workflows; también es la credencial) | ídem | ver "Capa de canales" |
 | Capa de canales: `.eml` (`--modo eml`) | ninguna | — | sin configuración |
+| pm-kb: acceso de cada persona a la web y al MCP por HTTP | token `pmkb_…` (la base guarda solo su sha256) | se muestra **una sola vez** al crearlo: gestor de contraseñas o variable de entorno de la persona; registrado en Claude Code, queda en `~/.claude.json` | `pm-kb token crear --persona "…" --proyectos …` ([PM-KB §13](PM-KB.md#13-seguridad)); en `.mcp.json` versionado, solo `${VARIABLE}` |
+| pm-kb: contraseñas de su base en Docker | `pmkb_admin_clave` y `pmkb_lector_clave` | secretos de Docker en `docker/kb-secretos/` (carpeta 0700, fuera de git y de la imagen) | `bash docker/kb-preparar.sh` ([INSTALACION-DOCKER §8](INSTALACION-DOCKER.md#8-pm-kb-en-docker-opcional)); en WSL2 no hay contraseñas: socket privado |
+| pm-kb: modelo de "Preguntar" (opcional) | la clave del proveedor | variable de entorno de la sesión, con el nombre indicado en `PMKB_LLM_CLAVE_VAR` (por defecto `ANTHROPIC_API_KEY` u `OPENAI_API_KEY`); nunca en `~/.config/pm-kb/pm-kb.env` | [PM-KB §8](PM-KB.md#8-configuración) |
 
 **Claude Code con clave de API, en Linux o WSL** (la clave se crea en la Claude Console, platform.claude.com):
 ```bash
@@ -333,7 +338,13 @@ Privacidad: Orca envía datos de uso anónimos que se pueden desactivar (ver su 
 
 El resto de esta guía (credenciales, BMAD, skills externas, MCP, verificación) vale para los dos; en Docker, los
 comandos se escriben dentro del contenedor y el plugin se carga con `--plugin-dir /opt/pm-method`
-([INSTALACION-DOCKER §8](INSTALACION-DOCKER.md#8-claude-code-dentro-del-contenedor)).
+([INSTALACION-DOCKER §9](INSTALACION-DOCKER.md#9-claude-code-dentro-del-contenedor)).
+
+**pm-kb** (opcional): índice de conocimiento de los proyectos, con búsqueda citada en la web y por MCP de solo lectura
+para Claude Code y Hermes ([PM-KB](PM-KB.md)). Se instala aparte en cualquiera de los dos caminos:
+[INSTALACION-WSL2 §8](INSTALACION-WSL2.md#8-pm-kb-buscar-en-tus-proyectos-opcional--ubuntu) (PostgreSQL propio del
+usuario, solo por socket) o [INSTALACION-DOCKER §8](INSTALACION-DOCKER.md#8-pm-kb-en-docker-opcional) (base en un
+contenedor segregado). Sin pm-kb, pm-method funciona igual.
 
 ### 1.1 Lista de comprobación
 
@@ -401,7 +412,7 @@ Origen, licencia y versión probada de cada uno: [DEPENDENCIAS.md](DEPENDENCIAS.
 ### 2.1 Como plugin desde el marketplace local
 
 Alternativa a §0 cuando se trabaja con una copia local (por ejemplo, el mantenedor). La carpeta del paquete es a la vez
-un plugin (`.claude-plugin/plugin.json`, nombre `pm-method`, versión 2.5.0) y un marketplace local
+un plugin (`.claude-plugin/plugin.json`, nombre `pm-method`, versión 2.6.0) y un marketplace local
 (`.claude-plugin/marketplace.json`, nombre `pm-method`). Junto con §0, es la única modalidad que activa los **hooks** de
 protección y de sanidad (§9).
 
@@ -763,7 +774,7 @@ directo sirve para la carga inicial o una corrección. Tiempo y costo son el mí
 ### 7.4 Settings recomendados en Claude Code
 
 El listado de descripciones de skills de Claude Code tiene un presupuesto de ≈1 % de la ventana de contexto. Las 33
-skills de pm-method que el modelo puede activar suman 6.957 caracteres según `validar_paquete.py`; con BMAD u otros repositorios de skills en la misma sesión el total puede superar el presupuesto (en la
+skills de pm-method que el modelo puede activar suman 6.966 caracteres según `validar_paquete.py`; con BMAD u otros repositorios de skills en la misma sesión el total puede superar el presupuesto (en la
 prueba con BMAD 6.12.4 instalado, ≈23.000 caracteres) y el listado se recorta. Con solo el módulo `bmm` de BMAD 6.12.4
 (29 skills, 6.912 caracteres) el total ronda 13.700 y el enrutamiento en vivo dio 25/25 en las frases vecinas
 (`docs/evaluacion/resultados/2026-10-18-enrutamiento-con-bmad-v2.2.md`). Si se recorta, en `settings.json`:
@@ -798,11 +809,11 @@ Secuencia final, en este orden. `<raíz>` es la carpeta del paquete: un clon del
 
 | # | Paso | Comando | Resultado esperado |
 |---|---|---|---|
-| 1 | Plugin instalado y versión | `claude plugin list` | `pm-method@pm-method` · `Version: 2.5.0` · `Status: enabled` |
+| 1 | Plugin instalado y versión | `claude plugin list` | `pm-method@pm-method` · `Version: 2.6.0` · `Status: enabled` |
 | 2 | Manifiestos | `claude plugin validate <raíz>` | `Validation passed` |
 | 3 | Python y paquetes | `python3 --version` y `python3 -c "import yaml, docx, openpyxl; print('ok')"` | 3.9 o superior; `ok` |
 | 4 | Estructura del paquete | `python3 <raíz>/scripts/validar_paquete.py` | `Skills: 39 (33 invocables por el modelo, listado <n> caracteres) · Agentes: 6` y `OK` |
-| 5 | Regresión de punta a punta (requiere PyYAML; trabaja en una carpeta temporal) | `python3 <raíz>/scripts/probar_paquete.py` | `Resultado: <n> OK · 0 FALLO` (355 OK en la corrida del 2026-10-27, versión 2.5.0) |
+| 5 | Regresión de punta a punta (requiere PyYAML; trabaja en una carpeta temporal) | `python3 <raíz>/scripts/probar_paquete.py` | `Resultado: <n> OK · 0 FALLO` (463 OK en la corrida del 2026-10-29, versión 2.6.0, con Python 3.13) |
 | 6 | Skills visibles | `/pm-method:pm-ayuda` en una sesión | tabla "qué escribir", catálogo de skills y comandos |
 | 7 | Proyecto de prueba | `nuevo_proyecto.py --ruta <tmp>/prueba --nombre "Prueba"` y `estado.py --proyecto <tmp>/prueba siguiente` | carpeta creada y siguiente paso del método |
 | 8 | BMAD (si se instaló) | `bmad.py --proyecto ./gestion detectar` | layout `v6`, `version` 6.12.x, `soporte: soportada` |
@@ -919,7 +930,7 @@ claude plugin marketplace remove pm-method
 | Síntoma | Causa probable | Solución |
 |---|---|---|
 | `/pm-method:…` no aparece | plugin no instalado o deshabilitado | `claude plugin list`; `claude plugin enable pm-method`; reiniciar la sesión |
-| `claude plugin list` muestra una versión anterior a 2.5.0 | catálogo sin refrescar o versión aún no publicada | §0.4; si persiste, el repositorio publicado no tiene la versión nueva |
+| `claude plugin list` muestra una versión anterior a 2.6.0 | catálogo sin refrescar o versión aún no publicada | §0.4; si persiste, el repositorio publicado no tiene la versión nueva |
 | El modelo no activa la skill esperada | listado recortado por presupuesto (BMAD u otros repos) | `"skillListingBudgetFraction": 0.02` (§7.4); sanidad INS-05; invocar la skill por comando |
 | Responde una skill de otro repositorio | colisión de disparadores | sanidad INS-06; ajustar la descripción local u ocultar la externa con `skillOverrides`; ver `docs/colisiones.md` |
 | Windows: las ediciones o comandos quedan bloqueados por un hook, o no aparece el resumen de inicio | falta Git for Windows, no hay Python 3.9+ en Git Bash (`py.sh` lo avisa) o el clon tiene finales de línea CRLF en `hooks/py.sh` (volver a clonar con el `.gitattributes` vigente) | §1.2 |

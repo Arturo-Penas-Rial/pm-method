@@ -24,6 +24,9 @@ Uso / Usage (--proyecto va ANTES del tipo de mapa):
   mapas.py --proyecto G tablero [--mapas S1,S2] [--insertar TABLERO.html] [--salida F.html] [--json]
 'semilla' propone un esqueleto con posiciones y emociones vacías ([por confirmar]): el modelo propone, la persona confirma.
 Nada se registra solo: los candidatos se registran con registro.py después de la evaluación humana.
+Decisiones (pm-direccion-decisiones): decision.py expediente lee de aquí (contexto()) los componentes y pasos que citan los
+ids de la decisión o que la hoja nombra como '<mapa>:<id>' (entregables:C2); matriz --elegir cita la decisión registrada
+en esos elementos llamando a 'vincular'.
 """
 import argparse, glob, html, json, os, re, shutil, subprocess, sys, tempfile, datetime
 
@@ -89,7 +92,7 @@ def cargar(ruta):
 
 def guardar(ruta, d):
     os.makedirs(os.path.dirname(ruta), exist_ok=True)
-    open(ruta, "w", encoding="utf-8").write(json.dumps(d, ensure_ascii=False, indent=2) + "\n")
+    E.escribir_atomico(ruta, json.dumps(d, ensure_ascii=False, indent=2) + "\n")
 
 def num(v):
     if isinstance(v, bool) or v is None: return None
@@ -321,6 +324,67 @@ def controles(p, detalle=None):
                 if p_.get("emocion") is not None and POR_CONFIRMAR.search(str(p_.get("fuente_emocion") or "")):
                     add("MAP-04", t(f"{nombre} {pid}: emoción sin fuente (entrevista, métrica, observación o supuesto declarado)", f"{nombre} {pid}: emotion without source"), p_.get("id"))
     return out
+
+# ------------------------------------------------------------------ contexto para una decisión (decision.py)
+ELEMENTO = re.compile(r"^(?P<mapa>[^:\s]+):(?P<elem>[A-Za-z][\w-]*)$")   # entregables:C2, wardley-entregables:C2, recorrido-paciente.json:P4
+
+def es_elemento(x):
+    """¿`x` nombra un elemento de un mapa como '<mapa>:<id>'?"""
+    return bool(ELEMENTO.match(str(x or "")))
+
+def contexto(p, ids=(), elementos=()):
+    """Contexto de los mapas para una decisión (solo lectura; lo usan decision.py expediente y matriz --elegir).
+    Entra cada componente de un mapa de Wardley y cada paso de un recorrido que cita en `refs` alguno de `ids`, o que
+    `elementos` nombra como '<mapa>:<id>' (mapa = slug, wardley-<slug>, recorrido-<slug> o el archivo .json). Los campos
+    salen tal como están en el JSON, con la cita archivo#id; nada se interpreta ni se puntúa. Devuelve (items, faltan):
+    `faltan` lista los elementos nombrados que no existen (o que son anclas)."""
+    ids = {str(x) for x in ids if x}
+    archivos = sorted(glob.glob(os.path.join(mapas_dir(p), "wardley-*.json"))) + sorted(glob.glob(os.path.join(mapas_dir(p), "recorrido-*.json")))
+    mapas = {}
+    for ruta in archivos:
+        try: mapas[ruta] = json.load(open(ruta, encoding="utf-8"))
+        except (OSError, ValueError): pass                         # MAP-00 de la sanidad
+    nombrados, faltan = {}, []
+    for x in elementos:
+        m = ELEMENTO.match(str(x or ""))
+        if not m: continue
+        b = os.path.basename(m["mapa"])
+        cands = [b] if b.endswith(".json") else [f"{b}.json", f"wardley-{b}.json", f"recorrido-{b}.json"]
+        rutas = [r for r in archivos if os.path.basename(r) in cands and r in mapas]
+        hall = [(r, m["elem"]) for r in rutas if any(e_.get("id") == m["elem"] for e_ in (mapas[r].get("componentes") or []) + [q_ for _, q_ in pasos_de(mapas[r])])]
+        if hall: nombrados[hall[0]] = x
+        elif rutas: faltan.append(t(f"{x}: {m['elem']} no es un componente ni un paso de {', '.join(os.path.basename(r) for r in rutas)}",
+                                    f"{x}: {m['elem']} is not a component or step of {', '.join(os.path.basename(r) for r in rutas)}"))
+        else: faltan.append(t(f"{x}: no hay un mapa '{m['mapa']}' legible en 02-planificacion/mapas/", f"{x}: no readable map '{m['mapa']}' in 02-planificacion/mapas/"))
+    items = []
+    for ruta, d in mapas.items():
+        rel = os.path.relpath(ruta, p).replace(os.sep, "/"); base = os.path.basename(ruta)
+        def motivo(e_):
+            citados = [r for r in lista(e_.get("refs")) if r in ids]
+            return citados, nombrados.get((ruta, e_.get("id")), "")
+        if base.startswith("wardley-"):
+            nom = {x.get("id"): x.get("nombre", "") for x in (d.get("anclas") or []) + (d.get("componentes") or [])}
+            for c in d.get("componentes") or []:
+                citados, nombre = motivo(c)
+                if not citados and not nombre: continue
+                ev = num(c.get("evolucion"))
+                mov = next(({"hacia": num(m_.get("hacia")), "motivo": m_.get("motivo", "")} for m_ in d.get("movimientos") or [] if m_.get("componente") == c.get("id")), None)
+                items.append({"tipo": "wardley", "mapa": rel, "archivo": base, "elemento": c.get("id"), "cita": f"{rel}#{c.get('id')}", "nombrado": nombre, "cita_ids": citados,
+                              "titulo": d.get("titulo", ""), "nombre": c.get("nombre", ""), "etapa": c.get("etapa") or (etapa_de(ev) if ev is not None and 0 <= ev <= 1 else ""),
+                              "evolucion": ev, "visibilidad": num(c.get("visibilidad")), "decision": c.get("decision") or "", "inercia": c.get("inercia") is True,
+                              "evidencia": c.get("evidencia") or "", "dependen": [f"{l.get('de')} {nom.get(l.get('de'), '')}".strip() for l in d.get("enlaces") or [] if l.get("a") == c.get("id")],
+                              "movimiento": mov, "refs": lista(c.get("refs"))})
+        else:
+            for et, q_ in pasos_de(d):
+                citados, nombre = motivo(q_)
+                if not citados and not nombre: continue
+                items.append({"tipo": "recorrido", "mapa": rel, "archivo": base, "elemento": q_.get("id"), "cita": f"{rel}#{q_.get('id')}", "nombrado": nombre, "cita_ids": citados,
+                              "titulo": d.get("titulo", ""), "etapa": et.get("nombre", ""), "accion": q_.get("accion", ""), "emocion": q_.get("emocion"),
+                              "fuente_emocion": q_.get("fuente_emocion") or "", "emocion_objetivo": q_.get("emocion_objetivo"), "dolor": q_.get("dolor") or "",
+                              "tipo_causa": q_.get("tipo_causa") or "", "oportunidad": q_.get("oportunidad") or "", "kano": q_.get("kano") or "",
+                              "kpi": lista(d.get("kpi")), "contrapesos": lista(d.get("contrapesos")), "persona": d.get("persona") or "", "persona_id": d.get("persona_id") or "",
+                              "refs": lista(q_.get("refs"))})
+    return items, faltan
 
 # ------------------------------------------------------------------ semillas
 def bmad_mod():
@@ -1089,15 +1153,17 @@ def cmd_vincular(a, e):
     ruta = None
     for tipo in ("wardley", "recorrido"):
         try_ = a.mapa if a.mapa.endswith(".json") else os.path.join(mapas_dir(a.proyecto), f"{tipo}-{a.mapa}.json")
-        if os.path.exists(try_) or os.path.exists(os.path.join(a.proyecto, try_)): ruta = resolver(a.proyecto, tipo, a.mapa); break
+        if os.path.exists(try_) or os.path.exists(os.path.join(a.proyecto, try_)) or os.path.exists(os.path.join(mapas_dir(a.proyecto), os.path.basename(try_))):
+            ruta = resolver(a.proyecto, tipo, a.mapa); break
     if not ruta: sys.exit(t(f"No existe el mapa {a.mapa}", f"Map {a.mapa} not found"))
-    d = cargar(ruta)
-    elems = (d.get("anclas") or []) + (d.get("componentes") or []) + [p_ for _, p_ in pasos_de(d)]
-    x = next((x for x in elems if x.get("id") == a.elemento), None)
-    if x is None: sys.exit(t(f"{a.elemento}: no es un ancla, componente ni paso de {os.path.basename(ruta)}", f"{a.elemento}: not found"))
-    refs = lista(x.get("refs")); nuevos = [r.strip() for r in lista(a.refs)]
-    x["refs"] = [r for r in refs if r not in nuevos] if a.quitar else refs + [r for r in nuevos if r not in refs]
-    guardar(ruta, d)
+    with E.bloqueo(a.proyecto):          # leer, modificar y escribir el JSON sin pisar otra escritura concurrente
+        d = cargar(ruta)
+        elems = (d.get("anclas") or []) + (d.get("componentes") or []) + [p_ for _, p_ in pasos_de(d)]
+        x = next((x for x in elems if x.get("id") == a.elemento), None)
+        if x is None: sys.exit(t(f"{a.elemento}: no es un ancla, componente ni paso de {os.path.basename(ruta)}", f"{a.elemento}: not found"))
+        refs = lista(x.get("refs")); nuevos = [r.strip() for r in lista(a.refs)]
+        x["refs"] = [r for r in refs if r not in nuevos] if a.quitar else refs + [r for r in nuevos if r not in refs]
+        guardar(ruta, d)
     print(t(f"{os.path.basename(ruta)} {a.elemento}: refs = {', '.join(x['refs']) or '—'}", f"{os.path.basename(ruta)} {a.elemento}: refs = {', '.join(x['refs']) or '—'}"))
 
 def cmd_controles(a, e):

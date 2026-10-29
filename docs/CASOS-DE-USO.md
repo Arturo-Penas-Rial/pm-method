@@ -1,4 +1,4 @@
-# Casos de uso de pm-method 2.5.0 · Worked examples
+# Casos de uso de pm-method 2.6.0 · Worked examples
 
 Un ejemplo trabajado por cada una de las 39 skills, incluidos los seis comandos, sobre un mismo proyecto de muestra para que los casos se encadenen de principio a fin. La parte 6 (casos 38 a 49) reúne las capacidades transversales: el maestro de interesados (`pm-interesados`), la comunicación personalizada enviada por la capa de canales, los OKR con check-ins, los riesgos candidatos desde cuatro fuentes, los controles permanentes (caso 48) y los mapas de Wardley y de recorrido del cliente (caso 49). La parte 7 (casos 50 a 59) remite, para cada capacidad de decisión y control continuo (opciones de respuesta, personas de usuario, radar, reuniones, impacto de cambios, tres valores y capacidad, datos del período, estado de productos, ciclo de las lecciones y expediente de auditoría), al paso de la guía E2E donde se recorre con salidas reales. Al final hay tres variantes cortas: predictivo sin BMAD, ágil en inglés y un proyecto con Jira y Teams conectados.
 

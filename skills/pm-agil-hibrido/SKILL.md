@@ -1,7 +1,7 @@
 ---
 name: pm-agil-hibrido
 description: "Ágil/híbrido en etapas: backlog MoSCoW, historias, release plan, velocidad, retro de iteración. Usar: backlog, sprint, user story, release plan, DoD, velocity. No: sync con BMAD→pm-bmad-puente."
-version: 2.5.0
+version: 2.6.0
 author: pm-method
 license: MIT
 metadata:
@@ -51,11 +51,11 @@ metadata:
    - *Con BMAD*: filas y columnas **derivadas** las refresca `python3 ${CLAUDE_SKILL_DIR}/../pm-bmad-puente/scripts/bmad.py --proyecto <dir> backlog`; el PO completa solo las de **gobierno** (prioridad, moscow, estimacion, iteracion, release, producto_pbs). Nada de historias ni requisitos a mano (§3).
 5. **Historias** (sin BMAD) con `historia-usuario.md`: como/quiero/para, dado-cuando-entonces, INVEST.
 6. **Tolerancia de alcance**: Must = compromiso mínimo; Should/Could = tolerancia; Won't fuera. Must ≤ ~60 % de la capacidad (§6). Proponerla en el plan de etapa; la registra `pm-director` tras `autorizar-etapa`.
-7. **Release plan**: objetivo, iteraciones, historias, dependencias; en híbrido, releases = hitos del cronograma maestro. Capacidad: `python3 ${CLAUDE_SKILL_DIR}/../pm-agil-hibrido/scripts/release.py --proyecto <dir> capacidad [--release R] [--json]` (`Must+Should ≤ velocidad × iteraciones` o repriorizar; Must > 60 % = vigilar; §6). Solo **línea base**.
+7. **Release plan**: objetivo, iteraciones, historias, dependencias; en híbrido, releases = hitos del cronograma maestro. Capacidad: `python3 ${CLAUDE_SKILL_DIR}/../pm-agil-hibrido/scripts/release.py --proyecto <dir> capacidad [--release R] [--json]` (`Must+Should ≤ velocidad × iteraciones` o repriorizar; Must > 60 % = vigilar; §6); escenarios: `--json` → `decision.py --tipo planificacion` (`pm-direccion-decisiones`). Solo **línea base**.
 8. **Presupuesto y fecha**: costo por iteración a `pm-costos-presupuesto`, iteraciones a `pm-cronograma-estimacion`; si los Must no entran, opciones (primero alcance) y, si sigue fuera, junta vía `pm-director`.
 9. **Ceremonias ↔ controles** (§4). **Cada sprint = paquete de trabajo** autorizado con `pm-paquetes-trabajo` (alcance = historias del sprint, tolerancias, DoD).
 10. **Seguir la iteración**: velocidad = puntos terminados (DoD), promedio de 3. Estados por la fachada (`listar historias --estado …`); con BMAD, serie en `avance-bmad.csv` (`bmad.py avance`). Datos a `pm-progreso-reportes`, que dibuja burn charts en los informes.
-11. **Swaps del PO**: cambiar Should/Could por un ítem equivalente sin tocar Must, fecha ni costo lo decide el PO (`decisiones.csv`, `nivel=product-owner`, §7). Lo que desplaza un Must o excede la tolerancia → `pm-issues-cambios`. Historias nuevas o `retirada-en-bmad`: mismo criterio. **Con BMAD**, todo cambio de MoSCoW, release o iteración llega a BMAD solo con `bmad.py handoff` (sin `--cambio`), insumo de su sprint planning; nunca editar BMAD.
+11. **Swaps del PO**: cambiar Should/Could por un ítem equivalente sin tocar Must, fecha ni costo lo decide el PO (`decisiones.csv`, `nivel=product-owner`, §7). Lo que desplaza un Must o excede la tolerancia → `pm-issues-cambios`. Nuevas o `retirada-en-bmad`: ídem. **Con BMAD**, todo cambio de MoSCoW, release o iteración llega a BMAD solo con `bmad.py handoff` (sin `--cambio`), insumo de su sprint planning; nunca editar BMAD.
 12. **EVM ágil** con `evm.py --modo agil --pct-no-must` (§6): EAC > BAC = alcance que no entra; excepción solo si peligran los Must.
 13. **Tolerancias**: si los Must no caben en tiempo o costo, es excepción → `pm-progreso-reportes` (informe con la plantilla de `pm-issues-cambios`) y `pm-director`. Recortar un Must nunca se decide aquí.
 14. **Límite de etapa con BMAD**: el gate de preparación del sprint planning (PASS/CONCERNS/FAIL) va a `pm-plan-etapa-y-limites` para `autorizar-etapa`.
@@ -110,4 +110,4 @@ metadata:
 - No activa: "Sincronizá el backlog con las historias de BMAD" → `pm-bmad-puente`.
 
 ## EN summary
-Agile and hybrid delivery inside PRINCE2 stages: cadence and PO (recorded by pm-director), DoD/DoR, one ordered MoSCoW backlog, release plan baseline, sprints as work packages, PO swaps within scope tolerance, agile EVM and iteration retrospectives. Specification data is read only through `especificacion.py`; with BMAD, rows come from `bmad.py backlog` (governance columns kept), priority changes reach BMAD only via `bmad.py handoff`, and the BMAD sprint-planning readiness result feeds `autorizar-etapa`. Must items not fitting is an exception for the board.
+Agile and hybrid delivery inside PRINCE2 stages: cadence and PO (recorded by pm-director), DoD/DoR, one ordered MoSCoW backlog, release plan baseline, sprints as work packages, PO swaps within scope tolerance, agile EVM and iteration retrospectives. Specification data is read only through `especificacion.py`; with BMAD, rows come from `bmad.py backlog`, priority changes reach BMAD only via `bmad.py handoff`, and the sprint-planning readiness result feeds `autorizar-etapa`. Must items not fitting is an exception for the board.

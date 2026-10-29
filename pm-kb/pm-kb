@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+# Lanzador de pm-kb: usa el entorno virtual de la instalación y la configuración sin secretos de ~/.config/pm-kb/pm-kb.env.
+# docs/PM-KB.md §10. Las claves de modelos se pasan solo como variables de entorno de la sesión.
+set -euo pipefail
+DIR="$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")" && pwd)"
+CONF="${PMKB_CONF:-$HOME/.config/pm-kb/pm-kb.env}"
+if [ -f "$CONF" ]; then set -a; . "$CONF"; set +a; fi
+VENV="${PMKB_VENV:-${PMKB_DATOS:-$HOME/.local/share/pm-kb}/venv}"
+PY="$VENV/bin/python"
+if [ ! -x "$PY" ]; then PY="$(command -v python3)"; fi
+export PYTHONPATH="$DIR${PYTHONPATH:+:$PYTHONPATH}"
+exec "$PY" -m pmkb "$@"
