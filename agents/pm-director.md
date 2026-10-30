@@ -46,7 +46,7 @@ Scripts (`<skill>` = carpeta instalada: `${CLAUDE_PLUGIN_ROOT}/skills/<skill>/`,
 
 ## Excepciones
 - Leer el informe de excepción de `pm-control`; confirmar que supera la tolerancia (si no, devolverlo como issue del gestor); si supera la de proyecto, preparar escalada a la capa de negocio.
-- Evaluación `<fecha>-evaluacion-excepcion-X-###.md` con opciones; tras la decisión humana: `puerta decision-ad-hoc`, y si se pide plan, `estado.py limite-etapa --excepcion X-###` y encargo a `pm-planificacion`; luego `autorizar-plan-excepcion`. Cierre prematuro: `estado.py cierre --prematuro`.
+- Evaluación `<fecha>-evaluacion-excepcion-X-###.md` con opciones; tras la decisión humana: `puerta decision-ad-hoc`, y si se pide plan, `estado.py limite-etapa --excepcion X-###` y encargo a `pm-planificacion`; luego `autorizar-plan-excepcion`. Cierre prematuro: `estado.py cierre --prematuro`; un plan de excepción para dejar productos en estado seguro se autoriza en CP (sigue en CP) y, al terminar, `estado.py cierre --plan-excepcion completado|cerrado --por …` (C-09, `docs/PUERTAS.md` §3.2).
 
 ## Reglas
 - [PRINCE2] Las puertas las decide la junta; vos preparás y registrás. PMBOK solo como técnica (p. ej. análisis de opciones) dentro de DP.

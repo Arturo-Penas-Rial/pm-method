@@ -7,6 +7,22 @@
   "idioma": "es-419",
   "velocidad": 1.1
  },
+ "pantalla": {
+  "nota": "cifras y rótulo que muestra spot.html (escenas «prueba» y barra superior); fuentes en README.md, sección Cifras. Al cambiar una cifra del repositorio, actualizarla aquí y volver a correr construir.py (no hace falta el modelo de voz).",
+  "version": "2.7.0",
+  "fecha": "30/10/2026",
+  "agentes": 6,
+  "skills": 39,
+  "skills_modelo": 33,
+  "skills_comandos": 6,
+  "regresion": 558,
+  "integracion": 118,
+  "casos": 5,
+  "sanidad": 104,
+  "familias": 15,
+  "hallazgos_altos": 0,
+  "medios_corregidos": 3
+ },
  "nota": "texto = subtítulos; tts = la misma frase escrita como se pronuncia (nombres en inglés respelados para el fonemizador en español). ' | ' separa los subtítulos de una misma frase (mismo número de cortes en texto y tts). Cada cifra sale del repositorio: ver README.md, sección Cifras.",
  "escenas": [
   {
@@ -46,8 +62,8 @@
    "min": 3.0,
    "pre": 0.12,
    "post": 0.25,
-   "texto": "Mapas de Wardley y de recorrido del cliente, | opciones con VAN y conexión con BMAD, Jira, Slack y Teams.",
-   "tts": "Mapas de Guárdli y de recorrido del cliente, | opciones con ban, y conexión con Bi Mad, Yira, Eslak y Tims."
+   "texto": "Mapas de Wardley y de recorrido del cliente, | opciones con VAN, | integración probada con BMAD | y lista para Jira, Slack y Teams.",
+   "tts": "Mapas de Guárdli y de recorrido del cliente, | opciones con ban, | integración probada con Bi Mad, | y lista para Yira, Eslak y Tims."
   },
   {
    "id": "prueba",
@@ -62,8 +78,8 @@
    "min": 3.0,
    "pre": 0.12,
    "post": 1.2,
-   "texto": "pm-method: código abierto, en GitHub. | ¿Estás en proyectos e innovación? Te invito a consultarme: | capacitación y transferencia para lograr los beneficios de tus proyectos con IA. | Escribime por LinkedIn. | Iniciativa con el apoyo de PMI e IEEE (Uruguay).",
-   "tts": "Pi em métod: código abierto, en Guit jab. | ¿Estás en proyectos e innovación? Te invito a consultarme: | capacitación y transferencia, para lograr los beneficios de tus proyectos con i a. | Escribime por Línkedin. | Iniciativa con el apoyo de Pi Em Ai e i triple e, Uruguay."
+   "texto": "pm-method: código abierto, en GitHub. | ¿Estás en proyectos e innovación? Te invito a consultarme: | capacitación y transferencia para lograr los beneficios de tus proyectos con IA. | Escribime por LinkedIn. | Iniciativa con el apoyo del PMI Capítulo Montevideo y de IEEE (Uruguay).",
+   "tts": "Pi em métod: código abierto, en Guit jab. | ¿Estás en proyectos e innovación? Te invito a consultarme: | capacitación y transferencia, para lograr los beneficios de tus proyectos con i a. | Escribime por Línkedin. | Iniciativa con el apoyo del Pi Em Ai Capítulo Montevideo, y de i triple e, Uruguay."
   }
  ]
 }

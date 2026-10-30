@@ -721,6 +721,61 @@ VIS.barras_comparadas([f"{sid} {corto(FOTO[revs[0]][sid][0])}" for sid in con_br
                       "Niveles entre el compromiso actual y el deseado: desconocedor → resistente → neutral → partidario → líder.",
                       "stakeholders.csv (nivel_compromiso_actual y nivel_compromiso_deseado) en cada revisión",
                       nombres=[f"Inicio {fecha_c(graf[0])}", f"{fecha_c(CO)} (STK-12)", f"{fecha_c(CO2)} (revisión)"])
+
+P("Paso 15 · El portal del proyecto: historial de tableros, comparar, tablero por actor y enlace compartido")
+# Núcleo (sin pm-kb): estado.py puerta congeló el tablero antes de cada decisión de la junta (03-control/reportes/tableros/).
+# El sha256 de cada instantánea y la huella del proyecto incluyen la hora real de cada escritura (campo `generado` y
+# bitácora): se enmascaran en la evidencia, como las fechas reales de la bitácora.
+def sin_huellas(texto):
+    return re.sub(r"huella [0-9a-f]{16}", "huella <huella>", re.sub(r"sha256 [0-9a-f]{12}", "sha256 <sha256>", texto))
+def run_h(cmd, cwd, **kw):
+    out = run(cmd, cwd, mostrar=False, **kw)
+    c_, o_ = LOG[-1]; LOG[-1] = (c_, sin_huellas(o_)); print("$", c_); print(LOG[-1][1]); print()
+    return out
+run_h(E(f'tablero.py --proyecto {G} listar'), repo)
+INST = [x["id"] for x in json.loads(subprocess.run(["python3", f"{EST}/tablero.py", "--proyecto", G, "listar", "--json"], cwd=repo, capture_output=True, text=True, check=True).stdout)]
+assert len(INST) == 3, f"se esperaban tres instantáneas (una por puerta): {INST}"
+run(E(f'tablero.py --proyecto {G} comparar {INST[0]} {INST[-1]}'), repo)
+ACTOR = "Sofía Ramírez"
+run_h(E(f'tablero.py --proyecto {G} generar --actor "{ACTOR}" --corte {CO2}'), repo)
+# pm-kb (opcional): indexa el proyecto, publica el tablero con el corte del escenario, comprueba los enlaces y comparte el
+# tablero de un actor por 7 días con un enlace que se revoca al terminar. El token del enlace no queda en la evidencia.
+if not kb_disponible():
+    kb_omitido("paso 15 (portal: cartera, historial, comparar, por actor y enlace compartido)")
+else:
+    KP = "--proyecto portal-socios"
+    kb_exclusivo_inicio()      # E2E-1 indexa el mismo proyecto: en la integración cruzada corren a la vez
+    kb(f'indexar {KP} --ruta .', repo)
+    kb(f'tablero {KP} --corte {CO2}', repo)
+    kb(f'enlaces {KP}', repo)
+    sal = kb(f'compartir crear {KP} --actor "{ACTOR}" --dias 7 --para "Comité de usuarios"', repo)
+    TOKEN = re.search(r"/v#(\S+)", sal).group(1)
+    def _cartera(pg, url):
+        kb_pie(pg); pg.wait_for_selector(".fila-cartera"); pg.wait_for_timeout(300)
+    def _historial(pg, url):
+        pg.goto(f"{url}/p/portal-socios"); kb_pie(pg); pg.wait_for_selector(".tb-pulso"); pg.wait_for_timeout(500)
+    def _comparar(pg, url):
+        pg.click(".tb-linea li:first-child button"); pg.wait_for_selector(".tb-congelada")
+        pg.select_option(".tb-comparar", "actual"); pg.wait_for_selector(".tb-cmp"); pg.wait_for_timeout(500)
+    def _actor(pg, url):
+        pg.click(".tb-linea li:last-child button"); pg.wait_for_selector(".tb-vivo")
+        v = pg.locator("select.tb-actor option", has_text=ACTOR).first.get_attribute("value")
+        pg.select_option("select.tb-actor", v); pg.wait_for_selector(f".tb-pulso :text('{ACTOR}')")
+        pg.click(".tb-vistas button[data-vista=atencion]"); pg.wait_for_selector(".tb-vista a.tb-tarjeta[data-ref='C-001']")   # lo que decide ella
+        pg.locator(".tb-pulso").evaluate("e => e.scrollIntoView({block: 'start'})"); pg.wait_for_timeout(500)
+    def _compartido(pg, url):
+        ctx = pg.context.browser.new_context(viewport=VISTA_KB, device_scale_factor=1.5, color_scheme="light")   # navegador limpio, sin la sesión personal
+        ctx.set_default_timeout(90000)
+        p2 = ctx.new_page(); p2.goto(f"{url}/v#{TOKEN}"); p2.wait_for_selector(".tb-pulso"); p2.wait_for_timeout(500)
+        assert "#" not in p2.url and TOKEN not in p2.content(), "el token del enlace no debe quedar en la dirección ni en la página"
+        return p2
+    kb_capturas("portal-socios", [(os.path.join(OUT, f"g3-kb-{n}.png"), f) for n, f in
+                                  (("cartera", _cartera), ("historial", _historial), ("comparar", _comparar), ("actor", _actor), ("compartido", _compartido))])
+    kb(f'compartir listar {KP}', repo)
+    kb(f'compartir revocar {KP} --para "Comité de usuarios"', repo)
+    kb(f'quitar {KP}', repo)
+    kb_exclusivo_fin()
+
 with open(sys.argv[1] if len(sys.argv) > 1 else "salida-g3.md", "w", encoding="utf-8") as f:
     for c, o in LOG:
         f.write((c + "\n" if c.startswith("## ") else f"```\n$ {c}\n{o}\n```\n\n"))

@@ -22,6 +22,7 @@
   "MAP",
   "DEC",
   "BIT",
+  "DAT",
   "INT"
  ],
  "familias_sin_nombre": {
@@ -213,6 +214,28 @@
    "formas": [
     "fachada"
    ]
+  },
+  {
+   "termino": "PMI Infinity",
+   "formas": [
+    "PMI Infinity",
+    "Infinity"
+   ],
+   "definicion": "Asistente de IA del Project Management Institute (PMI) que responde con contenido de PMI, con citas, y redacta documentos; web y app móvil, para miembros. Se nombra solo para compararlo, sin relación ni aval."
+  },
+  {
+   "termino": "PMO",
+   "formas": [
+    "PMO"
+   ],
+   "definicion": "Oficina de gestión de proyectos: define los estándares de la organización, revisa los proyectos y consolida sus informes."
+  },
+  {
+   "termino": "Piloto en paralelo",
+   "formas": [
+    "piloto en paralelo"
+   ],
+   "definicion": "Prueba en un proyecto real que se sigue gestionando como siempre mientras pm-method produce lo mismo, para comparar antes de adoptarlo (docs/PILOTO.md)."
   }
  ],
  "ciclo": [
@@ -654,7 +677,7 @@
     "Correr todas las pruebas sin red"
    ],
    "luego": "Luego, en una sesión",
-   "siguiente": "Siguiente paso: recorrer una guía E2E sobre la copia del proyecto de prueba (docs/guias/README.md) y planificar un piloto en paralelo (docs/PILOTO.md). Opcional, en cualquiera de los dos caminos: pm-kb para buscar en los proyectos con evidencia citada (docs/PM-KB.md).",
+   "siguiente": "Siguiente paso: recorrer una guía E2E sobre la copia del proyecto de prueba (docs/guias/README.md) y planificar un piloto en paralelo (docs/PILOTO.md). Opcional, en cualquiera de los dos caminos: pm-kb para buscar en los proyectos con evidencia citada y ver sus tableros en el portal (docs/PM-KB.md).",
    "en": "EN: two ways to start: install on WSL2 or Linux, or an isolated Docker container; each has its own step-by-step guide."
   },
   "glosario": {
@@ -676,12 +699,130 @@
    "puntos2": [
     "Índice de registros, documentos con sus versiones, actas y transcripciones de cada proyecto",
     "Preguntas en español o inglés; cada respuesta con la cita de archivo y línea",
-    "Web con token por persona y MCP de solo lectura para Claude Code y Hermes",
+    "Portal web con token por persona (tableros con su historial, artefactos y enlaces de solo lectura) y MCP para Claude Code y Hermes",
     "Sobre WSL2 con un clúster propio o con Docker en un contenedor segregado"
    ],
    "img2": "g1-kb-busqueda.png",
    "codigos": "Controles: DEC-01 a DEC-06 (decisiones) · BIT-01 y BIT-02 (bitácora) · MAP-01 al elegir en un mapa",
    "en": "EN: decide with context and the right authority, track every write, and find the evidence with its citation (optional pm-kb)."
+  },
+  "comparativo": {
+   "titulo": "Infinity responde con el contenido de PMI; pm-method gestiona el proyecto con su método, sus datos y sus puertas",
+   "bajada": "Tres categorías distintas, comparadas con justicia: un asistente de IA para consultar y redactar, un sistema que lleva un proyecto concreto y la práctica establecida de la organización. Se pueden combinar.",
+   "cab": [
+    "",
+    "pm-method",
+    "PMI Infinity",
+    "Gestión tradicional"
+   ],
+   "filas": [
+    [
+     "Qué es",
+     "Sistema que gestiona un proyecto dentro de un agente de IA (Claude Code; también Cowork y Hermes)",
+     "Asistente y coach de IA sobre el contenido de PMI, con agentes que redactan documentos",
+     "Plantillas, planillas, herramientas de cronograma y una PMO"
+    ],
+    [
+     "Método y contenido",
+     "PRINCE2 7 manda y PMBOK 8 aporta técnicas, destilados en palabras propias: no es contenido oficial",
+     "Estándares de PMI: contenido oficial, con citas",
+     "El que defina la organización"
+    ],
+    [
+     "Puertas y autoridad",
+     "Decide una persona con nombre y rol; solo pm-director registra y un hook lo impone",
+     "No descritas en las fuentes públicas consultadas",
+     "Actas y firmas, con control manual"
+    ],
+    [
+     "Datos del proyecto",
+     "Carpeta propia (Markdown, CSV, JSON) que solo cambian scripts que validan, con bitácora",
+     "Documentos que se cargan para analizar; PMI pide no cargar datos confidenciales",
+     "Archivos y herramientas de la organización, sin restricción"
+    ],
+    [
+     "Controles",
+     "{codigos_sanidad} controles de sanidad en cada sesión y antes de cada puerta",
+     "No descritos en las fuentes públicas consultadas",
+     "Revisiones periódicas de la PMO"
+    ],
+    [
+     "Acceso",
+     "Instalación técnica (terminal, WSL2 o Docker) y alguien que la haga",
+     "Web y app móvil, sin instalar",
+     "Herramientas conocidas; formación en el método"
+    ],
+    [
+     "Costo",
+     "Plugin libre ({licencia}) más un plan pago de Claude o la API; costo semanal real sin medir",
+     "Incluido en la membresía de PMI (no en la cuenta gratuita)",
+     "Licencias de herramientas y horas de personas"
+    ],
+    [
+     "Madurez",
+     "{pruebas_ok} pruebas de regresión y {e2e_ok}/{e2e_total} recorridos E2E OK: evidencia de laboratorio, sin piloto real",
+     "En el mercado desde enero de 2024",
+     "Décadas de uso y aceptación institucional"
+    ]
+   ],
+   "fuentes": "Fuentes de terceros consultadas el 2026-10-29: pmi.org/infinity, pmi.org/membership, Trust Center, guía de uso y términos de uso de PMI Infinity, comunicado de PMI del 22-01-2024 y claude.com/pricing. La tabla completa, con la fuente de cada dato y lo que queda por verificar, está en docs/RESUMEN-EJECUTIVO.md §9. Comparativo propio, sin relación ni aval de PMI.",
+   "fuentes_lista": [
+    "https://www.pmi.org/infinity",
+    "https://www.pmi.org/membership",
+    "https://www.pmi.org/trust-center",
+    "https://www.pmi.org/infinity-terms-of-use",
+    "https://www.pmi.org/-/media/pmi/documents/public/pdf/membership/user_guidelines_and_disclaimer_pmi_infinity_1.pdf",
+    "https://www.pmi.org/about/press-media/2024/pmi-introduces-pmi-infinity-the-all-new-ai-powered-resource-for-project-professionals",
+    "https://claude.com/pricing"
+   ],
+   "en": "EN: different categories, compared fairly: Infinity answers with PMI content; pm-method runs the project with its method, its data and its gates; traditional management is the established practice."
+  },
+  "conviene": {
+   "titulo": "Cuándo conviene cada uno y lo que pm-method no hace: evidencia de laboratorio, sin piloto real todavía",
+   "col1": "Cuándo conviene cada uno",
+   "cab": [
+    "Situación",
+    "Conviene"
+   ],
+   "situaciones": [
+    [
+     "Aprender o consultar el estándar de PMI y redactar un primer borrador, también desde el móvil",
+     "PMI Infinity"
+    ],
+    [
+     "PMO madura, cronogramas con calendarios y nivelación, carteras o auditorías que exigen herramientas establecidas",
+     "Gestión tradicional"
+    ],
+    [
+     "Proyecto con junta y tolerancias PRINCE2 que necesita decisiones auditables, trazabilidad y controles que corran solos",
+     "pm-method, tras un piloto en paralelo"
+    ],
+    [
+     "Equipo de producto que ya especifica con BMAD",
+     "pm-method"
+    ],
+    [
+     "Datos confidenciales que no pueden salir de la organización",
+     "Gestión tradicional; pm-method solo con un proveedor de IA aprobado"
+    ],
+    [
+     "Personas sin perfil técnico y sin apoyo para instalar",
+     "PMI Infinity o gestión tradicional"
+    ]
+   ],
+   "col2": "Lo que pm-method no hace o no probó",
+   "limites": [
+    "No es contenido oficial de PMI ni de PeopleCert, ni está avalado por ellos",
+    "No reemplaza a MS Project o Primavera en calendarios, nivelación o carteras: exporta a ellos (MSPDI)",
+    "No tiene app móvil ni web propia (salvo el portal opcional de pm-kb, de solo lectura)",
+    "Sin piloto en un proyecto real: el ahorro de tiempo y la usabilidad con líderes no técnicos están sin medir",
+    "Depende de un proveedor de modelos: su política de datos, su precio y sus límites de uso",
+    "Exige instalación técnica; Windows nativo, Cowork y arm64 tienen partes sin verificar",
+    "Un solo autor, sin soporte comercial",
+    "El texto del modelo puede equivocarse: los borradores requieren revisión humana, como en cualquier asistente"
+   ],
+   "combinar": "Se combinan: PMI Infinity para consultar el estándar, pm-method para llevar el proyecto y la herramienta corporativa para el cronograma detallado.",
+   "en": "EN: when each option fits, and what pm-method does not do: lab evidence only, no real pilot yet."
   }
  },
  "arquitectura_mmd": "flowchart LR\n    U([\"Personas<br/>gestor · junta · product owner\"])\n    subgraph HP[\"Hilo principal\"]\n        O[\"pm-orquestador<br/>conversa, pregunta y delega\"]\n    end\n    subgraph SA[\"{subagentes} subagentes · contexto aislado\"]\n        D[\"pm-director<br/>único que registra<br/>decisiones de la junta\"]\n        F[\"pm-inicio · pm-planificacion<br/>pm-control · pm-cierre\"]\n    end\n    S[\"{invocables} skills + {comandos} comandos<br/>PRINCE2 7 manda<br/>PMBOK 8 aporta técnicas\"]\n    B[(\"BMAD<br/>especificación<br/>solo lectura\")]\n    M[\"MCP y capa de canales<br/>trackers · transcripciones<br/>correo · Slack · Teams · OKR\"]\n    P[(\"Carpeta del proyecto<br/>estado.json · {registros} registros CSV<br/>artefactos Markdown\")]\n    K[\"pm-kb (opcional)<br/>búsqueda citada · web<br/>MCP de solo lectura\"]\n    H[\"{hooks} hooks<br/>{hooks_nombres}\"]\n    C[\"sanidad.py<br/>{codigos_sanidad} controles\"]\n    U <--> O\n    O --> D\n    O --> F\n    D --> S\n    F --> S\n    S -->|\"fachada de lectura\"| B\n    S -->|\"solo lo aprobado\"| M\n    S -->|\"estado.py · registro.py\"| P\n    H -.->|\"bloquea ediciones directas\"| P\n    C -.->|\"verifica en cada sesión y puerta\"| P\n    K -.->|\"lee e indexa\"| P\n    O -.->|\"MCP\"| K\n    classDef gente fill:#FBF1E6,stroke:#B5651D,color:#272425\n    classDef dato fill:#E9F1F8,stroke:#002855,color:#272425\n    classDef guarda fill:#F4F6F8,stroke:#696969,color:#272425,stroke-dasharray:4 3\n    class U gente\n    class P,B dato\n    class H,C,K guarda\n",

@@ -140,11 +140,12 @@ def corto(nombre, n=18):
 
 def estado_json(proyecto):
     try: return E.cargar_estado(proyecto)
+    except E.DatosIlegibles: raise          # estado.json ilegible: no seguir como si no hubiera roles ni idioma
     except SystemExit: return {}
 
 def okr_filas(proyecto):
     p = ruta(proyecto, "00-direccion", "okr.csv")
-    return list(csv.DictReader(open(p, encoding="utf-8"))) if os.path.exists(p) else []
+    return E.leer_filas(p) if os.path.exists(p) else []
 
 # ------------------------------------------------------------------ matriz poder/interés
 def binario(v, medio):
@@ -238,7 +239,7 @@ def ids_conocidos(proyecto):
     for nombre, col, clave in (("wbs.csv", "codigo", "wbs"), ("backlog.csv", "id", "backlog"), ("actividades.csv", "id", "actividades")):
         p = ruta(proyecto, "02-planificacion", nombre)
         if os.path.exists(p):
-            for f in csv.DictReader(open(p, encoding="utf-8")):
+            for f in E.leer_filas(p):
                 v = (f.get(col) or "").strip()
                 if v: out[clave].add(v); out["tit"][clave][v] = f.get("nombre") or f.get("titulo") or ""
     for f in leer(proyecto, "decisiones"): out["decisiones"].add(f.get("id", "")); out["tit"]["decisiones"][f.get("id", "")] = f.get("decision", "")
@@ -605,6 +606,8 @@ def plan_envio(proyecto, tema, audiencia, proposito="comunicado", base=None, agr
     for s in sel:
         pf = perfil(proyecto, s, fecha, medio, cache); d = {k: v["valor"] for k, v in pf["dimensiones"].items()}
         canal = d["canal"] or "correo"
+        if not d["canal"]:   # sin canal en el perfil se usa correo: el destino es el correo del maestro (antes quedaba vacío y se avisaba «correo vacío» sin serlo)
+            pf["destino"] = s.get("correo", "")
         if canal in ("correo", "slack", "teams") and not pf["destino"]:
             avisos.append(t(f"{s['id']} {s.get('nombre','')}: canal {canal} sin destino ({'correo' if canal == 'correo' else 'usuario_chat'} vacío en stakeholders.csv)", f"{s['id']}: channel {canal} without destination"))
         if canal not in ("correo", "slack", "teams"):
@@ -1029,7 +1032,7 @@ def candidatos_personas(proyecto, desde="auto"):
         pb = ruta(proyecto, "02-planificacion", "backlog.csv")
         if os.path.exists(pb):
             rx = re.compile(r"\b(?:como|as an?)\s+(?:un |una |el |la )?([^,.;]{3,60}?)\s*,?\s+(?:quiero|necesito|deseo|i want|i need|i'd like)\b", re.I)
-            for f in csv.DictReader(open(pb, encoding="utf-8")):
+            for f in E.leer_filas(pb):
                 m = rx.search(f"{f.get('titulo', '')} {f.get('descripcion', '')}")
                 if m: add(m.group(1).strip()[:1].upper() + m.group(1).strip()[1:], fuente="documento", evidencia=["backlog.csv"], usa=[f.get("id", "")], origen=[f.get("id", "")])
     # representante sugerido: un interesado cuyo rol (no su nombre) menciona la primera palabra del arquetipo, primero el que

@@ -118,4 +118,6 @@ def main():
         else: sys.exit("xlsx requiere --proyecto o --entrada y --salida")
 
 if __name__ == "__main__":
+    try: import esquema; esquema.salida_utf8()        # salida UTF-8 en consolas cp1252 (docs/ARQUITECTURA.md §9.4)
+    except ImportError: pass
     main()

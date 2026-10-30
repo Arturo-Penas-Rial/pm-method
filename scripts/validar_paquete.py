@@ -8,6 +8,8 @@ encabezados obligatorios en orden, referencias a skills existentes, plantillas c
 compile y que la sintaxis sea compatible con Python 3.9 (la versión mínima): con un intérprete 3.9 si hay uno
 (variable PM_PYTHON39, `python3.9` en el PATH o `uv python find 3.9`) y, si no, con un análisis propio de las
 f-strings que solo compilan desde 3.12 (barra invertida, comillas iguales anidadas o comentarios en la expresión).
+CI: los workflows de .github/workflows/ y docker/compose.yaml no fijan imágenes pm-method/pm-kb-db con otra versión que
+la del paquete, y los `paths:` de los workflows incluyen pm-kb/**, SPEC.md y compatibilidad.json.
 """
 import io, json, os, re, shutil, subprocess, sys, glob, tokenize
 
@@ -179,7 +181,19 @@ def main():
         vc = _j.load(open(os.path.join(RAIZ, "compatibilidad.json"), encoding="utf-8")).get("version")
         ve = re.search(r'VERSION_PAQUETE = "([^"]+)"', open(os.path.join(RAIZ, "skills", "pm-estado-proyecto", "scripts", "esquema.py"), encoding="utf-8").read()).group(1)
         if len({vp, vc, ve}) != 1: errores.append(f"versiones desalineadas: plugin.json {vp}, compatibilidad.json {vc}, esquema.py {ve}")
-    except Exception as ex: errores.append(f"no se pudo verificar versiones: {ex}")
+    except Exception as ex: errores.append(f"no se pudo verificar versiones: {ex}"); vp = None
+    # CI (X-01): sin tags de imagen fijos desalineados con la versión, y el workflow se dispara con todo lo que prueba
+    revisados_ci = []
+    for wf in sorted(glob.glob(os.path.join(RAIZ, ".github", "workflows", "*.y*ml"))) + [os.path.join(RAIZ, "docker", "compose.yaml")]:
+        if not os.path.exists(wf): continue
+        rel = os.path.relpath(wf, RAIZ); txt = open(wf, encoding="utf-8").read(); revisados_ci.append(rel)
+        for img, v in re.findall(r"\b(pm-method|pm-kb-db):(\d+\.\d+\.\d+)\b", txt):
+            if vp and v != vp: errores.append(f"CI: {rel} fija la imagen {img}:{v} y la versión del paquete es {vp}")
+        if "/workflows/" in wf:
+            for bloque in re.findall(r"paths:\s*\[([^\]]*)\]", txt):
+                faltan = [x for x in ("pm-kb/**", "SPEC.md", "compatibilidad.json") if f'"{x}"' not in bloque]
+                if faltan: errores.append(f"CI: {rel} no se dispara con cambios en {', '.join(faltan)}")
+    print(f"CI: {len(revisados_ci)} archivos revisados (tags de imagen y disparadores): {', '.join(revisados_ci)}")
     import py_compile
     pys = [py for py in glob.glob(os.path.join(RAIZ, "**", "*.py"), recursive=True) if "/fixtures/" not in py and "/node_modules/" not in py]
     for py in pys:

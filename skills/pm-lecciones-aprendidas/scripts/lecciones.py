@@ -244,7 +244,7 @@ def fecha_ok(x, nombre):
 
 def actualizar(proyecto, lid, campos):
     cmd = [sys.executable, os.path.join(S, "registro.py"), "--proyecto", proyecto, "actualizar", "lecciones", lid] + [x for k, v in campos.items() for x in ("--campo", f"{k}={v}")]
-    r = subprocess.run(cmd, capture_output=True, text=True)
+    r = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8")
     if r.returncode != 0: sys.exit(t(f"registro.py rechazó la actualización de {lid}: ", f"registro.py rejected {lid}: ") + (r.stderr or r.stdout).strip()[-400:])
 
 def nota(f, texto): return ((f.get("notas") or "").strip() + " · " if (f.get("notas") or "").strip() else "") + texto
@@ -560,7 +560,7 @@ def main():
     for n in nuevas:
         cmd = [sys.executable, os.path.join(S, "registro.py"), "--proyecto", a.proyecto, "agregar", "lecciones"] + [x for k, v in n.items() if v for x in ("--campo", f"{k}={v}")]
         if a.fecha: cmd += ["--campo", f"fecha={a.fecha}"]
-        r = subprocess.run(cmd, capture_output=True, text=True)
+        r = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8")
         if r.returncode != 0: sys.exit(t(f"registro.py rechazó {n['origen']}: ", f"registro.py rejected {n['origen']}: ") + (r.stderr or r.stdout).strip()[-400:])
         ids.append(f"{r.stdout.strip().splitlines()[-1]} ← {n['origen']}")
     print(t("Lecciones previas registradas (estado registrada): ", "Previous lessons recorded (status registrada): ") + "; ".join(ids))

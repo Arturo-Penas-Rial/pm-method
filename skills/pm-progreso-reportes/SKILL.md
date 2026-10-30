@@ -1,7 +1,7 @@
 ---
 name: pm-progreso-reportes
 description: "Informes de avance PRINCE2 con EVM y semáforos. Usar: checkpoint, highlight report, status report, valor ganado, EVM, burn-up, pronóstico, briefing de incorporación. No: tablero o gráficos→pm-visuales."
-version: 2.6.0
+version: 2.7.0
 author: pm-method
 license: MIT
 metadata:

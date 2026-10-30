@@ -99,3 +99,17 @@ def llm():
 
 def origenes():
     return [o.strip().rstrip("/") for o in os.environ.get("PMKB_ORIGENES", "").split(",") if o.strip()]
+
+
+def puerto_ocupado(host, puerto):
+    """Motivo si no se puede escuchar en host:puerto, o None. Con SO_REUSEADDR (como uvicorn), las conexiones en
+    TIME_WAIT de un servicio recién detenido no cuentan; un proceso que escucha en ese puerto, sí."""
+    import socket
+    with socket.socket(socket.AF_INET6 if ":" in host else socket.AF_INET) as so:
+        so.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        try:
+            so.bind((host, puerto))
+            so.listen(1)
+        except OSError as x:
+            return x.strerror or str(x)
+    return None

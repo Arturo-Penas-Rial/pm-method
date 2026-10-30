@@ -148,6 +148,8 @@ def _plano(d, pref=""):
         else: out[f"{pref}{k}"] = v; out.setdefault(k, v)
     return out
 
+_AVISO_TOML = []   # el aviso de capas TOML ignoradas sale una vez por ejecución
+
 def leer_config_v6(raiz):
     cfg = {}
     for p in sorted(glob.glob(os.path.join(raiz, "_bmad", "*", "config.yaml"))):
@@ -159,6 +161,14 @@ def leer_config_v6(raiz):
             if os.path.exists(p):
                 try: cfg.update({k: v for k, v in _plano(tomllib.load(open(p, "rb"))).items() if not isinstance(v, (list, dict))})
                 except Exception: pass
+    elif not _AVISO_TOML and glob.glob(os.path.join(raiz, "_bmad", "custom", "config*.toml")):
+        # sin tomllib (Python < 3.11) las personalizaciones de BMAD (solo TOML) no se leen: avisar en vez de ignorarlas
+        # en silencio, porque pueden mover planning_artifacts u output_folder (config.toml y config.user.toml del
+        # instalador repiten las respuestas de los config.yaml, que sí se leen)
+        _AVISO_TOML.append(1)
+        print(f"AVISO: _bmad/custom/config*.toml no se lee con Python {sys.version_info[0]}.{sys.version_info[1]} (tomllib llega en 3.11): si esas "
+              "personalizaciones cambian rutas (planning_artifacts, output_folder…), el puente no las ve; usar Python 3.11+. / WARNING: BMAD "
+              "custom TOML layers are ignored without tomllib (Python < 3.11).", file=sys.stderr)
     def res(v):
         v = str(v)
         for _ in range(4):

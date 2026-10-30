@@ -9,13 +9,17 @@
 #   PROYECTOS=/ruta/a/proyectos docker compose -f docker/compose.yaml --profile kb up -d pm-kb   # base segregada + servicio
 #   docker compose -f docker/compose.yaml --profile kb exec pm-kb \
 #       pm-kb indexar --proyecto mi-proyecto --ruta /proyectos/mi-proyecto
-# Credenciales: solo por variables de entorno del host (ANTHROPIC_API_KEY o CLAUDE_CODE_OAUTH_TOKEN) o con
-# /login dentro del contenedor (queda en el volumen claude-config). Nunca se escriben en este archivo.
+#   KB_VIGILAR="mi-proyecto" PROYECTOS=/ruta/a/proyectos \
+#       docker compose -f docker/compose.yaml --profile kb up -d pm-kb-vigilar               # reindexar ante cada cambio
+# Credenciales: solo por variables de entorno de la terminal del host que ejecuta `docker compose` (Claude Code:
+# ANTHROPIC_API_KEY o CLAUDE_CODE_OAUTH_TOKEN; capa de canales: PM_SMTP_*, PM_SLACK_WEBHOOK_URL, PM_TEAMS_WEBHOOK_URL;
+# modelo de "Preguntar" de pm-kb: PMKB_CLAVE_MODELO) o con /login dentro del contenedor (queda en el volumen
+# claude-config). Se declaran por nombre, sin valor: nunca se escriben en este archivo ni en un .env.
 name: pm-method
 
 # Endurecimiento común: raíz de solo lectura, sin capacidades, sin escalar privilegios y con límites de recursos.
 x-endurecido: &endurecido
-  image: pm-method:2.6.0
+  image: pm-method:2.7.0
   read_only: true
   cap_drop: [ALL]
   security_opt:
@@ -42,9 +46,22 @@ services:
     tty: true
     working_dir: /trabajo
     environment:
-      # Se pasan solo si existen en el host; sin valor aquí.
+      # Se declaran por nombre, sin valor: Compose copia cada una desde la terminal del host que ejecuta el comando y,
+      # si allí no existe, no la crea en el contenedor. Así ninguna credencial queda escrita en este archivo, en un .env
+      # ni en la imagen, y desaparece al cerrar esa terminal (docs/INSTALACION-DOCKER.md §9.1 y §9.3).
+      # Claude Code:
       - ANTHROPIC_API_KEY
       - CLAUDE_CODE_OAUTH_TOKEN
+      # Capa de canales de pm-method (skills/pm-integraciones/scripts/envios.py: correo SMTP y webhooks de Slack o
+      # Teams; docs/INTEGRACIONES.md §3.2): exactamente las variables que lee el script. Sin ellas, --modo eml funciona.
+      - PM_SMTP_HOST
+      - PM_SMTP_PUERTO
+      - PM_SMTP_TLS
+      - PM_SMTP_USUARIO
+      - PM_SMTP_CLAVE
+      - PM_SMTP_REMITENTE
+      - PM_SLACK_WEBHOOK_URL
+      - PM_TEAMS_WEBHOOK_URL
     volumes:
       # Proyecto de trabajo (lectura y escritura). Por defecto, la carpeta desde la que se ejecuta el comando.
       - ${PROYECTO:-${PWD}}:/trabajo
@@ -70,7 +87,7 @@ services:
   # ---- pm-kb (perfil kb) ------------------------------------------------------------------------------------
   # Base de datos segregada: su propio contenedor, volumen y red interna (sin salida a Internet ni puertos publicados).
   pm-kb-db:
-    image: pm-kb-db:2.6.0
+    image: pm-kb-db:2.7.0
     build:
       context: ..
       dockerfile: docker/pm-kb-db.Dockerfile
@@ -112,8 +129,8 @@ services:
       PMKB_DSN_LECTOR: "host=pm-kb-db dbname=pmkb user=pmkb_lector"
       PMKB_CLAVE_LECTOR_ARCHIVO: /run/secrets/pmkb_lector_clave
       PMKB_ORIGENES: "http://localhost:8765,http://127.0.0.1:8765"
-      # Modelos opcionales (docs/PM-KB.md §8): PMKB_EMBED_URL, PMKB_RERANK_URL, PMKB_LLM_TIPO, PMKB_LLM_MODELO; la clave
-      # del modelo solo como variable del host (se pasa por nombre, sin valor aquí):
+      # Modelos opcionales (docs/PM-KB.md §8; paso a paso en docs/INSTALACION-DOCKER.md §8.9): direcciones y nombres
+      # de modelos (no son secretos) desde la terminal del host que ejecuta `up`; vacíos si no están definidos.
       PMKB_EMBED_URL: ${PMKB_EMBED_URL:-}
       PMKB_EMBED_TIPO: ${PMKB_EMBED_TIPO:-tei}
       PMKB_EMBED_MODELO: ${PMKB_EMBED_MODELO:-}
@@ -121,9 +138,16 @@ services:
       PMKB_LLM_TIPO: ${PMKB_LLM_TIPO:-}
       PMKB_LLM_URL: ${PMKB_LLM_URL:-}
       PMKB_LLM_MODELO: ${PMKB_LLM_MODELO:-}
-      PMKB_LLM_CLAVE_VAR: ${PMKB_LLM_CLAVE_VAR:-}
-      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
-      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      # Clave del modelo de "Preguntar": siempre en la variable PMKB_CLAVE_MODELO del host (pm-kb la lee porque
+      # PMKB_LLM_CLAVE_VAR la nombra). Se declara sin valor: Compose la copia del host solo si existe. Es un nombre propio
+      # y no ANTHROPIC_API_KEY a propósito: así la clave llega solo a este servicio y no al contenedor "pm", donde
+      # Claude Code la usaría en lugar de la suscripción.
+      PMKB_LLM_CLAVE_VAR: PMKB_CLAVE_MODELO
+      PMKB_CLAVE_MODELO:
+    extra_hosts:
+      # Nombre del equipo anfitrión visto desde el servicio (Ollama o TEI fuera de Docker: http://host.docker.internal:
+      # <puerto>). Docker Desktop ya lo define; en Docker Engine lo agrega este valor especial (host-gateway).
+      - "host.docker.internal:host-gateway"
     volumes:
       - ${PROYECTOS:-./kb-sin-proyectos}:/proyectos:ro
     secrets: [pmkb_admin_clave, pmkb_lector_clave]
@@ -136,6 +160,53 @@ services:
       timeout: 5s
       retries: 5
       start_period: 20s
+    restart: unless-stopped
+
+  # Vigilancia del índice: `pm-kb vigilar` por cada proyecto de KB_VIGILAR (nombres separados por espacios; cada uno es
+  # la carpeta /proyectos/<nombre> y el nombre del proyecto en el índice), cada KB_VIGILAR_CADA segundos (10 por
+  # defecto). Reindexa cuando cambia un documento indexable. Misma imagen que pm-kb, rol dueño del índice (pmkb, el que
+  # indexa) por el mismo secreto, carpetas en solo lectura, solo la red interna hacia pm-kb-db y sin puertos.
+  # Se levanta aparte: KB_VIGILAR="portal-socios" PROYECTOS=… docker compose … --profile kb up -d pm-kb-vigilar
+  pm-kb-vigilar:
+    <<: *endurecido
+    profiles: [kb]
+    pull_policy: never
+    depends_on:
+      pm-kb-db:
+        condition: service_healthy
+    # Sin puerto que consultar: el contenedor está «Up» mientras vigila; si un `pm-kb vigilar` termina por un error que
+    # no se resuelve solo (proyecto o carpeta inexistente), el contenedor sale con código 1 y Docker lo reinicia.
+    healthcheck:
+      disable: true
+    command:
+      - bash
+      - -c
+      - |
+        if [ -z "$${KB_VIGILAR// /}" ]; then
+          echo "pm-kb-vigilar: falta KB_VIGILAR (proyectos a vigilar, separados por espacios; cada uno en /proyectos/<nombre>)" >&2
+          exit 1
+        fi
+        pm-kb base crear || exit 1
+        for p in $$KB_VIGILAR; do
+          pm-kb vigilar --proyecto "$$p" --ruta "/proyectos/$$p" --cada "$$KB_VIGILAR_CADA" &
+        done
+        wait -n
+        exit 1
+    working_dir: /home/pm
+    environment:
+      KB_VIGILAR: ${KB_VIGILAR:-}
+      KB_VIGILAR_CADA: ${KB_VIGILAR_CADA:-10}
+      PMKB_DSN: "host=pm-kb-db dbname=pmkb user=pmkb"
+      PMKB_CLAVE_ARCHIVO: /run/secrets/pmkb_admin_clave
+      # Vectores (opcional): con el mismo modelo que pm-kb se reutilizan los ya calculados (docs/PM-KB.md §8); un
+      # servidor fuera de la red interna no se alcanza desde este servicio (docs/INSTALACION-DOCKER.md §8.10).
+      PMKB_EMBED_URL: ${PMKB_EMBED_URL:-}
+      PMKB_EMBED_TIPO: ${PMKB_EMBED_TIPO:-tei}
+      PMKB_EMBED_MODELO: ${PMKB_EMBED_MODELO:-}
+    volumes:
+      - ${PROYECTOS:-./kb-sin-proyectos}:/proyectos:ro
+    secrets: [pmkb_admin_clave]
+    networks: [kb-interna]
     restart: unless-stopped
 
 networks:

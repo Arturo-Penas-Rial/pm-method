@@ -1,7 +1,7 @@
 # PostgreSQL segregado de pm-kb (perfil "kb" de docker/compose.yaml): solo la base del índice, en su propio contenedor,
 # volumen y red interna sin salida ni puertos publicados. PostgreSQL y pgvector de los repositorios oficiales de Ubuntu.
 # Guía: docs/INSTALACION-DOCKER.md §8 y docs/PM-KB.md §7. Construir desde la raíz del repositorio:
-#   docker build -f docker/pm-kb-db.Dockerfile -t pm-kb-db:2.6.0 .
+#   docker build -f docker/pm-kb-db.Dockerfile -t pm-kb-db:2.7.0 .
 # Contraseñas: solo como secretos de Docker (/run/secrets/pmkb_admin_clave y pmkb_lector_clave); nunca en la imagen.
 
 # Misma base que docker/Dockerfile (Ubuntu 26.04 LTS fijada por digest; ver docs/DOCKER.md §6 para actualizarla).

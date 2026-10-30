@@ -1,7 +1,7 @@
 ---
 name: pm-mandato-y-brief
 description: "Mandato, propuesta, project brief, canvas, visión y roadmap; enfoque de entrega. Usar: mandato, brief, arrancar, kick-off, canvas, visión, mandate, start up. No: business case→pm-caso-de-negocio."
-version: 2.6.0
+version: 2.7.0
 author: pm-method
 license: MIT
 metadata:

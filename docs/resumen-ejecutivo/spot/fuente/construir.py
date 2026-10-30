@@ -2,7 +2,8 @@
 
     python3 construir.py [--sin-voz] [--fps 30] [--tmp DIR] [--hasta SEG] [--cuadros 1.5,7,...]
 
-Lee guion.json y voz/duraciones.json (generado por voz.py), compone la música (musica.py), renderiza spot.html cuadro a
+Lee guion.json (frases y, en «pantalla», las cifras y la versión que muestran los cuadros) y voz/duraciones.json
+(generado por voz.py), compone la música (musica.py), renderiza spot.html cuadro a
 cuadro con Playwright (Chromium) y codifica con ffmpeg (H.264 yuv420p + AAC, +faststart). Salidas en ../:
   pm-method-spot.mp4          locución + música + subtítulos incrustados
   pm-method-spot-sin-voz.mp4  música + subtítulos (con --sin-voz o --ambas)
@@ -50,7 +51,8 @@ def linea_de_tiempo():
     # evitar solapes entre cortes consecutivos
     for a, b in zip(subs, subs[1:]):
         a["fin"] = min(a["fin"], b["ini"])
-    return {"total": round(t, 3), "escenas": escenas, "subtitulos": subs}
+    # cifras y rótulo de versión que muestra spot.html (guion.json → pantalla)
+    return {"total": round(t, 3), "escenas": escenas, "subtitulos": subs, "pantalla": g.get("pantalla", {})}
 
 
 def mezcla(lt, con_voz=True, pistas=False):

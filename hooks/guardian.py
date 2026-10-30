@@ -10,10 +10,11 @@
   y ni siquiera ese segmento puede redirigir su salida hacia un archivo protegido.
 - Subagentes pm-*: no escriben en carpetas de BMAD. Nadie salvo pm-director (ni el hilo principal ni otros subagentes)
   ejecuta estado.py puerta/rol/tolerancia/presupuesto/agil/umbrales-riesgo/cumplir-condiciones, limite-etapa --excepcion,
-  set --forzar, ni aprobar o set con nivel superior a gestor. (Los comandos que la persona escribe en su propia terminal
+  cierre --plan-excepcion, set --forzar, ni aprobar o set con nivel superior a gestor. (Los comandos que la persona escribe en su propia terminal
   no pasan por el hook.)
-- Con Write/Edit ni con Bash se escriben la bitácora (.bitacora.jsonl) ni las propuestas (03-control/propuestas/P-###.json):
-  las escriben registro.py y el mecanismo común de escritura (2.6.0).
+- Con Write/Edit ni con Bash se escriben la bitácora (.bitacora.jsonl), las propuestas (03-control/propuestas/P-###.json)
+  ni las instantáneas del tablero (03-control/reportes/tableros/): las escriben registro.py, estado.py puerta, tablero.py
+  congelar y el mecanismo común de escritura.
 - registro.py aprobar y registro.py reconocer: el hook pide confirmación ("ask"), como envios.py aprobar.
 - decision.py matriz … --elegir y riesgos.py opciones … --elegir: el hook pide confirmación ("ask"); registran en
   decisiones.csv la decisión de la persona que figura en --por.
@@ -31,7 +32,7 @@ REGISTROS = ("riesgos.csv", "issues.csv", "cambios.csv", "decisiones.csv", "supu
              "estereotipos.csv", "preferencias.csv", "raci.csv", "envios.csv", "personas.csv")
 BMAD = ("_bmad", "_bmad-output", ".bmad-core")
 SCRIPTS = ("estado.py", "registro.py", "bmad.py", "nuevo_proyecto.py", "sanidad.py", "especificacion.py", "paquete.py", "exportar.py", "puertas.py",
-           "interesados.py", "envios.py")
+           "interesados.py", "envios.py", "tablero.py")
 PYTHON = re.compile(r"^(python(\d+(\.\d+)?)?|py|pypy3?)(\.exe)?$")
 REDIR = (">", ">>", ">|", "&>", "&>>", ">&")
 
@@ -52,6 +53,8 @@ def protegido(ruta):
         return f"{base} se modifica con registro.py (valida valores, ids y referencias): registro.py --proyecto <dir> agregar|actualizar …"
     if base == ".bitacora.jsonl":
         return ".bitacora.jsonl es la bitácora de escrituras (solo anexado, encadenada por huellas): la escriben los scripts; un cambio hecho fuera de ellos se reconoce con registro.py reconocer … --por … --motivo …"
+    if "/03-control/reportes/tableros/" in "/" + r:
+        return "03-control/reportes/tableros/ guarda instantáneas congeladas e inmutables del tablero (anotadas en la bitácora): las escriben estado.py puerta y tablero.py congelar; para otra foto, tablero.py --proyecto <dir> congelar --etiqueta …"
     if "/03-control/propuestas/" in "/" + r and re.fullmatch(r"P-\d+\.json", base):
         return f"{base} es una propuesta con huella: se crea con registro.py proponer y se resuelve con registro.py aprobar|rechazar --por …"
     if base in DERIVADOS:
@@ -164,7 +167,8 @@ def revisar_bash(cmd, sub_pm, director):
     if not director:   # subagentes pm-* y también el hilo principal: las decisiones de la junta las registra pm-director
         for sc, resto in subcomandos_estado(cmd):
             r = " ".join(resto)
-            if sc in RESERVADOS or (sc == "limite-etapa" and tiene_opcion(resto, "--excepcion")) or (sc == "set" and tiene_opcion(resto, "--forzar")):
+            if sc in RESERVADOS or (sc == "limite-etapa" and tiene_opcion(resto, "--excepcion")) or (sc == "set" and tiene_opcion(resto, "--forzar")) \
+                    or (sc == "cierre" and tiene_opcion(resto, "--plan-excepcion")):
                 negar("ese comando de estado.py está reservado a pm-director (puertas, nombramientos, tolerancias, excepciones, correcciones forzadas). "
                       + ("Devolvé la decisión en el bloque de retorno." if sub_pm else "Delegá en el subagente pm-method:pm-director con la decisión explícita (quién decidió, qué y con qué condiciones)."))
             if sc == "aprobar" and not re.search(r"--nivel[ =](gestor|product-owner|equipo)\b", r):
@@ -207,9 +211,22 @@ def revisar_bash(cmd, sub_pm, director):
             decidir("ask", "envios.py enviar --confirmar envía mensajes reales a los interesados (SMTP o webhook). Confirmar solo si la "
                            "persona revisó la vista previa y pidió el envío. / Sends real messages: confirm only after reviewing the preview.")
 
+def salida_utf8():
+    """Como esquema.salida_utf8: la decisión (JSON con ensure_ascii=False; el motivo puede citar una ruta con caracteres
+    fuera de cp1252) se escribe en UTF-8 aunque la tubería use cp1252 (Windows): un print fallido terminaría en el
+    `except` final, que deja pasar la acción. La entrada se lee en UTF-8 por la misma razón: con cp1252, una ruta con
+    «Í» (bytes C3 8D) no se decodificaba y la escritura protegida pasaba sin revisar."""
+    for s in (sys.stdout, sys.stderr):
+        try:
+            if s is not None and (s.encoding or "").lower().replace("-", "").replace("_", "") != "utf8": s.reconfigure(encoding="utf-8", errors="replace")
+        except Exception:
+            pass
+
 def main():
-    try: datos = json.load(sys.stdin)
+    salida_utf8()
+    try: datos = json.loads(sys.stdin.buffer.read().decode("utf-8-sig", errors="replace"))   # Claude Code envía UTF-8
     except Exception: sys.exit(0)
+    if not isinstance(datos, dict): sys.exit(0)
     herramienta = datos.get("tool_name", ""); ti = datos.get("tool_input") or {}
     agente = str(datos.get("agent_type") or "")
     sub_pm = (agente.startswith("pm-") or ":pm-" in agente)

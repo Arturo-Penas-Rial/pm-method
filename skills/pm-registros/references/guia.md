@@ -64,7 +64,7 @@ propietario, decisión o fecha no se cierra. Pedido de borrar: ofrecer `estado=r
 ## 5. Migraciones con referencia cruzada
 | Origen → destino | Origen | Destino |
 |---|---|---|
-| Supuesto invalidado → riesgo o issue | `estado=transferido`, `notas=→ R-00X` | `notas=origen S-00X` |
+| Supuesto invalidado → riesgo o issue | `estado=transferido`, `notas=→ R-00X` (o `→ I-00X`; obligatorio y existente: `registro.py` lo rechaza sin destino, también con `--forzar`; SUP-04) | `notas=origen S-00X` |
 | Riesgo materializado → issue | `estado=ocurrido` | `notas=origen R-00X` |
 | Issue que pide cambiar línea base → cambio | `estado=pendiente-cambio` | `notas=origen I-00X` |
 | Cambio aprobado que genera incertidumbre → riesgo | — | `notas=origen C-00X` |

@@ -1,7 +1,7 @@
 ---
 name: pm-riesgos
 description: "Registro y respuestas de riesgo PRINCE2. Usar: riesgo, risk register, matriz P×I, EMV, respuesta al riesgo, plan de contingencia, oportunidad, informe o auditoría. No: issue ya ocurrido→pm-issues-cambios."
-version: 2.6.0
+version: 2.7.0
 author: pm-method
 license: MIT
 metadata:

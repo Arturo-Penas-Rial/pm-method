@@ -12,6 +12,8 @@ fuentes: "{{fuentes}}"
 
 Plantilla autocontenida: sin red, sin librerías externas; los gráficos son SVG generados por el script de esta página.
 Self-contained template: no network, no external libraries; charts are SVG drawn by the script in this page.
+CSP propia (meta): solo el script de dibujo, autorizado por su hash sha256; si se cambia ese script, recalcular el hash (references/guia.md §3).
+Own CSP (meta): only the drawing script, allowed by its sha256 hash; if that script changes, recompute the hash (references/guia.md §3).
 
 CÓMO SE INYECTAN LOS DATOS / HOW DATA ARE INJECTED
   Todo el contenido variable vive en UN bloque JSON: el elemento script con id="datos-tablero" (type application/json), al final de la página.
@@ -37,6 +39,7 @@ CÓMO SE INYECTAN LOS DATOS / HOW DATA ARE INJECTED
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-rQT4czn/rL5ueFNibJNp819Af+058ZbOqBeoCFoDnLg='; style-src 'unsafe-inline'; img-src data:; base-uri 'none'; form-action 'none'">
 <title>Tablero de avance</title>
 <style>
   :root {

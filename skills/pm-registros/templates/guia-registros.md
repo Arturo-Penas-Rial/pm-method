@@ -20,7 +20,7 @@ idioma: "{{idioma}}"
 **Autoridad de cambio / Change authority:** {{autoridad_cambio}}
 *Rol o persona a quien la junta delegó decisiones de cambio; copiar de `estado.json.roles.autoridad_cambio`.*
 
-Convenciones comunes a todos los CSV: codificación UTF-8, separador coma, fechas ISO `AAAA-MM-DD`, valores de enumeración en minúsculas sin acentos, `id` secuencial con prefijo fijo que nunca se reutiliza, `estado` nunca se borra (se cierra). Los valores se guardan en español; al registrar se aceptan alias en inglés (`threat`, `opportunity`, `open`, `closed`, `high`, `medium`, `low`, `avoid`, `reduce`, `change-request`, `off-specification`…) que `registro.py` convierte al valor canónico. / Values are stored in Spanish; English aliases are accepted on input. Los prefijos de id son: R (riesgos), I (issues), C (cambios), D (decisiones), S (supuestos), L (lecciones), ST (stakeholders), Q (calidad), A (acciones) y los opcionales ET (estereotipos), PF (preferencias), RC (raci), EN (envios) y PU (personas); estos cinco se crean al primer uso. `X-###` no es un registro: es el id de un informe de excepción (documento en `03-control/reportes/`).
+Convenciones comunes a todos los CSV: codificación UTF-8 (se lee con o sin BOM, como lo deja Excel con «CSV UTF-8»; los scripts lo reescriben siempre en UTF-8 sin BOM y CRLF; otra codificación, una comilla sin cerrar o una fila con más o menos campos que el encabezado detienen el script con el archivo y la línea, sin reescribir nada), separador coma, fechas ISO `AAAA-MM-DD`, valores de enumeración en minúsculas sin acentos, `id` secuencial con prefijo fijo que nunca se reutiliza, `estado` nunca se borra (se cierra). Los valores se guardan en español; al registrar se aceptan alias en inglés (`threat`, `opportunity`, `open`, `closed`, `high`, `medium`, `low`, `avoid`, `reduce`, `change-request`, `off-specification`…) que `registro.py` convierte al valor canónico. / Values are stored in Spanish; English aliases are accepted on input. Los prefijos de id son: R (riesgos), I (issues), C (cambios), D (decisiones), S (supuestos), L (lecciones), ST (stakeholders), Q (calidad), A (acciones) y los opcionales ET (estereotipos), PF (preferencias), RC (raci), EN (envios) y PU (personas); estos cinco se crean al primer uso. `X-###` no es un registro: es el id de un informe de excepción (documento en `03-control/reportes/`).
 
 **Fuente única del esquema / Single source of schema:** `${CLAUDE_SKILL_DIR}/../pm-estado-proyecto/scripts/esquema.py`. Esta guía documenta exactamente las mismas columnas, en el mismo orden, y los mismos valores permitidos; si cambia una, cambian las dos. Para consultar el esquema vigente desde la consola: `python3 ${CLAUDE_SKILL_DIR}/../pm-estado-proyecto/scripts/registro.py --proyecto <dir> esquema <registro>`.
 
@@ -113,6 +113,18 @@ celdas como texto) o importar el CSV con todas las columnas como texto.
 
 *Control permanente / Standing control:* en los cambios aprobados, implementados o cerrados, la sanidad exige `costo` y `cargo` cuando hay impacto de costo (CAM-01), que un cargo a `reserva-riesgo` cite el R-### que responde (CAM-02), suma el consumo contra `estado.json.presupuestos` (CAM-03: INFO < 80 %, AVISO ≥ 80 %, ERROR > 100 %) y avisa si un costo supera `limite_autoridad_cambio` o usa `reserva-gestion` sin que decida la junta o el ejecutivo (CAM-04, CAM-05; se reconoce en `decidido_por` por "ejecutiv", "junta", "board", "executive" o el nombre del ejecutivo). Ejemplo: `registro.py agregar cambios --campo titulo=… --campo impacto_costo="+USD 9.000" --campo costo=9000 --campo cargo=presupuesto-cambio`.
 
+*Coherencia `decision` × `estado` / Decision × status consistency* (`esquema.CAMBIO_CONTRADICTORIO`). La disposición y la situación no pueden decir cosas opuestas. ✓ = válida, ✗ = contradictoria: `registro.py agregar|actualizar` y `proponer` la rechazan, **también con `--forzar`** (de ese par depende si el cambio consume presupuesto); al actualizar se controla solo si cambia `decision` o `estado`, de modo que una fila heredada admite cambios en otras columnas, y la sanidad la avisa (CAM-06).
+
+| decision \ estado | abierto · en-evaluacion · pendiente-decision | aprobado | rechazado | diferido | implementado | cerrado |
+|---|---|---|---|---|---|---|
+| (vacía) | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| aprobado | ✓ | ✓ | ✗ | ✗ | ✓ | ✓ |
+| rechazado | ✓ | ✗ | ✓ | ✗ | ✗ | ✓ |
+| diferido | ✓ | ✗ | ✗ | ✓ | ✗ | ✓ |
+| pedir-plan-excepcion · pedir-mas-informacion | ✓ | ✗ | ✗ | ✗ | ✗ | ✓ |
+
+La situación previa a la decisión (`abierto`, `en-evaluacion`, `pendiente-decision`) y el cierre administrativo (`cerrado`) son compatibles con cualquier decisión. **Consumo de presupuesto** (CAM-03 y control al registrar, `esquema.cambio_vigente`): cuenta un cambio `aprobado` o `implementado`, o con `decision=aprobado`; `cerrado` cuenta solo sin decisión o con `decision=aprobado`; nunca cuenta con `estado` `rechazado` o `diferido`. Una fila heredada contradictoria con `estado` aprobado o implementado se sigue contando (criterio prudente) hasta corregirla.
+
 ## 4. decisiones.csv · Decision log
 
 | Columna | Significado ES | Meaning EN | Valores permitidos / formato |
@@ -146,7 +158,7 @@ celdas como texto) o importar el CSV con todas las columnas como texto.
 | fecha_validacion | Fecha límite o real de validación | Validation date | ISO |
 | responsable | Quien valida | Owner | nombre o rol |
 | estado | Situación | Status | `abierto`, `validado`, `invalidado`, `transferido`, `cerrado` |
-| notas | `→ R-###` / `→ I-###` si transferido; documento de origen | Notes | texto |
+| notas | `→ R-###` / `→ I-###` si transferido (obligatorio: el riesgo o issue debe existir); documento de origen | Notes | texto |
 | criticidad | Cuánto cambia el business case si resulta falso | Criticality | vacío o `alta`, `media`, `baja` |
 | certeza | Cuánta evidencia hay hoy | Certainty | vacío o `alta`, `media`, `baja` |
 | experimento | Cómo se valida, lo más barato que dé evidencia | Experiment | texto |
@@ -353,6 +365,8 @@ Tabla Markdown con columnas `fecha`, `entrada`, `responsable`, `seguimiento`. Gu
 | cambio | aprobado | línea base | `decision=aprobado`, `estado=implementado` | `estado.json.artefactos.<x>.version` |
 | cambio aprobado | genera incertidumbre | riesgo | — | `notas=origen C-###` |
 | cualquier registro | período de informe | highlight report | — | nuevos, cerrados y críticos con ids |
+
+*Supuesto transferido:* primero se registra el riesgo o issue que lo recibe (`notas=origen S-###`) y después el supuesto pasa a `estado=transferido` con `notas=→ R-###` o `→ I-###` (también `->`). `registro.py agregar|actualizar|proponer` rechaza `transferido` sin ese destino o con un id que no existe en `riesgos.csv` o `issues.csv`, también con `--forzar` (al actualizar, solo si cambian `estado` o `notas`): sin destino, el supuesto deja de contar como abierto (P-11, SUP-01/02) sin que nadie lleve su efecto. Los datos ya existentes en esa situación los avisa la sanidad (SUP-04). EN: a transferred assumption must name an existing receiving risk or issue in notas.
 
 ## 12. Bitácora y propuestas · Write log and proposals (2.6.0)
 

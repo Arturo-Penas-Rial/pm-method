@@ -39,38 +39,46 @@ Sin saldo ni autoridad, no se aprueba:
 sube a la junta el mismo día.
 
 11
-00:00:24,771 --> 00:00:27,284
+00:00:24,771 --> 00:00:27,229
 Mapas de Wardley y de recorrido del cliente,
 
 12
-00:00:27,284 --> 00:00:31,010
-opciones con VAN y conexión con BMAD, Jira, Slack y Teams.
+00:00:27,229 --> 00:00:28,178
+opciones con VAN,
 
 13
-00:00:31,080 --> 00:00:33,224
-6 agentes, 39 skills,
+00:00:28,178 --> 00:00:29,910
+integración probada con BMAD
 
 14
-00:00:33,224 --> 00:00:37,870
-más de 200 pruebas automáticas y 5 casos completos con webinar.
+00:00:29,910 --> 00:00:31,997
+y lista para Jira, Slack y Teams.
 
 15
-00:00:37,940 --> 00:00:40,311
-pm-method: código abierto, en GitHub.
+00:00:32,067 --> 00:00:34,211
+6 agentes, 39 skills,
 
 16
-00:00:40,311 --> 00:00:43,665
-¿Estás en proyectos e innovación? Te invito a consultarme:
+00:00:34,211 --> 00:00:38,857
+más de 200 pruebas automáticas y 5 casos completos con webinar.
 
 17
-00:00:43,665 --> 00:00:48,407
-capacitación y transferencia para lograr los beneficios de tus proyectos con IA.
+00:00:38,927 --> 00:00:41,259
+pm-method: código abierto, en GitHub.
 
 18
-00:00:48,407 --> 00:00:49,737
-Escribime por LinkedIn.
+00:00:41,259 --> 00:00:44,558
+¿Estás en proyectos e innovación? Te invito a consultarme:
 
 19
-00:00:49,737 --> 00:00:53,391
-Iniciativa con el apoyo de PMI e IEEE (Uruguay).
+00:00:44,558 --> 00:00:49,222
+capacitación y transferencia para lograr los beneficios de tus proyectos con IA.
+
+20
+00:00:49,222 --> 00:00:50,530
+Escribime por LinkedIn.
+
+21
+00:00:50,530 --> 00:00:55,551
+Iniciativa con el apoyo del PMI Capítulo Montevideo y de IEEE (Uruguay).
 

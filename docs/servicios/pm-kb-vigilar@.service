@@ -1,0 +1,31 @@
+# Servicio de usuario de systemd: `pm-kb vigilar` para un proyecto, en WSL2 con systemd o en Linux.
+# Paso a paso: docs/INSTALACION-WSL2.md §8.10. Referencia de `vigilar`: docs/PM-KB.md §10 y §14.
+#
+# Se instala en ~/.config/systemd/user/ y se usa una instancia por proyecto; el nombre de la instancia es el nombre del
+# proyecto en el índice (minúsculas, cifras, ".", "_" o "-"):
+#   systemctl --user enable --now pm-kb-vigilar@prueba-scripts.service
+# La carpeta del proyecto va en ~/.config/pm-kb/vigilar/<proyecto>.conf, una línea:
+#   CARPETA=/home/<tu-usuario>/proyectos/prueba-scripts
+# y, si hacen falta, otras opciones de `pm-kb vigilar` en una segunda línea (por ejemplo, comprobar cada 30 segundos):
+#   OPCIONES=--cada 30
+#
+# Sin credenciales: pm-kb se conecta a tu PostgreSQL por su socket privado (sin contraseña) y el lanzador carga
+# ~/.config/pm-kb/pm-kb.env, que no tiene secretos. Las claves de modelos nunca van en este archivo ni en el .conf.
+[Unit]
+Description=pm-kb vigilar · proyecto %i
+
+[Service]
+Type=simple
+Environment=OPCIONES=
+EnvironmentFile=%h/.config/pm-kb/vigilar/%i.conf
+ExecStart=%h/.local/bin/pm-kb vigilar --proyecto %i --ruta ${CARPETA} $OPCIONES
+# Un error de la base o de la carpeta se reintenta dentro de `vigilar`; si el proceso termina con error (por ejemplo,
+# la carpeta no existe), systemd lo vuelve a arrancar a los 30 segundos.
+Restart=on-failure
+RestartSec=30
+# Si `vigilar` arrancó el PostgreSQL de pm-kb (lo hace solo cuando no estaba en marcha), al detener el servicio se
+# detiene solo `vigilar`: la base sigue disponible para `pm-kb servir`, el MCP y la terminal.
+KillMode=process
+
+[Install]
+WantedBy=default.target

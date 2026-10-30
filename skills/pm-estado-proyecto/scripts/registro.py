@@ -22,6 +22,7 @@ preferencias PF-, raci RC-, envios EN-, personas PU-. Se validan claves foránea
 (raci: elemento + stakeholder_id) y un solo A por elemento de la RACI.
 En decisiones, reemplaza y conviven (D-###;…) se validan con vigencia.py: ids existentes, sin ciclos, y reemplazar exige
 nivel igual o superior al de la reemplazada (regla de autoridad; no se omite con --forzar). Valores permitidos: ver esquema.py y pm-registros/templates/guia-registros.md.
+En supuestos, estado=transferido exige en notas el riesgo o issue que lo recibe («→ R-###» o «→ I-###») y que exista (no se omite con --forzar).
 """
 import argparse, os, re, sys, datetime, json
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -93,6 +94,46 @@ def integridad(proyecto, reg, fila, filas, forzar=False):
 
 def _monto_txt(x):
     return f"{x:,.0f}".replace(",", ".") if IDIOMA != "en" else f"{x:,.0f}"
+
+def control_coherencia_cambio(fila, antes=None):
+    """decision × estado contradictorios en cambios.csv (esquema.CAMBIO_CONTRADICTORIO; guía de registros §3). Se rechaza
+    al escribir y no se omite con --forzar: de ese par depende si el cambio consume presupuesto (esquema.cambio_vigente,
+    CAM-03) y si se controla su autoridad, de modo que forzarlo dejaría el saldo del presupuesto en una regla de
+    desempate. Al actualizar se evalúa solo si cambia decision o estado: las filas ya contradictorias (anteriores o
+    escritas fuera de los scripts) admiten cambios en otras columnas y las avisa la sanidad (CAM-06)."""
+    if antes is not None and all((antes.get(k) or "") == (fila.get(k) or "") for k in ("decision", "estado")): return
+    if not E.cambio_contradictorio(fila): return
+    t = lambda es, en: E.t(IDIOMA, es, en)
+    dec, est = fila.get("decision") or "", fila.get("estado") or ""
+    validos = [x for x in E.REGISTROS["cambios"]["valores"]["estado"] if x not in E.CAMBIO_CONTRADICTORIO.get(dec, ())]
+    sys.exit(t(f"Cambio {fila.get('id')}: decision={dec} y estado={est} se contradicen (no se omite con --forzar: de ese par depende el consumo del presupuesto de cambio).",
+               f"Change {fila.get('id')}: decision={dec} and estado={est} contradict each other (--forzar does not override it: budget use depends on this pair).")
+             + "\n  → " + t(f"Con decision={dec}, estado puede ser: {', '.join(validos)}. Registrar la decisión y la situación que correspondan "
+                            "(guía de registros §3, tabla decision × estado).",
+                            f"With decision={dec}, estado can be: {', '.join(validos)}. Record the matching decision and status (register guide §3)."))
+
+def control_transferido(proyecto, fila, antes=None):
+    """Supuesto con estado=transferido: notas debe indicar el riesgo o issue que lo recibe («→ R-###» o «→ I-###»,
+    esquema.destino_transferido; guía de registros, supuestos) y ese id debe existir en riesgos.csv o issues.csv. No se
+    omite con --forzar (como los cambios contradictorios): sin destino, el supuesto deja de contar como abierto (P-11, SUP)
+    sin que nadie lleve su efecto. Al actualizar se evalúa solo si cambia estado o notas: las filas ya transferidas sin
+    destino (anteriores o escritas fuera de los scripts) admiten cambios en otras columnas y las avisa la sanidad (SUP-04)."""
+    if (fila.get("estado") or "") != "transferido": return
+    if antes is not None and all((antes.get(k) or "") == (fila.get(k) or "") for k in ("estado", "notas")): return
+    t = lambda es, en: E.t(IDIOMA, es, en)
+    destino = E.destino_transferido(fila)
+    como = t("indicar en notas el riesgo o issue que lo recibe: --campo \"notas=→ R-###\" (o → I-###), registrándolo antes si no existe (registro.py agregar riesgos|issues … --campo \"notas=origen "
+             + (fila.get("id") or "S-###") + "\").",
+             "give in notas the risk or issue that receives it: --campo \"notas=→ R-###\" (or → I-###), recording it first if it does not exist (registro.py agregar riesgos|issues … --campo \"notas=origen "
+             + (fila.get("id") or "S-###") + "\").")
+    if not destino:
+        sys.exit(t(f"Supuesto {fila.get('id')}: estado=transferido sin el riesgo o issue que lo recibe (no se omite con --forzar).",
+                   f"Assumption {fila.get('id')}: estado=transferido without the risk or issue that receives it (--forzar does not override it).") + "\n  → " + como)
+    reg = "riesgos" if destino.startswith("R-") else "issues"
+    q = E.ruta_registro(proyecto, reg)
+    if not any(f.get("id") == destino for f in (E.leer_filas(q) if os.path.exists(q) else [])):
+        sys.exit(t(f"Supuesto {fila.get('id')}: estado=transferido a {destino}, que no existe en {reg}.csv (no se omite con --forzar).",
+                   f"Assumption {fila.get('id')}: estado=transferido to {destino}, which does not exist in {reg}.csv (--forzar does not override it).") + "\n  → " + como)
 
 def control_cambio(proyecto, fila, filas, antes=None):
     """Autoridad y presupuesto de cambio (PRINCE2, tema Issues; SPEC §1.10.6). Al dejar un cambio aprobado (decision=aprobado
@@ -207,6 +248,7 @@ def resumen(proyecto, corte=None, maximo=TOPE_LISTAS):
     try:  # umbrales propios del enfoque de riesgo, si se declararon en estado.json.umbrales_riesgo
         u = E.cargar_estado(proyecto).get("umbrales_riesgo") or {}
         UMBRALES.update({k: float(v) for k, v in u.items() if k in UMBRALES and str(v).strip()})
+    except E.DatosIlegibles: raise           # estado.json ilegible: no resumir con umbrales por defecto
     except SystemExit: pass
     for reg, spec in E.REGISTROS.items():
         p = E.ruta_registro(proyecto, reg)
@@ -309,7 +351,8 @@ def modificar(args, p, cols, filas, spec):
         if "estado" in cols and not fila.get("estado") and spec.get("estado_inicial"): fila["estado"] = spec["estado_inicial"]
         recalcular(args.registro, fila); validar(args.registro, fila, args.forzar)
         integridad(args.proyecto, args.registro, fila, filas, args.forzar)
-        if args.registro == "cambios": control_cambio(args.proyecto, fila, filas)
+        if args.registro == "cambios": control_coherencia_cambio(fila); control_cambio(args.proyecto, fila, filas)
+        if args.registro == "supuestos": control_transferido(args.proyecto, fila)
         if args.registro == "decisiones": control_vigencia(args.proyecto, fila, filas, args.forzar)
         filas.append(fila); E.escribir_csv(p, cols, filas); print(fila["id"])
     elif args.cmd == "actualizar":
@@ -317,7 +360,8 @@ def modificar(args, p, cols, filas, spec):
             if f.get("id") == args.id:
                 antes = dict(f); f.update(campos); recalcular(args.registro, f); validar(args.registro, f, args.forzar)
                 integridad(args.proyecto, args.registro, f, filas, args.forzar)
-                if args.registro == "cambios": control_cambio(args.proyecto, f, filas, antes)
+                if args.registro == "cambios": control_coherencia_cambio(f, antes); control_cambio(args.proyecto, f, filas, antes)
+                if args.registro == "supuestos": control_transferido(args.proyecto, f, antes)
                 if args.registro == "decisiones" and any((antes.get(k) or "") != (f.get(k) or "") for k in ("reemplaza", "conviven", "nivel", "decidido_por", "fecha")):
                     control_vigencia(args.proyecto, f, filas, args.forzar)
                 if f.get("estado") in ("cerrado", "resuelto", "completada") and "fecha_cierre" in cols and not f.get("fecha_cierre"):
@@ -392,7 +436,7 @@ def _ruta_prop(proyecto, pid):
 def _leer_prop(proyecto, pid):
     r = _ruta_prop(proyecto, pid)
     if not os.path.isfile(r): sys.exit(_t(f"No existe la propuesta {pid}.", f"Proposal {pid} not found."))
-    return json.load(open(r, encoding="utf-8"))
+    return E.leer_json(r, dict, IDIOMA)
 
 def _plano(x): return " ".join(str(x or "").lower().split())
 
@@ -417,6 +461,8 @@ def proponer(a):
         else:
             prueba = {c: "" for c in cols}; prueba.update(campos); prueba["id"] = prueba.get("id") or E.siguiente_id(reg, filas)
         recalcular(reg, prueba); validar(reg, prueba); integridad(a.proyecto, reg, prueba, filas)
+        if reg == "cambios": control_coherencia_cambio(prueba, fila if a.id else None)   # una propuesta que no se podría aplicar
+        if reg == "supuestos": control_transferido(a.proyecto, prueba, fila if a.id else None)
         campos = {c: prueba.get(c, "") for c in campos}          # valores canónicos (alias en inglés resueltos)
         if a.id and all(fila.get(c, "") == v for c, v in campos.items()):
             sys.exit(_t(f"Nada que proponer: {a.id} ya tiene esos valores.", f"Nothing to propose: {a.id} already has those values."))
@@ -493,19 +539,25 @@ def rechazar(a):
     with E.bloqueo(a.proyecto): _resolver(a, prop, "rechazada", "rechazada", "")
     print(_t(f"{a.propuesta} rechazada por {a.por}.", f"{a.propuesta} rejected by {a.por}."))
 
-def propuestas(a):
-    """Lista las propuestas (pendientes por defecto) y, para las pendientes, qué pasaría al aprobarlas hoy."""
-    d = os.path.join(a.proyecto, E.DIR_PROPUESTAS); out = []
+def listar_propuestas(proyecto, estado="pendiente"):
+    """Propuestas de 03-control/propuestas/ con ese estado («todas»: todas) y, para las pendientes, `al_aprobar` (qué
+    pasaría al aprobarlas hoy). Solo lectura: no toma el bloqueo (la usan `propuestas` y tablero.py)."""
+    d = os.path.join(proyecto, E.DIR_PROPUESTAS); out = []
     for x in sorted(os.listdir(d)) if os.path.isdir(d) else []:
         if not re.fullmatch(r"P-\d+\.json", x): continue
-        pr = json.load(open(os.path.join(d, x), encoding="utf-8"))
-        if a.estado != "todas" and pr.get("estado") != a.estado: continue
+        pr = E.leer_json(os.path.join(d, x), dict, IDIOMA)
+        if estado != "todas" and pr.get("estado") != estado: continue
         if pr.get("estado") == "pendiente":
-            p = E.ruta_registro(a.proyecto, pr.get("registro", ""))
+            p = E.ruta_registro(proyecto, pr.get("registro", ""))
             filas = E.leer_csv(p)[1] if os.path.exists(p) else []
-            res, _, det = evaluar(pr, filas, E._sha(open(p, "rb").read()) if os.path.exists(p) else "")
+            res, _, det = evaluar(pr, filas, E._sha(E._leer_bytes(p)) if os.path.exists(p) else "")
             pr["al_aprobar"] = {"resultado": res, "detalle": det}
         out.append(pr)
+    return out
+
+def propuestas(a):
+    """Lista las propuestas (pendientes por defecto) y, para las pendientes, qué pasaría al aprobarlas hoy."""
+    out = listar_propuestas(a.proyecto, a.estado)
     if a.json: print(json.dumps(out, ensure_ascii=False, indent=2)); return
     if not out: print(_t(f"Sin propuestas ({a.estado}).", f"No proposals ({a.estado}).")); return
     for pr in out:

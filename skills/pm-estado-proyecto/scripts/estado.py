@@ -13,12 +13,14 @@ Uso / Usage:
   estado.py --proyecto ./p integracion tracker=jira diagramas=archify
   estado.py --proyecto ./p artefacto plan-etapa-2 --ruta 02-planificacion/plan-etapa-2.md --estado en-revision --version 0.3
   estado.py --proyecto ./p aprobar plan-etapa-2 --por "Ejecutivo: C. Ruiz" [--version 1.0] [--fecha 2027-02-01]
-  estado.py --proyecto ./p puerta autorizar-etapa --decision aprobado --por "Junta" [--condiciones ".."] [--fecha ..] [--etapa-nombre ".."] [--inicio ..] [--fin ..] [--tol costo=5% tiempo=1sem]
+  estado.py --proyecto ./p puerta autorizar-etapa --decision aprobado --por "Junta" [--condiciones ".."] [--motivo ".."] [--fecha ..] [--etapa-nombre ".."] [--inicio ..] [--fin ..] [--tol costo=5% tiempo=1sem]
   estado.py --proyecto ./p cumplir-condiciones autorizar-etapa [--fecha ..] [--por "Ejecutivo: C. Ruiz"] [--nota ".."]
   estado.py --proyecto ./p presupuesto cambio=15000 riesgo=20000 gestion=10000 limite_autoridad_cambio=5000 [--por ..] [--fecha ..]
   estado.py --proyecto ./p resumen                                # fase, roles, tolerancias, presupuestos, puertas y siguiente paso
   estado.py --proyecto ./p limite-etapa [--excepcion X-001]      # CS → SB (fin de etapa o plan de excepción)
-  estado.py --proyecto ./p cierre [--prematuro]                    # CS/SB → CP (cierre planificado o prematuro)
+  estado.py --proyecto ./p cierre                                  # CS/SB → CP (cierre planificado)
+  estado.py --proyecto ./p cierre --prematuro --decision D-### [--motivo ".."] [--fecha ..]   # IP/CS/SB → CP por decisión de la junta
+  estado.py --proyecto ./p cierre --plan-excepcion completado|cerrado --por "Ejecutivo: C. Ruiz" [--nota ".."] [--fecha ..]   # fin del plan de excepción del cierre prematuro (C-09)
   estado.py --proyecto ./p etapa --numero 2 --nombre "Construcción" --inicio .. --fin ..   # corrección manual
   estado.py --proyecto ./p set enfoque_entrega=hibrido --por "Ejecutivo: C. Ruiz" [--nivel junta] [--fecha ..]   # claves simples validadas
   estado.py --proyecto ./p contexto [--max 2000] [--corte AAAA-MM-DD] [--json]   # resumen derivado para el inicio de sesión
@@ -31,6 +33,8 @@ Uso / Usage:
 
 Las puertas las decide una persona con rol en la junta; este script solo registra la decisión (y la anota en
 decisiones.csv). Gates are decided by people; this script records them.
+`puerta` (salvo --decision pendiente) y `cierre --prematuro` congelan antes el tablero del proyecto (tablero.py) en
+03-control/reportes/tableros/ con la decisión; si el congelado falla, la decisión se registra igual y se avisa.
 """
 import argparse, subprocess, json, os, shutil, sys, datetime, re
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -86,8 +90,7 @@ def contexto(proyecto, e, maximo=2000, corte=None):
     def filas(reg):
         p = E.ruta_registro(proyecto, reg)
         if not os.path.exists(p): return []
-        try: return E.leer_csv(p)[1]
-        except Exception: return []
+        return E.leer_csv(p, L)[1]      # ilegible → E.DatosIlegibles (mensaje y código 1), nunca "ninguno"
     def num(x):
         try: return float(x or 0)
         except ValueError: return 0.0
@@ -109,7 +112,8 @@ def contexto(proyecto, e, maximo=2000, corte=None):
          "supuestos_criticos_sin_validar": [f["id"] for f in abiertos.get("supuestos", []) if f.get("criticidad") == "alta" and f.get("validado") != "si"],
          "condiciones_abiertas": [f"{p['tipo']} ({p.get('fecha', '')})" for p in condiciones_abiertas(e)],
          "puertas_pendientes": [f"{p['tipo']} ({p.get('fecha', '')})" for p in pendientes(e)],
-         "excepcion_abierta": recortar(e.get("excepcion_abierta", ""), 40)}
+         "excepcion_abierta": recortar(e.get("excepcion_abierta", ""), 40),
+         "cierre_prematuro": {k: recortar(v, 80) for k, v in E.cierre_prematuro(e).items() if k in ("decision", "fecha", "desde")}}
     try:
         import puertas as PU
         d["proxima_puerta"] = PU.proxima_puerta(e) or ""
@@ -130,6 +134,9 @@ def contexto(proyecto, e, maximo=2000, corte=None):
                               ("puertas_pendientes", "Puertas pendientes", "Pending gates")):
             if d[clave]: x.append(f"{t(es, en)}: {lista_ids(d[clave], k, L)}.")
         if d["excepcion_abierta"]: x.append(t(f"Excepción abierta: {d['excepcion_abierta']}.", f"Open exception: {d['excepcion_abierta']}."))
+        cp = d["cierre_prematuro"]
+        if cp: x.append(t(f"Cierre prematuro desde {cp.get('desde') or '—'} ({cp.get('decision') or 'sin decisión citada'}, {cp.get('fecha') or '—'}).",
+                          f"Premature closure from {cp.get('desde') or '—'} ({cp.get('decision') or 'no decision cited'}, {cp.get('fecha') or '—'})."))
         if d["proxima_puerta"]: x.append(t(f"Próxima puerta: {d['proxima_puerta']} (detalle: puertas.py verificar {d['proxima_puerta']}).",
                                            f"Next gate: {d['proxima_puerta']} (detail: puertas.py verificar {d['proxima_puerta']})."))
         return "\n".join(x)
@@ -175,6 +182,14 @@ def siguiente(e):
         else:
             msg = t("Límite de etapa (SB): informe de fin de etapa, plan de la siguiente etapa, actualizar plan de proyecto, business case, riesgos y lecciones. Puerta: autorizar-etapa (o si es la última etapa: estado.py cierre). Agentes: pm-planificacion + pm-control.",
                     "Stage boundary (SB): end stage report, next stage plan, update project plan, business case, risks and lessons. Gate: autorizar-etapa (or, if last stage: estado.py cierre). Agents: pm-planificacion + pm-control.")
+    elif (fase, proc) == ("cierre", "CP") and E.cierre_prematuro(e):
+        cp = E.cierre_prematuro(e); ref = " ".join(x for x in (cp.get("decision"), cp.get("fecha")) if x)
+        msg = t(f"Cierre prematuro (CP{', ' + ref if ref else ''}): inventario de productos por estado (inventario-cierre-prematuro, control C-08), rescatar lo de valor, dejar en estado seguro lo que haga falta (puede requerir plan de excepción), elevar al negocio las brechas y pedir liberar recursos; después aceptación de lo entregado, recomendaciones de seguimiento, lecciones e informe de fin de proyecto con las razones del cierre. Agente: pm-cierre. Puerta: autorizar-cierre (pm-director).",
+                f"Premature closure (CP{', ' + ref if ref else ''}): product inventory by status (inventario-cierre-prematuro, check C-08), salvage what has value, make safe what needs it (may require an exception plan), raise the gaps to the business and request early release of resources; then acceptance of what was delivered, follow-on actions, lessons and end project report with the reasons for closure. Agent: pm-cierre. Gate: autorizar-cierre (pm-director).")
+        pe = cp.get("plan_excepcion") if isinstance(cp.get("plan_excepcion"), dict) else {}
+        if pe and pe.get("estado") not in ("completado", "cerrado"):
+            msg += " " + t(f"Plan de excepción del cierre {pe.get('artefacto') or ''} ({pe.get('decision') or '—'}) en curso: al terminarlo, pm-director registra estado.py cierre --plan-excepcion completado|cerrado --por \"<rol: nombre>\" (control C-09).",
+                           f"Closure exception plan {pe.get('artefacto') or ''} ({pe.get('decision') or '—'}) in progress: when it ends, pm-director records estado.py cierre --plan-excepcion completado|cerrado --por \"<role: name>\" (check C-09).")
     elif (fase, proc) == ("cierre", "CP"):
         msg = t("Cierre (CP): confirmar aceptación de productos, traspaso a operaciones, evaluar el proyecto contra el PID original, lecciones, plan de revisión de beneficios, informe de fin de proyecto y recomendación de cierre. Agente: pm-cierre. Puerta: autorizar-cierre (pm-director).",
                 "Closing (CP): confirm product acceptance, handover, evaluate against the original PID, lessons, benefits review plan, end project report and closure recommendation. Agent: pm-cierre. Gate: autorizar-cierre (pm-director).")
@@ -194,6 +209,90 @@ def siguiente(e):
         out.append(t(f"Aviso: faltan tolerancias de proyecto ({', '.join(vac)}).", f"Warning: missing project tolerances ({', '.join(vac)})."))
     return "\n".join(out)
 
+NIVELES_CIERRE_PREMATURO = ("junta", "ejecutivo", "capa-negocio")
+
+def cerrar(a, e):
+    """Entrada a CP. Planificado: desde una etapa de entrega (CS o SB). Prematuro (PRINCE2 DP «premature close notice» → CP,
+    pm-knowledge prince2-principios-personas-procesos.md §4.5 y §5.7): desde la iniciación o la entrega, citando la decisión
+    de la junta ya registrada (D-### de nivel junta, ejecutivo o capa de negocio: un rechazo de autorizar-proyecto,
+    autorizar-etapa o autorizar-plan-excepcion, o una decision-ad-hoc). En el pre-proyecto no hay proyecto que cerrar:
+    la junta no autoriza la iniciación (puerta autorizar-inicio rechazado). Deja cierre_prematuro = {fecha, decision,
+    motivo, desde, etapa[, excepcion]} y cierra la excepción abierta que el cierre deja sin efecto."""
+    L = e.get("idioma", "es"); t = lambda es, en: E.t(L, es, en); fase, proc = e["fase"], e["proceso_actual"]
+    if getattr(a, "plan_excepcion", None): return cerrar_plan_excepcion(a, e)
+    if not a.prematuro:
+        if a.decision or a.motivo: sys.exit(t("--decision y --motivo son del cierre prematuro (cierre --prematuro).", "--decision and --motivo belong to premature closure (cierre --prematuro)."))
+        if fase != "entrega": sys.exit(t("El cierre se inicia desde una etapa de entrega (CS o SB); antes, solo un cierre prematuro decidido por la junta (cierre --prematuro --decision D-###).",
+                                         "Closure starts from a delivery stage (CS or SB); earlier, only a premature closure decided by the board (cierre --prematuro --decision D-###)."))
+        e["fase"], e["proceso_actual"] = "cierre", "CP"; e["cierre_prematuro"] = False
+        return
+    if fase == "pre-proyecto":
+        sys.exit(t("En el pre-proyecto no hay proyecto que cerrar: si la junta no autoriza la iniciación, pm-director registra estado.py puerta autorizar-inicio --decision rechazado --por \"<rol: nombre>\" [--motivo \"..\"] (PRINCE2: autorizar la iniciación o no iniciar).",
+                   "In pre-project there is no project to close: if the board does not authorize initiation, pm-director records estado.py puerta autorizar-inicio --decision rechazado (PRINCE2: authorize initiation or do not start)."))
+    if fase not in ("inicio", "entrega"):
+        sys.exit(t(f"El proyecto ya está en {fase}: el cierre prematuro se inicia desde la iniciación o una etapa de entrega.",
+                   f"The project is already in {fase}: premature closure starts from initiation or a delivery stage."))
+    como = t("registrarla primero (pm-director: el rechazo de la puerta, o estado.py puerta decision-ad-hoc --decision aprobado --por \"<rol: nombre>\" --motivo \"cierre prematuro: ..\") y citar su D-### con --decision.",
+             "record it first (pm-director: the gate rejection, or estado.py puerta decision-ad-hoc --decision aprobado --por \"<role: name>\" --motivo \"premature closure: ..\") and cite its D-### with --decision.")
+    if not re.fullmatch(r"D-\d{3,}", (a.decision or "").strip().upper()):
+        sys.exit(t("El cierre prematuro lo ordena la junta: falta --decision D-### con su decisión; ", "Premature closure is ordered by the board: --decision D-### is missing; ") + como)
+    did = a.decision.strip().upper()
+    p = E.ruta_registro(a.proyecto, "decisiones")
+    fila = next((f for f in (E.leer_filas(p) if os.path.exists(p) else []) if f.get("id") == did), None)
+    if fila is None: sys.exit(t(f"{did} no existe en decisiones.csv; el cierre prematuro lo ordena la junta: ", f"{did} does not exist in decisiones.csv; premature closure is ordered by the board: ") + como)
+    if fila.get("nivel") not in NIVELES_CIERRE_PREMATURO:
+        sys.exit(t(f"{did} es de nivel {fila.get('nivel') or '(sin nivel)'}: el cierre prematuro lo decide la junta (o el ejecutivo o la capa de negocio); ",
+                   f"{did} has level {fila.get('nivel') or '(none)'}: premature closure is decided by the board (or the executive or business layer); ") + como)
+    cp = {"fecha": a.fecha or fila.get("fecha") or datetime.date.today().isoformat(), "decision": did,
+          "motivo": a.motivo or fila.get("decision", ""), "desde": f"{fase}/{proc}", "etapa": e["etapa_actual"]["numero"]}
+    if e.get("excepcion_abierta"):          # la decisión de cerrar deja sin efecto el plan de excepción pendiente
+        cp["excepcion"] = e["excepcion_abierta"]; e["excepcion_abierta"] = ""
+    e["fase"], e["proceso_actual"] = "cierre", "CP"; e["cierre_prematuro"] = cp
+
+def cerrar_plan_excepcion(a, e):
+    """`cierre --plan-excepcion completado|cerrado --por …`: fin del plan de excepción aprobado durante el cierre prematuro
+    (cierre_prematuro.plan_excepcion, puerta autorizar-plan-excepcion en CP). completado = el trabajo de rescate o de estado
+    seguro terminó; cerrado = la junta lo da por terminado sin completarlo. Queda en decisiones.csv (nivel junta) y levanta
+    el control C-09 de autorizar-cierre (docs/PUERTAS.md §3.2)."""
+    L = e.get("idioma", "es"); t = lambda es, en: E.t(L, es, en)
+    if a.prematuro or a.decision or a.motivo:
+        sys.exit(t("--plan-excepcion no se combina con --prematuro, --decision ni --motivo (usar --nota).", "--plan-excepcion cannot be combined with --prematuro, --decision or --motivo (use --nota)."))
+    cp = E.cierre_prematuro(e); pe = cp.get("plan_excepcion") if isinstance(cp.get("plan_excepcion"), dict) else {}
+    if (e["fase"], e["proceso_actual"]) != ("cierre", "CP") or not pe:
+        sys.exit(t("No hay plan de excepción del cierre prematuro: se aprueba en CP con estado.py puerta autorizar-plan-excepcion (pm-director).",
+                   "There is no premature closure exception plan: it is approved in CP with estado.py puerta autorizar-plan-excepcion (pm-director)."))
+    if pe.get("estado") in ("completado", "cerrado"):
+        sys.exit(t(f"El plan de excepción {pe.get('artefacto') or ''} ya está {pe['estado']} ({pe.get('fecha_fin') or '—'}).", f"Exception plan {pe.get('artefacto') or ''} is already {pe['estado']} ({pe.get('fecha_fin') or '—'})."))
+    if not (a.por or "").strip():
+        sys.exit(t("Falta --por \"<rol: nombre>\": quién da por completado o cerrado el plan de excepción.", "--por \"<role: name>\" is missing: who records the exception plan as completed or closed."))
+    fecha = a.fecha or datetime.date.today().isoformat()
+    pe.update({"estado": a.plan_excepcion, "fecha_fin": fecha, "por_fin": a.por, **({"nota": a.nota} if a.nota else {})})
+    pe["decision_fin"] = E.anotar_decision(a.proyecto, t(f"plan de excepción del cierre prematuro {pe.get('artefacto') or ''}: {a.plan_excepcion}", f"premature closure exception plan {pe.get('artefacto') or ''}: {a.plan_excepcion}")
+                                           + (f" — {a.nota}" if a.nota else ""), a.por, nivel="junta", contexto=f"{e['fase']}/{e['proceso_actual']}",
+                                           artefactos=pe.get("artefacto", ""), notas="estado.py cierre --plan-excepcion", fecha=fecha)
+
+def plan_excepcion_cierre(e, did, fecha):
+    """autorizar-plan-excepcion aprobado durante un cierre prematuro: el proyecto sigue en CP y el plan queda asociado al
+    cierre (cierre_prematuro.plan_excepcion y la marca `cierre_prematuro` en su artefacto); autorizar-cierre exige
+    completarlo o cerrarlo (C-09). El plan es el último plan-excepcion-* registrado que no se asoció antes a un cierre."""
+    L = e.get("idioma", "es"); t = lambda es, en: E.t(L, es, en)
+    cp = E.cierre_prematuro(e)
+    if not isinstance(e.get("cierre_prematuro"), dict): cp = dict(cp); e["cierre_prematuro"] = cp
+    claves = [k for k in e.get("artefactos", {}) if k.startswith("plan-excepcion")]
+    libres = [k for k in claves if not (e["artefactos"][k] or {}).get("cierre_prematuro")]
+    clave = (libres or claves or [""])[-1]
+    previo = cp.get("plan_excepcion") if isinstance(cp.get("plan_excepcion"), dict) else {}
+    if previo and previo.get("estado") not in ("completado", "cerrado"):
+        print(t(f"Aviso: el plan de excepción anterior del cierre ({previo.get('artefacto')}, {previo.get('decision')}) queda reemplazado por {clave}.",
+                f"Warning: the previous closure exception plan ({previo.get('artefacto')}, {previo.get('decision')}) is replaced by {clave}."))
+        cp.setdefault("planes_excepcion_anteriores", []).append(dict(previo, estado="reemplazado"))
+    cp["plan_excepcion"] = {"artefacto": clave, "decision": did, "fecha": fecha, "estado": "aprobado"}
+    if clave: e["artefactos"][clave]["cierre_prematuro"] = {"decision": did, "fecha": fecha}
+    print(t(f"Plan de excepción {clave} aprobado durante el cierre prematuro ({did}): el proyecto sigue en cierre/CP; autorizar-cierre exige completarlo o cerrarlo "
+            "(estado.py cierre --plan-excepcion completado|cerrado --por …, control C-09).",
+            f"Exception plan {clave} approved during premature closure ({did}): the project stays in closing/CP; autorizar-cierre requires completing or closing it "
+            "(estado.py cierre --plan-excepcion completado|cerrado --por …, check C-09)."))
+
 def registrar_puerta(a, e):
     L = e.get("idioma", "es"); t = lambda es, en: E.t(L, es, en)
     fecha = a.fecha or datetime.date.today().isoformat()
@@ -203,7 +302,9 @@ def registrar_puerta(a, e):
         "autorizar-inicio": fase == "pre-proyecto",
         "autorizar-proyecto": fase == "inicio",
         "autorizar-etapa": (fase == "inicio" and bool(e.get("proyecto_autorizado"))) or (fase, proc) == ("entrega", "SB"),
-        "autorizar-plan-excepcion": (fase, proc) == ("entrega", "SB") or fase == "inicio",
+        # también en un cierre prematuro (PRINCE2 CP, preparar el cierre prematuro: el rescate o el estado seguro pueden
+        # requerir un plan de excepción; el proyecto sigue en CP)
+        "autorizar-plan-excepcion": (fase, proc) == ("entrega", "SB") or fase == "inicio" or ((fase, proc) == ("cierre", "CP") and bool(E.cierre_prematuro(e))),
         "autorizar-cierre": (fase, proc) == ("cierre", "CP"),
         "decision-ad-hoc": True,
     }[a.tipo]
@@ -243,6 +344,7 @@ def registrar_puerta(a, e):
             p["resuelta"] = fecha
     reg = {"tipo": a.tipo, "fecha": fecha, "decision": a.decision, "por": a.por, "condiciones": a.condiciones,
            "etapa": e["etapa_actual"]["numero"]}
+    if getattr(a, "motivo", ""): reg["motivo"] = a.motivo
     if a.forzar: reg["forzada"] = True
     if getattr(a, "_verificacion", None): reg["verificacion"] = a._verificacion
     e["puertas"].append(reg)
@@ -265,6 +367,8 @@ def registrar_puerta(a, e):
             elif any(e["tolerancias"].get("etapa", {}).values()):
                 print(t("Aviso: se conservan las tolerancias de etapa vigentes; si la junta fijó otras para esta etapa, pasarlas con --tol o 'tolerancia --nivel etapa'.",
                         "Warning: current stage tolerances are kept; if the board set different ones for this stage, pass --tol or use 'tolerancia --nivel etapa'."))
+        elif a.tipo == "autorizar-plan-excepcion" and (fase, proc) == ("cierre", "CP") and E.cierre_prematuro(e):
+            pass        # sigue en CP: el plan queda asociado al cierre al anotar la decisión (plan_excepcion_cierre)
         elif a.tipo == "autorizar-plan-excepcion":
             e["fase"], e["proceso_actual"] = ("inicio", "IP") if fase == "inicio" else ("entrega", "CS")
             e["excepcion_abierta"] = ""
@@ -272,17 +376,34 @@ def registrar_puerta(a, e):
             if a.fin: e["etapa_actual"]["fin_previsto"] = a.fin
         elif a.tipo == "autorizar-cierre":
             e["fase"], e["proceso_actual"] = "cerrado", "CP"
-    elif a.decision == "rechazado" and a.tipo in ("autorizar-etapa", "autorizar-plan-excepcion"):
-        print(t("Aviso: rechazo de etapa/plan de excepción. Opciones de la junta: pedir replanificación o cierre prematuro (estado.py cierre --prematuro).",
-                "Warning: stage/exception plan rejected. Board options: request re-planning or premature closure (estado.py cierre --prematuro)."))
     if a.decision != "pendiente":
         ver = getattr(a, "_verificacion", None) or {}
-        nota = f"puerta: {a.tipo}" + (f"; verificación: {ver['lista']}" if ver.get("lista") else "") + \
-               (f"; observaciones: {' | '.join(ver['observaciones'])}" if ver.get("observaciones") else "") + ("; FORZADA" if a.forzar else "")
-        did = E.anotar_decision(a.proyecto, f"{a.tipo}: {a.decision}" + (f" — condiciones: {a.condiciones}" if a.condiciones else ""),
-                                a.por, nivel="junta", contexto=f"{fase}/{proc} etapa {reg['etapa']}",
+        nota = t(f"puerta: {a.tipo}", f"gate: {a.tipo}") + (t(f"; verificación: {ver['lista']}", f"; verification: {ver['lista']}") if ver.get("lista") else "") + \
+               (t(f"; observaciones: {' | '.join(ver['observaciones'])}", f"; observations: {' | '.join(ver['observaciones'])}") if ver.get("observaciones") else "") + (t("; FORZADA", "; FORCED") if a.forzar else "")
+        did = E.anotar_decision(a.proyecto, f"{a.tipo}: {a.decision}" + (t(f" — condiciones: {a.condiciones}", f" — conditions: {a.condiciones}") if a.condiciones else "")
+                                + (t(f" — motivo: {a.motivo}", f" — reason: {a.motivo}") if getattr(a, "motivo", "") else ""),
+                                a.por, nivel="junta", contexto=t(f"{fase}/{proc} etapa {reg['etapa']}", f"{fase}/{proc} stage {reg['etapa']}"),
                                 artefactos=ver.get("lista", ""), notas=nota, fecha=fecha)
         reg["decision_id"] = did
+        if avanza and a.tipo == "autorizar-plan-excepcion" and (fase, proc) == ("cierre", "CP") and E.cierre_prematuro(e):
+            plan_excepcion_cierre(e, did, fecha)
+    # rechazo (PRINCE2 DP, pm-knowledge prince2-principios-personas-procesos.md §4.5): sin iniciación no hay proyecto ni
+    # cierre; un proyecto no autorizado se cierra prematuramente; una etapa o un plan de excepción rechazados se replanifican
+    # o se cierra prematuramente
+    if a.decision == "rechazado" and not avanza:
+        did = reg.get("decision_id", "D-###")
+        if a.tipo == "autorizar-inicio":
+            print(t("Aviso: autorizar-inicio rechazado: el proyecto no se inicia. No hay cierre (CP) que ejecutar: la iniciación no se autorizó y la decisión queda en decisiones.csv.",
+                    "Warning: autorizar-inicio rejected: the project is not initiated. There is no closure (CP) to run: initiation was not authorized and the decision is in decisiones.csv."))
+        elif a.tipo == "autorizar-proyecto":
+            print(t(f"Aviso: proyecto no autorizado: según PRINCE2 se cierra prematuramente (estado.py cierre --prematuro --decision {did}), salvo que la junta pida revisar el PID y volver a presentarlo.",
+                    f"Warning: project not authorized: under PRINCE2 it is closed prematurely (estado.py cierre --prematuro --decision {did}), unless the board asks for a revised PID."))
+        elif a.tipo == "autorizar-plan-excepcion" and (fase, proc) == ("cierre", "CP") and E.cierre_prematuro(e):
+            print(t(f"Aviso: plan de excepción del cierre prematuro rechazado ({did}): el proyecto sigue en cierre/CP; la junta puede pedir otro plan o cerrar sin él (el inventario declara lo que no se deja en estado seguro).",
+                    f"Warning: premature closure exception plan rejected ({did}): the project stays in closing/CP; the board can ask for another plan or close without one (the inventory declares what is not made safe)."))
+        elif a.tipo in ("autorizar-etapa", "autorizar-plan-excepcion"):
+            print(t(f"Aviso: rechazo de etapa/plan de excepción. Opciones de la junta: pedir replanificación o cierre prematuro (estado.py cierre --prematuro --decision {did}).",
+                    f"Warning: stage/exception plan rejected. Board options: request re-planning or premature closure (estado.py cierre --prematuro --decision {did})."))
 
 # ---------------------------------------------------------------- radar de atención y briefing de incorporación
 # Radar: qué hay que decidir, escalar, desbloquear o vigilar al corte, con id, fecha, responsable y siguiente paso (skill o
@@ -306,8 +427,7 @@ ID_REG = re.compile(r"\b(?:R|I|C|D|S|L|ST|Q|A)-\d{3}\b")
 def _filas(proyecto, reg):
     p = E.ruta_registro(proyecto, reg)
     if not os.path.exists(p): return []
-    try: return E.leer_csv(p)[1]
-    except Exception: return []
+    return E.leer_csv(p)[1]             # ilegible → E.DatosIlegibles (mensaje y código 1), nunca una lista vacía
 
 def _cifra(x, L, dec=0):
     s = f"{x:,.{dec}f}"
@@ -319,8 +439,7 @@ def evm_ultimo(proyecto, corte):
     xs = sorted(x for x in glob.glob(os.path.join(proyecto, "03-control", "reportes", "evm-[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9].json"))
                 if os.path.basename(x)[4:14] <= corte)
     if not xs: return None, {}
-    try: return os.path.basename(xs[-1]), json.load(open(xs[-1], encoding="utf-8"))
-    except (OSError, ValueError): return os.path.basename(xs[-1]), {}
+    return os.path.basename(xs[-1]), E.leer_json(xs[-1])   # ilegible → E.DatosIlegibles: un semáforo sin su EVM no se pinta
 
 def radar(proyecto, e, corte=None, rapido=False):
     """Ítems del radar: lista de {grupo, prioridad, regla, id, fecha, responsable, que, siguiente}, ordenada. `rapido` omite
@@ -415,7 +534,7 @@ def radar(proyecto, e, corte=None, rapido=False):
             add(c, ev_archivo[:-5] if ev_archivo else "evm", ev.get("corte"), gestor, t("sin corte de EVM reciente: el pronóstico no se vigila", "no recent EVM cut-off: the forecast is not monitored"),
                 t("evm.py … --proyecto <dir> --guardar --corte AAAA-MM-DD (pm-progreso-reportes)", "evm.py … --proyecto <dir> --guardar --corte YYYY-MM-DD (pm-progreso-reportes)"))
         elif c == "CAM-03" and h["severidad"] in ("ERROR", "AVISO"):
-            cargo = "reserva-riesgo" if "reserva de riesgo" in m.lower() else "presupuesto-cambio"
+            cargo = "reserva-riesgo" if ("reserva de riesgo" in m.lower() or "risk reserve" in m.lower()) else "presupuesto-cambio"
             usado, top = consumo.get(cargo, 0.0), E.monto(pres.get(E.CARGO_PRESUPUESTO[cargo]))
             que = f"{cargo}: {_cifra(usado, L)}" + (f" {t('de', 'of')} {_cifra(top, L)} ({100 * usado / top:.0f} %)" if top else t(" sin presupuesto fijado por la junta", " with no budget set by the board"))
             if h["severidad"] == "ERROR":
@@ -737,13 +856,12 @@ def productos(proyecto, e, corte=None, fuente="auto", alcance="proyecto", must=T
     cambios.csv, decisiones.csv (recepción de paquetes) y las aceptaciones de estado.json. Devuelve un dict con
     `productos`, `conteos` (suman `total`), `discrepancias`, `paquetes` y `must` (requisitos y productos Must sin aceptar).
     Sin `corte` no se filtra por fecha (lo usa la verificación de puertas); las vencidas se miden contra hoy."""
-    import csv
     L = e.get("idioma", "es"); t = lambda es, en: E.t(L, es, en); hoy = corte or datetime.date.today().isoformat(); lim = corte or "9999-12-31"
     pl = os.path.join(proyecto, "02-planificacion")
     univ = {"backlog": [], "wbs": []}
     pb = os.path.join(pl, "backlog.csv")
     if os.path.exists(pb):
-        for b in csv.DictReader(open(pb, encoding="utf-8")):
+        for b in E.leer_filas(pb, L):
             bid = (b.get("id") or "").strip()
             if not bid or "{{" in bid or (b.get("tipo") or "historia").strip().lower() in ("epica", "épica", "epic") or (b.get("estado") or "").startswith("retirada"): continue
             univ["backlog"].append({"id": bid, "clave": (re.match(r"^(\d+-\d+)(?:-|$)", bid) or [None, bid])[1], "titulo": b.get("titulo", ""),
@@ -752,7 +870,7 @@ def productos(proyecto, e, corte=None, fuente="auto", alcance="proyecto", must=T
                                     "pbs": (b.get("producto_pbs") or "").strip(), "_pat": _patron_backlog(bid)})
     pw = os.path.join(pl, "wbs.csv")
     if os.path.exists(pw):
-        filas = [r for r in csv.DictReader(open(pw, encoding="utf-8")) if (r.get("codigo") or "").strip()]
+        filas = [r for r in E.leer_filas(pw, L) if (r.get("codigo") or "").strip()]
         cods = [r["codigo"].strip() for r in filas]
         for r in filas:
             c = r["codigo"].strip()
@@ -852,6 +970,8 @@ def productos(proyecto, e, corte=None, fuente="auto", alcance="proyecto", must=T
             falta = [x for x in prods if x["estado"] not in ("aceptado", "con-concesion")]
             if (falta or not prods) and (alcance in ("", "proyecto", None) or any(x["id"] in ids_sel for x in prods)):
                 must_r.append({"id": q["id"], "productos": [f"{x['clave']} {E.t(L, *ETQ_PRODUCTO[x['estado']])}" for x in falta]})
+    except E.DatosIlegibles:
+        raise
     except BaseException:
         pass
     for p in out: p.pop("grupo", None)
@@ -973,7 +1093,6 @@ def datos_periodo(proyecto, e, desde, corte, proximo="", juicio=None, con_radar=
     con los umbrales de estado.json, calidad con QUA-01…03 y fuera de especificación, alcance con el EVM ágil) o por juicio
     del gestor (marcado), productos aceptados, cambios y fuera de especificación del período, decisiones, iteraciones y el
     bloque del tablero. El juicio puede empeorar un semáforo derivado, nunca mejorarlo."""
-    import csv
     import registro as RG
     L = e.get("idioma", "es"); t = lambda es, en: E.t(L, es, en); j = juicio or {}; jo = j.get("objetivos") or {}
     regs = {r: _filas(proyecto, r) for r in E.REGISTROS}
@@ -992,7 +1111,7 @@ def datos_periodo(proyecto, e, desde, corte, proximo="", juicio=None, con_radar=
     tol = lambda nivel, c: str(((e.get("tolerancias") or {}).get(nivel) or {}).get(c) or "")
     av = []
     p_av = os.path.join(proyecto, "03-control", "reportes", "avance-bmad.csv")
-    if os.path.exists(p_av): av = [f for f in csv.DictReader(open(p_av, encoding="utf-8")) if (f.get("fecha") or "") <= corte]
+    if os.path.exists(p_av): av = [f for f in E.leer_filas(p_av, L) if (f.get("fecha") or "") <= corte]
     pts = lambda f, c: float(f.get(c) or 0)
     derivados = {}   # clave: (rag, pronóstico corto, cifra y umbral, fuente)
     color = lambda s: s if s in ("verde", "ambar", "rojo") else None
@@ -1358,6 +1477,7 @@ def main():
     pu = sub.add_parser("puerta"); pu.add_argument("tipo", choices=E.PUERTAS); pu.add_argument("--decision", required=True, choices=E.DECISIONES_PUERTA)
     pu.add_argument("--por", required=True); pu.add_argument("--condiciones", default=""); pu.add_argument("--fecha"); pu.add_argument("--etapa-nombre", dest="etapa_nombre", default=""); pu.add_argument("--fin", default=""); pu.add_argument("--forzar", action="store_true")
     pu.add_argument("--inicio", default="", help="fecha de inicio de la etapa autorizada (por defecto, la de la puerta)")
+    pu.add_argument("--motivo", default="", help="motivo de la decisión (queda en la puerta y en decisiones.csv; p. ej. de un rechazo)")
     pu.add_argument("--tol", nargs="+", default=None, help="tolerancias de la etapa autorizada: costo=5%% tiempo=1sem …")
     pr = sub.add_parser("presupuesto", help="presupuestos que fija la junta: cambio, riesgo, gestion, limite_autoridad_cambio (montos)")
     pr.add_argument("pares", nargs="+"); pr.add_argument("--por", default=""); pr.add_argument("--fecha")
@@ -1365,6 +1485,13 @@ def main():
     cc.add_argument("--fecha"); cc.add_argument("--por", default="", help="quién verificó el cumplimiento (Rol: Nombre)"); cc.add_argument("--nota", default="")
     le = sub.add_parser("limite-etapa"); le.add_argument("--excepcion", default="")
     ci = sub.add_parser("cierre"); ci.add_argument("--prematuro", action="store_true")
+    ci.add_argument("--decision", default="", help="con --prematuro: D-### de la decisión de la junta que ordena el cierre (obligatorio)")
+    ci.add_argument("--motivo", default="", help="con --prematuro: motivo (por defecto, el texto de la decisión)")
+    ci.add_argument("--fecha", help="con --prematuro: fecha del cierre prematuro (por defecto, la de la decisión); con --plan-excepcion: fecha de fin del plan")
+    ci.add_argument("--plan-excepcion", dest="plan_excepcion", choices=["completado", "cerrado"], default=None,
+                    help="en un cierre prematuro: fin del plan de excepción aprobado en CP (C-09); con --por (pm-director)")
+    ci.add_argument("--por", default="", help="con --plan-excepcion: quién lo registra (Rol: Nombre)")
+    ci.add_argument("--nota", default="", help="con --plan-excepcion: nota (p. ej. qué quedó en estado seguro)")
     a = ap.parse_args()
     if a.cmd in SOLO_LECTURA or (a.cmd == "periodo" and a.tablero is None): return ejecutar(a)
     with E.bloqueo(a.proyecto):          # lectura, cambio y escritura de estado.json (y decisiones.csv) sin pisar a otro proceso
@@ -1566,6 +1693,7 @@ def ejecutar(a):
     elif a.cmd == "aprobar":
         aprobar(a, e)
     elif a.cmd == "puerta":
+        previo = tablero_previo(a, e)
         registrar_puerta(a, e)
     elif a.cmd == "presupuesto":
         pares = kv(a.pares)
@@ -1595,10 +1723,50 @@ def ejecutar(a):
         if e["fase"] != "entrega": sys.exit(t("limite-etapa solo en etapas de entrega.", "limite-etapa only during delivery stages."))
         e["proceso_actual"] = "SB"; e["excepcion_abierta"] = a.excepcion
     elif a.cmd == "cierre":
-        if e["fase"] not in ("entrega",): sys.exit(t("El cierre se inicia desde una etapa de entrega (CS o SB).", "Closure starts from a delivery stage (CS or SB)."))
-        e["fase"], e["proceso_actual"] = "cierre", "CP"; e["cierre_prematuro"] = a.prematuro
+        previo = tablero_previo(a, e)
+        cerrar(a, e)
     guardar(a.proyecto, e); print("ok")
+    if a.cmd in ("puerta", "cierre"): congelar_tablero(a, e, previo)
     if a.cmd in ("puerta", "limite-etapa", "cierre"): print(siguiente(e))
+
+# ---------------------------------------------------------------- congelado automático del tablero (tablero.py, SPEC §1.10.17)
+def _aviso_tablero(e, x):
+    L = e.get("idioma", "es")
+    print(E.t(L, f"AVISO: no se pudo congelar el tablero ({str(x)[:200]}); la decisión quedó registrada igual. Para dejar constancia del estado: "
+                 "tablero.py --proyecto <dir> congelar --etiqueta \"…\" (reflejará el estado posterior a la decisión).",
+              f"WARNING: the board could not be frozen ({str(x)[:200]}); the decision was recorded anyway. To keep a record of the state: "
+                 "tablero.py --proyecto <dir> congelar --etiqueta \"…\" (it will reflect the state after the decision)."))
+
+def tablero_previo(a, e):
+    """Tablero tal como está ANTES de aplicar la decisión de una puerta (salvo `pendiente`) o de un cierre prematuro; se
+    escribe después, con la decisión ya conocida (congelar_tablero). Si falla: aviso y None (no frena la gobernanza)."""
+    if a.cmd == "puerta" and a.decision == "pendiente": return None
+    if a.cmd == "cierre" and (not a.prematuro or getattr(a, "plan_excepcion", None)): return None
+    try:
+        import tablero as TB
+        return TB.construir(a.proyecto, corte=a.fecha or datetime.date.today().isoformat())
+    except (Exception, SystemExit) as x:
+        _aviso_tablero(e, x); return None
+
+def congelar_tablero(a, e, previo):
+    """Escribe la instantánea calculada por tablero_previo en 03-control/reportes/tableros/ (mecanismo común, bitácora)
+    con la decisión en el bloque `instantanea`. Un fallo es un aviso: la decisión ya quedó registrada."""
+    if previo is None: return
+    L = e.get("idioma", "es"); t = lambda es, en: E.t(L, es, en)
+    try:
+        import tablero as TB
+        if a.cmd == "puerta":
+            reg = e["puertas"][-1]
+            iid, rj, rh = TB.congelar(a.proyecto, t(f"{a.tipo} · etapa {reg.get('etapa')}", f"{a.tipo} · stage {reg.get('etapa')}"), por=a.por, datos=previo,
+                                      fecha=reg.get("fecha"), tipo="puerta", puerta=a.tipo, etapa=reg.get("etapa"), decision=a.decision,
+                                      decision_id=reg.get("decision_id", ""), motivo=getattr(a, "motivo", "") or "")
+        else:
+            cp = E.cierre_prematuro(e)
+            iid, rj, rh = TB.congelar(a.proyecto, t("cierre prematuro", "premature closure"), datos=previo, fecha=cp.get("fecha"), tipo="cierre-prematuro",
+                                      etapa=cp.get("etapa"), decision="cierre-prematuro", decision_id=cp.get("decision", ""), motivo=cp.get("motivo", ""))
+        print(t(f"Tablero congelado antes de la decisión: {rj} (y .html)", f"Board frozen before the decision: {rj} (and .html)"))
+    except (Exception, SystemExit) as x:
+        _aviso_tablero(e, x)
 
 if __name__ == "__main__":
     main()

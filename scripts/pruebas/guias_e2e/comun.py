@@ -59,7 +59,7 @@ def escribir_csv(ruta, cab, filas):
 
 def reg_json(repo, *a):
     import json as _j
-    r = subprocess.run(["python3", f"{EST}/registro.py", "--proyecto", G, *a, "--json"], cwd=repo, capture_output=True, text=True, check=True)
+    r = subprocess.run([PY, f"{EST}/registro.py", "--proyecto", G, *a, "--json"], cwd=repo, capture_output=True, text=True, check=True)
     return _j.loads(r.stdout)
 
 MAPAS = f"{RAIZ}/skills/pm-mapas-estrategicos/scripts/mapas.py"
@@ -139,7 +139,7 @@ def servidores_prueba():
                     continue
                 c = x.upper()
                 if c.startswith(("EHLO", "HELO")): w("250 servidor-de-prueba")
-                elif c.startswith("RCPT TO"): m["rcpt"].append(x); w("250 OK")
+                elif c.startswith("RCPT TO"): m["rcpt"].append("rcpt to:" + x[8:]); w("250 OK")   # verbo en minúsculas: smtplib 3.9 envía «rcpt TO:», 3.13 «rcpt to:»
                 elif c == "DATA": datos = []; w("354 fin con .")
                 elif c == "QUIT": w("221 adios"); break
                 else: w("250 OK")
@@ -196,9 +196,22 @@ def kb_omitido(paso):
 
 def sin_variables_kb(texto):
     """Lo que cambia en cada corrida se enmascara (como la bitácora en g4): fecha y hora del indexado, fechas reales de
-    la bitácora en la historia de una fila, puerto y token de la sesión de `pm-kb servir`."""
+    la bitácora en la historia de una fila, puerto y token de la sesión de `pm-kb servir`; de un enlace compartido, su
+    token, su id, quién lo creó (el usuario del sistema), las fechas de creación, vencimiento y último uso; la fecha desde
+    la que vale la ubicación de una ficha (la del indexado); y, en la línea del tablero publicado por `indexar` y en la
+    ficha (que usan el día de la corrida como corte), el corte y los totales de atención."""
     texto = re.sub(r"indexado \d{4}-\d{2}-\d{2}T[\d:.]+(?:[+-]\d{2}:\d{2})?", "indexado <fecha y hora del indexado>", texto)
     texto = re.sub(r"^(\s*#\d+) \d{4}-\d{2}-\d{2} ", r"\1 <fecha real> ", texto, flags=re.M)
+    texto = re.sub(r"(/v#)[A-Za-z0-9_\-]+", r"\1<token del enlace>", texto)
+    texto = re.sub(r"\be-[0-9a-f]{8}\b", "e-<id>", texto)
+    texto = re.sub(r"\bvence \d{4}-\d{2}-\d{2} \d{2}:\d{2}", "vence <fecha y hora>", texto)
+    texto = re.sub(r"\bcreado \d{4}-\d{2}-\d{2} por \S+ \(línea de comandos\)", "creado <fecha> por <usuario del sistema> (línea de comandos)", texto)
+    texto = re.sub(r"\búltimo \d{4}-\d{2}-\d{2} \d{2}:\d{2}", "último <fecha y hora>", texto)
+    texto = re.sub(r"^(ubicación \([^)\n]*\): [^\n]* · desde )\d{4}-\d{2}-\d{2}$", r"\1<fecha del indexado>", texto, flags=re.M)
+    hoy = datetime.date.today().isoformat()
+    texto = re.sub(r"^(en el tablero \(versión \d+, corte )" + hoy + r"\)", r"\1<día de la corrida>)", texto, flags=re.M)
+    texto = re.sub(r"(publicado · versión \d+(?: \(sin cambios\))? · corte )" + hoy + r"( · [^·\n]* · etapa [^·\n]* · atención: )[^·\n]+",
+                   r"\1<día de la corrida>\2<al día de la corrida> ", texto)
     return re.sub(r"http://localhost:\d+/ingresar\?token=\S+", "http://localhost:<puerto>/ingresar?token=<token de la sesión>", texto)
 
 def kb(args, repo, **kw):
@@ -207,15 +220,60 @@ def kb(args, repo, **kw):
     c_, o_ = LOG[-1]; LOG[-1] = (c_, sin_variables_kb(o_)); print("$", c_); print(LOG[-1][1]); print()
     return out
 
+def kb_pie(pg):
+    """El pie del portal muestra la fecha y hora del indexado: se enmascara en la captura como en la evidencia."""
+    pg.locator("#pie", has_text="indexado").wait_for()   # sin wait_for_function: la CSP de pm-kb no admite eval
+    pg.evaluate("const p = document.querySelector('#pie'); p.textContent = p.textContent.replace(/indexado [0-9-]+ [0-9:]+/g, 'indexado <fecha y hora>')")
+
+
+VISTA_KB = {"width": 1280, "height": 720}     # capturas del portal: 1920×1080 con device_scale_factor 1,5
+
+
 def kb_capturas(proyecto, pasos):
-    """Sirve la interfaz web (`pm-kb servir` en un puerto libre de 127.0.0.1), ingresa con el enlace de la sesión y
-    captura con playwright cada pantalla de `pasos`: lista de (png, función(página, url_base)). Cierra el servidor al
-    terminar. Sin playwright, se omiten las capturas con un aviso."""
-    import socket, select, time as _t
+    """Sirve la interfaz web (`pm-kb servir` en un puerto libre de 127.0.0.1), ingresa con el enlace de la sesión (abre la
+    cartera) y captura con playwright cada pantalla de `pasos`: lista de (png, función(página, url_base)); si la función
+    devuelve otra página (por ejemplo, la de un contexto limpio para un enlace compartido), se captura esa. Cierra el
+    servidor al terminar. Sin playwright, se omiten las capturas con un aviso."""
     try:
         from playwright.sync_api import sync_playwright
     except ImportError:
         print("AVISO: playwright no está instalado; se omiten las capturas de pm-kb"); return []
+    kb_exclusivo_inicio()
+    try:
+        return _kb_capturas(proyecto, pasos, sync_playwright)
+    finally:
+        kb_exclusivo_fin()
+
+
+_KB_EXCL = {"n": 0, "f": None}
+
+
+def kb_exclusivo_inicio():
+    """Toma el uso exclusivo de pm-kb entre las guías que corren a la vez sobre la misma base (integración cruzada):
+    E2E-1 y E2E-3 indexan y quitan el mismo proyecto, y `pm-kb servir` revoca la sesión local anterior al arrancar.
+    Bloqueo de archivo entre procesos, reentrante dentro del proceso; se libera con kb_exclusivo_fin() o al terminar.
+    Sin fcntl (Windows) no bloquea: las guías de a una no lo necesitan."""
+    if _KB_EXCL["n"] == 0:
+        try:
+            import fcntl
+            d = os.path.join(os.path.expanduser("~"), ".cache", "pm-method")   # no TMPDIR: correr.py fija uno por guía
+            os.makedirs(d, exist_ok=True)
+            f = open(os.path.join(d, "guias-kb.lock"), "w")
+            fcntl.flock(f, fcntl.LOCK_EX)
+            _KB_EXCL["f"] = f
+        except ImportError:
+            pass
+    _KB_EXCL["n"] += 1
+
+
+def kb_exclusivo_fin():
+    _KB_EXCL["n"] = max(0, _KB_EXCL["n"] - 1)
+    if _KB_EXCL["n"] == 0 and _KB_EXCL["f"]:
+        _KB_EXCL["f"].close(); _KB_EXCL["f"] = None
+
+
+def _kb_capturas(proyecto, pasos, sync_playwright):
+    import socket, select, time as _t
     s = socket.socket(); s.bind(("127.0.0.1", 0)); puerto = s.getsockname()[1]; s.close()
     env = {**os.environ, "NO_PROXY": "127.0.0.1,localhost", "no_proxy": "127.0.0.1,localhost", "PYTHONUNBUFFERED": "1"}
     pr = subprocess.Popen([KB, "servir", "--puerto", str(puerto)], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, env=env)
@@ -231,10 +289,12 @@ def kb_capturas(proyecto, pasos):
         base_url = enlace.split("/ingresar")[0]
         with sync_playwright() as p:
             b = p.chromium.launch()
-            pg = b.new_page(viewport={"width": 1280, "height": 720}, device_scale_factor=1.5, color_scheme="light")
-            pg.goto(enlace); pg.wait_for_selector("#q")
+            pg = b.new_page(viewport=VISTA_KB, device_scale_factor=1.5, color_scheme="light")
+            pg.set_default_timeout(90000)     # con las cinco guías en paralelo (integración cruzada), el servicio puede tardar
+            pg.goto(enlace); pg.wait_for_selector(".cartera")      # el ingreso abre la cartera
             for png, accion in pasos:
-                accion(pg, base_url); pg.screenshot(path=png); hechas.append(png)
+                otra = accion(pg, base_url)                     # una acción puede devolver otra página (p. ej., un navegador limpio)
+                (otra or pg).screenshot(path=png); hechas.append(png)
             b.close()
     finally:
         pr.terminate()

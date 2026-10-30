@@ -1,4 +1,4 @@
-# Arquitectura · pm-method 2.6.0
+# Arquitectura · pm-method 2.7.0
 
 Este documento explica cómo está construido pm-method y por qué: las capas y su precedencia, el reparto entre agente
 orquestador y subagentes, las herramientas que usan las skills, los comandos, la carga progresiva del contexto y el
@@ -330,7 +330,7 @@ la descripción local u ocultar la externa con `skillOverrides`.
   sesión, un resumen derivado de esos archivos (no guardado: se calcula cada vez). Ver `docs/INSTALACION.md` §9.1.
 - **Sincronización con la especificación:** fuente única + fachada de lectura (`especificacion.py`) + traspaso de
   decisiones (`bmad.py handoff`). Ver `docs/sincronizacion.md`.
-- **Controles permanentes:** `sanidad.py` (101 códigos en 14 familias, incluidas STK, DEC (decisiones) y BIT (bitácora de escrituras), con la cadencia de contacto y las
+- **Controles permanentes:** `sanidad.py` (104 códigos en 15 familias, incluidas STK, DEC (decisiones), BIT (bitácora de escrituras) y DAT (datos ilegibles), con la cadencia de contacto y las
   personas de usuario, CAM de cambios contra presupuestos, QUA de calidad a volumen, TOL de pronóstico contra
   tolerancias, SUP de supuestos críticos y MAP de mapas estratégicos, más REG-09 de revisión de riesgos vencida, REG-10
   de opciones y plan de contingencia y REG-11 y REG-12 del ciclo de las lecciones), el radar de atención (`estado.py
@@ -358,7 +358,7 @@ filas (ids repetidos y lectores que veían el archivo truncado). Desde 2.5.1:
 - **Id dentro del bloqueo**: el archivo se relee ya bloqueado y el siguiente id se calcula sobre esa lectura.
 - **Escritura atómica** (`esquema.escribir_atomico`, y sobre ella `escribir_csv` y `escribir_json`): temporal oculto en la
   misma carpeta (`.<archivo>.<pid>.<azar>.tmp`), `flush` + `fsync`, `os.replace` y `fsync` de la carpeta en POSIX. Mismos
-  bytes que antes (UTF-8, CRLF de `csv` en los CSV, `indent=2` sin salto final en `estado.json`, columnas en el mismo
+  bytes que antes (UTF-8 sin BOM, CRLF de `csv` en los CSV, `indent=2` sin salto final en `estado.json`, columnas en el mismo
   orden) y mismos permisos del archivo existente. Un lector ve el archivo anterior o el nuevo, nunca uno a medias; si el
   proceso muere antes del reemplazo, el archivo anterior queda intacto y puede quedar el temporal oculto, que ningún
   script lee (no termina en `.csv` ni `.json`) y se puede borrar.
@@ -402,7 +402,7 @@ lock and files are replaced atomically with identical bytes. Two git branches or
 ### 9.2 Bitácora de escrituras y propuestas con huella
 
 - **Bitácora** (`<proyecto>/.bitacora.jsonl`, SPEC §1.10.16): `esquema.escribir_atomico`, el punto común de 2.5.1,
-  reconoce si escribe `estado.json`, un registro o una propuesta, lee los bytes anteriores y, después del reemplazo
+  reconoce si escribe `estado.json`, un registro, una propuesta o una instantánea del tablero (§9.5), lee los bytes anteriores y, después del reemplazo
   atómico, agrega una línea bajo el mismo bloqueo (reentrante): qué script y subcomando, ids y campos antes → después
   (sin valores de interesados ni confidenciales), `--por`, sha256 antes y después y sha256 de la línea anterior. Ningún
   script tiene que cambiar para quedar anotado; los que conocen más (aprobar una propuesta) lo precisan con
@@ -433,8 +433,8 @@ la persistencia:
   manda la carpeta. Las versiones salen de `estado.json.artefactos`, las copias de `historial/` y `decisiones.csv`; las
   relaciones, de los ids de los registros; la historia, de la bitácora (ya sin valores sensibles). Nunca se indexan los
   datos de contacto ni las valoraciones confidenciales de los interesados.
-- **Solo lectura.** La web, el MCP (`buscar`, `contexto`, `ficha`, `relaciones`, `documento`, `versiones`, `cambios`,
-  `estado_indice`) y la línea de comandos solo consultan, con RLS por proyecto y circulación y la cita de cada dato. Un
+- **Solo lectura.** El portal web (§9.6), el MCP (`buscar`, `contexto`, `ficha`, `relaciones`, `documento`,
+  `versiones`, `cambios`, `tablero`, `estado_indice`) y la línea de comandos solo consultan, con RLS por proyecto y circulación y la cita de cada dato. Un
   agente que encuentra algo para cambiar no escribe: propone con `registro.py proponer` y una persona aprueba con
   `aprobar --por` (§9.2); los scripts escriben, la bitácora lo anota y el próximo `indexar` lo refleja. Para el agente,
   lo que devuelve pm-kb es evidencia, no instrucciones.
@@ -476,7 +476,94 @@ flowchart TB
 Fuente y SVG: `docs/diagramas/pm-kb.mmd` · `pm-kb.svg`. EN: *pm-kb is an optional, derived and read-only index of the
 project folder; agents read cited evidence through MCP and propose changes that a person approves through the scripts.*
 
+### 9.4 Datos ilegibles y codificación
+
+Un archivo de datos que no se puede leer de forma fiable nunca se interpreta como vacío: un registro ilegible no es
+"ningún riesgo abierto" ni un semáforo verde. La lectura está en `esquema.py` y la usan todos los scripts:
+
+- **`esquema.DatosIlegibles`** (deriva de `SystemExit`): lleva el archivo, el motivo y qué hacer. Python imprime el
+  mensaje sin traza y el script termina con código 1; ninguna escritura empieza antes de leer, así que no se reescribe
+  nada. Como no es una `Exception`, los `except Exception` de las comprobaciones de solo lectura (radar, verificación de
+  puertas) no lo tragan. El mensaje sale en el idioma de `estado.json` cuando se puede leer, y en español e inglés cuando
+  no (por ejemplo, con el propio `estado.json` roto).
+- **`leer_texto`, `leer_json` y `leer_csv` / `leer_filas`**: UTF-8 con o sin BOM (Excel «CSV UTF-8» lo agrega); otra
+  codificación (cp1252, Latin-1) es un dato ilegible, no se adivina. `leer_csv` es estricto: una comilla sin cerrar, una
+  fila con más o menos campos que el encabezado o una columna repetida en el encabezado lo detienen con la línea; así
+  `registro.py` no reescribe "normalizado" un archivo roto. Las líneas vacías se ignoran.
+- **`cargar_estado`**: además de JSON válido, exige que `estado.json` sea un objeto y que `puertas`, `artefactos`,
+  `roles`, `tolerancias`, `presupuestos`, `integraciones`, `etapa_actual`, `agil` y `umbrales_riesgo` tengan su tipo
+  (`TIPOS_ESTADO`); lee y cierra el archivo antes de migrar.
+- **Escritura**: `escribir_csv` reescribe siempre en UTF-8 sin BOM, fin de línea CRLF y las columnas en orden; un CSV
+  con BOM queda sin BOM en la primera escritura de un script (es el formato canónico y el de las huellas de la bitácora).
+- **Sanidad**: un registro u otro archivo de datos ilegible es **DAT-01** (ERROR) y la sanidad sigue con el resto; los
+  controles que dependen de ese archivo no se evalúan. Con `estado.json` ilegible no hay comprobaciones: mensaje y
+  código 1. `puertas.py` toma DAT-01 como bloqueo (S-DAT-01), igual que cualquier ERROR de la sanidad, y si la sanidad no
+  devuelve resultado lo trata como bloqueo, no como "sin errores".
+- **Hook de inicio**: un `estado.json` ilegible junto a `03-control/`, una sanidad que no devuelve resultado o un
+  `contexto` que termina con error producen una línea «pm-method · AVISO» con el motivo; la sesión empieza igual.
+- **Salida en consolas que no son UTF-8** (`esquema.salida_utf8`, al importar el núcleo; los scripts autónomos y los
+  hooks la repiten): si `stdout` o `stderr` no están en UTF-8 (Windows al canalizar la salida: cp1252), se reconfiguran a
+  UTF-8. Los consumidores de esa salida (Claude Code, Hermes, los hooks y los scripts que llaman a otros con
+  `subprocess.run(..., encoding="utf-8")`) leen UTF-8; con la codificación local, un «→» o un «≥» cortaba el comando con
+  `UnicodeEncodeError`. Equivale a `PYTHONUTF8=1` solo para la salida. Los hooks leen su entrada JSON en UTF-8 (lo que
+  envía Claude Code), no con la codificación de la consola: con cp1252, una ruta con «Í» no se decodificaba y el
+  guardián dejaba pasar la escritura. [verificar en Windows real: que la tubería de Claude Code use cp1252 y que la
+  salida en UTF-8 se vea bien].
+
+EN: *unreadable data (wrong encoding, malformed CSV, invalid or mistyped `estado.json`) stops the command with a
+bilingual message, exit code 1 and nothing rewritten; health check reports DAT-01; registers are read as UTF-8 with or
+without BOM and rewritten as UTF-8 without BOM; output is forced to UTF-8 on non-UTF-8 consoles.*
+
 ---
+
+### 9.5 Tablero del proyecto y lecturas sin escritura
+
+- **Generador en el núcleo** (`skills/pm-estado-proyecto/scripts/tablero.py`, formato `pm-tablero/1`, SPEC §1.10.17):
+  una vista derivada sin datos propios que llama en el mismo proceso a `estado.datos_radar`, `estado.productos`,
+  `puertas.estado_puertas` y `registro.listar_propuestas`; la verificación de la próxima puerta (que corre
+  `sanidad.py --rapido`) se hace una sola vez por tablero. El formato lo define el método: pm-kb lo consume
+  (`generar --json`) y lo sirve, pero el tablero también existe sin pm-kb, como JSON o como HTML estático.
+- **Historial en la carpeta del proyecto:** `estado.py puerta` y `cierre --prematuro` calculan el tablero antes de
+  aplicar la decisión y lo escriben después, con la decisión, en `03-control/reportes/tableros/` (`tablero.congelar`,
+  bajo el bloqueo del proyecto, con `escribir_atomico` y una línea de bitácora por archivo). Si se reconstruye el índice
+  de pm-kb, el historial no se pierde.
+- **Lecturas sin escritura:** `estado.py radar|productos|contexto`, `puertas.py estado`, `registro.py propuestas` y
+  `tablero.py generar` no toman el bloqueo ni escriben, y funcionan sobre una carpeta de solo lectura (montaje de solo
+  lectura en Docker, copia sin permisos). Para eso la sanidad sin `--reparar` evalúa vacío un registro base que falta
+  (REG-01) en lugar de crearlo, y la caché derivada `spec-index.json` se usa en memoria cuando no se puede escribir.
+  `tablero.py generar` además fija `PM_SOLO_LECTURA=1` mientras calcula (lo heredan los subprocesos): la caché no se
+  guarda y cualquier escritura por el mecanismo común termina con un mensaje en lugar de tocar la carpeta. El bloqueo de
+  las escrituras no cambia (§9.1).
+
+EN: the project board generator lives in the core (`tablero.py`, `pm-tablero/1`); each gate decision freezes the board
+as it was before the decision into `03-control/reportes/tableros/` (write log, immutable). Read commands take no lock and
+write nothing, so they work on a read-only project folder.
+
+### 9.6 Portal de pm-kb (opcional)
+
+El portal es la cara web de pm-kb (`pm-kb servir`, [PM-KB §11](PM-KB.md#11-interfaces)): cartera de proyectos y, por
+proyecto, Tableros, Buscar, Artefactos (con los documentos de las skills externas) y Preguntar. Reparte el trabajo así:
+
+| Pieza | Quién | Qué hace |
+|---|---|---|
+| Tablero e instantáneas | núcleo de pm-method (`tablero.py`, §9.5) | genera `pm-tablero/1` (solo lectura) y congela el historial en la carpeta en cada puerta; define el filtro por actor (API pública `construir`, `actores`, `filtrar_actor`, `comparar`) |
+| Publicación | pm-kb (`pmkb/tablero.py`) | ejecuta `tablero.py generar --json` con `PM_SOLO_LECTURA=1` y `listar --json`, lee las instantáneas y las guarda en `pmkb.tablero` y `pmkb.instantanea` en una transacción, con la poda por circulación; la llaman `indexar`, `vigilar`, `pm-kb tablero` y «actualizar ahora» |
+| Ids estables y movimientos | pm-kb (`pmkb/enlaces.py`) | resuelve cada id (fila, clave de artefacto, `doc_id`) a su ubicación vigente y registra los movimientos; `pm-kb enlaces` sugiere el comando de pm-method que corrige una ruta, nunca la escribe |
+| Pantallas | `pmkb/web.py` y `pmkb/estatico/` | una sola página (`index.html` con `comun.js`, `app.js` y `tablero.js`) para el personal con token; `compartido.html` y `compartido.js` para un enlace compartido; CSP `script-src 'self'` y todo el texto como texto |
+| Documentos | `pmkb/documentos.py` | lista los HTML del proyecto con el motor que los produjo y los sirve en un `iframe` con `sandbox`, con su propia CSP aislada y la ruta siempre dentro de la carpeta indexada |
+| Mantenerlo al día | `pm-kb vigilar` | reindexa y publica ante cada cambio de un documento; como servicio de usuario en WSL2 (`docs/servicios/pm-kb-vigilar@.service`) o como servicio `pm-kb-vigilar` del perfil `kb` de Docker |
+
+Las dos reglas de §9.3 siguen en pie: el portal nunca escribe en la carpeta del proyecto. Sus únicas escrituras van al
+índice: «actualizar ahora» (el tablero de un proyecto, con la conexión del dueño, solo para tokens personales), y las
+sesiones y los usos de los enlaces compartidos, a través de funciones `SECURITY DEFINER` de la base. Un enlace
+compartido (`pm-kb compartir`) es una tabla aparte de los tokens (`pmkb.enlace`): un proyecto, un tablero (actual o una
+instantánea), un actor opcional y un vencimiento; el token viaja en el fragmento de la URL y se canjea por una sesión
+con id propio ([SEGURIDAD §14](SEGURIDAD.md#14-pm-kb-índice-de-conocimiento-2026-10-28)). Sin pm-kb, el tablero existe
+igual como JSON o HTML estático del núcleo.
+
+EN: *pm-kb's web portal publishes the board that pm-method's core generates (read-only) and its frozen snapshots, links
+every card to a record by stable id, shows external skill documents in sandboxed iframes and offers expiring read-only
+share links; it never writes to the project folder.*
 
 ## 10. Flujo de orquestación
 

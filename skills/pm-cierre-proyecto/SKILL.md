@@ -1,7 +1,7 @@
 ---
 name: pm-cierre-proyecto
 description: "Cierre planificado o prematuro: aceptación, handover, informe final. Usar: cerrar proyecto, cierre prematuro, closeout, end project report. No: lecciones→pm-lecciones-aprendidas."
-version: 2.6.0
+version: 2.7.0
 author: pm-method
 license: MIT
 metadata:
@@ -40,7 +40,7 @@ metadata:
 - Si falta algo, declararlo; no inventar aceptaciones ni cifras.
 
 ## Procedimiento
-1. **Situar y elegir ruta**: fin de la etapa final (planificado) o decisión de la junta (prematuro). Entrar a CP con `python3 ${CLAUDE_SKILL_DIR}/../pm-estado-proyecto/scripts/estado.py --proyecto <dir> cierre` o `cierre --prematuro` (si pm-director no lo ejecutó); si `fase` ya es `cierre`, no repetir. Resumir con `registro.py resumen` y `listar <registro> --abiertos`.
+1. **Situar y elegir ruta**: fin de la etapa final (planificado) o decisión de la junta (prematuro). Entrar a CP con `python3 ${CLAUDE_SKILL_DIR}/../pm-estado-proyecto/scripts/estado.py --proyecto <dir> cierre` o `cierre --prematuro --decision D-###` (D-### de la junta; si pm-director no lo ejecutó); si `fase` ya es `cierre`, no repetir. Resumir con `registro.py resumen` y `listar <registro> --abiertos`.
 2. **Preparar** el cierre planificado o el prematuro (inventario por estado y rescate; guía §2–§3).
 3. **Confirmar la aceptación**: `estado.py --proyecto <dir> productos` cruza `calidad.csv`, aceptaciones y paquetes y lista los Must sin aceptar (C-07; guía §4). Aceptación **por requisito** con la cobertura de la fachada (`listar requisitos`); con BMAD, además `bmad.py verificar` limpio y sin traspasos pendientes: cada FR/NFR aceptado, no aceptado o con concesión, citando ids (guía §4.1).
 4. **🔒 Puerta humana — aceptación**: el usuario sénior acepta contra los criterios de la descripción del producto del proyecto (dos evidencias); el ejecutivo confirma. `04-cierre/registro-aceptacion.md` `en-revision` y, con ambas confirmaciones escritas, `estado.py aprobar registro-aceptacion --por "Usuario sénior: ..; Ejecutivo: .."`. Como subagente, la confirmación se pide en el bloque de retorno.
@@ -58,7 +58,7 @@ metadata:
 2. [PRINCE2] Desviación fuera de tolerancia → `pm-director`; productos sin aceptación formal → hueco declarado; nada se disimula.
 3. [PRINCE2] Nada se da por aprobado sin acto humano registrado: aceptación (usuario sénior + ejecutivo, `estado.py aprobar registro-aceptacion`) y autorización del cierre (`estado.py puerta autorizar-cierre`, solo pm-director).
 4. [PRINCE2] Al cerrar se transfiere al negocio, con dueño: riesgos residuales, seguimiento, revisiones de beneficios y datos; el informe compara la línea base original del PID con la vigente.
-5. [PRINCE2] En cierre prematuro: inventariar, rescatar valor, dejar en estado seguro (puede requerir plan de excepción), elevar brechas y pedir liberar recursos; el proceso de cierre se ejecuta igual.
+5. [PRINCE2] En cierre prematuro: inventariar (C-08), rescatar valor, dejar en estado seguro (puede requerir plan de excepción), elevar brechas y pedir liberar recursos; el proceso de cierre se ejecuta igual.
 6. [PRINCE2] Las revisiones de beneficios post-proyecto se planifican con dueño del negocio y fecha; ejecutarlas no es actividad del proyecto.
 7. [PRINCE2] El gestor prepara y recomienda; la junta autoriza y el ejecutivo notifica. Entrada a CP: `estado.py cierre [--prematuro]`; salida: la puerta de pm-director.
 8. [PRINCE2] La aceptación cubre cada requisito en línea base según la cobertura de la fachada; un requisito no terminado es concesión o seguimiento, nunca "aceptado".
@@ -88,7 +88,7 @@ metadata:
 
 ## Escalamiento y excepciones
 - Producto que no será aceptado o costo/plazo final fuera de tolerancia de proyecto → informe de excepción a `pm-director` antes de recomendar el cierre.
-- Cierre prematuro con trabajo de aseguramiento → plan de excepción (`pm-plan-etapa-y-limites`) y `autorizar-plan-excepcion`.
+- Cierre prematuro con trabajo de aseguramiento → plan de excepción (`pm-plan-etapa-y-limites`) y `autorizar-plan-excepcion`, sin salir de CP (C-09; guía §2).
 - Usuario sénior que no acepta o condiciona → issue, negociar condiciones, escalar al ejecutivo; no cerrar hasta decidir.
 - Contrato en disputa → `pm-adquisiciones`; beneficio sin dueño → ejecutivo.
 - Como subagente: aceptación, autorización y envíos se devuelven como "decisiones humanas requeridas" en el bloque de retorno (SPEC §1.11).

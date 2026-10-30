@@ -1,5 +1,5 @@
 pm-method · spot para LinkedIn · guion de locución con tiempos
-Duración total: 54.3 s · 1080×1350 · español (es-419), tono claro y seguro, ritmo ágil.
+Duración total: 56.5 s · 1080×1350 · español (es-419), tono claro y seguro, ritmo ágil.
 Para grabar con voz propia: decir cada frase dentro de su ventana (inicio → fin de voz); la música y los
 cuadros ya están sincronizados con esas ventanas. Pronunciación: pm-method «pi em método», BMAD «bi-mad».
 
@@ -15,11 +15,11 @@ cuadros ya están sincronizados con esas ventanas. Pronunciación: pm-method «p
 [0:16.99 – 0:24.70] escena «caso» · voz 0:17.11 → 0:24.45 (7.3 s)
     Un cambio llevaría el presupuesto al 200 %. Sin saldo ni autoridad, no se aprueba: sube a la junta el mismo día.
 
-[0:24.70 – 0:31.01] escena «estrategia» · voz 0:24.82 → 0:30.76 (5.9 s)
-    Mapas de Wardley y de recorrido del cliente, opciones con VAN y conexión con BMAD, Jira, Slack y Teams.
+[0:24.70 – 0:32.00] escena «estrategia» · voz 0:24.82 → 0:31.75 (6.9 s)
+    Mapas de Wardley y de recorrido del cliente, opciones con VAN, integración probada con BMAD y lista para Jira, Slack y Teams.
 
-[0:31.01 – 0:37.87] escena «prueba» · voz 0:31.13 → 0:37.62 (6.5 s)
+[0:32.00 – 0:38.86] escena «prueba» · voz 0:32.12 → 0:38.61 (6.5 s)
     6 agentes, 39 skills, más de 200 pruebas automáticas y 5 casos completos con webinar.
 
-[0:37.87 – 0:54.34] escena «cierre» · voz 0:37.99 → 0:53.14 (15.2 s)
-    pm-method: código abierto, en GitHub. ¿Estás en proyectos e innovación? Te invito a consultarme: capacitación y transferencia para lograr los beneficios de tus proyectos con IA. Escribime por LinkedIn. Iniciativa con el apoyo de PMI e IEEE (Uruguay).
+[0:38.86 – 0:56.50] escena «cierre» · voz 0:38.98 → 0:55.30 (16.3 s)
+    pm-method: código abierto, en GitHub. ¿Estás en proyectos e innovación? Te invito a consultarme: capacitación y transferencia para lograr los beneficios de tus proyectos con IA. Escribime por LinkedIn. Iniciativa con el apoyo del PMI Capítulo Montevideo y de IEEE (Uruguay).

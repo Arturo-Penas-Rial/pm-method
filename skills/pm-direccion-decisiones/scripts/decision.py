@@ -180,7 +180,7 @@ def ruta_hoja(proyecto, hid):
     return os.path.join(proyecto, "03-control", "decisiones", hid)
 
 def correr_json(args):
-    r = subprocess.run([sys.executable] + args, capture_output=True, text=True)
+    r = subprocess.run([sys.executable] + args, capture_output=True, text=True, encoding="utf-8")
     try: return json.loads(r.stdout), ""
     except ValueError: return None, limpio(r.stderr or r.stdout, 200)
 
@@ -749,9 +749,8 @@ def leer_meta(hoja):
 
 def leer_tabla(p):
     if not os.path.exists(p): return None, []
-    with open(p, encoding="utf-8-sig", newline="") as f:
-        rd = csv.DictReader(f); fs = [x for x in rd if any((v or "").strip() for v in x.values() if isinstance(v, str))]
-        return list(rd.fieldnames or []), fs
+    cols, fs = E.leer_csv(p, IDIOMA)    # UTF-8 con o sin BOM; otra codificación o CSV mal formado → E.DatosIlegibles
+    return cols, [x for x in fs if any((v or "").strip() for v in x.values() if isinstance(v, str))]
 
 def sin_fuente(v):
     v = (v or "").strip()
@@ -1100,7 +1099,7 @@ def importar_archivo(proyecto, hoja, p):
 
 # ------------------------------------------------------------------ elegir y registrar
 def _registro(proyecto, *args):
-    r = subprocess.run([sys.executable, REGISTRO, "--proyecto", proyecto] + list(args), capture_output=True, text=True)
+    r = subprocess.run([sys.executable, REGISTRO, "--proyecto", proyecto] + list(args), capture_output=True, text=True, encoding="utf-8")
     if r.returncode != 0: sys.exit((r.stderr or r.stdout).strip())
     return r.stdout.strip()
 
@@ -1206,7 +1205,7 @@ def elegir(a, e, hoja, meta, r):
         elif nivel in NIVELES_ELEGIR: args += ["--nivel", nivel]
         if mot_r: args += ["--motivo", mot_r]
         if a.revision: args += ["--revision", a.revision]
-        rr = subprocess.run([sys.executable] + args, capture_output=True, text=True)
+        rr = subprocess.run([sys.executable] + args, capture_output=True, text=True, encoding="utf-8")
         if rr.returncode != 0: sys.exit((rr.stderr or rr.stdout).strip())
         if rr.stderr.strip(): print(rr.stderr.strip(), file=sys.stderr)
         print(rr.stdout.strip())
@@ -1236,7 +1235,7 @@ def elegir(a, e, hoja, meta, r):
     if dec and nombrados:
         M.IDIOMA = IDIOMA
         for x in M.contexto(a.proyecto, (), nombrados)[0]:
-            rv = subprocess.run([sys.executable, MAPAS, "--proyecto", a.proyecto, "vincular", x["mapa"], x["elemento"], "--refs", dec], capture_output=True, text=True)
+            rv = subprocess.run([sys.executable, MAPAS, "--proyecto", a.proyecto, "vincular", x["mapa"], x["elemento"], "--refs", dec], capture_output=True, text=True, encoding="utf-8")
             citas_mapa.append((x, rv.returncode == 0, (rv.stdout if rv.returncode == 0 else rv.stderr or rv.stdout).strip()))
     meta["eleccion"] = {"opcion": elegida["opcion"], "recomendada": rec, "motivo": motivo, "decision_id": dec, "por": a.por, "nivel": nivel,
                         "fecha": fecha, "accion": r.get("accion", ""), "empates": r.get("empates", []), "sensibilidad_baja": r.get("sensibilidad_baja", False),
@@ -1430,8 +1429,11 @@ def controles(proyecto, e):
     for hid in sorted(os.listdir(base)):
         hoja = os.path.join(base, hid)
         if not os.path.isfile(os.path.join(hoja, "decision.json")): continue
-        try: meta = json.load(open(os.path.join(hoja, "decision.json"), encoding="utf-8"))
-        except (OSError, ValueError): continue
+        try: meta = E.leer_json(os.path.join(hoja, "decision.json"))
+        except (OSError, E.DatosIlegibles) as y:     # una hoja ilegible se informa; no se saltea en silencio
+            out.append(("AVISO", "DEC-01", t(f"Hoja de decisión {hid}: decision.json ilegible ({getattr(y, 'motivo', y)}).", f"Decision sheet {hid}: unreadable decision.json."),
+                        t("Restaurarla desde git o volver a generarla (decision.py matriz).", "Restore it from git or regenerate it (decision.py matriz).")))
+            continue
         x = meta.get("eleccion") or {}
         if regs.get("raci"):           # DEC-03 y DEC-04: RACI de los elementos afectados frente a la autoridad (PRINCE2 manda)
             requerido = meta.get("nivel") or "gestor"
@@ -1453,6 +1455,10 @@ def controles(proyecto, e):
                         t("Corregir la hoja o registrar la decisión (decision.py matriz … --elegir).", "Fix the sheet or record the decision.")))
         if meta.get("forma", "eleccion") != "eleccion" or not os.path.exists(os.path.join(hoja, "criterios.csv")): continue
         try: r = calcular(hoja, meta)
+        except E.DatosIlegibles as y:
+            out.append(("AVISO", "DEC-01", t(f"Hoja de decisión {hid}: {os.path.basename(y.archivo)} ilegible ({y.motivo}).", f"Decision sheet {hid}: unreadable {os.path.basename(y.archivo)}."),
+                        t("Corregir el archivo o restaurarlo desde git.", "Fix the file or restore it from git.")))
+            continue
         except SystemExit: continue
         cambio = x.get("huella") and x.get("huella") != huella(hoja)
         if not (x.get("motivo") or "").strip() and r["accion"] == "elegir" and r["recomendada"] and r["recomendada"] != x.get("opcion"):

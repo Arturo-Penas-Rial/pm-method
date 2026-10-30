@@ -16,8 +16,14 @@ def idioma_de(texto):
     return None
 
 def main():
-    try: d = json.load(sys.stdin)
+    for s in (sys.stdout, sys.stderr):     # como esquema.salida_utf8: UTF-8 aunque la tubería use cp1252 (Windows)
+        try:
+            if s is not None and (s.encoding or "").lower().replace("-", "").replace("_", "") != "utf8": s.reconfigure(encoding="utf-8", errors="replace")
+        except Exception:
+            pass
+    try: d = json.loads(sys.stdin.buffer.read().decode("utf-8-sig", errors="replace"))   # Claude Code envía UTF-8
     except Exception: return
+    if not isinstance(d, dict): return
     prompt = d.get("prompt") or ""
     if prompt.lstrip().startswith("/") and len(prompt.split()) < 3: return
     pedido = idioma_de(prompt)

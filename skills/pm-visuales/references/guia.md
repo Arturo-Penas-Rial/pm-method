@@ -68,6 +68,12 @@ python3 ${CLAUDE_SKILL_DIR}/../pm-estado-proyecto/scripts/estado.py --proyecto <
 - Toma de los datos: riesgos e issues abiertos y acciones (filas de los CSV tal cual), `registro.py resumen --corte`, `estado.json.umbrales_riesgo` (nunca 15/6 fijos), el último corte de EVM del período y `avance-bmad.csv`.
 - Semáforos por regla (tiempo, costo, riesgo, calidad y, con `--modo agil`, alcance): `pm-progreso-reportes/references/guia.md` §14. El juicio del gestor (JSON, misma guía §14) aporta los objetivos sin regla, notas, hitos, decisiones, nombre y plan de cada iteración y el comentario; puede empeorar un semáforo derivado, nunca mejorarlo.
 - Escape único: todo `<` del JSON va como `\u003c`, de modo que ni `</script>` ni `<!--` de un texto de los registros cortan el bloque.
+- CSP propia (`<meta http-equiv="Content-Security-Policy">` de la plantilla): `default-src 'none'`, solo el script de
+  dibujo autorizado por su hash (`script-src 'sha256-…'`), estilos en línea e imágenes `data:`; sin red, formularios ni
+  `<base>`. Un script inyectado por error en un texto no se ejecuta, y el archivo puede servirse detrás de una CSP
+  estricta (por ejemplo, pm-kb) agregando ese mismo hash. Si se modifica el script de dibujo, hay que recalcular el hash
+  y reemplazarlo en la meta (la prueba de `scripts/probar_paquete.py` falla si no coinciden):
+  `python3 -c "import re,hashlib,base64;s=open('skills/pm-visuales/templates/tablero-avance.html',encoding='utf-8').read();print(base64.b64encode(hashlib.sha256(re.search(r'<script>(.*?)</script>',s,re.S).group(1).encode()).digest()).decode())"`
 
 Campos:
 - `objetivos[]` = `{clave: tiempo|costo|alcance|calidad|beneficios|riesgo|sostenibilidad, pronostico, tol_etapa, tol_proyecto, rag: verde|ambar|rojo|na, base: regla|regla+juicio|juicio|sin-dato}`. Tiempo y costo copian `semaforo_cronograma` y `semaforo_costo` del corte de EVM (tolerancia de etapa = la del corte); con `--modo agil` salen `n/a-agil` y alcance toma `semaforo_alcance`. Las tolerancias salen de `estado.json` (el juicio solo completa las vacías).
@@ -125,3 +131,19 @@ Si hay un tracker conectado (Jira, Linear, GitHub, Azure DevOps), `pm-integracio
 - Cronograma con dependencias SS/FF, calendarios o nivelación → `pm-cronograma-estimacion` (MSPDI con `cpm.py --mspdi`, completado en MS Project o ProjectLibre); `cpm.py` solo cubre fin-a-comienzo.
 - Objetivo en rojo sin issue ni excepción registrada → avisar a `pm-control` antes de publicar; nunca un verde cosmético.
 - Visual con datos de personas para circulación amplia → rechazar; ofrecer versión agregada o restringida.
+
+## 9. Tablero del proyecto (pm-tablero/1) y tablero de avance
+Son dos visuales distintos que conviven:
+
+| | Tablero de avance (§3) | Tablero del proyecto |
+|---|---|---|
+| Pregunta | ¿cómo vamos en el período? (semáforos, EVM, riesgos, burn-up) | ¿dónde estamos en el ciclo, qué espera una decisión y qué se está entregando? |
+| Genera | `estado.py periodo --tablero` con la plantilla `templates/tablero-avance.html` | `python3 ${CLAUDE_SKILL_DIR}/../pm-estado-proyecto/scripts/tablero.py --proyecto <dir> generar --html <ruta>` |
+| Contenido | período del highlight | ciclo y puertas, atención (radar), productos y control (cambios, issues, acciones y propuestas), artefactos clave |
+| Historial | un archivo por corte, registrado como artefacto | instantánea congelada en cada puerta y a demanda (`tablero.py --proyecto <dir> congelar --etiqueta "…"`), inmutable, en `03-control/reportes/tableros/` |
+
+Los dos son HTML de un solo archivo con CSP propia por hash, sin red ni librerías; el del proyecto autoriza por hash
+también su estilo y muestra la fecha de corte con la leyenda «instantánea, no se actualiza». Con `--origen <URL del
+portal>` las tarjetas enlazan a la ficha en el portal de pm-kb; sin origen, al archivo fuente. Formato del JSON y reglas
+de contenido (ids estables, sin montos ni datos de interesados): SPEC §1.10.17 y la guía de `pm-estado-proyecto` §11.
+

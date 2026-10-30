@@ -1,4 +1,4 @@
-# Puertas de la junta: verificación y registro · pm-method 2.6.0
+# Puertas de la junta: verificación y registro · pm-method 2.7.0
 
 Qué se verifica en cada puerta PRINCE2, cómo se integran los controles propios de BMAD y cómo queda registrada la
 decisión. EN: *board gates — health, automatic PRINCE2/BMAD checks, board checklist and decision record.*
@@ -79,13 +79,28 @@ Tres capas, para toda puerta de la junta salvo `decision-ad-hoc`:
 `puertas.py verificar <puerta>` muestra cada hallazgo con su severidad y su código de control
 (`condición P-11 supuestos críticos sin validar: S-001…`); con `--json` devuelve las listas de mensajes `bloqueos`,
 `condiciones` y `avisos` (sin cambios para los consumidores existentes) y además `hallazgos`, una lista de
-`{severidad, id, mensaje}`.
+`{severidad, id, mensaje}`. Los mensajes, la lista de control de la junta y el texto de `verificar`, `estado` y `lista`
+salen en el idioma de `estado.json` (`es` o `en`); los ids de control, las severidades y las claves del JSON son los
+mismos en los dos idiomas. EN: gate findings and the board checklist follow the project language; ids and JSON keys do not change.
 
 Severidades: **bloqueo** (impide registrar `aprobado`), **condición** (queda como observación de la puerta; con
 `condicionado`, pasa a condición formal) y **aviso**. Con bloqueos la junta puede corregir y volver, registrar
 `condicionado` (los bloqueos pasan a condiciones) o forzar con constancia (`--forzar`). Toda decisión queda en `estado.json` (con el resultado de la verificación) y en
 `decisiones.csv` (con la referencia a la lista y las observaciones). Solo `pm-director` ejecuta `estado.py puerta`,
 `puertas.py confirmar` y `puertas.py preparacion-bmad`; el hook `guardian.py` lo hace cumplir.
+
+### 2.1 Tablero congelado en cada puerta
+
+Cada decisión de puerta (`aprobado`, `condicionado` o `rechazado`, también `decision-ad-hoc`; no `pendiente`) congela el
+tablero del proyecto tal como estaba **antes** de la decisión, más la decisión misma: `estado.py puerta` calcula el
+tablero (`tablero.py`, formato `pm-tablero/1`, SPEC §1.10.17) antes de aplicar la decisión y, ya registrada, escribe
+`03-control/reportes/tableros/<fecha>-<puerta>-etapa-<n>.json` y su `.html` estático, con la decisión en el bloque
+`instantanea` (`puerta`, `etapa`, `decision`, `decision_id`, `motivo`, `por`). El cierre prematuro (`estado.py cierre
+--prematuro`, §3.2) hace lo mismo con la etiqueta «cierre prematuro». Las instantáneas se escriben con el mecanismo común
+(bitácora con huella), son inmutables (el guardián impide editarlas; un cambio fuera de los scripts es BIT-02) y forman
+el historial del ciclo: `tablero.py listar` y `tablero.py comparar <id> <id>|actual`. Si el congelado falla, la decisión
+queda registrada igual y el script avisa: el tablero nunca frena la gobernanza. EN: every gate decision freezes the
+project board as it was right before the decision, plus the decision, in `03-control/reportes/tableros/`.
 
 ## 3. Controles automáticos por puerta
 
@@ -109,14 +124,16 @@ Severidades: **bloqueo** (impide registrar `aprobado`), **condición** (queda co
 | autorizar-etapa | E-03 · E-04 | sin excepción abierta · informe de fin de la etapa que termina | bloqueo |
 | autorizar-etapa | E-05 · E-06 | revisiones de calidad abiertas · riesgos altos sin respuesta | condición |
 | autorizar-etapa | E-07 · E-08 · E-09 | **BMAD:** línea base del PRD · PRD `final` · arquitectura existente y `final` | bloqueo |
-| autorizar-etapa | E-10 | **BMAD:** gate de preparación del sprint planning: FAIL bloquea, CONCERNS es condición, sin veredicto es aviso | según veredicto |
+| autorizar-etapa | E-10 | **BMAD:** gate de preparación del sprint planning: FAIL bloquea, CONCERNS es condición (aviso si ese mismo veredicto ya fue condición de una puerta posterior a él y la condición se cumplió), sin veredicto es aviso | según veredicto |
 | autorizar-etapa | E-11 | lecciones con `planificacion` en `aplicar_en` en `registrada` o `revisada` sin `accion`: el plan de la etapa no las consideró (PRINCE2 SB, revisar el registro de lecciones; lecciones incorporadas del plan). Se resuelve con `lecciones.py accionar` (cita en el plan) o `descartar` con motivo | aviso |
 | autorizar-plan-excepcion | X-01 · X-02 | plan de excepción (bloqueo) · informe de excepción (condición) | — |
 | autorizar-cierre | C-01 · C-02 | informe de fin de proyecto · registro de aceptación | bloqueo |
 | autorizar-cierre | C-03 | cada issue y riesgo abierto **por id** en `recomendaciones-seguimiento`, en una fila de tabla con la columna Responsable o Destinatario llena (o en una línea "… Responsable: <nombre>"); lista los faltantes ("R-001 (no citado)", "I-004 (citado sin responsable)"). Sin el artefacto, lista todos los abiertos; si es un enlace externo, aviso para comprobarlo a mano (PRINCE2 CP, actividad 3: recomendaciones de seguimiento con trabajo incompleto, issues y riesgos) | bloqueo (aviso si es externo) |
-| autorizar-cierre | C-04 | revisiones de calidad abiertas | bloqueo |
+| autorizar-cierre | C-04 | revisiones de calidad abiertas (en un cierre prematuro también: se completan o se cancelan) | bloqueo |
 | autorizar-cierre | C-05 · C-06 | informe de lecciones · plan de revisión de beneficios | condición |
-| autorizar-cierre | C-07 | **Must sin aceptar**: requisitos Must (prioridad propia o la más alta de sus historias) y historias Must cuyo estado derivado (`estado.py productos`: revisiones de `calidad.csv`, `aceptacion-<producto>`, `registro-aceptacion`, issues fuera de especificación) no es aceptado ni con concesión. `registro-aceptacion` aprobado acepta solo los productos con revisión aprobada a esa fecha (PRINCE2 CP, actividad 3, confirmar la aceptación; registro de productos A13). Regla completa: guía de `pm-paquetes-trabajo` §5 | condición |
+| autorizar-cierre | C-07 | **Must sin aceptar**: requisitos Must (prioridad propia o la más alta de sus historias) y historias Must cuyo estado derivado (`estado.py productos`: revisiones de `calidad.csv`, `aceptacion-<producto>`, `registro-aceptacion`, issues fuera de especificación) no es aceptado ni con concesión. `registro-aceptacion` aprobado acepta solo los productos con revisión aprobada a esa fecha (PRINCE2 CP, actividad 3, confirmar la aceptación; registro de productos A13). Regla completa: guía de `pm-paquetes-trabajo` §5 | condición; **aviso en un cierre prematuro** (§3.2) |
+| autorizar-cierre, solo en un cierre prematuro | C-08 | artefacto `inventario-cierre-prematuro`: productos por estado (aprobados, en desarrollo, con concesión, no iniciados, a dejar en estado seguro, útiles para otros; guía de `pm-cierre-proyecto` §3) | bloqueo |
+| autorizar-cierre, solo en un cierre prematuro con plan de excepción | C-09 | plan de excepción aprobado durante el cierre prematuro (`cierre_prematuro.plan_excepcion`, §3.2) sin completar ni cerrar: `estado.py cierre --plan-excepcion completado\|cerrado --por "<rol: nombre>"` (pm-director) | bloqueo |
 
 Los criterios de éxito se tratan en dos momentos: en `autorizar-proyecto` se verifica que estén **definidos** (P-04 y
 la lista de control); en `autorizar-etapa` y `autorizar-cierre` la lista de control pide confirmar que se **cumplieron**
@@ -149,6 +166,63 @@ Ejemplo real (guía [E2E-4](guias/E2E-4-producto-bmad.md), pasos 8 y 13): el gat
 `AVISO EST-12` en cada corte hasta que, con la prueba de carga Q-001 aprobada y el gate en PASS, la ejecutiva registra
 `cumplir-condiciones autorizar-etapa --fecha 2027-03-05` y la verificación de la etapa siguiente deja de mostrar G-01.
 
+### 3.2 Cierre prematuro (puerta autorizar-cierre por otra ruta)
+
+PRINCE2 7 lo trata como una ruta propia del proceso de cierre: la junta lo ordena (aviso de cierre prematuro, DP → CP)
+cuando no autoriza el proyecto ("si no se autoriza, el proyecto debe cerrarse prematuramente"), cuando rechaza una etapa
+o un plan de excepción, o al dar dirección (p. ej. la justificación de negocio dejó de ser válida); el gestor prepara el
+cierre prematuro (inventario de productos por estado, rescate de lo que tiene valor, estado seguro, brechas elevadas al
+negocio) y el resto del cierre se ejecuta igual (pm-knowledge, `prince2-principios-personas-procesos.md` §4.5 y §5.7).
+
+1. **Decisión de la junta.** pm-director la registra antes: el rechazo de la puerta (`estado.py puerta
+   autorizar-proyecto|autorizar-etapa|autorizar-plan-excepcion --decision rechazado --por "<rol: nombre>" [--motivo ".."]`)
+   o, fuera de una puerta, `estado.py puerta decision-ad-hoc --decision aprobado --por "<rol: nombre>" --motivo "cierre
+   prematuro: <razón>"` (el motivo no deja condiciones abiertas, que G-01 bloquearía en el cierre). El aviso del rechazo
+   muestra el comando con la D-### recién anotada.
+2. **Entrada a CP.** `estado.py cierre --prematuro --decision D-### [--motivo ".."] [--fecha AAAA-MM-DD]`, desde la
+   iniciación (IP) o una etapa de entrega (CS o SB). La D-### debe existir en `decisiones.csv` con nivel `junta`,
+   `ejecutivo` o `capa-negocio`. Deja en `estado.json` `cierre_prematuro` = `{fecha, decision, motivo, desde, etapa}`
+   (por defecto, la fecha y el texto de la decisión) y, si había una excepción abierta, la pasa a `cierre_prematuro.excepcion`
+   y la cierra: la decisión de cerrar deja sin efecto el plan de excepción pendiente. **En el pre-proyecto no hay
+   cierre**: el proyecto no existe hasta que se autoriza la iniciación (PRINCE2: autorizar la iniciación "o no iniciar";
+   el proceso de dirección empieza al completarse la puesta en marcha), así que la junta registra `autorizar-inicio
+   rechazado` y `cierre --prematuro` lo indica.
+3. **Verificación de `autorizar-cierre`.** Con `cierre_prematuro`: **C-08** (bloqueo) exige el inventario
+   `inventario-cierre-prematuro` (criterio de completitud del cierre prematuro); **C-07** pasa a **aviso**, porque
+   transferir los Must sin aceptar es legítimo (se declaran en el inventario y en las recomendaciones de seguimiento);
+   **C-04** sigue siendo bloqueo (cada revisión abierta se completa o se cancela con `estado=cancelada`). El resto no
+   cambia: C-01 (informe de fin de proyecto, que evalúa también las razones del cierre), C-02 (registro de aceptación de
+   lo entregado o transferido), C-03 (recomendaciones de seguimiento, objetivo explícito de PRINCE2 en ambas rutas),
+   C-05 y C-06 (condiciones) y G-01 (bloqueo). La lista de control de la junta suma el ítem V-07 (rescate, estado seguro
+   y brechas elevadas al negocio).
+4. **Coherencia.** La próxima puerta es `autorizar-cierre` (`puertas.py estado`, que además devuelve `cierre_prematuro`
+   y en Markdown una línea "Cierre prematuro"; `estado.py contexto`, `radar` con RAD-07 y `siguiente`, que pide el
+   inventario). La sanidad no marca EST-03 para un cierre prematuro desde la iniciación (llega a CP sin
+   `autorizar-proyecto` ni `autorizar-etapa`).
+
+5. **Plan de excepción durante el cierre prematuro.** Preparar el cierre prematuro incluye acordar cómo rescatar
+   productos o dejarlos en estado seguro, lo que "puede implicar trabajo adicional … que a veces requiere un plan de
+   excepción"; la matriz de procesos × productos lo registra como producto posible de CP en un cierre prematuro, que
+   aprueba la junta (DP), y entre los criterios de completitud está que lo que debe quedar seguro esté planificado
+   (pm-knowledge, `prince2-principios-personas-procesos.md` §5.7, actividad 2 y criterios de completitud, y §5.8). Ese
+   plan sirve al cierre y no reabre la entrega, así que el proyecto sigue en CP:
+   - con `fase=cierre` y `cierre_prematuro`, `estado.py puerta autorizar-plan-excepcion` corresponde sin `--forzar`
+     y se verifica como cualquier puerta (X-01 plan de excepción registrado, X-02, G-01 y la lista de control de la
+     junta); la decisión queda en `decisiones.csv` (D-###, nivel junta);
+   - aprobado o condicionado, el proyecto **sigue en `cierre`/CP**; el plan queda en
+     `cierre_prematuro.plan_excepcion` = `{artefacto, decision, fecha, estado: aprobado}` (el último
+     `plan-excepcion-*` registrado que no se asoció antes a un cierre) y su artefacto lleva
+     `cierre_prematuro: {decision, fecha}`; rechazado, el cierre sigue y la junta puede pedir otro plan o cerrar sin él;
+   - `autorizar-cierre` lo bloquea con **C-09** hasta que pm-director registra el fin del plan:
+     `estado.py cierre --plan-excepcion completado|cerrado --por "<rol: nombre>" [--nota ".."] [--fecha AAAA-MM-DD]`
+     (`completado`: el trabajo de rescate o de estado seguro terminó; `cerrado`: la junta lo da por terminado sin
+     completarlo). Queda como decisión de nivel junta y en `plan_excepcion` (`estado`, `fecha_fin`, `por_fin`,
+     `decision_fin`, `nota`); el guardián lo reserva a pm-director;
+   - `siguiente` y `puertas.py estado` (Markdown: "Plan de excepción del cierre: …") muestran el plan mientras está abierto.
+
+   Fuera de un cierre prematuro nada cambia: en un cierre planificado `autorizar-plan-excepcion` no corresponde (exige
+   `--forzar`) y, aprobada así, devuelve el proyecto a entrega/CS.
+
 ## 4. Controles de BMAD que pm-method lee (verificado con BMAD 6.12.4, 2026-10-17)
 
 | Control de BMAD | Qué hace BMAD | Qué hace pm-method |
@@ -172,6 +246,7 @@ Los controles y decisiones de las puertas alimentan el seguimiento:
 | "¿Cómo venimos?" / `/pm-estado` (`pm-orquestador`) | última puerta y próxima puerta con su cantidad de bloqueos | `estado.py resumen` |
 | Riesgos e issues | una condición abierta vencida o una puerta forzada se registra como riesgo o issue | `pm-riesgos` / `pm-issues-cambios` |
 | Informe de fin de proyecto | historial completo de puertas y sus condiciones | `puertas.py estado --json` |
+| Tablero del proyecto e historial (`pm-visuales`, portal de pm-kb) | el estado del ciclo antes de cada decisión | `tablero.py listar` y `comparar` sobre `03-control/reportes/tableros/` (§2.1) |
 
 ## 6. Comandos
 
@@ -184,4 +259,10 @@ python3 $S/puertas.py $P preparacion-bmad --resultado CONCERNS --por "Arquitecto
 python3 $S/puertas.py $P confirmar autorizar-etapa --por "Ejecutiva: Marta" --na V-06="primera etapa: sin lecciones previas"  # pm-director
 python3 $S/estado.py  $P puerta autorizar-etapa --decision aprobado --por "Ejecutiva: Marta" --tol costo=10% tiempo=2sem          # pm-director
 python3 $S/estado.py  $P cumplir-condiciones autorizar-etapa --fecha 2027-03-05 --por "Ejecutiva: Marta" --nota "prueba de carga aprobada"   # pm-director
+python3 $S/estado.py  $P puerta autorizar-etapa --decision rechazado --por "Ejecutiva: Marta" --motivo "la etapa 3 ya no se justifica"   # pm-director; el aviso muestra la D-###
+python3 $S/estado.py  $P cierre --prematuro --decision D-012                                       # → CP con cierre_prematuro (§3.2); C-08 pide el inventario
+python3 $S/estado.py  $P puerta autorizar-plan-excepcion --decision aprobado --por "Ejecutiva: Marta"   # pm-director; en el cierre prematuro sigue en CP (§3.2)
+python3 $S/tablero.py $P listar                                    # instantáneas congeladas en cada puerta (§2.1)
+python3 $S/tablero.py $P comparar 2026-11-27-autorizar-etapa-etapa-2 actual   # qué cambió desde esa puerta
+python3 $S/estado.py  $P cierre --plan-excepcion completado --por "Ejecutiva: Marta" --nota "módulo en estado seguro"   # pm-director; levanta C-09
 ```

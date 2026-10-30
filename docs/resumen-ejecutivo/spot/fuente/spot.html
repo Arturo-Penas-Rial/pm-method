@@ -49,6 +49,9 @@ body{font-family:"Inter","DejaVu Sans",sans-serif;color:var(--tinta);-webkit-fon
 .chip{display:inline-flex;align-items:center;gap:10px;padding:12px 22px;border-radius:999px;font-size:30px;font-weight:700;
   background:#fff;border:2px solid var(--grilla);color:var(--tinta)}
 .fuente{font-size:20px;color:var(--muda)}
+.fila-int{left:60px;right:60px;display:flex;align-items:center;gap:10px}
+.rot-int{font-size:20px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--tinta2);margin-right:6px;white-space:nowrap}
+.chip.int{font-size:24px;padding:8px 16px}
 </style>
 </head>
 <body>
@@ -132,20 +135,28 @@ body{font-family:"Inter","DejaVu Sans",sans-serif;color:var(--tinta);-webkit-fon
   <div class="a card" style="left:60px;width:960px;top:318px;height:611px" data-in="0.35" data-fx="up" id="s-img1">
     <img src="../../../guias/img/g5-wardley.png" alt="" style="transform-origin:48% 42%"><div class="pill">Caso E2E-5 · mapa de Wardley</div>
   </div>
-  <div class="a card" style="left:60px;width:960px;top:318px;height:611px" data-in="2.05" data-fx="slide" id="s-img2">
+  <div class="a card" style="left:60px;width:960px;top:318px;height:611px" data-in="1.75" data-fx="slide" id="s-img2">
     <img src="../../../guias/img/g4-recorrido.png" alt="" style="transform-origin:42% 50%"><div class="pill">Caso E2E-4 · recorrido del cliente</div>
   </div>
-  <div class="a card contain" style="left:60px;width:960px;top:318px;height:611px" data-in="3.55" data-fx="slide" id="s-img3">
+  <div class="a card contain" style="left:60px;width:960px;top:318px;height:611px" data-in="2.6" data-fx="slide" id="s-img3">
     <img src="../../../guias/img/g5-van-opciones.png" alt=""><div class="pill">Caso E2E-5 · VAN por opción</div>
   </div>
-  <div class="a" style="left:60px;right:60px;top:952px;display:flex;flex-wrap:wrap;gap:10px" data-in="3.4" data-fx="none" id="integ"></div>
+  <!-- integraciones: BMAD probada con una instalación real (caso A2); Jira, Slack, Teams y correo preparados y probados
+       contra servidores locales de prueba o instantáneas (casos H e I, cadena 2 de la integración cruzada), no en vivo -->
+  <div class="a fila-int" style="top:948px" data-in="3.5" data-fx="none" id="integ1">
+    <div class="rot-int" style="color:#0a7d55">Integración probada</div><div class="chip int" data-i="0" style="border-color:#1baf7a;color:#0a7d55">BMAD</div>
+  </div>
+  <div class="a fila-int" style="top:1010px" data-in="5.2" data-fx="none" id="integ2">
+    <div class="rot-int">Lista para</div><div class="chip int" data-i="0">Jira</div><div class="chip int" data-i="1">Slack</div><div class="chip int" data-i="2">Teams</div><div class="chip int" data-i="3">correo</div>
+  </div>
+  <div class="a fuente" style="left:60px;right:60px;top:1074px" data-in="5.6" data-fx="fade">Jira, Slack, Teams y correo: probados con servidores de prueba o instantáneas, no en vivo.</div>
 </section>
 
 <!-- 7 · PRUEBA -->
 <section class="escena fondo-claro" id="e-prueba">
   <div class="a kicker" data-in="0.05" data-fx="left">Verificado, no solo diseñado</div>
   <div id="stats" style="position:absolute;left:60px;right:60px;top:160px;display:grid;grid-template-columns:1fr 1fr;gap:20px"></div>
-  <div class="a fuente" style="left:60px;right:60px;top:1060px" data-in="2.5" data-fx="fade">Cifras del repositorio, versión 2.6.0 (29/10/2026): README, PRUEBAS y SEGURIDAD.</div>
+  <div class="a fuente" style="left:60px;right:60px;top:1060px" data-in="2.5" data-fx="fade" id="p-fuente">Cifras del repositorio: README, PRUEBAS, SANIDAD y SEGURIDAD.</div>
 </section>
 
 <!-- 8 · CIERRE (la mención de apoyo es texto provisto por el autor; solo texto, sin logos ni identidad visual) -->
@@ -166,10 +177,10 @@ body{font-family:"Inter","DejaVu Sans",sans-serif;color:var(--tinta);-webkit-fon
   <div class="a" style="left:60px;right:60px;top:880px;background:#eb6834;border-radius:24px;padding:24px 34px;box-shadow:0 18px 40px rgba(0,0,0,.25)" data-in="10.45" data-fx="scale">
     <div class="disp" style="font-size:60px;font-weight:800;color:#fff;letter-spacing:-.02em;line-height:1.05">Escribime por LinkedIn&nbsp;→</div>
   </div>
-  <div class="a" style="left:60px;right:60px;top:1035px;font-size:30px;font-weight:600;color:#e7f0fc" data-in="11.8" data-fx="up">Iniciativa con el apoyo de PMI e IEEE (Uruguay)</div>
+  <div class="a" style="left:60px;right:60px;top:1035px;font-size:30px;font-weight:600;color:#e7f0fc" data-in="11.8" data-fx="up">Iniciativa con el apoyo del PMI Capítulo Montevideo<br>y de IEEE (Uruguay)</div>
 </section>
 
-<div id="marca"><b>pm-method</b> · v2.6.0</div>
+<div id="marca"><b>pm-method</b> · v<span id="m-ver"></span></div>
 <div id="progreso"></div>
 <div id="sub"><span></span></div>
 </div>
@@ -181,14 +192,13 @@ const eInOut=x=>{x=clamp(x);return x<.5?4*x*x*x:1-Math.pow(-2*x+2,3)/2};
 const back=x=>{x=clamp(x);const c1=1.5,c3=c1+1;return 1+c3*Math.pow(x-1,3)+c1*Math.pow(x-1,2)};
 const $=s=>document.querySelector(s);
 
-// ---- contenido generado
-(function(){
-  const IN=["BMAD","Jira","Slack","Teams","correo","transcripciones","OKR"];
-  const g=$("#integ");
-  IN.forEach((x,i)=>{const d=document.createElement("div");d.className="chip int";d.dataset.i=i;d.textContent=x;d.style.opacity=0;d.style.fontSize="24px";d.style.padding="9px 16px";g.appendChild(d)});
-  const ST=[[6,"agentes","orquestador, pm-director y 4 de fase"],[39,"skills","33 que activa el modelo y 6 comandos"],
-    [463,"pruebas de regresión","0 fallos; y 118 de integración cruzada"],[5,"casos E2E","con guía, evidencia y webinar"],
-    [101,"controles de sanidad","en 14 familias"],[0,"hallazgos de severidad alta","revisión de seguridad; 3 medios, corregidos"]];
+// ---- contenido generado a partir de LT.pantalla (guion.json → pantalla), en el primer render
+function contenido(P){
+  $("#m-ver").textContent=P.version;
+  $("#p-fuente").textContent=`Cifras del repositorio, versión ${P.version} (${P.fecha}): README, PRUEBAS, SANIDAD y SEGURIDAD.`;
+  const ST=[[P.agentes,"agentes","orquestador, pm-director y 4 de fase"],[P.skills,"skills",`${P.skills_modelo} que activa el modelo y ${P.skills_comandos} comandos`],
+    [P.regresion,"pruebas de regresión",`0 fallos; y ${P.integracion} de integración cruzada`],[P.casos,"casos E2E","con guía, evidencia y webinar"],
+    [P.sanidad,"controles de sanidad",`en ${P.familias} familias`],[P.hallazgos_altos,"hallazgos de severidad alta",`seguridad: ${P.medios_corregidos} medios, corregidos`]];
   const s=$("#stats");
   ST.forEach((x,i)=>{const d=document.createElement("div");d.className="stat";d.dataset.i=i;d.dataset.n=x[0];
     d.style.cssText="background:#fff;border:2px solid #e1e0d9;border-radius:22px;padding:22px 28px;height:280px;opacity:0;box-shadow:0 10px 30px rgba(11,11,11,.06)";
@@ -196,7 +206,7 @@ const $=s=>document.querySelector(s);
       <div class="disp" style="font-size:38px;font-weight:800;margin-top:10px;line-height:1.08">${x[1]}</div>
       <div style="font-size:23px;color:#52514e;margin-top:8px;line-height:1.25">${x[2]}</div>`;
     s.appendChild(d)});
-})();
+}
 
 // ---- animación genérica de elementos .a según data-in / data-fx
 function anima(el,lt){
@@ -226,8 +236,9 @@ function escena(id,lt,dur,LT){
     $("#k-monto").style.opacity=lt>2.9?1:0;
   }
   if(id==="estrategia"){
-    [["#s-img1",0.35,1.28],["#s-img2",2.05,1.55],["#s-img3",3.55,1.0]].forEach(([s,t,z])=>{$(s+" img").style.transform=`scale(${z+0.06*clamp((lt-t)/3)})`});
-    e.querySelectorAll(".int").forEach(c=>{const i=+c.dataset.i,p=eOut((lt-3.6-i*0.12)/0.35);c.style.opacity=p;c.style.transform=`translateY(${(1-p)*18}px)`});
+    [["#s-img1",0.35,1.28],["#s-img2",1.75,1.55],["#s-img3",2.6,1.0]].forEach(([s,t,z])=>{$(s+" img").style.transform=`scale(${z+0.06*clamp((lt-t)/3)})`});
+    e.querySelectorAll(".fila-int").forEach(f=>{const t0=parseFloat(f.dataset.in);
+      f.querySelectorAll(".int").forEach(c=>{const i=+c.dataset.i,p=eOut((lt-t0-0.1-i*0.12)/0.35);c.style.opacity=p;c.style.transform=`translateY(${(1-p)*18}px)`})});
   }
   if(id==="prueba"){
     e.querySelectorAll(".stat").forEach(d=>{const i=+d.dataset.i,t0=0.15+i*0.42,p=eOut((lt-t0)/0.5);
@@ -238,6 +249,7 @@ function escena(id,lt,dur,LT){
 
 window.render=function(t){
   const LT=window.LT;
+  if(!window.hecho){contenido(LT.pantalla);window.hecho=true}
   LT.escenas.forEach((s,k)=>{
     const e=document.getElementById("e-"+s.id);
     const lt=t-s.inicio, dur=s.fin-s.inicio;

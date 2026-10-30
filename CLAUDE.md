@@ -3,7 +3,7 @@
 Este repositorio **es** el plugin pm-method (no un proyecto que lo usa). Leer esto antes de cambiar algo.
 
 ## Qué es
-Plugin de Claude Code (también Cowork y Hermes) con 6 agentes, 39 skills y 3 hooks para gestión de proyectos (versión 2.6.0).
+Plugin de Claude Code (también Cowork y Hermes) con 6 agentes, 39 skills y 3 hooks para gestión de proyectos (versión 2.7.0).
 Jerarquía fija, no negociable:
 1. **PRINCE2 7** = método y ciclo de vida; **siempre manda**.
 2. **PMBOK 8** = solo el "cómo" (técnicas) o vacíos de PRINCE2.
@@ -29,7 +29,10 @@ Bilingüe ES/EN: responder en el idioma del usuario; artefactos en `estado.json.
   `motivos_autoridad`; `historial` y `reconocer` de la bitácora, BIT-01/02; propuestas con huella `proponer`,
   `propuestas`, `aprobar --por`, `rechazar` en `03-control/propuestas/`), `especificacion.py`, `sanidad.py`, `puertas.py` (verificación de puertas, también C-03 y C-07
   por id), `wbs.py`, `cpm.py` (también tres valores, `--estimacion` y reserva k·σ), `evm.py`, `exportar.py`,
-  `nuevo_proyecto.py`.
+  `nuevo_proyecto.py`, `tablero.py` (tablero `pm-tablero/1` en JSON o HTML con CSP por hash, también por actor
+  `--actor`; `congelar`, `listar`, `comparar`; `estado.py puerta` y `cierre --prematuro` congelan el tablero previo a la
+  decisión en `03-control/reportes/tableros/`; API pública `construir`, `actores`, `filtrar_actor` que usa pm-kb; SPEC
+  §1.10.17).
 - `skills/pm-bmad-puente/scripts/bmad.py` puente BMAD. `skills/pm-interesados/scripts/interesados.py` maestro de
   interesados (matriz, estereotipos, preferencias, perfil, RACI, personas de usuario y capacidad × persona, integridad,
   reporte, plan de envío; `sanidad.py` lo usa para la familia STK). `skills/pm-integraciones/scripts/envios.py` capa de canales (SMTP, webhooks de Slack o Teams,
@@ -53,8 +56,15 @@ Bilingüe ES/EN: responder en el idioma del usuario; artefactos en `estado.json.
 - `hooks/` guardian.py, inicio.py, idioma.py, py.sh, hooks.json.
 - `scripts/validar_paquete.py`, `scripts/probar_paquete.py`, `scripts/validar_mermaid.py`, `scripts/instalar_hermes.py`.
 - `scripts/pruebas/fixtures/` (BMAD v6 sintético, 6.12.4 real, v4), `scripts/pruebas/guias_e2e/` (recorridos de
-  `docs/guias/`: `g1.py`…`g5.py`, `comun.py`, `visuales.py` y `correr.py`), `scripts/pruebas/integracion/` (suite de
-  integración cruzada, `correr.py`), `scripts/pruebas_vivo/` (Claude Code real; consume tokens).
+  `docs/guias/`: `g1.py`…`g5.py`, `comun.py`, `visuales.py` y `correr.py`, con `--comparar docs/guias/evidencia`,
+  `--python` y `--conservar`), `scripts/pruebas/integracion/` (suite de integración cruzada, `correr.py`),
+  `scripts/pruebas/variantes/` (suite de variantes, `docs/PRUEBAS.md` §2.5: `correr.py --nivel …`, `ciclo.py` recorrido
+  paramétrico, `matriz.py` celdas pairwise y manifiesto de omisiones, `integraciones.py`, `contratos.py`, `hermes.py`,
+  `migracion.py`, `opcionales.py` pm-kb con modelos simulados, `probar_kb.py`/`pantallas.py` y skills externas,
+  `portal.py` el portal de pm-kb con pm-method (instantáneas, «actualizar ahora» en solo lectura, propuestas, enlaces
+  compartidos, inglés, `pm-kb enlaces`), `simuladores.py` servidores que imitan TEI y las API de modelos,
+  `sitio/sitecustomize.py` bloqueador de imports), `scripts/pruebas_vivo/` (Claude Code real;
+  consume tokens).
 - `scripts/webinar/` material del webinar: `generar.py` y `pptx.js` (diapositivas PPTX y HTML desde
   `docs/webinar/E2E-N/diapositivas.json`; con `--ficha`, la ficha promocional del taller desde `ficha.json`) y
   `documentos.py` (guía, guion y ejercicio con el ejemplo resuelto plegado, en HTML, e índice `docs/webinar/index.html`).
@@ -67,12 +77,21 @@ Bilingüe ES/EN: responder en el idioma del usuario; artefactos en `estado.json.
   - `pmkb/config.py` variables `PMKB_*` y conexión (inicia el clúster local si hace falta) · `pmkb/esquema.sql` esquema, RLS y roles.
   - `pmkb/fuentes.py` formatos, unidades, exclusiones (interesados, comunicaciones), circulación y confianza.
   - `pmkb/versiones.py` documentos, vigente/aprobada, duplicados y cambios · `pmkb/relaciones.py` aristas por ids.
+  - `pmkb/enlaces.py` ids estables → ubicación vigente, movimientos, citas a rutas que no existen y la acción de
+    pm-method sugerida (`pm-kb enlaces`).
   - `pmkb/indexador.py` carga en una transacción · `pmkb/busqueda.py` BM25 en SQL, sinónimos (`pmkb/sinonimos.py`), ids, RRF y re-ranqueo opcionales.
+  - `pmkb/tablero.py` publica el tablero del núcleo (`tablero.py generar --json`, solo lectura) y sus instantáneas, poda
+    por circulación, filtro por actor con la API del núcleo, resumen de la cartera · `pmkb/documentos.py` documentos HTML
+    del proyecto (motor, SVG/PNG, ruta dentro de la carpeta, CSP aislada).
   - `pmkb/formato.py` salida con cita · `pmkb/modelos.py` clientes HTTP de modelos opcionales.
-  - `pmkb/mcp.py` MCP propio de solo lectura (stdio y HTTP) · `pmkb/web.py` y `pmkb/estatico/` web con token (Cytoscape.js 3.34.3).
+  - `pmkb/mcp.py` MCP propio de solo lectura (stdio y HTTP) · `pmkb/web.py` portal con token y enlaces compartidos ·
+    `pmkb/estatico/` (`index.html` con `comun.js`, `app.js` y `tablero.js`; `compartido.html` y `compartido.js` para
+    un enlace compartido; `ingresar.html`, `estilo.css`, Cytoscape.js 3.34.3).
   - `db/pg.sh` PostgreSQL de los dos caminos · `instalar-wsl.sh` · `requirements.txt` (hash) y `regenerar_requisitos.py`.
-  - `pruebas/` `probar_kb.py [--con-base]`, `consultas_oro.py`, `conformidad_mcp.py`. Docker: `docker/pm-kb-db.Dockerfile`,
-    `docker/kb-preparar.sh` y perfil `kb` de `docker/compose.yaml`.
+  - `pruebas/` `probar_kb.py [--con-base]`, `pantallas.py` (portal en Chromium), `consultas_oro.py`,
+    `conformidad_mcp.py`, `fixture.py` y `proyecto_tablero.py` (proyectos de prueba), `esquema-2.sql` y `esquema-3.sql`
+    (migraciones). Docker: `docker/pm-kb-db.Dockerfile`, `docker/kb-preparar.sh` y perfil `kb` de `docker/compose.yaml`
+    (`pm-kb-db`, `pm-kb`, `pm-kb-vigilar`); WSL2: `docs/servicios/pm-kb-vigilar@.service` (`vigilar` como servicio de usuario).
 - Guías de instalación, dos caminos separados: `docs/INSTALACION-WSL2.md` (Windows con WSL2 y Ubuntu, por Claude Code o
   Hermes) y `docs/INSTALACION-DOCKER.md` (Docker Desktop o Docker Engine sobre WSL2); `docs/INSTALACION.md` es la guía
   general (credenciales, BMAD, skills externas, MCP, verificación). Sus comandos se ejecutan tal cual y lo verificado
@@ -102,10 +121,13 @@ Bilingüe ES/EN: responder en el idioma del usuario; artefactos en `estado.json.
 1. Leer la sección relevante (`grep -n`), no archivos enteros.
 2. Cambiar el código y, si cambia una conducta, agregar una prueba en `scripts/probar_paquete.py`.
 3. `python3 scripts/validar_paquete.py` → OK; `python3 scripts/probar_paquete.py` → 0 FALLO (también con Python 3.9,
-   `docs/PRUEBAS.md` §2.4); `python3 scripts/pruebas/integracion/correr.py`; `claude plugin validate .`;
+   `docs/PRUEBAS.md` §2.4; `--casos A,E` para repetir solo lo afectado); `python3 scripts/pruebas/integracion/correr.py`;
+   `python3 scripts/pruebas/variantes/correr.py --nivel todo` → 0 FALLO, sin trazas y omisiones = manifiesto (antes de una
+   versión, `--repetir 2`; `docs/PRUEBAS.md` §2.5); `claude plugin validate .`;
    si se tocó un diagrama: `python3 scripts/validar_mermaid.py --render` (y revisar legibilidad con `--png DIR`); si
-   cambió una salida que muestran las guías: `scripts/pruebas/guias_e2e/correr.py --salida <tmp>` dos veces, y copiar la
-   evidencia y las imágenes que cambien a `docs/guias/` (y las cifras a guías y `docs/webinar/`).
+   cambió una salida que muestran las guías: `scripts/pruebas/guias_e2e/correr.py --salida <tmp> --comparar docs/guias/evidencia`
+   (muestra el diff normalizado) dos veces, y copiar la evidencia y las imágenes que cambien a `docs/guias/` (y las cifras a
+   guías y `docs/webinar/`).
 4. Si cambian descripciones, agentes, hooks o el texto de inicio: `python3 scripts/pruebas_vivo/suite.py enrutamiento
    --ids <afectados>` (consume tokens) y, antes de una versión, `suite.py todo`.
 5. Actualizar `CHANGELOG.md`, la documentación afectada (`docs/INDICE.md` lista todo) y, si corresponde, la versión en

@@ -149,4 +149,6 @@ def main():
               if a.idioma == "es" else "→ Forecast outside tolerance: prepare an exception report (pm-progreso-reportes) and escalate to pm-director.")
 
 if __name__ == "__main__":
+    try: import esquema; esquema.salida_utf8()        # salida UTF-8 en consolas cp1252 (docs/ARQUITECTURA.md §9.4)
+    except ImportError: pass
     main()

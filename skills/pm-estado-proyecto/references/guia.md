@@ -12,13 +12,15 @@ Detalle de `pm-estado-proyecto`. El SKILL.md cita cada sección por número. Tod
 | Fin de IP o SB | `puerta autorizar-etapa --etapa-nombre ".." --fin ..` | fase `entrega`, proceso `CS`, `etapa_actual` avanza a n+1 (primera de entrega = 2); vacía las tolerancias de etapa para fijarlas con `tolerancia --nivel etapa` |
 | Fin de etapa | `limite-etapa` | proceso `SB` (solo con fase `entrega`) |
 | Excepción | `limite-etapa --excepcion X-001` → `puerta autorizar-plan-excepcion` | SB con `excepcion_abierta`; al aprobar vuelve a CS (o a IP si ocurrió en iniciación) y limpia la excepción |
-| Última etapa o cierre anticipado | `cierre [--prematuro]` | fase `cierre`, proceso `CP`, `cierre_prematuro` (solo desde fase `entrega`, CS o SB) |
+| Última etapa | `cierre` | fase `cierre`, proceso `CP`, `cierre_prematuro=false` (solo desde fase `entrega`, CS o SB) |
+| Cierre prematuro (decisión de la junta) | `cierre --prematuro --decision D-### [--motivo ..] [--fecha ..]` | fase `cierre`, proceso `CP`, `cierre_prematuro={fecha, decision, motivo, desde, etapa[, excepcion]}`; desde `inicio` o `entrega`; la D-### existe con nivel junta, ejecutivo o capa de negocio; una excepción abierta pasa a `cierre_prematuro.excepcion` y se cierra (`docs/PUERTAS.md` §3.2) |
 | Fin de CP | `puerta autorizar-cierre` | fase `cerrado` |
 | Cualquier momento | `puerta decision-ad-hoc` | solo registra (p. ej. pedir un plan de excepción) |
 
 - `condicionado` avanza igual que `aprobado` y deja las condiciones abiertas (las muestra `siguiente`) hasta `cumplir-condiciones <tipo>`.
 - `pendiente` no cambia nada ni escribe en `decisiones.csv`; la siguiente decisión del mismo tipo la marca `resuelta`.
-- `rechazado` de etapa o de plan de excepción no avanza; el script recuerda las opciones: replanificar o `cierre --prematuro`.
+- `rechazado` no avanza y queda en `decisiones.csv` (con `--motivo`, también el motivo, en la puerta y en la decisión). El aviso depende de la puerta: `autorizar-inicio`, el proyecto no se inicia y no hay cierre (en el pre-proyecto `cierre --prematuro` se rechaza); `autorizar-proyecto`, se cierra prematuramente salvo que la junta pida revisar el PID; etapa o plan de excepción, replanificar o cierre prematuro. Los avisos muestran `cierre --prematuro --decision <D-### anotada>`.
+- Cada `puerta` decidida (no `pendiente`) y cada `cierre --prematuro` congelan antes el tablero del proyecto, con la decisión (§11).
 - Una puerta que no corresponde al estado actual se rechaza; `--forzar` la registra igual y queda marcada `forzada`.
 - `etapa --numero n --nombre ..` y `set fase=..` quedan solo para correcciones; las transiciones normales las producen `puerta`, `limite-etapa` y `cierre`.
 
@@ -115,13 +117,14 @@ Mermaid como imagen si `mmdc` está instalado) · `xlsx --proyecto <dir>` (una h
 | `nuevo_proyecto.py` | pm-mandato-y-brief, pm-orquestador / `pm-nuevo` |
 | `estado.py` | todas las skills de fase; `puerta` solo pm-director (pm-direccion-decisiones); `productos`: pm-paquetes-trabajo, pm-calidad, pm-cierre-proyecto, `sanidad.py` (QUA-04) y `puertas.py` (C-07); `periodo` (datos del período → tablero y borrador del highlight, `--verificar` = cadena de reporte): pm-progreso-reportes (guía §14) y pm-visuales (guía §3) |
 | `registro.py` | pm-registros, pm-riesgos, pm-issues-cambios, pm-calidad, pm-lecciones-aprendidas, pm-paquetes-trabajo, pm-progreso-reportes, pm-comunicacion-stakeholders, pm-reuniones, pm-cierre-proyecto, pm-direccion-decisiones |
-| `esquema.py` | importado por los demás scripts; documentado en `pm-registros/templates/guia-registros.md`; bloqueo, escritura atómica y bitácora de escrituras (`anotar_bitacora`, `verificar_bitacora`, `reconocer_bitacora`: `registro.py historial`, `sanidad.py` BIT, `paquete.py auditoria --con-bitacora`) |
+| `esquema.py` | importado por los demás scripts; documentado en `pm-registros/templates/guia-registros.md`; lectura estricta (`leer_csv`, `leer_json`, `cargar_estado`: un dato ilegible termina con `DatosIlegibles`, mensaje y código 1, nunca como vacío; sanidad DAT-01) y salida UTF-8 (`salida_utf8`); bloqueo, escritura atómica y bitácora de escrituras (`anotar_bitacora`, `verificar_bitacora`, `reconocer_bitacora`: `registro.py historial`, `sanidad.py` BIT, `paquete.py auditoria --con-bitacora`) |
 | `vigencia.py` | `registro.py` (validación de `reemplaza`/`conviven`), `esquema.anotar_decision` (reemplazo automático de aprobaciones, presupuestos, enfoque y veredicto del gate de preparación de BMAD), `sanidad.py` (DEC-05, DEC-06) y `pm-direccion-decisiones/scripts/decision.py` (`vigentes`, expediente solo con vigentes) |
 | `texto.py` | normalización para buscar en español e inglés (lemas, fechas, cifras, ids): `decision.py expediente --tema` y `vigentes --tema`, `vigencia.py`; lista para el futuro indexador (SPEC §1.10.15) |
 | `evm.py` | pm-progreso-reportes, pm-agil-hibrido, pm-costos-presupuesto, pm-cierre-proyecto |
 | `cpm.py` | pm-cronograma-estimacion, pm-plan-etapa-y-limites |
 | `wbs.py` | pm-planificacion-por-productos, pm-costos-presupuesto, pm-bmad-puente (trazabilidad) |
 | `exportar.py` | pm-exportar, pm-costos-presupuesto |
+| `tablero.py` | `estado.py puerta` y `cierre --prematuro` (congelado automático), pm-puerta, pm-progreso-reportes, pm-visuales y el portal de pm-kb (`generar --json`) |
 | `especificacion.py` | todas las que leen requisitos, épicas o historias (SPEC §1.16): pm-mandato-y-brief, pm-caso-de-negocio, pm-okr, pm-planificacion-por-productos, pm-cronograma-estimacion, pm-costos-presupuesto, pm-agil-hibrido, pm-plan-etapa-y-limites, pm-paquetes-trabajo, pm-progreso-reportes, pm-riesgos, pm-calidad, pm-issues-cambios, pm-cierre-proyecto, pm-visuales, pm-sync, pm-puerta; importa `pm-bmad-puente/scripts/bmad.py` como proveedor cuando `integraciones.especificacion = bmad` |
 Un cambio de interfaz en un script obliga a revisar esas skills; agregar columnas exige cambiar a la vez `esquema.py`
 y `guia-registros.md`.
@@ -193,3 +196,43 @@ de solo lectura: el registro de productos de PRINCE2 (A13) derivado de `backlog.
 las aceptaciones de `estado.json` y los paquetes de trabajo (descripción y recepción), sin registro propio. Regla de
 estados, convención de citas, corte y Must sin aceptar: guía de `pm-paquetes-trabajo` §5 (fuente única). La misma
 función alimenta QUA-04 de la sanidad (productos de la WBS) y C-07 de `autorizar-cierre` (`docs/PUERTAS.md` §3).
+
+## 11. Tablero del proyecto (`tablero.py`, formato pm-tablero/1)
+Vista derivada del proyecto, sin datos propios (SPEC §1.10.17): ciclo y puertas, atención (el radar de §9), entrega en
+dos niveles (productos de §10 y control: cambios, issues y acciones con las propuestas pendientes como sombra) y
+artefactos clave por grupo (generales, ciclo actual, cierre de etapas anteriores y decisiones vigentes de la junta).
+Cada tarjeta tiene un id estable (`ref`) y un enlace relativo `ficha/<ref>`; el portal de pm-kb arma la URL.
+
+| Comando | Qué hace |
+|---|---|
+| `tablero.py --proyecto <dir> generar [--corte AAAA-MM-DD]` | resumen en pantalla; solo lectura |
+| `… generar --json` | el tablero en formato `pm-tablero/1` (lo consume pm-kb) |
+| `… generar --html RUTA [--origen URL]` | HTML de un solo archivo con CSP por hash, fecha de corte y la leyenda «instantánea, no se actualiza»; con `--origen` las tarjetas enlazan a `<URL>/p/<proyecto>/ficha/<ref>`, sin él al archivo fuente |
+| `… congelar --etiqueta "…" [--por "<rol: nombre>"]` | instantánea en `03-control/reportes/tableros/<fecha>-<etiqueta>.json` y `.html` (p. ej. para un highlight o una junta) |
+| `… generar --actor "<nombre o rol>" [--json \| --html RUTA]` | el tablero de una persona según `raci.csv` y sus responsabilidades (ver «Por actor») |
+| `… congelar --etiqueta "…" --actor "<nombre o rol>"` | instantánea del tablero de esa persona (p. ej. para enviarle su vista antes de una junta) |
+| `… listar [--json]` | instantáneas con etiqueta, puerta, etapa, decisión, actor, sha256 y si coinciden con la bitácora |
+| `… comparar ID_A ID_B [--json]` | tarjetas que entraron, salieron o cambiaron de columna o estado (`actual` como B = el tablero de hoy) |
+
+- **Congelado automático.** `estado.py puerta` (salvo `--decision pendiente`) calcula el tablero **antes** de aplicar la
+  decisión y, ya registrada, lo escribe con la decisión en el bloque `instantanea` (etiqueta `<tipo> · etapa <n>`);
+  `estado.py cierre --prematuro` hace lo mismo (etiqueta «cierre prematuro»). Si el congelado falla, la decisión queda
+  registrada igual y el script avisa (`AVISO: no se pudo congelar el tablero …`).
+- **Inmutables.** Las instantáneas se escriben con el mecanismo común (bloqueo, escritura atómica y una línea por archivo
+  en la bitácora); un id repetido recibe `-2`, `-3`. El guardián impide editarlas, y una edición fuera de los scripts
+  aparece en `listar` (`en_bitacora: false`) y en la sanidad (BIT-02).
+- **Solo lectura.** `generar` no toma el bloqueo ni escribe (salvo el HTML de `--html`, que nunca va a
+  `03-control/reportes/tableros/`), y funciona sobre una carpeta de solo lectura, igual que `estado.py radar`,
+  `productos` y `contexto`, `puertas.py estado` y `registro.py propuestas`.
+- **Por actor.** `--actor` acepta un nombre (completo o una parte que no sea ambigua), `"<rol: nombre>"`, un rol
+  (`rol_proyecto` del maestro de interesados o un rol de `estado.json.roles`, como `ejecutivo` o `gestor`) o un `ST-###`,
+  sin distinguir mayúsculas ni acentos. Quedan sus elementos R, A, C o I de `raci.csv` (un producto también por un
+  código padre de la WBS o por su paquete de trabajo), las filas que lo nombran (acciones y riesgos a su cargo, issues y
+  cambios que pidió, tiene a cargo o decidió, decisiones que tomó, revisiones de calidad, lecciones y supuestos), los
+  artefactos que aprobó, lo que el radar le pide (también por su rol: lo de «junta» le llega al ejecutivo y a los
+  usuarios y proveedores sénior), sus propuestas y sus eventos. El ciclo y las puertas son comunes a todos los actores.
+  Los totales se recalculan sobre lo filtrado, el JSON lleva `actor: {id, nombre, rol, letras}` y cada tarjeta su letra
+  en `raci`. Si el actor no existe o hay más de uno con ese nombre o rol, el script lo dice, lista los actores y termina
+  con código 1. Es un enfoque, no un permiso: el tablero completo sigue siendo de circulación de equipo.
+- **Contenido.** Nombres de hasta 80 caracteres y descripciones de hasta 140; las cifras con forma de monto se muestran
+  como «[monto]»; los registros de interesados, estereotipos, preferencias, envíos y personas no aparecen (ni en los eventos).

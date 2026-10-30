@@ -315,7 +315,7 @@ def expediente(a, estado):
         agregar(ARCHIVO_BITACORA_ZIP, datos_bit, "bitacora", T("bitácora de escrituras completa (cadena de huellas)", "complete write log (hash chain)"))
     # hallazgos de sanidad al corte (solo lectura)
     san = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "pm-estado-proyecto", "scripts", "sanidad.py")
-    r = subprocess.run([sys.executable, os.path.normpath(san), "--proyecto", p, "--json", "--corte", corte], capture_output=True, text=True)
+    r = subprocess.run([sys.executable, os.path.normpath(san), "--proyecto", p, "--json", "--corte", corte], capture_output=True, text=True, encoding="utf-8")
     try: sj = json.loads(r.stdout)
     except ValueError: sj = {"hallazgos": [], "cuenta": {}, "error": (r.stderr or r.stdout)[-300:]}
     agregar(f"sanidad-{corte}.json", json.dumps(sj, ensure_ascii=False, indent=2).encode("utf-8"), "sanidad")
@@ -532,4 +532,7 @@ def main():
     if externos: print("Excluidos por estar fuera del proyecto (usar --permitir-externos para incluirlos) / outside the project, excluded:", "; ".join(externos))
 
 if __name__ == "__main__":
+    sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "pm-estado-proyecto", "scripts"))
+    try: import esquema; esquema.salida_utf8()        # salida UTF-8 en consolas cp1252 (docs/ARQUITECTURA.md §9.4)
+    except ImportError: pass
     main()

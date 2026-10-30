@@ -418,7 +418,51 @@ const S3 = "Confianza y adopción"; pres.addSection({ title: S3 });
   fit(s, P.nota, 0.5, 6.45, 12.33, 0.4, 10.5, 9.5, { color: GRAY });
 }
 
-// =============================================================== 18 · Cómo empezar
+// =============================================================== 18 · Comparativo: pm-method, PMI Infinity y gestión tradicional
+{
+  const P = T.comparativo;
+  const s = slide(S3, P.titulo, P.en + "\n\nFuentes:\n" + P.fuentes_lista.join("\n"));
+  fit(s, P.bajada, 0.5, 1.36, 12.33, 0.5, 13, 11, { color: CHAR });
+  const colW = [1.65, 3.68, 3.5, 3.5];
+  const hdr = (t, i) => ({ text: t, options: { bold: true, color: WHITE, fill: { color: i === 1 ? BLUE : NAVY }, fontSize: 11.5, valign: "middle" } });
+  // tamaño de la tabla: el mayor que entra en la altura disponible (filas de la altura de su celda más alta)
+  const disp = 4.38, hh = 0.34;
+  let ts = 11;
+  const altoFila = (f, z) => Math.max(...f.map((c, i) => textH(c, colW[i] - 0.14, z, 1.15))) + 0.1;
+  while (ts > 9 && P.filas.reduce((a, f) => a + altoFila(f, ts), hh) > disp) ts -= 0.5;
+  const tot = P.filas.reduce((a, f) => a + altoFila(f, ts), hh);
+  if (tot > disp) avisos.push(`diapositiva ${n}: comparativo alto (${tot.toFixed(2)} in)`);
+  const rows = [P.cab.map(hdr)].concat(P.filas.map(f => f.map((c, i) => ({ text: c, options: {
+    fontSize: ts, valign: "middle", bold: i === 0, color: i <= 1 ? NAVY : CHAR, fill: { color: i === 0 ? LT : i === 1 ? BLUETINT : WHITE } } }))));
+  s.addTable(rows, { x: 0.5, y: 1.92, w: 12.33, colW, rowH: [hh].concat(P.filas.map(f => altoFila(f, ts))), border: { type: "solid", color: LINE, pt: 0.75 }, fontFace: "Arial", margin: 0.06, autoPage: false });
+  fit(s, P.fuentes, 0.5, 6.38, 12.33, 0.46, 9.5, 8.5, { color: GRAY });
+}
+
+// =============================================================== 19 · Cuándo conviene cada uno y lo que pm-method no hace
+{
+  const P = T.conviene;
+  const s = slide(S3, P.titulo, P.en);
+  rr(s, 0.5, 1.4, 6.6, 4.82, BLUETINT);
+  label(s, P.col1, 0.7, 1.52, 6.2, BLUE);
+  const colW = [4.0, 2.2];
+  const hdr = t => ({ text: t, options: { bold: true, color: WHITE, fill: { color: NAVY }, fontSize: 11, valign: "middle" } });
+  let ts = 12.5;
+  const altoFila = (f, z) => Math.max(...f.map((c, i) => textH(c, colW[i] - 0.12, z, 1.15))) + 0.1;
+  while (ts > 9.5 && P.situaciones.reduce((a, f) => a + altoFila(f, ts), 0.32) > 3.95) ts -= 0.5;
+  const tot = P.situaciones.reduce((a, f) => a + altoFila(f, ts), 0.32);
+  if (tot > 3.95) avisos.push(`diapositiva ${n}: tabla de situaciones alta (${tot.toFixed(2)} in)`);
+  const rows = [P.cab.map(hdr)].concat(P.situaciones.map(([sit, conv]) => [
+    { text: sit, options: { fontSize: ts, color: CHAR, valign: "middle", fill: { color: WHITE } } },
+    { text: conv, options: { fontSize: ts, color: NAVY, bold: true, valign: "middle", fill: { color: WHITE } } }]));
+  s.addTable(rows, { x: 0.7, y: 1.86, w: 6.2, colW, rowH: [0.32].concat(P.situaciones.map(f => altoFila(f, ts))), border: { type: "solid", color: LINE, pt: 0.5 }, fontFace: "Arial", margin: 0.06, autoPage: false });
+  rr(s, 7.3, 1.4, 5.53, 4.82, ORTINT);
+  label(s, P.col2, 7.5, 1.52, 5.2, ORANGE);
+  bullets(s, P.limites, 7.5, 1.86, 5.15, 4.25, 13, 10, { gap: 5, marcaColor: ORANGE });
+  rr(s, 0.5, 6.32, 12.33, 0.5, ORTINT);
+  fit(s, P.combinar, 0.7, 6.32, 12, 0.5, 13, 11, { color: ORANGE, bold: true, box: { valign: "middle" } });
+}
+
+// =============================================================== 20 · Cómo empezar
 {
   const P = T.empezar, E = D.empezar;
   const s = slide(S3, P.titulo, P.en);
@@ -438,15 +482,19 @@ const S3 = "Confianza y adopción"; pres.addSection({ title: S3 });
   });
 }
 
-// =============================================================== 19 · Glosario
+// =============================================================== 21 · Glosario
 {
   const P = T.glosario;
   const s = slide(S3, P.titulo, P.en);
-  const g = D.glosario, mitad = Math.ceil(g.length / 2);
-  // tamaño del glosario: el mayor que entra en las dos columnas
-  let GS = 11;
+  const g = D.glosario;
   const altura = (parte, z) => parte.reduce((a, t) => a + Math.max(textH(t.definicion, 4.1, z, 1.17), textH(t.termino, 1.6, z, 1.17)) + 0.1, 0.3);
-  while (GS > 9 && Math.max(altura(g.slice(0, mitad), GS), altura(g.slice(mitad), GS)) > 5.3) GS -= 0.5;
+  // corte entre columnas que equilibra las alturas (orden alfabético intacto)
+  const corte = z => { let best = Math.ceil(g.length / 2), bh = Infinity;
+    for (let k = 1; k < g.length; k++) { const h = Math.max(altura(g.slice(0, k), z), altura(g.slice(k), z)); if (h < bh) { bh = h; best = k; } }
+    return best; };
+  // tamaño del glosario: el mayor que entra en las dos columnas
+  let GS = 11, mitad = corte(GS);
+  while (GS > 9 && Math.max(altura(g.slice(0, mitad), GS), altura(g.slice(mitad), GS)) > 5.3) { GS -= 0.5; mitad = corte(GS); }
   [g.slice(0, mitad), g.slice(mitad)].forEach((parte, k) => {
     const hdr = t => ({ text: t, options: { bold: true, color: WHITE, fill: { color: NAVY }, fontSize: 10 } });
     const rows = [[hdr("Término"), hdr("Definición")]].concat(parte.map(t => [

@@ -65,6 +65,7 @@
 | MAP | pm-mapas-estrategicos (MAP-01 → pm-adquisiciones; MAP-02 → pm-riesgos) |
 | DEC | pm-direccion-decisiones |
 | BIT | la persona que revisa el cambio (`registro.py reconocer`, pm-registros); restaurar desde git si no corresponde |
+| DAT | quien editó el archivo fuera de los scripts: volver a guardarlo en UTF-8 (Excel: «CSV UTF-8»), corregir la línea indicada o restaurarlo desde git (pm-registros) |
 | ESP | pm-bmad-puente, pm-planificacion-por-productos, pm-issues-cambios |
 | INT | pm-integraciones |
 

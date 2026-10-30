@@ -1,4 +1,4 @@
-# Dependencias · pm-method 2.6.0
+# Dependencias · pm-method 2.7.0
 
 Lista completa de lo que pm-method necesita o puede usar, con la **URL de origen** de cada elemento, para qué lo usa el
 paquete, si es obligatorio, la versión probada, la licencia y el comando de instalación. Cómo instalar y configurar
@@ -75,7 +75,10 @@ uno como **INS-01** con el comando de instalación.
 | `python-docx` (módulo `docx`) | `pm-exportar` (`exportar.py docx`), `pm-reuniones` (`transcripcion.py` lee actas `.docx`) | recomendada | 1.2.0 (entorno de pruebas) | MIT (metadatos PyPI) | https://pypi.org/project/python-docx/ · fuente https://github.com/python-openxml/python-docx | `python3 -m pip install python-docx` |
 | `openpyxl` | `pm-exportar` (`exportar.py xlsx`) | recomendada | 3.1.5 (entorno de pruebas) | MIT (metadatos PyPI) | https://pypi.org/project/openpyxl/ (fuente declarada en PyPI: `https://foss.heptapod.net/openpyxl/openpyxl` **[verificar]**) | `python3 -m pip install openpyxl` |
 
-Las tres juntas: `python3 -m pip install pyyaml python-docx openpyxl`.
+Las tres juntas: `python3 -m pip install pyyaml python-docx openpyxl`, dentro de un entorno virtual donde el Python del
+sistema está protegido (Ubuntu 24.04, PEP 668), con las versiones probadas: [INSTALACION
+§5](INSTALACION.md#5-dependencias-python) e [INSTALACION-WSL2
+§3.2](INSTALACION-WSL2.md#32-entorno-virtual-de-python-con-los-paquetes-de-pm-method).
 
 ---
 
@@ -86,10 +89,10 @@ Las tres juntas: `python3 -m pip install pyyaml python-docx openpyxl`.
 | Node.js y `npx` | `npx bmad-method install` (BMAD), `npx skills add` (skills externas); en ejecución, archify, visual-explainer y las skills de Office | opcional (obligatoria para BMAD y skills externas) | entorno de pruebas Node 22.22.0, npm 10.9.4; mínimo efectivo ≥ 22.20 (§0) | no verificada | código fuente: https://github.com/nodejs/node · descargas: `https://nodejs.org/en/download` **[verificar]** | instalador oficial o gestor de paquetes **[verificar]**; `npx` viene con npm |
 | `skills` (CLI de `npx skills add`) | instalar archify, diagram-design, visual-explainer y docx/xlsx/pptx como skills copiadas (§6.1 de `INSTALACION.md`) | opcional | 1.7.0 (`INSTALACION.md` §6.1); última en npm al 2026-10-17: 1.7.2 | MIT (npm) | https://github.com/vercel-labs/skills · npm https://registry.npmjs.org/skills | sin instalación: `npx skills add <owner>/<repo> -a claude-code -s <skill> -y` (requiere Node ≥ 22.20.0) |
 | Chrome o Chromium | `browser-check` de archify (`pm-visuales` con `diagramas=archify`) | opcional | no registrada | no verificada | URL a confirmar por el usuario | instalar el navegador; si archify no lo encuentra, `ARCHIFY_CHROME=<ruta del ejecutable>` |
-| `@mermaid-js/mermaid-cli` (`mmdc`) | `exportar.py` inserta los diagramas Mermaid como imagen en Word (`pm-exportar`); `mapas.py … render` genera el PNG de los mapas de Wardley y de recorrido (`pm-mapas-estrategicos`; `wardley-beta` exige Mermaid 11.14 o posterior y está en beta); `scripts/validar_mermaid.py --render` (mantenimiento) | opcional | 11.16.0 con Mermaid 11.16.1 (entorno de pruebas); la 12.0.0 exige Node ≥ 22.13.0 | MIT (npm) | https://github.com/mermaid-js/mermaid-cli · npm https://registry.npmjs.org/@mermaid-js%2fmermaid-cli | `npm install -g @mermaid-js/mermaid-cli` |
+| `@mermaid-js/mermaid-cli` (`mmdc`) | `exportar.py` inserta los diagramas Mermaid como imagen en Word (`pm-exportar`); `mapas.py … render` genera el PNG de los mapas de Wardley y de recorrido (`pm-mapas-estrategicos`; `wardley-beta` exige Mermaid 11.14 o posterior y está en beta); `scripts/validar_mermaid.py --render` (mantenimiento) | opcional | 11.16.0 con Mermaid 11.16.1 (entorno de pruebas); la 12.0.0 exige Node ≥ 22.13.0 | MIT (npm) | https://github.com/mermaid-js/mermaid-cli · npm https://registry.npmjs.org/@mermaid-js%2fmermaid-cli | `npm install -g @mermaid-js/mermaid-cli@11.16.0` (la versión probada; INSTALACION-WSL2 §4.3) |
 | Java (JRE/JDK) | solo para usar MPXJ | opcional | entorno de pruebas OpenJDK 21.0.12.1 | no verificada | URL a confirmar por el usuario | distribución de Java del sistema operativo **[verificar]** |
 | MPXJ (paquete PyPI `mpxj`) + JPype (`jpype1`) | validar o convertir el MSPDI de `cpm.py --mspdi` y `.mpp` (`pm-cronograma-estimacion`); `cpm.py` no lo necesita | opcional | `mpxj` 16.10.0 (`INTEGRACIONES.md` §2); `jpype1` 1.7.1 (entorno de pruebas) | `mpxj`: LGPL-2.0-or-later; `jpype1`: Apache-2.0 (metadatos PyPI) | https://pypi.org/project/mpxj/ · fuente https://github.com/joniles/mpxj · https://pypi.org/project/jpype1/ · fuente https://github.com/jpype-project/jpype | `python3 -m pip install mpxj jpype1` (el paquete `mpxj` no declara JPype como dependencia; su documentación lo usa con `import jpype`) |
-| Playwright (PyPI `playwright`) | PNG opcional de diagram-design; capturas de tableros, reportes y recorridos en los recorridos E2E (`scripts/pruebas/guias_e2e/`, mantenimiento) | opcional | 1.56.0 (entorno de pruebas e imagen Docker) | no verificada | https://pypi.org/project/playwright/ · fuente https://github.com/microsoft/playwright | `python3 -m pip install playwright && playwright install chromium` (comando de `INSTALACION.md` §6.1) |
+| Playwright (PyPI `playwright`) | PNG opcional de diagram-design; capturas de tableros, reportes y recorridos en los recorridos E2E (`scripts/pruebas/guias_e2e/`, mantenimiento) | opcional | 1.56.0 (entorno de pruebas e imagen Docker) | no verificada | https://pypi.org/project/playwright/ · fuente https://github.com/microsoft/playwright | en el entorno virtual, `python3 -m pip install playwright==1.56.0` y `python3 -m playwright install --with-deps --only-shell chromium` (solo el navegador sin interfaz; INSTALACION-WSL2 §3.2 y §4.1) |
 | `playwright-core` (npm) | `check.mjs` de visual-explainer (sin él no corre esa comprobación) | opcional | no registrada | Apache-2.0 (npm) | https://github.com/microsoft/playwright · npm https://registry.npmjs.org/playwright-core | **[verificar]** según la documentación de visual-explainer |
 | `docx` y `pptxgenjs` (npm) | los usan las skills de Office de `anthropics/skills` para generar `.docx` y `.pptx`; `pptxgenjs` 4.0.1 lo usa también el generador del webinar (`scripts/webinar/pptx.js`) y del Informe 2 | opcional | no registrada | MIT ambos (npm) | https://github.com/dolanmiu/docx · https://github.com/gitbrent/PptxGenJS | `npm install docx pptxgenjs` en una carpeta de trabajo fuera del proyecto (`INSTALACION.md` §12) |
 | matplotlib (PyPI) | gráficos de 1600 × 900 de las guías E2E (`scripts/pruebas/guias_e2e/visuales.py`, mantenimiento); sin él, `probar_paquete.py` omite una comprobación | opcional | 3.11.2 (entorno de pruebas e imagen Docker) | no verificada | https://pypi.org/project/matplotlib/ | `python3 -m pip install matplotlib` |
@@ -108,7 +111,7 @@ PyPI (§7.6).
 | PostgreSQL | motor del índice: texto, relaciones, transacciones y RLS | obligatoria para pm-kb | 16 (Ubuntu 24.04, WSL2) · 18.6 (imagen `pm-kb-db`, Ubuntu 26.04) | PostgreSQL (archivo `copyright` del paquete de Ubuntu) | paquetes `postgresql-<v>` y `postgresql-common` de los repositorios oficiales de Ubuntu |
 | pgvector | vectores opcionales | obligatoria para pm-kb (la extensión se crea siempre) | 0.6.0 (Ubuntu 24.04) · 0.8.1 (Ubuntu 26.04) | PostgreSQL (archivo `copyright` de `postgresql-18-pgvector` 0.8.1-2: "License: PostgreSQL") | paquete `postgresql-<v>-pgvector` de Ubuntu · fuente https://github.com/pgvector/pgvector |
 | `psycopg` y `psycopg-binary` | conexión a PostgreSQL (con la biblioteca `libpq` incluida en la rueda) | obligatoria | 3.3.6 | LGPL-3.0-only; se usan como biblioteca, sin modificarlos | https://pypi.org/project/psycopg/ |
-| `starlette` | servicio web y ruta `/mcp` | obligatoria | 1.10.0 | BSD-3-Clause | https://pypi.org/project/starlette/ |
+| `starlette` | servicio web y ruta `/mcp` | obligatoria | 1.7.0 | BSD-3-Clause | https://pypi.org/project/starlette/ |
 | `uvicorn` | servidor HTTP | obligatoria | 0.54.0 | BSD-3-Clause | https://pypi.org/project/uvicorn/ |
 | `markitdown` (con los extras `docx`, `pptx`, `xlsx` y `pdf`) | convertir DOCX, PPTX, XLSX, PDF y HTML a Markdown para indexarlos; sin él, esos formatos se omiten con aviso | recomendada | 0.1.9 | MIT | https://pypi.org/project/markitdown/ |
 | Transitivas relevantes | `onnxruntime` 1.31.1 (MIT) y `magika` 1.0.3 (Apache-2.0), que trae `markitdown` para detectar tipos de archivo; `pdfminer-six` 20260107 (MIT), `pdfplumber` 0.11.10 (MIT) y `pypdfium2` 5.14.0 ("BSD-3-Clause, Apache-2.0, dependency licenses") para PDF; `mammoth` 1.13.0 (BSD-2-Clause), `python-pptx` 1.0.2 (MIT), `openpyxl` 3.1.5 (MIT), `pandas` 3.1.0 (BSD-3-Clause), `numpy` 2.5.4 (BSD-3-Clause AND 0BSD AND MIT AND Zlib AND CC0-1.0), `lxml` 6.1.3 (BSD-3-Clause), `pillow` 13.0.0 (MIT-CMU), `cryptography` 50.0.2 (Apache-2.0 OR BSD-3-Clause), `certifi` 2026.10.23 (MPL-2.0); lista completa en `pm-kb/requirements.txt` | — | las de `requirements.txt` | §7.6 | PyPI |
@@ -128,8 +131,8 @@ por URL ([PM-KB §8](PM-KB.md#8-configuración)); no se instalan con pm-kb.
 
 | Nombre | Para qué lo usa pm-method | Nivel | Versión probada | Licencia | URL de origen | Instalación |
 |---|---|---|---|---|---|---|
-| pm-method | el propio paquete (plugin y marketplace `pm-method`) | — | 2.6.0 (este documento) | MIT (`LICENSE` del repositorio publicado) | https://github.com/Arturo-Penas-Rial/pm-method | `claude plugin marketplace add Arturo-Penas-Rial/pm-method` y `claude plugin install pm-method@pm-method` |
-| BMAD Method | capa de especificación de solo lectura: `pm-bmad-puente` (`bmad.py`), `especificacion.py`, `pm-nuevo` (detección) | opcional | 4.x, 6.11 y 6.12; relevado `bmad-method@6.12.4` (`compatibilidad.json`) | MIT (npm) | https://github.com/bmad-code-org/BMAD-METHOD · npm https://registry.npmjs.org/bmad-method | en la raíz del repositorio del producto: `npx bmad-method@6.12.4 install --modules bmm --tools claude-code --yes --user-name <nombre> --set core.project_name=<proyecto> --no-shims` (requiere Node ≥ 20.12.0) |
+| pm-method | el propio paquete (plugin y marketplace `pm-method`) | — | 2.7.0 (este documento) | MIT (`LICENSE` del repositorio publicado) | https://github.com/Arturo-Penas-Rial/pm-method | `claude plugin marketplace add Arturo-Penas-Rial/pm-method` y `claude plugin install pm-method@pm-method` |
+| BMAD Method | capa de especificación de solo lectura: `pm-bmad-puente` (`bmad.py`), `especificacion.py`, `pm-nuevo` (detección) | opcional | 4.x, 6.11 y 6.12; relevado `bmad-method@6.12.4` (`compatibilidad.json`) | MIT (npm) | https://github.com/bmad-code-org/BMAD-METHOD · npm https://registry.npmjs.org/bmad-method | en la raíz del repositorio del producto: `npx --yes bmad-method@6.12.4 install --modules bmm --tools claude-code --yes --user-name <nombre> --set core.project_name=<proyecto> --no-shims` (requiere Node ≥ 20.12.0) |
 
 ### 4.2 Skills externas (diagramas y Office)
 
@@ -300,8 +303,8 @@ Atlassian Goals y Asana Goals no estaban expuestos por sus MCP oficiales al 2026
 | Fuente | Qué se tomó |
 |---|---|
 | `https://pypi.org/pypi/<paquete>/<versión>/json` de los 41 paquetes de `pm-kb/requirements.txt` | campo `license_expression` o, si falta, `license` y los clasificadores `License ::`; las de §3.1 |
-| `/usr/share/doc/postgresql-18-pgvector/copyright` y `/usr/share/doc/postgresql-18/copyright` en la imagen `pm-kb-db:2.6.0` | "License: PostgreSQL" (pgvector 0.8.1-2 y PostgreSQL 18.6-0ubuntu0.26.04.1) |
-| `dpkg -l` en la imagen `pm-kb-db:2.6.0` | `postgresql-18` 18.6-0ubuntu0.26.04.1, `postgresql-18-pgvector` 0.8.1-2, `tini` 0.19.0-6 |
+| `/usr/share/doc/postgresql-18-pgvector/copyright` y `/usr/share/doc/postgresql-18/copyright` en la imagen `pm-kb-db:2.7.0` | "License: PostgreSQL" (pgvector 0.8.1-2 y PostgreSQL 18.6-0ubuntu0.26.04.1) |
+| `dpkg -l` en la imagen `pm-kb-db:2.7.0` | `postgresql-18` 18.6-0ubuntu0.26.04.1, `postgresql-18-pgvector` 0.8.1-2, `tini` 0.19.0-6 |
 | `pm-kb base estado` en Ubuntu 24.04 | PostgreSQL 16.15 (Ubuntu 16.15-0ubuntu0.24.04.1), `vector` 0.6.0, `unaccent` 1.1, `pg_trgm` 1.6 |
 | `sha256sum pm-kb/pmkb/estatico/cytoscape.min.js` | coincide con el registrado en `LICENCIA-cytoscape.txt` |
 | `pip-audit -r pm-kb/requirements.txt --disable-pip --no-deps` (pip-audit 2.10.1) | "No known vulnerabilities found" |

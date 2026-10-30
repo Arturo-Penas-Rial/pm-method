@@ -144,3 +144,12 @@ registra `highlight-<corte>` en revisión (paso 11).
   (`prince2-practicas-riesgo-issues-progreso-productos.md` §4.c.3 y §4.c.6); el gestor informa, la junta decide.
 - [Plantillas] Validar la cadena de reporte y reconciliar números (`plantillas-documentos-registros-reportes.md` §49,
   reglas 21 y 22).
+
+## 15. Tablero del proyecto junto al highlight o la junta
+Para dejar la foto del ciclo que acompaña un highlight o una reunión de junta: `python3
+${CLAUDE_SKILL_DIR}/../pm-estado-proyecto/scripts/tablero.py --proyecto <dir> congelar --etiqueta "highlight <fecha>"
+--por "<rol: nombre>"` (instantánea inmutable en `03-control/reportes/tableros/`, JSON y HTML). En cada puerta la foto
+la congela `estado.py puerta` sin pedirlo. Qué cambió desde la última puerta, para la sección de avance del informe:
+`tablero.py --proyecto <dir> comparar <id> actual` (ids con `tablero.py --proyecto <dir> listar`). El tablero no tiene
+cifras propias: los números del informe siguen saliendo de `estado.py periodo` (§14) y del EVM.
+

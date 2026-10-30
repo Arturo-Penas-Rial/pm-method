@@ -88,7 +88,7 @@ def correr_cpm(p, distribucion="beta"):
 
 def leer(proyecto, rel):
     p = os.path.join(proyecto, rel)
-    return list(csv.DictReader(open(p, encoding="utf-8"))) if os.path.exists(p) else []
+    return E.leer_filas(p) if os.path.exists(p) else []
 
 def menciona(texto, claves):
     return [k for k in claves if k and re.search(rf"(?<![\w.-]){re.escape(k)}(?![\w-]|\.\d)", texto or "")]

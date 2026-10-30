@@ -785,6 +785,7 @@ if not kb_disponible():
     kb_omitido("paso 16 (búsqueda citada, versiones e interfaz web)")
 else:
     KP = "--proyecto portal-socios"
+    kb_exclusivo_inicio()      # E2E-3 indexa el mismo proyecto: en la integración cruzada corren a la vez
     kb(f'indexar {KP} --ruta .', repo)
     kb(f'buscar "¿por qué no se aprobó la compra de licencias de diseño?" {KP} --k 3', repo)
     kb(f'buscar "¿qué pasó con el proveedor de SMS?" {KP} --k 3', repo)
@@ -793,28 +794,24 @@ else:
     kb(f'cambios business-case {KP}', repo)
     kb(f'buscar "revisión del business case por R-007" {KP} --aprobado --k 2', repo)
     kb(f'contexto "¿por qué no se aprobó la compra de licencias de diseño?" {KP}', repo, corte=40)
-    def _pie(pg):
-        """El pie muestra la fecha y hora del indexado: se enmascara como en la evidencia."""
-        pg.locator("#pie", has_text="indexado").wait_for()   # sin wait_for_function: la CSP de pm-kb no admite eval
-        pg.evaluate("const p = document.querySelector('#pie'); p.textContent = p.textContent.replace(/indexado [0-9-]+ [0-9:]+/g, 'indexado <fecha y hora>')")
+    _pie = kb_pie
     def _busqueda(pg, url):
-        _pie(pg); pg.select_option("#proyecto", "portal-socios")
+        pg.goto(f"{url}/p/portal-socios/buscar"); _pie(pg); pg.wait_for_selector("#q")
         pg.fill("#q", "¿por qué no se aprobó la compra de licencias de diseño?"); pg.press("#q", "Enter")
         pg.wait_for_selector(".resultado"); pg.wait_for_timeout(300)
     def _ficha(pg, url):
-        pg.goto(f"{url}/?q=R-003"); _pie(pg); pg.wait_for_selector(".resultado")
-        pg.locator(".resultado h2 button", has_text="R-003").first.click()
-        pg.wait_for_selector("#grafo canvas", timeout=10000); pg.wait_for_timeout(800)
+        pg.goto(f"{url}/p/portal-socios/ficha/R-003"); _pie(pg); pg.wait_for_selector(".ficha-pagina")
+        pg.wait_for_selector("#grafo canvas", timeout=30000); pg.wait_for_timeout(800)
         pg.evaluate("document.querySelector('#grafo').scrollIntoView({block: 'center'})"); pg.wait_for_timeout(300)
     def _versiones(pg, url):
-        pg.click("#cerrar-ficha"); pg.goto(f"{url}/?q=caso%20de%20negocio%20revisi%C3%B3n"); _pie(pg); pg.wait_for_selector(".resultado")
-        pg.locator(".resultado h2 button", has_text="Business case").first.click()
-        pg.wait_for_selector("text=Comparar la vigente con la anterior", timeout=10000)
+        pg.goto(f"{url}/p/portal-socios/ficha/business-case"); _pie(pg); pg.wait_for_selector(".ficha-pagina")
+        pg.wait_for_selector("text=Comparar la vigente con la anterior", timeout=30000)
         pg.click("text=Comparar la vigente con la anterior"); pg.wait_for_selector(".cambio")
-        pg.locator("#ficha h3", has_text="Versiones de").evaluate("e => e.scrollIntoView({block: 'start'})"); pg.wait_for_timeout(300)
+        pg.locator(".ficha-pagina h2", has_text="Versiones").evaluate("e => e.scrollIntoView({block: 'start'})"); pg.wait_for_timeout(300)
     kb_capturas("portal-socios", [(os.path.join(OUT, "g1-kb-busqueda.png"), _busqueda), (os.path.join(OUT, "g1-kb-ficha.png"), _ficha),
                                   (os.path.join(OUT, "g1-kb-versiones.png"), _versiones)])
     kb(f'quitar {KP}', repo)
+    kb_exclusivo_fin()
 
 with open(sys.argv[1] if len(sys.argv) > 1 else "salida-g1.md", "w", encoding="utf-8") as f:
     for c, o in LOG:

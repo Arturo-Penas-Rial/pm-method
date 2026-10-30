@@ -32,6 +32,8 @@ paso "validar_paquete.py"                     02-validar-paquete.log     python3
 paso "probar_paquete.py"                      03-probar-paquete.log      python3 "$R/scripts/probar_paquete.py"
 paso "guias_e2e/correr.py"                    04-guias-e2e.log           python3 "$R/scripts/pruebas/guias_e2e/correr.py" --salida "$SALIDA/guias"
 paso "integracion/correr.py (cadenas 1-6)"    04b-integracion.log        python3 "$R/scripts/pruebas/integracion/correr.py" --e2e "$SALIDA/guias" --json "$SALIDA/integracion.json"
+# suite de variantes (docs/PRUEBAS.md §2.5): sin Python 3.9 ni el ZIP de 2.6.1 en la imagen, esas omisiones se declaran
+paso "variantes/correr.py (sin e2e)"          04c-variantes.log          python3 "$R/scripts/pruebas/variantes/correr.py" --nivel robustez,caminos,matriz,integraciones,contratos,hermes --salida "$SALIDA/variantes" --permitir-omision python-3.9 --permitir-omision migracion-zip-261
 paso "validar_mermaid.py --render"            05-validar-mermaid.log     python3 "$R/scripts/validar_mermaid.py" --render
 paso "webinar/generar.py --todos --validar"   06-webinar-validar.log     python3 "$R/scripts/webinar/generar.py" --todos --validar
 paso "webinar/generar.py --todos (HTML+PPTX)" 07-webinar-generar.log     python3 "$R/scripts/webinar/generar.py" --todos --salida "$SALIDA/webinar"

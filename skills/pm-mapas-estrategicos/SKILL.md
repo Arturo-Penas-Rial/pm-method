@@ -1,7 +1,7 @@
 ---
 name: pm-mapas-estrategicos
 description: "Mapas de Wardley y de recorrido del cliente (journey, service blueprint) desde el proyecto o BMAD, con controles. Usar: mapa de Wardley, evolución de componentes, customer journey, puntos de dolor. No: diagramas de gestión→pm-visuales."
-version: 2.6.0
+version: 2.7.0
 author: pm-method
 license: MIT
 metadata:
@@ -68,9 +68,9 @@ Script: `python3 ${CLAUDE_SKILL_DIR}/../pm-mapas-estrategicos/scripts/mapas.py -
 | Artefacto | Plantilla | Ruta | estado.json |
 |---|---|---|---|
 | Mapa de Wardley (fuente) | `templates/wardley-ejemplo.json` | `02-planificacion/mapas/wardley-<slug>.json` | — (fuente de la vista) |
-| Vista del mapa de Wardley | `mapas.py render` | `02-planificacion/visuales/wardley-<slug>.md` (+ `.owm`, `.png`) | `mapa-wardley-<slug>` |
+| Vista del mapa de Wardley | `wardley render` | `02-planificacion/visuales/wardley-<slug>.md` (+ `.owm`, `.png`) | `mapa-wardley-<slug>` |
 | Recorrido del cliente (fuente) | `templates/recorrido-ejemplo.json` | `02-planificacion/mapas/recorrido-<slug>.json` | — (fuente de la vista) |
-| Vista del recorrido | `templates/recorrido.html` vía `mapas.py render` | `02-planificacion/visuales/recorrido-<slug>.md` (+ `.html`, `.png`) | `mapa-recorrido-<slug>` |
+| Vista del recorrido | `templates/recorrido.html` vía `recorrido render` | `02-planificacion/visuales/recorrido-<slug>.md` (+ `.html`, `.png`) | `mapa-recorrido-<slug>` |
 | Tablero de mapas (vista derivada) | `templates/tablero-mapas.html` vía `mapas.py tablero` | `02-planificacion/visuales/tablero-mapas.html`; sección del tablero de avance | — |
 | Candidatos del recorrido | `mapas.py recorrido candidatos --salida` | `03-control/reportes/<fecha>-candidatos-recorrido-<slug>.md` | — |
 

@@ -586,7 +586,8 @@ junta sobre la opción, así que `pm-director` le suma la elección de la matriz
 
 **Qué deberías ver:** "Proveedor de especificación: pm-method"; "requisitos: 7"; `mapas.py controles` con un solo aviso
 (MAP-02: MAP-03 quedó resuelto); L-001, L-002 y L-003 en `accionada-proyecto`, cada una con su artefacto; la verificación de la puerta con su único bloqueo, **L-01** (falta la lista de control,
-que se arma en la junta); la puerta registrada (**D-005**) y "Fase: inicio · Proceso: IP · Etapa 1: Iniciación ·
+que se arma en la junta); la puerta registrada (**D-005**), "Tablero congelado antes de la decisión:
+03-control/reportes/tableros/2026-12-11-autorizar-inicio-etapa-0.json (y .html)" y "Fase: inicio · Proceso: IP · Etapa 1: Iniciación ·
 Enfoque: hibrido"; aprobaciones **D-006** y **D-007**; "opciones-negocio: elegida O2 por Ejecutiva: Carmen Olivera ·
 decisión D-007 … · recomendada O2", y en `decisiones.csv` la fila D-007 con "O0 20,0 · O1 50,6 · O2 80,0★" en
 `opciones_consideradas`, la hoja y S-002, S-003, B-01 y B-02 en `artefactos_afectados` y los criterios con su peso en

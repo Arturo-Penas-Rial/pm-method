@@ -6,8 +6,8 @@ generador común) · **Público:** gestores de proyecto con algo de PMBOK o PRIN
 
 **Formato:** dos clases de 90 minutos. La primera **monta** el sistema de interesados: quiénes son, qué se les promete,
 cómo se mide el éxito, quién aprueba y decide qué, y cómo se registra lo acordado en una reunión (pasos 1 a 8, con el 7b). La segunda lo
-**opera** período a período: avance, radar al retomar la sesión, highlight, comunicaciones y compromiso sostenido (pasos
-9 a 14). Se dividió así por dos razones. Son 14 pasos con dos preguntas
+**opera** período a período: avance, radar al retomar la sesión, highlight, comunicaciones, compromiso sostenido y el
+historial de tableros por puerta (pasos 9 a 15). Se dividió así por dos razones. Son 15 pasos con dos preguntas
 distintas ("¿a quién le prometimos qué?" y "¿lo estamos cumpliendo?"). Además, la clase 2 necesita lo que deja la 1:
 sin maestro, perfiles, beneficios con tolerancia y frecuencias prometidas, ni el highlight ni STK-12 tienen contra qué
 compararse. En una sola clase habría que saltear la cadena de reporte o la revisión periódica, que son el foco del
@@ -34,6 +34,8 @@ Al terminar las dos clases, cada asistente puede:
    reporte contra el EVM guardado y hasta el correo y explicar por qué aprobar y enviar exigen la confirmación de una persona.
 6. Convertir la frecuencia prometida en el plan de comunicaciones en un control (STK-12) y reevaluar la brecha de
    compromiso en cada período.
+7. Mostrar cómo estaba el proyecto cuando la junta decidió cada puerta, comparar dos momentos y darle a cada persona su
+   tablero filtrado por la RACI, también con un enlace de solo lectura que vence y se revoca.
 
 ## Requisitos previos
 
@@ -49,6 +51,8 @@ programar. Conviene haber visto E2E-2 (línea base y cambio), pero no es obligat
   `cd scripts/pruebas/guias_e2e && GUIAS_SALIDA=<dir> TMPDIR=<dir> python3 g3.py <dir>/salida-g3.md` (la ruta aparece
   al final como "Carpeta del recorrido"). El driver levanta servidores de correo y Teams de prueba en 127.0.0.1.
 - Para enviar en vivo en los pasos 11 y 14 sin servidor propio, usar el modo `.eml` ("Generá los .eml").
+- Para el portal del paso 15, pm-kb instalado ([PM-KB.md](../../PM-KB.md)); sin pm-kb, la salida de `tablero.py` del
+  paso 15 y las capturas `g3-kb-*.png` cuentan lo mismo.
 - No abrir Claude Code con `--dangerously-skip-permissions` ni con `Bash` preaprobado para la demo: el pedido de permiso
   de `envios.py aprobar` y `enviar --confirmar` es parte de lo que se muestra.
 - Probar el micrófono y el tamaño de letra de la terminal (mínimo 18 pt).
@@ -170,7 +174,7 @@ cifras: si una no está en la evidencia, decir "lo verificamos después".
 |---|---|---|---|
 | 0–10 | Gancho | "¿Cuántas veces el número del informe no coincidía con el del correo a la junta?" Mostrar `g3-highlight-indicadores.png`: "cada tarjeta sale del mismo cálculo que el informe". Repaso en un minuto de la clase 1: maestro, frecuencias prometidas, beneficios con tolerancia. | Diapositivas de gancho |
 | 10–25 | Concepto | Radar al retomar la sesión (decidir, escalar, desbloquear, vigilar) y límite de la autoridad de cambio; highlight report y cadena de reporte; confirmación humana antes de enviar; salud de un KR contra el avance esperado; tolerancia y semáforo; STK-12 y la tolerancia de 1,5×; compromiso que retrocede. | Diapositivas de concepto |
-| 25–65 | Demostración | Pasos 9 a 14 (detalle abajo). | Terminal + evidencia |
+| 25–65 | Demostración | Pasos 9 a 15 (detalle abajo). | Terminal + evidencia |
 | 65–75 | Pregunta y discusión | "Laura, Sofía y el sindicato están en 21 de 21 días. ¿Hay que hacer algo?" | Diapositiva de pregunta |
 | 75–85 | Ejercicio | Parte B del ejercicio: la cadencia de contacto y la cadena de reporte de un proyecto propio; ejemplo resuelto al cerrar el bloque. | [ejercicio.md](ejercicio.md) · [cómo conducirlo](#el-ejercicio) |
 | 85–90 | Cierre | Mensajes clave y puente a E2E-4. | Diapositiva de cierre |
@@ -185,7 +189,8 @@ cifras: si una no está en la evidencia, decir "lo verificamos después".
 | 42–47 | 11 | Evidencia; en vivo solo el pedido de permiso si hay tiempo | Cadena de reporte: 4 cifras en el comunicado y en el mensaje ejecutivo, 8 en el de Sofía, ninguna sin respaldo; 8 destinatarios, 5 borradores; el pedido de permiso de `aprobar` y de `enviar --confirmar`; EN-001…EN-008; el radar al 15/1 en «decidir 1 (C-001)» | "Antes de enviar, cada número del correo se busca en el highlight. Y ningún correo sale sin que una persona diga que sí." |
 | 47–49 | 12 | Evidencia | "11 ubicados, 6 elementos RACI, 0 hallazgos"; sanidad "0 ERROR · 0 AVISO · 2 INFO" | Mostrar la captura de la matriz: "el mismo maestro, ahora para compartir sin valoraciones". |
 | 49–58 | 13 | **En vivo** el prompt de detección; evidencia para la corrección | Los tres STK-12 (TI 18 de 10 días, Martín 21 de 10, Lucía 21 de 2); `g3-cadencia-stk12.png`; después EN-009…EN-011, A-005, TI en resistente | "Dos problemas distintos: un contacto que no ocurre (TI) y uno que ocurre y no se registra (checkpoint)." |
-| 58–65 | 14 | Evidencia | EN-012…EN-014 del 5/2; A-005 cumplida; STK-12 limpio al 19/2; brecha 7 → 3 → 4 → 3; TOL-03; `g3-brecha-compromiso.png` | "El compromiso también retrocede. Y el mismo patrón aparece en el avance: TOL-03 avisa que el corte de EVM tiene más de 31 días." |
+| 58–63 | 14 | Evidencia | EN-012…EN-014 del 5/2; A-005 cumplida; STK-12 limpio al 19/2; brecha 7 → 3 → 4 → 3; TOL-03; `g3-brecha-compromiso.png` | "El compromiso también retrocede. Y el mismo patrón aparece en el avance: TOL-03 avisa que el corte de EVM tiene más de 31 días." |
+| 63–65 | 15 | Evidencia y capturas | `tablero.py listar` (tres instantáneas, una por puerta), `comparar` (11 entraron, 1 cambió) y `generar --actor "Sofía Ramírez"` (decidir 1: C-001); `g3-kb-comparar.png`, `g3-kb-actor.png` y `g3-kb-compartido.png` | "Cada puerta deja el tablero como estaba al decidir. Cada persona ve lo suyo, y alguien de afuera, un enlace que vence y se revoca." |
 
 **Prompts exactos:** los de los pasos 10a (radar), 10b y 13 (prompt de detección) de la guía. El prompt de corrección del paso 13 y los
 dos del paso 14 se leen en voz alta y se muestra su resultado en la evidencia, para no depender de varias rondas más en
@@ -240,7 +245,8 @@ vivo.
 Usar la evidencia: los bloques del juicio del gestor, `periodo --highlight`, las dos verificaciones y "highlight desde el
 dato con la narrativa del gestor", y el de "cadena de reporte" del paso 11 de `salida-g3.md`, y las
 salidas de integridad y sanidad del 5/2 y del 19/2. Las imágenes `g3-radar.png`, `g3-okr-salud.png`, `g3-highlight-indicadores.png`,
-`g3-cadencia-stk12.png` y `g3-brecha-compromiso.png` cuentan la clase completa sin terminal.
+`g3-cadencia-stk12.png` y `g3-brecha-compromiso.png` cuentan la clase completa sin terminal; para el paso 15, la salida de
+`tablero.py` y las capturas `g3-kb-*.png`.
 
 ---
 

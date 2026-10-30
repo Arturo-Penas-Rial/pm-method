@@ -1,7 +1,7 @@
 ---
 name: pm-lecciones-aprendidas
 description: "Lecciones: captura, impacto, acción, verificación, informe e índice. Usar: lección aprendida, lessons learned, lessons report, lecciones de la retro, verificar lección, lecciones de otros proyectos. No: facilitar la retro→pm-agil-hibrido."
-version: 2.6.0
+version: 2.7.0
 author: pm-method
 license: MIT
 metadata:

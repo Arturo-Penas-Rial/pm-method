@@ -281,6 +281,14 @@ ARREGLO = {
     "MAP-04": "Agregar la evidencia (fuente y cita) o marcar la posición o la emoción como supuesto explícito.",
     "MAP-05": "Corregir el id (mapas.py vincular … --quitar y volver a vincular) o crear el elemento citado.",
 }
+ARREGLO_EN = {
+    "MAP-00": "Fix the JSON with 'mapas.py … validar' and regenerate the views with 'render'.",
+    "MAP-01": "Record the decision to build (registro.py agregar decisiones) and cite it: mapas.py vincular <mapa> <id> --refs D-…; or switch to buy or outsource.",
+    "MAP-02": "Record the inertia risk with pm-riesgos (registro.py agregar riesgos) and cite it: mapas.py vincular <mapa> <id> --refs R-…",
+    "MAP-03": "Treat the pain point with a requirement, backlog story, risk, issue, change, decision, assumption or quality review (Q-###) and cite it with mapas.py vincular (candidates: mapas.py recorrido candidatos).",
+    "MAP-04": "Add the evidence (source and quote) or mark the position or the emotion as an explicit assumption.",
+    "MAP-05": "Fix the id (mapas.py vincular … --quitar and link again) or create the cited item.",
+}
 
 def controles(p, detalle=None):
     """Lista de hallazgos (severidad, código, mensaje, arreglo) sobre todos los mapas del proyecto. Con una lista en
@@ -291,7 +299,7 @@ def controles(p, detalle=None):
     ids, abiertos, esp = ids_conocidos(p)
     actual = {"archivo": "", "elemento": ""}
     def add(cod, msg, elem=""):
-        out.append(("AVISO", cod, msg, ARREGLO[cod]))
+        out.append(("AVISO", cod, msg, t(ARREGLO[cod], ARREGLO_EN[cod])))
         if detalle is not None: detalle.append({"codigo": cod, "mensaje": msg, "archivo": actual["archivo"], "elemento": elem or ""})
     def rotos(nombre, elem, refs):
         for r in refs:
@@ -671,10 +679,10 @@ def mmdc_png(codigo, salida):
     if not shutil.which("mmdc"): return False, t("mmdc no está instalado: queda el bloque Mermaid (npm i -g @mermaid-js/mermaid-cli)", "mmdc not installed")
     with tempfile.TemporaryDirectory() as tmp:
         ent = os.path.join(tmp, "m.mmd"); open(ent, "w", encoding="utf-8").write(codigo)
-        r = subprocess.run(["mmdc", "-i", ent, "-o", os.path.join(tmp, "m.svg"), "-b", "white"], capture_output=True, text=True, timeout=180)
+        r = subprocess.run(["mmdc", "-i", ent, "-o", os.path.join(tmp, "m.svg"), "-b", "white"], capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=180)
         svg = open(os.path.join(tmp, "m.svg"), encoding="utf-8", errors="replace").read() if os.path.exists(os.path.join(tmp, "m.svg")) else ""
         if r.returncode != 0 or "Syntax error" in svg or not svg: return False, mmdc_error(r.stdout + r.stderr, svg)
-        r = subprocess.run(["mmdc", "-i", ent, "-o", salida, "-b", "white", "-s", "2"], capture_output=True, text=True, timeout=180)
+        r = subprocess.run(["mmdc", "-i", ent, "-o", salida, "-b", "white", "-s", "2"], capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=180)
         return r.returncode == 0, salida if r.returncode == 0 else mmdc_error(r.stdout + r.stderr, "")
 
 def mmdc_error(salida, svg):

@@ -596,7 +596,9 @@ aprobado`. `autorizar-etapa` revisa **E-06** (riesgos altos sin respuesta): ya n
   ya se hicieron, pero nadie cerró las acciones. Se cierran en el paso 8.
 - La verificación de `autorizar-proyecto` sin avisos: ni P-04 (enfoque de beneficios) ni P-10 (la RACI del paso 2 cuenta
   como matriz RACI).
-- "Copia congelada … business-case-v1.0.md"; las tres puertas registradas; fase `entrega`, etapa 2 "Release 1".
+- "Copia congelada … business-case-v1.0.md"; las tres puertas registradas, cada una con su tablero tal como estaba
+  antes de decidirla ("Tablero congelado antes de la decisión: 03-control/reportes/tableros/2026-10-30-autorizar-inicio-etapa-0.json
+  (y .html)" y lo mismo para autorizar-proyecto y autorizar-etapa); fase `entrega`, etapa 2 "Release 1".
 
 **Dónde verificar:** `02-planificacion/presupuesto.md` · `estado.json` → `presupuestos.riesgo` y `.gestion` · `cambios.csv` (C-001,
 columnas `costo` y `cargo`) · `decisiones.csv` (D-008) · `00-direccion/decisiones/<fecha>-verificacion-autorizar-*.md` ·
@@ -1087,8 +1089,10 @@ fichas de los ids citados y un tope de 2.500 tokens). Para registrar el MCP:
   ```
 
 **Qué deberías ver:**
-- `pm-kb: portal-socios indexado · 448 unidades (403 vigentes) · 65 documentos (1 con varias versiones) · 511 relaciones
-  · 95 entradas de historia · commit sin git · vectores: no`. Sin un servidor de vectores configurado, la búsqueda es
+- `pm-kb: portal-socios indexado · 484 unidades (425 vigentes) · 73 documentos (1 con varias versiones) · 525 relaciones
+  · 123 entradas de historia · commit sin git · vectores: no` y, porque es un proyecto de pm-method, `pm-kb: tablero de
+  portal-socios publicado · versión 1 · corte … · 4 instantánea(s)` (el tablero del día y los cuatro congelados en las
+  puertas, que el portal muestra en Tableros; [PM-KB.md](../PM-KB.md) §11.5). Sin un servidor de vectores configurado, la búsqueda es
   léxica (BM25) con sinónimos de gestión: la consulta muestra «Equivalencias: compra → adquisicion».
 - Las licencias: primero **C-003**, con la cita `portal-socios@sin-git:gestion/03-control/registros/cambios.csv:L4`,
   «decision: rechazado», «decidido_por: Autoridad de cambio: Sofía Ramírez», 2026-12-18, y el motivo: «no responde a
@@ -1099,7 +1103,9 @@ fichas de los ids citados y un tope de 2.500 tokens). Para registrar el MCP:
   2027-02-15), después las opciones de R-003 y el aviso de la decisión D-004.
 - `pm-kb ficha R-003`: la fila completa y sus **relaciones por ids**, sin que nadie las dibuje: salen hacia A-005, C-005
   y D-004 (citados en `acciones`), AD-5 (`causa`), FR-1 y NFR-2 (`efecto`); llegan desde D-017 y D-020, L-002, A-003, el
-  plan de contingencia y la hoja de la decisión.
+  plan de contingencia, la hoja de la decisión y la instantánea del tablero congelada en la decisión de la junta del
+  12/1. La ficha dice dónde está la fila («ubicación (fila de registro R-003): gestion/03-control/registros/riesgos.csv:L4»)
+  y cierra con «Relacionados por id», agrupados por registro.
 - `pm-kb versiones business-case`: v1.0 aprobada el 2026-11-27 (D-010) y v1.1 el 2027-01-12 (D-016), cada una con su
   copia congelada en `historial/`, y el archivo vivo marcado «← vigente». `pm-kb cambios business-case`: «v1.0 → v1.1 ·
   1 agregadas, 0 quitadas, 0 modificadas», la sección «Revisión 2027-01-12 por R-007 (norma de biometría)» (paso 10).

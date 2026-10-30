@@ -34,8 +34,8 @@ EXCLUIR_DEFECTO = ["03-control/comunicaciones", "*/03-control/comunicaciones"]  
 CAMPOS_CONTACTO = {"correo", "usuario_chat"}
 SENSIBLES_STK = {"poder", "interes", "actitud", "nivel_compromiso_actual", "nivel_compromiso_deseado", "expectativas",
                  "notas", "responsable_relacion", "estereotipo", "canal", "frecuencia"}
-CAMPOS_PRIMERO = ["titulo", "evento", "decision", "estado", "decidido_por", "fecha_decision", "notas", "respuesta", "causa",
-                  "efecto", "descripcion", "justificacion", "propietario"]     # lo que más pesa va antes (extractos)
+CAMPOS_PRIMERO = ["estado", "titulo", "evento", "decision", "decidido_por", "fecha_decision", "notas", "respuesta", "causa",
+                  "efecto", "descripcion", "justificacion", "propietario"]     # lo que más pesa va antes (extractos); el estado, primero: sin él un extracto recortado parece abierto
 CAMPOS_TITULO = ["titulo", "evento", "decision", "nombre", "leccion", "descripcion", "accion", "supuesto", "objetivo",
                  "requisito", "enunciado", "texto", "detalle"]
 EXT_MD = {".md", ".markdown"}
@@ -92,6 +92,33 @@ def archivos(raiz, excluir=None):
                 continue
             salida.append(rel)
     return salida
+
+
+def indexable(rel):
+    """True si la extensión es de un formato que se indexa (§3.1)."""
+    return Path(rel).suffix.lower() in EXT_MD | EXT_TEXTO | EXT_TRANS | EXT_OFFICE | EXT_HTML | EXT_CORREO | EXT_DATOS
+
+
+def huella(raiz, excluir=None):
+    """Huella barata de todo lo que se indexa (para `pm-kb vigilar`): ruta, tamaño y fecha de modificación de cada
+    archivo indexable de la carpeta (con las mismas exclusiones que `indexar`: .pmkbignore, --excluir, carpetas
+    omitidas), más las bitácoras `.bitacora.jsonl` (de ahí sale la historia) y el propio `.pmkbignore`. No lee contenidos."""
+    raiz = os.path.abspath(raiz)
+    partes = []
+    for rel in archivos(raiz, excluir):
+        if indexable(rel):
+            partes.append(rel)
+    for extra in (".pmkbignore", ".bitacora.jsonl", "*/.bitacora.jsonl", "*/*/.bitacora.jsonl"):
+        partes += sorted(os.path.relpath(p, raiz).replace(os.sep, "/") for p in Path(raiz).glob(extra)
+                         if not any(x in OMITIR_DIRS for x in Path(p).relative_to(raiz).parts[:-1]))
+    firmas = []
+    for rel in partes:
+        try:
+            st = os.stat(os.path.join(raiz, rel))
+            firmas.append(f"{rel}:{st.st_size}:{st.st_mtime_ns}")
+        except OSError:
+            pass
+    return sha("|".join(firmas), 16)
 
 
 # ------------------------------------------------------------------ utilidades de texto
@@ -346,6 +373,24 @@ def _escalares(o):
     return "\n".join(f"{k}: {v}" for k, v in o.items() if not k.startswith("_") and isinstance(v, (str, int, float)) and str(v).strip())
 
 
+def _campos_propuesta(d):
+    """Contenido propuesto de una propuesta de registro.py (03-control/propuestas/P-###.json, `campos`), con las mismas
+    exclusiones que los registros: nada de `preferencias` ni `envios`; de `stakeholders`, sin contacto ni valoración
+    (la propuesta no dice si la fila es confidencial, así que la valoración se omite siempre)."""
+    reg = str(d.get("registro") or "")
+    if reg in REGISTROS_EXCLUIDOS:
+        return "(campos omitidos: registro con datos personales de interesados)"
+    omitir = (CAMPOS_CONTACTO | SENSIBLES_STK) if reg == "stakeholders" else set()
+    lineas = [f"campos.{k}: {v}" for k, v in d["campos"].items()
+              if k not in omitir and isinstance(v, (str, int, float)) and str(v).strip()]
+    if reg == "stakeholders" and any(k in omitir for k in d["campos"]):
+        lineas.append("(contacto y valoración de interesados omitidos)")
+    return "\n".join(lineas)
+
+
+RESUMEN_ESTADO = ("proyecto", "fase", "proceso_actual", "etapa_actual", "enfoque_entrega", "idioma")   # claves de estado.json (SPEC §1.10)
+
+
 def unidades_json(rel, txt):
     try:
         d = json.loads(txt)
@@ -353,10 +398,15 @@ def unidades_json(rel, txt):
         return []
     if Path(rel).name == "estado.json" and isinstance(d, dict):
         us = []
-        resumen = {k: d.get(k) for k in ("nombre", "fase", "proceso", "etapa", "enfoque", "enfoque_entrega", "idioma") if d.get(k)}
-        us.append(unidad(f"{rel}#resumen", "estado", rel, "", f"Estado del proyecto · {d.get('nombre', '')}", _escalares(resumen)))
+        etapa = d.get("etapa_actual") if isinstance(d.get("etapa_actual"), dict) else {}
+        resumen = {"proyecto": d.get("proyecto"), "fase": d.get("fase"), "proceso_actual": d.get("proceso_actual"),
+                   "etapa_actual": " · ".join(str(x) for x in (etapa.get("numero"), etapa.get("nombre")) if x not in (None, ""))
+                   + (f" ({etapa.get('inicio', '')} → {etapa.get('fin_previsto', '')})" if etapa.get("inicio") or etapa.get("fin_previsto") else ""),
+                   "enfoque_entrega": d.get("enfoque_entrega"), "idioma": d.get("idioma")}
+        resumen = {k: v for k, v in resumen.items() if v not in (None, "")}
+        us.append(unidad(f"{rel}#resumen", "estado", rel, "", f"Estado del proyecto · {d.get('proyecto', '')}", _escalares(resumen)))
         for k, v in d.items():
-            if k in ("integraciones", "artefactos", "nombre", "fase", "proceso", "etapa", "idioma") or v in (None, "", [], {}):
+            if k in ("integraciones", "artefactos") + RESUMEN_ESTADO or v in (None, "", [], {}):
                 continue
             cuerpo = json.dumps(v, ensure_ascii=False, indent=1) if not isinstance(v, str) else v
             for i, (_, tr) in enumerate(trozos(cuerpo)):
@@ -387,6 +437,8 @@ def unidades_json(rel, txt):
     us = []
     if isinstance(d, dict):
         cab = _escalares({k: v for k, v in d.items() if k != "id"})
+        if re.search(r"(^|/)03-control/propuestas/P-\d+\.json$", rel) and isinstance(d.get("campos"), dict):
+            cab = "\n".join(x for x in (cab, _campos_propuesta(d)) if x)
         if cab:
             us.append(unidad(f"{rel}#datos", "json", rel, "", str(titulo), cab))
     vistos = set()
@@ -493,7 +545,9 @@ def escanear(raiz, excluir=None, restringir=None):
 
 
 def bitacora(raiz_gestion):
-    """Historia de filas y del estado desde `.bitacora.jsonl` (ya sin valores sensibles: SPEC §1.10.16)."""
+    """Historia de filas, del estado y de los artefactos desde `.bitacora.jsonl` (ya sin valores sensibles: SPEC
+    §1.10.16). Una escritura de estado.json que cambia `artefactos.<clave>` (estado.py artefacto, aprobar…) entra en la
+    historia de esa clave: la ficha del artefacto la muestra (docs/PM-KB.md §5.1)."""
     p = Path(raiz_gestion) / ".bitacora.jsonl"
     out = []
     if not p.is_file():
@@ -503,8 +557,14 @@ def bitacora(raiz_gestion):
             d = json.loads(l)
         except ValueError:
             continue
+        if not isinstance(d, dict):
+            continue
         cambios = d.get("cambios") or {}
-        ids = d.get("ids") or list(cambios) or []
+        ids = list(d.get("ids") or list(cambios) or [])
+        if (d.get("archivo") or "") == "estado.json":
+            for c in d.get("claves") or []:
+                if isinstance(c, str) and c.startswith("artefactos.") and len(c) > 11 and c[11:] not in ids:
+                    ids.append(c[11:])
         for i in ids:
             out.append({"id": i, "n": d.get("n"), "fecha": d.get("fecha", ""), "operacion": d.get("operacion", ""),
                         "script": d.get("script", ""), "por": d.get("por", ""), "registro": d.get("registro", ""),

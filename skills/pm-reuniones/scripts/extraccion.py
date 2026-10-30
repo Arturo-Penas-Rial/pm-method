@@ -428,7 +428,7 @@ def cmd_registrar(a, e):
     for i, reg, campos in plan:
         args = [sys.executable, REG, "--proyecto", a.proyecto, "agregar", reg] + [x for k, v in campos.items() for x in ("--campo", f"{k}={v}")]
         if a.simular: print("registro.py --proyecto " + a.proyecto + f" agregar {reg} " + " ".join(f'--campo "{k}={v}"' for k, v in campos.items())); continue
-        r = subprocess.run(args, capture_output=True, text=True)
+        r = subprocess.run(args, capture_output=True, text=True, encoding="utf-8")
         if r.returncode != 0:
             sys.exit(t(f"registro.py rechazó {i} ({reg}); quedaron registrados: {hechos or 'ninguno'}\n", f"registro.py rejected {i}; recorded so far: {hechos or 'none'}\n") + (r.stderr or r.stdout)[-600:])
         hechos[i] = r.stdout.strip().splitlines()[-1]

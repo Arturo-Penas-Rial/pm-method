@@ -419,7 +419,9 @@ armame la matriz; decido yo.
   trabajan en E2E-3.
 - **No aparece P-04 "sin enfoque de beneficios"**, porque el enfoque quedó registrado.
 - "Línea base bmad-prd v1.0 registrada · sha bc048f7f59a3"; "bmad-epicas v1.0 · sha 3ff846d6f8d9"; "Copia congelada …
-  00-direccion/historial/backlog-v1.0.csv"; fase `entrega`, etapa 2 "Release 1".
+  00-direccion/historial/backlog-v1.0.csv"; fase `entrega`, etapa 2 "Release 1". Cada puerta deja su tablero tal como
+  estaba antes de decidirla: "Tablero congelado antes de la decisión:
+  03-control/reportes/tableros/2026-11-27-autorizar-proyecto-etapa-1.json (y .html)".
 - Capacidad de la alternativa B: "R1-B (S1, S2, S3, S4, S5, S6): entra todo (47 de 48; Must + Should 42, holgura 6)" y
   "R2-B (S7, S8, S9): entra todo (21 de 24; Must + Should 21, holgura 3)", con los Must al 88 % de la capacidad del
   R2-B: la B no saca el problema de los Must, lo pasa al segundo release.

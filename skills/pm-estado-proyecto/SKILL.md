@@ -1,7 +1,7 @@
 ---
 name: pm-estado-proyecto
 description: "Carpeta del proyecto, estado.json y scripts compartidos (estado, registro, wbs, cpm, evm). Usar: crear proyecto, estado, etapa, tolerancias, project state. No: decidir puertas→pm-direccion-decisiones."
-version: 2.6.0
+version: 2.7.0
 author: pm-method
 license: MIT
 metadata:
@@ -27,11 +27,11 @@ metadata:
 - EN: run the shared scripts (registers, WBS, CPM/MSPDI, EVM, Office export) on behalf of other skills.
 
 ## Idioma
-Carpetas y cabeceras CSV en español técnico (`snake_case`); los scripts responden en el idioma de `estado.json.idioma` y las respuestas al usuario van en su idioma. Equivalencias de registros en `references/guia.md` §7. Dato faltante: `[por confirmar]` / `[to be confirmed]`.
+Carpetas y cabeceras CSV en español técnico (`snake_case`); los scripts responden en el idioma de `estado.json.idioma`. Equivalencias de registros en `references/guia.md` §7. Dato faltante: `[por confirmar]` / `[to be confirmed]`.
 
 ## Conocimiento
 - `SPEC.md` §1.5 (carpeta), §1.6 (estado.json), §1.10 (convenciones canónicas), §1.12–§1.13 (integraciones, BMAD), §1.16 (fuente única).
-- `references/guia.md` (este skill): §1 modelo de puertas, §2 migración, §3 carpetas v2, §4 integraciones, §5 opciones de scripts, §6 quién usa cada script, §9 radar y briefing, §10 estado de productos.
+- `references/guia.md` (este skill): §1 modelo de puertas, §2 migración, §3 carpetas v2, §4 integraciones, §5 opciones de scripts, §6 quién usa cada script, §9 radar y briefing, §10 estado de productos, §11 tablero.
 - `pm-knowledge/references/prince2-principios-personas-procesos.md` — buscar `### 4.5` (etapas y puertas) y `### 5.` (procesos SU…CP).
 - `pm-knowledge/references/pmbok8-artefactos-tecnicas-anexos.md` — `### 3.8` (CPM) y `### 3.9` (EVM), fórmulas de `cpm.py` y `evm.py`.
 - `pm-knowledge/references/plantillas-documentos-registros-reportes.md` — `# PARTE V` (esquemas CSV de referencia); el esquema canónico es `scripts/esquema.py`.
@@ -43,19 +43,19 @@ Carpetas y cabeceras CSV en español técnico (`snake_case`); los scripts respon
 - Integraciones: ninguna obligatoria; `estado.json.integraciones` declara qué sistema cumple cada capacidad (guía §4).
 
 ## Procedimiento
-1. **Crear proyecto**: `python3 ${CLAUDE_SKILL_DIR}/../pm-estado-proyecto/scripts/nuevo_proyecto.py --ruta <dir> --nombre "<nombre>" --idioma es|en --enfoque predictivo|agil|hibrido [--ejecutivo .. --gestor ..]`. Crea las carpetas de SPEC §1.5 (incluidas `02-planificacion/especificacion/` derivada, `03-control/reuniones/` y `03-control/fuentes/`; guía §3), los nueve CSV, el diario y `estado.json` en `pre-proyecto`/SU/etapa 0. No sobrescribe un `estado.json` existente.
-2. **Consultar**: `estado.py --proyecto <dir> ver` y `siguiente` (qué toca, puertas y condiciones pendientes, tolerancias faltantes); `contexto` = resumen del hook de inicio; `radar [--corte] [--json]` = qué decidir, escalar, desbloquear y vigilar; `briefing [--para ST-###]` = briefing (guía §9); `productos [--markdown]` = estado de productos (guía §10); `periodo` = tablero y highlight (guía §6). Un `estado.json` antiguo se migra al leerse (guía §2).
+1. **Crear proyecto**: `python3 ${CLAUDE_SKILL_DIR}/../pm-estado-proyecto/scripts/nuevo_proyecto.py --ruta <dir> --nombre "<nombre>" --idioma es|en --enfoque predictivo|agil|hibrido [--ejecutivo .. --gestor ..]`. Crea las carpetas de SPEC §1.5 (guía §3), los nueve CSV, el diario y `estado.json` en `pre-proyecto`/SU/etapa 0. No sobrescribe un `estado.json` existente.
+2. **Consultar**: `estado.py --proyecto <dir> ver` y `siguiente` (qué toca, puertas y condiciones pendientes, tolerancias faltantes); `contexto` = resumen del hook de inicio; `radar [--corte] [--json]` = qué decidir, escalar, desbloquear y vigilar; `briefing [--para ST-###]` = briefing (guía §9); `productos [--markdown]` = estado de productos (guía §10); `periodo` = tablero y highlight (guía §6); `tablero.py` = tablero del proyecto (guía §11). Un `estado.json` antiguo se migra al leerse (guía §2).
 3. **Artefactos**: `estado.py artefacto <clave> --ruta <ruta> --estado borrador|en-revision|aprobado|obsoleto --version x.y` con las claves canónicas de SPEC §1.10.3.
 4. **Aprobar un documento** (solo tras aprobación humana explícita): `estado.py aprobar <clave> --por "<rol: nombre>" [--version 1.0] [--nivel ..]`; sincroniza frontmatter y `estado.json` y agrega la fila en `decisiones.csv`.
-5. **Registrar una puerta** (solo `pm-director`, tras la decisión humana): `estado.py puerta <tipo> --decision aprobado|condicionado|rechazado|pendiente --por "<rol: nombre>" [--condiciones ..] [--forzar] (más opciones en guía §1)`. El script escribe la fila de `decisiones.csv` y su id en `puertas[].decision_id`. Efectos de cada puerta: guía §1. Condiciones: `cumplir-condiciones <tipo>`.
-6. **Transiciones**: `estado.py limite-etapa [--excepcion X-###]` (CS→SB, solo en fase `entrega`) y `estado.py cierre [--prematuro]` (→CP). `set` y `etapa` solo para correcciones.
+5. **Registrar una puerta** (solo `pm-director`, tras la decisión humana): `estado.py puerta <tipo> --decision aprobado|condicionado|rechazado|pendiente --por "<rol: nombre>" [--condiciones ..] [--forzar] (más opciones en guía §1)`. El script escribe la fila de `decisiones.csv` y su id en `puertas[].decision_id`. Antes congela el tablero (guía §11). Efectos: guía §1. Condiciones: `cumplir-condiciones <tipo>`.
+6. **Transiciones**: `estado.py limite-etapa [--excepcion X-###]` (CS→SB) y `estado.py cierre [--prematuro --decision D-###]` (→CP; guía §1). `set` y `etapa`: solo correcciones.
 7. **Tolerancias, roles, ágil, integraciones**: `tolerancia --nivel proyecto|etapa tiempo=".." costo=".."` (siete dimensiones), `rol <clave>=".."`, `agil <clave>=..`, `integracion especificacion=bmad tracker=..`, `umbrales-riesgo` (sintaxis y claves en guía §4).
 8. **Registros**: `registro.py --proyecto <dir> agregar|actualizar|listar|resumen [--corte AAAA-MM-DD]|esquema …`; valida contra `esquema.py`, alias EN (guía §5.1). Clasificación y redacción: `pm-registros`.
 9. **EDT/WBS**: `wbs.py 02-planificacion/wbs.csv --mermaid 02-planificacion/visuales/wbs.md --diccionario 02-planificacion/diccionario-wbs-esqueleto.md` valida, consolida (regla del 100 %) y dibuja el árbol (guía §5.4). Contenido de la EDT: `pm-planificacion-por-productos`.
 10. **CPM y MS Project**: `cpm.py actividades.csv --inicio AAAA-MM-DD --mermaid gantt.md [--mspdi cronograma.xml --wbs wbs.csv]` (holguras, camino crítico, carga; MSPDI por EDT; guía §5.3). Estimación y nivelación: `pm-cronograma-estimacion`.
 11. **EVM**: `evm.py --csv progreso.csv | --pv --ev --ac --bac [--tol-costo --tol-plazo] [--modo agil …] [--json]` (opciones en guía §5.2). Interpretación e informe: `pm-progreso-reportes`.
 12. **Exportar**: `exportar.py docx|xlsx …` (guía §5.5); paquetes ZIP: `pm-exportar`.
-13. **Fachada de especificación** (SPEC §1.16; la usan todas las skills): `especificacion.py --proyecto <dir> fuente|resumen|consultar <id>|listar requisitos|historias|epicas [filtros]|indice [--json]`. Proveedor según `integraciones.especificacion`: `bmad` → `pm-bmad-puente/scripts/bmad.py` (solo lectura); otro → `requisitos.md`, `backlog.csv`, `wbs.csv`. Igual contrato `pm-spec-index/1` en `02-planificacion/especificacion/spec-index.json`: caché que se reconstruye solo cuando cambia la huella sha256 de las fuentes (`indice` lo fuerza). Nunca se edita ni se cita como fuente.
+13. **Fachada de especificación** (SPEC §1.16; la usan todas las skills): `especificacion.py --proyecto <dir> fuente|resumen|consultar <id>|listar requisitos|historias|epicas [filtros]|indice [--json]`. Proveedor según `integraciones.especificacion`: `bmad` → `pm-bmad-puente/scripts/bmad.py` (solo lectura); otro → `requisitos.md`, `backlog.csv`, `wbs.csv`. Igual contrato `pm-spec-index/1` en `spec-index.json`: caché que se reconstruye cuando cambia la huella de las fuentes (`indice` lo fuerza); no se edita ni se cita.
 14. **Diario**: fila en `03-control/registros/diario.md` para lo informal.
 15. **Cerrar** confirmando qué cambió (ruta, id, nueva fase/etapa); como subagente, con el bloque de retorno (SPEC §1.11).
 
@@ -84,6 +84,7 @@ Carpetas y cabeceras CSV en español técnico (`snake_case`); los scripts respon
 | Cronograma CPM + Gantt; MS Project XML | `scripts/cpm.py` (`--mspdi`, `--wbs`) | `02-planificacion/cronograma.md`, `cronograma.xml` | `cronograma` |
 | Cálculo EVM | `scripts/evm.py` | consola o JSON para el informe | — |
 | Exportados Office | `scripts/exportar.py` | `exportados/` | — (nunca fuente de verdad) |
+| Tablero e instantáneas | `scripts/tablero.py` | `03-control/reportes/tableros/` | — |
 | Índice de especificación (caché) | `scripts/especificacion.py` | `02-planificacion/especificacion/spec-index.json` | — (derivado) |
 
 ## Calidad
@@ -108,4 +109,4 @@ Carpetas y cabeceras CSV en español técnico (`snake_case`); los scripts respon
 - No activa: "¿Apruebo la etapa 3 o pido más información?" → `pm-direccion-decisiones` (decide la junta; esta skill solo registra).
 
 ## EN summary
-Operational backbone and shared script library of the pack. `nuevo_proyecto.py` scaffolds the folder; `estado.py` reads state and records gates (pm-director only, after a human decision), approvals, transitions, tolerances, roles and integrations. Phases are `pre-proyecto`, `inicio`, `entrega`, `cierre`, `cerrado` (old `ejecucion` migrates to `entrega`). `registro.py`, `wbs.py`, `cpm.py` (with `--mspdi`/`--wbs`), `evm.py` and `exportar.py` are used by many other skills; `especificacion.py` is the single specification façade (contract pm-spec-index/1, hash-invalidated cache) with or without BMAD.
+Operational backbone and shared script library of the pack. `nuevo_proyecto.py` scaffolds the folder; `estado.py` reads state and records gates (pm-director only, after a human decision), approvals, transitions, tolerances, roles and integrations. Phases are `pre-proyecto`, `inicio`, `entrega`, `cierre`, `cerrado`. `registro.py`, `wbs.py`, `cpm.py` (with `--mspdi`/`--wbs`), `evm.py` and `exportar.py` are used by many other skills; `tablero.py` builds the project board; `especificacion.py` is the single specification façade (contract pm-spec-index/1, hash-invalidated cache) with or without BMAD.

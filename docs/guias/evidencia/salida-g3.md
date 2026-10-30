@@ -470,6 +470,7 @@ Lista 00-direccion/decisiones/2026-10-30-verificacion-autorizar-inicio.md confir
 ```
 $ python3 $EST/estado.py --proyecto gestion puerta autorizar-inicio --decision aprobado --por "Ejecutivo: Laura Méndez" --fecha 2026-10-30 --fin 2026-11-27
 ok
+Tablero congelado antes de la decisión: 03-control/reportes/tableros/2026-10-30-autorizar-inicio-etapa-0.json (y .html)
 Fase: inicio · Proceso: IP · Etapa 1: Iniciación · Enfoque: hibrido
 Iniciación (IP): enfoques de gestión, controles y tolerancias, PBS/WBS y plan de proyecto (cronograma, costos), business case detallado, PID; luego plan de la primera etapa de entrega. Híbrido: definir qué productos van con paquetes iterativos y su release plan. Agentes: pm-inicio + pm-planificacion. Puertas: autorizar-proyecto y autorizar-etapa (pm-director).
 Aviso: faltan tolerancias de proyecto (tiempo, costo).
@@ -510,6 +511,7 @@ Lista 00-direccion/decisiones/2026-11-27-verificacion-autorizar-proyecto.md conf
 ```
 $ python3 $EST/estado.py --proyecto gestion puerta autorizar-proyecto --decision aprobado --por "Ejecutivo: Laura Méndez" --fecha 2026-11-27 
 ok
+Tablero congelado antes de la decisión: 03-control/reportes/tableros/2026-11-27-autorizar-proyecto-etapa-1.json (y .html)
 Fase: inicio · Proceso: IP · Etapa 1: Iniciación · Enfoque: hibrido
 Iniciación (IP): enfoques de gestión, controles y tolerancias, PBS/WBS y plan de proyecto (cronograma, costos), business case detallado, PID; luego plan de la primera etapa de entrega. Híbrido: definir qué productos van con paquetes iterativos y su release plan. Agentes: pm-inicio + pm-planificacion. Puertas: autorizar-proyecto y autorizar-etapa (pm-director). Proyecto ya autorizado: falta autorizar-etapa para la primera etapa de entrega.
 ```
@@ -557,6 +559,7 @@ Lista 00-direccion/decisiones/2026-11-27-verificacion-autorizar-etapa.md confirm
 $ python3 $EST/estado.py --proyecto gestion puerta autorizar-etapa --decision condicionado --por "Ejecutivo: Laura Méndez" --fecha 2026-11-27 --etapa-nombre "Release 1" --fin 2027-03-05 --tol "tiempo=+2 semanas" "costo=±10 %"
 Condiciones agregadas desde la verificación: gate de preparación de BMAD en CONCERNS (2026-11-26: NFR-3 sin prueba de carga planificada)
 ok
+Tablero congelado antes de la decisión: 03-control/reportes/tableros/2026-11-27-autorizar-etapa-etapa-1.json (y .html)
 Fase: entrega · Proceso: CS · Etapa 2: Release 1 · Enfoque: hibrido
 Control de etapa (CS) + entrega (MP): autorizar paquetes de trabajo, checkpoints, iteraciones con review/retro, revisar riesgos/issues, highlight reports a la junta. Al acercarse el fin de etapa: estado.py limite-etapa. Pronóstico fuera de tolerancia: informe de excepción → pm-director. Agente: pm-control.
 Condiciones abiertas: autorizar-etapa: gate de preparación de BMAD en CONCERNS (2026-11-26: NFR-3 sin prueba de carga planificada)
@@ -1543,7 +1546,7 @@ ok
 $ python3 $EST/puertas.py --proyecto gestion verificar autorizar-etapa --json   # resumen de 'hallazgos' (severidad, id) tras cumplir-condiciones
 bloqueo E-01
 bloqueo E-04
-condicion E-10
+aviso E-10
 G-01 presente: no
 ```
 
@@ -2076,5 +2079,88 @@ $ (evolución de la brecha de compromiso en cada revisión: actual → deseado (
 | ST-006 Área de TI del núcleo operativo | neutral → partidario (+1) | neutral → partidario (+1) | resistente → partidario (+2) | neutral → partidario (+1) |
 | ST-007 Unidad de cumplimiento | neutral → partidario (+1) | neutral → partidario (+1) | neutral → partidario (+1) | neutral → partidario (+1) |
 | **Brecha total (niveles)** | **7** | **3** | **4** | **3** |
+```
+
+## Paso 15 · El portal del proyecto: historial de tableros, comparar, tablero por actor y enlace compartido
+```
+$ python3 $EST/tablero.py --proyecto gestion listar
+2026-10-30-autorizar-inicio-etapa-0 · autorizar-inicio · etapa 0 · aprobado (D-001) · Ejecutivo: Laura Méndez · sha256 <sha256>
+2026-11-27-autorizar-proyecto-etapa-1 · autorizar-proyecto · etapa 1 · aprobado (D-002) · Ejecutivo: Laura Méndez · sha256 <sha256>
+2026-11-27-autorizar-etapa-etapa-1 · autorizar-etapa · etapa 1 · condicionado (D-006) · Ejecutivo: Laura Méndez · sha256 <sha256>
+```
+
+```
+$ python3 $EST/tablero.py --proyecto gestion comparar 2026-10-30-autorizar-inicio-etapa-0 2026-11-27-autorizar-etapa-etapa-1
+2026-10-30-autorizar-inicio-etapa-0 (2026-10-30) → 2026-11-27-autorizar-etapa-etapa-1 (2026-11-27): 11 entraron · 0 salieron · 1 cambiaron
+  + [ciclo] puerta:autorizar-proyecto:1 autorizar-proyecto (etapa-1)
+  + [ciclo] puerta:autorizar-etapa:1 autorizar-etapa (etapa-1)
+  + [atencion] A-001 acción vencida · «Taller de co-diseño de la bandeja con operadores y delegado…» (desbloquear)
+  + [atencion] puerta:autorizar-etapa:1 1 bloqueo(s) de la próxima puerta: E-02 (vigilar)
+  + [artefactos] pid pid (generales)
+  + [artefactos] plan-proyecto plan-proyecto (generales)
+  + [artefactos] plan-etapa-2 plan-etapa-2 (ciclo)
+  + [artefactos] D-001 autorizar-inicio: aprobado (decisiones-junta)
+  + [artefactos] D-002 autorizar-proyecto: aprobado (decisiones-junta)
+  + [artefactos] D-003 presupuestos de la junta: limite_autoridad_cambio=[monto] (decisiones-junta)
+  + [artefactos] D-004 línea base bmad-prd v1.0 (sha bc048f7f59a3) (decisiones-junta)
+  ~ [ciclo] puerta:autorizar-inicio:0 autorizar-inicio: etapa-0 → etapa-0 (proxima → aprobado)
+```
+
+```
+$ python3 $EST/tablero.py --proyecto gestion generar --actor "Sofía Ramírez" --corte 2027-02-19
+Tablero de Portal de autoservicio para socios al 2027-02-19 (pm-tablero/1, huella <huella>)
+Actor: Sofía Ramírez (Usuaria sénior y PO, usuario sénior, product owner, autoridad de cambio) · RACI R 2 · A 2 · C 1 · I 1 · solo lo suyo (el ciclo y las puertas son comunes)
+Fase entrega · proceso CS · etapa 2 · próxima puerta autorizar-etapa (2 bloqueo(s))
+Atención: decidir 1 · escalar 0 · desbloquear 0 · vigilar 0
+Entrega: 0 productos · cambios 1 · issues 0 · acciones 0
+Artefactos clave: 0
+→ --json para el formato pm-tablero/1; --html RUTA para el HTML autocontenido.
+```
+
+```
+$ pm-kb indexar --proyecto portal-socios --ruta .
+pm-kb: portal-socios indexado · 503 unidades (465 vigentes) · 75 documentos (0 con varias versiones) · 737 relaciones · 144 entradas de historia · commit sin git · vectores: no
+  omitido gestion/03-control/registros/envios.csv: registro con datos personales de interesados (no se indexa)
+  omitido gestion/03-control/registros/preferencias.csv: registro con datos personales de interesados (no se indexa)
+pm-kb: tablero de portal-socios publicado · versión 1 · corte <día de la corrida> · entrega · etapa 2 · atención: <al día de la corrida> · próxima puerta: autorizar-etapa · 3 instantánea(s)
+```
+
+```
+$ pm-kb tablero --proyecto portal-socios --corte 2027-02-19
+pm-kb: tablero de portal-socios publicado · versión 2 · corte 2027-02-19 · entrega · etapa 2 · atención: 1 decidir, 0 escalar, 0 desbloquear, 3 vigilar · próxima puerta: autorizar-etapa · 3 instantánea(s)
+```
+
+```
+$ pm-kb enlaces --proyecto portal-socios
+Enlaces de portal-socios (indexado <fecha y hora del indexado>; carpeta <repo>)
+Sin referencias rotas. Sin movimientos.
+```
+
+```
+$ pm-kb compartir crear --proyecto portal-socios --actor "Sofía Ramírez" --dias 7 --para "Comité de usuarios"
+Enlace e-<id> de solo lectura al tablero actual (en vivo) de portal-socios, actor Sofía Ramírez (Usuaria sénior y PO, usuario sénior, product owner, autoridad de cambio), para Comité de usuarios; vence <fecha y hora> UTC. Se muestra UNA sola vez (la base guarda solo su huella); para cortarlo antes: pm-kb compartir revocar --id e-<id>
+  aviso: sin PMKB_ORIGENES el enlace usa http://localhost:8765 y solo abre en esta máquina; para compartir fuera, configurá PMKB_ORIGENES con la dirección (https) por la que el destinatario llega al servicio
+http://localhost:8765/v#<token del enlace>
+```
+
+```
+$ pm-kb servir --puerto <puerto libre>
+pm-kb 2.7.0: abrí http://localhost:<puerto>/ingresar?token=<token de la sesión>
+(ingreso con ese enlace; capturas: g3-kb-cartera.png, g3-kb-historial.png, g3-kb-comparar.png, g3-kb-actor.png, g3-kb-compartido.png)
+```
+
+```
+$ pm-kb compartir listar --proyecto portal-socios
+  e-<id> · portal-socios · actual · actor Sofía Ramírez (Usuaria sénior y PO, usuario sénior, product owner, autoridad de cambio) · para Comité de usuarios · vigente · creado <fecha> por <usuario del sistema> (línea de comandos) · vence <fecha y hora> · 1 uso(s), último <fecha y hora>
+```
+
+```
+$ pm-kb compartir revocar --proyecto portal-socios --para "Comité de usuarios"
+pm-kb: 1 enlace(s) revocado(s): e-<id> · las sesiones abiertas con ellos se cortan en la petición siguiente
+```
+
+```
+$ pm-kb quitar --proyecto portal-socios
+pm-kb: índice de portal-socios borrado
 ```
 

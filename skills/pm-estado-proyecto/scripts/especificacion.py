@@ -111,7 +111,11 @@ def obtener(p, forzar=False):
         if idx.get("esquema") == ESQUEMA and idx.get("_huella") == h: return idx, False
     idx = bmad_mod().construir_indice(p, e) if e.get("integraciones", {}).get("especificacion") == "bmad" else indice_nativo(p)
     idx["_huella"] = h
-    os.makedirs(os.path.dirname(ri), exist_ok=True); E.escribir_json(ri, idx)   # atómica: otra consulta simultánea no lee un índice a medias
+    if E.solo_lectura(): return idx, True      # PM_SOLO_LECTURA=1 (tablero.py generar): el índice se usa en memoria
+    try:
+        os.makedirs(os.path.dirname(ri), exist_ok=True); E.escribir_json(ri, idx)   # atómica: otra consulta simultánea no lee un índice a medias
+    except OSError:
+        pass                                   # carpeta de solo lectura: es una caché derivada; se usa en memoria
     return idx, True
 
 def mostrar(x, como_json):

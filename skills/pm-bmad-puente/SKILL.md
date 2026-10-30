@@ -1,7 +1,7 @@
 ---
 name: pm-bmad-puente
 description: "Puente PRINCE2↔BMAD de solo lectura: PRD, arquitectura, épicas y sprint-status. Usar: BMAD, PRD, requisitos FR, trazabilidad, sprint-status, línea base del PRD. No: escribir el PRD→BMAD; priorizar o planificar sprints→pm-agil-hibrido."
-version: 2.6.0
+version: 2.7.0
 author: pm-method
 license: MIT
 metadata:

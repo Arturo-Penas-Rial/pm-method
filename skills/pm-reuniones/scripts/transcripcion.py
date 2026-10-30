@@ -105,4 +105,7 @@ def main():
     else: print(f"{len(fus)} intervenciones de {len(stats)} hablantes → {a.salida}")
 
 if __name__ == "__main__":
+    sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "pm-estado-proyecto", "scripts"))
+    try: import esquema; esquema.salida_utf8()        # salida UTF-8 en consolas cp1252 (docs/ARQUITECTURA.md §9.4)
+    except ImportError: pass
     main()

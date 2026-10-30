@@ -9,7 +9,8 @@ Uso:
     python3 extraer.py --reusar-pruebas    # reusa el bloque "pruebas" del datos.json anterior (solo para iterar el diseño)
 
 Variables de entorno opcionales: PM_METHOD (raíz del repositorio), MMDC (binario de mermaid-cli), PUPPETEER_CFG
-(JSON de puppeteer para mmdc), FECHA (AAAA-MM-DD; por defecto, hoy).
+(JSON de puppeteer para mmdc), FECHA (AAAA-MM-DD; por defecto, hoy), VERSION (X.Y.Z que declara el material; por
+defecto, la de plugin.json).
 """
 import datetime, glob, importlib.util, json, os, pathlib, re, subprocess, sys, tempfile
 
@@ -116,9 +117,14 @@ plugin = json.loads(leer(".claude-plugin/plugin.json"))
 compat = json.loads(leer("compatibilidad.json"))
 exige(plugin["version"] == compat["version"], "versión distinta en plugin.json y compatibilidad.json")
 fecha = os.environ.get("FECHA") or datetime.date.today().isoformat()
+# VERSION: versión que declara el material cuando se genera para una versión que todavía no figura en plugin.json
+version = os.environ.get("VERSION") or plugin["version"]
+exige(re.match(r"^\d+\.\d+\.\d+$", version), f"VERSION inválida: {version!r}")
+if version != plugin["version"]:
+    print(f"aviso: el material declara la versión {version}; plugin.json dice {plugin['version']}")
 MESES = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"]
 f = datetime.date.fromisoformat(fecha)
-D["meta"] = {"version": plugin["version"], "licencia": plugin.get("license", ""), "fecha": fecha,
+D["meta"] = {"version": version, "licencia": plugin.get("license", ""), "fecha": fecha,
              "fecha_larga": f"{f.day} de {MESES[f.month - 1]} de {f.year}"}
 
 # ---------------------------------------------------------------- jerarquía (CLAUDE.md, "Qué es")

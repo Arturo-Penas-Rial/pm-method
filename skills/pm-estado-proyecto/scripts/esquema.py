@@ -219,7 +219,7 @@ UMBRAL_RIESGO_ALTO = 15   # 15–25 alto
 UMBRAL_RIESGO_MEDIO = 6   # 6–12 medio; 1–5 bajo
 
 # ---------------------------------------------------------------- estado.json
-VERSION_PAQUETE = "2.6.0"          # debe coincidir con .claude-plugin/plugin.json y compatibilidad.json
+VERSION_PAQUETE = "2.7.0"          # debe coincidir con .claude-plugin/plugin.json y compatibilidad.json
 FASES = ["pre-proyecto", "inicio", "entrega", "cierre", "cerrado"]
 PROCESOS = ["SU", "IP", "CS", "SB", "CP"]          # DP y MP son continuos (junta y equipos), no "estado actual"
 DIMENSIONES_TOLERANCIA = ["tiempo", "costo", "alcance", "calidad", "beneficios", "riesgo", "sostenibilidad"]
@@ -233,6 +233,17 @@ CLAVES_PRESUPUESTO = ["cambio", "riesgo", "gestion", "limite_autoridad_cambio"]
 # cargos que consumen un presupuesto fijado por la junta (clave en `presupuestos`); lo usan sanidad (CAM-03) y registro.py
 CARGO_PRESUPUESTO = {"presupuesto-cambio": "cambio", "reserva-riesgo": "riesgo"}
 CAMBIO_VIGENTE = ("aprobado", "implementado", "cerrado")
+# decision × estado de cambios.csv que se contradicen: la disposición dice una cosa y la situación otra (guía de registros §3).
+# registro.py los rechaza al escribir (también con --forzar: de este par depende el consumo del presupuesto) y la sanidad
+# avisa los ya existentes (CAM-06). Una decisión vacía no contradice nada; `abierto`, `en-evaluacion`, `pendiente-decision`
+# y `cerrado` son compatibles con cualquier decisión (situación previa a la decisión o cierre administrativo).
+CAMBIO_CONTRADICTORIO = {
+    "aprobado": ("rechazado", "diferido"),
+    "rechazado": ("aprobado", "implementado", "diferido"),
+    "diferido": ("aprobado", "implementado", "rechazado"),
+    "pedir-plan-excepcion": ("aprobado", "implementado", "rechazado", "diferido"),
+    "pedir-mas-informacion": ("aprobado", "implementado", "rechazado", "diferido"),
+}
 
 
 def monto(v):
@@ -286,9 +297,41 @@ def nivel_autoridad(e, texto, nombre=""):
     return max(hall, key=lambda x: NIVELES_DECISION.index(x[0]))
 
 
+def cierre_prematuro(e):
+    """Datos del cierre prematuro (estado.py cierre --prematuro): {fecha, decision, motivo, desde, etapa[, excepcion]};
+    {} si el cierre es planificado o el proyecto no está en cierre. Un `true` de versiones anteriores, sin datos, da
+    {"decision": ""} (sigue siendo prematuro)."""
+    v = e.get("cierre_prematuro")
+    if isinstance(v, dict): return v
+    return {"decision": ""} if v is True else {}
+
+
+# supuesto transferido (guía de registros: «Supuesto invalidado → riesgo o issue», estado=transferido, notas=→ R-###/I-###):
+# el destino es el primer «→ R-###» o «→ I-###» de notas (también «->»); registro.py exige que exista (no se omite con
+# --forzar) y la sanidad avisa los datos ya existentes sin destino o con uno inexistente (SUP-04)
+DESTINO_TRANSFERIDO = re.compile(r"(?:→|->)\s*((?:R|I)-\d{3,})\b")
+
+
+def destino_transferido(f):
+    """R-### o I-### que recibe el supuesto transferido `f` (de su columna notas), o "" si no lo indica."""
+    m = DESTINO_TRANSFERIDO.search(f.get("notas") or "")
+    return m.group(1) if m else ""
+
+
+def cambio_contradictorio(f):
+    """¿decision y estado del cambio `f` se contradicen? (CAMBIO_CONTRADICTORIO)"""
+    return (f.get("estado") or "") in CAMBIO_CONTRADICTORIO.get(f.get("decision") or "", ())
+
+
 def cambio_vigente(f):
-    """Un cambio cuenta contra los presupuestos si está aprobado, implementado o cerrado, o tiene decision=aprobado."""
-    return f.get("estado") in CAMBIO_VIGENTE or f.get("decision") == "aprobado"
+    """Un cambio cuenta contra los presupuestos si está aprobado o implementado, o tiene decision=aprobado; cerrado cuenta
+    solo sin decisión o con decision=aprobado. Nunca cuenta con estado rechazado o diferido, ni cerrado tras una decisión
+    que no lo aprobó. Una contradicción con estado aprobado o implementado se cuenta (criterio prudente con el saldo) y la
+    sanidad la avisa (CAM-06)."""
+    estado, decision = f.get("estado") or "", f.get("decision") or ""
+    if estado in ("rechazado", "diferido"): return False
+    if estado == "cerrado": return decision in ("", "aprobado")
+    return estado in CAMBIO_VIGENTE or decision == "aprobado"
 
 
 def consumo_cambios(filas, excluir=None):
@@ -363,15 +406,131 @@ def ruta_registro(proyecto, reg):
     return os.path.join(proyecto, "03-control", "registros", f"{reg}.csv")
 
 
-def leer_csv(p):
-    with open(p, newline="", encoding="utf-8") as f:
-        rd = csv.DictReader(f)
-        filas = list(rd); cols = list(rd.fieldnames or [])
-    return cols, filas
+# ---------------------------------------------------------------- lectura estricta (2.6.2)
+# Un dato ilegible (estado.json truncado o con tipos inválidos, CSV en otra codificación o mal formado) nunca se toma
+# como "vacío" ni produce una traza: termina el comando con un mensaje bilingüe (qué archivo, qué pasó, qué hacer),
+# código 1 y nada reescrito. DatosIlegibles deriva de SystemExit: Python imprime el mensaje sin traza, y los
+# `except Exception` de las comprobaciones de solo lectura no lo tragan (sin fallas silenciosas). docs/ARQUITECTURA.md §9.4.
+class DatosIlegibles(SystemExit):
+    """Archivo de datos del proyecto que no se puede leer de forma fiable. Atributos: archivo, motivo (es)."""
+    def __init__(self, archivo, motivo_es, motivo_en, accion_es="", accion_en="", idioma=None):
+        self.archivo, self.motivo, self.accion = archivo, motivo_es, accion_es
+        self.motivo_en, self.accion_en = motivo_en, accion_en     # sanidad DAT-01 en un proyecto en inglés
+        es = (f"pm-method: no se pudo leer {archivo}: {motivo_es}. No se modificó nada."
+              + (f" Qué hacer: {accion_es}" if accion_es else ""))
+        en = (f"pm-method: could not read {archivo}: {motivo_en}. Nothing was changed."
+              + (f" What to do: {accion_en}" if accion_en else ""))
+        super().__init__(es if idioma == "es" else en if idioma == "en" else f"{es}\n{en}")
+
+
+def _idioma_seguro(ruta):
+    """Idioma del proyecto que contiene `ruta` (registro o archivo de 02/03-…), o None si no se puede saber sin riesgo."""
+    d = os.path.dirname(os.path.abspath(ruta))
+    for _ in range(4):
+        f = os.path.join(d, "estado.json")
+        if os.path.isfile(f):
+            try:
+                with open(f, encoding="utf-8-sig") as fh: v = json.load(fh).get("idioma")
+                return v if v in ("es", "en") else None
+            except Exception: return None
+        d = os.path.dirname(d)
+    return None
+
+
+def leer_texto(p, idioma=None):
+    """Texto de un archivo de datos en UTF-8, con o sin BOM (Excel «CSV UTF-8» lo agrega). Otra codificación →
+    DatosIlegibles (nunca se adivina: un cp1252 mal adivinado cambiaría el contenido sin aviso)."""
+    with open(p, "rb") as fh: crudo = fh.read()
+    try:
+        return crudo.decode("utf-8-sig")
+    except UnicodeDecodeError as x:
+        idioma = idioma or _idioma_seguro(p)
+        raise DatosIlegibles(p, f"no está en UTF-8 (byte 0x{crudo[x.start]:02x} en la posición {x.start}; suele ser un CSV "
+                                f"guardado por Excel en Windows-1252 o Latin-1)",
+                             f"not UTF-8 (byte 0x{crudo[x.start]:02x} at position {x.start}; usually a CSV saved by Excel as "
+                             f"Windows-1252 or Latin-1)",
+                             "volver a guardarlo en UTF-8 (en Excel: «CSV UTF-8») o restaurarlo desde git, y correr sanidad.py.",
+                             "save it again as UTF-8 (in Excel: “CSV UTF-8”) or restore it from git, then run sanidad.py.", idioma)
+
+
+def leer_json(p, tipo=dict, idioma=None):
+    """JSON de un archivo de datos (UTF-8, BOM tolerado). Inválido o de otro tipo que `tipo` → DatosIlegibles."""
+    texto = leer_texto(p, idioma)
+    try:
+        d = json.loads(texto)
+    except ValueError as x:
+        raise DatosIlegibles(p, f"JSON inválido en la línea {getattr(x, 'lineno', '?')}, columna {getattr(x, 'colno', '?')} "
+                                f"({getattr(x, 'msg', x)}): archivo truncado o editado a mano",
+                             f"invalid JSON at line {getattr(x, 'lineno', '?')}, column {getattr(x, 'colno', '?')} "
+                             f"({getattr(x, 'msg', x)}): truncated or hand-edited file",
+                             "restaurarlo desde git o desde una copia de respaldo (los scripts no lo reconstruyen solos).",
+                             "restore it from git or from a backup (the scripts do not rebuild it).", idioma or _idioma_seguro(p))
+    if tipo is not None and not isinstance(d, tipo):
+        raise DatosIlegibles(p, f"se esperaba un {_NOMBRE_TIPO[tipo][0]} JSON y contiene un {type(d).__name__}",
+                             f"expected a JSON {_NOMBRE_TIPO[tipo][1]} but found a {type(d).__name__}",
+                             "restaurarlo desde git o desde una copia de respaldo.", "restore it from git or from a backup.",
+                             idioma or _idioma_seguro(p))
+    return d
+
+
+_NOMBRE_TIPO = {dict: ("objeto", "object"), list: ("lista", "list")}
+
+
+def leer_csv(p, idioma=None):
+    """(columnas, filas) de un CSV de datos. Acepta UTF-8 con o sin BOM; los scripts lo reescriben siempre en UTF-8 sin
+    BOM, CRLF (escribir_csv). Estricto: comillas sin cerrar, filas con más o menos campos que el encabezado y columnas
+    repetidas en el encabezado → DatosIlegibles, para no reescribir "normalizado" un archivo roto. Las líneas vacías se
+    ignoran (como csv.DictReader)."""
+    texto = leer_texto(p, idioma)
+    T = lambda: idioma or _idioma_seguro(p)
+    accion = ("corregir esa línea en el archivo (o restaurarlo desde git) y volver a ejecutar el comando.",
+              "fix that line in the file (or restore it from git) and run the command again.")
+    rd = csv.reader(io.StringIO(texto, newline=""), strict=True)
+    filas = []
+    try:
+        cols = next(rd, [])
+        rep = sorted({c for c in cols if cols.count(c) > 1})
+        if rep:
+            raise DatosIlegibles(p, f"el encabezado repite la columna {', '.join(repr(c) for c in rep)}",
+                                 f"the header repeats column {', '.join(repr(c) for c in rep)}",
+                                 "dejar una sola columna con ese nombre (sin perder los valores de la otra) o restaurarlo desde git.",
+                                 "keep a single column with that name (without losing the other's values) or restore it from git.", T())
+        for vals in rd:
+            if not vals: continue
+            if len(vals) != len(cols):
+                raise DatosIlegibles(p, f"CSV mal formado en la línea {rd.line_num}: la fila tiene {len(vals)} campos y el encabezado {len(cols)}",
+                                     f"malformed CSV at line {rd.line_num}: the row has {len(vals)} fields and the header {len(cols)}",
+                                     *accion, T())
+            filas.append(dict(zip(cols, vals)))
+    except csv.Error as x:
+        raise DatosIlegibles(p, f"CSV mal formado cerca de la línea {rd.line_num} ({x}; p. ej. una comilla sin cerrar)",
+                             f"malformed CSV near line {rd.line_num} ({x}; e.g. an unclosed quote)", *accion, T())
+    return list(cols), filas
+
+
+def leer_filas(p, idioma=None):
+    """Filas (dicts) de un CSV de datos con la misma lectura estricta que leer_csv."""
+    return leer_csv(p, idioma)[1]
+
+
+def salida_utf8():
+    """Salida de texto en UTF-8 aunque la consola o la tubería usen otra codificación (Windows: cp1252 al canalizar).
+    Los consumidores de esta salida (Claude Code, Hermes, los hooks y los scripts que llaman a otros con
+    subprocess(..., encoding="utf-8")) leen UTF-8; con la codificación local, un «→» o un «≥» cortaba el comando con
+    UnicodeEncodeError. Equivale a PYTHONUTF8=1 solo para stdout y stderr; no toca una salida que ya es UTF-8."""
+    for s in (sys.stdout, sys.stderr):
+        try:
+            if s is not None and hasattr(s, "reconfigure") and (s.encoding or "").lower().replace("-", "").replace("_", "") != "utf8":
+                s.reconfigure(encoding="utf-8", errors="replace")
+        except (AttributeError, ValueError, OSError):
+            pass
+
+
+salida_utf8()
 
 
 def escribir_csv(p, cols, filas):
-    """Reescribe el CSV entero de forma atómica (mismo formato que csv.DictWriter: UTF-8, CRLF, columnas en orden).
+    """Reescribe el CSV entero de forma atómica (mismo formato que csv.DictWriter: UTF-8 sin BOM, CRLF, columnas en orden).
     El llamador que lee, modifica y escribe debe hacerlo dentro de `bloqueo(proyecto)`."""
     buf = io.StringIO(newline="")
     w = csv.DictWriter(buf, fieldnames=cols, extrasaction="ignore"); w.writeheader(); w.writerows(filas)
@@ -529,10 +688,37 @@ def bloqueo(proyecto, espera=None, nuevo=False):
         _soltar(fh)
 
 
+# ---------------------------------------------------------------- modo de solo lectura
+# Los comandos de lectura (estado.py radar|productos|contexto, puertas.py estado, registro.py propuestas, tablero.py
+# generar) no toman el bloqueo ni escriben: funcionan sobre una carpeta de solo lectura (montaje de Docker, copia sin
+# permisos). tablero.py generar además fija PM_SOLO_LECTURA=1 durante el cálculo (también para los subprocesos que lanza,
+# como sanidad.py --rapido): la caché derivada de la especificación se usa en memoria y cualquier escritura por el
+# mecanismo común termina con un mensaje en lugar de tocar la carpeta. docs/ARQUITECTURA.md §9.5.
+VAR_SOLO_LECTURA = "PM_SOLO_LECTURA"
+
+
+def solo_lectura():
+    return os.environ.get(VAR_SOLO_LECTURA, "").strip() == "1"
+
+
+@contextlib.contextmanager
+def modo_solo_lectura():
+    """Activa PM_SOLO_LECTURA=1 mientras dura el bloque y restaura el valor anterior."""
+    previo = os.environ.get(VAR_SOLO_LECTURA)
+    os.environ[VAR_SOLO_LECTURA] = "1"
+    try:
+        yield
+    finally:
+        if previo is None: os.environ.pop(VAR_SOLO_LECTURA, None)
+        else: os.environ[VAR_SOLO_LECTURA] = previo
+
+
 def escribir_atomico(ruta, texto, newline=None, encoding="utf-8"):
     """Escribe `texto` en `ruta` de forma atómica: temporal oculto en la misma carpeta, flush + fsync y os.replace.
     `newline` y `encoding` se aplican igual que en open(ruta, "w", ...), así los bytes son los de antes; conserva los
     permisos del archivo existente. Si el proceso se interrumpe, el archivo anterior queda intacto."""
+    if solo_lectura():
+        raise SystemExit(f"Modo de solo lectura ({VAR_SOLO_LECTURA}=1): no se escribe {ruta}. / Read-only mode: {ruta} is not written.")
     destino = os.path.realpath(ruta)
     carpeta = os.path.dirname(destino)
     gobernado = _gobernado(ruta)          # estado.json, registro o propuesta: la escritura se anota en la bitácora (2.6.0)
@@ -575,15 +761,40 @@ def t(idioma, es, en):
     return en if idioma == "en" else es
 
 
+# tipos de las claves de estado.json que los scripts recorren (migrar, puertas, contexto): uno distinto es un dato roto
+TIPOS_ESTADO = {"puertas": list, "artefactos": dict, "roles": dict, "tolerancias": dict, "presupuestos": dict,
+                "integraciones": dict, "etapa_actual": dict, "agil": dict, "umbrales_riesgo": dict,
+                "proyecto": str, "idioma": str, "fase": str, "proceso_actual": str}
+
+
 def cargar_estado(proyecto):
+    """estado.json migrado. Sin archivo: SystemExit; ilegible (JSON inválido o truncado, otra codificación, claves con
+    otro tipo): DatosIlegibles con el archivo, el motivo y qué hacer. Lee y cierra el archivo antes de devolver."""
     f = os.path.join(proyecto, "estado.json")
     if not os.path.exists(f):
         raise SystemExit("No existe estado.json; ejecutar nuevo_proyecto.py / estado.json not found; run nuevo_proyecto.py")
-    return migrar(json.load(open(f, encoding="utf-8")))
+    e = leer_json(f, dict)
+    L = e.get("idioma") if e.get("idioma") in ("es", "en") else None
+    nombres = {list: ("lista", "list"), dict: ("objeto", "object"), str: ("texto", "string")}
+    for k, tipo in TIPOS_ESTADO.items():
+        if k in e and not isinstance(e[k], tipo):
+            raise DatosIlegibles(f, f"la clave '{k}' debería ser {nombres[tipo][0]} y es {type(e[k]).__name__}",
+                                 f"key '{k}' should be a {nombres[tipo][1]} but is a {type(e[k]).__name__}",
+                                 "restaurarlo desde git o desde una copia de respaldo; estado.json solo se modifica con estado.py.",
+                                 "restore it from git or from a backup; estado.json is only changed through estado.py.", L)
+    malas = [i for i, p in enumerate(e.get("puertas") or [], 1) if not isinstance(p, dict)]
+    malas += [k for k, v in (e.get("tolerancias") or {}).items() if not isinstance(v, (dict, str))]
+    malas += [k for k, v in (e.get("artefactos") or {}).items() if not isinstance(v, dict)]
+    if malas:
+        raise DatosIlegibles(f, f"elementos con otro tipo en puertas, tolerancias o artefactos ({', '.join(map(str, malas[:5]))})",
+                             f"items of the wrong type in puertas, tolerancias or artefactos ({', '.join(map(str, malas[:5]))})",
+                             "restaurarlo desde git o desde una copia de respaldo.", "restore it from git or from a backup.", L)
+    return migrar(e)
 
 
 def idioma_de(proyecto):
-    try: return json.load(open(os.path.join(proyecto, "estado.json"), encoding="utf-8")).get("idioma", "es")
+    try:
+        with open(os.path.join(proyecto, "estado.json"), encoding="utf-8-sig") as fh: return json.load(fh).get("idioma", "es")
     except Exception: return "es"
 
 
@@ -597,6 +808,13 @@ def idioma_de(proyecto):
 import hashlib as _hashlib
 ARCHIVO_BITACORA = ".bitacora.jsonl"
 DIR_PROPUESTAS = os.path.join("03-control", "propuestas")
+# Tablero del proyecto (tablero.py, SPEC §1.10.17): formato del JSON, carpeta de las instantáneas congeladas (inmutables,
+# escritas con este mecanismo común y anotadas en la bitácora) y registros que nunca aparecen en el tablero (datos de
+# interesados y de comunicaciones: los mismos que pm-kb excluye del índice, preferencias y envios, más el maestro de
+# interesados).
+FORMATO_TABLERO = "pm-tablero/1"
+DIR_TABLEROS = os.path.join("03-control", "reportes", "tableros")
+REGISTROS_SIN_TABLERO = ("stakeholders", "estereotipos", "preferencias", "envios", "personas")
 BITACORA_SIN_VALORES = ("stakeholders", "estereotipos", "preferencias", "envios", "personas")   # solo nombres de campo
 TOPE_VALOR_BITACORA = 160
 _CONTEXTO_BITACORA = {}
@@ -636,10 +854,15 @@ def _leer_bytes(p):
 
 
 def _gobernado(ruta):
-    """(carpeta del proyecto, ruta relativa) si `ruta` es estado.json, un registro o una propuesta de un proyecto."""
+    """(carpeta del proyecto, ruta relativa) si `ruta` es estado.json, un registro, una propuesta o una instantánea del
+    tablero (03-control/reportes/tableros/<id>.json|.html) de un proyecto."""
     r = os.path.abspath(ruta); base = os.path.basename(r); d = os.path.dirname(r)
     if base == "estado.json": return d, base
     padre, abuelo = os.path.basename(d), os.path.dirname(d)
+    if padre == "tableros" and os.path.basename(abuelo) == "reportes" and os.path.basename(os.path.dirname(abuelo)) == "03-control" \
+            and re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._-]*\.(?:json|html)", base):
+        raiz = os.path.dirname(os.path.dirname(abuelo))
+        return (raiz, f"03-control/reportes/tableros/{base}") if os.path.isfile(os.path.join(raiz, "estado.json")) else None
     if os.path.basename(abuelo) != "03-control": return None
     if not ((padre == "registros" and base.endswith(".csv") and base[:-4] in REGISTROS)
             or (padre == "propuestas" and re.fullmatch(r"P-\d+\.json", base))): return None
@@ -714,6 +937,12 @@ def anotar_bitacora(proyecto, rel, antes, despues):
                  "script": ctx.get("script", ""), "operacion": ctx.get("operacion", ""), "archivo": rel}
         if rel.startswith("03-control/registros/"): linea.update(_cambios_csv(os.path.basename(rel)[:-4], antes, despues))
         elif rel == "estado.json": linea["claves"] = _claves_json(antes, despues)
+        elif rel.startswith("03-control/reportes/tableros/"):
+            iid = os.path.splitext(os.path.basename(rel))[0]; ins = {}
+            if rel.endswith(".json"):
+                try: ins = json.loads(despues.decode("utf-8")).get("instantanea") or {}
+                except (ValueError, AttributeError): ins = {}
+            linea.update({"instantanea": iid, "ids": [iid], **({"etiqueta": _corto_b(ins.get("etiqueta"))} if isinstance(ins, dict) and ins.get("etiqueta") else {})})
         else:
             try: pr = json.loads(despues.decode("utf-8"))
             except ValueError: pr = {}

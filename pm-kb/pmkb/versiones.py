@@ -57,8 +57,10 @@ def decisiones_aprobacion(filas):
     return out
 
 
-def asignar(docs, estado, decisiones, gestion=""):
+def asignar(docs, estado, decisiones, gestion="", rutas=None):
     """Completa en cada unidad doc_id, version, estado_doc, vigente, aprobada, duplicado_de y copia.
+    `rutas` ({clave: fuente}) da la ruta real de un artefacto cuya ruta de estado.json ya no existe y que se encontró en
+    otro lugar (enlaces.resolver_artefactos): ese archivo conserva la identidad `art:<clave>` y su versión.
     Devuelve (documentos, versiones): filas para las tablas `documento` y `version`."""
     g = (gestion.rstrip("/") + "/") if gestion else ""
     por_ruta = {d["fuente"]: d for d in docs}
@@ -89,7 +91,7 @@ def asignar(docs, estado, decisiones, gestion=""):
                 else:
                     poner(viva, doc_id=doc_id, version=ver, origen="bmad", copia=False, **base)
             continue
-        ruta = g + str(a.get("ruta", "")).replace(os.sep, "/")
+        ruta = (rutas or {}).get(clave) or g + str(a.get("ruta", "")).replace(os.sep, "/")
         doc_id = f"art:{clave}"
         hist = f"{g}00-direccion/historial/"
         copias = sorted(f for f in por_ruta if f.startswith(hist) and re.fullmatch(re.escape(clave) + r"-v([\w.]+?)(\.\w+)?", f[len(hist):]))

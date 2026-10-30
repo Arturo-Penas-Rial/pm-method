@@ -3,14 +3,14 @@
 Este archivo sigue la convención AGENTS.md para agentes distintos de Claude Code. El contexto completo está en
 [CLAUDE.md](CLAUDE.md); lo esencial:
 
-- **Qué es:** el plugin pm-method 2.6.0 (6 agentes, 39 skills, 3 hooks). PRINCE2 7 manda; PMBOK 8 solo técnicas; BMAD es
+- **Qué es:** el plugin pm-method 2.7.0 (6 agentes, 39 skills, 3 hooks). PRINCE2 7 manda; PMBOK 8 solo técnicas; BMAD es
   especificación de solo lectura.
 - **Verificar siempre después de cambiar algo:**
   ```bash
   python3 scripts/validar_paquete.py      # estructura, tamaños, descripciones, versiones → OK
-  python3 scripts/probar_paquete.py       # regresión → 463 OK · 0 FALLO (462 con Python 3.9; requiere pyyaml)
+  python3 scripts/probar_paquete.py       # regresión → 558 OK · 0 FALLO (554 con Python 3.9; requiere pyyaml)
   python3 scripts/pruebas/integracion/correr.py --sin-e2e   # integración cruzada, cadenas 1–5 → 118 OK · 0 FALLO en 38 eslabones
-  python3 scripts/pruebas/guias_e2e/correr.py --salida /tmp/guias   # recorridos E2E → 5/5 OK (76 pasos, 61 imágenes)
+  python3 scripts/pruebas/guias_e2e/correr.py --salida /tmp/guias   # recorridos E2E → 5/5 OK (77 pasos, 66 imágenes)
   python3 scripts/validar_mermaid.py --render   # si se tocó un diagrama → 131 bloques, 0 errores
   ```
 - **No hacer:** editar `estado.json` o registros CSV de proyectos a mano (incluidos los opcionales `estereotipos`,
@@ -25,9 +25,11 @@ Este archivo sigue la convención AGENTS.md para agentes distintos de Claude Cod
   `pm-mapas-estrategicos/scripts/mapas.py`; `pm-riesgos/scripts/riesgos.py`; `pm-reuniones/scripts/extraccion.py`;
   `pm-issues-cambios/scripts/impacto.py`; `pm-agil-hibrido/scripts/release.py`; `pm-direccion-decisiones/scripts/decision.py`;
   `pm-lecciones-aprendidas/scripts/lecciones.py`; `pm-exportar/scripts/paquete.py`; en el núcleo, también `vigencia.py` (vigencia y
-  contradicciones de decisiones) y `texto.py` (búsqueda en español e inglés). Componente opcional fuera del plugin:
-  `pm-kb/` (índice de conocimiento con búsqueda citada, web y MCP de solo lectura; [docs/PM-KB.md](docs/PM-KB.md)). Mapa
-  completo en [CLAUDE.md](CLAUDE.md).
+  contradicciones de decisiones), `texto.py` (búsqueda en español e inglés) y `tablero.py` (tablero del proyecto e
+  instantáneas congeladas en cada puerta). Componente opcional fuera del plugin: `pm-kb/` (índice de conocimiento con
+  búsqueda citada, portal web con tableros, artefactos, fichas por id y enlaces compartidos, y MCP de solo lectura;
+  [docs/PM-KB.md](docs/PM-KB.md); pruebas en `pm-kb/pruebas/` y en el nivel `opcionales` de
+  `scripts/pruebas/variantes/`). Mapa completo en [CLAUDE.md](CLAUDE.md).
 - **Instalación:** dos caminos separados, cada uno con su guía paso a paso: sobre WSL2 o Linux
   ([docs/INSTALACION-WSL2.md](docs/INSTALACION-WSL2.md)) o con Docker
   ([docs/INSTALACION-DOCKER.md](docs/INSTALACION-DOCKER.md)); guía general en [docs/INSTALACION.md](docs/INSTALACION.md).

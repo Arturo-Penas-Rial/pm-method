@@ -1,7 +1,7 @@
 ---
 name: pm-direccion-decisiones
 description: "Decisiones de la junta: puertas, tolerancias, excepciones, matriz de decisión. Usar: aprobar etapa, autorizar proyecto, junta, pesos, board decision, stage gate. No: riesgos o issues→pm-registros."
-version: 2.6.0
+version: 2.7.0
 author: pm-method
 license: MIT
 metadata:

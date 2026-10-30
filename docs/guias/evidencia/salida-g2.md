@@ -362,6 +362,7 @@ Lista 00-direccion/decisiones/2026-10-30-verificacion-autorizar-inicio.md confir
 ```
 $ python3 $EST/estado.py --proyecto gestion puerta autorizar-inicio --decision aprobado --por "Ejecutivo: Laura Méndez" --fecha 2026-10-30 --fin 2026-11-27
 ok
+Tablero congelado antes de la decisión: 03-control/reportes/tableros/2026-10-30-autorizar-inicio-etapa-0.json (y .html)
 Fase: inicio · Proceso: IP · Etapa 1: Iniciación · Enfoque: hibrido
 Iniciación (IP): enfoques de gestión, controles y tolerancias, PBS/WBS y plan de proyecto (cronograma, costos), business case detallado, PID; luego plan de la primera etapa de entrega. Híbrido: definir qué productos van con paquetes iterativos y su release plan. Agentes: pm-inicio + pm-planificacion. Puertas: autorizar-proyecto y autorizar-etapa (pm-director).
 Aviso: faltan tolerancias de proyecto (tiempo, costo).
@@ -571,6 +572,7 @@ $ python3 $EST/estado.py --proyecto gestion puerta autorizar-proyecto --decision
 Aviso: registro de interesados vacío: sin matriz poder/interés (pm-interesados)
 Aviso: sin matriz RACI (raci.csv o artefacto matriz-raci): quién es R, A, C e I en productos y decisiones clave
 ok
+Tablero congelado antes de la decisión: 03-control/reportes/tableros/2026-11-27-autorizar-proyecto-etapa-1.json (y .html)
 Fase: inicio · Proceso: IP · Etapa 1: Iniciación · Enfoque: hibrido
 Iniciación (IP): enfoques de gestión, controles y tolerancias, PBS/WBS y plan de proyecto (cronograma, costos), business case detallado, PID; luego plan de la primera etapa de entrega. Híbrido: definir qué productos van con paquetes iterativos y su release plan. Agentes: pm-inicio + pm-planificacion. Puertas: autorizar-proyecto y autorizar-etapa (pm-director). Proyecto ya autorizado: falta autorizar-etapa para la primera etapa de entrega.
 ```
@@ -627,6 +629,7 @@ Lista 00-direccion/decisiones/2026-11-27-verificacion-autorizar-etapa.md confirm
 ```
 $ python3 $EST/estado.py --proyecto gestion puerta autorizar-etapa --decision aprobado --por "Ejecutivo: Laura Méndez" --fecha 2026-11-27 --etapa-nombre "Release 1" --fin 2027-03-05 --tol "tiempo=±10 %" "costo=±10 %"
 ok
+Tablero congelado antes de la decisión: 03-control/reportes/tableros/2026-11-27-autorizar-etapa-etapa-1.json (y .html)
 Fase: entrega · Proceso: CS · Etapa 2: Release 1 · Enfoque: hibrido
 Control de etapa (CS) + entrega (MP): autorizar paquetes de trabajo, checkpoints, iteraciones con review/retro, revisar riesgos/issues, highlight reports a la junta. Al acercarse el fin de etapa: estado.py limite-etapa. Pronóstico fuera de tolerancia: informe de excepción → pm-director. Agente: pm-control.
 ```
@@ -639,7 +642,7 @@ D-010
 
 ```
 $ python3 $BMAD --proyecto gestion handoff
-Traspaso emitido → gestion/02-planificacion/especificacion/handoff-bmad-2026-10-28-prioridades.md (10 prioridades cambiadas)
+Traspaso emitido → gestion/02-planificacion/especificacion/handoff-bmad-2026-10-30-prioridades.md (10 prioridades cambiadas)
 ```
 
 ## Paso 7 · Cambio de alcance: nueva funcionalidad → análisis de impacto (impacto.py) → decisión contra el presupuesto de cambio
@@ -843,7 +846,7 @@ Mermaid escrito en gestion/02-planificacion/visuales/wbs.md
 
 ```
 $ python3 $BMAD --proyecto gestion handoff --cambio C-001
-Traspaso emitido → gestion/02-planificacion/especificacion/handoff-bmad-2026-10-28-C-001.md (cambio C-001)
+Traspaso emitido → gestion/02-planificacion/especificacion/handoff-bmad-2026-10-30-C-001.md (cambio C-001)
 ```
 
 ```
@@ -851,8 +854,8 @@ $ python3 $EST/sanidad.py --proyecto gestion --rapido --corte 2027-01-18
 Sanidad de 'Portal de autoservicio para socios' (entrega/CS): 0 ERROR · 4 AVISO · 3 INFO
   AVISO ESP-10 bmad-prd difiere de su línea base v1.0 y hay un issue/cambio abierto que lo trata.
         → Al aprobarse: bmad.py linea-base con versión mayor.
-  AVISO ESP-13 Traspaso a BMAD sin confirmar: 02-planificacion/especificacion/handoff-bmad-2026-10-28-prioridades.md.
-  AVISO ESP-13 Traspaso a BMAD sin confirmar: 02-planificacion/especificacion/handoff-bmad-2026-10-28-C-001.md.
+  AVISO ESP-13 Traspaso a BMAD sin confirmar: 02-planificacion/especificacion/handoff-bmad-2026-10-30-prioridades.md.
+  AVISO ESP-13 Traspaso a BMAD sin confirmar: 02-planificacion/especificacion/handoff-bmad-2026-10-30-C-001.md.
         → Cuando el equipo BMAD lo aplique: marcar estado: aplicado en el documento, bmad.py verificar y nueva línea base.
   AVISO ESP-14 requisitos-bmad.csv no coincide con el PRD vigente (desactualizado o editado).
         → bmad.py requisitos (es derivado: no se edita).
@@ -1400,6 +1403,7 @@ No decide: la respuesta validada es insumo para quien decide (PUERTA HUMANA).
 ```
 $ python3 $EST/estado.py --proyecto gestion puerta decision-ad-hoc --decision aprobado --por "Ejecutiva: Laura Méndez" --fecha 2027-02-22 --condiciones "X-001: la junta pide plan de excepción para la etapa 2; C-002 queda sujeto a ese plan"
 ok
+Tablero congelado antes de la decisión: 03-control/reportes/tableros/2027-02-22-decision-ad-hoc-etapa-2.json (y .html)
 Fase: entrega · Proceso: CS · Etapa 2: Release 1 · Enfoque: hibrido
 Control de etapa (CS) + entrega (MP): autorizar paquetes de trabajo, checkpoints, iteraciones con review/retro, revisar riesgos/issues, highlight reports a la junta. Al acercarse el fin de etapa: estado.py limite-etapa. Pronóstico fuera de tolerancia: informe de excepción → pm-director. Agente: pm-control.
 Condiciones abiertas: decision-ad-hoc: X-001: la junta pide plan de excepción para la etapa 2; C-002 queda sujeto a ese plan
@@ -1481,6 +1485,7 @@ Lista 00-direccion/decisiones/2027-02-26-verificacion-autorizar-plan-excepcion.m
 ```
 $ python3 $EST/estado.py --proyecto gestion puerta autorizar-plan-excepcion --decision aprobado --por "Ejecutiva: Laura Méndez" --fecha 2027-02-26 --fin 2027-03-19
 ok
+Tablero congelado antes de la decisión: 03-control/reportes/tableros/2027-02-26-autorizar-plan-excepcion-etapa-2.json (y .html)
 Fase: entrega · Proceso: CS · Etapa 2: Release 1 · Enfoque: hibrido
 Control de etapa (CS) + entrega (MP): autorizar paquetes de trabajo, checkpoints, iteraciones con review/retro, revisar riesgos/issues, highlight reports a la junta. Al acercarse el fin de etapa: estado.py limite-etapa. Pronóstico fuera de tolerancia: informe de excepción → pm-director. Agente: pm-control.
 ```
@@ -1518,13 +1523,13 @@ Mermaid escrito en gestion/02-planificacion/visuales/wbs.md
 
 ```
 $ python3 $BMAD --proyecto gestion handoff --cambio C-002
-Traspaso emitido → gestion/02-planificacion/especificacion/handoff-bmad-2026-10-28-C-002.md (cambio C-002 · 1 prioridades cambiadas)
+Traspaso emitido → gestion/02-planificacion/especificacion/handoff-bmad-2026-10-30-C-002.md (cambio C-002 · 1 prioridades cambiadas)
 ```
 
 ```
 $ python3 $EST/sanidad.py --proyecto gestion --rapido --corte 2027-02-26
 Sanidad de 'Portal de autoservicio para socios' (entrega/CS): 0 ERROR · 2 AVISO · 2 INFO
-  AVISO ESP-13 Traspaso a BMAD sin confirmar: 02-planificacion/especificacion/handoff-bmad-2026-10-28-C-002.md.
+  AVISO ESP-13 Traspaso a BMAD sin confirmar: 02-planificacion/especificacion/handoff-bmad-2026-10-30-C-002.md.
         → Cuando el equipo BMAD lo aplique: marcar estado: aplicado en el documento, bmad.py verificar y nueva línea base.
   AVISO REG-09 Riesgo R-001 abierto con la revisión vencida (2027-02-19; propietario: Martín Suárez).
         → Revisarlo con el propietario (pm-riesgos) y actualizar estado, evaluación y fecha_revision (registro.py actualizar riesgos R-… --campo fecha_revision=…).
@@ -1541,7 +1546,7 @@ ok
 ```
 $ python3 $EST/sanidad.py --proyecto gestion --rapido --corte 2027-02-26
 Sanidad de 'Portal de autoservicio para socios' (entrega/CS): 0 ERROR · 1 AVISO · 1 INFO
-  AVISO ESP-13 Traspaso a BMAD sin confirmar: 02-planificacion/especificacion/handoff-bmad-2026-10-28-C-002.md.
+  AVISO ESP-13 Traspaso a BMAD sin confirmar: 02-planificacion/especificacion/handoff-bmad-2026-10-30-C-002.md.
         → Cuando el equipo BMAD lo aplique: marcar estado: aplicado en el documento, bmad.py verificar y nueva línea base.
   INFO  CAM-03 Presupuesto de cambio: 24.000 de 32.000 (75 %).
 ```

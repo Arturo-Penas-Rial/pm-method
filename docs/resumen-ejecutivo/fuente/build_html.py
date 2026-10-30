@@ -221,7 +221,27 @@ diapositiva("Confianza y adopción", P["titulo"], f"""<div class="kpis4">{kp}</d
 <article class="card gris"><p class="rot marino">{e(P['docker'])}</p><ul class="vin">{dk}</ul></article></div>
 <p class="nota">{glos(P['nota'])}</p>""", P["en"])
 
-# ====================== 18 · Cómo empezar
+# ====================== 18 · Comparativo: pm-method, PMI Infinity y gestión tradicional
+P = T["comparativo"]
+cab = "".join(f'<th scope="col"{" class=pm" if i == 1 else ""}>{e(h)}</th>' for i, h in enumerate(P["cab"]))
+filas = "".join(f'<tr><th scope="row">{e(f[0])}</th><td class="pm" data-col="{e(P["cab"][1])}">{glos(f[1])}</td>'
+                f'<td data-col="{e(P["cab"][2])}">{glos(f[2])}</td><td data-col="{e(P["cab"][3])}">{glos(f[3])}</td></tr>' for f in P["filas"])
+fuentes = "".join(f'<li><a href="{e(u)}" rel="noopener">{e(u)}</a></li>' for u in P["fuentes_lista"])
+diapositiva("Confianza y adopción", P["titulo"], f"""<p class="grande bajada">{glos(P['bajada'])}</p>
+<div class="scroll"><table class="cmp"><thead><tr>{cab}</tr></thead><tbody>{filas}</tbody></table></div>
+<p class="nota fuentes">{e(P['fuentes'])}</p>
+<details><summary>Fuentes de terceros</summary><ul class="fuentes">{fuentes}</ul></details>""", P["en"])
+
+# ====================== 19 · Cuándo conviene cada uno y lo que pm-method no hace
+P = T["conviene"]
+sit = "".join(f"<tr><td>{glos(s)}</td><td class='conv'>{glos(c)}</td></tr>" for s, c in P["situaciones"])
+lim = "".join(f"<li>{glos(x)}</li>" for x in P["limites"])
+diapositiva("Confianza y adopción", P["titulo"], f"""<div class="grid2"><article class="card tinta"><p class="rot azul">{e(P['col1'])}</p>
+<div class="scroll"><table class="conviene"><thead><tr><th>{e(P['cab'][0])}</th><th>{e(P['cab'][1])}</th></tr></thead><tbody>{sit}</tbody></table></div></article>
+<article class="card calida"><p class="rot">{e(P['col2'])}</p><ul class="vin">{lim}</ul></article></div>
+<p class="lema chico">{glos(P['combinar'])}</p>""", P["en"])
+
+# ====================== 20 · Cómo empezar
 P, E = T["empezar"], D["empezar"]
 dsteps = "".join(f"<h4>{i + 1} · {e(P['docker_pasos'][i] if i < len(P['docker_pasos']) else '')}</h4><pre>{e(c)}</pre>" for i, c in enumerate(E["docker"]))
 diapositiva("Confianza y adopción", P["titulo"], f"""<div class="grid2"><article class="card tinta"><p class="rot marino">{e(P['manual'])}</p><pre>{e(chr(10).join(E['manual']))}</pre>
@@ -229,7 +249,7 @@ diapositiva("Confianza y adopción", P["titulo"], f"""<div class="grid2"><articl
 <article class="card gris"><p class="rot marino">{e(P['docker'])}</p>{dsteps}</article></div>
 <p class="lema chico">{glos(P['siguiente'])}</p>""", P["en"])
 
-# ====================== 19 · Glosario
+# ====================== 21 · Glosario
 P = T["glosario"]
 letras = []
 filas = []
@@ -357,6 +377,14 @@ td.n{text-align:center}table.cat td:first-child{white-space:nowrap}.scroll{overf
 .vivo{list-style:none;padding:0;margin:0;font-size:14px}.vivo li{margin:0 0 6px}.vivo b{color:var(--naranja)}.vivo small{color:var(--muda)}
 pre{background:var(--cod);color:var(--codtxt);border-radius:8px;padding:10px 12px;white-space:pre-wrap;overflow-wrap:anywhere;font-size:14px;margin:0 0 12px}
 .card h4{margin:10px 0 6px;color:var(--azul)}
+/* comparativo */
+.bajada{margin:0 0 12px;color:var(--txt2)}
+table.cmp{font-size:14px;table-layout:fixed;min-width:640px}table.cmp thead th:first-child{width:15%}
+table.cmp tbody th{background:var(--sup2);color:var(--marino);font-weight:bold;text-align:left;padding:7px 9px;border-bottom:1px solid var(--linea);vertical-align:top}
+table.cmp th.pm{background:var(--azul)}table.cmp td.pm{background:var(--tinta);color:var(--marino)}
+.nota.fuentes{font-size:13px;margin:10px 0 0}ul.fuentes{font-size:13px;overflow-wrap:anywhere;margin:6px 0 0}
+table.conviene{font-size:14px}table.conviene td{background:var(--sup)}table.conviene td.conv{font-weight:bold;color:var(--marino);width:36%}
+:root[data-theme="dark"] table.cmp th.pm{background:#0d4a77}@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) table.cmp th.pm{background:#0d4a77}}
 /* glosario */
 .letras a{display:inline-block;margin:0 6px 6px 0;font-weight:bold}
 .glosario{columns:2;column-gap:28px;margin:0}.glosario dt{font-weight:bold;color:var(--marino);break-after:avoid;margin-top:8px;scroll-margin-top:70px}
@@ -370,6 +398,7 @@ a.glos{text-decoration:underline dotted;text-underline-offset:3px;color:inherit;
 .grid2,.grid3,.dos-col,.caso,.hub{grid-template-columns:1fr}.agentes{grid-template-columns:1fr 1fr}.ciclo{grid-template-columns:1fr}.kpis{grid-template-columns:1fr 1fr}
 .pr-cab{display:none}.pr-fila{grid-template-columns:1fr;gap:4px;margin:12px 0}.pr-flecha{transform:rotate(90deg);height:22px}.pr-cod{justify-self:start;padding:4px 10px}
 .portada h1{font-size:30px}.portada .sub{font-size:17px}.cifras{grid-template-columns:1fr 1fr}.cifra b{font-size:28px}.glosario{columns:1}.kpi b{font-size:28px}
+table.cmp{min-width:0}table.cmp thead{display:none}table.cmp tr,table.cmp th,table.cmp td{display:block;width:auto}table.cmp tr{margin:0 0 10px;border:1px solid var(--linea);border-radius:8px;overflow:hidden}table.cmp td::before{content:attr(data-col);display:block;font-size:12px;font-weight:bold;color:var(--azul)}
 .agente header{min-height:0}.agente ul{min-height:0}.centro{width:150px;height:150px}.barra .marca{display:none}.lema{font-size:16px}}
 @media print{@page{size:A4 landscape;margin:10mm}:root{--bg:#fff;--sombra:none}body{background:#fff;font-size:12px}.barra,.zoom,details{display:none!important}
 main{max-width:none;padding:0}.slide{break-after:page;page-break-after:always;margin:0;border-radius:0;box-shadow:none;min-height:0;padding:0 4mm;zoom:.74}.slide:last-child{break-after:auto;page-break-after:auto}
@@ -417,7 +446,7 @@ JS = r"""
 doc = f"""<!doctype html>
 <html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>pm-method · Resumen ejecutivo</title>
-<meta name="description" content="Resumen ejecutivo comercial de pm-method {e(D['meta']['version'])}: propósito, alcance, agentes y skills, arquitectura, ciclo de vida, controles permanentes, integraciones y catálogo de casos E2E.">
+<meta name="description" content="Resumen ejecutivo comercial de pm-method {e(D['meta']['version'])}: propósito, alcance, agentes y skills, arquitectura, ciclo de vida, controles permanentes, integraciones, catálogo de casos E2E y comparativo con PMI Infinity y la gestión tradicional.">
 <style>{CSS}</style></head>
 <body>
 <nav class="barra" aria-label="Navegación"><span class="marca">pm-method · Resumen ejecutivo</span>

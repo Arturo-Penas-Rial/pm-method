@@ -4,10 +4,10 @@ name: docker
 
 on:
   pull_request:
-    paths: ["docker/**", ".dockerignore", "scripts/**", "skills/**", "hooks/**", "agents/**", "docs/**", ".claude-plugin/**", ".github/workflows/docker.yml"]
+    paths: ["docker/**", ".dockerignore", "scripts/**", "skills/**", "hooks/**", "agents/**", "docs/**", ".claude-plugin/**", "pm-kb/**", "SPEC.md", "compatibilidad.json", ".github/workflows/docker.yml"]
   push:
     branches: [main]
-    paths: ["docker/**", ".dockerignore", "scripts/**", "skills/**", "hooks/**", "agents/**", "docs/**", ".claude-plugin/**", ".github/workflows/docker.yml"]
+    paths: ["docker/**", ".dockerignore", "scripts/**", "skills/**", "hooks/**", "agents/**", "docs/**", ".claude-plugin/**", "pm-kb/**", "SPEC.md", "compatibilidad.json", ".github/workflows/docker.yml"]
   workflow_dispatch:
 
 permissions:
@@ -31,7 +31,7 @@ jobs:
         run: docker compose -f docker/compose.yaml build pm
 
       - name: Tamaño de la imagen
-        run: docker image ls pm-method:2.5.1
+        run: docker image ls pm-method
 
       - name: Pruebas dentro del contenedor (sin red)
         run: |

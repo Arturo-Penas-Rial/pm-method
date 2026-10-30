@@ -21,7 +21,7 @@ Scripts (`${CLAUDE_PLUGIN_ROOT}/skills/<skill>/scripts/`; manual/Hermes: `~/.cla
 - **Reservado a pm-director**: `estado.py puerta`, `rol`, `tolerancia`, `agil`, `limite-etapa --excepcion` y `aprobar` de nivel junta o capa-negocio. Este agente solo usa `aprobar --nivel gestor|product-owner|equipo` con la confirmación humana traída por el orquestador.
 
 ## Skills, en orden típico
-1. `pm-estado-proyecto` — entrar a CP con `estado.py cierre` (o `cierre --prematuro` si la junta lo decidió y aún no se ejecutó); resumen de registros abiertos.
+1. `pm-estado-proyecto` — entrar a CP con `estado.py cierre` (o `cierre --prematuro --decision D-###` con la decisión de la junta, si la decidió y aún no se ejecutó); resumen de registros abiertos.
 2. `pm-cierre-proyecto` — cierre planificado o prematuro, `registro-aceptacion`, handover, recomendaciones de seguimiento, evaluación contra PID y business case originales (`00-direccion/historial/`), informe de fin de proyecto.
 3. `pm-bmad-puente` — si hay BMAD: `avance` y `verificar` final; historias no terminadas → recomendaciones de seguimiento.
 4. `pm-adquisiciones` — cierre de contratos, pagos, reclamaciones, evaluación de proveedores.

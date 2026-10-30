@@ -201,7 +201,7 @@ la [guía E2E-4](../../guias/E2E-4-producto-bmad.md) de donde sale cada dato.
 Antes de la puerta de la etapa 3, el PASS (D-018) se marca como reemplazo del CONCERNS (D-012): `decision.py vigentes
 --tema BMAD` muestra "16 de 19 (reemplazadas: 3)" con la cadena D-012 → D-018, y la etapa 2 condicionada (D-013) sigue
 vigente junto a la condición cumplida (D-019) (paso 7). La traza queda en el expediente para la auditoría externa: D-013
-y D-019 en la cronología, con "INTEGRIDAD: OK" en la verificación y 132 escrituras en la bitácora. En la copia donde
+y D-019 en la cronología, con "INTEGRIDAD: OK" en la verificación y 142 escrituras en la bitácora. En la copia donde
 alguien cambió «condicionado» por «aprobado» en D-013, la verificación falla en `decisiones.csv` y explica que el
 cambio no salió de los scripts; `registro.py historial D-013` muestra una sola escritura, la de la puerta, con
 «condicionado» (paso 9b).

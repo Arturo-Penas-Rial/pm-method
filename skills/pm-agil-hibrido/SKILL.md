@@ -1,7 +1,7 @@
 ---
 name: pm-agil-hibrido
 description: "Ágil/híbrido en etapas: backlog MoSCoW, historias, release plan, velocidad, retro de iteración. Usar: backlog, sprint, user story, release plan, DoD, velocity. No: sync con BMAD→pm-bmad-puente."
-version: 2.6.0
+version: 2.7.0
 author: pm-method
 license: MIT
 metadata:

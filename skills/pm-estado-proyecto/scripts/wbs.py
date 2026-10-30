@@ -115,4 +115,6 @@ def main():
         open(a.diccionario, "w", encoding="utf-8").write(diccionario(nodos)); print(f"Diccionario escrito en {a.diccionario}")
 
 if __name__ == "__main__":
+    try: import esquema; esquema.salida_utf8()        # salida UTF-8 en consolas cp1252 (docs/ARQUITECTURA.md §9.4)
+    except ImportError: pass
     main()

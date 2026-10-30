@@ -112,7 +112,12 @@ skill.
 | BM25 | fórmula de relevancia por palabras que pondera cuántas veces aparece un término y qué tan raro es en el proyecto; la búsqueda por defecto de pm-kb | búsqueda léxica, por palabras clave | PM-KB §9 |
 | RRF | fusión por rango recíproco: combina el orden por palabras y el orden por significado (vectores) sumando 1/(60 + puesto) | búsqueda híbrida | PM-KB §9 |
 | RLS | seguridad por fila de PostgreSQL: la base solo devuelve las filas de los proyectos y la circulación que permite el token | permisos por fila, *row-level security* | PM-KB §6.3 |
-| MCP | protocolo con el que un agente (Claude Code, Hermes) usa herramientas externas; pm-kb expone 8 herramientas de solo lectura | servidor MCP, conector | PM-KB §11.2 |
+| MCP | protocolo con el que un agente (Claude Code, Hermes) usa herramientas externas; pm-kb expone 9 herramientas de solo lectura | servidor MCP, conector | PM-KB §11.2 |
+| portal | la web de pm-kb (`pm-kb servir`): cartera de proyectos y, por proyecto, las pestañas Tableros, Buscar, Artefactos y Preguntar, con la ficha de cada elemento; lee el índice y nunca escribe en la carpeta del proyecto («actualizar ahora» escribe solo en el índice) | interfaz web, tablero web | PM-KB §11.1 |
+| tarjeta-enlace | tarjeta del tablero con nombre y una descripción corta cuyo detalle está en la ficha de la fuente, enlazada por id estable (`ficha/<ref>`: R-003, una clave de artefacto, `puerta:<tipo>:<etapa>`, un producto), nunca por ruta; si el archivo se mueve, el enlace sigue funcionando | tarjeta, *card* | PM-KB §5.1 y §11.5; SPEC §1.10.17 |
+| instantánea congelada | foto del tablero (`pm-tablero/1`) en un momento del ciclo, guardada por pm-method en `03-control/reportes/tableros/` (JSON y HTML) e inmutable: se congela sola antes de cada decisión de puerta (con la decisión anotada) o con `tablero.py congelar`; el portal las muestra como línea de tiempo y las compara | snapshot, foto del tablero, historial | PM-KB §11.5; SPEC §1.10.17 |
+| enlace compartido | dirección de solo lectura a un tablero (el actual o una instantánea, opcionalmente de un actor) para alguien sin token: vence (7 días por defecto, 90 como máximo), se revoca y registra sus usos; el token va después de `#` y se canjea por una sesión | enlace de solo lectura, *share link* | PM-KB §11.7 (`pm-kb compartir`) |
+| tablero por actor | el tablero filtrado para una persona: sus elementos R, A, C o I de `raci.csv` y lo que tiene a cargo, pidió o decidió en los registros; el ciclo y las puertas son comunes | vista por persona, tablero personal | PM-KB §11.8; `tablero.py generar --actor` |
 
 ## Cómo se verificó
 

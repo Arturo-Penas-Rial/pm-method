@@ -367,7 +367,8 @@
     "Armar el highlight y el tablero con un solo cálculo del período y comprobar la cadena de reporte contra el EVM guardado y hasta el correo",
     "Explicar por qué aprobar y enviar exigen confirmación humana",
     "Leer la salud de un KR contra su avance esperado",
-    "Vigilar la cadencia de contacto (STK-12) y reevaluar la brecha en cada período"
+    "Vigilar la cadencia de contacto (STK-12) y reevaluar la brecha en cada período",
+    "Mostrar cómo estaba el proyecto en cada puerta y compartir el tablero de una persona con un enlace que vence"
    ],
    "diapositivas": [
     {
@@ -573,19 +574,20 @@
      "tipo": "imagen",
      "titulo": "La brecha baja de 7 a 3 niveles; TI cae y repunta",
      "imagen": "docs/guias/img/g3-brecha-compromiso.png",
-     "nota": "Brecha por interesado al inicio, al 5/2 y al 19/2. El sindicato y los socios cierran su brecha; TI muestra que el compromiso también retrocede, y se recupera con contacto sostenido. Paso 14."
+     "nota": "Brecha por interesado al inicio, al 5/2 y al 19/2. El sindicato y los socios cierran su brecha; TI muestra que el compromiso también retrocede, y se recupera con contacto sostenido. Paso 14. Revisión periódica al 19/2: resumen quincenal del 5/2 (EN-012…EN-014), reuniones con TI del 12/2 y del 19/2 y A-005 cumplida, STK-12 limpio; TOL-03 recuerda que el último corte de EVM es del 8/1 y el próximo resumen vence el 26/2."
     },
     {
-     "tipo": "contenido",
-     "titulo": "Revisión periódica al 19/2",
+     "tipo": "imagen",
+     "titulo": "Cada puerta deja su tablero; cada persona ve lo suyo",
+     "imagen": "docs/guias/img/g3-kb-comparar.png",
      "puntos": [
-      "Resumen quincenal del 5/2: EN-012…EN-014",
-      "Reuniones con TI del 12/2 y del 19/2; A-005 cumplida",
-      "STK-12 limpio; brecha total en 3 niveles",
-      "TOL-03: el último corte de EVM es del 8/1",
-      "Próximo resumen quincenal: vence el 26/2"
+      "estado.py puerta congela el tablero antes de decidir",
+      "3 instantáneas: inicio, proyecto y etapa 2",
+      "comparar: qué entró, salió o cambió entre dos",
+      "--actor: Sofía ve solo C-001, que decide la junta",
+      "Con pm-kb: portal y enlace de 7 días, revocable"
      ],
-     "nota": "TOL-03 es el mismo patrón del caso, del lado del avance: el highlight dejó de salir con un corte nuevo y el control lo recuerda en cada sesión."
+     "nota": "Paso 15. Las instantáneas son inmutables y quedan en la bitácora: tablero.py listar y comparar las leen sin escribir nada. El tablero por actor filtra por la RACI y por lo que la persona tiene a cargo, pidió o decidió; el ciclo y las puertas son comunes. Con pm-kb, la captura muestra la instantánea de autorizar-inicio comparada con el tablero actual. El enlace compartido (pm-kb compartir crear --actor … --dias 7) se muestra una sola vez, registra sus usos y se revoca; quien lo abre ve solo ese tablero y sus fichas (g3-kb-compartido.png). Sin pm-kb, mostrar la salida de tablero.py del paso 15 en salida-g3.md."
     },
     {
      "tipo": "pregunta",

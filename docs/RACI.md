@@ -1,6 +1,6 @@
-# Matriz RACI de pm-method 2.6.0 · Humans and agents
+# Matriz RACI de pm-method 2.7.0 · Humans and agents
 
-Quién hace qué a lo largo del ciclo de vida PRINCE2 cuando se trabaja con los agentes del paquete. La matriz cruza los roles humanos del método con los seis agentes y nombra las skills que ejecutan cada actividad. Está verificada contra `SPEC.md` (§1.10.4, §1.11, §1.13, §1.16), `agents/*.md` y los procedimientos de las skills; la sección 5 resume esa verificación y las tensiones encontradas.
+Quién hace qué a lo largo del ciclo de vida PRINCE2 cuando se trabaja con los agentes del paquete. La matriz cruza los roles humanos del método con los seis agentes y nombra las skills que ejecutan cada actividad. Está verificada contra `SPEC.md` (§1.10.4, §1.11, §1.13, §1.16), `agents/*.md` y los procedimientos de las skills; la sección 6 resume esa verificación y las tensiones encontradas.
 
 ## 1. Leyenda
 
@@ -144,12 +144,38 @@ Solo las decisiones que cambian líneas base, comprometen dinero, salen del proy
 | Cambiar metas de OKR aprobadas | pm-okr | C | A | C | – | R | – | – | `registro.py agregar decisiones --campo nivel=junta` · pm-control o pm-director |
 | Elevar lecciones a la organización | pm-lecciones-aprendidas | I | A | – | – | R | – | C | estado `accionada-organizacion` en `lecciones.csv` · pm-cierre o pm-control |
 | Aceptación final del producto del proyecto | pm-cierre-proyecto | – | C | A | C | R | – | C | `estado.py aprobar registro-aceptacion --por "Usuario sénior: …; Ejecutivo: …"` · pm-director |
-| Cierre del proyecto (planificado o prematuro) | pm-cierre-proyecto, pm-direccion-decisiones | C | A | C | C | R | – | C | `estado.py puerta autorizar-cierre`; prematuro: `estado.py cierre --prematuro` · pm-director |
+| Cierre del proyecto (planificado o prematuro) | pm-cierre-proyecto, pm-direccion-decisiones | C | A | C | C | R | – | C | `estado.py puerta autorizar-cierre`; prematuro: `estado.py cierre --prematuro --decision D-###` · pm-director |
 
 \* El aprobador depende del documento: el ejecutivo para la mayoría de los productos de gestión (business case, PID, enfoques, matriz de comunicaciones, OKR); el usuario sénior para las descripciones de producto; el gestor para el highlight tras la confirmación de aseguramiento.
 † El análisis de clima exige además el consentimiento explícito de los participantes; sin él, no se ejecuta. Nunca se perfilan personas.
 
-## 5. Verificación de consistencia con agentes y skills
+## 5. La RACI del proyecto y el tablero por actor
+
+Esta matriz describe quién hace qué con el método. La RACI de **cada proyecto** es otra cosa: vive en
+`03-control/registros/raci.csv` (columnas `elemento`, `tipo_elemento`, `stakeholder_id`, `rol` R, A, C o I; un solo A por
+elemento), la mantiene `pm-interesados` y refleja la autoridad de PRINCE2 sin definirla (SPEC §1.10.10).
+
+Con ella, `tablero.py generar --actor "<nombre o rol>"` muestra el tablero de una persona: sus elementos R, A, C o I,
+las acciones y riesgos a su cargo, los issues y cambios que pidió, tiene a cargo o decidió, las decisiones que tomó, los
+artefactos que aprobó y lo que el radar le pide. El ciclo y las puertas son comunes a todos. Ejemplos:
+
+```bash
+python3 <pm-estado-proyecto>/scripts/tablero.py --proyecto gestion generar --actor "Ana Pérez"
+python3 <pm-estado-proyecto>/scripts/tablero.py --proyecto gestion generar --actor ejecutivo --html /tmp/tablero-ejecutivo.html
+python3 <pm-estado-proyecto>/scripts/tablero.py --proyecto gestion congelar --etiqueta "vista de Ana" --actor ST-001 --por "Gestor: Martín Suárez"
+```
+
+| El actor es… | En su tablero |
+|---|---|
+| R, A, C o I de un producto o paquete | el producto (también si la letra está en un código padre de la WBS o en su paquete de trabajo), con la letra en la tarjeta |
+| R, A, C o I de un artefacto (`elemento` = clave, p. ej. `pid`) o quien lo aprobó | el artefacto en «Artefactos» |
+| quien decidió o figura en la RACI de una decisión | la decisión de la junta en «Artefactos» |
+| responsable de una acción, propietario o ejecutor de un riesgo, responsable o quien decide un issue, solicitante o quien decide un cambio | la tarjeta en «Entrega» y sus ítems del radar |
+| ejecutivo, usuario o proveedor sénior | además, lo que el radar asigna a la junta (puertas pendientes, cambios a decidir) |
+
+Detalle y formato: SPEC §1.10.17 y guía de `pm-estado-proyecto` §11.
+
+## 6. Verificación de consistencia con agentes y skills
 
 | Comprobación | Resultado | Fuente |
 |---|---|---|

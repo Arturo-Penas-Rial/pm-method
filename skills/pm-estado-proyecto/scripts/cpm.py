@@ -280,4 +280,6 @@ def main():
         if not a.json: print(f"MSPDI escrito en {a.mspdi}")
 
 if __name__ == "__main__":
+    try: import esquema; esquema.salida_utf8()        # salida UTF-8 en consolas cp1252 (docs/ARQUITECTURA.md §9.4)
+    except ImportError: pass
     main()

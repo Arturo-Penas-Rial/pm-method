@@ -31,7 +31,7 @@ plantilla sin pisar una existente), valida cifras y rangos de la escala, calcula
 recomendada sin decidir. --elegir registra la opción que decide la persona (PUERTA HUMANA: exige --por) en riesgos.csv
 y su decisión en decisiones.csv, siempre con registro.py.
 """
-import argparse, csv, datetime, glob, json, os, re, subprocess, sys, unicodedata
+import argparse, csv, datetime, glob, io, json, os, re, subprocess, sys, unicodedata
 
 AQUI = os.path.dirname(os.path.abspath(__file__))
 SK = os.path.normpath(os.path.join(AQUI, "..", ".."))
@@ -155,16 +155,30 @@ def fuente_transcripciones(proyecto, archivos, desde):
                               "refs": sorted(set(m.group(0) for m in IDS.finditer(oracion))), "interesado": por_nombre.get(norm_txt(x["hablante"]), "")})
     return cands, [rel(proyecto, a) for a in archivos]
 
+def leer_instantanea(proyecto, p):
+    """Texto de una instantánea del tracker (UTF-8, con o sin BOM). Ilegible → mensaje con el archivo y el motivo, sin
+    traza (2.6.2: un dato ilegible no se toma como vacío)."""
+    try:
+        with open(p, encoding="utf-8-sig", newline="") as fh: return fh.read()
+    except UnicodeDecodeError as x:
+        sys.exit(t(f"{rel(proyecto, p)}: la instantánea del tracker no está en UTF-8 (byte {x.start}); exportarla de nuevo como CSV UTF-8. No se generaron candidatos.",
+                   f"{rel(proyecto, p)}: the tracker snapshot is not UTF-8 (byte {x.start}); export it again as UTF-8 CSV. No candidates generated."))
+    except OSError as x:
+        sys.exit(t(f"{p}: no se pudo leer la instantánea del tracker ({x.strerror or type(x).__name__}).", f"{p}: cannot read the tracker snapshot ({x.strerror or type(x).__name__})."))
+
 def fuente_tracker(proyecto, instantanea):
     if not instantanea:
         xs = sorted(glob.glob(os.path.join(proyecto, "03-control", "fuentes", "*-[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9].csv")),
                     key=lambda p: re.search(r"(\d{4}-\d{2}-\d{2})", os.path.basename(p)).group(1))
-        xs = [x for x in xs if "clave" in (open(x, encoding="utf-8").readline())]
+        xs = [x for x in xs if "clave" in leer_instantanea(proyecto, x).split("\n", 1)[0]]
         instantanea = xs[-1] if xs else None
     if not instantanea: return [], []
     cands = []
     sistema = os.path.basename(instantanea).split("-")[0]
-    for f in csv.DictReader(open(instantanea, encoding="utf-8")):
+    try: filas = list(csv.DictReader(io.StringIO(leer_instantanea(proyecto, instantanea))))
+    except csv.Error as x:
+        sys.exit(t(f"{rel(proyecto, instantanea)}: CSV mal formado ({x}). No se generaron candidatos.", f"{rel(proyecto, instantanea)}: malformed CSV ({x}). No candidates generated."))
+    for f in filas:
         tipo = norm_txt(f.get("tipo")); prio = norm_txt(f.get("prioridad")); est = norm_txt(f.get("estado")); etq = norm_txt(f.get("etiquetas"))
         es_issue = tipo in {norm_txt(x) for x in TIPOS_ISSUE} or est in {norm_txt(x) for x in ESTADO_BLOQUEO}
         es_riesgo = "riesgo" in etq or "risk" in etq
@@ -333,7 +347,7 @@ def leer_opciones(proyecto, r, umbral):
     """(ruta, opciones evaluadas y ordenadas, estrategias mínimas que faltan, id recomendada). Sin archivo: opciones None."""
     p = ruta_opciones(proyecto, r["id"])
     if not os.path.exists(p): return p, None, list(MINIMAS.get(r.get("tipo") or "amenaza", [])), ""
-    filas = list(csv.DictReader(open(p, encoding="utf-8-sig", newline="")))
+    filas = E.leer_filas(p)      # UTF-8 con o sin BOM; otra codificación o CSV mal formado → E.DatosIlegibles
     ops = [evaluar_opcion(o, r, umbral) for o in filas if any((v or "").strip() for v in o.values() if isinstance(v, str))]
     vistos = set()
     for i, o in enumerate(ops, 1):
@@ -366,6 +380,9 @@ def tiene_plan(proyecto, r):
 ARREGLO_REG10 = ("pm-riesgos: evaluar las opciones (riesgos.py --proyecto <dir> opciones --riesgo R-### --proponer; decide el propietario con "
                  "--elegir O# --por …) y, si la respuesta es aceptar o contingencia, disparador medible y plan de contingencia "
                  "(templates/plan-contingencia.md → 03-control/registros/R-###-plan-contingencia.md).")
+ARREGLO_REG10_EN = ("pm-riesgos: evaluate the options (riesgos.py --proyecto <dir> opciones --riesgo R-### --proponer; the owner decides with "
+                    "--elegir O# --por …) and, if the response is aceptar or contingencia, a measurable trigger and a contingency plan "
+                    "(templates/plan-contingencia.md → 03-control/registros/R-###-plan-contingencia.md).")
 
 def controles(proyecto, e, riesgos):
     """REG-10 para sanidad.py (avisos): amenaza abierta con P×I ≥ umbral alto (a) con respuesta elegida y menos de dos
@@ -377,13 +394,16 @@ def controles(proyecto, e, riesgos):
         if resp and resp != "escalar":
             _, ops, _, _ = leer_opciones(proyecto, r, u)
             if sum(1 for o in (ops or []) if o["estado"] == "evaluada") < 2:      # evaluar es comparar: al menos dos opciones
-                out.append(("AVISO", "REG-10", f"Riesgo alto {r['id']} con respuesta '{resp}' sin opciones evaluadas (al menos dos entre evitar, reducir, transferir y contingencia).",
-                            ARREGLO_REG10))
+                out.append(("AVISO", "REG-10", t(f"Riesgo alto {r['id']} con respuesta '{resp}' sin opciones evaluadas (al menos dos entre evitar, reducir, transferir y contingencia).",
+                                                 f"High risk {r['id']} with response '{resp}' and no evaluated options (at least two among evitar, reducir, transferir and contingencia)."),
+                            t(ARREGLO_REG10, ARREGLO_REG10_EN)))
         if resp in ("aceptar", "contingencia"):
             faltan = ([] if (r.get("disparador") or "").strip() else ["disparador"]) + ([] if tiene_plan(proyecto, r) else ["plan de contingencia"])
             if faltan:
-                out.append(("AVISO", "REG-10", f"Riesgo alto {r['id']} con respuesta '{resp}' sin {' ni '.join(faltan)}.",
-                            ARREGLO_REG10))
+                faltan_en = [{"disparador": "trigger", "plan de contingencia": "contingency plan"}[x] for x in faltan]
+                out.append(("AVISO", "REG-10", t(f"Riesgo alto {r['id']} con respuesta '{resp}' sin {' ni '.join(faltan)}.",
+                                                 f"High risk {r['id']} with response '{resp}' and no {' or '.join(faltan_en)}."),
+                            t(ARREGLO_REG10, ARREGLO_REG10_EN)))
     return out
 
 def plantilla_opciones(r):
@@ -469,7 +489,7 @@ def cmd_opciones(a, e):
     sys.exit(1 if errores else 0)
 
 def _registro(proyecto, *args):
-    r = subprocess.run([sys.executable, REGISTRO, "--proyecto", proyecto] + list(args), capture_output=True, text=True)
+    r = subprocess.run([sys.executable, REGISTRO, "--proyecto", proyecto] + list(args), capture_output=True, text=True, encoding="utf-8")
     if r.returncode != 0: sys.exit((r.stderr or r.stdout).strip())
     return r.stdout.strip()
 

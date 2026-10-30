@@ -35,7 +35,10 @@ El análisis de interesados (matriz poder/interés con estrategia por cuadrante)
 elemento), los estereotipos, las preferencias de comunicación y el plan de compromiso son de **`pm-interesados`**
 (plantillas `analisis-stakeholders`, `matriz-raci`, `plan-compromiso-stakeholders` y `entrevista-interesado` en esa skill).
 Esta skill le entrega la junta y los roles confirmados para que cada rol figure en el maestro y en la RACI. El usuario
-sénior asesora sobre los influenciadores de su comunidad; el proveedor sénior, sobre el lado proveedor.
+sénior asesora sobre los influenciadores de su comunidad; el proveedor sénior, sobre el lado proveedor. Los roles que
+registra `estado.py rol` también sirven para pedir el tablero de una persona por su rol
+(`tablero.py generar --actor ejecutivo`, guía de `pm-estado-proyecto` §11): conviene que cada nombre de `estado.json.roles`
+coincida con el del maestro de interesados, así su vista suma su RACI.
 
 ## 5. Reglas extendidas
 1. [PRINCE2] Si hay trabajo compartido de puesto, la descripción de rol explica cómo se mantiene el punto único de rendición de cuentas.

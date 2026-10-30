@@ -80,6 +80,7 @@ def matriz_personas(m, prio, ruta, titulo, subtitulo="", fuente=""):
     """Capacidad × persona (personas mapa --json): prioridad MoSCoW de cada capacidad, el rol de cada persona con letra y
     color (S pide, U usa, B aprovecha), cuántas personas toca cada capacidad y, al pie, lo de cada persona según
     personas priorizacion --json. Paleta, tipografía, tamaño (1600×900) y pie de fuente de visuales.py."""
+    if not V.OK: return None          # sin matplotlib el recorrido sigue sin el gráfico (como visuales.py)
     import textwrap, matplotlib.lines as ml
     from matplotlib.patches import FancyBboxPatch
     ROL = {"solicitante": "S", "usuario": "U", "beneficiario": "B"}; COL = {"S": V.SERIE[1], "U": V.SERIE[0], "B": V.SERIE[2]}
@@ -364,6 +365,7 @@ def matriz_grafico(mz, ruta, titulo, subtitulo="", fuente="", nombres_c=None, no
     de cada criterio (peso normalizado × valor normalizado), en el orden de la hoja; a la derecha, la sensibilidad del
     peso de un criterio (los demás conservan sus proporciones, como en decision.py): puntaje de cada opción de 0 a 100 y
     el peso con el que cambia la primera. Paleta, tamaño y pie de visuales.py."""
+    if not V.OK: return None          # sin matplotlib el recorrido sigue sin el gráfico (como visuales.py)
     import matplotlib.ticker as mt
     cr = mz["criterios"]; ops = mz["opciones"]; rec = mz["recomendada"]
     nombres_c = nombres_c or {}; nombres_o = nombres_o or {}

@@ -1,7 +1,7 @@
 ---
 name: pm-planificacion-por-productos
 description: "Alcance por productos: descripción del producto, PBS, WBS/EDT (wbs.py), requisitos y RTM. Usar: alcance, PBS, WBS, EDT, scope, product description. No: requisitos con BMAD→pm-bmad-puente."
-version: 2.6.0
+version: 2.7.0
 author: pm-method
 license: MIT
 metadata:

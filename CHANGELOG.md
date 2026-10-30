@@ -1,5 +1,283 @@
 # Cambios · Changelog
 
+## 2.7.0 · 2026-10-30 — portal unificado de pm-kb: tableros con historial, tarjetas-enlace, artefactos y enlaces compartidos
+
+Capacidades nuevas según la definición del portal unificado aprobada el 2026-10-29: el tablero del proyecto pasa al
+núcleo de pm-method, con su historial congelado en cada puerta, y pm-kb lo sirve junto con la búsqueda, los artefactos y
+los enlaces para interesados. El portal no guarda datos de gestión propios ni escribe en la carpeta del proyecto. Sin
+dependencias nuevas. Retrocompatible: los proyectos de 2.6.3 se abren sin migración (las instantáneas empiezan con la
+primera puerta que se registre); el índice de pm-kb pasa al esquema 4 con `pm-kb base crear`, sin perder el índice ni
+los tokens.
+
+### Nuevo · núcleo de pm-method
+- **`tablero.py`** (`skills/pm-estado-proyecto/scripts/`): `generar` (formato `pm-tablero/1` en JSON, o HTML de un solo
+  archivo con CSP por hash, claro, oscuro y móvil), `congelar`, `listar` y `comparar`. Cada tarjeta es una
+  **tarjeta-enlace**: nombre y descripción breves (sin montos, condiciones de la junta ni datos de interesados) y un id
+  estable (`R-003`, clave de artefacto, `puerta:<tipo>:<etapa>`, id de producto) que no cambia si el archivo se mueve.
+  Bloque de artefactos clave agrupados en generales, ciclo actual, cierre de etapas y decisiones de la junta (SPEC
+  §1.10.17).
+- **Historial congelado:** `estado.py puerta` guarda la instantánea del tablero tal como estaba antes de la decisión, con
+  la decisión, en `03-control/reportes/tableros/` (JSON y HTML); también `cierre --prematuro`. Congelado manual con
+  `tablero.py congelar --etiqueta`. Las instantáneas son inmutables, quedan en la bitácora con su huella y el guardián
+  impide editarlas fuera de los scripts. Si el congelado falla, la puerta se registra igual con un aviso.
+- **Tableros por actor:** `generar|congelar --actor "<nombre o rol>"` filtra por la matriz RACI (R, A, C o I) y por las
+  filas que lo nombran; API en Python `actores()` y `filtrar_actor()`.
+- **Lectura sin escrituras:** los comandos de lectura (`estado.py radar|productos|contexto|resumen`, `puertas.py
+  estado`, `registro.py propuestas`, `tablero.py generar`) funcionan sobre una carpeta de solo lectura sin escribir
+  nada: la sanidad sin `--reparar` ya no crea un registro que falta (lo informa REG-01) y la caché de la especificación
+  de BMAD se usa en memoria si no se puede escribir.
+
+### Nuevo · pm-kb (esquema 4)
+- **Ubicaciones por id y movimientos:** cada fila, artefacto y documento tiene su ubicación vigente; si un archivo se
+  mueve, el movimiento se detecta por huella sha256 o por clave de artefacto y el enlace sigue funcionando.
+  `pm-kb enlaces` informa referencias rotas, la ruta sugerida y la acción. La ficha amplía ubicación, movimiento,
+  versiones, relacionados por id e historia (también la de los artefactos).
+- **Portal web:** cartera ordenada por lo que pide acción; por proyecto, las pestañas Tableros (actual en vivo,
+  historial como línea de tiempo, comparar y vista por actor), Buscar, Artefactos (vigente y aprobada, con la marca de
+  borrador; «Documentos» de visual-explainer, diagram-design y archify en `iframe` con `sandbox`, más descarga y SVG o
+  PNG) y Preguntar. Botón «actualizar ahora» solo para tokens personales: regenera el tablero en el índice sin escribir
+  en la carpeta, con origen validado y límite de uso. `pm-kb tablero` a demanda; `indexar` y `vigilar` publican el
+  tablero y las instantáneas.
+- **Compartir:** `pm-kb compartir crear|listar|revocar`: un enlace por tablero actual o instantánea, opcionalmente por
+  actor, que vence (7 días por defecto, 90 como máximo), se puede revocar y registra su uso. El destinatario ve ese
+  tablero y las fichas de sus tarjetas, de circulación de equipo (lo restringido solo con `--restringida`); no puede
+  buscar, preguntar, usar el MCP ni ver otros proyectos. Las sesiones web llevan un identificador propio: la cookie
+  nunca lleva el token.
+- **`pm-kb vigilar`** reindexa ante cualquier cambio de los documentos indexables y publica el tablero; como servicio de
+  usuario de systemd en WSL2 (`docs/servicios/pm-kb-vigilar@.service`) o como servicio `pm-kb-vigilar` del perfil `kb`
+  en Docker. MCP con la herramienta `tablero` (9 herramientas).
+- **Seguridad:** `pmkb.documento` y `pmkb.version` filtran también por circulación (antes, solo por proyecto).
+- **Robustez:** la aplicación del esquema (`base crear`, `verificar`) y la carga de un índice o de un tablero (`indexar`,
+  `vigilar`, `tablero`, `quitar`) se ordenan con un bloqueo consultivo de PostgreSQL, y la carga se repite entera ante un
+  interbloqueo: antes, una indexación coincidente con `base crear` podía abortar (lo encontró la suite de variantes).
+
+### Documentación y pruebas
+- SPEC §1.10.17, PUERTAS, ARQUITECTURA §9.5 y §9.6, PM-KB §5 y §11.5 a §11.8, SEGURIDAD §14, RACI §5, guías de
+  instalación §8.10 y §8.11; paso 15 del recorrido E2E-3 (historial, comparación, vista por actor, enlace compartido) y
+  su diapositiva en el webinar; evidencia de las cinco guías regenerada (cada puerta imprime la instantánea congelada).
+- Caso TB de `probar_paquete.py`; pruebas de pm-kb ampliadas (ubicaciones, migraciones 2 → 3 → 4, portal, compartir) y
+  prueba de pantallas con Playwright (claro, oscuro y móvil, sin violaciones de CSP); unidad `kb-portal` de la suite de
+  variantes (interacción con puertas, propuestas, BMAD, proyecto en inglés, carpeta de solo lectura y skills externas).
+- Resultados del 2026-10-30 ([verificación 2.7.0](docs/evaluacion/resultados/2026-10-30-portal-v2.7.0.md)): regresión
+  **558 OK · 0 FALLO** con Python 3.13 y **554** con 3.9; integración **123 OK en 40 eslabones**; guías E2E 5/5 (77
+  pasos, 66 imágenes) con evidencia idéntica; suite de variantes `--nivel todo --repetir 2`: **592 OK · 0 FALLO · 0
+  trazas** en cada corrida (31 unidades); pm-kb núcleo 39 OK, con base 116 OK, pantallas 68 OK, consultas de oro 14/15
+  (MRR@5 0,75); 131 bloques Mermaid sin errores. Imagen Docker `pm-method:2.7.0`, dos corridas de la batería:
+  regresión **561 OK · 0 FALLO** con Python 3.14, guías 5/5, integración 122 OK, variantes sin E2E **296 OK** y webinar
+  5/5; perfil `kb` con el esquema 4, portal, enlace compartido (canje, sesión, revocación) y `pm-kb-vigilar`.
+- No se repitió la batería en vivo con Claude Code (`suite.py`): las descripciones de las skills no cambiaron.
+
+## 2.6.3 · 2026-10-30 — correcciones: idioma de los hallazgos, plan de excepción en el cierre prematuro y supuestos transferidos
+
+Versión de corrección sobre 2.6.2: resuelve las tres limitaciones que dejó registradas la campaña de estabilización y
+corrige el spot. Sin funciones nuevas de gestión ni dependencias nuevas. Retrocompatible: los proyectos de 2.6.2 se
+abren sin migración y pm-kb no cambia su esquema.
+
+### Corregido
+- **Hallazgos en el idioma del proyecto.** En un proyecto en inglés, `sanidad.py` y `puertas.py verificar|estado|lista`
+  daban sus mensajes en español. Ahora mensajes, correcciones, resumen, lista de control de la junta y etiquetas de
+  `decisiones.csv` («— conditions:», «gate:») salen en el idioma de `estado.json`; los códigos, las severidades y las
+  claves de `--json` son los mismos en los dos idiomas. El radar reconoce CAM-03 en inglés («risk reserve») y
+  `riesgos.py` (REG-10) y `mapas.py` también son bilingües.
+- **Plan de excepción durante un cierre prematuro.** `estado.py puerta autorizar-plan-excepcion` se admite en el cierre
+  (CP) sin `--forzar` y sin volver a la entrega: sirve para rescatar productos o dejarlos en estado seguro. El plan queda
+  en `cierre_prematuro.plan_excepcion`; **C-09** bloquea `autorizar-cierre` hasta que pm-director registra
+  `estado.py cierre --plan-excepcion completado|cerrado --por "<rol: nombre>"` (el guardián reserva ese comando a
+  pm-director). En un cierre planificado, el comportamiento no cambia.
+- **Supuesto transferido sin destino.** `registro.py` rechaza `estado=transferido` si `notas` no cita el riesgo o issue
+  que lo recibe (`→ R-###` o `→ I-###`) o si el destino no existe, también con `--forzar` y por propuesta. Para los datos
+  que ya estaban así, la sanidad avisa **SUP-04**: 104 códigos en 15 familias.
+- **Spot de LinkedIn:** la escena de estrategia decía que la integración con Jira, Slack y Teams estaba probada; ahora
+  dice «integración probada con BMAD y lista para Jira, Slack y Teams». El cierre suma la línea «Iniciativa con el apoyo
+  del PMI Capítulo Montevideo y de IEEE (Uruguay)». Las dos frases se locutaron de nuevo con el mismo modelo de voz
+  (Kokoro-82M con `kokoro-onnx` 0.6.1); el video dura 56,5 s y los cuadros muestran las cifras de esta versión.
+- **pm-kb:** `base crear` y `verificar` reintentan la aplicación del esquema hasta seis veces (antes, tres) ante un
+  interbloqueo con el servicio respondiendo, con espera creciente y dispersa; con el equipo cargado, los tres intentos
+  podían no alcanzar.
+- **Suite de variantes:** la prueba del modelo que no responde a tiempo mide solo la espera del modelo; antes sumaba la
+  búsqueda previa y fallaba con el equipo cargado aunque el plazo se respetara.
+
+### Pruebas
+- Caso nuevo **C3** de `probar_paquete.py` (23 comprobaciones): el mismo recorrido en español y en inglés, el plan de
+  excepción en el cierre prematuro y el supuesto transferido. La suite de variantes comprueba además el idioma de los
+  hallazgos en el ciclo completo.
+- Resultados del 2026-10-29 y el 2026-10-30: regresión **531 OK · 0 FALLO** con Python 3.13 y **529** con 3.9 (omisiones DD, N y PE
+  como en 2.6.2); integración **123 OK en 40 eslabones**; pm-kb núcleo 23 OK y con base 58 OK; consultas de oro 14/15
+  (MRR@5 0,75); 131 bloques Mermaid sin errores; suite de variantes `--nivel todo --repetir 2`: **567 OK · 0 FALLO · 0 trazas** en cada corrida, con las mismas comprobaciones.
+  Imagen Docker `pm-method:2.6.3`, dos corridas de la batería: regresión **534 OK · 0 FALLO** con Python 3.14 (caso DD
+  completo), guías 5/5, integración 122 OK, variantes sin E2E **295 OK · 0 FALLO**, 131 bloques Mermaid y webinar 5/5;
+  perfil `kb` con `verificar` 14 OK, indexación de E2E-1, token con vencimiento, ingreso por formulario y MCP desde el
+  contenedor `pm`.
+- No se repitió la batería en vivo con Claude Code (`suite.py`): las descripciones de las skills no cambiaron. El
+  agente pm-director suma una línea sobre `cierre --plan-excepcion`, sin cambios de enrutamiento.
+
+## 2.6.2 · 2026-10-29 — versión estable: robustez, caminos alternos, suite de variantes y opcionales verificados
+
+Versión de estabilización, sin funciones nuevas de gestión: una campaña de pruebas sobre caminos alternos, excepciones,
+dependencias, integraciones y los dos entornos (Claude Code y Hermes Agent) encontró y corrigió los defectos que se
+detallan abajo; cada uno tiene su prueba de regresión. Incluye además las guías paso a paso de los opcionales y el
+comparativo del resumen ejecutivo. Sin dependencias nuevas. Retrocompatible: los proyectos creados con 2.6.1 se abren
+sin migración (lo prueba la suite de variantes); pm-kb no cambia su esquema.
+
+### Corregido · datos y codificación
+- **CSV con BOM** (el "CSV UTF-8" de Excel): `registro.py` duplicaba la columna `id` y repetía ids. Los CSV se leen con
+  el BOM tolerado y los scripts los reescriben siempre en UTF-8 sin BOM y con CRLF.
+- **Lectura fallida tomada como "ninguno"**: con un registro ilegible, `estado.py contexto`, `radar`, `periodo`,
+  `briefing` y `productos` decían "Abiertos: ninguno" o mostraban un semáforo verde. Ahora terminan con el archivo y el
+  motivo.
+- **Trazas de Python con datos dañados**: un `estado.json` truncado o con tipos inválidos, o un CSV en otra codificación o
+  mal formado, termina con un mensaje bilingüe (archivo, qué pasó, qué hacer), código 1, sin traza y sin reescribir nada
+  (`esquema.DatosIlegibles`). La sanidad informa **DAT-01** (ERROR, familia nueva DAT: 103 códigos en 15 familias con CAM-06) y sigue con el resto; `puertas.py` cuenta una sanidad
+  sin resultado como bloqueo y un C-07 que no se pudo verificar como condición.
+- **CSV mal formado reescrito en silencio**: una fila con comilla sin cerrar, con más o menos campos que el encabezado o
+  con columnas repetidas detiene el comando con el archivo y la línea (antes `registro.py agregar` la "normalizaba").
+- **Hook de inicio silencioso** ante un proyecto roto: emite una línea de aviso y la sesión empieza igual.
+- **Consolas que no son UTF-8** (Windows): los scripts y los hooks escriben su salida en UTF-8 y los subprocesos se leen
+  con `encoding="utf-8"`. Con la consola cp1252, el guardián dejaba pasar una escritura de `estado.json` en una ruta con
+  acentos: corregido.
+
+### Corregido · caminos del ciclo
+- **Cierre prematuro con puerta propia** (PRINCE2 7): `estado.py cierre --prematuro --decision D-### [--motivo] [--fecha]`
+  desde la iniciación o la entrega (no desde la puesta en marcha, donde corresponde `autorizar-inicio` rechazado);
+  `estado.json.cierre_prematuro` con fecha, decisión, motivo, origen y etapa (y la excepción abierta, si la había, que se
+  cierra). En `autorizar-cierre` con cierre prematuro: **C-08** (bloqueo) exige el `inventario-cierre-prematuro`, C-07
+  baja a aviso, C-04 sigue bloqueando y la lista de la junta suma V-07. `puertas.py estado`, el radar y `contexto` lo
+  informan; EST-03 ya no da ERROR en un cierre desde la iniciación.
+- **Cambios contradictorios**: `registro.py agregar|actualizar|proponer cambios` rechaza combinaciones contradictorias de
+  `decision` y `estado` (tabla en la guía de registros §3), también con `--forzar`; la sanidad avisa **CAM-06** en datos
+  existentes, y un cambio `rechazado` o `diferido` ya no consume presupuesto.
+- `estado.py puerta --motivo` guarda el motivo en la puerta y en `decisiones.csv`; al rechazar una puerta, el aviso
+  depende de la puerta y muestra la D-### anotada. La guía de `pm-direccion-decisiones` §6 recomendaba registrar un
+  cierre prematuro con `--condiciones`, lo que dejaba una condición abierta que bloqueaba el cierre: usa `--motivo`.
+
+### Corregido · integraciones y componentes
+- **Hermes**: `instalar_hermes.py` convertía `${CLAUDE_PLUGIN_ROOT}/skills/x` en una ruta que no existe en la copia de
+  Hermes y dejaba sin adaptar `~/.hermes/skills/<skill>`.
+- `riesgos.py candidatos` terminaba con traza ante una instantánea de tracker que no estaba en UTF-8.
+- `bmad.py` ignoraba en silencio `_bmad/custom/config*.toml` con Python anterior a 3.11: ahora avisa.
+- `interesados.py plan-envio` avisaba "correo vacío" cuando el perfil no tenía canal aunque el correo existiera.
+- La documentación de pm-mapas-estrategicos citaba `mapas.py render`, que no existe (`wardley render`, `recorrido render`).
+- **pm-kb**: con el servidor de vectores caído o con error, `buscar` (CLI, MCP y web) y `indexar` terminaban con error;
+  ahora siguen con búsqueda léxica (o indexan sin vectores) y avisan. Lo mismo con el re-ranqueo. Las propuestas
+  pendientes se indexan (con las exclusiones de interesados). Las consultas de solo lectura y la aplicación del esquema
+  se reintentan ante un interbloqueo de PostgreSQL. El extracto de una fila de registro empieza por su `estado` (un
+  extracto recortado hacía parecer abierta una fila cerrada). pm-kb leía una clave inexistente de `estado.json`
+  (`enfoque`) y su fixture usaba columnas que no están en el esquema.
+- **Docker**: las variables de los canales de envío (SMTP, Slack, Teams) no llegaban al contenedor: el servicio `pm` las
+  declara por nombre, sin valor. En el perfil `kb`, la clave del modelo de "Preguntar" va en `PMKB_CLAVE_MODELO` y llega
+  solo a `pm-kb` (antes, `ANTHROPIC_API_KEY` llegaba también al contenedor `pm`), y `host.docker.internal` apunta al
+  equipo.
+- **CI**: el flujo de Docker no se disparaba con cambios en `pm-kb/**`, `SPEC.md` ni `compatibilidad.json` y fijaba una
+  etiqueta vieja; `validar_paquete.py` controla las versiones del CI y de `docker/compose.yaml`.
+
+### Documentación
+- **Guías paso a paso de los opcionales** en los dos caminos: envío a interesados (`.eml`, SMTP, Slack, Teams), skills
+  externas (diagram-design, visual-explainer, archify y Office), conectores MCP, modelos de pm-kb (API de Anthropic,
+  Ollama, TEI), actualización de pm-kb en Docker y listas de aceptación; ejecutadas en contenedores descartables (ver
+  Pruebas). Correcciones de pasos que no salían como decían (salidas de `pm-kb`, `apt autoremove`, `GIT_SSL_CAINFO` en
+  redes que inspeccionan HTTPS, `read -rs` en zsh, `kit/render.mjs` de visual-explainer, dominios del instalador de
+  Hermes).
+- **Resumen ejecutivo**: comparativo honesto con PMI Infinity y con la gestión tradicional (dos diapositivas nuevas, 21 en
+  total, y la §9 de `docs/RESUMEN-EJECUTIVO.md` con fuentes al 2026-10-29).
+- `docs/PRUEBAS.md` §2.5 (suite de variantes), `docs/PUERTAS.md` (cierre prematuro), `docs/SANIDAD.md` (DAT-01, CAM-06),
+  `SPEC.md`, `docs/ARQUITECTURA.md` §9.4 (datos ilegibles y codificación), guía de registros (decisión × estado),
+  `docs/PM-KB.md` y las guías de las skills afectadas.
+- Versión 2.6.2 en `plugin.json`, `compatibilidad.json`, `esquema.py`, pm-kb, las skills, `docker/`, el README y la
+  documentación que cita la versión vigente. El material generado que no se regeneró (informe, webinar, `docs/ieee/`)
+  conserva la versión con la que se hizo; el resumen ejecutivo se regeneró con 2.6.2.
+
+### Pruebas
+- **Suite de variantes** (`scripts/pruebas/variantes/correr.py --nivel …`): robustez y migración desde 2.6.1, caminos
+  alternos, matriz pairwise (Python 3.9 y 3.13 × dependencias completas o mínimas × sin BMAD, v4, v6, 6.12.4, fuera de
+  rango y con TOML × español e inglés × consola UTF-8 o cp1252 × rutas con espacios y acentos × cierre normal o
+  prematuro), integraciones con fallas (SMTP y webhooks), contratos documentación ↔ comandos y esquema ↔ consumidores,
+  Hermes (instalación, rutas y scripts desde la copia) y **opcionales** (pm-kb con simuladores de vectores, re-ranqueo y
+  respuesta; skills externas sin red). Criterio de salida: 0 FALLO en dos corridas seguidas, sin trazas y con las
+  omisiones del manifiesto.
+- `probar_paquete.py`: casos **RB** (robustez de datos, 17) y **CP** (cierre prematuro y cambios, 25); cada caso aislado
+  (un error cuenta como FALLO y la corrida sigue), `--casos`, `--json` y omisiones explícitas. Guías E2E con
+  `--comparar` (evidencia normalizada), `--python` y limpieza de temporales. pm-kb: KB-53 a KB-58.
+- Resultados (2026-10-29): `probar_paquete.py` **508 OK · 0 FALLO** con Python 3.13 (1 omisión: DD sin
+  `PM_DIAGRAM_DESIGN`) y **506 OK · 0 FALLO** con 3.9.25 (3 omisiones); integración cruzada **123 OK · 0 FALLO en 40
+  eslabones** (seis cadenas); suite de variantes `--nivel todo --repetir 2` **561 OK · 0 FALLO · 0 trazas · 0 omisiones
+  fuera del manifiesto** en cada corrida, con las mismas comprobaciones (con pm-kb, Docker y las skills externas);
+  guías E2E 5/5 en dos corridas con pm-kb, con evidencia idéntica entre corridas (cambia E2E-1 por los extractos de
+  pm-kb); `pm-kb/pruebas/probar_kb.py` **23 OK** (núcleo, 3.13 y 3.9) y **58 OK** con base; consultas de oro **14/15, MRR@5
+  0,75**; `validar_mermaid.py --render` **131 bloques · 0 errores**; `validar_paquete.py` OK (también con 3.9). Imagen
+  Docker `pm-method:2.6.2` (`pm-pruebas`, sin red, dos corridas con el mismo resultado): **511 OK · 0 FALLO** en la regresión con Python 3.14 (caso
+  DD completo), 5/5 recorridos, **122 OK en 40 eslabones**, variantes sin E2E **291 OK · 0 FALLO**, 131 bloques Mermaid y
+  webinar 5/5; perfil `kb` con `pm-kb-db:2.6.2` (PostgreSQL 18.6, pgvector 0.8.1): `verificar` 14 OK, E2E-1 indexado en 444 unidades (399 vigentes), token con vencimiento, ingreso por el formulario (303) y MCP por HTTP con 8 herramientas desde el contenedor `pm`. En vivo con Claude Code (`suite.py todo`): enrutamiento
+  **130/134** (variabilidad en cuatro frases ambiguas, sin cambios en las descripciones), guardarraíles y idioma OK; una
+  sesión con el plugin, el MCP de pm-kb y diagram-design (USD 0,46). Informe de la campaña:
+  `docs/evaluacion/resultados/2026-10-29-estabilizacion-v2.6.2.md`.
+
+## 2.6.1 · 2026-10-29 — correcciones de pm-kb, del tablero HTML y de la verificación de puertas
+
+Versión de corrección: seis problemas encontrados al evaluar un tablero del ciclo de vida para el portal de pm-kb y uno
+más que apareció al verificarlos en Docker. No
+cambia formatos de proyecto, registros ni comandos existentes del plugin; pm-kb agrega una opción (`token crear
+--dias`) y actualiza su esquema de forma idempotente (`pm-kb base crear`, esquema 1 → 2). Sin dependencias nuevas; una
+dependencia de pm-kb baja de versión (starlette).
+
+### Corregido
+- **pm-kb indexaba el resumen de `estado.json` con claves que no existen** (`nombre`, `proceso`, `etapa`): la ficha
+  «Estado del proyecto» salía sin nombre, proceso ni etapa. `pmkb/fuentes.py` usa las claves de SPEC §1.10 (`proyecto`,
+  `fase`, `proceso_actual`, `etapa_actual` con número y nombre, `enfoque`, `enfoque_entrega`, `idioma`), el título es
+  «Estado del proyecto · <proyecto>» y esas claves ya no se indexan además como trozos sueltos; `indexador.preparar`
+  toma el nombre de `proyecto`. El índice de un proyecto tiene unas pocas unidades menos (E2E-1: 444 unidades, 399
+  vigentes). El fixture de pruebas y `pm-kb verificar` usan las claves reales.
+- **Tablero HTML de pm-visuales con script en línea sin política propia**: `tablero-avance.html` sigue siendo un solo
+  archivo autocontenido y trae ahora una CSP propia (`default-src 'none'`, sin red, formularios ni `<base>`) que solo
+  autoriza su script de dibujo por el hash sha256; un script inyectado o alterado no corre. Un servicio que lo sirva
+  (por ejemplo pm-kb) puede autorizarlo agregando ese mismo hash. Cómo recalcular el hash si se cambia el script:
+  `pm-visuales/references/guia.md` §3.
+- **Los tokens de pm-kb no vencían**: `pmkb.acceso.vence`; `pm-kb token crear --dias N` (1 a 365, 90 por defecto) muestra
+  la fecha de vencimiento; `pmkb.identidad()` descarta los vencidos; `token listar` muestra el vencimiento y señala los
+  tokens emitidos sin él (siguen válidos hasta revocarlos); el enlace de la sesión local de `pm-kb servir` vence a las
+  24 horas; la caché de identidad del servicio nunca supera el vencimiento.
+- **starlette 1.10.0 tenía cinco días de publicada**: pm-kb fija **starlette 1.7.0** (2026-09-23) en
+  `pm-kb/requirements.txt`, regenerado con hashes; el resto de las versiones no cambia.
+- **`pm-kb servir` rechazaba un puerto recién liberado** durante unos 60 s («Address already in use») por conexiones en
+  TIME_WAIT: la verificación previa (`config.puerto_ocupado`) usa `SO_REUSEADDR`, como uvicorn; un proceso que escucha
+  en el puerto sigue bloqueándolo con el mensaje de siempre.
+- **E-10 repetía una condición ya cumplida**: si el veredicto CONCERNS del gate de preparación de BMAD ya fue condición
+  de una puerta posterior a él y esa condición se registró como cumplida, `puertas.py` lo informa como **aviso** E-10
+  (cita la puerta y su D-### e indica registrar un veredicto nuevo con `puertas.py preparacion-bmad` si el plan cambió);
+  con la condición abierta sigue siendo condición. En E2E-3, después de `cumplir-condiciones`, E-10 pasa de condición a
+  aviso.
+- **El formulario de ingreso de la web de pm-kb respondía 500** (encontrado al repetir la verificación en Docker): pegar
+  el token en la pantalla de ingreso (`POST /ingresar`) fallaba porque `Request.form()` de Starlette exige el paquete
+  python-multipart, que pm-kb no instala; el enlace `/ingresar?token=…` sí funcionaba. El formulario se lee con la
+  biblioteca estándar (`urllib.parse`), sin dependencias nuevas.
+
+### Documentación
+- `docs/PM-KB.md` (§10, §12, §13, §14 y solución de problemas), `docs/SEGURIDAD.md`, `docs/PUERTAS.md` (E-10),
+  `docs/DEPENDENCIAS.md` y `docs/DOCKER.md` (starlette 1.7.0), guías de instalación (token con vencimiento y esquema
+  pm-kb 2), `docs/PRUEBAS.md`, `docs/INDICE.md`, `docs/CATALOGO.md`, `docs/RESUMEN-EJECUTIVO.md`, `README.md`,
+  `pm-visuales/references/guia.md` §3 y la guía E2E-3 (E-10). Evidencia de E2E-1, E2E-3 y E2E-4 y la captura
+  `g1-kb-ficha.png` regeneradas.
+- Versión 2.6.1 en `plugin.json`, `compatibilidad.json`, `esquema.py`, pm-kb, las skills, `docker/`, el README y la
+  documentación que cita la versión vigente. Los registros fechados que no se repitieron y el material generado
+  (informe, resumen ejecutivo, webinar, `docs/ieee/`) conservan la versión con la que se hicieron.
+
+### Pruebas
+- `probar_paquete.py`: CSP del tablero (hash declarado = script de dibujo; el tablero abre en Chromium sin violaciones
+  ni errores, si Playwright está instalado) y E-10 con la condición abierta y cumplida.
+- `pm-kb/pruebas/probar_kb.py`: KB-47 (resumen de `estado.json`), KB-48 (vencimiento por defecto y rango), KB-49 (token
+  vencido sin identidad), KB-50 (la web responde 401 a un token vencido) y KB-51 (puerto en TIME_WAIT frente a un
+  proceso escuchando) y KB-52 (ingreso por el formulario de la web con un token válido y uno falso; con el código
+  anterior responde 500).
+- Resultados (2026-10-29): `probar_paquete.py` **466 OK · 0 FALLO** con Python 3.13 y **464 OK · 0 FALLO** con 3.9.25;
+  integración cruzada **118 OK · 0 FALLO en 38 eslabones** (`--sin-e2e`); `pm-kb/pruebas/probar_kb.py` **21 OK** (núcleo,
+  3.13 y 3.9) y **52 OK · 0 FALLO** con `--con-base` (starlette 1.7.0, PostgreSQL 16.15); `pm-kb verificar` 14 OK;
+  guías E2E 5/5 en dos corridas con pm-kb, con evidencia idéntica entre corridas; `validar_paquete.py` OK (también con el
+  intérprete 3.9); `claude plugin validate .` pasa con los avisos de siempre. Imagen Docker `pm-method:2.6.1` (`pm-pruebas`,
+  sin red): **469 OK · 0 FALLO** en la regresión con Python 3.14, 5/5 recorridos, **122 OK en 40 eslabones**, **131
+  bloques Mermaid** sin error y webinar 5/5; perfil `kb` con `pm-kb-db:2.6.1` (PostgreSQL 18.6, pgvector 0.8.1):
+  `verificar` 14 OK, E2E-1 indexado en 444 unidades (399 vigentes), token con vencimiento y `--dias 400` rechazado,
+  ingreso por el formulario (303), MCP por HTTP con 8 herramientas desde el contenedor `pm`, `/proyectos` de solo lectura.
+  Las pruebas en vivo no se repitieron (no cambian descripciones, agentes ni hooks).
+
 ## 2.6.0 · 2026-10-29 — decidir con contexto, vigencia y bitácora, y pm-kb: buscar en los proyectos con evidencia citada
 
 Tres frentes. (1) **Capacidad de decisión** para cualquier elección entre alternativas, dentro de

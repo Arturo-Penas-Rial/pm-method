@@ -867,6 +867,7 @@ Lista 00-direccion/decisiones/2026-12-11-verificacion-autorizar-inicio.md confir
 ```
 $ python3 $EST/estado.py --proyecto gestion puerta autorizar-inicio --decision aprobado --por "Ejecutiva: Carmen Olivera" --fecha 2026-12-11 --fin 2027-01-15
 ok
+Tablero congelado antes de la decisión: 03-control/reportes/tableros/2026-12-11-autorizar-inicio-etapa-0.json (y .html)
 Fase: inicio · Proceso: IP · Etapa 1: Iniciación · Enfoque: hibrido
 Iniciación (IP): enfoques de gestión, controles y tolerancias, PBS/WBS y plan de proyecto (cronograma, costos), business case detallado, PID; luego plan de la primera etapa de entrega. Híbrido: definir qué productos van con paquetes iterativos y su release plan. Agentes: pm-inicio + pm-planificacion. Puertas: autorizar-proyecto y autorizar-etapa (pm-director).
 ```
@@ -1415,6 +1416,7 @@ Lista 00-direccion/decisiones/2027-01-15-verificacion-autorizar-proyecto.md conf
 $ python3 $EST/estado.py --proyecto gestion puerta autorizar-proyecto --decision aprobado --por "Ejecutiva: Carmen Olivera" --fecha 2027-01-15 
 Aviso: supuestos críticos sin validar aceptados por decisión de la junta: S-006 (D-010) (seguir su validación; la sanidad SUP sigue mostrándolos)
 ok
+Tablero congelado antes de la decisión: 03-control/reportes/tableros/2027-01-15-autorizar-proyecto-etapa-1.json (y .html)
 Fase: inicio · Proceso: IP · Etapa 1: Iniciación · Enfoque: hibrido
 Iniciación (IP): enfoques de gestión, controles y tolerancias, PBS/WBS y plan de proyecto (cronograma, costos), business case detallado, PID; luego plan de la primera etapa de entrega. Híbrido: definir qué productos van con paquetes iterativos y su release plan. Agentes: pm-inicio + pm-planificacion. Puertas: autorizar-proyecto y autorizar-etapa (pm-director). Proyecto ya autorizado: falta autorizar-etapa para la primera etapa de entrega.
 ```

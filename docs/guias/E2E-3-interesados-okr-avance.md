@@ -40,6 +40,8 @@ a la junta y cómo se sostiene el compromiso de cada interesado mes a mes.
    enviar, y registradas en `envios.csv`.
 5. **Compromiso sostenido como control permanente**: la cadencia de contacto (STK-12) y la brecha de compromiso se
    revisan en cada período, no en un taller único.
+6. **Un historial de tableros** congelado en cada puerta, comparable, filtrado por la RACI de cada persona y, con pm-kb,
+   un portal y un enlace de solo lectura que vence y se revoca.
 
 ## Indicadores que vas a ver
 
@@ -57,28 +59,28 @@ La brecha total baja de 7 a 3 niveles. TI empeora cuando se corta su reunión se
 
 ## Clases
 
-El caso tiene 14 pasos (el 7 y el 10 en dos partes) y dos temas distintos: **montar** el sistema de interesados y **operarlo** período a período. Por
+El caso tiene 15 pasos (el 7 y el 10 en dos partes) y dos temas distintos: **montar** el sistema de interesados y **operarlo** período a período. Por
 eso se dicta en **dos clases de 90 minutos**. Material de clase: [guion](../webinar/E2E-3/guion-instructor.md) ·
 [ejercicio](../webinar/E2E-3/ejercicio.md) · [diapositivas](../webinar/E2E-3/diapositivas.json).
 
 | Clase | Pasos | Qué cubre |
 |---|---|---|
 | 1 · Del mapa de interesados al plan de compromiso | 1–8 | junta, maestro de interesados, matriz poder/interés, estereotipos y preferencias, plan de compromiso, beneficios y OKR, RACI y puertas, la meta del KR de adopción decidida por la A de la RACI, taller → candidatos con cita, confirmación, acta y propuesta del agente aprobada por una persona |
-| 2 · Del dato al reporte y al compromiso sostenido | 9–14 | avance (EVM, BMAD, check-ins), radar y briefing al retomar la sesión, highlight desde el dato, envío por canales con confirmación humana, reporte de interesados, STK-12 y revisión periódica de la brecha |
+| 2 · Del dato al reporte y al compromiso sostenido | 9–15 | avance (EVM, BMAD, check-ins), radar y briefing al retomar la sesión, highlight desde el dato, envío por canales con confirmación humana, reporte de interesados, STK-12 y revisión periódica de la brecha, historial de tableros por puerta, tablero por actor y, con pm-kb, el portal y un enlace compartido |
 
 ## Ficha
 
 **Skills y agentes:** pm-orquestador (radar) · pm-inicio → `pm-organizacion-roles` · `pm-interesados` · `pm-enfoques-gestion` ·
 `pm-comunicacion-stakeholders` · `pm-caso-de-negocio` · `pm-okr` · `pm-direccion-decisiones` · pm-control → `pm-reuniones`,
 `pm-progreso-reportes` (highlight y briefing), `pm-riesgos`, `pm-issues-cambios` · `pm-estado-proyecto` · `pm-integraciones` (capa de canales) · `pm-visuales` · `pm-exportar` ·
-`pm-director`. Hooks: inicio de sesión (contexto y línea del radar derivados de los registros) y `guardian.py` (confirmación humana del
+`pm-director` · pm-kb (opcional, paso 15). Hooks: inicio de sesión (contexto y línea del radar derivados de los registros) y `guardian.py` (confirmación humana del
 envío y de la aprobación de una propuesta).
 
 **Método:** PRINCE2 7 (práctica de organización, enfoque de comunicación, gestión por excepción, highlight report) con
 técnicas del PMBOK 8 (análisis poder/interés, matriz de evaluación del compromiso, RACI, análisis de decisión
 multicriterio, plan de comunicaciones, valor ganado). Términos: [TERMINOLOGIA](../TERMINOLOGIA.md).
 
-**Pasos:** 14 (el 7 y el 10 en dos partes). **Duración:** dos clases de 90 minutos (120–150 minutos de práctica). **Preparación:** [README de las
+**Pasos:** 15 (el 7 y el 10 en dos partes). **Duración:** dos clases de 90 minutos (120–150 minutos de práctica). **Preparación:** [README de las
 guías](README.md#cómo-usar-las-guías) (copia del fixture en `~/proyectos-prueba/portal-e2e-3`). Para enviar de verdad
 en los pasos 11 y 14 necesitás **una** de estas opciones: las variables `PM_SMTP_*` de tu servidor de correo, la URL de
 un flujo de Teams (`PM_TEAMS_WEBHOOK_URL`), un conector MCP de correo, Slack o Teams conectado en Claude, o el modo
@@ -111,6 +113,8 @@ Lo que en la práctica se hace a mano, una sola vez o nunca, y aquí se controla
 | Cambio que supera la autoridad delegada | lo aprueba quien lo pide o espera sin dueño | límite de la autoridad de cambio fijado por la junta (D-003); el registro no deja que la autoridad delegada lo apruebe y el radar lo pone en «decidir» para la junta (**RAD-01**) | C-001 en el radar (paso 10a) |
 | Incorporar a alguien a la junta | una reunión de traspaso y correos reenviados | briefing de dos páginas armado desde los registros, cada cifra con su id o su archivo (`estado.py briefing`) | briefing de ST-011 (paso 10a) |
 | Aprobar y enviar un comunicado | sale desde el correo de quien lo redactó, sin rastro de quién lo aprobó | cada aprobación y cada envío real pasan por un pedido de permiso que resuelve una persona (`guardian.py`) y quedan en `envios.csv` | EN-### con quién aprobó (pasos 11 y 14) |
+| Mostrar cómo estaba el proyecto cuando la junta decidió | la presentación del día, que nadie guarda | en cada puerta, `estado.py puerta` congela el tablero antes de la decisión (inmutable, anotado en la bitácora); `tablero.py listar` y `comparar` | una instantánea por puerta y lo que cambió entre dos (paso 15) |
+| Mostrarle a cada persona lo suyo, también fuera del equipo | el mismo tablero completo para todos, o una captura que envejece | `tablero.py generar --actor` filtra por la RACI; con pm-kb, un enlace de solo lectura por actor que vence y se revoca (`pm-kb compartir`) | tablero de Sofía y usos del enlace (paso 15) |
 
 ## Recorrido
 
@@ -124,6 +128,7 @@ flowchart TB
     h --> i["9 · Avance: EVM, BMAD,<br/>check-ins y cambio C-001"] --> j["10a · Radar al retomar<br/>y briefing para la junta"]
     j --> j2["10b · Highlight desde el dato<br/>y cadena verificada"] --> k["11 · Comunicación por perfil,<br/>cadena y confirmación humana"] --> l["12 · Reporte de interesados<br/>e integridad"]
     l --> m["13 · Compromiso sostenido<br/>STK-12 y reevaluación"] --> n["14 · Revisión periódica<br/>cadencia y brecha"]
+    n --> o["15 · Tableros por puerta,<br/>por actor y portal"]
 ```
 
 ---
@@ -369,7 +374,10 @@ la fecha de la puerta (`puertas.py lista autorizar-proyecto --fecha 2026-11-27`,
 aparece; sin el enfoque habría salido el aviso "sin enfoque de beneficios". La etapa 2 se autoriza `condicionado` por
 el gate de BMAD en CONCERNS (control **E-10**), que pasa solo a condición formal ("Condiciones agregadas desde la
 verificación: gate de preparación de BMAD en CONCERNS…"). Cada hallazgo de la verificación lleva su código de control,
-el mismo que devuelve `puertas.py verificar --json` en la lista `hallazgos`.
+el mismo que devuelve `puertas.py verificar --json` en la lista `hallazgos`. Cada puerta deja además el tablero tal
+como estaba antes de decidirla: "Tablero congelado antes de la decisión:
+03-control/reportes/tableros/2026-10-30-autorizar-inicio-etapa-0.json (y .html)", y lo mismo para autorizar-proyecto y
+autorizar-etapa (se usan en el paso 15).
 
 **Dónde verificar:** `03-control/registros/raci.csv` · `02-planificacion/matriz-raci.md` · prompt: "¿Quién aprueba la
 consola de operador?".
@@ -735,8 +743,9 @@ da por cumplida".
    `estado.py cumplir-condiciones autorizar-etapa --fecha 2027-01-08 --por
    "Ejecutiva: Laura Méndez" --nota "prueba de carga de NFR-3 planificada en el sprint 5 …"` la cierra, y
    `puertas.py verificar autorizar-etapa --json` lo confirma: en `hallazgos` quedan E-01, E-04 (plan e informe de la
-   etapa siguiente, que todavía no corresponden) y E-10 (el gate de BMAD sigue en CONCERNS), sin G-01. Tampoco
-   aparece **EST-12** en la sanidad.
+   etapa siguiente, que todavía no corresponden) y E-10 como aviso (el gate de BMAD sigue en CONCERNS, pero ese
+   veredicto ya lo trató la junta en autorizar-etapa, D-006, y su condición está cumplida), sin G-01. Tampoco aparece
+   **EST-12** en la sanidad.
 
 **Qué deberías ver:**
 
@@ -785,8 +794,8 @@ aparecen como aviso por no tener `ref_externa`.
 
 Puertas: inicio y proyecto aprobados; la etapa, condicionada por el gate de BMAD en CONCERNS, con la condición
 "(abiertas)" y, en la próxima puerta, "condición G-01 condiciones abiertas de puertas anteriores: autorizar-etapa
-2026-11-27". Tras `cumplir-condiciones`, la verificación `--json` lista E-01, E-04 y E-10, sin G-01, y la sanidad
-del paso 12 no muestra EST-12.
+2026-11-27". Tras `cumplir-condiciones`, la verificación `--json` lista E-01 y E-04 como bloqueos y E-10 como aviso
+(el CONCERNS ya tratado en D-006), sin G-01, y la sanidad del paso 12 no muestra EST-12.
 
 ![Tablero de avance al 2027-01-08](img/g3-tablero.png)
 El tablero sale del mismo cálculo y del mismo juicio: tiempo «SPI 0,933 · desvío 6,7 % del PV», costo «CPI 0,942 · EAC USD
@@ -1077,6 +1086,93 @@ evolucionó el compromiso de los interesados desde el inicio?".
 
 ---
 
+## Paso 15 · El portal del proyecto: historial de tableros, comparar, tablero por actor y enlace compartido
+
+**El problema:** la junta decide con lo que ve ese día y, meses después, nadie puede mostrar cómo estaba el proyecto
+cuando aprobó cada puerta. Cada integrante recibe el mismo tablero completo y busca lo suyo, y para mostrárselo a alguien
+de afuera se manda una captura que envejece o se da un acceso de más.
+
+**Prompt (19/2)**
+```text
+Mostrame los tableros que quedaron congelados en cada puerta y qué cambió entre la autorización del inicio y la de la
+etapa 2. Después armame el tablero de Sofía Ramírez al 19/2: solo lo suyo según la RACI.
+```
+
+**Qué hace el sistema:** cada vez que pm-director registró una puerta (paso 7), `estado.py puerta` congeló el tablero
+**antes** de aplicar la decisión en `03-control/reportes/tableros/<fecha>-<puerta>-etapa-<n>.json` y `.html`
+(inmutables y anotados en la bitácora). `pm-estado-proyecto` los lee con `tablero.py`, de solo lectura:
+`tablero.py --proyecto gestion listar`, `tablero.py --proyecto gestion comparar <id A> <id B>` y
+`tablero.py --proyecto gestion generar --actor "Sofía Ramírez" --corte 2027-02-19` (sus elementos R, A, C o I de
+`raci.csv` y lo que tiene a cargo, pidió o decidió en los registros; el ciclo y las puertas son comunes).
+
+**En la terminal, con pm-kb** (opcional, ver [PM-KB.md](../PM-KB.md) §11; sin pm-kb esta parte se saltea): el portal
+muestra la cartera, el historial de tableros como línea de tiempo, la comparación, el filtro por actor y, para quien no
+tiene token, un enlace de solo lectura.
+```bash
+cd ~/proyectos-prueba/portal-e2e-3
+pm-kb indexar --proyecto portal-socios --ruta .
+pm-kb tablero --proyecto portal-socios --corte 2027-02-19
+pm-kb enlaces --proyecto portal-socios
+pm-kb compartir crear --proyecto portal-socios --actor "Sofía Ramírez" --dias 7 --para "Comité de usuarios"
+pm-kb servir                # muestra el enlace de ingreso http://localhost:8765/ingresar?token=…
+pm-kb compartir listar --proyecto portal-socios
+pm-kb compartir revocar --proyecto portal-socios --para "Comité de usuarios"
+```
+
+**Qué deberías ver:**
+- `listar`: tres instantáneas, una por puerta, con la decisión y quién decidió: «2026-10-30-autorizar-inicio-etapa-0 ·
+  autorizar-inicio · etapa 0 · aprobado (D-001) · Ejecutivo: Laura Méndez», «2026-11-27-autorizar-proyecto-etapa-1 · … ·
+  aprobado (D-002)» y «2026-11-27-autorizar-etapa-etapa-1 · … · condicionado (D-006)», cada una con su sha256 (en la
+  evidencia, «<sha256>»: el archivo guarda la hora real en que se generó).
+- `comparar` de la primera con la tercera: «11 entraron · 0 salieron · 1 cambiaron». Entraron las puertas de proyecto y
+  de etapa, la acción A-001 vencida, el bloqueo E-02 de la próxima puerta, los artefactos pid, plan-proyecto y
+  plan-etapa-2 y las decisiones D-001 a D-004; cambió la puerta de inicio («proxima → aprobado»). Los montos no
+  aparecen: D-003 se lee «limite_autoridad_cambio=[monto]».
+- `generar --actor`: «Actor: Sofía Ramírez (…) · RACI R 2 · A 2 · C 1 · I 1 · solo lo suyo (el ciclo y las puertas son
+  comunes)»; en atención, «decidir 1» (C-001, que ella pidió y espera la decisión de la junta) y nada para escalar,
+  desbloquear ni vigilar; en entrega, «cambios 1». La próxima puerta, autorizar-etapa con 2 bloqueos, es la misma para
+  todos.
+- `pm-kb indexar`: «pm-kb: portal-socios indexado · 503 unidades (465 vigentes) · 75 documentos (0 con varias versiones)
+  · 737 relaciones · 144 entradas de historia · commit sin git · vectores: no», los registros con datos personales que
+  no se indexan (`envios.csv`, `preferencias.csv`) y «pm-kb: tablero de portal-socios publicado · versión 1 · corte …»
+  con la fecha del día como corte. `pm-kb tablero --corte 2027-02-19` lo publica con el corte del escenario: «versión 2 ·
+  corte 2027-02-19 · entrega · etapa 2 · atención: 1 decidir, 0 escalar, 0 desbloquear, 3 vigilar · próxima puerta:
+  autorizar-etapa · 3 instantánea(s)».
+- `pm-kb enlaces`: «Sin referencias rotas. Sin movimientos.»
+- `compartir crear`: «Enlace e-… de solo lectura al tablero actual (en vivo) de portal-socios, actor Sofía Ramírez (…),
+  para Comité de usuarios; vence …» (a los 7 días) y la URL `<origen>/v#<token>`, que se muestra **una sola vez** (la
+  base guarda solo su huella; en la evidencia, «<token del enlace>»). Sin `PMKB_ORIGENES`, el aviso de que el enlace usa
+  `http://localhost:8765` y solo abre en esa máquina: para compartirlo fuera, `PMKB_ORIGENES` con la dirección https del
+  servicio ([PM-KB.md](../PM-KB.md) §11.7).
+- `compartir listar`: el enlace «vigente» con «1 uso(s)» (la vista compartida que se abrió para la captura); `revocar`:
+  «1 enlace(s) revocado(s) … las sesiones abiertas con ellos se cortan en la petición siguiente».
+
+![Cartera del portal](img/g3-kb-cartera.png)
+La cartera: fase y proceso, etapa y días que faltan, próxima puerta con sus 2 bloqueos (E-01, E-04) y los totales de
+atención; primero lo que pide acción.
+
+![Tableros con el historial](img/g3-kb-historial.png)
+La pestaña Tableros: la línea de tiempo con las tres puertas y «Actual (en vivo)», el pulso del proyecto al 19/2 y el
+ciclo con las puertas decididas y la próxima.
+
+![Comparar una puerta con el tablero actual](img/g3-kb-comparar.png)
+La instantánea de autorizar-inicio («no se actualiza», con su HTML estático) comparada con el tablero actual: lo que
+entró, salió y cambió de columna o estado.
+
+![Tablero por actor](img/g3-kb-actor.png)
+«Por actor» con Sofía Ramírez: sus letras de la RACI y, en atención, solo C-001, que espera la decisión de la junta.
+
+![Vista de un enlace compartido](img/g3-kb-compartido.png)
+Lo que ve quien abre el enlace: «solo lectura · vence …», el tablero de Sofía y las fichas de sus tarjetas, sin
+pestañas, búsqueda ni otros proyectos. El token no queda en la dirección: la página lo canjea por una sesión.
+
+**Dónde verificar:** `03-control/reportes/tableros/` (tres pares `.json` y `.html`; el `.html` se abre sin servidor) ·
+`tablero.py --proyecto gestion listar --json` (`en_bitacora`: cada archivo coincide con su escritura anotada) · prompt: "¿Cómo estaba el proyecto cuando la junta autorizó la etapa
+2?". La corrida de referencia revoca el enlace y borra el índice al terminar (`pm-kb quitar --proyecto portal-socios`);
+la carpeta del proyecto no se toca.
+
+---
+
 ## Reporte: highlight report del 2027-01-08 (desde el dato)
 
 > Variante mínima de `pm-progreso-reportes/templates/highlight-report.md`: borrador de `estado.py periodo --highlight`
@@ -1105,7 +1201,7 @@ planificada); la junta da la condición por cumplida el 8/1 con la prueba de car
 
 ## Representaciones gráficas
 
-Además de las cuatro imágenes de indicadores y de las capturas de los pasos 10a, 10b y 12:
+Además de las cuatro imágenes de indicadores y de las capturas de los pasos 10a, 10b, 12 y 15:
 
 **Valor ganado por corte:**
 ```mermaid
@@ -1174,6 +1270,9 @@ del paso 14):
       frecuencia revisada y compromiso reevaluado.
 - [ ] Revisión periódica: el contacto prometido sale en fecha, la acción correctiva se cierra, la brecha se mide en cada
       revisión y STK-12 queda limpio; TOL-03 recuerda el corte de EVM pendiente.
+- [ ] Un tablero congelado por puerta (estado previo a la decisión), comparable entre dos puertas, y el tablero de una
+      persona filtrado por la RACI; con pm-kb, cartera, historial, comparación y vista por actor en el portal, y un
+      enlace de solo lectura por actor que se muestra una vez, registra sus usos y se revoca.
 
 ## Siguiente caso
 

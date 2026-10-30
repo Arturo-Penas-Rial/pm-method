@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<title>Tablero compartido · pm-kb</title>
+<link rel="stylesheet" href="/estatico/estilo.css">
+<script src="/estatico/comun.js" defer></script>
+<script src="/estatico/tablero.js" defer></script>
+<script src="/estatico/compartido.js" defer></script>
+</head>
+<body class="compartido">
+<a class="saltar" href="#vista">Ir al contenido</a>
+<header class="barra">
+  <span class="marca">pm-kb <span class="sub">tablero compartido</span></span>
+  <p id="vigencia" class="vigencia" role="status"></p>
+  <div class="cuenta"><form method="post" action="/salir"><button type="submit" class="enlace">Salir</button></form></div>
+</header>
+<main id="vista" class="ancho" tabindex="-1"><p class="nota">Abriendo el enlace…</p></main>
+<p id="anuncio" class="oculto" aria-live="polite"></p>
+</body>
+</html>

@@ -3,7 +3,7 @@ name: pm-sync
 description: "Sincroniza fuentes externas con el proyecto: BMAD (backlog, avance, desvíos) e instantáneas de tracker y OKR. Escribe afuera solo con confirmación. Uso manual: /pm-sync [bmad|tracker|okr]."
 disable-model-invocation: true
 argument-hint: "[bmad|tracker|okr|todo] [carpeta]"
-version: 2.6.0
+version: 2.7.0
 author: pm-method
 license: MIT
 metadata:

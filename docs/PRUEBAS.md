@@ -1,4 +1,4 @@
-# Pruebas y aceptación · pm-method 2.6.0
+# Pruebas y aceptación · pm-method 2.7.0
 
 Cómo se verifica el ecosistema, qué cubre cada prueba y cómo hacer la prueba de aceptación antes de usarlo en un
 proyecto real. EN: *test strategy, automated suites, live tests with real Claude Code and an acceptance checklist.*
@@ -14,6 +14,7 @@ proyecto real. EN: *test strategy, automated suites, live tests with real Claude
 | 1 · Regresión determinista | `python3 scripts/probar_paquete.py [--conservar] [--sin-integracion]` | gratis, ~3 min | tras cambios de scripts, hooks o BMAD |
 | 1b · Recorridos E2E | `python3 scripts/pruebas/guias_e2e/correr.py --salida DIR` | gratis, ~2 min | tras cambios de scripts; compara con `docs/guias/evidencia/` |
 | 1c · Integración cruzada | `python3 scripts/pruebas/integracion/correr.py [--sin-e2e \| --e2e DIR]` | gratis, < 3 min | tras cambios de scripts que producen o consumen datos de otra skill (§2.3) |
+| 1e · Variantes | `python3 scripts/pruebas/variantes/correr.py --nivel todo [--repetir 2]` | gratis, ~5–6 min por corrida | antes de una versión y tras cambios de scripts, hooks, instalador de Hermes o documentación de comandos (§2.5) |
 | 1d · pm-kb (opcional) | `python3 pm-kb/pruebas/probar_kb.py [--con-base]`, `consultas_oro.py`, `conformidad_mcp.py` (§7) | gratis, segundos | tras cambios en `pm-kb/` |
 | 2 · Plugin | `claude plugin validate .` (aviso esperado sobre `CLAUDE.md`, que es contexto de desarrollo) | gratis | antes de publicar |
 | 3 · En vivo (modelo real) | `python3 scripts/pruebas_vivo/suite.py …` | consume tokens | antes de una versión y tras cambiar descripciones o agentes |
@@ -64,33 +65,51 @@ proyecto real. EN: *test strategy, automated suites, live tests with real Claude
 | VG · Vigencia de decisiones (12 comprobaciones) | migración de `reemplaza`/`conviven`; reemplazo automático al aprobar v1.1; DEC-05 en las cinco reversiones del informe exxperts y sin sus falsos positivos; DEC-06 al corte y no con el supuesto citado ya validado; autoridad de `reemplaza` (ni con `--forzar`); doble, ciclo e id inexistente; `conviven`; `decision.py vigentes`; expediente con historia; `matriz --elegir --reemplaza` |
 | BT · Bitácora de escrituras (12 comprobaciones) | líneas de `registro.py` (alta, antes → después) y de `estado.py` (claves, `--por`); stakeholders y `confidencial=si` sin valores; cadena y continuidad de cada archivo; reescritura sin cambios no anotada; `historial`; BIT-02 (cambio fuera de los scripts, hueco entre líneas) y `reconocer`; 15 altas simultáneas encadenadas; BIT-01 con una línea editada; `paquete.py auditoria --con-bitacora` y `verificar` que explica el registro alterado; guardián (deny de la bitácora y de una propuesta, ask de `aprobar` y `reconocer`) |
 | PR · Propuestas con huella (11 comprobaciones) | `registro.py proponer` (huella del registro, valores base, alias resuelto, registro intacto); propuesta inválida y autoaprobación rechazadas; `aprobar` aplicada; `propuestas` con lo que pasaría hoy; reaplicada con la fila cambiada en otro campo; conflicto (base Bea, hoy Darío, propuesto Carla); alta reaplicada con el id de hoy; `rechazar`; control de cambios que deja la propuesta pendiente; `historial P-###` |
-| KB · pm-kb, núcleo sin base (1 comprobación) | corre `pm-kb/pruebas/probar_kb.py` (19 comprobaciones del indexador sin PostgreSQL: exclusiones, interesados sin contacto ni valoración confidencial, versiones, duplicados, relaciones y cambios por secciones; §7) y cuenta como una; con Python 3.9 o posterior |
-| Y · Errores básicos (2 comprobaciones) | `--help` de los 37 scripts de las skills y de `scripts/` (código 0, texto de uso, sin traza); 18 entradas faltantes (CSV, acta, proyecto sin `estado.json`) terminan con código distinto de 0 y un mensaje claro, sin traza de Python |
+| RB · Robustez de datos (17 comprobaciones) | Un dato ilegible nunca se toma como vacío ni deja una traza ([ARQUITECTURA §9.4](ARQUITECTURA.md#94-datos-ilegibles-y-codificación)). **BOM** de Excel («CSV UTF-8») en `issues.csv`: `registro.py agregar` asigna I-002, el encabezado no repite `id`, el archivo queda en UTF-8 sin BOM y la sanidad no ve REG-03/REG-04. **`riesgos.csv` en cp1252**: `estado.py contexto` no dice «ninguno» (código ≠ 0, archivo y «UTF-8»); `radar`, `radar --linea` y `periodo` lo informan (sin semáforo verde); la sanidad sigue y da DAT-01 ERROR; `registro.py listar\|agregar` y `puertas.py verificar autorizar-cierre` se niegan, y `verificar autorizar-inicio` lo muestra como bloqueo S-DAT-01; sha256 de todo el proyecto (bitácora incluida) igual antes y después; el hook de inicio emite «pm-method · AVISO». **`estado.json` truncado, con `puertas` de otro tipo y que no es un objeto**: sanidad (también `--rapido --json`), `estado.py ver\|contexto\|radar\|set`, `puertas.py estado\|verificar` y `registro.py resumen\|agregar cambios` terminan con código ≠ 0, el archivo y el motivo, sin traza y sin reescribir nada; con el truncado, el hook de inicio avisa. **CSV mal formado** (comilla sin cerrar, fila corta, fila larga): `registro.py agregar` se niega con el archivo y la línea, sin reescribir. **`PYTHONIOENCODING=cp1252`** (emula la tubería de Windows): sanidad, `estado.py resumen\|radar`, `puertas.py verificar` y `registro.py historial` sin `UnicodeEncodeError` y con salida UTF-8; el hook de inicio resume el proyecto y el guardián niega escribir `estado.json` en una ruta con «Í» enviada en UTF-8 |
+| CP · Caminos alternos del cierre y los cambios (25 comprobaciones) | **Cierre prematuro** ([PUERTAS §3.2](PUERTAS.md)): `autorizar-inicio` rechazado con `--motivo` (sigue en SU; no hay CP) y `cierre --prematuro` en el pre-proyecto rechazado; `autorizar-proyecto` rechazado (sigue en IP, D-### anotada, el aviso muestra `cierre --prematuro --decision D-###`); sin `--decision`, con una D-### inexistente o de nivel gestor, rechazado; desde la iniciación y desde entrega/SB deja `cierre_prematuro` (fecha, decisión, motivo, origen, etapa); sin EST-03; `puertas.py estado` (JSON y Markdown), `radar` (RAD-07 con C-08) y `contexto` coherentes; **C-08** bloqueo hasta registrar el inventario, **C-07** aviso (condición en el mismo proyecto con cierre planificado), **C-04** bloqueo hasta cancelar la revisión; ítem V-07 en la lista de la junta; un plan de excepción rechazado seguido de cierre prematuro cierra la excepción (sin EST-14). **Caminos existentes**: plan de excepción rechazado y luego aprobado (asserts sobre `estado.json`), puerta `pendiente` (sin fila en `decisiones.csv`, EST-11 y radar) resuelta por el rechazo de `autorizar-etapa`, supuesto crítico `transferido` (sale de P-11 y SUP-01) y revisión de calidad `cancelada` (deja de ser abierta). **Cambios**: altas, actualizaciones y propuestas con `decision` × `estado` contradictorios rechazadas (también con `--forzar` y con alias en inglés); combinaciones válidas aceptadas; CAM-06 sobre un CSV con la contradicción ya existente y presupuesto sin consumir por lo rechazado o diferido (CAM-03 = 500 de 4.000), y la autoridad aprueba con ese saldo |
+| C3 · Correcciones 2.6.3 (23 comprobaciones) | **Idioma de los hallazgos**: el mismo recorrido en un proyecto en español y otro en inglés da en `sanidad.py --json` los mismos códigos, severidades, claves y conteos, con mensaje y corrección en inglés (SUP-01, REG-06, REG-07; ninguno se lee como español con la heurística de `hooks/idioma.py`) y el español con los textos de siempre; texto de la sanidad («Health check of …»); `puertas.py verificar` (JSON con los mismos ids y claves, I-01 y L-01 en inglés; texto «Gate … blocker(s)», BLOCKER/condition); lista de control de la junta en inglés y en español, confirmada en ambas; etiquetas de la decisión en `decisiones.csv` («— conditions:», «gate:» / «— condiciones:», «puerta:»); G-01 y P-11 en inglés y la G-01 en inglés no se copia como condición nueva; `puertas.py estado --markdown` en inglés; CAM-03 en inglés («Risk reserve at 90 % (900 of 1,000)») que el radar asigna a `reserva-riesgo`. **Plan de excepción en el cierre prematuro** ([PUERTAS §3.2](PUERTAS.md)): `autorizar-plan-excepcion` corresponde en CP sin `--forzar`, X-01 sin plan; aprobado, sigue en CP con D-### de la junta y el plan en `cierre_prematuro.plan_excepcion` y en su artefacto; **C-09** único bloqueo de `autorizar-cierre`; el guardián reserva `cierre --plan-excepcion` a pm-director; sin `--por` o sin plan del cierre, rechazado; completado con `--por` → C-09 desaparece y el proyecto se cierra; en un cierre planificado, igual que antes (exige `--forzar` y vuelve a entrega/CS). **Supuesto transferido**: sin destino (también con `--forzar`), con R-### o I-### inexistente y por propuesta, rechazado con registro intacto; con destino válido, aceptado; **SUP-04** sobre filas ya existentes (sin destino o con destino roto), que admiten cambios en otras columnas y salen del aviso al indicar un destino válido; rechazo y SUP-04 en inglés en un proyecto en inglés |
+| KB · pm-kb, núcleo sin base (1 comprobación) | corre `pm-kb/pruebas/probar_kb.py` (21 comprobaciones sin PostgreSQL: exclusiones, interesados sin contacto ni valoración confidencial, versiones, duplicados, relaciones, cambios por secciones, resumen de `estado.json` y puerto de `servir`; §7) y cuenta como una; con Python 3.9 o posterior |
+| Y · Errores básicos (2 comprobaciones) | `--help` de los 38 scripts de las skills y de `scripts/` (código 0, texto de uso, sin traza); 18 entradas faltantes (CSV, acta, proyecto sin `estado.json`) terminan con código distinto de 0 y un mensaje claro, sin traza de Python |
 | X · Integración cruzada (38 comprobaciones, una por eslabón) | la suite de §2.3 sin la cadena 6 (`correr.py --sin-e2e`): cada eslabón cuenta como una comprobación y, si falla, muestra cuál de sus aserciones falló |
 
-Resultado al 2026-10-29 (versión 2.6.0, casos A–N con A2, I2, J2, L2 y L3, P, PU, RA, PE, LX, LC, RD, IM, TV, AU, PS, DC, DR, DK, MD, BU, VG, BT, PR, CC, KB, DD, S, X e Y): **463 OK · 0 FALLO** con Python 3.13; con Python 3.9, **462 OK · 0 FALLO** (sin `matplotlib` se omite una comprobación de visuales). Requiere `pyyaml`. Los casos H, I y J no salen a la red: el caso H levanta un servidor SMTP mínimo y un receptor HTTP en 127.0.0.1.
+Arnés (2.6.2): un caso que lanza una excepción cuenta como FALLO con su letra («`E · el caso se ejecutó sin errores`»,
+archivo y línea) y la corrida sigue con el caso siguiente, como los eslabones de la integración. `--casos A,E,CC` corre
+solo esos casos (`--listar` muestra las letras); `--json RUTA` escribe OK, FALLO (caso, comprobación y detalle), las
+**omisiones con su motivo** y la duración por caso. Cada comprobación que no se hace por una dependencia o herramienta
+faltante (playwright, Chromium, openpyxl, matplotlib, mmdc, git, diagram-design) queda como «OMITIDA [caso] motivo» en la
+salida y en el resumen final, en lugar de bajar el conteo en silencio.
+
+Resultado al 2026-10-30 (versión 2.7.0, casos A–N con A2, I2, J2, L2 y L3, P, PU, RA, PE, LX, LC, RD, IM, TV, AU, PS, DC, DR, DK, MD, BU, VG, BT, PR, CC, KB, DD, RB, CP, C3, TB, S, X e Y): **558 OK · 0 FALLO** con Python 3.13 (1 omisión: DD sin `PM_DIAGRAM_DESIGN`); con Python 3.9, **554 OK · 0 FALLO** (5 omisiones: N sin `matplotlib`; PE y dos de TB sin Playwright para Python; DD). Requiere `pyyaml`. Los casos H, I y J no salen a la red: el caso H levanta un servidor SMTP mínimo y un receptor HTTP en 127.0.0.1.
 Las dos corridas son sin `PM_DIAGRAM_DESIGN` (la de 3.9, con 3.9.25 y sin `matplotlib`), de modo que la parte del caso
-DD que necesita diagram-design se omite. Dentro de la imagen Docker `pm-method:2.6.0` (Python 3.14, `PM_DIAGRAM_DESIGN`
-definida por la imagen, diagram-design `66fa2e7`): **466 OK · 0 FALLO**, con el caso DD completo ([DOCKER §10](DOCKER.md#10-verificación-registrada)).
+DD que necesita diagram-design se omite. Dentro de la imagen Docker `pm-method:2.7.0` (Python 3.14, `PM_DIAGRAM_DESIGN`
+definida por la imagen, diagram-design `66fa2e7`): **561 OK · 0 FALLO** (dos corridas), con el caso DD completo ([DOCKER §10](DOCKER.md#10-verificación-registrada)).
 
 ### 2.1 Recorridos E2E (`scripts/pruebas/guias_e2e/`)
 
 `correr.py` reproduce con los scripts reales las cinco guías de [docs/guias/](guias/README.md) y escribe la evidencia
-(`salida-gN.md`) y las 61 imágenes; se compara con `docs/guias/evidencia/` y `docs/guias/img/`. Todas las fechas del
+(`salida-gN.md`) y las 66 imágenes; se compara con `docs/guias/evidencia/` y `docs/guias/img/`. Todas las fechas del
 escenario se fijan (`nuevo_proyecto.py --fecha` en `comun.base_su`, `sanidad.py --corte`, `evm.py --guardar --corte`,
 `puertas.py lista|confirmar --fecha`), de modo que dos corridas seguidas dan la misma evidencia; solo los nombres de
 archivo que fechan `bmad.py handoff`, `paquete.py` y `exportar.py` llevan el día de la corrida. pm-kb es opcional en
-los recorridos (`comun.kb_disponible`): sin él, los pasos de pm-kb (E2E-1 paso 16, E2E-4 paso 9c) muestran «OMITIDO
+los recorridos (`comun.kb_disponible`): sin él, los pasos de pm-kb (E2E-1 paso 16, E2E-3 paso 15 en su parte de pm-kb, E2E-4 paso 9c) muestran «OMITIDO
 pm-kb» y el recorrido termina OK; con él, la evidencia es reproducible (fecha del indexado, puerto, token y fechas de la
-bitácora enmascarados). Resultado al 2026-10-29: **5/5 OK**, 76 pasos y 61 imágenes, evidencia e imágenes idénticas en dos corridas con pm-kb (salvo esos nombres).
+bitácora enmascarados). Resultado al 2026-10-29: **5/5 OK**, 77 pasos y 66 imágenes, evidencia e imágenes idénticas en dos corridas con pm-kb (salvo esos nombres).
 
 | Guía | Pasos | Controles que muestra |
 |---|---|---|
 | [E2E-1](guias/E2E-1-riesgos.md) | 16 (el 6 en 6a y 6b) · 2 clases de 90 min | candidatos de BMAD, de la transcripción y de Jira; opciones de respuesta por valor neto y plan de contingencia (REG-10); presupuesto de riesgo de la junta, reserva de gestión aparte y consumo de la reserva (CAM-02, CAM-03); revisión vencida (REG-09) en el resumen de inicio de sesión, el radar y la sanidad; condición de la junta (EST-12); variante sin BMAD (paso 15); la pregunta de la junta con pm-kb: búsqueda citada, ficha de R-003 con relaciones por ids y versiones del business case (paso 16) |
 | [E2E-2](guias/E2E-2-alcance-roadmap.md) | 10 · 2 clases de 90 min | tres valores y reserva de cronograma (`cpm.py --estimacion`), capacidad del release (`release.py capacidad`), personas de usuario (STK-13), presupuesto y límite de la autoridad de cambio, análisis de impacto (`impacto.py`), cambio con costo y cargo, VAN con `inversion.py`, EVM ágil guardado, QUA-01; gestión por excepción (aprobación fuera de la autoridad rechazada por `registro.py`, TOL-01, informe y plan de excepción, ampliación del presupuesto antes de que la junta apruebe) |
-| [E2E-3](guias/E2E-3-interesados-okr-avance.md) | 14 (el 7 en 7 y 7b; el 10 en 10a y 10b) · 2 clases de 90 min | maestro de interesados, preferencias, RACI, enfoque de beneficios con OKR (P-04), candidatos de reunión con confirmación humana, radar y briefing al retomar la sesión, highlight y tablero desde `estado.py periodo` con la cadena verificada, envío por canales con confirmación humana; compromiso sostenido (STK-12) y brecha de compromiso |
+| [E2E-3](guias/E2E-3-interesados-okr-avance.md) | 15 (el 7 en 7 y 7b; el 10 en 10a y 10b; el 15, historial del tablero, vista por actor y portal) · 2 clases de 90 min | maestro de interesados, preferencias, RACI, enfoque de beneficios con OKR (P-04), candidatos de reunión con confirmación humana, radar y briefing al retomar la sesión, highlight y tablero desde `estado.py periodo` con la cadena verificada, envío por canales con confirmación humana; compromiso sostenido (STK-12) y brecha de compromiso |
 | [E2E-4](guias/E2E-4-producto-bmad.md) | 16 (0–11, 6b, 6c, 9b y 9c) · 2 clases de 90 min | condición formal desde el CONCERNS de BMAD (EST-12, G-01, `cumplir-condiciones`), cambio con presupuesto, radar, calidad a volumen (QUA-01, QUA-02, QUA-03) y estado de productos, recorrido de la socia (MAP-03), ciclo de las lecciones (E-11, REG-11, REG-12), cierre por id (C-03, C-07), expediente de auditoría verificado con la bitácora de escrituras, versiones del business case e historia de una fila con pm-kb (paso 9c) y revisiones de beneficios posteriores |
 | [E2E-5](guias/E2E-5-idea-a-proyecto.md) | 20 (1–17, 5b, 10b y 16b) · 2 clases de 90 min | lecciones previas del índice de la red, supuestos con experimentos (SUP-01…03), opciones con VAN, enfoque por entregable, mapa de valor y recorrido del paciente (paso 5b: MAP-02 y MAP-03, resueltos en los pasos 6 y 9), personas de usuario (STK-13), P-11, radar después de la puerta; variante con BMAD: personas desde los UJ, recorrido de UJ-2 con backstage y mapa de valor desde la arquitectura (paso 17: MAP-01…04 resueltos) |
+
+Opciones del arnés (2.6.2): `--comparar docs/guias/evidencia` compara cada `salida-gN.md` con la de referencia después
+de enmascarar el día de la corrida en los nombres de archivo (traspasos de BMAD y `exportados/`), las rutas temporales,
+el Message-ID y los datos variables de pm-kb (`comun.sin_variables_kb`); sin pm-kb, sus bloques quedan fuera de la
+comparación y se informa. Si difiere, muestra el diff y la guía cuenta como FALLO. `--python RUTA` (o `PM_PY`) elige el
+intérprete de las guías y de los scripts (`base.py` antepone un lanzador `python3` propio al `PATH`; nunca usa el
+`python3` del sistema) y la ruta del repositorio puede tener espacios. Los proyectos de la corrida van a una carpeta
+`e2e-corrida-*` del directorio temporal que se borra al terminar (`--conservar` la deja e informa la ruta).
 
 En la guía E2E-3, paso 11, el script `g3.py` levanta **servidores de prueba locales en 127.0.0.1** (SMTP y receptor HTTP
 para el webhook de Teams), de modo que el envío real se ejercita sin salir a la red; la evidencia registra lo que
@@ -154,9 +173,9 @@ python3 scripts/pruebas/integracion/correr.py --e2e DIR          # cadena 6 con 
 python3 scripts/pruebas/integracion/correr.py --conservar --json resultado.json
 ```
 
-Resultado al 2026-10-29 (versión 2.6.0): cadenas 1–5 (`--sin-e2e`), **118 OK · 0 FALLO en 38 eslabones** con Python 3.13
-y también con 3.9 (caso X de `probar_paquete.py`); las seis cadenas, con las salidas de los recorridos (`--e2e DIR`),
-**122 OK · 0 FALLO en 40 eslabones** dentro de la imagen Docker `pm-method:2.6.0` ([DOCKER §10](DOCKER.md#10-verificación-registrada)). La bitácora
+Resultado al 2026-10-30 (versión 2.7.0): cadenas 1–5 (`--sin-e2e`), **118 OK · 0 FALLO en 38 eslabones** con Python 3.13
+y también con 3.9 (caso X de `probar_paquete.py`); las seis cadenas, **123 OK · 0 FALLO en 40 eslabones** con Python 3.13
+en el host y **122 OK · 0 FALLO en 40 eslabones** dentro de la imagen Docker `pm-method:2.7.0` ([DOCKER §10](DOCKER.md#10-verificación-registrada)). La bitácora
 (`.bitacora.jsonl`) no cambia la evidencia de los recorridos: no hay BIT en ninguna sanidad y el expediente de E2E-4
 solo la incluye con `--con-bitacora`. Con `--e2e DIR` la suite reutiliza las salidas de los recorridos sin volver a
 correrlos. Duración en Linux x86_64, según el disco: 42 s sin la sexta cadena y 104 s con las seis y `--e2e DIR` dentro
@@ -175,8 +194,148 @@ uv venv -p 3.9 /tmp/py39 && VIRTUAL_ENV=/tmp/py39 uv pip install pyyaml openpyxl
 /tmp/py39/bin/python scripts/validar_paquete.py && /tmp/py39/bin/python scripts/probar_paquete.py
 ```
 
-Resultado al 2026-10-29 (versión 2.6.0): `validar_paquete.py` OK con el intérprete 3.9.25 (83 archivos `.py`);
-`probar_paquete.py` 462 OK · 0 FALLO con 3.9.25 (sin `matplotlib`) y 463 OK · 0 FALLO con 3.13.
+Resultado al 2026-10-30 (versión 2.7.0): `validar_paquete.py` OK con el intérprete 3.9.25;
+`probar_paquete.py` 554 OK · 0 FALLO con 3.9.25 (5 omisiones: N sin `matplotlib`, PE y dos de TB sin Playwright para Python, y DD) y 558 OK · 0 FALLO con 3.13 (1 omisión: DD).
+
+### 2.5 Suite de variantes (`scripts/pruebas/variantes/`)
+
+Los defectos de 2.5.1–2.6.1 aparecieron en el **cruce de dos ejes** que las otras suites recorren por separado (una
+puerta × una condición ya cumplida, pm-kb × las claves reales de `estado.json`, una dependencia que faltaba solo en
+Docker). Esta suite barre esos cruces sin red y sin tokens: entorno (intérprete, dependencias, BMAD, idioma,
+codificación de la salida, ruta), caminos alternos del ciclo, fallas de entrega, contratos entre componentes, el
+entorno Hermes Agent y los componentes opcionales (pm-kb con modelos simulados, su portal, BMAD y las skills externas
+de diagramas) con su interacción.
+
+```bash
+python3 scripts/pruebas/variantes/correr.py --nivel todo --repetir 2 --salida /tmp/variantes   # criterio de una versión
+python3 scripts/pruebas/variantes/correr.py --nivel matriz --celdas M04,D1                    # una parte
+python3 scripts/pruebas/variantes/ciclo.py --bmad v4 --idioma en --python /tmp/py39/bin/python  # una celda a mano
+```
+
+`--nivel` acepta uno o varios niveles separados por comas (o `todo`); `--paralelo N` (4 por defecto) corre las unidades
+de un nivel a la vez; `--permitir-omision CLAVE` declara una omisión propia del entorno (en Docker: `python-3.9` y
+`migracion-zip-261`); `--conservar` deja los proyectos de trabajo. La salida (`--salida DIR`, por defecto una carpeta
+nueva del directorio temporal) tiene `INFORME.md` (una tabla por corrida: unidad, ejes, OK, FALLO, omisiones vistas y
+esperadas, duración y la primera falla), `resultado.json` con el mismo contenido y `corrida-N/celdas/<unidad>/comandos.log`
+(cada comando con su carpeta, código, duración y salida). Intérpretes: el que corre la suite (3.13) y `PM_PYTHON39`
+(por defecto `/tmp/py39/bin/python`, §2.4). Código 1 si hay un FALLO, una traza de Python, una omisión fuera del
+manifiesto o, con `--repetir`, una comprobación u omisión distinta entre corridas.
+
+| Nivel | Qué cubre |
+|---|---|
+| robustez | `probar_paquete.py --casos RB,Y` con 3.13 y 3.9; **migración** (`migracion.py`): las guías E2E-2 y E2E-4 generadas con los scripts del ZIP de 2.6.1 (`PM_ZIP_261`) y abiertas con el código actual (sanidad sin ERROR nuevos, bitácora sin BIT antes y después de escribir, lectura sin traza, expediente de auditoría verificado; `version_paquete_anterior` cuando cambia la versión) y un `estado.json` v1 (tolerancias como texto, fase `ejecucion`, sin presupuestos ni umbrales) migrado al escribir sin BIT espurios |
+| caminos | `probar_paquete.py --casos CP` y el ciclo paramétrico con cierre normal y prematuro |
+| matriz | el **ciclo paramétrico** (`ciclo.py`) en 14 celdas: 12 por pairwise y 2 degradadas por diseño (tabla siguiente) |
+| integraciones | `integraciones.py`: SMTP que rechaza un destinatario (550), que cierra la conexión y que no responde (plazo de 2 s con `sitio/sitecustomize.py`), webhook de Teams con 500: filas `fallido`, código 2, sin traza y reenvío que solo envía a los faltantes y actualiza la fila (sin duplicar); `envios.py registrar` con `--modo eml` y `--modo mcp` (una fila por destinatario, repetir se rechaza); instantánea del tracker en cp1252 o mal formada; plan de envío sin canal en el perfil |
+| contratos | `contratos.py`: **T-01** cada `script.py subcomando --opción` citado en `skills/**/SKILL.md`, `references/`, `agents/`, `docs/*.md` (con `docs/guias/` y `docs/webinar/`), `README.md`, `CLAUDE.md` y `AGENTS.md` (≈3.700 citas) existe en el `--help` real (también un subcomando de segundo nivel citado sin el primero, como `mapas.py render`; un marcador `<…>` cuenta como una palabra); **T-03** lo mismo para cada orden de pm-kb (`pm-kb <subcomando> --opción`) de esos documentos (≈300 citas) contra `pm-kb … --help` (el código de pm-kb de la copia; la ayuda no necesita la base); **T-02** las claves de `estado.json` que leen pm-kb (`RESUMEN_ESTADO`), `paquete.py` e `inicio.py` y las columnas del fixture de pm-kb y de `paquete.py` existen en el esquema (`estado_inicial`, SPEC §1.6, `esquema.REGISTROS`); **X-01** `validar_paquete.py` OK con el control del CI (sin tags de imagen fijos desalineados y `paths` con `pm-kb/**`, `SPEC.md` y `compatibilidad.json`) |
+| hermes | `hermes.py`: `instalar_hermes.py --destino <tmp>` dos veces (idéntico), `--verificar` sin escribir, 39 skills como `<destino>/<skill>/`, ninguna `${CLAUDE_…}`, las ≈200 rutas a scripts y archivos citadas en la copia existen, `name` = carpeta y descripción ≤ 240, 6 agentes en `_agentes/` (sin SKILL.md) y un orquestador que solo nombra skills existentes, sin hooks, destino ajeno rechazado; los scripts corren desde la copia con las rutas de INSTALACION-WSL2 §7.4 (`nuevo_proyecto.py`, `bmad.py`, `registro.py`, `estado.py contexto\|radar`, `sanidad.py`, `envios.py`); contraste con el plugin (cada archivo existe en los dos y conserva sus rutas) |
+| e2e | `guias_e2e/correr.py --comparar docs/guias/evidencia` con 3.13 y con 3.9 (sin pm-kb, sus pasos quedan fuera de la comparación; con pm-kb, solo la unidad de 3.13 lo usa y la de 3.9 lo omite, porque las guías indexan con nombres fijos y dos unidades en paralelo se quitaban el índice una a la otra) |
+| opcionales | `opcionales.py` y `portal.py` (detalle abajo): pm-kb con simuladores de los modelos (vectores, re-ranqueo y respuesta) y su interacción con `registro.py`, propuestas, interesados, circulación restringida, BMAD y el MCP (stdio y HTTP); el portal con pm-method (instantáneas de las puertas, «actualizar ahora» en solo lectura, propuestas como sombra, enlaces compartidos, proyecto en inglés, `pm-kb enlaces`); `probar_kb.py` y `pantallas.py`; skills externas de diagramas en un contenedor sin red (INS-03, contrato de delegación de pm-visuales y caso DD) y sus salidas en el portal |
+
+**Ciclo paramétrico** (`ciclo.py`, sin depender de los ids de un fixture): nuevo proyecto → especificación (BMAD:
+`detectar` y `requisitos`; sin BMAD: `requisitos.md`) y una WBS que cubre lo que quede sin cobertura → guardián, hook de
+idioma → `autorizar-inicio` → `autorizar-proyecto` rechazado y después aprobado (con BMAD, línea base del PRD) → etapa
+condicionada → `cumplir-condiciones` → presupuestos, riesgos, issues y cambios → límite de etapa con excepción → plan de
+excepción rechazado y después aprobado → hoja de decisión con `matriz --elegir` → `periodo --json` y `--tablero`, `radar`,
+`contexto` → `exportar` xlsx y docx → `paquete.py auditoria` y `verificar` → cierre (normal, o decisión de la junta y
+`cierre --prematuro --decision D-###`) → `autorizar-cierre`. Si la verificación bloquea un «aprobado», los bloqueos tienen
+que ser los esperados de la celda (con BMAD v4, «el PRD no está final») y la junta decide «condicionado». **Invariantes**:
+código esperado en cada paso, cero trazas, JSON válido en cada `--json`, ids únicos en todos los registros, bitácora
+íntegra (`registro.py historial` sin BIT), huella sha256 de `_bmad/`, `_bmad-output/`, `.bmad-core/` y `docs/` sin
+cambios, idioma de `radar` y `contexto` (heurística de `hooks/idioma.py`), sanidad final sin ERROR, guardián (niega
+`estado.json`, deja un documento) y hook de inicio (resume sin AVISO), sin `UnicodeEncodeError` con cp1252.
+
+**Matriz.** Ejes: Python 3.9 y 3.13 (3.14 solo en la imagen Docker) × dependencias completas o mínimas
+(`sitio/sitecustomize.py` en un `PYTHONPATH` temporal hace fallar `import` de pyyaml, python-docx, openpyxl, matplotlib y
+playwright, y `mmdc` sale del `PATH`; no desinstala nada) × BMAD (ninguno, v4, v6 sintético, 6.12.4 real, 6.12.4 con
+`manifest.yaml` en 6.99.0 y 6.12.4 con `_bmad/custom/config.toml` que mueve `planning_artifacts`) × idioma es/en ×
+salida utf-8/cp1252 × ruta simple o «Gestión de año 2027/Mi proyecto». El producto da 192 celdas; el generador
+pairwise propio (voraz y determinista, `matriz.pairwise`) cubre todas las parejas de valores con 12. Dos combinaciones
+dejan BMAD ilegible por diseño (v4 sin PyYAML; capas TOML con Python 3.9, que no trae `tomllib`): el puente lo avisa y
+el ciclo se detiene tras la especificación; no entran en el pairwise general y cada una tiene su celda (D1, D2).
+
+| Celda | Python | Dependencias | BMAD | Idioma | Salida | Ruta | Cierre | Omisiones esperadas (manifiesto) |
+|---|---|---|---|---|---|---|---|---|
+| M01 | 3.13 | completas | 6.12.4 | es | utf-8 | simple | normal | — |
+| M02 | 3.13 | mínimas | ninguno | en | cp1252 | espacios | normal | exportar-docx, exportar-xlsx |
+| M03 | 3.9 | completas | v4 | es | cp1252 | espacios | normal | — |
+| M04 | 3.9 | mínimas | v6 | en | utf-8 | simple | prematuro | bmad-pyyaml, exportar-docx, exportar-xlsx |
+| M05 | 3.13 | completas | 6.12.4 fuera de rango | en | utf-8 | espacios | normal | — |
+| M06 | 3.13 | mínimas | 6.12.4 + TOML | es | cp1252 | simple | normal | bmad-pyyaml, exportar-docx, exportar-xlsx |
+| M07 | 3.13 | completas | v6 | es | cp1252 | espacios | normal | — |
+| M08 | 3.9 | completas | ninguno | es | utf-8 | simple | prematuro | — |
+| M09 | 3.9 | mínimas | 6.12.4 | en | cp1252 | espacios | normal | bmad-pyyaml, exportar-docx, exportar-xlsx |
+| M10 | 3.9 | mínimas | 6.12.4 fuera de rango | es | cp1252 | simple | normal | bmad-pyyaml, exportar-docx, exportar-xlsx |
+| M11 | 3.13 | completas | v4 | en | utf-8 | simple | normal | — |
+| M12 | 3.13 | completas | 6.12.4 + TOML | en | utf-8 | espacios | prematuro | — |
+| D1 | 3.9 | completas | 6.12.4 + TOML | es | utf-8 | simple | normal | bmad-toml, ciclo-sin-especificacion |
+| D2 | 3.13 | mínimas | v4 | es | utf-8 | simple | normal | bmad-pyyaml, ciclo-sin-especificacion |
+
+**Nivel opcionales** (`opcionales.py`, `portal.py` y `simuladores.py`). Seis unidades en paralelo sobre el proyecto de
+la guía E2E-1 (portal-socios, fixture BMAD 6.12.4 real), que se genera una vez por corrida con
+`guias_e2e/correr.py --guias 1` sin pm-kb y se copia a cada unidad; cada una indexa con su nombre `zz-opc-*` y lo quita al terminar. Los
+servicios web de las unidades escuchan en puertos libres entre 8820 y 8899 (sin repetir uno dentro de la corrida);
+`probar_kb.py` y `pantallas.py` toman el primero libre desde 8800. Lo que el portal hace por sí solo (rutas, CSP,
+sesiones, límites, RLS, pantallas) lo prueban `probar_kb.py --con-base` y `pantallas.py`, que corren en kb-pruebas; las
+demás unidades suman solo la interacción con pm-method, BMAD y las skills.
+
+| Unidad | Qué comprueba |
+|---|---|
+| kb-pruebas | `probar_kb.py` (núcleo) y `--con-base`, y `pantallas.py` (portal en claro, oscuro y móvil, con el Python de la suite si tiene Playwright y Chromium; si no, omisión `pm-kb-pantallas`): las cantidades de OK se leen de la salida (el nombre de la comprobación las muestra), con 0 FALLO y no menos que las registradas en [PM-KB §12](PM-KB.md#12-pruebas-y-medición); el índice de E2E-1 (unidades, vigentes, documentos, relaciones y entradas de historia) igual al registrado en PM-KB §12 y `consultas_oro.py` léxica (14/15, MRR@5 0,75); con vectores simulados, como nota (no mide un modelo real) |
+| kb-vectores | simulador de vectores TEI (`POST /embed`) y compatible con OpenAI (`POST /v1/embeddings`): `pm-kb verificar` con la línea «modelo de vectores» OK (dimensión 256) y FALLO claro con el servidor caído; `indexar` calcula un vector por texto distinto de las unidades vigentes (las repetidas comparten el de la caché) en lotes de 32; la segunda indexación reutiliza la caché (ninguna llamada); `estado` lo informa; búsqueda «híbrida» (RRF) que con una consulta sin términos del corpus («texting outage») trae por semántica R-003 y el plan de contingencia de SMS que BM25 solo no trae; servidor caído o con 500: búsqueda léxica con aviso por CLI, MCP stdio y web (antes: traza o 500) e índice sin vectores con aviso al indexar; re-ranqueo (`POST /rerank`) que reordena según su puntaje y que, caído o con 500, deja el orden híbrido con aviso |
+| kb-respuesta | simulador de la API de Anthropic (`POST /v1/messages`: `x-api-key`, `anthropic-version`, `max_tokens` 900, `temperature` 0) y de una compatible con OpenAI (`/v1/chat/completions`): «Preguntar» de la web con respuesta citada, cita inexistente → `[cita inválida]` y aviso, sin citas → aviso, 401, 404 y sin clave → evidencia citada con el error claro, sin modelo → evidencia; plazo vencido (en proceso, plazo de 1 s en lugar de 60) → «no responde»; «Preguntar» mientras `pm-kb base crear` reaplica el esquema 8 veces → todas 200; `pm-kb contexto` (CLI) y `contexto` (MCP stdio) con evidencia citada |
+| kb-pm-method | `registro.py agregar`/`actualizar` (bitácora), una propuesta (`proponer`), un interesado confidencial con correo y un documento `circulacion: restringida` → reindexar: más unidades e historia, la carpeta del proyecto sin cambios por pm-kb, el riesgo nuevo primero y citado, `ficha --historia` con alta y actualización, la propuesta encontrada por su contenido, interesados sin contacto ni valoración, lo restringido visible solo para el dueño, `PMKB_RESTRINGIDA=si` o un token `--restringida`; BMAD: `_bmad-output/` indexado y citado, FR-12 relacionado por id con documentos de BMAD, `_bmad/` excluido y su huella intacta; MCP como un agente: JSON-RPC por stdio (initialize, `tools/list` con las herramientas de solo lectura que cuenta PM-KB §11.2, hoy 9, `buscar`, `ficha` con historia, `contexto`, herramienta desconocida, `ping`) y por HTTP (401 sin token, origen ajeno 403) |
+| kb-portal | `portal.py`, sobre E2E-1 (con las cuatro instantáneas que congelaron sus puertas) y un proyecto nuevo en inglés: `indexar` publica tantas instantáneas como lista `tablero.py listar` y el historial del portal las muestra en orden con la misma puerta, etapa y decisión; con el servicio sobre la carpeta montada **en solo lectura** (root con `unshare`; si no, la misma prueba sin montaje, con una nota), pm-method decide otra puerta (`estado.py puerta autorizar-etapa --decision condicionado`) y deja dos propuestas, y «actualizar ahora» las toma (versión nueva, una instantánea más, igual al archivo congelado y con el estado previo a la decisión) sin crear ni cambiar nada en la carpeta (tampoco un bloqueo); propuestas como sombra (alta en acciones y cambio de C-001 con la marca en su tarjeta, «espera aprobación»), su ficha después de reindexar y `registro.py aprobar` → la sombra se va y queda la fila; enlace por actor (Diego Ferreira, de la RACI real) con las mismas tarjetas que `tablero.py generar --actor`, ficha propia 200 y de otro actor 404, el proyecto en inglés 404, buscar, preguntar y MCP 403; enlace a la primera instantánea (el archivo congelado, no otra); revocar y vencer cortan la sesión abierta (401) y `compartir listar` los informa; proyecto en inglés (instantánea «autorizar-inicio · stage 0», HTML `lang="en"`, sombra «awaiting approval», su enlace sin acceso a E2E-1); BMAD en el portal (ficha de `bmad-prd`, nada de `_bmad/` en Documentos); `pm-kb enlaces` tras mover el caso de negocio y un informe (ruta sugerida por huella y comando `estado.py artefacto`, los dos movimientos, la tarjeta con la fuente no encontrada), la acción sugerida ejecutada y reindexar (sin aviso, ficha en la ruta nueva, tarjeta encontrada, sanidad sin ART-01); BMAD intacto al final |
+| externas | en un contenedor `--network none --tmpfs /tmp` de la imagen de pm-method con el repositorio montado en `/opt/pm-method`: INS-03 con cada skill ausente (AVISO), en `.claude/skills` del proyecto o en `~/.claude/skills` (INFO con su origen), archify sin Chrome (INFO) o con `ARCHIFY_CHROME`, archify y visual-explainer sin Node.js (AVISO), lista por prioridad guardada en `estado.json`; contrato de pm-visuales §1.3/§1.4 con la WBS del proyecto: respaldo `wbs.py --mermaid`, diagram-design (`mermaid_extract.py`, redibujo mínimo en su plantilla con fuentes del sistema, `self_check.py --offline`, `export_svg.py --system-fonts`, `export_png.py`), archify (`finalize tree` con las cuatro puertas en pass con el Chromium de la imagen; sin Chrome, `browser-check` «skipped»; candidato inválido → `ok: false` y el respaldo intacto; subproductos junto a la salida) y visual-explainer (`kit/render.mjs` sin `--open`, con la WBS dibujada); `estado.py artefacto` y la sanidad que los reconoce (ART-01 si falta la salida); BMAD intacto; y `probar_paquete.py --casos DD` dentro de la imagen. Después, en el anfitrión, esas salidas reales en el portal: la pestaña Documentos las lista con su motor (sin la fuente `.src.html` ni las instantáneas), `/archivo` las sirve con la CSP aislada (`sandbox`, `allow-scripts` solo si traen scripts, sin `allow-same-origin`, `default-src 'none'`, `connect-src 'none'`) y el contenido intacto, y el SVG y el PNG de diagram-design se ofrecen junto al HTML (descarga como adjunto) |
+
+Requisitos y omisiones explícitas (se informan en `INFORME.md` y no cuentan como falla, como pm-kb en el nivel e2e):
+`pm-kb` (el lanzador con su entorno, `PMKB_VENV` o `~/.local/share/pm-kb/venv`, y `pm-kb base estado` sin error, con
+`PMKB_DSN` o el clúster local; sin eso, las cinco unidades kb-* y la parte del portal de externas se omiten),
+`pm-kb-pantallas` (sin Playwright con Chromium en el Python de la suite, `pantallas.py` se omite), `docker` (`docker info` y la imagen
+`PM_IMAGEN_DOCKER` o `pm-method:<versión>`, si no la última `pm-method:*`) y `skills-externas` (`PM_SKILLS_EXTERNAS` =
+carpeta con `archify/` y `visual-explainer/`, instaladas antes con red en una carpeta descartable, por ejemplo
+`npx skills add tt-a1i/archify -a claude-code -s archify -y` y `npx skills add nicobailon/visual-explainer -a
+claude-code -s visual-explainer -y` en `<tmp>/proyecto`, y `PM_SKILLS_EXTERNAS=<tmp>/proyecto/.claude/skills`;
+diagram-design viene en la imagen). La imagen solo aporta el entorno (Python, Node.js, Chromium y diagram-design): el
+contenedor corre el código de la copia montada en solo lectura y la parte del portal corre en el anfitrión con el pm-kb
+de la copia, así que el nivel no depende del pm-kb que trae la imagen. Los **simuladores no son los modelos reales** (bge-m3, bge-reranker-v2-m3 ni la API
+de Anthropic): hablan el mismo protocolo HTTP que usa `pmkb/modelos.py` (TEI contrastado con su `docs/openapi.json`
+1.9.4) con vectores deterministas de bolsa de palabras (raíces de 5 letras y una tabla corta de conceptos que no está en
+los sinónimos de pm-kb), para probar la integración, la fusión y las fallas, no la calidad de un modelo. La clave de la
+API simulada se genera en cada corrida y solo viaja por el entorno. En `docker run` sin `--tmpfs /tmp`, el
+`browser-check` de archify 3.2.0 falla con «Temporary directory identity changed: /tmp» (la primera escritura en el
+`/tmp` de la capa copia la carpeta); Compose ya monta `/tmp` como tmpfs (`docker/compose.yaml`).
+
+**Criterio de salida** (versión estable): `correr.py --nivel todo --repetir 2` con 0 FALLO en las dos corridas, cero
+trazas, omisiones = manifiesto en cada celda (y en el resto de las unidades, ninguna fuera de `--permitir-omision`) y las
+mismas comprobaciones y omisiones en las dos corridas; además `validar_paquete.py`, `probar_paquete.py` (3.13 y 3.9) e
+`integracion/correr.py` sin FALLO.
+
+**Resultado y duración medida** (2026-10-30, versión 2.7.0, Linux x86_64 con 2 CPU, Python 3.13 y 3.9.25, `--paralelo
+4`, con pm-kb (PostgreSQL 16.15), Docker (imagen `pm-method:2.7.0`) y las copias de archify y visual-explainer en
+`PM_SKILLS_EXTERNAS`): `correr.py --nivel todo --repetir 2` → **592 OK · 0 FALLO · 0 trazas · 0 omisiones fuera del
+manifiesto en cada corrida**, mismas comprobaciones, resultados y omisiones en las dos (determinismo), 31 unidades por
+corrida. Duración: 533 s la primera corrida y 528 s la segunda; por nivel (primera corrida), robustez 69 s (14 s cuando
+la caché ya tiene los proyectos de 2.6.1), caminos 20 s, matriz 70 s (18–26 s por celda; D1 y D2, 1–2 s),
+integraciones 6 s, contratos 16 s, hermes 1 s, e2e 226 s (las cinco guías con 3.13, con pm-kb, y con 3.9 en paralelo) y
+opcionales 124 s. Omisiones vistas, todas del manifiesto: las de las celdas M02, M04, M06, M09, M10, D1 y D2, y pm-kb en
+la guía E2E de 3.9. Notas (no son fallas): sin hooks ni subagentes en Hermes (divergencia documentada); con el tablero
+regenerado sin reindexar, la ficha de una tarjeta nueva responde 404 hasta la indexación siguiente (PM-KB §15). La
+migración ejercita `version_paquete_anterior`: los proyectos generados con 2.6.1 anotan esa versión al escribir.
+
+El nivel opcionales aporta 117 comprobaciones por corrida (kb-pruebas 6, kb-vectores 20, kb-respuesta 13, kb-pm-method
+21, externas 39 y kb-portal 18), con PostgreSQL 16.15 de pm-kb y su entorno en Python 3.12, Docker con la imagen
+`pm-method:2.7.0` y `PM_SKILLS_EXTERNAS` con archify 3.2.0 y visual-explainer 0.14.0 instalados con `npx skills` 1.7.4;
+la unidad e2e de 3.13 corre con pm-kb y se compara con la evidencia.
+
+Límites: Python 3.14 solo se prueba en la imagen Docker (`pm-pruebas.sh` corre la suite sin el nivel e2e, que ya corre
+aparte, y declara las omisiones `python-3.9` y `migracion-zip-261`) **[verificar en el CI]**; Windows real queda
+fuera (pm-kb con base, sus modelos simulados y las skills externas entran en el nivel opcionales cuando hay PostgreSQL,
+Docker y las copias de las skills; los modelos reales, no); Hermes no se instala (se prueba la copia que genera `instalar_hermes.py` y sus scripts, no una conversación
+en Hermes). La heurística de idioma (`hooks/idioma.py`) se aplica a `radar` y `contexto` y, en las celdas en inglés, a los
+hallazgos de `sanidad.py` (texto), de `puertas.py verificar` y a la lista de control de `autorizar-cierre`: falla si el
+texto completo o alguna línea (sin los datos citados entre «», el código entre comillas invertidas ni los ids con guion
+como `informe-fin-proyecto`) se lee como español.
 
 ## 3. Pruebas en vivo (`scripts/pruebas_vivo/`)
 
@@ -256,6 +415,7 @@ El informe queda en `<salida>/INFORME.md`; el código de salida es 1 si alguna p
 | 2026-10-22 | 2.4.0 | `suite.py enrutamiento`, ids 125–126 (estado de productos y cierre) | 2/2 OK. Detalle: `docs/evaluacion/resultados/2026-10-22-estado-productos-cierre-v2.4.md` |
 | 2026-10-22 | 2.4.0 | `suite.py enrutamiento`, ids 127–128 (datos del período, highlight y tablero) con las frases de control 67 y 86 | 4/4 OK. Detalle: `docs/evaluacion/resultados/2026-10-22-periodo-highlight-tablero-v2.4.md` |
 | 2026-10-22 | 2.4.0 | `suite.py enrutamiento`, ids 129–130 (tres valores y capacidad del release) | 2/2 OK. Detalle: `docs/evaluacion/resultados/2026-10-22-tres-valores-capacidad-v2.4.md` |
+| 2026-10-29 | 2.6.2 (estabilización) | un turno con el plugin, el MCP de pm-kb por stdio y diagram-design en `.claude/skills` del proyecto: «riesgos de mayor exposición con cita de pm-kb y diagrama con diagram-design» | OK: `mcp__pm-kb__buscar` ×2 y `ficha` ×4, skills `pm-visuales` y `diagram-design`, respaldo Mermaid, `self_check.py --offline` OK, `estado.py artefacto`, bitácora íntegra y ningún Write sobre registros; 19 turnos, USD 0,46. Observación: incluyó R-005 (`retirado`) como «abierto» porque el extracto de `buscar` no traía su estado. Detalle: `docs/evaluacion/resultados/2026-10-29-opcionales-kb-diagramas-v2.6.2.md` |
 | 2026-10-28 | 2.6.0 | `suite.py enrutamiento`, ids 131–134 (matriz de decisión, expediente, proveedores ponderados, criterios no monetarios sobre el VAN) con las frases de control 11, 12, 21, 36, 73, 83 y 103 | 11/11 OK en dos corridas (descripción de `pm-direccion-decisiones` de 236 y de 196 caracteres). Detalle: `docs/evaluacion/resultados/2026-10-28-decisiones-v2.6.md` |
 
 ### 3.2 Cuándo repetir el enrutamiento en vivo
@@ -274,8 +434,10 @@ python3 scripts/pruebas_vivo/suite.py enrutamiento --ids 131,132,133,134        
 
 Los informes completos de cada corrida están en `docs/evaluacion/resultados/`, con la fecha y la versión en el nombre.
 Los escenarios de robustez `inyeccion`, `desorden`, `multisesion` y `escala` se corrieron el 2026-10-17 y la batería
-completa `suite.py todo` no se repitió con las versiones 2.4.0, 2.5.0 ni 2.6.0; con 2.6.0 se probó en vivo el enrutamiento
-de las frases 131–134 ([INDICE §6](INDICE.md)).
+completa `suite.py todo` se repitió con 2.6.2 el 2026-10-29: enrutamiento **130/134** (fallaron 17 y 48, y 83 y 128 sin
+skill; dos repeticiones de esas cuatro dieron resultados distintos, sin cambios en las descripciones), guardarraíles e
+idioma OK ([estabilización 2.6.2](evaluacion/resultados/2026-10-29-estabilizacion-v2.6.2.md) §4); con 2.6.0 se probó en
+vivo el enrutamiento de las frases 131–134 ([INDICE §6](INDICE.md)).
 
 ## 4. Próximo nivel: piloto real
 
@@ -293,7 +455,7 @@ Lo que no se puede probar en el laboratorio (Windows real, conectores reales, us
 
 Marcar cada punto en una carpeta de prueba (no en el proyecto real):
 
-1. [ ] `claude plugin list` muestra `pm-method` 2.6.0 habilitado.
+1. [ ] `claude plugin list` muestra `pm-method` 2.7.0 habilitado.
 2. [ ] `/pm-method:pm-ayuda` responde con la guía.
 3. [ ] `/pm-method:pm-nuevo "Prueba"` crea la carpeta; al reabrir la sesión aparece el resumen del hook de inicio con la
    ruta de los scripts.
@@ -320,12 +482,16 @@ Pruebas del índice de conocimiento ([PM-KB §12](PM-KB.md#12-pruebas-y-medició
 
 | Prueba | Cómo correrla | Qué cubre | Resultado |
 |---|---|---|---|
-| Núcleo | `python3 pm-kb/pruebas/probar_kb.py` (Python 3.9 o posterior, sin base ni dependencias) | KB-01 a KB-19: carpeta de gestión, exclusiones (preferencias, comunicaciones, `.pmkbignore`, contacto y valoración confidencial de interesados, `integraciones`), versiones (vigente, aprobada, copia congelada, decisión, nombres con `v2` y series por fecha), relaciones por ids, fuente externa, circulación restringida, historia de la bitácora y diff por secciones | `pm-kb: 19 OK · 0 FALLO` (2026-10-29) |
-| Con base | `~/.local/share/pm-kb/venv/bin/python pm-kb/pruebas/probar_kb.py --con-base` (PostgreSQL de pm-kb en marcha: instalación local o `PMKB_DSN`) | además KB-20 a KB-46: BM25 en español, ids abreviados, vigente/aprobado/historia, versiones y cambios, ficha, tope de tokens, encabezado de evidencia, RLS por proyecto y circulación, tokens, MCP por JSON-RPC y servicio web (401 sin token, CSP, origen ajeno → 403, MCP por HTTP, "Preguntar" sin modelo) | `pm-kb: 46 OK · 0 FALLO` (PostgreSQL 16.15, Python 3.12; 2026-10-29) |
+| Núcleo | `python3 pm-kb/pruebas/probar_kb.py` (Python 3.9 o posterior, sin base ni dependencias) | KB-01 a KB-19: carpeta de gestión, exclusiones (preferencias, comunicaciones, `.pmkbignore`, contacto y valoración confidencial de interesados, `integraciones`), versiones (vigente, aprobada, copia congelada, decisión, nombres con `v2` y series por fecha), relaciones por ids, fuente externa, circulación restringida, historia de la bitácora y diff por secciones; KB-47 resumen de `estado.json` (proyecto, proceso y etapa), KB-51 verificación de puerto de `servir` (TIME_WAIT no bloquea, un proceso escuchando sí) KB-58 el extracto de una fila de registro empieza por su `estado`, y KB-53 contenido de las propuestas (`campos`) sin contacto ni valoración de interesados; KB-59 a KB-66, ids estables, ubicaciones, movimientos y citas a rutas que no existen sobre una copia; KB-79 a KB-86 del portal (historia de un artefacto, `enlaces`, tablero del núcleo sin escribir en la carpeta, comparar, poda por circulación, cartera y documentos HTML) | `pm-kb: 39 OK · 0 FALLO` (Python 3.13 y 3.9; 2026-10-30) |
+| Con base | `~/.local/share/pm-kb/venv/bin/python pm-kb/pruebas/probar_kb.py --con-base` (PostgreSQL de pm-kb en marcha: instalación local o `PMKB_DSN`) | además KB-20 a KB-46: BM25 en español, ids abreviados, vigente/aprobado/historia, versiones y cambios, ficha, tope de tokens, encabezado de evidencia, RLS por proyecto y circulación, tokens, MCP por JSON-RPC y servicio web (401 sin token, CSP, origen ajeno → 403, MCP por HTTP, "Preguntar" sin modelo); KB-48 a KB-50: vencimiento de tokens (90 días por defecto, rango 1–365, vencido sin identidad y 401 en la web); KB-52: ingreso por el formulario de la web (POST); KB-54 a KB-56: servidor de vectores o de re-ranqueo que no responde (índice y búsqueda léxicos con aviso, sin traza); KB-57: consulta abortada por un interbloqueo se reintenta; KB-67 a KB-78: migraciones desde los esquemas 2 y 3, ubicaciones, movimientos, `enlaces`, RLS de las tablas nuevas, ficha ampliada y `vigilar`; KB-87 a KB-100: tablero publicado, instantáneas, historial, comparar, cartera, artefactos, `/archivo` y «actualizar ahora»; KB-101 a KB-116: enlaces compartidos, sesiones y tableros por actor ([PM-KB §12](PM-KB.md#12-pruebas-y-medición)) | `pm-kb: 116 OK · 0 FALLO` (PostgreSQL 16.15, Python 3.12; 2026-10-30) |
+| Pantallas del portal | `python3 pm-kb/pruebas/pantallas.py [--salida DIR] [--documentos CARPETA]` (Python con Playwright y Chromium; pm-kb con `--python-kb`, por defecto el de `PMKB_VENV`) | PAN-01 a PAN-32: cartera, tableros (tres vistas, línea de tiempo, instantánea, comparar, «Por actor»), Buscar, Artefactos y documentos en el marco aislado, Preguntar, ficha, «actualizar ahora» con la carpeta en solo lectura y su 429, vista de un enlace compartido en un navegador limpio; 0 violaciones de CSP y 0 errores de JavaScript en claro, oscuro y móvil | `pm-kb pantallas: 68 OK · 0 FALLO` (2026-10-30) |
+| Modelos simulados e interacción | `python3 scripts/pruebas/variantes/correr.py --nivel opcionales` (§2.5; necesita `PMKB_DSN` o la instalación local, y para las skills externas Docker y `PM_SKILLS_EXTERNAS`) | vectores (TEI y compatible con OpenAI), re-ranqueo y «Preguntar» (Anthropic y compatible con OpenAI) con simuladores que **no son los modelos reales**; fallas de cada uno; interacción con `registro.py`, propuestas, interesados, circulación restringida, BMAD y el MCP por stdio y HTTP; el portal con pm-method (unidad kb-portal) y con las salidas reales de las skills externas | 117 OK · 0 FALLO · 0 trazas en dos corridas iguales (solo este nivel, 2026-10-30): kb-pruebas 6, kb-vectores 20, kb-respuesta 13, kb-pm-method 21, kb-portal 18 y externas 39 (con Docker, la imagen `pm-method:2.7.0` y las copias de archify y visual-explainer) |
 | Consultas de oro | `cd pm-kb && ~/.local/share/pm-kb/venv/bin/python -m pruebas.consultas_oro --proyecto portal-socios [--minimo N]`, con el proyecto de E2E-1 indexado | 15 consultas (sin tildes, flexiones, sinónimos, preguntas naturales, transcripción): aciertos@5 y MRR@5 | 14/15 y MRR@5 0,75 (falla Q13: estaba en el guion del webinar, fuera de este corpus; 2026-10-29) |
 | Conformidad MCP | SDK oficial en un entorno aparte (`python3 -m venv /tmp/mcp && /tmp/mcp/bin/pip install mcp==2.3.0`), luego `/tmp/mcp/bin/python pm-kb/pruebas/conformidad_mcp.py stdio` y `… http <token> [url]` | `initialize`, `tools/list`, `tools/call` de `buscar` y de una ficha inexistente | protocolo 2025-11-25 por stdio y por HTTP; 8 herramientas; C-003 en el resultado; `isError` en la ficha inexistente (2026-10-28) |
 | Instalación | `pm-kb verificar` (WSL2) o `docker compose -f docker/compose.yaml --profile kb exec pm-kb pm-kb verificar` | prueba de punta a punta con un proyecto temporal: módulos, PostgreSQL 16 o posterior, pgvector, búsqueda, relaciones, rol de lectura, RLS y permisos | 14 OK en un Ubuntu 24.04 limpio (PostgreSQL 16.15, pgvector 0.6.0) y en Docker (PostgreSQL 18.6, pgvector 0.8.1) (2026-10-29) |
 
 En vivo con Claude Code (consume tokens): `claude -p` con pm-kb por stdio (3 turnos, USD 0,073) y por HTTP (4 turnos,
-USD 0,075) respondió con la cita correcta de C-003 y del cambio v1.0 → v1.1 del caso de negocio. No se probó la
-respuesta con modelo de "Preguntar" ni los modelos de vectores y re-ranqueo [verificar].
+USD 0,075) respondió con la cita correcta de C-003 y del cambio v1.0 → v1.1 del caso de negocio. Con el MCP por stdio
+y diagram-design en la misma sesión (19 turnos, USD 0,46; §3.1) buscó los riesgos con `buscar` y `ficha`, dibujó con la
+skill y registró el visual con `estado.py`. No se probaron la respuesta con modelo de "Preguntar" ni los modelos de
+vectores y re-ranqueo reales (solo simulados, §2.5) [verificar].

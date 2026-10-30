@@ -1,4 +1,4 @@
-# Integraciones · pm-method 2.6.0
+# Integraciones · pm-method 2.7.0
 
 Qué necesita pm-method para funcionar, con qué herramientas externas puede integrarse, qué se decidió incorporar (y
 qué no) y cómo agregar una integración nueva sin romper el ecosistema.
@@ -33,7 +33,7 @@ Los candidatos provienen de un informe previo de relevamiento; la valoración en
 | Candidato | Valoración | Decisión v2 | Dónde | Justificación |
 |---|---|---|---|---|
 | BMAD Method | — (marco) | **Integrado** como capa de especificación de solo lectura, con contrato por patrones y fachada | `pm-bmad-puente`, `especificacion.py` | Aporta lo que PRINCE2 no detalla (qué debe hacer el producto). Como sus formatos cambian en casi cada versión menor 6.x, se aísla detrás de un único lector (`bmad.py`) y una fachada (`pm-spec-index/1`): las demás skills no dependen de BMAD |
-| archify (`tt-a1i/archify`, MIT, carpeta de skill; Node ≥ 18 + Chrome) | ★★★★★ | **Opcional, delegación obligatoria si está configurada**; respaldo Mermaid | `pm-visuales` | HTML interactivo validado por su propio `finalize` (esquema, entrega, navegador). Tipos útiles: `tree` (organigrama, WBS), `workflow`, `timeline`. Verificado en vivo |
+| archify (`tt-a1i/archify`, MIT hasta la 3.1 y Apache-2.0 en la 3.2.0, carpeta de skill; Node ≥ 18 + Chrome) | ★★★★★ | **Opcional, delegación obligatoria si está configurada**; respaldo Mermaid | `pm-visuales` | HTML interactivo validado por su propio `finalize` (esquema, entrega, navegador). Tipos útiles: `tree` (organigrama, WBS), `workflow`, `timeline`. Verificado en vivo |
 | diagram-design (`cathrynlavery/diagram-design`, MIT, plugin con marketplace) | ★★★★★ | **Opcional**, igual que archify; reevaluado el 2026-10-27 (2.6.133): complementa, no sustituye | `pm-visuales` | HTML/SVG editorial con `self_check.py --offline` (fuentes del sistema, sin red); importa solo los respaldos `flowchart` (mapa poder/interés y roadmap, desde la tabla intermedia); estilo por defecto si no hay usuario. No reemplaza a los generadores deterministas (`wbs.py`, `cpm.py`, `mapas.py`, `interesados.py`, tablero, `visuales.py`): el modelo coloca el dibujo a mano. Verificado en vivo |
 | visual-explainer (`nicobailon/visual-explainer`, MIT, plugin con marketplace) | ★★★★ | **Opcional** (one-pagers, roadmap comentado), igual | `pm-visuales` | Página HTML renderizada con su `kit/render.mjs`; se fuerza la ruta del proyecto (su defecto es `~/.agent/diagrams/`) |
 | drawio-mcp oficial de draw.io (`jgraph/drawio-mcp`, npm `@drawio/mcp`, Apache-2.0; no confundir con el paquete npm `drawio-mcp` de otro autor) | ★★★★ | **Opcional** vía MCP | `pm-visuales` / `pm-integraciones` | Diagramas editables por el usuario; entra como capacidad MCP, no como dependencia |
@@ -127,7 +127,10 @@ estándar de Python.
 | `eml` | `correo` | ninguna | escribe `.eml` (`X-Unsent: 1`) en `<carpeta>/eml/`; quedan `pendiente` hasta `registrar --modo eml` | ruta del `.eml` |
 | conector MCP (Gmail, Outlook, Slack, Teams conectados en la sesión) | según el conector | las del conector, en el cliente | `preparar-mcp` entrega un JSON; el agente envía con la herramienta MCP tras vista previa y confirmación; luego `registrar --modo mcp` | id que devuelva la herramienta |
 
-Configuración de las variables y creación de los webhooks: [INSTALACION.md §0.7](INSTALACION.md).
+Configuración de las variables y creación de los webhooks: [INSTALACION.md §0.7](INSTALACION.md). Paso a paso por
+camino, con salidas esperadas: [INSTALACION-WSL2 §5.5](INSTALACION-WSL2.md#55-enviar-comunicaciones-a-interesados-eml-correo-slack-o-teams-opcional)
+e [INSTALACION-DOCKER §9.3](INSTALACION-DOCKER.md#93-enviar-comunicaciones-a-interesados-desde-el-contenedor-opcional--ubuntu-y-contenedor)
+(en Docker, `compose.yaml` pasa estas variables al contenedor por nombre, sin valor).
 
 **Flujo**
 

@@ -1,4 +1,4 @@
-# Instalación y configuración · pm-method 2.6.0
+# Instalación y configuración · pm-method 2.7.0
 
 Guía para instalar, configurar, verificar, actualizar y desinstalar el paquete de agentes y skills **pm-method** en
 Claude Code, Cowork y Hermes Agent, y para instalar y conectar de punta a punta sus dependencias: Python y sus paquetes,
@@ -53,7 +53,7 @@ actualizaciones con dos comandos.
 ### 0.2 Publicar el repositorio (lo hace el responsable del paquete)
 ```bash
 # en la carpeta del paquete
-git init && git add . && git commit -m "pm-method 2.6.0"
+git init && git add . && git commit -m "pm-method 2.7.0"
 gh auth login                       # inicia sesión en el navegador
 gh repo create <usuario>/pm-method --public --source . --push
 ```
@@ -66,7 +66,7 @@ que muestra `claude plugin list` y la que usa `claude plugin update` para decidi
 ```bash
 claude plugin marketplace add Arturo-Penas-Rial/pm-method   # acepta owner/repo de GitHub; necesita git
 claude plugin install pm-method@pm-method                   # alcance por defecto: user
-claude plugin list                                          # pm-method@pm-method · Version: 2.6.0 · Status: enabled
+claude plugin list                                          # pm-method@pm-method · Version: 2.7.0 · Status: ✔ enabled
 ```
 - Dentro de una sesión: `/plugin marketplace add Arturo-Penas-Rial/pm-method` y `/plugin install pm-method@pm-method`.
 - Alcances: `claude plugin marketplace add … --scope user|project|local` (por defecto `user`) y
@@ -116,7 +116,7 @@ tampoco pide claves.
 | Qué | Credencial | Dónde se guarda | Cómo se configura |
 |---|---|---|---|
 | Claude Code con suscripción (Pro, Max, Team, Enterprise) — **recomendado** | inicio de sesión OAuth, sin clave | Linux/WSL: `~/.claude/.credentials.json` (permiso 0600) · macOS: Llavero · Windows: `%USERPROFILE%\.claude\.credentials.json` | ejecutar `claude` y seguir el navegador, o `/login` dentro de la sesión |
-| Claude Code con clave de la Claude Console (facturación por API) | `ANTHROPIC_API_KEY` | variable de entorno del usuario (p. ej. `~/.bashrc` en Linux/WSL) | ver el bloque de abajo; al primer uso interactivo Claude Code pide aprobarla una vez |
+| Claude Code con clave de la Claude Console (facturación por API) | `ANTHROPIC_API_KEY` | variable de entorno de la terminal (cargada con `read -rsp`, sin escribirla en archivos) o un gestor de secretos con `apiKeyHelper` | ver el bloque de abajo; al primer uso interactivo Claude Code pide aprobarla una vez |
 | Claude Code con claves rotativas o de un gestor de secretos | salida de un script | `apiKeyHelper` en `~/.claude/settings.json` (el script devuelve la clave) | ver la referencia de settings de Claude Code |
 | Claude Code en CI o scripts sin navegador | `CLAUDE_CODE_OAUTH_TOKEN` (token de un año) | variable de entorno del entorno de CI | `claude setup-token` lo imprime; no lo guarda solo |
 | Claude Code vía Bedrock, Vertex o Foundry | credenciales del proveedor de nube | las del SDK del proveedor | `CLAUDE_CODE_USE_BEDROCK` / `CLAUDE_CODE_USE_VERTEX` / `CLAUDE_CODE_USE_FOUNDRY` + guía del proveedor |
@@ -129,24 +129,32 @@ tampoco pide claves.
 | Capa de canales: Slack (`--modo slack-webhook`) | `PM_SLACK_WEBHOOK_URL` (la URL del webhook entrante es en sí la credencial) | ídem | ver "Capa de canales" |
 | Capa de canales: Teams (`--modo teams-webhook`) | `PM_TEAMS_WEBHOOK_URL` (URL del flujo de Workflows; también es la credencial) | ídem | ver "Capa de canales" |
 | Capa de canales: `.eml` (`--modo eml`) | ninguna | — | sin configuración |
-| pm-kb: acceso de cada persona a la web y al MCP por HTTP | token `pmkb_…` (la base guarda solo su sha256) | se muestra **una sola vez** al crearlo: gestor de contraseñas o variable de entorno de la persona; registrado en Claude Code, queda en `~/.claude.json` | `pm-kb token crear --persona "…" --proyectos …` ([PM-KB §13](PM-KB.md#13-seguridad)); en `.mcp.json` versionado, solo `${VARIABLE}` |
+| pm-kb: acceso de cada persona a la web y al MCP por HTTP | token `pmkb_…` (la base guarda solo su sha256) | se muestra **una sola vez** al crearlo: gestor de contraseñas o variable de entorno de la persona; registrado en Claude Code, queda en `~/.claude.json` | `pm-kb token crear --persona "…" --proyectos …`, vence a los 90 días (`--dias N`, 1–365) ([PM-KB §13](PM-KB.md#13-seguridad)); en `.mcp.json` versionado, solo `${VARIABLE}` |
+| pm-kb: enlace compartido a un tablero (solo lectura, para quien no tiene token) | URL `<origen>/v#pmkb_…` (la base guarda solo su sha256; el token va después de `#` y se canjea por una sesión) | se muestra **una sola vez**: se manda solo al destinatario; vence a los `--dias` (7 por defecto, 90 como máximo) | `pm-kb compartir crear --proyecto P [--instantanea ID] [--actor "…"]`; `compartir listar` y `compartir revocar --id ID` ([PM-KB §11.7](PM-KB.md#117-compartir-un-tablero-enlaces-sesión-y-alcance)); el origen sale de `PMKB_ORIGENES` |
 | pm-kb: contraseñas de su base en Docker | `pmkb_admin_clave` y `pmkb_lector_clave` | secretos de Docker en `docker/kb-secretos/` (carpeta 0700, fuera de git y de la imagen) | `bash docker/kb-preparar.sh` ([INSTALACION-DOCKER §8](INSTALACION-DOCKER.md#8-pm-kb-en-docker-opcional)); en WSL2 no hay contraseñas: socket privado |
-| pm-kb: modelo de "Preguntar" (opcional) | la clave del proveedor | variable de entorno de la sesión, con el nombre indicado en `PMKB_LLM_CLAVE_VAR` (por defecto `ANTHROPIC_API_KEY` u `OPENAI_API_KEY`); nunca en `~/.config/pm-kb/pm-kb.env` | [PM-KB §8](PM-KB.md#8-configuración) |
+| pm-kb: modelo de "Preguntar" (opcional) | la clave del proveedor | variable de entorno de la sesión, con el nombre indicado en `PMKB_LLM_CLAVE_VAR` (por defecto `ANTHROPIC_API_KEY` u `OPENAI_API_KEY`; en Docker, siempre `PMKB_CLAVE_MODELO`); nunca en `~/.config/pm-kb/pm-kb.env` | [PM-KB §8](PM-KB.md#8-configuración); paso a paso: [INSTALACION-WSL2 §8.8](INSTALACION-WSL2.md#88-modelos-opcionales) e [INSTALACION-DOCKER §8.9](INSTALACION-DOCKER.md#89-modelos-opcionales-respuesta-vectores-y-re-ranqueo--ubuntu) |
 
 **Claude Code con clave de API, en Linux o WSL** (la clave se crea en la Claude Console, platform.claude.com):
 ```bash
-# 1. Guardarla solo para tu usuario (no en la carpeta del proyecto ni en el repositorio)
-echo 'export ANTHROPIC_API_KEY="<pegar aquí la clave>"' >> ~/.bashrc
-chmod 600 ~/.bashrc
-source ~/.bashrc
-# 2. Abrir Claude Code: la primera vez pregunta si usar esa clave (la elección se recuerda;
+# 1. Cargarla solo en la memoria de esta terminal (read -s no la muestra; no queda en archivos ni en el historial)
+read -rsp "Clave de API: " ANTHROPIC_API_KEY && export ANTHROPIC_API_KEY && echo
+# 2. Abrir Claude Code desde la misma terminal: la primera vez pregunta si usar esa clave (la elección se recuerda;
 #    se cambia luego en /config → "Use custom API key")
 claude
 # 3. Comprobar qué credencial está activa
 /status
 ```
-Windows PowerShell (persistente para el usuario): `[Environment]::SetEnvironmentVariable("ANTHROPIC_API_KEY","<clave>","User")`
-y abrir una terminal nueva. macOS: igual que Linux, en `~/.zshrc`.
+macOS (zsh, donde `-p` de `read` significa otra cosa): `read -rs 'ANTHROPIC_API_KEY?Clave de API: ' && export
+ANTHROPIC_API_KEY && echo` (comprobado el 2026-10-29 con zsh 5.9 en una terminal: muestra `Clave de API: `, no muestra
+lo que se escribe y la variable llega a los programas que se abren desde esa terminal; se quita con `unset
+ANTHROPIC_API_KEY`). La forma de bash (`read -rsp …`) en zsh falla con `read: -p: no coprocess` **antes** de pedir
+la clave: si lo ves, no pegues la clave (iría a la línea de comandos y al historial). Igual para las otras variables
+de esta guía, por ejemplo `read -rs 'PMKB_CLAVE_MODELO?Clave del modelo: ' && export PMKB_CLAVE_MODELO && echo`.
+Windows PowerShell, solo para la sesión:
+`$env:ANTHROPIC_API_KEY = "<clave>"`; persistente para el usuario (queda guardada en el perfil de Windows):
+`[Environment]::SetEnvironmentVariable("ANTHROPIC_API_KEY","<clave>","User")` y abrir una terminal nueva. Para no
+tener que escribirla en cada terminal sin dejarla en un archivo, usar un gestor de secretos con `apiKeyHelper` (fila
+de la tabla).
 
 **Orden de precedencia en Claude Code** (gana el primero presente; fuente: documentación oficial "Authentication",
 comprobada el 2026-10-17): 1) proveedor de nube (`CLAUDE_CODE_USE_BEDROCK|VERTEX|FOUNDRY`) · 2) `ANTHROPIC_AUTH_TOKEN`
@@ -155,7 +163,7 @@ y federación · 7) inicio de sesión con suscripción (`/login`).
 
 > **Atención:** si tenés suscripción **y** `ANTHROPIC_API_KEY` definida, Claude Code usa la clave una vez aprobada (y en
 > modo `-p` la usa siempre), con cargo a la API. Para volver a la suscripción: `unset ANTHROPIC_API_KEY` (y quitarla de
-> `~/.bashrc`), luego `/status`. Las pruebas en vivo de pm-method (`scripts/pruebas_vivo/`) usan `claude -p`, así que
+> `~/.bashrc` si alguna vez la escribiste ahí), luego `/status`. Las pruebas en vivo de pm-method (`scripts/pruebas_vivo/`) usan `claude -p`, así que
 > consumen la credencial que esté activa.
 
 **WSL:** si después de iniciar sesión el navegador muestra un código en lugar de volver a la terminal, pegarlo en el
@@ -188,27 +196,24 @@ En los comandos, `<pm-integraciones>` es la carpeta instalada de esa skill, herm
 | `PM_SLACK_WEBHOOK_URL` | `slack-webhook` | sí | URL del webhook entrante de Slack |
 | `PM_TEAMS_WEBHOOK_URL` | `teams-webhook` | sí | URL del flujo de Workflows de Teams |
 
-**Dónde definirlas** (igual que `ANTHROPIC_API_KEY`; solo para tu usuario, nunca en la carpeta del proyecto ni en el
-repositorio). Los valores de abajo son marcadores: reemplazarlos por los tuyos solo en tu terminal o en tu archivo de
-perfil, nunca en el chat.
+**Dónde definirlas** (igual que `ANTHROPIC_API_KEY`: en la memoria de la terminal, nunca en la carpeta del proyecto,
+en el repositorio ni en un archivo de perfil). Los valores de abajo son marcadores: reemplazarlos por los tuyos solo en
+tu terminal, nunca en el chat. El servidor y el remitente no son secretos; el usuario, la clave y las URL de webhook
+sí, y se cargan con `read -s`, que no muestra lo que se pega:
 
 ```bash
-# Linux / WSL: en ~/.bashrc (macOS: igual, en ~/.zshrc)
-echo 'export PM_SMTP_HOST="<tu-servidor>"'          >> ~/.bashrc
-echo 'export PM_SMTP_REMITENTE="<tu-direccion>"'    >> ~/.bashrc
-echo 'export PM_SMTP_USUARIO="<tu-usuario>"'        >> ~/.bashrc   # solo si el servidor pide autenticación
-echo 'export PM_SMTP_CLAVE="<tu-clave>"'            >> ~/.bashrc   # ídem
-echo 'export PM_SLACK_WEBHOOK_URL="<url-del-webhook-de-slack>"' >> ~/.bashrc
-echo 'export PM_TEAMS_WEBHOOK_URL="<url-del-flujo-de-teams>"'   >> ~/.bashrc
-chmod 600 ~/.bashrc
-source ~/.bashrc
+# Linux / WSL (paso a paso con salidas esperadas: INSTALACION-WSL2 §5.5; en Docker: INSTALACION-DOCKER §9.3)
+export PM_SMTP_HOST="<tu-servidor>" PM_SMTP_REMITENTE="<tu-direccion>"
+read -rp "Usuario SMTP: " PM_SMTP_USUARIO && export PM_SMTP_USUARIO              # solo si el servidor pide autenticación
+read -rsp "Clave SMTP: " PM_SMTP_CLAVE && export PM_SMTP_CLAVE && echo            # ídem
+read -rsp "URL del webhook de Slack: " PM_SLACK_WEBHOOK_URL && export PM_SLACK_WEBHOOK_URL && echo
+read -rsp "URL del flujo de Teams: " PM_TEAMS_WEBHOOK_URL && export PM_TEAMS_WEBHOOK_URL && echo
 ```
-Windows PowerShell (persistente para el usuario; una línea por variable):
-`[Environment]::SetEnvironmentVariable("PM_SMTP_HOST","<tu-servidor>","User")` y abrir una terminal nueva.
-Para no dejar la clave SMTP escrita en un archivo de perfil, puede definirse solo en la terminal de la sesión
-(`export PM_SMTP_CLAVE=…` en Linux/macOS/WSL, `$env:PM_SMTP_CLAVE = "…"` en PowerShell) antes de abrir Claude Code.
-Claude Code hereda el entorno de la terminal desde la que se abre: después de definirlas, abrir una terminal nueva y
-reiniciar la sesión. En Hermes y Cowork, cómo llegan las variables de entorno a los scripts no se probó **[verificar]**.
+Windows PowerShell, solo para la sesión: `$env:PM_SMTP_CLAVE = "…"` (una línea por variable). Claude Code hereda el
+entorno de la terminal desde la que se abre: cargarlas y abrir `claude` desde esa misma terminal; al cerrarla,
+desaparecen. Las no secretas (`PM_SMTP_HOST`, `PM_SMTP_REMITENTE`, `PM_SMTP_PUERTO`, `PM_SMTP_TLS`) pueden quedar en
+`~/.bashrc` si se prefiere no escribirlas cada vez; las secretas, nunca. En Hermes y Cowork, cómo llegan las variables
+de entorno a los scripts no se probó **[verificar]**.
 
 **Comprobar** (no usa la red: solo informa qué variables están definidas, sin mostrar sus valores; código de salida 1
 si falta alguna obligatoria):
@@ -340,11 +345,17 @@ El resto de esta guía (credenciales, BMAD, skills externas, MCP, verificación)
 comandos se escriben dentro del contenedor y el plugin se carga con `--plugin-dir /opt/pm-method`
 ([INSTALACION-DOCKER §9](INSTALACION-DOCKER.md#9-claude-code-dentro-del-contenedor)).
 
-**pm-kb** (opcional): índice de conocimiento de los proyectos, con búsqueda citada en la web y por MCP de solo lectura
-para Claude Code y Hermes ([PM-KB](PM-KB.md)). Se instala aparte en cualquiera de los dos caminos:
+**pm-kb** (opcional): índice de conocimiento de los proyectos, con búsqueda citada en un portal web (cartera, tableros
+con su historial, artefactos, fichas y enlaces de solo lectura) y por MCP de solo lectura para Claude Code y Hermes
+([PM-KB](PM-KB.md)). Se instala aparte en cualquiera de los dos caminos:
 [INSTALACION-WSL2 §8](INSTALACION-WSL2.md#8-pm-kb-buscar-en-tus-proyectos-opcional--ubuntu) (PostgreSQL propio del
 usuario, solo por socket) o [INSTALACION-DOCKER §8](INSTALACION-DOCKER.md#8-pm-kb-en-docker-opcional) (base en un
-contenedor segregado). Sin pm-kb, pm-method funciona igual.
+contenedor segregado). Para que el índice se mantenga al día solo, `pm-kb vigilar` corre como servicio: de usuario de
+systemd en WSL2 ([INSTALACION-WSL2 §8.10](INSTALACION-WSL2.md#810-mantener-el-índice-al-día-pm-kb-vigilar-como-servicio--ubuntu))
+o el servicio `pm-kb-vigilar` del perfil `kb` en Docker ([INSTALACION-DOCKER §8.10](INSTALACION-DOCKER.md#810-mantener-el-índice-al-día-servicio-pm-kb-vigilar--ubuntu)).
+El portal y los enlaces compartidos, paso a paso: [INSTALACION-WSL2 §8.11](INSTALACION-WSL2.md#811-portal-tableros-y-enlaces-compartidos--ubuntu-y-navegador-de-windows)
+e [INSTALACION-DOCKER §8.11](INSTALACION-DOCKER.md#811-portal-tableros-y-enlaces-compartidos--ubuntu). Sin pm-kb,
+pm-method funciona igual.
 
 ### 1.1 Lista de comprobación
 
@@ -412,7 +423,7 @@ Origen, licencia y versión probada de cada uno: [DEPENDENCIAS.md](DEPENDENCIAS.
 ### 2.1 Como plugin desde el marketplace local
 
 Alternativa a §0 cuando se trabaja con una copia local (por ejemplo, el mantenedor). La carpeta del paquete es a la vez
-un plugin (`.claude-plugin/plugin.json`, nombre `pm-method`, versión 2.6.0) y un marketplace local
+un plugin (`.claude-plugin/plugin.json`, nombre `pm-method`, versión 2.7.0) y un marketplace local
 (`.claude-plugin/marketplace.json`, nombre `pm-method`). Junto con §0, es la única modalidad que activa los **hooks** de
 protección y de sanidad (§9).
 
@@ -469,7 +480,11 @@ las ofrece como comandos `/nombre`; la instalación con `scripts/instalar_hermes
 `hermes skills list` todas las skills que había en `skills/` el día de la prueba (el script copia todas las carpetas de
 `skills/`; las 39 actuales no se volvieron a contar dentro de Hermes **[verificar]**), y la sustitución de `${HERMES_SKILL_DIR}` de Hermes resolvió las rutas de los scripts a archivos
 existentes. **No se probó una conversación completa con un modelo dentro de Hermes** (no había proveedor configurado en el
-entorno de prueba) **[verificar en el primer uso]**.
+entorno de prueba) **[verificar en el primer uso]**. El 2026-10-29, con Hermes v0.22.5, `instalar_hermes.py` volvió a
+dejar 39 skills con 150 referencias `${HERMES_SKILL_DIR}` (la variable que Hermes v0.22.5 sustituye al cargar una
+skill, `agent/skill_preprocessing.py`) y los scripts corrieron desde la copia instalada; el instalador de Hermes no
+terminó en la red de prueba (sin acceso a `nodejs.org`), así que `hermes skills list` no se pudo repetir
+([INSTALACION-WSL2 §7.1](INSTALACION-WSL2.md#71-instalar-hermes--ubuntu)).
 
 | Capacidad | Claude Code (plugin) | Hermes |
 |---|---|---|
@@ -486,6 +501,9 @@ python3 ~/pm-method/scripts/instalar_hermes.py --verificar   # muestra qué har�
 python3 ~/pm-method/scripts/instalar_hermes.py               # copia adaptada en ~/.hermes/skills/pm-method/
 python3 -m pip install pyyaml python-docx openpyxl          # en el Python con que Hermes ejecuta comandos (§5)
 ```
+En Ubuntu 24.04 y otros sistemas con Python protegido (PEP 668), ese `pip` va dentro del entorno virtual de §5, y
+`hermes` se abre desde una terminal con el entorno activo ([INSTALACION-WSL2 §3.2 y
+§7.4](INSTALACION-WSL2.md#74-qué-funciona-y-qué-no-en-hermes)).
 El script copia `skills/` reemplazando `${CLAUDE_SKILL_DIR}` por `${HERMES_SKILL_DIR}`, deja los agentes en
 `~/.hermes/skills/pm-method/_agentes/` con rutas absolutas y no copia los hooks. Si se prefiere una carpeta propia:
 `--destino ~/pm-hermes` y agregarla en `~/.hermes/config.yaml`:
@@ -523,9 +541,10 @@ Node.js ≥ 20.12.0 (`engines` de `bmad-method@6.12.4`).
 
 ```bash
 cd /ruta/al/repositorio
-npx bmad-method@6.12.4 install --modules bmm --tools claude-code --yes \
+npx --yes bmad-method@6.12.4 install --modules bmm --tools claude-code --yes \
     --user-name "<nombre>" --set core.project_name=<proyecto> --no-shims
 ```
+(El primer `--yes` es de `npx`: descarga el paquete sin preguntar; el segundo, del instalador de BMAD.)
 
 Opciones (comprobadas con `npx bmad-method@6.12.4 install --help`, `--list-options core` y `--list-tools`, y con una
 instalación real el 2026-10-17):
@@ -579,13 +598,18 @@ probada** con pm-method.
 
 ## 5. Dependencias Python
 
+En Linux y WSL, en un entorno virtual (con las versiones probadas; las mismas de `docker/requirements.txt`):
+
 ```bash
-python3 -m pip install pyyaml python-docx openpyxl
+python3 -m venv ~/.venvs/pm-method
+~/.venvs/pm-method/bin/python -m pip install pyyaml==6.0.3 python-docx==1.2.0 openpyxl==3.1.5
 ```
 
-- Con Python gestionado por el sistema operativo (Ubuntu 24.04, Debian 12 y otras: `pip` responde
-  `error: externally-managed-environment`, PEP 668), usar un entorno virtual:
-  `python3 -m venv ~/.venvs/pm-method` y luego `~/.venvs/pm-method/bin/python -m pip install pyyaml python-docx openpyxl`.
+- Con Python gestionado por el sistema operativo (Ubuntu 24.04, Debian 12 y otras), `pip` fuera de un entorno virtual
+  responde `error: externally-managed-environment` (PEP 668): por eso el entorno. Donde `pip` del sistema esté
+  permitido (por ejemplo, Python de python.org en Windows o macOS), alcanza con `python3 -m pip install pyyaml
+  python-docx openpyxl`. Paso a paso, con `matplotlib` y `playwright` para las pruebas: [INSTALACION-WSL2
+  §3.2](INSTALACION-WSL2.md#32-entorno-virtual-de-python-con-los-paquetes-de-pm-method).
   Los scripts y los hooks deben ejecutarse con un `python3` que vea esos paquetes: activar el entorno en cada terminal
   agregando `source ~/.venvs/pm-method/bin/activate` a `~/.bashrc`. Así `python3` es el del entorno y lo heredan Claude Code
   y Hermes cuando se abren desde esa terminal. Comprobado el 2026-10-27 en Ubuntu 24.04: `hooks/py.sh` (el lanzador de los
@@ -606,7 +630,9 @@ python3 -m pip install pyyaml python-docx openpyxl
 ## 6. Conexión de herramientas MCP
 
 El paquete **no trae `.mcp.json` ni credenciales** y no predefine conectores. Las skills describen capacidades y
-`pm-integraciones` las resuelve con los MCP presentes en la sesión.
+`pm-integraciones` las resuelve con los MCP presentes en la sesión. Paso a paso por camino, con salidas esperadas:
+[INSTALACION-WSL2 §6.9](INSTALACION-WSL2.md#69-conectores-mcp-de-la-organización-jira-confluence-okr-y-otros-opcional--ubuntu-y-claude)
+e [INSTALACION-DOCKER §9.5](INSTALACION-DOCKER.md#95-conectores-mcp-de-la-organización-opcional--contenedor-y-claude).
 
 ### Paso 1: conectar el servidor en el cliente
 
@@ -683,11 +709,14 @@ obtención de transcripciones por Zoom MCP **no está confirmada**.
 Son skills de terceros, no MCP. pm-method no las trae: el usuario las instala y luego declara el motor en
 `estado.json`. Comandos verificados el 2026-10-17 con Claude Code 2.1.302 (clonado público de GitHub; `npx skills`
 1.7.0, que exige **Node.js ≥ 22.20.0**). Revisar cada skill antes de instalarla: corre con los permisos del agente.
+Paso a paso por camino, con salidas esperadas: [INSTALACION-WSL2
+§6.8](INSTALACION-WSL2.md#68-skills-externas-para-visuales-y-office-opcional--ubuntu) e [INSTALACION-DOCKER
+§9.4](INSTALACION-DOCKER.md#94-skills-externas-para-visuales-y-office-opcional--contenedor).
 
 | Integración | Repositorio · licencia · distribución | Instalar como plugin (Claude Code) | Instalar como skill copiada (proyecto; `-g` = usuario) | Nombre en el listado | Requisitos |
 |---|---|---|---|---|---|
-| `diagramas=archify` | `tt-a1i/archify` · MIT · carpeta de skill `archify/` (sin plugin) | — | `npx skills add tt-a1i/archify -a claude-code -s archify -y` | `archify` | Node ≥ 18; Chrome/Chromium (o `ARCHIFY_CHROME=<ejecutable>`) para su verificación en navegador |
-| `diagramas=diagram-design` | `cathrynlavery/diagram-design` · MIT · plugin + marketplace | `claude plugin marketplace add cathrynlavery/diagram-design` y `claude plugin install diagram-design@diagram-design` | `npx skills add cathrynlavery/diagram-design -a claude-code -s diagram-design -y` | `diagram-design:diagram-design` (plugin) o `diagram-design` | Python 3; PNG opcional con `pip install playwright && playwright install chromium` |
+| `diagramas=archify` | `tt-a1i/archify` · Apache-2.0 en la 3.2.0 (`package.json` y `SKILL.md`; la carpeta trae también `LICENSE-MIT`) · carpeta de skill `archify/` (sin plugin) | — | `npx skills add tt-a1i/archify -a claude-code -s archify -y` | `archify` | Node ≥ 18; Chrome/Chromium (o `ARCHIFY_CHROME=<ejecutable>`) para su verificación en navegador |
+| `diagramas=diagram-design` | `cathrynlavery/diagram-design` · MIT · plugin + marketplace | `claude plugin marketplace add cathrynlavery/diagram-design` y `claude plugin install diagram-design@diagram-design` | `npx skills add cathrynlavery/diagram-design -a claude-code -s diagram-design -y` | `diagram-design:diagram-design` (plugin) o `diagram-design` | Python 3; PNG opcional con Playwright y su navegador (en Ubuntu, dentro del entorno de §5: `python3 -m pip install playwright==1.56.0` y `python3 -m playwright install --with-deps --only-shell chromium`, [INSTALACION-WSL2 §4.1](INSTALACION-WSL2.md#41-navegador-sin-interfaz-para-capturas-playwright)) |
 | `diagramas=visual-explainer` | `nicobailon/visual-explainer` · MIT · plugin + marketplace | `claude plugin marketplace add nicobailon/visual-explainer` y `claude plugin install visual-explainer@visual-explainer-marketplace` | `npx skills add nicobailon/visual-explainer -a claude-code -s visual-explainer -y` | `visual-explainer:visual-explainer` o `visual-explainer` | Node ≥ 18; `playwright-core` opcional |
 | `export=skills-office` | `anthropics/skills` (`skills/docx`, `xlsx`, `pptx`) · **propietaria** (source-available; `LICENSE.txt` en cada skill) · plugin `document-skills` | `claude plugin marketplace add anthropics/skills` y `claude plugin install document-skills@anthropic-agent-skills` | `npx skills add anthropics/skills -a claude-code -s docx xlsx pptx -y` | `document-skills:docx` …, `docx` …, o `anthropic-skills:docx` … (claude.ai/Cowork) | Node + npm `docx` / `pptxgenjs`; `openpyxl`; LibreOffice (recálculo y vista previa); `pandoc` |
 
@@ -719,7 +748,7 @@ en `diario.md`. Volver al respaldo: `integracion diagramas=mermaid` / `integraci
 
 | Herramienta | Para qué | Instalar | Comprobar |
 |---|---|---|---|
-| `@mermaid-js/mermaid-cli` (`mmdc`) | `exportar.py` inserta los diagramas Mermaid como imagen en Word | `npm install -g @mermaid-js/mermaid-cli` (la 12.0.0 exige Node ≥ 22.13.0) | `mmdc --version` |
+| `@mermaid-js/mermaid-cli` (`mmdc`) | `exportar.py` inserta los diagramas Mermaid como imagen en Word | `npm install -g @mermaid-js/mermaid-cli@11.16.0` (la versión probada; exige Node ≥ 22.12; la 12.0.0 exige Node ≥ 22.13.0 y no está probada con pm-method) | `mmdc --version` |
 | Java + MPXJ | validar o convertir el MSPDI de `cpm.py --mspdi` y `.mpp`; `cpm.py` no lo necesita | Java del sistema y `python3 -m pip install mpxj jpype1` | `java -version`; `python3 -c "import jpype, mpxj"` |
 | Chrome o Chromium | `browser-check` de archify | navegador del sistema; si no se encuentra, `ARCHIFY_CHROME=<ruta>` | sanidad INS-03 (sin INFO "no se encontró Chrome") |
 
@@ -809,11 +838,11 @@ Secuencia final, en este orden. `<raíz>` es la carpeta del paquete: un clon del
 
 | # | Paso | Comando | Resultado esperado |
 |---|---|---|---|
-| 1 | Plugin instalado y versión | `claude plugin list` | `pm-method@pm-method` · `Version: 2.6.0` · `Status: enabled` |
-| 2 | Manifiestos | `claude plugin validate <raíz>` | `Validation passed` |
+| 1 | Plugin instalado y versión | `claude plugin list` | `pm-method@pm-method` · `Version: 2.7.0` · `Status: ✔ enabled` |
+| 2 | Manifiestos | `claude plugin validate <raíz>` | `✔ Validation passed with warnings` (o `√` según la terminal), con dos avisos esperados: `CLAUDE.md` de la raíz es para quien desarrolla el paquete y el plugin no tiene ícono |
 | 3 | Python y paquetes | `python3 --version` y `python3 -c "import yaml, docx, openpyxl; print('ok')"` | 3.9 o superior; `ok` |
 | 4 | Estructura del paquete | `python3 <raíz>/scripts/validar_paquete.py` | `Skills: 39 (33 invocables por el modelo, listado <n> caracteres) · Agentes: 6` y `OK` |
-| 5 | Regresión de punta a punta (requiere PyYAML; trabaja en una carpeta temporal) | `python3 <raíz>/scripts/probar_paquete.py` | `Resultado: <n> OK · 0 FALLO` (463 OK en la corrida del 2026-10-29, versión 2.6.0, con Python 3.13) |
+| 5 | Regresión de punta a punta (requiere PyYAML; trabaja en una carpeta temporal) | `python3 <raíz>/scripts/probar_paquete.py` | `Resultado: <n> OK · 0 FALLO` (558 OK en la corrida del 2026-10-30, con Python 3.13) |
 | 6 | Skills visibles | `/pm-method:pm-ayuda` en una sesión | tabla "qué escribir", catálogo de skills y comandos |
 | 7 | Proyecto de prueba | `nuevo_proyecto.py --ruta <tmp>/prueba --nombre "Prueba"` y `estado.py --proyecto <tmp>/prueba siguiente` | carpeta creada y siguiente paso del método |
 | 8 | BMAD (si se instaló) | `bmad.py --proyecto ./gestion detectar` | layout `v6`, `version` 6.12.x, `soporte: soportada` |
@@ -840,7 +869,7 @@ evalúan INS-01 e INS-02):
 
 | Hook | Disparo | Qué hace |
 |---|---|---|
-| `PreToolUse` → `hooks/guardian.py` | cada `Write`, `Edit`, `MultiEdit`, `NotebookEdit` y `Bash` | niega (`permissionDecision: "deny"`) con el motivo: modificar `estado.json` sin `estado.py`, `nuevo_proyecto.py` o `bmad.py`; los registros CSV de `03-control/registros/` (los 9 base y los opcionales `estereotipos.csv`, `preferencias.csv`, `raci.csv`, `envios.csv` y `personas.csv`) sin `registro.py` (o `interesados.py` / `envios.py`, que también figuran entre los scripts permitidos); los derivados de especificación (`spec-index.json`, `requisitos-bmad.csv`, `matriz-trazabilidad-bmad.csv`, `inventario-bmad.json`, `avance-bmad.csv`), las copias congeladas de `00-direccion/historial/` o una instantánea existente de `03-control/fuentes/` — tanto con Write/Edit como con Bash (`sed -i`, `>`/`>>`, `tee`, `cp`/`mv`/`rm`, Python en línea); que un subagente `pm-*` escriba en `_bmad/`, `_bmad-output/` o `.bmad-core/`; y que el hilo principal o un subagente distinto de pm-director ejecute `estado.py puerta|rol|tolerancia|agil|umbrales-riesgo|cumplir-condiciones`, `limite-etapa --excepcion`, `set --forzar` o `aprobar`/`set` con `--nivel` superior a gestor. El comando de Bash se evalúa por segmento (`;`, `&&`, `\|\|`, `\|`, `&`, saltos de línea): solo el segmento que ejecuta un script del paquete queda exento, y ni ese puede redirigir su salida a un archivo protegido. Además pide confirmación (`permissionDecision: "ask"`) para `envios.py aprobar` y `envios.py enviar … --confirmar`, también desde pm-director |
+| `PreToolUse` → `hooks/guardian.py` | cada `Write`, `Edit`, `MultiEdit`, `NotebookEdit` y `Bash` | niega (`permissionDecision: "deny"`) con el motivo: modificar `estado.json` sin `estado.py`, `nuevo_proyecto.py` o `bmad.py`; los registros CSV de `03-control/registros/` (los 9 base y los opcionales `estereotipos.csv`, `preferencias.csv`, `raci.csv`, `envios.csv` y `personas.csv`) sin `registro.py` (o `interesados.py` / `envios.py`, que también figuran entre los scripts permitidos); los derivados de especificación (`spec-index.json`, `requisitos-bmad.csv`, `matriz-trazabilidad-bmad.csv`, `inventario-bmad.json`, `avance-bmad.csv`), las copias congeladas de `00-direccion/historial/` o una instantánea existente de `03-control/fuentes/` — tanto con Write/Edit como con Bash (`sed -i`, `>`/`>>`, `tee`, `cp`/`mv`/`rm`, Python en línea); que un subagente `pm-*` escriba en `_bmad/`, `_bmad-output/` o `.bmad-core/`; y que el hilo principal o un subagente distinto de pm-director ejecute `estado.py puerta|rol|tolerancia|agil|umbrales-riesgo|cumplir-condiciones`, `limite-etapa --excepcion`, `cierre --plan-excepcion`, `set --forzar` o `aprobar`/`set` con `--nivel` superior a gestor. El comando de Bash se evalúa por segmento (`;`, `&&`, `\|\|`, `\|`, `&`, saltos de línea): solo el segmento que ejecuta un script del paquete queda exento, y ni ese puede redirigir su salida a un archivo protegido. Además pide confirmación (`permissionDecision: "ask"`) para `envios.py aprobar` y `envios.py enviar … --confirmar`, también desde pm-director |
 | `SessionStart` → `hooks/inicio.py` | `startup`, `resume`, `clear`, `compact` | si hay un `estado.json` a ≤ 2 niveles de la carpeta de trabajo (hasta 3 proyectos), agrega al contexto, por proyecto, fase, proceso, etapa y el resultado de `sanidad.py --rapido` con los primeros ERROR, más el **resumen de contexto derivado** de `estado.py contexto` (conteos abiertos sin los registros de catálogo, riesgos altos sin respuesta, riesgos con la revisión vencida, issues abiertos, acciones vencidas, supuestos críticos sin validar, condiciones abiertas y próxima puerta, con ids; ≤ 2.000 caracteres con un proyecto) y una línea de radar (`estado.py radar --linea`: cuánto hay que decidir, escalar, desbloquear y vigilar, con el primer id de cada grupo); y, una vez, una guía de enrutamiento, la precedencia de los registros sobre la memoria del cliente y la ruta absoluta de los scripts |
 | `UserPromptSubmit` → `hooks/idioma.py` | cada pedido del usuario | si hay proyecto pm-method y el pedido está en otro idioma que `estado.json.idioma` (español/inglés), agrega al contexto la instrucción de responder en el idioma del pedido; no bloquea nada |
 
@@ -878,7 +907,7 @@ aprobaciones o decisiones. El hook de inicio lo declara en cada sesión junto al
 - En Hermes no corren los hooks: el resumen equivalente se obtiene con `estado.py --proyecto <dir> contexto` y el radar con `estado.py --proyecto <dir> radar`.
 
 **Cómo prescindir de los hooks.** El paquete no ofrece una opción para desactivarlos por separado. Las vías son:
-- deshabilitar el plugin: `claude plugin disable pm-method` (y `claude plugin enable pm-method` para volver);
+- deshabilitar el plugin: `claude plugin disable pm-method@pm-method` (y `claude plugin enable pm-method@pm-method` para volver);
 - o usar la copia manual (§2.2), que no registra hooks.
 
 En ambos casos se pierde la protección automática; la disciplina de escribir solo por scripts queda a cargo de las
@@ -929,8 +958,8 @@ claude plugin marketplace remove pm-method
 
 | Síntoma | Causa probable | Solución |
 |---|---|---|
-| `/pm-method:…` no aparece | plugin no instalado o deshabilitado | `claude plugin list`; `claude plugin enable pm-method`; reiniciar la sesión |
-| `claude plugin list` muestra una versión anterior a 2.6.0 | catálogo sin refrescar o versión aún no publicada | §0.4; si persiste, el repositorio publicado no tiene la versión nueva |
+| `/pm-method:…` no aparece | plugin no instalado o deshabilitado | `claude plugin list`; `claude plugin enable pm-method@pm-method`; reiniciar la sesión |
+| `claude plugin list` muestra una versión anterior a 2.7.0 | catálogo sin refrescar o versión aún no publicada | §0.4; si persiste, el repositorio publicado no tiene la versión nueva |
 | El modelo no activa la skill esperada | listado recortado por presupuesto (BMAD u otros repos) | `"skillListingBudgetFraction": 0.02` (§7.4); sanidad INS-05; invocar la skill por comando |
 | Responde una skill de otro repositorio | colisión de disparadores | sanidad INS-06; ajustar la descripción local u ocultar la externa con `skillOverrides`; ver `docs/colisiones.md` |
 | Windows: las ediciones o comandos quedan bloqueados por un hook, o no aparece el resumen de inicio | falta Git for Windows, no hay Python 3.9+ en Git Bash (`py.sh` lo avisa) o el clon tiene finales de línea CRLF en `hooks/py.sh` (volver a clonar con el `.gitattributes` vigente) | §1.2 |
@@ -942,7 +971,7 @@ claude plugin marketplace remove pm-method
 | `npx bmad-method … install` falla al empezar | Node anterior a 20.12.0 | actualizar Node (§1.1) |
 | Aviso de versión de BMAD no probada (ESP-07) | BMAD fuera de 4.x / 6.11–6.12 | revisar inventario con el equipo; `probar_paquete.py`; modo degradado |
 | ESP-08: carpeta del proyecto dentro de BMAD | proyecto creado en `_bmad-output/` u otra carpeta BMAD | mover la carpeta del proyecto fuera |
-| INS-01: falta un módulo | dependencia no instalada | `python3 -m pip install pyyaml python-docx openpyxl` (§5) |
+| INS-01: falta un módulo | dependencia no instalada | instalarla en el entorno virtual de §5 (con el entorno activo, `python3 -m pip install <paquete>`) |
 | INS-04: skill duplicada | plugin y copia manual a la vez | dejar una sola instalación |
 | INS-04 con la instalación desde GitHub, citando `~/.claude/plugins/marketplaces/pm-method/` y `~/.claude/plugins/cache/pm-method/pm-method/<versión>/` | la sanidad cuenta también el clon del marketplace (comprobado el 2026-10-17 con un `HOME` aislado) | no es una instalación doble: puede ignorarse si esas son las dos únicas rutas **[verificar corrección en una versión posterior de `sanidad.py`]** |
 | INS-04 al correr `sanidad.py` desde un clon con el plugin instalado | la sanidad cuenta la carpeta del script que se ejecuta | usar los scripts de la copia instalada (ruta que imprime el hook de inicio, §7.1) |

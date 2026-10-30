@@ -3,7 +3,7 @@ name: pm-puerta
 description: "Prepara una puerta de decisión de la junta: productos requeridos, verificación BMAD y solicitud de decisión. Uso manual: /pm-puerta <tipo> [carpeta]. Prepare a gate."
 disable-model-invocation: true
 argument-hint: "autorizar-inicio|autorizar-proyecto|autorizar-etapa|autorizar-plan-excepcion|autorizar-cierre|decision-ad-hoc [carpeta]"
-version: 2.6.0
+version: 2.7.0
 author: pm-method
 license: MIT
 metadata:
@@ -41,7 +41,8 @@ Scripts en `${CLAUDE_PLUGIN_ROOT}/skills/<skill>/scripts/` (manual/Hermes: `~/.c
    **Traspasos pendientes** (`estado.json.integraciones.bmad.handoffs` sin confirmar): se informan en la solicitud; con alguno pendiente no se propone nueva línea base de la especificación.
 3. Delegar en `pm-director` la solicitud de decisión (`00-direccion/decisiones/<fecha>-solicitud-<tipo>.md`, `en-revision`): justificación continua, estado de productos, riesgos e issues clave, desempeño contra tolerancias, opciones y recomendación.
 4. **Presentar la decisión al humano** con opciones (aprobar, condicionar, rechazar, pedir información, cierre prematuro) y quién decide. Sin respuesta explícita, no se registra nada.
-5. Tras la decisión: solo `pm-director` ejecuta `estado.py puerta <tipo> --decision … --por "<rol: nombre>"` y `estado.py aprobar`, y fija la línea base BMAD si corresponde. ZIP opcional con `paquete.py puerta <tipo>`.
+5. Tras la decisión: solo `pm-director` ejecuta `estado.py puerta <tipo> --decision … --por "<rol: nombre>" [--motivo ".."]` y `estado.py aprobar`, y fija la línea base BMAD si corresponde. `estado.py puerta` congela antes el tablero (estado previo a la decisión) en `03-control/reportes/tableros/`; si falla, la puerta se registra igual con un aviso. Para la junta: `python3 ${CLAUDE_SKILL_DIR}/../pm-estado-proyecto/scripts/tablero.py --proyecto <dir> generar --html <ruta>` (tablero estático) y `tablero.py --proyecto <dir> comparar <id> actual` (qué cambió desde la puerta anterior; ids con `tablero.py --proyecto <dir> listar`). ZIP opcional con `paquete.py puerta <tipo>`.
+6. **Cierre prematuro** (la junta no autoriza el proyecto, rechaza una etapa o un plan de excepción, u ordena cerrar): `estado.py cierre --prematuro --decision D-###` con la D-### del rechazo o de la `decision-ad-hoc` (desde la iniciación o la entrega; en el pre-proyecto, `autorizar-inicio` rechazado). En `autorizar-cierre`, C-08 exige `inventario-cierre-prematuro` y C-07 es aviso (`docs/PUERTAS.md` §3.2). Un plan de excepción para rescatar productos o dejarlos en estado seguro se autoriza en CP con `autorizar-plan-excepcion` (el proyecto sigue en CP); C-09 bloquea `autorizar-cierre` hasta `estado.py cierre --plan-excepcion completado|cerrado --por "<rol: nombre>"` (pm-director).
 
 ## Reglas del método
 1. [PRINCE2] La junta decide; el agente prepara. 2. Solo `pm-director` registra puertas. 3. Un obligatorio faltante bloquea la puerta. 4. Cada puerta se verifica en tres capas: salud, controles automáticos (PRINCE2 y BMAD) y lista de control confirmada por la junta (`docs/PUERTAS.md`).

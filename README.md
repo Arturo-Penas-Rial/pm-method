@@ -1,4 +1,4 @@
-# pm-method · Agentes y skills de gestión de proyectos (ES/EN) · v2.6.0
+# pm-method · Agentes y skills de gestión de proyectos (ES/EN) · v2.7.0
 
 Ecosistema bilingüe de **6 agentes**, **39 skills** y **3 hooks** para Claude Code (también Cowork y Hermes) que
 gestiona un proyecto de la idea al cierre con **PRINCE2 7** como método y ciclo de vida, **PMBOK 8** como caja de
@@ -25,7 +25,7 @@ tolerancias, gestión por excepción), **PMBOK 8** aporta solo técnicas, las **
 | Archivos de estado editados a mano, registros inconsistentes | **Guardarraíles**: `estado.json` y los registros solo cambian por scripts que validan; el hook `guardian.py` bloquea ediciones directas por Edit **y** por Bash |
 | Comunicaciones iguales para todos y RACI desconectado del alcance | **Maestro de interesados** (`pm-interesados`): matriz poder/interés con estrategia por cuadrante, RACI ligada a WBS, requisitos, historias y KR, preferencias confirmadas por una persona y un perfil de comunicación por interesado |
 | Integraciones frágiles o atadas a un proveedor | **MCP genérico** (Jira, Confluence, Slack, Teams, transcripciones, OKR) sin conectores predefinidos y una **capa de canales** propia (correo SMTP, webhooks de Slack o Teams, `.eml`) que solo envía mensajes aprobados; skills externas de diagramas y Office con **respaldo interno** si no están |
-| Nadie sabe si "todo está bien" | **Sanidad permanente**: `sanidad.py` (101 códigos en 14 familias: INS, EST, ART, REG, CAM, QUA, TOL, SUP, ESP, INT, STK, MAP, DEC, BIT) al iniciar sesión, antes de cada puerta y a pedido; en cada inicio de sesión, un resumen derivado de los registros y una línea de **radar** con lo que hay que decidir, escalar, desbloquear y vigilar |
+| Nadie sabe si "todo está bien" | **Sanidad permanente**: `sanidad.py` (104 códigos en 15 familias: INS, EST, ART, REG, CAM, QUA, TOL, SUP, ESP, INT, STK, MAP, DEC, BIT, DAT) al iniciar sesión, antes de cada puerta y a pedido; en cada inicio de sesión, un resumen derivado de los registros y una línea de **radar** con lo que hay que decidir, escalar, desbloquear y vigilar |
 | Se invierte sobre supuestos que nadie validó y opciones que nadie comparó con números | **Validar antes de invertir**: supuestos críticos como hipótesis con experimento, criterio y fecha (SUP-01…03, puerta P-11) y opciones evaluadas con VAN, TIR, repago, sensibilidad y punto de equilibrio (`inversion.py`) |
 | Controles que se hacen a mano, tarde o nunca: cuánto queda del presupuesto de cambio, historias "terminadas" sin revisión, pronósticos que nadie vuelve a mirar, condiciones de la junta olvidadas, interesados sin contacto, lecciones que nadie aplica | **Controles permanentes**: presupuestos de la junta contra el costo de cada cambio, calidad a volumen sobre el backlog y la WBS, cortes de EVM vigilados contra las tolerancias, condiciones formales de puertas con seguimiento hasta cumplirse, cadencia de contacto por interesado y lecciones con acción y verificación |
 | Decisiones tomadas a ojo: la primera respuesta a un riesgo, el cambio que "es obligatorio", el proveedor que "conviene", lo acordado en una reunión según quién tomó notas | **Decidir con contexto y con una persona**: para cualquier elección entre alternativas, un expediente con la evidencia aplicable y su fuente y una matriz con pesos explícitos y su sensibilidad (`decision.py`); opciones de respuesta comparadas por valor neto con plan de contingencia (`riesgos.py opciones`), análisis de impacto antes de cada cambio con quién decide (`impacto.py`) y acuerdos extraídos de la transcripción con cita, que se registran solo al confirmarlos (`extraccion.py`); elige la persona con la autoridad que fija PRINCE2 y que refleja la RACI |
@@ -49,11 +49,12 @@ en 38 eslabones, cinco recorridos E2E reproducibles y pruebas en vivo con Claude
 
 | Evidencia (2026-10-29) | Resultado |
 |---|---|
-| Pruebas de regresión (`probar_paquete.py`) | 463 OK · 0 FALLO con Python 3.13 (462 con 3.9), incluida una instalación real de BMAD 6.12.4 y envíos SMTP y por webhooks contra servidores locales |
+| Pruebas de regresión (`probar_paquete.py`) | 558 OK · 0 FALLO con Python 3.13 (554 con 3.9), incluida una instalación real de BMAD 6.12.4 y envíos SMTP y por webhooks contra servidores locales |
 | Integración cruzada (`scripts/pruebas/integracion/correr.py --sin-e2e`) | 118 OK · 0 FALLO en 38 eslabones de cinco cadenas sobre un mismo proyecto |
-| Recorridos E2E de las guías (`guias_e2e/correr.py`) | 5/5 OK con los scripts reales (76 pasos, 61 imágenes), evidencia e imágenes idénticas en dos corridas |
+| Suite de variantes (`scripts/pruebas/variantes/correr.py --nivel todo --repetir 2`) | 592 OK · 0 FALLO · 0 trazas en dos corridas idénticas: caminos alternos, matriz de entornos (Python 3.9 y 3.13, BMAD, idioma, consola de Windows, rutas), integraciones con fallas, contratos, Hermes y opcionales (pm-kb con modelos simulados, portal con pm-method, skills externas) |
+| Recorridos E2E de las guías (`guias_e2e/correr.py`) | 5/5 OK con los scripts reales (77 pasos, 66 imágenes), evidencia e imágenes idénticas en dos corridas |
 | Diagramas Mermaid (`validar_mermaid.py --render`) | 131 bloques, 0 errores |
-| pm-kb (opcional) | núcleo 19 OK y 46 OK con la base; consultas de oro 14/15 (MRR@5 0,75); `pm-kb verificar` 14 OK en Ubuntu 24.04 limpio y en Docker |
+| pm-kb (opcional) | núcleo 39 OK y 116 OK con la base (portal, enlaces compartidos y tableros por actor incluidos); pantallas del portal 68 OK en claro, oscuro y móvil; consultas de oro 14/15 (MRR@5 0,75); `pm-kb verificar` 14 OK en Ubuntu 24.04 limpio y en Docker |
 | Enrutamiento en vivo con Claude Code real | 60/60 en la batería base; 27/28 con vocabulario de PRINCE2 y PMBOK en español; 25/25 con las skills de BMAD instaladas; 8/8 en las frases de mapas estratégicos; 28/28 en las frases 103–130 de opciones, personas, radar, reuniones, impacto, auditoría, lecciones, productos, período y estimación; 11/11 en las frases 131–134 de decisiones con sus frases de control ([PRUEBAS §3](docs/PRUEBAS.md)) |
 | Guardarraíles, idioma y robustez en vivo | 4/4 · 5/5 · inyección, datos desordenados, escala y varias sesiones: todos OK; integración con BMAD instalado 12/12 con un contexto máximo de 64.177 tokens |
 
@@ -80,6 +81,7 @@ Límites conocidos y detalle para presentar el proyecto: **[docs/RESUMEN-EJECUTI
 | Decisiones con contexto | para cualquier decisión entre alternativas de seis tipos (riesgo, negocio, planificación, OKR, cambio, adquisición): expediente con la evidencia aplicable y su fuente (nivel que decide, tolerancias, registros relacionados, cifras de otros scripts sin recalcular; sin datos de contacto ni valoraciones confidenciales), matriz multicriterio con suma ponderada, eliminatorios, dominadas, sensibilidad de cada peso y empates, pregunta cerrada para la junta y elección registrada por una persona con nombre (sanidad DEC-01, DEC-02) | `pm-direccion-decisiones` · `decision.py` |
 | RACI ↔ autoridad | PRINCE2 define quién decide y la RACI lo refleja: el expediente trae el A, los C y los I de los elementos afectados; elegir sin ser el A ni una autoridad superior exige motivo, se avisa la incoherencia si el A no tiene el nivel requerido y queda el borrador del aviso a los I (DEC-03, DEC-04) | `decision.py matriz --elegir` · `esquema.nivel_autoridad` |
 | Vigencia y contradicciones | cada decisión puede reemplazar a otras (`reemplaza`) o convivir con ellas (`conviven`), con la autoridad validada al registrar; decisiones vigentes con su cadena de reemplazos, contradicciones probables y revisiones vencidas (DEC-05, DEC-06) | `decision.py vigentes` · `vigencia.py` |
+| Tablero del proyecto | ciclo y puertas, atención, entrega y artefactos clave en un JSON (`pm-tablero/1`) o un HTML autocontenido; cada puerta congela el tablero previo a la decisión, inmutable y en la bitácora; comparar dos momentos del ciclo | `tablero.py generar · congelar · listar · comparar` |
 | Bitácora y propuestas con huella | toda escritura de los scripts queda en `.bitacora.jsonl`, encadenada por sha256, sin valores confidenciales; `historial` y `reconocer` (BIT-01, BIT-02); un agente propone un cambio con la huella de lo que leyó y una persona distinta lo aprueba: se aplica, se reaplica sobre la versión actual o queda en conflicto con la explicación | `registro.py historial · proponer · aprobar` |
 | Búsqueda en español e inglés | normalización determinista para buscar decisiones y registros: lemas, fechas y meses, cifras con separadores, ids abreviados y un glosario inglés → español de gestión | `texto.py` · `decision.py --tema` |
 | Decisiones ↔ mapas estratégicos | un componente de Wardley o un paso del recorrido se nombra en la decisión (`entregables:C2`): el expediente trae su contexto con cita y la elección queda citada en el mapa; criterios de hacer o comprar (diferenciación, costo total, tiempo, dependencia, capacidad interna, riesgo de construir algo que va a volverse commodity) | `decision.py` · `mapas.py` |
@@ -91,7 +93,8 @@ Límites conocidos y detalle para presentar el proyecto: **[docs/RESUMEN-EJECUTI
 | Expediente de auditoría | cronología de puertas, decisiones, cambios, aceptaciones y envíos, líneas base, registros, evidencia y sanidad al corte, con `SHA256SUMS` verificable | `pm-exportar` · `paquete.py auditoria` |
 | Controles permanentes | presupuestos de la junta contra el costo y el cargo de cada cambio (CAM-01…05; excedido = ERROR que bloquea puertas), calidad a volumen (QUA-01…04), cortes de EVM contra las tolerancias (TOL-01…03), condiciones formales de puertas hasta cumplirse (EST-12, G-01), revisión de riesgos vencida (REG-09), riesgos altos con opciones y contingencia con plan (REG-10), lecciones con acción y verificación (REG-11, REG-12, E-11), beneficios que no quedan solo en OKR (P-04) y cadencia de contacto por interesado (STK-12) | `sanidad.py --corte` · `puertas.py` · [SANIDAD](docs/SANIDAD.md) |
 | Contexto controlado | al abrir, retomar o compactar la sesión, un resumen derivado de `estado.json` y los registros (≤ 2.000 caracteres, con ids) que prevalece sobre cualquier nota de memoria; salidas de los scripts acotadas con muchos registros | `estado.py contexto` · hook de inicio |
-| Búsqueda citada en los proyectos (opcional) | **pm-kb**, componente aparte del plugin: índice en PostgreSQL de la carpeta de cada proyecto (registros, documentos con sus versiones vigente y aprobada, actas, transcripciones) con relaciones por ids, para preguntar en español o inglés y recibir la evidencia con su cita; interfaz web con token por persona y MCP de solo lectura para Claude Code y Hermes; se instala por los dos caminos (WSL2 con un clúster propio del usuario, o Docker con la base en un contenedor segregado); nunca escribe en el proyecto ni indexa datos de contacto o valoraciones confidenciales | [docs/PM-KB.md](docs/PM-KB.md) · `pm-kb` |
+| Búsqueda citada en los proyectos (opcional) | **pm-kb**, componente aparte del plugin: índice en PostgreSQL de la carpeta de cada proyecto (registros, documentos con sus versiones vigente y aprobada, actas, transcripciones) con relaciones por ids estables que siguen funcionando si un archivo se mueve (`pm-kb enlaces` dice qué corregir con pm-method), para preguntar en español o inglés y recibir la evidencia con su cita; MCP de solo lectura para Claude Code y Hermes; se instala por los dos caminos (WSL2 con un clúster propio del usuario, o Docker con la base en un contenedor segregado) y se mantiene al día solo (`vigilar` como servicio); nunca escribe en el proyecto ni indexa datos de contacto o valoraciones confidenciales | [docs/PM-KB.md](docs/PM-KB.md) · `pm-kb` |
+| Portal del proyecto (opcional) | la web de pm-kb, con token por persona: cartera de proyectos (primero lo que pide acción), el tablero que genera pm-method con su historial de instantáneas por puerta y la comparación entre dos momentos, «actualizar ahora» sin escribir en la carpeta, artefactos clave y documentos de las skills de diagramas en un marco aislado, y la ficha de cada tarjeta por id; enlaces de solo lectura que vencen y se revocan, al tablero actual, a una instantánea o al de un actor según la RACI | `pm-kb servir` · `pm-kb compartir` · [PM-KB §11](docs/PM-KB.md#11-interfaces) |
 | Formación | cinco casos E2E con guía, evidencia reproducible, gráficos, guion del instructor, ejercicio y diapositivas (PPTX y HTML) para dos clases de 90 minutos por caso | [docs/guias/](docs/guias/README.md) · [docs/webinar/](docs/webinar/README.md) |
 
 El perfil de comunicación solo adapta comunicaciones: no infiere emociones, personalidad ni datos sensibles, y no
@@ -355,7 +358,8 @@ el clon (PostgreSQL de Ubuntu, propio del usuario y solo por socket;
 [docs/INSTALACION-WSL2.md §8](docs/INSTALACION-WSL2.md#8-pm-kb-buscar-en-tus-proyectos-opcional--ubuntu)); con Docker,
 el perfil `kb` con la base en un contenedor segregado
 ([docs/INSTALACION-DOCKER.md §8](docs/INSTALACION-DOCKER.md#8-pm-kb-en-docker-opcional)). Después:
-`pm-kb indexar --proyecto mi-proyecto --ruta ~/proyectos/mi-proyecto`, `pm-kb servir` (web) y
+`pm-kb indexar --proyecto mi-proyecto --ruta ~/proyectos/mi-proyecto`, `pm-kb servir` (portal web: cartera, tableros,
+búsqueda, artefactos), `pm-kb compartir crear --proyecto mi-proyecto` (enlace de solo lectura a un tablero) y
 `claude mcp add --scope user pm-kb -- ~/.local/bin/pm-kb mcp` (MCP). Referencia: [docs/PM-KB.md](docs/PM-KB.md).
 
 ### Opcional: Orca para ver varios agentes y proyectos a la vez
@@ -488,8 +492,8 @@ Versiones probadas, licencias, comandos de instalación y cómo se verificó cad
 | [RESUMEN-EJECUTIVO](docs/RESUMEN-EJECUTIVO.md) | propuesta de valor, beneficios, diferenciales, evidencia |
 | [INSTALACION](docs/INSTALACION.md) | requisitos, plugin, BMAD, skills externas, MCP, Cowork, Hermes, verificación, problemas frecuentes |
 | [DEPENDENCIAS](docs/DEPENDENCIAS.md) | dependencias con URL de origen, versión probada y licencia |
-| [PM-KB](docs/PM-KB.md) | pm-kb, el índice de conocimiento opcional: qué indexa, versiones, búsqueda, web, MCP, seguridad y operación |
-| [ARQUITECTURA](docs/ARQUITECTURA.md) | capas, precedencia PRINCE2/PMBOK, agentes vs subagentes, carga progresiva |
+| [PM-KB](docs/PM-KB.md) | pm-kb, el índice de conocimiento opcional: qué indexa, versiones, ids estables y movimientos, búsqueda, portal web (tableros, artefactos, enlaces compartidos, tableros por actor), MCP, seguridad y operación |
+| [ARQUITECTURA](docs/ARQUITECTURA.md) | capas, precedencia PRINCE2/PMBOK, agentes vs subagentes, carga progresiva, tablero del proyecto y portal de pm-kb |
 | [INTEGRACIONES](docs/INTEGRACIONES.md) | decisiones por candidato, contratos, verificación en vivo |
 | [SINCRONIZACION](docs/sincronizacion.md) | fuente única, fachada de especificación, traspaso BMAD ↔ gobierno |
 | [SANIDAD](docs/SANIDAD.md) | comprobaciones de consistencia y controles permanentes |
@@ -516,14 +520,14 @@ Versiones probadas, licencias, comandos de instalación y cómo se verificó cad
 | Verificación | Resultado |
 |---|---|
 | `python3 scripts/validar_paquete.py` | OK · 39 skills, 33 invocables, listado de 6.966 caracteres (límite 7.500); sintaxis verificada con Python 3.9 |
-| `python3 scripts/probar_paquete.py` | 463 OK · 0 FALLO con Python 3.13; 462 OK · 0 FALLO con Python 3.9 (sin `matplotlib` se omite una comprobación de visuales; sin `PM_DIAGRAM_DESIGN`, la parte de compatibilidad del caso DD). Casos A–N (con A2, I2, J2, L2 y L3), P, PU, RA, PE, LX, LC, RD, IM, TV, AU, PS, DC, DR, DK, MD, BU, VG, BT, PR, CC, KB, DD, S, X e Y: BMAD v6, 6.12.4 real, v4 y nativo, hook guardian, puertas, interesados y canales, riesgos desde cuatro fuentes, opciones y contingencia, controles permanentes, autoridad y presupuesto de cambio al registrar, supuestos, webinar, seguridad, contexto, mapas, salidas de los scripts, personas, radar y briefing, datos del período, lecciones entre proyectos y su ciclo, reuniones, impacto, tres valores y capacidad, expediente de auditoría, estado de productos y cierre, decisiones con contexto, RACI ↔ autoridad, correcciones de decisiones, decisiones ↔ mapas, búsqueda en español e inglés, vigencia, bitácora, propuestas con huella, escrituras concurrentes, núcleo de pm-kb, contrato con diagram-design, integración y `--help` de 37 scripts |
+| `python3 scripts/probar_paquete.py` | 558 OK · 0 FALLO con Python 3.13; 554 OK · 0 FALLO con Python 3.9 (sin `matplotlib` se omite una comprobación de visuales y sin Playwright para Python, las de navegador de PE y TB; sin `PM_DIAGRAM_DESIGN`, la parte de compatibilidad del caso DD). Casos A–N (con A2, I2, J2, L2 y L3), P, PU, RA, PE, LX, LC, RD, IM, TV, AU, PS, DC, DR, DK, MD, BU, VG, BT, PR, CC, KB, DD, RB, CP, C3, TB, S, X e Y: BMAD v6, 6.12.4 real, v4 y nativo, hook guardian, puertas, interesados y canales, riesgos desde cuatro fuentes, opciones y contingencia, controles permanentes, autoridad y presupuesto de cambio al registrar, supuestos, webinar, seguridad, contexto, mapas, salidas de los scripts, personas, radar y briefing, datos del período, lecciones entre proyectos y su ciclo, reuniones, impacto, tres valores y capacidad, expediente de auditoría, estado de productos y cierre, decisiones con contexto, RACI ↔ autoridad, correcciones de decisiones, decisiones ↔ mapas, búsqueda en español e inglés, vigencia, bitácora, propuestas con huella, escrituras concurrentes, núcleo de pm-kb, contrato con diagram-design, integración y `--help` de 38 scripts |
 | `python3 scripts/pruebas/integracion/correr.py --sin-e2e` | 118 OK · 0 FALLO en 38 eslabones (cadenas 1–5); las seis cadenas, 122 OK · 0 FALLO en 40 eslabones dentro de la imagen Docker |
-| `python3 scripts/pruebas/guias_e2e/correr.py` | 5/5 OK (E2E-1 16 pasos, E2E-2 10, E2E-3 14, E2E-4 16, E2E-5 20; 61 imágenes), evidencia e imágenes idénticas en dos corridas con pm-kb (salvo la fecha del día en los nombres de los archivos exportados); sin pm-kb, sus pasos se omiten con aviso |
+| `python3 scripts/pruebas/guias_e2e/correr.py` | 5/5 OK (E2E-1 16 pasos, E2E-2 10, E2E-3 15, E2E-4 16, E2E-5 20; 66 imágenes), evidencia e imágenes idénticas en dos corridas con pm-kb (salvo la fecha del día en los nombres de los archivos exportados); sin pm-kb, sus pasos se omiten con aviso |
 | `python3 scripts/validar_mermaid.py --render` | 131 bloques, 0 errores |
 | `python3 scripts/webinar/generar.py --todos --validar` | 5/5 mazos sin errores ni avisos (199 diapositivas de contenido, 125 términos de glosario) |
 | `python3 scripts/webinar/documentos.py --todos` | 5/5 casos sin errores: 15 documentos HTML (guía, guion y ejercicio con el ejemplo resuelto plegado) e `index.html`; 18 diagramas Mermaid dibujados |
-| pm-kb (`probar_kb.py`, `consultas_oro.py`, `pm-kb verificar`) | 19 OK en el núcleo (Python 3.9 o posterior) y 46 OK con `--con-base`; consultas de oro 14/15, MRR@5 0,75; `pm-kb verificar` 14 OK en un Ubuntu 24.04 limpio (PostgreSQL 16, pgvector 0.6.0) y en Docker (PostgreSQL 18.6, pgvector 0.8.1) ([PRUEBAS §7](docs/PRUEBAS.md#7-pm-kb-componente-opcional)) |
-| Imagen Docker `pm-method:2.6.0` (`pm-pruebas`, sin red) | `Resultado: todas las pruebas OK`: 466 OK · 0 FALLO en la regresión con Python 3.14 (con el caso DD completo y diagram-design `66fa2e7`), 5/5 recorridos E2E, 122 OK en 40 eslabones en la integración cruzada, 131 bloques Mermaid y 5/5 mazos y documentos del webinar; imagen de 3,31 GB; base de pm-kb `pm-kb-db:2.6.0` de 409 MB ([DOCKER §10](docs/DOCKER.md#10-verificación-registrada)) |
+| pm-kb (`probar_kb.py`, `pantallas.py`, `consultas_oro.py`, `pm-kb verificar`) | 39 OK en el núcleo (Python 3.9 o posterior) y 116 OK con `--con-base`; pantallas del portal 68 OK (Chromium, claro, oscuro y móvil, 0 violaciones de CSP) (2026-10-30); consultas de oro 14/15, MRR@5 0,75; `pm-kb verificar` 14 OK en un Ubuntu 24.04 limpio (PostgreSQL 16, pgvector 0.6.0) y en Docker (PostgreSQL 18.6, pgvector 0.8.1) ([PRUEBAS §7](docs/PRUEBAS.md#7-pm-kb-componente-opcional)) |
+| Imagen Docker `pm-method:2.7.0` (`pm-pruebas`, sin red) | `Resultado: todas las pruebas OK` en dos corridas: 561 OK · 0 FALLO en la regresión con Python 3.14 (con el caso DD completo y diagram-design `66fa2e7`), 5/5 recorridos E2E, 122 OK en 40 eslabones en la integración cruzada, 131 bloques Mermaid y 5/5 mazos y documentos del webinar; suite de variantes sin E2E 296 OK; imagen de 3,33 GB; base de pm-kb `pm-kb-db:2.7.0` de 409 MB ([DOCKER §10](docs/DOCKER.md#10-verificación-registrada)) |
 | `claude plugin validate .` | aprobado con advertencias con Claude Code 2.1.312 (un aviso esperado: `CLAUDE.md` de la raíz es para quien desarrolla el repositorio, no contexto del plugin; los controles del directorio de plugins, que no cambian el resultado, señalan además que no hay ícono) |
 | Enrutamiento en vivo (Claude Code real) | 134 frases en `docs/evaluacion/frases-enrutamiento.tsv`. Resultados registrados: 60/60 en la batería base (Sonnet 59/60, Haiku 56/60), 14/14 en las frases de las cinco skills de interesados, organización, comunicación, canales y OKR, 27/28 con vocabulario de PRINCE2 y PMBOK en español y de uso habitual, 25/25 con las skills de BMAD instaladas en el mismo proyecto, 14/14 con el resumen de contexto del hook de inicio, 8/8 en las frases de mapas estratégicos, 28/28 en las frases 103–130 y 11/11 en las frases 131–134 de decisiones con sus frases de control, en dos corridas ([resultados](docs/evaluacion/resultados/)) |
 | Guardarraíles, idioma y robustez en vivo | guardarraíles 4/4; idioma 5/5 con el hook `idioma.py`; inyección en fuentes 6/6; datos desordenados 7/7; escala 5/5; varias sesiones con `/compact` 10/10; controles permanentes 6/6; integración con BMAD instalado 12/12 |
@@ -535,16 +539,17 @@ Versiones probadas, licencias, comandos de instalación y cómo se verificó cad
 
 ```
 pm-method/
-  .claude-plugin/     plugin.json (pm-method 2.6.0) · marketplace.json (pm-method)
+  .claude-plugin/     plugin.json (pm-method 2.7.0) · marketplace.json (pm-method)
   agents/             6 agentes (orquestador + 5 subagentes; personas en Hermes)
   skills/             39 skills (SKILL.md + references/ + templates/ + scripts/)
   hooks/              hooks.json · py.sh · guardian.py (PreToolUse) · inicio.py (SessionStart) · idioma.py (UserPromptSubmit)
   scripts/            validar_paquete.py · probar_paquete.py · validar_mermaid.py · instalar_hermes.py
-                      pruebas/ (fixtures, guias_e2e/ de las guías, integracion/ cruzada) · pruebas_vivo/ (Claude Code real)
+                      pruebas/ (fixtures, guias_e2e/ de las guías, integracion/ cruzada, variantes/) · pruebas_vivo/ (Claude Code real)
                       webinar/ (diapositivas PPTX y HTML, documentos HTML e índice)
   docker/             entorno Docker opcional (Dockerfile, compose.yaml, dependencias fijadas; perfil kb de pm-kb)
-  pm-kb/              índice de conocimiento opcional (búsqueda citada, web y MCP de solo lectura; docs/PM-KB.md)
+  pm-kb/              índice de conocimiento opcional (búsqueda citada, portal web y MCP de solo lectura; docs/PM-KB.md)
   docs/               documentación · guias/ (E2E) · webinar/ · resumen-ejecutivo/ · informe/ · evaluacion/ · ejemplos/
+                      servicios/ (pm-kb vigilar como servicio de usuario de systemd)
   compatibilidad.json versiones probadas, dependencias y clientes
   SPEC.md             especificación y convenciones canónicas
   CLAUDE.md · AGENTS.md · CHANGELOG.md · LICENSE
@@ -561,7 +566,7 @@ del usuario. Convenciones completas: `SPEC.md` §1.10.
 
 ## English summary
 
-pm-method 2.6.0 is a bilingual (Spanish/English) pack of 6 agents, 39 Agent Skills and 3 hooks for end-to-end project
+pm-method 2.7.0 is a bilingual (Spanish/English) pack of 6 agents, 39 Agent Skills and 3 hooks for end-to-end project
 management in Claude Code (also Cowork and Hermes). PRINCE2 7 provides the method and life cycle, PMBOK 8 only the
 techniques, a templates book the artifacts, BMAD the read-only product specification (single source of truth), and
 user-connected MCP tools the optional sources and channels. A main-thread orchestrator talks to the user; five phase
@@ -579,9 +584,11 @@ dominance and weight sensitivity, a typed question for the board and a choice re
 is checked against PRINCE2 levels and the RACI; decisions keep a validity chain (supersedes/coexists, contradiction and
 overdue-review checks), every script write lands in a hash-chained log, and agent proposals carry a fingerprint and are
 reapplied or flagged as conflicts when a person approves them. Wardley components and journey steps can be named in a
-decision (make-or-buy criteria). 101 health checks in 14 families, and five end-to-end cases with webinar material.
+decision (make-or-buy criteria). 104 health checks in 15 families, and five end-to-end cases with webinar material.
 The optional pm-kb component (outside the plugin) indexes project folders in PostgreSQL for cited search in Spanish or
-English, with a token-protected web UI and a read-only MCP server, installable on WSL2 or with Docker. Install with
+English, with a token-protected web portal (portfolio, the project board generated by pm-method with its gate
+snapshots, key artifacts, sandboxed diagram documents, records linked by stable id, and expiring read-only share links,
+also per actor) and a read-only MCP server, installable on WSL2 or with Docker. Install with
 `claude plugin marketplace add Arturo-Penas-Rial/pm-method` and `claude plugin install pm-method@pm-method`, then start
 with `/pm-method:pm-ayuda` or ask "what's next?". See `docs/INDICE.md` for the documentation map.
 

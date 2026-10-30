@@ -82,7 +82,7 @@ La puerta de cierre en una página: 11 de 11 productos aceptados y 0 Must sin ac
 CPI 0,977, 40 % del presupuesto de cambio usado y 0 condiciones abiertas (paso 9).
 
 ![Expediente de auditoría](img/g4-expediente.png)
-El expediente para la auditoría externa: 42 eventos en la cronología, 44 archivos con su huella y 132 escrituras en la
+El expediente para la auditoría externa: 42 eventos en la cronología, 44 archivos con su huella y 142 escrituras en la
 bitácora; una sola palabra cambiada en la copia, la verificación la delata y la bitácora muestra que no salió de los
 scripts (paso 9b).
 
@@ -285,7 +285,9 @@ partida del burn-up).
 
 **Qué deberías ver:** la verificación "1 bloqueo(s) · 1 condición(es)" con **L-01** (falta la lista de la junta) y
 **E-10** "gate de preparación de BMAD en CONCERNS"; "Condiciones agregadas desde la verificación: gate de preparación
-de BMAD en CONCERNS (2026-11-26: NFR-3 sin prueba de carga planificada)"; fase `entrega`, etapa 2; sanidad "0 ERROR ·
+de BMAD en CONCERNS (2026-11-26: NFR-3 sin prueba de carga planificada)"; "Tablero congelado antes de la decisión:
+03-control/reportes/tableros/2026-11-27-autorizar-etapa-etapa-1.json (y .html)" (el tablero tal como estaba antes de
+decidir, con la decisión anotada; queda uno por puerta); fase `entrega`, etapa 2; sanidad "0 ERROR ·
 1 AVISO · 1 INFO": **EST-12** (condición abierta) y TOL-03 (todavía no hay corte de EVM guardado); avance "done 0 ·
 0.0 % (puntos)".
 
@@ -856,16 +858,16 @@ valores de interesados ni confidenciales.
 **Qué deberías ver:** "Escrito gestion/exportados/<fecha>-expediente-auditoria-inicio_2027-05-14.zip: 45 archivos · 42
 eventos en la cronología · registros 8 · sanidad ERROR 0 AVISO 0", con "bitacora 1", "lineas-base 16" y "puertas 5" en
 el detalle; en `INDICE.md`, "Destinatario externo: sin 03-control/registros/stakeholders.csv (valoraciones de
-interesados) y sin el destino de los envíos" y "bitacora.jsonl: 132 escrituras de estado.json, registros y propuestas
+interesados) y sin el destino de los envíos" y "bitacora.jsonl: 142 escrituras de estado.json, registros y propuestas
 anotadas por los scripts, completa aunque el expediente tenga período"; la verificación "INTEGRIDAD: OK · 44 archivos
 coinciden con SHA256SUMS". En la copia que recibió la auditoría alguien cambió una sola palabra en `decisiones.csv`: la
 puerta D-013 dice «autorizar-etapa: aprobado» en lugar de «condicionado», como si la etapa 2 no hubiera tenido
 condición. La verificación responde "INTEGRIDAD: FALLA · 1 problema(s)", "alterado: 03-control/registros/decisiones.csv"
-y la explicación: **"la última escritura anotada en la bitácora (#131 … · estado.py aprobar · --por Ejecutivo: Laura
+y la explicación: **"la última escritura anotada en la bitácora (#141 … · estado.py aprobar · --por Ejecutivo: Laura
 Méndez · D-029) dejó exactamente la versión del expediente; la copia recibida es otra: el cambio no salió de los
-scripts"**. El historial de D-013 tiene una sola escritura, "#42 … · estado.py puerta · --por Ejecutivo: Laura Méndez",
+scripts"**. El historial de D-013 tiene una sola escritura, "#46 … · estado.py puerta · --por Ejecutivo: Laura Méndez",
 con "D-013 alta: … decision=«autorizar-etapa: condicionado — condiciones: gate de preparación de BMAD en CONCERNS …»", y
-"Verificación: cadena íntegra (132 líneas) y cada archivo coincide con su última escritura anotada": los scripts nunca
+"Verificación: cadena íntegra (142 líneas) y cada archivo coincide con su última escritura anotada": los scripts nunca
 escribieron «aprobado» en D-013. La bitácora anota la fecha y hora reales de cada escritura y huellas que dependen de
 ellas; la evidencia de referencia las muestra enmascaradas («<fecha y hora de la escritura>», «sha256 <antes> →
 <después>») para que dos corridas den lo mismo. La corrida de referencia corre `paquete.py auditoria` con una carpeta
@@ -874,7 +876,7 @@ de las skills que tengas instaladas.
 
 ![Expediente de auditoría](img/g4-expediente.png)
 42 eventos en la cronología (5 puertas, 1 cambio, 12 productos aceptados y 24 decisiones y aprobaciones), 16 copias
-congeladas, 8 registros sin el de interesados y 132 escrituras en la bitácora (D-013: una sola, «condicionado»); los 44
+congeladas, 8 registros sin el de interesados y 142 escrituras en la bitácora (D-013: una sola, «condicionado»); los 44
 archivos coinciden con su huella y la copia editada falla en el único archivo tocado, con un cambio que no salió de los
 scripts.
 
@@ -909,7 +911,9 @@ con `historia=true`. La corrida de referencia hace lo mismo con la línea de com
 y `--historia`, y `pm-kb ficha D-013 --historia`.
 
 **Qué deberías ver:**
-- `pm-kb: producto-bmad indexado · 590 unidades (464 vigentes) · 81 documentos (2 con varias versiones) · …`.
+- `pm-kb: producto-bmad indexado · 621 unidades (479 vigentes) · 91 documentos (2 con varias versiones) · …` y `pm-kb:
+  tablero de producto-bmad publicado · versión 1 · … · cerrado · etapa 3 · … · próxima puerta: — · 5 instantánea(s)` (una
+  por puerta del recorrido).
 - Las tres versiones del business case: «v1.0 · aprobado · 2026-11-27 · aprobó Ejecutivo: Laura Méndez (D-005)», «v1.1
   · aprobado · 2027-03-05 · … (D-021)» y «v1.2 · aprobado · 2027-05-14 · … (D-026)», cada una con su copia congelada,
   y `business-case.md` «← vigente».
@@ -922,8 +926,11 @@ y `--historia`, y `pm-kb ficha D-013 --historia`.
   anterior»: el veredicto de la etapa 2 era «sigue deseable, viable y alcanzable → continuar con la etapa 3». Si la última
   versión de un documento estuviera en revisión, la búsqueda por defecto la mostraría con el aviso «hay una vX aprobada».
 - `pm-kb ficha D-013 --historia`: la fila «autorizar-etapa: condicionado …» con su cita y, en «Historia (bitácora)»,
-  una sola escritura: `#42 … puerta por Ejecutivo: Laura Méndez`, la misma que muestra `registro.py historial D-013` en
-  el paso 9b. En la evidencia, la fecha real de la escritura figura como «<fecha real>».
+  una sola escritura: `#46 … puerta por Ejecutivo: Laura Méndez`, la misma que muestra `registro.py historial D-013` en
+  el paso 9b. La ficha dice también dónde está la fila («ubicación (fila de registro D-013):
+  gestion/03-control/registros/decisiones.csv:L14») y dónde figura en el tablero publicado («vista artefactos · columna
+  decisiones-junta»), y la cita desde la instantánea de autorizar-etapa. En la evidencia, la fecha real de la escritura
+  figura como «<fecha real>» y la del indexado, como «<fecha del indexado>».
 
 **Dónde verificar:** `00-direccion/historial/business-case-v1.*.md` · `decisiones.csv` (D-005, D-021, D-026) · evidencia,
 paso 9c. La corrida de referencia borra el índice al terminar (`pm-kb quitar --proyecto producto-bmad`); la cita lleva

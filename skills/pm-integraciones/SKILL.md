@@ -1,7 +1,7 @@
 ---
 name: pm-integraciones
 description: "MCP conectados y capa de canales (correo SMTP, webhooks de Slack o Teams, .eml) para enviar a interesados. Usar: sincronizar Jira, publicar en Slack/Teams, enviar correo, sync. No: BMAD→pm-bmad-puente; transcripciones→pm-reuniones."
-version: 2.6.0
+version: 2.7.0
 author: pm-method
 license: MIT
 metadata:

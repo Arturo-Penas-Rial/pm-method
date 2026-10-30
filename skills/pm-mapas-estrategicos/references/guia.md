@@ -70,7 +70,7 @@ Construir algo que el mercado ya ofrece como producto o commodity exige una deci
 | Opciones del business case | qué cambia entre opciones: qué se construye en cada una y qué se compra | `pm-caso-de-negocio` (opciones 0/1/2, VAN) |
 | Requisitos de calidad | componentes muy visibles para el usuario: expectativas de calidad del cliente | descripción del producto del proyecto (`pm-planificacion-por-productos`) |
 
-`mapas.py render` agrega una columna "Lectura sugerida" con esta heurística; es un punto de partida para la conversación,
+`mapas.py wardley render` agrega una columna "Lectura sugerida" con esta heurística; es un punto de partida para la conversación,
 no una regla de PRINCE2 ni un sustituto de los criterios del enfoque.
 
 **Decisiones que leen el mapa** (`pm-direccion-decisiones`, guía §13.11 de esa skill). Una hoja de decisión nombra un

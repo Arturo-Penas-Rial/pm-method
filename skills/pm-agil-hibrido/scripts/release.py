@@ -75,7 +75,7 @@ def main():
     e = E.cargar_estado(a.proyecto); idi = e.get("idioma", "es"); t = lambda es, en: E.t(idi, es, en)
     pb = os.path.join(a.proyecto, "02-planificacion", "backlog.csv")
     if not os.path.exists(pb): sys.exit(t(f"No existe {pb}: armar antes el backlog (pm-agil-hibrido; con BMAD, bmad.py backlog)", f"{pb} not found: build the backlog first"))
-    filas = list(csv.DictReader(open(pb, encoding="utf-8")))
+    filas = E.leer_filas(pb, idi)
     vel = a.velocidad if a.velocidad is not None else E.monto((e.get("agil") or {}).get("velocidad_referencia"))
     if not vel or vel <= 0:
         sys.exit(t("Sin velocidad: registrar estado.json.agil.velocidad_referencia (pm-director) o indicar --velocidad",

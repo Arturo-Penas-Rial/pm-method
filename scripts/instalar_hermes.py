@@ -34,9 +34,14 @@ def main():
     os.makedirs(dest)
     open(os.path.join(dest, ".pm-method"), "w").write("copia generada por scripts/instalar_hermes.py; se reemplaza en cada instalación\n")
     cambiados = 0
+    d = dest.replace("\\", "/")
     def adaptar(txt):
+        """Rutas del plugin → copia de Hermes. En Hermes las skills quedan en <destino>/<skill>/ (sin la carpeta skills/):
+        ${CLAUDE_PLUGIN_ROOT}/skills/<skill>/… → <destino>/<skill>/… (antes quedaba <destino>/skills/<skill>/…, que no existe),
+        y la mención genérica ~/.hermes/skills/<skill>/… → <destino>/<skill>/… (la copia va en una carpeta propia)."""
         nonlocal cambiados
-        nuevo = txt.replace("${CLAUDE_SKILL_DIR}", "${HERMES_SKILL_DIR}").replace("${CLAUDE_PLUGIN_ROOT}", dest.replace("\\", "/"))
+        nuevo = (txt.replace("${CLAUDE_SKILL_DIR}", "${HERMES_SKILL_DIR}").replace("${CLAUDE_PLUGIN_ROOT}/skills/", d + "/")
+                 .replace("${CLAUDE_PLUGIN_ROOT}", d).replace("~/.hermes/skills/", d + "/"))
         if nuevo != txt: cambiados += 1
         return nuevo
     for s in skills:
@@ -52,8 +57,7 @@ def main():
     ag = os.path.join(dest, "_agentes"); os.makedirs(ag)
     for f in sorted(os.listdir(os.path.join(RAIZ, "agents"))):
         t = open(os.path.join(RAIZ, "agents", f), encoding="utf-8").read()
-        t = t.replace("${CLAUDE_PLUGIN_ROOT}/skills/", dest.replace("\\", "/") + "/")
-        open(os.path.join(ag, f), "w", encoding="utf-8").write(t)
+        open(os.path.join(ag, f), "w", encoding="utf-8").write(adaptar(t))
     restos = [os.path.join(b, f) for b, _, fs in os.walk(dest) for f in fs if f.endswith(".md")
               and re.search(r"\$\{CLAUDE_(SKILL_DIR|PLUGIN_ROOT)\}", open(os.path.join(b, f), encoding="utf-8").read())]
     print(f"Listo: {len(skills)} skills ({cambiados} archivos adaptados), agentes en {ag}.")

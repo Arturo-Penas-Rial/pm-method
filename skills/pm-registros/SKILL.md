@@ -1,7 +1,7 @@
 ---
 name: pm-registros
 description: "Registros genéricos (supuestos, decisiones, acciones, diario) y clasificación. Usar: registrar, anotar, acción, supuesto, RAID, action log. No: riesgos→pm-riesgos; issues/cambios→pm-issues-cambios."
-version: 2.6.0
+version: 2.7.0
 author: pm-method
 license: MIT
 metadata:
