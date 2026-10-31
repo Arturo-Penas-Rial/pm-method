@@ -19,3 +19,5 @@ pruebas-docker*/
 .claude/settings.local.json
 # secretos de pm-kb (contraseñas de la base del perfil kb de docker/compose.yaml)
 docker/kb-secretos/
+
+docs/ieee/
